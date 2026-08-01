@@ -1,6 +1,9 @@
 import estilos from './ui-campo-texto.css?inline';
 
 export class UICampoTexto extends HTMLElement {
+  static formAssociated = true;
+  private internals: ElementInternals;
+
   static get observedAttributes() {
     return [
       'label',
@@ -26,9 +29,11 @@ export class UICampoTexto extends HTMLElement {
 
   private _senhaVisivel: boolean = false;
   private _checkTimer: any = null;
+  private _focado: boolean = false;
 
   constructor() {
     super();
+    this.internals = this.attachInternals();
     const shadow = this.attachShadow({ mode: 'open' });
     shadow.innerHTML = `
       <style>${estilos}</style>
@@ -83,7 +88,8 @@ export class UICampoTexto extends HTMLElement {
   }
 
   attributeChangedCallback(name: string, _old: string | null, value: string | null) {
-    if (name === 'value' && value !== this.inputElement.value) {
+    const estaFocado = this._focado;
+    if (name === 'value' && value !== this.inputElement.value && !estaFocado) {
       this.inputElement.value = value || '';
     }
     this.syncState();
@@ -143,7 +149,7 @@ export class UICampoTexto extends HTMLElement {
     const labelText = this.getAttribute('label');
     const isFlutuante = this.hasAttribute('label-flutuante');
     const temValor = this.inputElement.value.trim() !== '';
-    const estaFocado = document.activeElement === this || this.shadowRoot?.activeElement === this.inputElement;
+    const estaFocado = this._focado;
     const temAutofill = (() => {
       try {
         return this.inputElement.matches(':-webkit-autofill');
@@ -184,9 +190,10 @@ export class UICampoTexto extends HTMLElement {
     }
 
     // 4. Value
-    if (this.hasAttribute('value') && this.getAttribute('value') !== this.inputElement.value) {
+    if (this.hasAttribute('value') && this.getAttribute('value') !== this.inputElement.value && !estaFocado) {
       this.inputElement.value = this.getAttribute('value') || '';
     }
+    this.internals.setFormValue(this.inputElement.value);
 
     // 5. Disabled & Readonly
     const isDisabled = this.hasAttribute('disabled');
@@ -240,18 +247,24 @@ export class UICampoTexto extends HTMLElement {
   };
 
   private handleFocus = () => {
+    this._focado = true;
     this.wrapperElement.classList.add('ui-campo-texto__wrapper--foco');
     this.syncState();
   };
 
   private handleBlur = () => {
+    this._focado = false;
     this.wrapperElement.classList.remove('ui-campo-texto__wrapper--foco');
     this.syncState();
   };
 
   private handleInput = (e: Event) => {
     const val = (e.target as HTMLInputElement).value;
-    this.setAttribute('value', val);
+    // O valor já está no inputElement. Apenas notifique o exterior e sincronize o label flutuante
+
+    this.internals.setFormValue(val);
+
+    // Atualiza apenas classes de foco/flutuante
     this.syncState();
 
     this.dispatchEvent(
@@ -263,8 +276,14 @@ export class UICampoTexto extends HTMLElement {
     );
   };
 
+  formResetCallback() {
+    this.value = this.getAttribute('value') || '';
+    this.syncState();
+  }
+
   private handleChange = (e: Event) => {
     const val = (e.target as HTMLInputElement).value;
+    this.internals.setFormValue(val);
     this.dispatchEvent(
       new CustomEvent('ui-change', {
         detail: { value: val },

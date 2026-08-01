@@ -1,6 +1,9 @@
 import estilos from './ui-switch.css?inline';
 
 export class UISwitch extends HTMLElement {
+  static formAssociated = true;
+  private internals: ElementInternals;
+
   static get observedAttributes() {
     return [
       'ativo',
@@ -22,6 +25,7 @@ export class UISwitch extends HTMLElement {
 
   constructor() {
     super();
+    this.internals = this.attachInternals();
     const shadow = this.attachShadow({ mode: 'open' });
     shadow.innerHTML = `
       <style>${estilos}</style>
@@ -151,6 +155,16 @@ export class UISwitch extends HTMLElement {
     } else {
       this.labelElement.style.display = 'none';
     }
+
+    if (isChecked) {
+      this.internals.setFormValue(this.getAttribute('value') || 'on');
+    } else {
+      this.internals.setFormValue(null);
+    }
+  }
+
+  formResetCallback() {
+    this.ativo = this.hasAttribute('checked') || this.hasAttribute('ligado');
   }
 
   private handleClick = (e: MouseEvent) => {

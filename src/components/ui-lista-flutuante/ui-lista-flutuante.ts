@@ -6,6 +6,9 @@ export interface ItemLista {
 }
 
 export class UIListaFlutuante extends HTMLElement {
+  static formAssociated = true;
+  private internals: ElementInternals;
+
   static get observedAttributes() {
     return ['aberta', 'texto-padrao', 'value', 'disabled', 'bottom-sheet', 'modo-mobile'];
   }
@@ -16,9 +19,12 @@ export class UIListaFlutuante extends HTMLElement {
   private backdropElement: HTMLDivElement;
   private _itens: ItemLista[] = [];
   private _value: string = '';
+  private observer!: MutationObserver;
+  private focusedIndex: number = -1;
 
   constructor() {
     super();
+    this.internals = this.attachInternals();
     const shadow = this.attachShadow({ mode: 'open' });
     shadow.innerHTML = `
       <style>${estilos}</style>
@@ -39,30 +45,38 @@ export class UIListaFlutuante extends HTMLElement {
 
   connectedCallback() {
     this.button.addEventListener('click', this.toggleLista);
+    this.button.addEventListener('keydown', this.handleKeyDown);
+    this.content.addEventListener('keydown', this.handleListKeyDown);
     this.backdropElement.addEventListener('click', this.fechar);
     document.addEventListener('click', this.handleClickFora);
     this.carregarItensFilhos();
     this.syncState();
+
+    this.observer = new MutationObserver(() => this.carregarItensFilhos());
+    this.observer.observe(this, { childList: true, subtree: true });
   }
 
   private carregarItensFilhos() {
-    if (this._itens.length === 0) {
-      const options = Array.from(this.querySelectorAll('option, ui-opcao, [value]'));
-      if (options.length > 0) {
-        this._itens = options.map((opt, idx) => ({
-          id: opt.getAttribute('value') || String(idx + 1),
-          label: opt.textContent?.trim() || opt.getAttribute('value') || `Opção ${idx + 1}`
-        }));
-        this.renderItens();
-        this.syncLabel();
-      }
+    const options = Array.from(this.querySelectorAll('option, ui-opcao, [value]'));
+    if (options.length > 0) {
+      this._itens = options.map((opt, idx) => ({
+        id: opt.getAttribute('value') || String(idx + 1),
+        label: opt.textContent?.trim() || opt.getAttribute('value') || `Opção ${idx + 1}`
+      }));
+      this.renderItens();
+      this.syncLabel();
     }
   }
 
   disconnectedCallback() {
     this.button.removeEventListener('click', this.toggleLista);
+    this.button.removeEventListener('keydown', this.handleKeyDown);
+    this.content.removeEventListener('keydown', this.handleListKeyDown);
     this.backdropElement.removeEventListener('click', this.fechar);
     document.removeEventListener('click', this.handleClickFora);
+    if (this.observer) {
+      this.observer.disconnect();
+    }
     this.fechar();
   }
 
@@ -88,8 +102,13 @@ export class UIListaFlutuante extends HTMLElement {
   set value(val: string) {
     this._value = val;
     this.setAttribute('value', val);
+    this.internals.setFormValue(val);
     this.syncLabel();
     this.updateSelectedState();
+  }
+
+  formResetCallback() {
+    this.value = this.getAttribute('value') || '';
   }
 
   get itens(): ItemLista[] {
@@ -111,6 +130,58 @@ export class UIListaFlutuante extends HTMLElement {
       this.abrir();
     }
   };
+
+  private handleKeyDown = (e: KeyboardEvent) => {
+    if (this.hasAttribute('disabled')) return;
+    if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (!this.hasAttribute('aberta')) {
+        this.abrir();
+      } else {
+        this.focarPrimeiroItem();
+      }
+    }
+  };
+
+  private handleListKeyDown = (e: KeyboardEvent) => {
+    if (!this.hasAttribute('aberta')) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      this.moverFoco(1);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      this.moverFoco(-1);
+    } else if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      if (this.focusedIndex >= 0 && this.focusedIndex < this._itens.length) {
+        this.selecionarItem(this._itens[this.focusedIndex]);
+      }
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      this.fechar();
+      this.button.focus();
+    }
+  };
+
+  private focarPrimeiroItem() {
+    const liElements = Array.from(this.content.querySelectorAll('.ui-lista-flutuante__item')) as HTMLLIElement[];
+    if (liElements.length > 0) {
+      this.focusedIndex = 0;
+      liElements[0].focus();
+    }
+  }
+
+  private moverFoco(direcao: number) {
+    const liElements = Array.from(this.content.querySelectorAll('.ui-lista-flutuante__item')) as HTMLLIElement[];
+    if (liElements.length === 0) return;
+
+    this.focusedIndex += direcao;
+    if (this.focusedIndex < 0) this.focusedIndex = liElements.length - 1;
+    if (this.focusedIndex >= liElements.length) this.focusedIndex = 0;
+
+    liElements[this.focusedIndex].focus();
+  }
 
   private abrir() {
     this.setAttribute('aberta', '');
@@ -197,6 +268,7 @@ export class UIListaFlutuante extends HTMLElement {
       li.setAttribute('data-id', item.id);
       li.textContent = item.label;
       li.role = 'option';
+      li.tabIndex = -1;
       if (isSelected) li.setAttribute('aria-selected', 'true');
       li.addEventListener('click', (e: MouseEvent) => {
         e.stopPropagation();
@@ -209,6 +281,7 @@ export class UIListaFlutuante extends HTMLElement {
   private syncState() {
     if (this.hasAttribute('value')) {
       this._value = this.getAttribute('value') || '';
+      this.internals.setFormValue(this._value);
     }
     this.syncLabel();
   }

@@ -16,6 +16,8 @@ export class UIModal extends HTMLElement {
   private dialogElement: HTMLDivElement;
   private tituloElement: HTMLHeadingElement;
   private closeElement: HTMLButtonElement;
+  private _elementoGatilho: HTMLElement | null = null;
+  private _focables: HTMLElement[] = [];
 
   constructor() {
     super();
@@ -23,7 +25,7 @@ export class UIModal extends HTMLElement {
     shadow.innerHTML = `
       <style>${estilos}</style>
       <div class="ui-modal__backdrop"></div>
-      <div class="ui-modal__dialog" role="dialog" aria-modal="true">
+      <div class="ui-modal__dialog" role="dialog" aria-modal="true" tabindex="-1">
         <div class="ui-modal__handle"></div>
         <div class="ui-modal__header">
           <h3 class="ui-modal__titulo"></h3>
@@ -56,6 +58,9 @@ export class UIModal extends HTMLElement {
     this.backdropElement.removeEventListener('click', this.handleBackdropClick);
     this.closeElement.removeEventListener('click', this.handleCloseClick);
     window.removeEventListener('keydown', this.handleKeyDown);
+    if (this.aberto) {
+      document.body.style.overflow = '';
+    }
   }
 
   attributeChangedCallback(_name: string, _old: string | null, _value: string | null) {
@@ -78,6 +83,10 @@ export class UIModal extends HTMLElement {
 
   public abrir() {
     if (!this.aberto) {
+      // Salvar quem disparou o modal
+      if (document.activeElement && document.activeElement !== document.body) {
+        this._elementoGatilho = document.activeElement as HTMLElement;
+      }
       this.aberto = true;
       this.dispatchEvent(
         new CustomEvent('ui-abrir', {
@@ -85,6 +94,15 @@ export class UIModal extends HTMLElement {
           composed: true,
         })
       );
+      // Aguardar render para capturar os focusables e focar o primeiro
+      setTimeout(() => {
+        this._atualizarFocables();
+        if (this._focables.length > 0) {
+          this._focables[0].focus();
+        } else {
+          this.dialogElement.focus();
+        }
+      }, 0);
     }
   }
 
@@ -98,6 +116,11 @@ export class UIModal extends HTMLElement {
           composed: true,
         })
       );
+      // Restaurar o foco
+      if (this._elementoGatilho) {
+        this._elementoGatilho.focus();
+        this._elementoGatilho = null;
+      }
     }
   }
 
@@ -142,9 +165,74 @@ export class UIModal extends HTMLElement {
     this.fechar();
   };
 
+  private _atualizarFocables() {
+    // Busca por elementos focáveis no shadow dom e light dom associado
+    const focusableSelectors = 'a[href], button, input, textarea, select, details, [tabindex]:not([tabindex="-1"])';
+
+    // Obter focáveis do Shadow DOM
+    let shadowFocables = Array.from(this.shadowRoot!.querySelectorAll(focusableSelectors)) as HTMLElement[];
+    // Remover elementos que estão explicitamente display: none
+    shadowFocables = shadowFocables.filter(el => window.getComputedStyle(el).display !== 'none');
+
+    // Obter focáveis do Light DOM (slotted content)
+    const slotElements = this.shadowRoot!.querySelectorAll('slot');
+    let lightFocables: HTMLElement[] = [];
+    slotElements.forEach(slot => {
+      const assigned = slot.assignedElements({ flatten: true });
+      assigned.forEach(node => {
+        if (node instanceof HTMLElement) {
+          if (node.matches(focusableSelectors)) {
+            lightFocables.push(node);
+          }
+          lightFocables.push(...Array.from(node.querySelectorAll(focusableSelectors)) as HTMLElement[]);
+        }
+      });
+    });
+
+    this._focables = [...shadowFocables, ...lightFocables].filter(el => {
+      // Filter out disabled elements
+      return !el.hasAttribute('disabled') && el.getAttribute('aria-hidden') !== 'true';
+    });
+  }
+
+  private _isTopMostModal(): boolean {
+    const modaisAbertos = Array.from(document.querySelectorAll('ui-modal[aberto], ui-modal[open], ui-dialog[aberto], ui-dialog[open]'));
+    return modaisAbertos[modaisAbertos.length - 1] === this;
+  }
+
   private handleKeyDown = (e: KeyboardEvent) => {
-    if (e.key === 'Escape' && this.aberto) {
+    if (!this.aberto) return;
+
+    // Process keyboard events only if this modal is the top-most active modal
+    if (!this._isTopMostModal()) return;
+
+    if (e.key === 'Escape') {
       this.fechar();
+      e.stopImmediatePropagation();
+    } else if (e.key === 'Tab') {
+      this._atualizarFocables();
+      if (this._focables.length === 0) {
+        e.preventDefault();
+        return;
+      }
+
+      const firstFocable = this._focables[0];
+      const lastFocable = this._focables[this._focables.length - 1];
+
+      // Pegar elemento ativo considerando Light e Shadow DOM
+      const activeEl = (this.getRootNode() as Document | ShadowRoot).activeElement;
+
+      if (e.shiftKey) {
+        if (activeEl === firstFocable || !this.contains(activeEl as Node) && !this.shadowRoot?.contains(activeEl as Node)) {
+          e.preventDefault();
+          lastFocable.focus();
+        }
+      } else {
+        if (activeEl === lastFocable || !this.contains(activeEl as Node) && !this.shadowRoot?.contains(activeEl as Node)) {
+          e.preventDefault();
+          firstFocable.focus();
+        }
+      }
     }
   };
 }

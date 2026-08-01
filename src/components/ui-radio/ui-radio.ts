@@ -1,6 +1,9 @@
 import estilos from './ui-radio.css?inline';
 
 export class UIRadio extends HTMLElement {
+  static formAssociated = true;
+  private internals: ElementInternals;
+
   static get observedAttributes() {
     return [
       'marcado',
@@ -21,6 +24,7 @@ export class UIRadio extends HTMLElement {
 
   constructor() {
     super();
+    this.internals = this.attachInternals();
     const shadow = this.attachShadow({ mode: 'open' });
     shadow.innerHTML = `
       <style>${estilos}</style>
@@ -68,7 +72,7 @@ export class UIRadio extends HTMLElement {
       this.removeAttribute('marcado');
       this.removeAttribute('checked');
     }
-    this.syncState();
+    // We don't need syncState here since setAttribute triggers attributeChangedCallback
   }
 
   get name(): string {
@@ -103,7 +107,9 @@ export class UIRadio extends HTMLElement {
       const radiosDoGrupo = root.querySelectorAll(`ui-radio[name="${grupoNome}"], ui-radio[nome="${grupoNome}"]`);
       radiosDoGrupo.forEach(el => {
         if (el !== this && el instanceof UIRadio) {
-          el.marcado = false;
+          el.removeAttribute('marcado');
+          el.removeAttribute('checked');
+          el.syncState();
         }
       });
     }
@@ -162,6 +168,28 @@ export class UIRadio extends HTMLElement {
     } else {
       this.labelElement.style.display = 'none';
     }
+
+    if (isChecked) {
+      this.internals.setFormValue(this.getAttribute('value') || 'on');
+    } else {
+      this.internals.setFormValue(null);
+    }
+  }
+
+  formResetCallback() {
+    const shouldBeChecked = this.hasAttribute('checked');
+    if (shouldBeChecked) {
+      this.setAttribute('marcado', '');
+    } else {
+      this.removeAttribute('marcado');
+    }
+    // Set internal form value explicitly in case attributes didn't trigger it properly during reset phase
+    if (shouldBeChecked) {
+      this.internals.setFormValue(this.getAttribute('value') || 'on');
+    } else {
+      this.internals.setFormValue(null);
+    }
+    this.syncState();
   }
 
   private handleClick = (e: MouseEvent) => {

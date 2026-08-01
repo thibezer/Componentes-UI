@@ -1,6 +1,9 @@
 import estilos from './ui-checkbox.css?inline';
 
 export class UICheckbox extends HTMLElement {
+  static formAssociated = true;
+  private internals: ElementInternals;
+
   static get observedAttributes() {
     return [
       'marcado',
@@ -21,6 +24,7 @@ export class UICheckbox extends HTMLElement {
 
   constructor() {
     super();
+    this.internals = this.attachInternals();
     const shadow = this.attachShadow({ mode: 'open' });
     shadow.innerHTML = `
       <style>${estilos}</style>
@@ -186,6 +190,17 @@ export class UICheckbox extends HTMLElement {
     } else {
       this.labelElement.style.display = 'none';
     }
+
+    if (isChecked) {
+      this.internals.setFormValue(this.getAttribute('value') || 'on');
+    } else {
+      this.internals.setFormValue(null);
+    }
+  }
+
+  formResetCallback() {
+    this.marcado = this.hasAttribute('checked');
+    this.indeterminado = this.hasAttribute('indeterminate');
   }
 
   private handleClick = (e: MouseEvent) => {
