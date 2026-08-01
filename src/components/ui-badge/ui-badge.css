@@ -1,0 +1,131 @@
+:host {
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  font-family: var(--ui-fonte-base, 'Inter', sans-serif);
+  vertical-align: middle;
+}
+
+.ui-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  user-select: none;
+  box-sizing: border-box;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  white-space: nowrap;
+}
+
+/* 1. Estilo Suave (Soft, Padrão) */
+.ui-badge--suave {
+  background-color: var(--ui-cor-badge-fundo, rgba(255, 255, 255, 0.08));
+  color: var(--ui-cor-badge-texto, #e1e1e6);
+  border: 1px solid transparent;
+}
+
+/* 2. Estilo Sólido (Filled) */
+.ui-badge--solido {
+  background-color: var(--ui-cor-badge-solido, #888899);
+  color: #000000;
+  border: 1px solid transparent;
+}
+
+/* 3. Estilo Contornado (Outline) */
+.ui-badge--contornado {
+  background-color: transparent;
+  color: var(--ui-cor-badge-texto, #e1e1e6);
+  border: 1px solid var(--ui-cor-badge-borda, rgba(255, 255, 255, 0.2));
+}
+
+/* Variantes Temáticas */
+/* Sucesso */
+.ui-badge--sucesso.ui-badge--suave {
+  background-color: rgba(0, 224, 138, 0.15);
+  color: var(--ui-cor-primaria, #00E08A);
+}
+.ui-badge--sucesso.ui-badge--solido {
+  background-color: var(--ui-cor-primaria, #00E08A);
+  color: #000000;
+}
+.ui-badge--sucesso.ui-badge--contornado {
+  color: var(--ui-cor-primaria, #00E08A);
+  border-color: rgba(0, 224, 138, 0.4);
+}
+
+/* Erro / Destrutivo */
+.ui-badge--erro.ui-badge--suave {
+  background-color: rgba(255, 85, 85, 0.15);
+  color: var(--ui-cor-texto-erro, #ff5555);
+}
+.ui-badge--erro.ui-badge--solido {
+  background-color: var(--ui-cor-texto-erro, #ff5555);
+  color: #ffffff;
+}
+.ui-badge--erro.ui-badge--contornado {
+  color: var(--ui-cor-texto-erro, #ff5555);
+  border-color: rgba(255, 85, 85, 0.4);
+}
+
+/* Alerta */
+.ui-badge--alerta.ui-badge--suave {
+  background-color: rgba(255, 184, 108, 0.15);
+  color: var(--ui-cor-texto-alerta, #ffb86c);
+}
+.ui-badge--alerta.ui-badge--solido {
+  background-color: var(--ui-cor-texto-alerta, #ffb86c);
+  color: #000000;
+}
+.ui-badge--alerta.ui-badge--contornado {
+  color: var(--ui-cor-texto-alerta, #ffb86c);
+  border-color: rgba(255, 184, 108, 0.4);
+}
+
+/* Info / Primária */
+.ui-badge--info.ui-badge--suave,
+.ui-badge--primaria.ui-badge--suave {
+  background-color: rgba(0, 170, 255, 0.15);
+  color: #00aaff;
+}
+.ui-badge--info.ui-badge--solido,
+.ui-badge--primaria.ui-badge--solido {
+  background-color: #00aaff;
+  color: #ffffff;
+}
+.ui-badge--info.ui-badge--contornado,
+.ui-badge--primaria.ui-badge--contornado {
+  color: #00aaff;
+  border-color: rgba(0, 170, 255, 0.4);
+}
+
+/* Neutro / Secundária */
+.ui-badge--neutro.ui-badge--suave {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: var(--ui-cor-texto-secundario, #888899);
+}
+
+/* Botão de Fechar / Remover no Chip */
+.ui-badge__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.15s ease, background-color 0.15s ease;
+  font-size: 10px;
+  line-height: 1;
+  margin-left: 2px;
+}
+
+.ui-badge__close:hover {
+  opacity: 1;
+  background-color: rgba(255, 255, 255, 0.2);
+}

@@ -1,0 +1,31 @@
+:root {
+  /* Cores Principais */
+  --ui-cor-primaria: #00E08A;
+  --ui-cor-texto-sobre-primaria: #000000;
+  --ui-cor-destaque: #00E08A;
+
+  /* Neutros e Fundos */
+  --ui-cor-fundo: #0b0b0d;
+  --ui-cor-superficie: #141417;
+  --ui-cor-fundo-elevado: #1a1a1e;
+  --ui-cor-fundo-card: #18181c;
+  --ui-cor-fundo-menu: #18181c;
+  --ui-cor-hover-menu: rgba(255, 255, 255, 0.08);
+
+  /* Texto e Cores Temáticas */
+  --ui-cor-texto: #e1e1e6;
+  --ui-cor-texto-secundario: #888899;
+  --ui-cor-texto-erro: #ff5555;
+  --ui-cor-texto-sucesso: #00E08A;
+  --ui-cor-texto-alerta: #ffb86c;
+
+  /* Cores para Variações de Botão */
+  --ui-cor-botao-secundario-fundo: #1e1e24;
+  --ui-cor-botao-secundario-hover: #2a2a34;
+  --ui-cor-botao-destrutivo-fundo: #ff4444;
+  --ui-cor-botao-destrutivo-hover: #e03333;
+  --ui-cor-botao-destrutivo-texto: #ffffff;
+
+  /* Bordas e Divisores */
+  --ui-cor-borda: rgba(255, 255, 255, 0.12);
+}

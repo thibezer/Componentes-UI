@@ -1,0 +1,130 @@
+:host {
+  display: block;
+  box-sizing: border-box;
+  font-family: var(--ui-fonte-base, 'Inter', sans-serif);
+}
+
+.ui-alerta {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: var(--ui-raio-borda, 8px);
+  border: 1px solid transparent;
+  background-color: var(--ui-cor-fundo-elevado, #1a1a1e);
+  color: var(--ui-cor-texto, #e1e1e6);
+  box-sizing: border-box;
+  position: relative;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  line-height: 1.4;
+}
+
+.ui-alerta__icone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.ui-alerta__conteudo {
+  flex: 1;
+}
+
+.ui-alerta__titulo {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin: 0 0 2px 0;
+  line-height: 1.2;
+}
+
+.ui-alerta__mensagem {
+  font-size: 0.825rem;
+  margin: 0;
+  opacity: 0.9;
+}
+
+.ui-alerta__close {
+  background: transparent;
+  border: none;
+  color: currentColor;
+  opacity: 0.7;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: -2px;
+  margin-right: -4px;
+  transition: opacity 0.15s ease, background-color 0.15s ease;
+}
+
+.ui-alerta__close:hover {
+  opacity: 1;
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Variantes Temáticas (Sucesso, Erro, Alerta, Info) */
+.ui-alerta--sucesso {
+  background-color: rgba(0, 224, 138, 0.12);
+  border-color: rgba(0, 224, 138, 0.3);
+  color: var(--ui-cor-texto-sucesso, #00E08A);
+}
+.ui-alerta--sucesso .ui-alerta__mensagem {
+  color: var(--ui-cor-texto, #e1e1e6);
+}
+
+.ui-alerta--erro {
+  background-color: rgba(255, 85, 85, 0.12);
+  border-color: rgba(255, 85, 85, 0.3);
+  color: var(--ui-cor-texto-erro, #ff5555);
+}
+.ui-alerta--erro .ui-alerta__mensagem {
+  color: var(--ui-cor-texto, #e1e1e6);
+}
+
+.ui-alerta--alerta {
+  background-color: rgba(255, 184, 108, 0.12);
+  border-color: rgba(255, 184, 108, 0.3);
+  color: var(--ui-cor-texto-alerta, #ffb86c);
+}
+.ui-alerta--alerta .ui-alerta__mensagem {
+  color: var(--ui-cor-texto, #e1e1e6);
+}
+
+.ui-alerta--info {
+  background-color: rgba(0, 170, 255, 0.12);
+  border-color: rgba(0, 170, 255, 0.3);
+  color: #00aaff;
+}
+.ui-alerta--info .ui-alerta__mensagem {
+  color: var(--ui-cor-texto, #e1e1e6);
+}
+
+/* ====================================================
+   Componente Toast Flutuante Temporário (Empilhavel)
+   ==================================================== */
+:host(ui-toast) {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  pointer-events: auto;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease;
+}
+
+.ui-toast__banner {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+  animation: ui-toast-slide 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes ui-toast-slide {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}

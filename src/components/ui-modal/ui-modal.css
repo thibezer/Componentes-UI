@@ -1,0 +1,174 @@
+:host {
+  display: block;
+  box-sizing: border-box;
+  font-family: var(--ui-fonte-base, 'Inter', sans-serif);
+}
+
+/* Fundo Escurecido com Blur (Backdrop) */
+.ui-modal__backdrop {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  z-index: 9998;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+:host([aberto]) .ui-modal__backdrop,
+:host([open]) .ui-modal__backdrop {
+  display: block;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Container do Dialog (Desktop Centralizado) */
+.ui-modal__dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.95);
+  max-width: 560px;
+  width: 90%;
+  max-height: 85vh;
+  background-color: var(--ui-cor-fundo-card, #18181c);
+  border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.16));
+  border-radius: var(--ui-raio-borda, 12px);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  overflow: hidden;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease, visibility 0.25s ease;
+  box-sizing: border-box;
+  color: var(--ui-cor-texto, #e1e1e6);
+}
+
+:host([aberto]) .ui-modal__dialog,
+:host([open]) .ui-modal__dialog {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* Alça para Puxar (Handle) */
+.ui-modal__handle {
+  display: none;
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background-color: rgba(255, 255, 255, 0.25);
+  margin: 6px auto 12px auto;
+  flex-shrink: 0;
+}
+
+/* Cabeçalho */
+.ui-modal__header {
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  gap: 12px;
+}
+
+.ui-modal__titulo {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--ui-cor-texto, #e1e1e6);
+}
+
+.ui-modal__close {
+  background: transparent;
+  border: none;
+  color: var(--ui-cor-texto-secundario, #888899);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  line-height: 1;
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.ui-modal__close:hover {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Corpo Principal */
+.ui-modal__body {
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+  box-sizing: border-box;
+}
+
+/* Rodapé */
+.ui-modal__footer {
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: rgba(0, 0, 0, 0.15);
+}
+
+/* ====================================================
+   Mobile Bottom Sheet (Ativado em <= 640px ou [bottom-sheet])
+   ==================================================== */
+@media (max-width: 640px) {
+  .ui-modal__dialog {
+    top: auto !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    transform: translateY(100%) !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    border-radius: 16px 16px 0 0 !important;
+    max-height: 80vh !important;
+    border-bottom: none !important;
+    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.7) !important;
+  }
+
+  :host([aberto]) .ui-modal__dialog,
+  :host([open]) .ui-modal__dialog {
+    transform: translateY(0) !important;
+  }
+
+  .ui-modal__handle {
+    display: block !important;
+  }
+}
+
+:host([bottom-sheet]) .ui-modal__dialog {
+  top: auto !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  transform: translateY(100%) !important;
+  width: 100vw !important;
+  max-width: 100vw !important;
+  border-radius: 16px 16px 0 0 !important;
+  max-height: 80vh !important;
+  border-bottom: none !important;
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.7) !important;
+}
+
+:host([bottom-sheet][aberto]) .ui-modal__dialog,
+:host([bottom-sheet][open]) .ui-modal__dialog {
+  transform: translateY(0) !important;
+}
+
+:host([bottom-sheet]) .ui-modal__handle {
+  display: block !important;
+}

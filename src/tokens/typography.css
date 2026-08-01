@@ -1,0 +1,28 @@
+:root {
+  /* Famílias de Fontes */
+  --ui-fonte-base: 'Inter', system-ui, -apple-system, sans-serif;
+  --ui-fonte-codigo: 'Fira Code', 'Consolas', monospace;
+
+  /* Escala de Tamanhos de Fonte */
+  --ui-tamanho-h1: clamp(24px, 4vw, 36px);
+  --ui-tamanho-h2: clamp(20px, 3vw, 28px);
+  --ui-tamanho-h3: clamp(18px, 2.4vw, 24px);
+  --ui-tamanho-h4: clamp(16px, 2vw, 20px);
+  --ui-tamanho-h5: clamp(14px, 1.6vw, 18px);
+  --ui-tamanho-h6: clamp(13px, 1.2vw, 16px);
+  --ui-tamanho-corpo: 14px;
+  --ui-tamanho-corpo-sm: 13px;
+  --ui-tamanho-caption: 11px;
+  --ui-tamanho-codigo: 12px;
+
+  /* Pesos de Fonte */
+  --ui-peso-normal: 400;
+  --ui-peso-medio: 500;
+  --ui-peso-seminegrito: 600;
+  --ui-peso-negrito: 700;
+
+  /* Alturas de Linha */
+  --ui-altura-linha-titulo: 1.25;
+  --ui-altura-linha-corpo: 1.5;
+  --ui-altura-linha-compacta: 1.2;
+}

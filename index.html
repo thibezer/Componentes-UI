@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Playground de Web Components UI Universais</title>
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+    body {
+      background-color: #0b0b0d;
+      color: #e1e1e6;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 24px;
+    }
+    header {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+    }
+    header h1 {
+      margin: 0 0 8px 0;
+      font-size: 22px;
+      color: #00E08A;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    header p {
+      margin: 0;
+      font-size: 13px;
+      color: #a0a0b0;
+    }
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 20px;
+    }
+    .full-width-card {
+      grid-column: 1 / -1;
+    }
+    .card-componente {
+      background: #141417;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .card-componente h2 {
+      margin: 0;
+      font-size: 15px;
+      color: #ffffff;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .component-demo {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: flex-start;
+      background: #1a1a1e;
+      padding: 16px;
+      border-radius: 6px;
+    }
+    .demo-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+    }
+    .demo-label {
+      font-size: 12px;
+      color: #888899;
+      width: 120px;
+      flex-shrink: 0;
+    }
+
+    /* Painel de Controle de Redimensionamento Dinâmico */
+    .resizer-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: #101014;
+      padding: 14px 16px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .resizer-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 16px;
+    }
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+    }
+    .control-group label {
+      color: #a0a0b0;
+    }
+    .control-group input[type="range"] {
+      cursor: pointer;
+      accent-color: #00E08A;
+    }
+    .preset-btn {
+      background: #1f1f24;
+      color: #e1e1e6;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .preset-btn:hover {
+      background: #00E08A;
+      color: #000;
+    }
+    .resizable-box {
+      resize: both;
+      overflow: auto;
+      min-width: 140px;
+      max-width: 100%;
+      min-height: 60px;
+      width: 320px;
+      height: 140px;
+      padding: 16px;
+      background: #18181c;
+      border: 2px dashed rgba(0, 224, 138, 0.4);
+      border-radius: 6px;
+      box-sizing: border-box;
+      transition: width 0.1s ease, height 0.1s ease;
+    }
+
+    /* Matriz de Variações Lado a Lado */
+    .variations-matrix {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      width: 100%;
+    }
+    .matrix-column {
+      background: #18181c;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 12px;
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .matrix-title {
+      font-size: 12px;
+      color: #00E08A;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Console Card */
+    .console-card {
+      grid-column: 1 / -1;
+      background: #0d0d10;
+      border: 1px solid rgba(0, 224, 138, 0.2);
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .console-card h3 {
+      margin: 0 0 10px 0;
+      font-size: 13px;
+      color: #00E08A;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    pre#log-console {
+      background: #050507;
+      color: #33ff99;
+      font-family: 'Fira Code', 'Consolas', monospace;
+      font-size: 12px;
+      padding: 12px;
+      border-radius: 6px;
+      height: 130px;
+      overflow-y: auto;
+      margin: 0;
+      white-space: pre-wrap;
+    }
+    .badge {
+      font-size: 10px;
+      background: rgba(0, 224, 138, 0.15);
+      color: #00E08A;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🧪 Playground de Web Components UI Universais <span class="badge">SANDBOX</span></h1>
+    <p>Ambiente isolado para testes visuais, redimensionamento dinâmico (horizontal e vertical) e validação em tempo real.</p>
+  </header>
+
+  <main class="grid-container">
+
+    <!-- Card Especial: Painel de Controle de Redimensionamento Interativo (Largura x Altura) -->
+    <article class="card-componente full-width-card">
+      <h2>
+        <span>📐 Testador Interativo de Dimensões Globais (Largura x Altura)</span>
+        <span id="tag-dimensao-atual" class="badge">320px x 20px</span>
+      </h2>
+
+      <!-- Painel de Controles Duplo (Largura e Altura) -->
+      <div class="resizer-controls">
+        
+        <!-- Linha 1: Controles de Largura -->
+        <div class="resizer-row">
+          <div class="control-group">
+            <label for="slider-largura">↔️ Largura dos Containers:</label>
+            <input type="range" id="slider-largura" min="140" max="700" value="320" step="10" />
+            <span id="valor-largura" style="font-weight: bold; color: #00E08A; min-width: 50px;">320px</span>
+          </div>
+
+          <div class="control-group">
+            <span>Presets Largura:</span>
+            <button class="preset-btn preset-width" data-width="160">Compacto (160px)</button>
+            <button class="preset-btn preset-width" data-width="260">Padrão (260px)</button>
+            <button class="preset-btn preset-width" data-width="420">Largo (420px)</button>
+            <button class="preset-btn preset-width" data-width="100%">100% Fluido</button>
+          </div>
+        </div>
+
+        <!-- Linha 2: Controles de Altura -->
+        <div class="resizer-row" style="border-top: 1px solid rgba(255, 255, 255, 0.06); padding-top: 10px;">
+          <div class="control-group">
+            <label for="slider-altura">↕️ Altura Mínima Global:</label>
+            <input type="range" id="slider-altura" min="15" max="60" value="20" step="1" />
+            <span id="valor-altura" style="font-weight: bold; color: #00E08A; min-width: 50px;">20px</span>
+          </div>
+
+          <div class="control-group">
+            <span>Presets Altura:</span>
+            <button class="preset-btn preset-height" data-height="15">15px (Ultra)</button>
+            <button class="preset-btn preset-height" data-height="20">20px (Compacto)</button>
+            <button class="preset-btn preset-height" data-height="28">28px (Padrão)</button>
+            <button class="preset-btn preset-height" data-height="36">36px (Alto)</button>
+          </div>
+        </div>
+
+      </div>
+    </article>
+
+    <!-- Card 3: Demonstração de Estados Básicos -->
+    <article class="card-componente">
+      <h2>1. &lt;ui-lista-flutuante&gt; (Estados)</h2>
+      <div class="component-demo">
+        <div class="demo-row">
+          <span class="demo-label">Ativo:</span>
+          <ui-lista-flutuante id="demo-lista-lotes" texto-padrao="Selecione..." style="width: 200px;"></ui-lista-flutuante>
+        </div>
+        <div class="demo-row">
+          <span class="demo-label">Desabilitado:</span>
+          <ui-lista-flutuante texto-padrao="Bloqueado" disabled style="width: 200px;"></ui-lista-flutuante>
+        </div>
+      </div>
+    </article>
+
+    <!-- Card 4: Sistema de Botões Universais -->
+    <article class="card-componente full-width-card">
+      <h2>
+        <span>2. &lt;ui-botao-primario&gt; (Variações & Estados)</span>
+        <button id="btn-toggle-loading-global" class="preset-btn">⚡ Alternar Loading Demo</button>
+      </h2>
+
+      <div class="variations-matrix">
+        
+        <!-- Coluna 1: Variações de Estilo -->
+        <div class="matrix-column">
+          <span class="matrix-title">Variações de Estilo</span>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <ui-botao-primario variante="primary">Primary Button</ui-botao-primario>
+            <ui-botao-primario variante="secondary">Secondary Button</ui-botao-primario>
+            <ui-botao-primario variante="ghost">Ghost / Tertiary</ui-botao-primario>
+            <ui-botao-primario variante="destructive">Destructive (Erro)</ui-botao-primario>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <span style="font-size: 12px; color: #888899;">Icon-Only:</span>
+              <ui-botao-primario variante="icon-only" inline title="Salvar">💾</ui-botao-primario>
+              <ui-botao-primario variante="secondary" class="ui-botao-primario--icon-only" inline title="Configurações">⚙️</ui-botao-primario>
+              <ui-botao-primario variante="ghost" class="ui-botao-primario--icon-only" inline title="Notificações">🔔</ui-botao-primario>
+              <ui-botao-primario variante="destructive" class="ui-botao-primario--icon-only" inline title="Excluir">🗑️</ui-botao-primario>
+            </div>
+          </div>
+        </div>
+
+        <!-- Coluna 2: Estados de Interação -->
+        <div class="matrix-column">
+          <span class="matrix-title">Estados de Interação</span>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <ui-botao-primario variante="primary">Default State</ui-botao-primario>
+            <ui-botao-primario variante="primary" estado="hover">Hover State (PC)</ui-botao-primario>
+            <ui-botao-primario variante="primary" estado="active">Active / Pressed State</ui-botao-primario>
+            <ui-botao-primario variante="primary" disabled>Disabled State</ui-botao-primario>
+          </div>
+        </div>
+
+        <!-- Coluna 3: Estados de Carregamento (Loading Spinner) -->
+        <div class="matrix-column">
+          <span class="matrix-title">Estado de Carregamento (Loading)</span>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <ui-botao-primario id="btn-demo-loading-1" variante="primary" carregando>Carregando Dados...</ui-botao-primario>
+            <ui-botao-primario id="btn-demo-loading-2" variante="secondary" carregando>Salvando...</ui-botao-primario>
+            <ui-botao-primario id="btn-demo-loading-3" variante="destructive" carregando>Excluindo...</ui-botao-primario>
+            <ui-botao-primario id="btn-demo-loading-4" variante="icon-only" carregando inline title="Carregando"></ui-botao-primario>
+          </div>
+        </div>
+
+      </div>
+    </article>
+
+    <!-- Card 5: Tipografia e Hierarquia de Texto (<ui-texto>) -->
+    <article class="card-componente full-width-card">
+      <h2>3. &lt;ui-texto&gt; (Tipografia & Hierarquia de Texto)</h2>
+      <div class="variations-matrix">
+        
+        <!-- Coluna 1: Hierarquia de Títulos (H1 a H6) -->
+        <div class="matrix-column">
+          <span class="matrix-title">Hierarquia de Títulos (H1 - H6)</span>
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <ui-texto variante="h1">Título Nível 1 (H1)</ui-texto>
+            <ui-texto variante="h2">Título Nível 2 (H2)</ui-texto>
+            <ui-texto variante="h3">Título Nível 3 (H3)</ui-texto>
+            <ui-texto variante="h4">Título Nível 4 (H4)</ui-texto>
+            <ui-texto variante="h5">Título Nível 5 (H5)</ui-texto>
+            <ui-texto variante="h6">Título Nível 6 (H6)</ui-texto>
+          </div>
+        </div>
+
+        <!-- Coluna 2: Corpo de Texto, Caption e Código -->
+        <div class="matrix-column">
+          <span class="matrix-title">Corpo, Legendas e Código</span>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <ui-texto variante="corpo">
+              Texto de corpo padrão (14px). Ideal para parágrafos, descrições detalhadas e textos informativos do sistema.
+            </ui-texto>
+            <ui-texto variante="corpo-sm">
+              Texto de corpo pequeno (13px). Usado em cards densos e descrições secundárias.
+            </ui-texto>
+            <ui-texto variante="caption">
+              Legenda / Caption (11px). Utilizado para notas de rodapé e timestamps.
+            </ui-texto>
+            <div>
+              <ui-texto variante="codigo" inline>const geo = new GerenciGeo();</ui-texto>
+            </div>
+          </div>
+        </div>
+
+        <!-- Coluna 3: Cores Temáticas, Alinhamentos e Truncamento -->
+        <div class="matrix-column">
+          <span class="matrix-title">Cores Temáticas & Utilitários</span>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <ui-texto variante="corpo" cor="primaria" peso="negrito">Texto Primário Destaque</ui-texto>
+            <ui-texto variante="corpo-sm" cor="secundaria">Texto Secundário / Mutado</ui-texto>
+            <ui-texto variante="corpo-sm" cor="sucesso">✓ Operação concluída com sucesso</ui-texto>
+            <ui-texto variante="corpo-sm" cor="alerta">⚠️ Atenção: Verifique os dados inseridos</ui-texto>
+            <ui-texto variante="corpo-sm" cor="erro">✕ Erro de conexão com o servidor</ui-texto>
+            <div style="width: 100%; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 6px;">
+              <ui-texto variante="caption" truncar style="max-width: 200px;">
+                Texto muito longo que será truncado automaticamente com reticências no final da linha.
+              </ui-texto>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </article>
+
+    <!-- Card 6: Entrada de Texto (<ui-campo-texto>) -->
+    <article class="card-componente full-width-card">
+      <h2>4. &lt;ui-campo-texto&gt; (Input / TextField)</h2>
+      <div class="variations-matrix">
+        
+        <!-- Coluna 1: Elementos Básicos (Label, Placeholder, Helper Text) -->
+        <div class="matrix-column">
+          <span class="matrix-title">Rótulos e Texto de Ajuda</span>
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <ui-campo-texto id="campo-nome" label="Nome do Projeto" placeholder="Digite o nome..." helper-text="Nome identificador único do projeto no sistema."></ui-campo-texto>
+            <ui-campo-texto id="campo-email" label="E-mail Corporativo" tipo="email" placeholder="usuario@empresa.com.br" value="thiago@gerencigeo.com.br"></ui-campo-texto>
+          </div>
+        </div>
+
+        <!-- Coluna 2: Rótulo Flutuante (Floating Label) -->
+        <div class="matrix-column">
+          <span class="matrix-title">Rótulo Flutuante (Compacto)</span>
+          <div style="display: flex; flex-direction: column; gap: 14px;">
+            <ui-campo-texto id="campo-flutuante-vazio" label="Observações (Opcional)" label-flutuante helper-text="Fica dentro do campo e sobe ao focar."></ui-campo-texto>
+            <ui-campo-texto id="campo-flutuante-preenchido" label="Região / Bairro" label-flutuante value="Centro Histórico"></ui-campo-texto>
+          </div>
+        </div>
+
+        <!-- Coluna 3: Ícones (Esquerda & Direita + Senha Interativa) -->
+        <div class="matrix-column">
+          <span class="matrix-title">Ícones & Revelar Senha 👁️</span>
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <ui-campo-texto id="campo-busca" placeholder="Buscar camada ou componente...">
+              <span slot="icone-esquerda">🔍</span>
+            </ui-campo-texto>
+            <ui-campo-texto id="campo-senha" label="Senha de Acesso" tipo="password" value="secret123" alternar-senha>
+              <span slot="icone-esquerda">🔒</span>
+              <span slot="icone-direita" style="cursor: pointer;" title="Clique para Revelar/Ocultar Senha">👁️</span>
+            </ui-campo-texto>
+          </div>
+        </div>
+
+        <!-- Coluna 4: Erro & Estados Especiais -->
+        <div class="matrix-column">
+          <span class="matrix-title">Mensagem de Erro & Estados</span>
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <ui-campo-texto id="campo-erro" label="Código do Lote" value="ABC-99" erro mensagem-erro="Código de lote inválido ou expirado."></ui-campo-texto>
+            <ui-campo-texto id="campo-bloqueado" label="Chave de API (Leitura)" value="gk_live_89123891283" disabled helper-text="Campo desabilitado para edição."></ui-campo-texto>
+          </div>
+        </div>
+
+      </div>
+    </article>
+
+    <!-- Card 7: Contêiner de Ícones (<ui-icone>) & Botões Ultra-Compactos -->
+    <article class="card-componente full-width-card">
+      <h2>5. &lt;ui-icone&gt; (Wrapper de Ícones Padronizados & Herança de Cor)</h2>
+      <div class="variations-matrix">
+        
+        <!-- Coluna 1: Tamanhos Padronizados -->
+        <div class="matrix-column">
+          <span class="matrix-title">Tamanhos Fixos (sm, md, lg, xl)</span>
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+              <ui-icone nome="search" tamanho="sm"></ui-icone>
+              <span style="font-size: 10px; color: #888899;">sm (16px)</span>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+              <ui-icone nome="gear" tamanho="md"></ui-icone>
+              <span style="font-size: 10px; color: #888899;">md (20px)</span>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+              <ui-icone nome="bell" tamanho="lg"></ui-icone>
+              <span style="font-size: 10px; color: #888899;">lg (24px)</span>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+              <ui-icone nome="check" tamanho="xl"></ui-icone>
+              <span style="font-size: 10px; color: #888899;">xl (32px)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Coluna 2: Herança de Cor do Pai (currentColor) -->
+        <div class="matrix-column">
+          <span class="matrix-title">Herança de Cor do Texto Pai</span>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <div style="color: #00E08A; display: flex; align-items: center; gap: 8px; font-size: 13px;">
+              <ui-icone nome="check" tamanho="sm"></ui-icone> Texto Verde Primário
+            </div>
+            <div style="color: #ff5555; display: flex; align-items: center; gap: 8px; font-size: 13px;">
+              <ui-icone nome="alert" tamanho="sm"></ui-icone> Texto Vermelho de Erro
+            </div>
+            <div style="color: #ffb86c; display: flex; align-items: center; gap: 8px; font-size: 13px;">
+              <ui-icone nome="lock" tamanho="sm"></ui-icone> Texto Amarelo de Alerta
+            </div>
+          </div>
+        </div>
+
+        <!-- Coluna 3: Botões Ultra-Compactos (<22px com Texto em 13px/11px) -->
+        <div class="matrix-column">
+          <span class="matrix-title">Botões Compactos (&lt; 22px / Fonte 13px)</span>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <div style="display: flex; gap: 8px;">
+              <ui-botao-primario variante="primary" inline style="min-height: 15px; height: 18px;">
+                <ui-icone nome="check" tamanho="sm"></ui-icone> Salvar 15px
+              </ui-botao-primario>
+              <ui-botao-primario variante="secondary" inline style="min-height: 18px; height: 20px;">
+                <ui-icone nome="gear" tamanho="sm"></ui-icone> Ajustes 20px
+              </ui-botao-primario>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <ui-botao-primario variante="destructive" inline style="min-height: 15px; height: 18px;">
+                <ui-icone nome="trash" tamanho="sm"></ui-icone> Excluir
+              </ui-botao-primario>
+              <ui-botao-primario variante="ghost" inline style="min-height: 15px; height: 18px;">
+                <ui-icone nome="bell" tamanho="sm"></ui-icone> Alertas
+              </ui-botao-primario>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </article>
+
+    <!-- Card 8: Nível 2 - Controles e Seleção de Dados (<ui-checkbox> & <ui-radio>) -->
+    <article class="card-componente full-width-card">
+      <h2>6. Nível 2: Controles de Seleção (&lt;ui-checkbox&gt; & &lt;ui-radio&gt;)</h2>
+      <div class="variations-matrix">
+        
+        <!-- Coluna 1: Checkbox (Seleções Múltiplas) -->
+        <div class="matrix-column">
+          <span class="matrix-title">Caixa de Seleção (&lt;ui-checkbox&gt;)</span>
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <ui-checkbox id="chk-notificacoes" label="Receber Notificações"></ui-checkbox>
+            <ui-checkbox id="chk-termos" label="Aceitar Termos e Condições" marcado></ui-checkbox>
+            <ui-checkbox id="chk-parcial" label="Seleção Parcial de Camadas" indeterminado></ui-checkbox>
+            <ui-checkbox id="chk-desabilitado" label="Opção Bloqueada" disabled></ui-checkbox>
+          </div>
+        </div>
+
+        <!-- Coluna 2: Radio Button (Seleção Exclusiva de Grupo) -->
+        <div class="matrix-column">
+          <span class="matrix-title">Botão Rádio Grupo (&lt;ui-radio&gt;)</span>
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <span style="font-size: 11px; color: #888899;">Modo de Visualização do Mapa:</span>
+            <ui-radio id="rdo-vetor" name="modo-mapa" label="Vetor 2D" value="vetor" marcado></ui-radio>
+            <ui-radio id="rdo-satelite" name="modo-mapa" label="Imagem de Satélite" value="satelite"></ui-radio>
+            <ui-radio id="rdo-hibrido" name="modo-mapa" label="Modelo Híbrido 3D" value="hibrido"></ui-radio>
+            <ui-radio id="rdo-bloqueado" name="modo-mapa" label="Modo Offline (Indisponível)" value="offline" disabled></ui-radio>
+          </div>
+        </div>
+
+        <!-- Coluna 3: Posição do Rótulo & Customização -->
+        <div class="matrix-column">
+          <span class="matrix-title">Posição do Rótulo (Esquerda/Direita)</span>
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <ui-checkbox id="chk-esquerda" label="Rótulo à Esquerda" posicao-label="esquerda" marcado></ui-checkbox>
+            <ui-radio id="rdo-esquerda" name="grupo-posicao" label="Rádio à Esquerda" posicao-label="esquerda" marcado></ui-radio>
+            <ui-switch id="sw-esquerda" label="Switch à Esquerda" posicao-label="esquerda" ativo></ui-switch>
+          </div>
+        </div>
+
+        <!-- Coluna 4: Switch / Toggle (Ativação Instantânea) -->
+        <div class="matrix-column">
+          <span class="matrix-title">Switch / Toggle (&lt;ui-switch&gt;)</span>
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <ui-switch id="sw-modo-escuro" label="Modo Escuro (Dark Mode)" ativo></ui-switch>
+            <ui-switch id="sw-push" label="Notificações Push"></ui-switch>
+            <div style="display: flex; align-items: center; gap: 12px; margin-top: 4px;">
+              <ui-switch id="sw-sm" tamanho="sm" label="sm" ativo></ui-switch>
+              <ui-switch id="sw-md" tamanho="md" label="md" ativo></ui-switch>
+              <ui-switch id="sw-lg" tamanho="lg" label="lg" ativo></ui-switch>
+            </div>
+            <ui-switch id="sw-disabled" label="Recurso Premium (Bloqueado)" disabled></ui-switch>
+          </div>
+        </div>
+
+      </div>
+    </article>
+
+    <!-- Card 9: Nível 2 - Select Bottom Sheet, Badges/Chips & Avatares -->
+    <article class="card-componente full-width-card">
+      <h2>7. Nível 2: Select Bottom-Sheet, Badges/Chips &amp; Avatares</h2>
+      <div class="variations-matrix">
+        
+        <!-- Coluna 1: Select / Dropdown com Mobile Bottom Sheet -->
+        <div class="matrix-column">
+          <span class="matrix-title">&lt;ui-select&gt; (Mobile Bottom-Sheet)</span>
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <ui-select id="select-mobile" texto-padrao="Selecione um Idioma..." bottom-sheet style="width: 100%;">
+              <option value="PT_BR">Português (Brasil)</option>
+              <option value="EN_US">English (United States)</option>
+              <option value="ES_ES">Español</option>
+              <option value="FR_FR">Français</option>
+            </ui-select>
+            <span style="font-size: 11px; color: #888899;">💡 <em>Em telas pequenas (&lt;= 640px) ou com o atributo <code>bottom-sheet</code>, este Select abre como um painel deslizante inferior.</em></span>
+          </div>
+        </div>
+
+        <!-- Coluna 2: Badges & Tags (Status) -->
+        <div class="matrix-column">
+          <span class="matrix-title">&lt;ui-badge&gt; (Status &amp; Categorias)</span>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+            <ui-badge variante="sucesso" estilo="suave">🟢 Ativo</ui-badge>
+            <ui-badge variante="alerta" estilo="suave">⏳ Pendente</ui-badge>
+            <ui-badge variante="erro" estilo="solido">🔴 Cancelado</ui-badge>
+            <ui-badge variante="info" estilo="contornado">ℹ️ Processando</ui-badge>
+            <ui-badge variante="neutro" estilo="suave">Draft v1.0</ui-badge>
+          </div>
+        </div>
+
+        <!-- Coluna 3: Chips Removíveis (Filtros) -->
+        <div class="matrix-column">
+          <span class="matrix-title">&lt;ui-chip&gt; (Filtros Removíveis)</span>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+            <ui-chip id="chip-gis" variante="sucesso" removivel value="Camada: SIG/GIS">SIG / GIS</ui-chip>
+            <ui-chip id="chip-vendas" variante="info" removivel value="Setor: Vendas">Vendas</ui-chip>
+            <ui-chip id="chip-urgente" variante="erro" removivel value="Prioridade: Alta">Alta Prioridade</ui-chip>
+            <ui-chip id="chip-2026" variante="neutro" removivel value="Ano: 2026">Ano 2026</ui-chip>
+          </div>
+        </div>
+
+        <!-- Coluna 4: Avatares (Foto, Iniciais, Status) -->
+        <div class="matrix-column">
+          <span class="matrix-title">&lt;ui-avatar&gt; (Representação de Usuários)</span>
+          <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+            <ui-avatar nome="Thiago Silva" status="online" tamanho="lg" title="Thiago Silva (Online)"></ui-avatar>
+            <ui-avatar nome="Ana Maria Costa" status="ausente" tamanho="md" title="Ana Maria Costa (Ausente)"></ui-avatar>
+            <ui-avatar nome="Carlos Eduardo" status="ocupado" tamanho="sm" title="Carlos Eduardo (Ocupado)"></ui-avatar>
+            <ui-avatar status="offline" tamanho="xs" title="Visitante (Offline)"></ui-avatar>
+            <ui-avatar nome="Engenharia CAD" formato="quadrado" status="online" tamanho="md" title="Equipe CAD"></ui-avatar>
+          </div>
+        </div>
+
+      </div>
+    </article>
+
+    <!-- Card 10: Nível 3 - Contêineres & Moléculas (<ui-card>) -->
+    <article class="card-componente full-width-card">
+      <h2>8. Nível 3: Contêineres de Molécula (&lt;ui-card&gt;)</h2>
+      <div class="variations-matrix">
+        
+        <!-- Caso 1: Card de Métricas / Perfil (Elevado) -->
+        <div class="matrix-column">
+          <span class="matrix-title">Card de Métricas (Elevado)</span>
+          <ui-card elevacao="elevado">
+            <div slot="cabecalho" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <ui-avatar nome="Thiago Silva" status="online" tamanho="md"></ui-avatar>
+                <div>
+                  <ui-texto variante="corpo" peso="seminegrito" style="margin: 0;">Thiago Silva</ui-texto>
+                  <ui-texto variante="caption" cor="secundaria">Engenharia de Sistemas</ui-texto>
+                </div>
+              </div>
+              <ui-badge variante="sucesso" estilo="suave">Online</ui-badge>
+            </div>
+            
+            <div style="margin-top: 8px;">
+              <ui-texto variante="caption" cor="secundaria">TAXA DE DISPONIBILIDADE DA API</ui-texto>
+              <ui-texto variante="h2" cor="primaria" peso="negrito" style="margin: 4px 0 0 0;">99.98%</ui-texto>
+            </div>
+
+            <div slot="rodape" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+              <ui-texto variante="caption" cor="secundaria">Últimos 30 dias</ui-texto>
+              <ui-botao-primario variante="ghost" inline style="min-height: 18px;">Ver Relatório ➔</ui-botao-primario>
+            </div>
+          </ui-card>
+        </div>
+
+        <!-- Caso 2: Card de Post / Conteúdo com Mídia -->
+        <div class="matrix-column">
+          <span class="matrix-title">Card de Conteúdo com Capa (Plano)</span>
+          <ui-card elevacao="plano">
+            <div slot="midia" style="height: 100px; background: linear-gradient(135deg, #18181c 0%, #00E08A22 100%); display: flex; align-items: center; justify-content: center; border-bottom: 1px solid rgba(255,255,255,0.08);">
+              <ui-icone nome="gear" tamanho="xl" cor="primaria"></ui-icone>
+            </div>
+            <div slot="cabecalho" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+              <ui-texto variante="h5" peso="seminegrito">Design System v2.0</ui-texto>
+              <ui-badge variante="info" estilo="contornado">Artigo</ui-badge>
+            </div>
+            
+            <ui-texto variante="corpo-sm" cor="secundaria">
+              Estruturação modular de Web Components nativos com alinhamento vertical e Design Tokens avançados.
+            </ui-texto>
+
+            <div slot="rodape" style="display: flex; align-items: center; gap: 6px;">
+              <ui-chip variante="neutro">WebComponents</ui-chip>
+              <ui-chip variante="sucesso">TypeScript</ui-chip>
+            </div>
+          </ui-card>
+        </div>
+
+        <!-- Caso 3: Card de Configuração Interativo (Destaque & Clicável) -->
+        <div class="matrix-column">
+          <span class="matrix-title">Card Clicável Interativo (Destaque)</span>
+          <ui-card id="card-interativo" variante="destaque" clicavel>
+            <div slot="cabecalho" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <ui-icone nome="bell" tamanho="md" cor="primaria"></ui-icone>
+                <ui-texto variante="corpo" peso="seminegrito">Alertas em Tempo Real</ui-texto>
+              </div>
+              <ui-switch id="card-sw-alertas" ativo></ui-switch>
+            </div>
+            
+            <ui-texto variante="corpo-sm" cor="secundaria">
+              Receba notificações push instantâneas para qualquer alteração crítica de status ou falha de sistema.
+            </ui-texto>
+
+            <div slot="rodape" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+              <ui-texto variante="caption" cor="primaria">💡 Clique em qualquer lugar para testar</ui-texto>
+              <ui-badge variante="sucesso" estilo="solido">ATIVO</ui-badge>
+            </div>
+          </ui-card>
+        </div>
+
+      </div>
+    </article>
+
+    <!-- Card 11: Nível 3 - Overlays & Feedback (<ui-modal>, <ui-alerta>, <ui-toast>) -->
+    <article class="card-componente full-width-card">
+      <h2>9. Nível 3: Overlays &amp; Feedback (&lt;ui-modal&gt; &amp; &lt;ui-alerta&gt;)</h2>
+      <div class="variations-matrix">
+        
+        <!-- Coluna 1: Disparadores de Modal / Bottom Sheet -->
+        <div class="matrix-column">
+          <span class="matrix-title">Modal &amp; Mobile Bottom Sheet</span>
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <ui-botao-primario id="btn-abrir-modal" variante="primary">
+              <ui-icone nome="gear" tamanho="sm"></ui-icone> Abrir Modal (Desktop)
+            </ui-botao-primario>
+            <ui-botao-primario id="btn-abrir-bottom-sheet" variante="secondary">
+              <ui-icone nome="bell" tamanho="sm"></ui-icone> Abrir Mobile Bottom Sheet
+            </ui-botao-primario>
+            <span style="font-size: 11px; color: #888899;">💡 <em>No desktop o modal é centralizado. No mobile ou com o atributo <code>bottom-sheet</code>, ele desliza do fundo da tela.</em></span>
+          </div>
+        </div>
+
+        <!-- Coluna 2: Alertas Fixos de Layout (<ui-alerta>) -->
+        <div class="matrix-column">
+          <span class="matrix-title">Alertas Fixos de Layout (&lt;ui-alerta&gt;)</span>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <ui-alerta tipo="sucesso" titulo="Operação Concluída" mensagem="Alterações salvas no banco de dados." fechavel></ui-alerta>
+            <ui-alerta tipo="alerta" titulo="Atenção" mensagem="Conexão com a API em modo de contingência." fechavel></ui-alerta>
+            <ui-alerta tipo="erro" titulo="Falha de Autenticação" mensagem="Sua chave de acesso expirou."></ui-alerta>
+          </div>
+        </div>
+
+        <!-- Coluna 3: Disparadores de Toast Flutuante (UIToast.notificar) -->
+        <div class="matrix-column">
+          <span class="matrix-title">Notificações Toast Flutuantes</span>
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <ui-botao-primario id="btn-toast-sucesso" variante="primary" style="background-color: #00E08A; color: #000;">
+              Disparar Toast Sucesso 🟢
+            </ui-botao-primario>
+            <ui-botao-primario id="btn-toast-erro" variante="destructive">
+              Disparar Toast Erro 🔴
+            </ui-botao-primario>
+            <ui-botao-primario id="btn-toast-alerta" variante="secondary">
+              Disparar Toast Alerta 🟠
+            </ui-botao-primario>
+          </div>
+        </div>
+
+        <!-- Coluna 4: Tooltips & Popovers Contextuais (<ui-tooltip>) -->
+        <div class="matrix-column">
+          <span class="matrix-title">Tooltips &amp; Popovers Contextuais</span>
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div style="display: flex; gap: 12px; align-items: center; justify-content: center; padding: 8px 0;">
+              <ui-tooltip texto="Dica no Topo" posicao="topo">
+                <ui-botao-primario variante="secondary" inline style="min-height: 18px;">Topo</ui-botao-primario>
+              </ui-tooltip>
+
+              <ui-tooltip texto="Dica Abaixo" posicao="baixo">
+                <ui-botao-primario variante="secondary" inline style="min-height: 18px;">Baixo</ui-botao-primario>
+              </ui-tooltip>
+
+              <ui-tooltip texto="Dica à Direita" posicao="direita">
+                <ui-botao-primario variante="secondary" inline style="min-height: 18px;">Direita</ui-botao-primario>
+              </ui-tooltip>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 8px; font-size: 13px;">
+              <span>Ajuda no Mobile (Clique):</span>
+              <ui-tooltip texto="Esta opção ativa a sincronização em nuvem automática." gatilho="clique" posicao="topo">
+                <span style="cursor: pointer; display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: rgba(0, 224, 138, 0.2); color: #00E08A; font-weight: bold; font-size: 12px;">?</span>
+              </ui-tooltip>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </article>
+
+    <!-- Console de Eventos em Tempo Real -->
+    <section class="console-card">
+      <h3>Console de Eventos Customizados em Tempo Real</h3>
+      <pre id="log-console">Aguardando eventos...</pre>
+    </section>
+
+  </main>
+
+  <!-- Modal Desktop Exemplo -->
+  <ui-modal id="modal-exemplo" titulo="Configurações de Conta">
+    <div style="display: flex; flex-direction: column; gap: 14px;">
+      <ui-campo-texto label="Nome Completo" value="Thiago Silva"></ui-campo-texto>
+      <ui-campo-texto label="E-mail Principal" tipo="email" value="thiago@exemplo.com"></ui-campo-texto>
+      <ui-switch label="Ativar Autenticação em 2 Etapas (2FA)" ativo></ui-switch>
+    </div>
+    <div slot="rodape" style="display: flex; gap: 10px;">
+      <ui-botao-primario variante="ghost" onclick="document.getElementById('modal-exemplo').fechar()">Cancelar</ui-botao-primario>
+      <ui-botao-primario variante="primary" onclick="document.getElementById('modal-exemplo').fechar()">Salvar Alterações</ui-botao-primario>
+    </div>
+  </ui-modal>
+
+  <!-- Modal Mobile Bottom Sheet Exemplo -->
+  <ui-modal id="modal-bottom-sheet" titulo="Ações Rápidas" bottom-sheet>
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      <ui-lista-flutuante texto-padrao="Selecione um Projeto..."></ui-lista-flutuante>
+      <ui-checkbox label="Exportar relatórios em formato PDF" marcado></ui-checkbox>
+      <ui-checkbox label="Enviar cópia para engenharia" marcado></ui-checkbox>
+    </div>
+    <div slot="rodape" style="display: flex; gap: 10px; width: 100%;">
+      <ui-botao-primario variante="primary" style="width: 100%;" onclick="document.getElementById('modal-bottom-sheet').fechar()">Confirmar</ui-botao-primario>
+    </div>
+  </ui-modal>
+
+  <script type="module" src="./pagina_testes.ts"></script>
+</body>
+</html>

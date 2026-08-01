@@ -1,0 +1,113 @@
+:host {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.ui-card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  box-sizing: border-box;
+  background-color: var(--ui-cor-fundo-card, #18181c);
+  border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
+  border-radius: var(--ui-raio-borda, 8px);
+  overflow: hidden;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s ease;
+  color: var(--ui-cor-texto, #e1e1e6);
+  font-family: var(--ui-fonte-base, 'Inter', sans-serif);
+}
+
+/* 1. Variante Plana (Flat, Padrão) */
+.ui-card--plano {
+  background-color: var(--ui-cor-fundo-card, #18181c);
+  box-shadow: none;
+}
+
+/* 2. Variante Elevada (Raised / Sombra Profunda) */
+.ui-card--elevado {
+  background-color: var(--ui-cor-fundo-elevado, #1e1e24);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* 3. Variante Destaque (Accent / Borda Primária) */
+.ui-card--destaque {
+  border-color: var(--ui-cor-primaria, #00E08A);
+  background-color: var(--ui-cor-fundo-card, #18181c);
+  box-shadow: 0 0 0 1px rgba(0, 224, 138, 0.25);
+}
+
+/* Estado Clicável / Interativo */
+.ui-card--clicavel {
+  cursor: pointer;
+  user-select: none;
+}
+
+.ui-card--clicavel:hover {
+  transform: translateY(-3px);
+  border-color: var(--ui-cor-primaria, #00E08A);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 15px rgba(0, 224, 138, 0.15);
+}
+
+.ui-card--clicavel:active {
+  transform: translateY(-1px);
+}
+
+.ui-card--disabled {
+  opacity: 0.5;
+  cursor: not-allowed !important;
+  pointer-events: none;
+}
+
+/* Seções do Card (Slots) */
+.ui-card__media {
+  width: 100%;
+  overflow: hidden;
+  display: block;
+  line-height: 0;
+}
+
+::slotted([slot="midia"]),
+::slotted([slot="media"]) {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+}
+
+.ui-card__header {
+  padding: 14px 16px 8px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-sizing: border-box;
+}
+
+.ui-card__body {
+  padding: 12px 16px;
+  flex: 1;
+  box-sizing: border-box;
+}
+
+.ui-card__footer {
+  padding: 10px 16px 14px 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-sizing: border-box;
+}
+
+/* Variação Compacta */
+.ui-card--compacto .ui-card__header {
+  padding: 10px 12px 6px 12px;
+}
+.ui-card--compacto .ui-card__body {
+  padding: 8px 12px;
+}
+.ui-card--compacto .ui-card__footer {
+  padding: 8px 12px 10px 12px;
+}

@@ -1,0 +1,172 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: var(--ui-fonte-base, 'Inter', sans-serif);
+}
+
+.ui-campo-texto__container {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+:host([label-flutuante]) .ui-campo-texto__container {
+  margin-top: 10px;
+}
+
+.ui-campo-texto__label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--ui-tamanho-corpo-sm, 13px);
+  font-weight: var(--ui-peso-medio, 500);
+  color: var(--ui-cor-texto, #e1e1e6);
+  user-select: none;
+  margin-bottom: 4px;
+}
+
+.ui-campo-texto__wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: var(--ui-altura-minima, 15px);
+  background-color: var(--ui-cor-fundo-elevado, #1a1a1e);
+  border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
+  border-radius: var(--ui-raio-borda, 6px);
+  padding: 0 6px;
+  gap: 6px;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+/* Foco */
+.ui-campo-texto__wrapper--foco {
+  border-color: var(--ui-cor-primaria, #00E08A);
+  box-shadow: 0 0 0 2px rgba(0, 224, 138, 0.18);
+  background-color: var(--ui-cor-fundo-menu, #18181c);
+}
+
+/* Erro */
+.ui-campo-texto__wrapper--erro {
+  border-color: var(--ui-cor-texto-erro, #ff5555) !important;
+  box-shadow: 0 0 0 2px rgba(255, 85, 85, 0.18) !important;
+}
+
+/* Desabilitado */
+.ui-campo-texto__wrapper--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.ui-campo-texto__input {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--ui-cor-texto, #e1e1e6);
+  font-family: inherit;
+  font-size: clamp(11px, 0.8rem, 14px);
+  line-height: 1;
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+.ui-campo-texto__input::placeholder {
+  color: var(--ui-cor-texto-secundario, #888899);
+  opacity: 0.65;
+}
+
+.ui-campo-texto__input:disabled {
+  cursor: not-allowed;
+}
+
+/* Slots de Ícones */
+.ui-campo-texto__icone {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ui-cor-texto-secundario, #888899);
+  flex-shrink: 0;
+  font-size: 14px;
+}
+
+.ui-campo-texto__icone--clicavel {
+  cursor: pointer;
+  user-select: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.ui-campo-texto__icone--clicavel:hover {
+  opacity: 0.85;
+  transform: scale(1.1);
+}
+
+/* ==========================================
+   Rótulo Flutuante (Floating Label)
+   ========================================== */
+:host([label-flutuante]) .ui-campo-texto__label {
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  color: var(--ui-cor-texto-secundario, #888899);
+  pointer-events: none;
+  z-index: 3;
+  background-color: var(--ui-cor-fundo-elevado, #1a1a1e);
+  padding: 0 4px;
+  border-radius: 3px;
+  margin-bottom: 0;
+  white-space: nowrap;
+  max-width: calc(100% - 16px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: top 0.15s cubic-bezier(0.4, 0, 0.2, 1), transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), color 0.15s ease, font-size 0.15s ease;
+}
+
+/* Ajuste quando possui ícone à esquerda */
+:host([label-flutuante][tem-icone-esquerda]) .ui-campo-texto__label {
+  left: 28px;
+}
+
+/* Estado Ativo (Focado, Preenchido ou Autofill) */
+:host([label-flutuante]) .ui-campo-texto__label--ativa {
+  top: -10px;
+  left: 8px !important;
+  transform: translateY(0) scale(0.85);
+  transform-origin: left top;
+  font-weight: 600;
+  color: var(--ui-cor-primaria, #00E08A);
+  background-color: var(--ui-cor-fundo-elevado, #1a1a1e);
+}
+
+:host([label-flutuante][erro]) .ui-campo-texto__label--ativa,
+:host([label-flutuante][mensagem-erro]) .ui-campo-texto__label--ativa {
+  color: var(--ui-cor-texto-erro, #ff5555);
+}
+
+/* Helper Text e Mensagem de Erro */
+.ui-campo-texto__helper {
+  font-size: var(--ui-tamanho-caption, 11px);
+  color: var(--ui-cor-texto-secundario, #888899);
+  line-height: var(--ui-altura-linha-compacta, 1.2);
+  margin-top: 2px;
+}
+
+.ui-campo-texto__helper--erro {
+  color: var(--ui-cor-texto-erro, #ff5555);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}

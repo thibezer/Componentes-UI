@@ -1,0 +1,16 @@
+:root {
+  /* Bordas e Raios */
+  --ui-raio-borda: 6px;
+
+  /* Espaçamentos (Escala de Espaço) */
+  --ui-espaco-xs: 4px;
+  --ui-espaco-sm: 8px;
+  --ui-espaco-md: 16px;
+  --ui-espaco-lg: 24px;
+
+  /* Ergonomia e Alvo de Toque Mobile */
+  --ui-touch-target-min: 44px;
+
+  /* Dimensão Mínima Global dos Componentes */
+  --ui-altura-minima: 15px;
+}
