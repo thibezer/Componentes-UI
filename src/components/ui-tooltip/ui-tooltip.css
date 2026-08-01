@@ -5,6 +5,8 @@
   justify-content: center;
   vertical-align: middle;
   box-sizing: border-box;
+  --ui-tooltip-texto-distancia: 90px;
+  --ui-tooltip-seta-espaco: 70px;
 }
 
 .ui-tooltip__bubble {
@@ -26,6 +28,10 @@
   line-height: 1.2;
   box-sizing: border-box;
   user-select: none;
+}
+
+.ui-tooltip__texto {
+  max-width: var(--ui-tooltip-texto-distancia, 90px);
 }
 
 .ui-tooltip__arrow {

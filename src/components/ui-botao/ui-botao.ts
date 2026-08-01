@@ -1,4 +1,4 @@
-import estilos from './ui-botao-primario.css?inline';
+import estilos from './ui-botao.css?inline';
 
 export type VarianteBotao = 
   | 'primary' | 'primario'
@@ -8,7 +8,7 @@ export type VarianteBotao =
   | 'icon-only' | 'icone'
   | 'destaque';
 
-export class UIBotaoPrimario extends HTMLElement {
+export class UIBotao extends HTMLElement {
   static get observedAttributes() {
     return ['disabled', 'variante', 'carregando', 'loading', 'estado'];
   }
@@ -95,6 +95,12 @@ export class UIBotaoPrimario extends HTMLElement {
     }
     this.dispatchEvent(new CustomEvent('ui-click', { detail: { originalEvent: e }, bubbles: true, composed: true }));
   };
+}
+
+export class UIBotaoPrimario extends UIBotao {}
+
+if (!customElements.get('ui-botao')) {
+  customElements.define('ui-botao', UIBotao);
 }
 
 if (!customElements.get('ui-botao-primario')) {

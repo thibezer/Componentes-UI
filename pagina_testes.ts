@@ -1,7 +1,7 @@
 import './src/index';
 import { UIToast } from './src/index';
-import type { UIListaFlutuante } from './src/components/ui-lista-flutuante/ui-lista-flutuante';
-import type { UIModal } from './src/components/ui-modal/ui-modal';
+import type { UIListaFlutuante } from './src/components/ui-lista-flutuante';
+import type { UIModal } from './src/components/ui-modal';
 
 document.addEventListener('DOMContentLoaded', () => {
   const logBox = document.getElementById('log-console') as HTMLPreElement;
