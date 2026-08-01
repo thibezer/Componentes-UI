@@ -95,7 +95,7 @@ testes_componentes/
    ```
    Os arquivos empacotados serão gerados na pasta `dist/`:
    - `dist/ui-kit.es.js` (Módulo ES para Vite, Webpack, Rollup)
-   - `dist/ui-kit.umd.js` (Módulo UMD para navegação direta via `<script>`)
+   - `dist/ui-kit.umd.js` (Módulo UMD para carregamento via `<script>`)
    - `dist/ui-kit.css` (Estilos CSS de tokens)
 
 ---
