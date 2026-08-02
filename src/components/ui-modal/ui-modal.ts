@@ -127,7 +127,6 @@ export class UIModal extends HTMLElement {
   private syncState() {
     const isAberto = this.aberto;
     const tituloText = this.getAttribute('titulo') || this.getAttribute('title') || '';
-    const headerSlot = this.shadowRoot?.querySelector('.ui-modal__header') as HTMLElement | null;
     const footerSlot = this.shadowRoot?.querySelector('.ui-modal__footer') as HTMLElement | null;
 
     // Acessibilidade

@@ -2,7 +2,7 @@ import estilos from './ui-radio.css?inline';
 
 export class UIRadio extends HTMLElement {
   static formAssociated = true;
-  private internals: ElementInternals;
+  private internals: any;
 
   static get observedAttributes() {
     return [
@@ -18,8 +18,6 @@ export class UIRadio extends HTMLElement {
   }
 
   private containerElement: HTMLDivElement;
-  private circleElement: HTMLSpanElement;
-  private dotElement: HTMLSpanElement;
   private labelElement: HTMLSpanElement;
 
   constructor() {
@@ -37,8 +35,6 @@ export class UIRadio extends HTMLElement {
     `;
 
     this.containerElement = shadow.querySelector('.ui-radio')!;
-    this.circleElement = shadow.querySelector('.ui-radio__circle')!;
-    this.dotElement = shadow.querySelector('.ui-radio__dot')!;
     this.labelElement = shadow.querySelector('.ui-radio__label')!;
   }
 

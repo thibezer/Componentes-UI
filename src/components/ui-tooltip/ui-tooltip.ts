@@ -16,7 +16,6 @@ export class UITooltip extends HTMLElement {
   }
 
   private containerElement: HTMLDivElement;
-  private bubbleElement: HTMLDivElement;
 
   constructor() {
     super();
@@ -34,7 +33,6 @@ export class UITooltip extends HTMLElement {
     `;
 
     this.containerElement = shadow.querySelector('.ui-tooltip')!;
-    this.bubbleElement = shadow.querySelector('.ui-tooltip__bubble')!;
   }
 
   connectedCallback() {

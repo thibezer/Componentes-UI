@@ -130,7 +130,7 @@ export class UICard extends HTMLElement {
     }
   }
 
-  private handleClick = (e: MouseEvent) => {
+  private handleClick = () => {
     if (this.disabled) return;
     if (this.clicavel) {
       this.dispatchEvent(

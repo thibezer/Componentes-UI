@@ -2,7 +2,7 @@ import estilos from './ui-checkbox.css?inline';
 
 export class UICheckbox extends HTMLElement {
   static formAssociated = true;
-  private internals: ElementInternals;
+  private internals: any;
 
   static get observedAttributes() {
     return [
@@ -18,7 +18,6 @@ export class UICheckbox extends HTMLElement {
   }
 
   private containerElement: HTMLDivElement;
-  private boxElement: HTMLSpanElement;
   private markElement: HTMLSpanElement;
   private labelElement: HTMLSpanElement;
 
@@ -37,7 +36,6 @@ export class UICheckbox extends HTMLElement {
     `;
 
     this.containerElement = shadow.querySelector('.ui-checkbox')!;
-    this.boxElement = shadow.querySelector('.ui-checkbox__box')!;
     this.markElement = shadow.querySelector('.ui-checkbox__mark')!;
     this.labelElement = shadow.querySelector('.ui-checkbox__label')!;
   }

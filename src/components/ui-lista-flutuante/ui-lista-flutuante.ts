@@ -7,7 +7,7 @@ export interface ItemLista {
 
 export class UIListaFlutuante extends HTMLElement {
   static formAssociated = true;
-  private internals: ElementInternals;
+  private internals: any;
 
   static get observedAttributes() {
     return ['aberta', 'texto-padrao', 'value', 'disabled', 'bottom-sheet', 'modo-mobile'];

@@ -2,7 +2,7 @@ import estilos from './ui-switch.css?inline';
 
 export class UISwitch extends HTMLElement {
   static formAssociated = true;
-  private internals: ElementInternals;
+  private internals: any;
 
   static get observedAttributes() {
     return [
@@ -19,8 +19,6 @@ export class UISwitch extends HTMLElement {
   }
 
   private containerElement: HTMLDivElement;
-  private trackElement: HTMLSpanElement;
-  private thumbElement: HTMLSpanElement;
   private labelElement: HTMLSpanElement;
 
   constructor() {
@@ -38,8 +36,6 @@ export class UISwitch extends HTMLElement {
     `;
 
     this.containerElement = shadow.querySelector('.ui-switch')!;
-    this.trackElement = shadow.querySelector('.ui-switch__track')!;
-    this.thumbElement = shadow.querySelector('.ui-switch__thumb')!;
     this.labelElement = shadow.querySelector('.ui-switch__label')!;
   }
 
