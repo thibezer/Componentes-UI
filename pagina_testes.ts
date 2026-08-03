@@ -2,6 +2,8 @@ import './src/index';
 import { UIToast } from './src/index';
 import type { UIListaFlutuante } from './src/components/ui-lista-flutuante';
 import type { UIModal } from './src/components/ui-modal';
+import type { UITabela, TabelaColuna } from './src/components/ui-tabela';
+
 
 document.addEventListener('DOMContentLoaded', () => {
   const logBox = document.getElementById('log-console') as HTMLPreElement;
@@ -293,17 +295,105 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  if (btnToastAlerta) {
-    btnToastAlerta.addEventListener('ui-click', () => {
-      UIToast.notificar({
-        tipo: 'alerta',
-        titulo: 'Atenção aos Tokens',
-        mensagem: 'Sua sessão expira em 5 minutos. Salve seu trabalho.',
-        duracao: 4000
-      });
-      registrarLog('UIToast.notificar() -> Disparado Toast de ALERTA 🟠');
+  // ----------------------------------------------------
+  // Configuração da <ui-tabela> (Mock Data INCRA/SIGEF)
+  // ----------------------------------------------------
+  const tabelaIncra = document.getElementById('tabela-demo-incra') as UITabela | null;
+  const btnTabelaDados = document.getElementById('btn-tabela-dados-incra');
+  const btnTabelaEmpty = document.getElementById('btn-tabela-empty');
+  const btnDensidadeCompacta = document.getElementById('btn-densidade-compacta');
+  const btnDensidadeNormal = document.getElementById('btn-densidade-normal');
+  const btnDensidadeRelaxada = document.getElementById('btn-densidade-relaxada');
+
+  const colunasIncra: TabelaColuna[] = [
+    { id: 'ponto', rotulo: 'Ponto / ID do Vértice', ordenavel: true, larguraMinima: '160px' },
+    { id: 'easting', rotulo: 'Easting (SIRGAS 2000 UTM Fuso 22S)', alinhamento: 'direita', ordenavel: true, larguraMinima: '240px' },
+    { id: 'northing', rotulo: 'Northing (SIRGAS 2000 UTM Fuso 22S)', alinhamento: 'direita', ordenavel: true, larguraMinima: '240px' },
+    { id: 'altitude', rotulo: 'Altitude (m)', alinhamento: 'direita', ordenavel: true, larguraMinima: '130px' },
+    { id: 'metodo', rotulo: 'Método de Posicionamento (Truncado com Ellipsis)', alinhamento: 'centro', larguraMaxima: '220px', tooltip: 'Método de posicionamento GNSS/Topográfico' },
+    {
+      id: 'status',
+      rotulo: 'Status',
+      alinhamento: 'centro',
+      larguraMinima: '150px',
+      render: (val: string) => {
+        const badge = document.createElement('ui-badge');
+        let variante = 'neutro';
+        if (val === 'Certificado') variante = 'sucesso';
+        else if (val === 'Em Análise' || val === 'Pendente') variante = 'alerta';
+        else if (val === 'Sobreposição') variante = 'erro';
+        badge.setAttribute('variante', variante);
+        badge.textContent = val;
+        return badge;
+      }
+    }
+  ];
+
+  const dadosIncra = [
+    { ponto: 'VRT-SIGEF-0101', easting: '642158,432 m', northing: '7543210,891 m', altitude: '542,15 m', metodo: 'GNSS RTK - Relativo Estático com receptor de dupla frequência', status: 'Certificado' },
+    { ponto: 'VRT-SIGEF-0102', easting: '642215,876 m', northing: '7543288,143 m', altitude: '545,30 m', metodo: 'GNSS RTK - Fixo de alta precisão milimétrica', status: 'Certificado' },
+    { ponto: 'PNT-INCRA-0103', easting: '642302,110 m', northing: '7543342,654 m', altitude: '548,72 m', metodo: 'PPP Tempo Real (IBGE - Serviço Ativo)', status: 'Em Análise' },
+    { ponto: 'PNT-INCRA-0104', easting: '642411,904 m', northing: '7543415,002 m', altitude: '551,10 m', metodo: 'Relativo Estático Pós-Processado em vetores longos', status: 'Certificado' },
+    { ponto: 'VRT-SIGEF-0105', easting: '642534,660 m', northing: '7543490,321 m', altitude: '554,85 m', metodo: 'GNSS RTK - Fixo com correção de estação base local', status: 'Sobreposição' },
+    { ponto: 'VRT-SIGEF-0106', easting: '642620,332 m', northing: '7543560,789 m', altitude: '558,40 m', metodo: 'Relativo Estático Pós-Processado com efemérides precisas', status: 'Certificado' },
+    { ponto: 'PNT-INCRA-0107', easting: '642710,541 m', northing: '7543622,110 m', altitude: '560,95 m', metodo: 'PPP Tempo Real (IBGE - Serviço Ativo)', status: 'Pendente' },
+    { ponto: 'VRT-SIGEF-0108', easting: '642805,129 m', northing: '7543695,443 m', altitude: '563,20 m', metodo: 'GNSS RTK - Fixo de alta precisão milimétrica', status: 'Certificado' },
+    { ponto: 'VRT-SIGEF-0109', easting: '642899,410 m', northing: '7543771,980 m', altitude: '567,15 m', metodo: 'VANT / Fotogrametria de Precisão com PPK', status: 'Aguardando Vistoria' },
+    { ponto: 'PNT-INCRA-0110', easting: '643012,887 m', northing: '7543850,221 m', altitude: '571,60 m', metodo: 'GNSS RTK - Fixo de alta precisão milimétrica', status: 'Certificado' }
+  ];
+
+  if (tabelaIncra) {
+    tabelaIncra.colunas = colunasIncra;
+    tabelaIncra.dados = dadosIncra;
+
+    tabelaIncra.addEventListener('ui-sort', (e: Event) => {
+      const customEvt = e as CustomEvent<{ idColuna: string | null; direcao: string }>;
+      registrarLog(`<ui-tabela> -> Evento ui-sort (3 Estados) | Coluna: ${customEvt.detail.idColuna || 'Nenhuma (Original)'} | Direção: ${customEvt.detail.direcao}`);
+    });
+
+    tabelaIncra.addEventListener('ui-column-resize', (e: Event) => {
+      const customEvt = e as CustomEvent<{ idColuna: string; largura: string }>;
+      registrarLog(`<ui-tabela> -> Evento ui-column-resize | Coluna: ${customEvt.detail.idColuna} | Nova Largura: ${customEvt.detail.largura}`);
     });
   }
 
-  registrarLog('Playground autônomo com Nível 3 (Modal/Bottom Sheet, Alertas & Toasts) inicializado.');
+
+  if (btnTabelaDados && tabelaIncra) {
+    btnTabelaDados.addEventListener('ui-click', () => {
+      tabelaIncra.dados = dadosIncra;
+      registrarLog('<ui-tabela> -> Populado com 10 registros do relatório INCRA/SIGEF.');
+    });
+  }
+
+  if (btnTabelaEmpty && tabelaIncra) {
+    btnTabelaEmpty.addEventListener('ui-click', () => {
+      tabelaIncra.dados = [];
+      registrarLog('<ui-tabela> -> Alternado para Estado Vazio (Empty State).');
+    });
+  }
+
+  if (btnDensidadeCompacta && tabelaIncra) {
+    btnDensidadeCompacta.addEventListener('ui-click', () => {
+      tabelaIncra.densidade = 'compacta';
+      registrarLog('<ui-tabela> -> Densidade alterada para COMPACTA (padding 4px 8px).');
+    });
+  }
+
+  if (btnDensidadeNormal && tabelaIncra) {
+    btnDensidadeNormal.addEventListener('ui-click', () => {
+      tabelaIncra.densidade = 'normal';
+      registrarLog('<ui-tabela> -> Densidade alterada para NORMAL (padding 10px 16px).');
+    });
+  }
+
+  if (btnDensidadeRelaxada && tabelaIncra) {
+    btnDensidadeRelaxada.addEventListener('ui-click', () => {
+      tabelaIncra.densidade = 'relaxada';
+      registrarLog('<ui-tabela> -> Densidade alterada para RELAXADA (padding 16px 20px).');
+    });
+  }
+
+  registrarLog('Playground autônomo com Nível 3 (Modal/Bottom Sheet, Alertas, Toasts & Tabela) inicializado.');
 });
+
+

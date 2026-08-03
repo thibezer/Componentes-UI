@@ -1,0 +1,271 @@
+/* ====================================================
+   UI Components Kit - <ui-tabela>
+   ==================================================== */
+
+:host {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: inherit;
+  color: var(--ui-cor-texto, #e1e1e6);
+  position: relative;
+}
+
+.ui-tabela-container {
+  width: 100%;
+  max-width: 100%;
+  max-height: var(--ui-tabela-max-height, 500px);
+  overflow: auto;
+  border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
+  border-radius: var(--ui-raio-borda, 6px);
+  background-color: var(--ui-cor-superficie, #141417);
+  box-sizing: border-box;
+  position: relative;
+}
+
+.ui-tabela {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  text-align: left;
+  font-size: 14px;
+}
+
+/* Cabeçalho Fixo (Sticky Header) */
+.ui-tabela thead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: var(--ui-cor-fundo-elevado, #1a1a1e);
+}
+
+.ui-tabela th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding: 10px 16px;
+  background-color: var(--ui-cor-fundo-elevado, #1a1a1e);
+  color: var(--ui-cor-texto, #e1e1e6);
+  font-weight: 600;
+  border-bottom: 2px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
+  white-space: nowrap;
+  user-select: none;
+  box-sizing: border-box;
+}
+
+/* Alça de Redimensionamento Tipo Excel (Column Resizer Handle) */
+.ui-tabela__resizer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 6px;
+  height: 100%;
+  cursor: col-resize;
+  user-select: none;
+  z-index: 20;
+  transition: background-color 0.15s ease;
+}
+
+.ui-tabela__resizer:hover,
+.ui-tabela__resizer--ativo {
+  background-color: var(--ui-cor-primaria, #00E08A);
+}
+
+/* Densidades Visuais (Padding das Células th e td) */
+:host([densidade="compacta"]) th,
+:host([densidade="compacta"]) td,
+:host([density="compact"]) th,
+:host([density="compact"]) td {
+  padding: 4px 8px;
+}
+
+:host([densidade="normal"]) th,
+:host([densidade="normal"]) td,
+:host([density="normal"]) th,
+:host([density="normal"]) td {
+  padding: 10px 16px;
+}
+
+:host([densidade="relaxada"]) th,
+:host([densidade="relaxada"]) td,
+:host([density="relaxed"]) th,
+:host([density="relaxed"]) td {
+  padding: 16px 20px;
+}
+
+/* Alinhamento Flexbox no cabeçalho */
+.ui-tabela__header-content {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Especificações Absolutas de Design:
+   a distância do texto deve ficar em 90px e o espaço da seta em 70px */
+.ui-tabela__header-text {
+  margin-right: 90px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.ui-tabela__sort-icon,
+.ui-tabela__header-icon {
+  width: 70px;
+  min-width: 70px;
+  max-width: 70px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+/* Cabeçalhos Ordenáveis */
+.ui-tabela th.ui-tabela__th--ordenavel {
+  cursor: pointer;
+}
+
+.ui-tabela th.ui-tabela__th--ordenavel:hover {
+  background-color: var(--ui-cor-hover-menu, rgba(255, 255, 255, 0.08));
+}
+
+/* Seta de Ordenação SVG */
+.ui-tabela__sort-arrow {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  transition: transform 0.2s ease, fill 0.2s ease;
+  fill: var(--ui-cor-primaria, #00E08A);
+}
+
+.ui-tabela__sort-arrow--desc {
+  transform: rotate(180deg);
+}
+
+.ui-tabela__sort-arrow--inativo {
+  opacity: 0.3;
+  fill: var(--ui-cor-texto-secundario, #888899);
+}
+
+/* Células TD */
+.ui-tabela td {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.06));
+  white-space: nowrap;
+  vertical-align: middle;
+  color: var(--ui-cor-texto, #e1e1e6);
+  box-sizing: border-box;
+}
+
+.ui-tabela__cell-content {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+}
+
+/* Regras de Truncamento (Truncate / Ellipsis) */
+.ui-tabela__cell-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+/* Alinhamento de colunas (esquerda, centro, direita) */
+.ui-tabela--alinhar-esquerda {
+  text-align: left;
+}
+.ui-tabela--alinhar-esquerda .ui-tabela__header-content,
+.ui-tabela--alinhar-esquerda .ui-tabela__cell-content {
+  justify-content: flex-start;
+}
+
+.ui-tabela--alinhar-centro {
+  text-align: center;
+}
+.ui-tabela--alinhar-centro .ui-tabela__header-content,
+.ui-tabela--alinhar-centro .ui-tabela__cell-content {
+  justify-content: center;
+}
+
+.ui-tabela--alinhar-direita {
+  text-align: right;
+}
+.ui-tabela--alinhar-direita .ui-tabela__header-content,
+.ui-tabela--alinhar-direita .ui-tabela__cell-content {
+  justify-content: flex-end;
+}
+
+/* Acessibilidade Visual: Zebra-striping & Hover na linha inteira */
+.ui-tabela tbody tr:nth-child(even) {
+  background-color: var(--ui-cor-fundo-card, rgba(255, 255, 255, 0.02));
+}
+
+.ui-tabela tbody tr:hover {
+  background-color: var(--ui-cor-hover-menu, rgba(255, 255, 255, 0.08));
+}
+
+/* Estado de Empty State (Tabela Vazia) */
+.ui-tabela__empty {
+  padding: 48px 24px;
+  text-align: center;
+  border: 2px dashed var(--ui-cor-borda, rgba(255, 255, 255, 0.2));
+  border-radius: var(--ui-raio-borda, 6px);
+  margin: 16px;
+  color: var(--ui-cor-texto-secundario, #888899);
+  background-color: var(--ui-cor-fundo, #0b0b0d);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-sizing: border-box;
+}
+
+.ui-tabela__empty-icon {
+  width: 32px;
+  height: 32px;
+  opacity: 0.5;
+  fill: currentColor;
+}
+
+.ui-tabela__empty-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ui-cor-texto-secundario, #888899);
+}
+
+/* Context Menu de Largura Exata (Botão Direito no Cabeçalho) */
+.ui-tabela__context-menu {
+  position: absolute;
+  z-index: 100;
+  background-color: var(--ui-cor-fundo-elevado, #1a1a1e);
+  border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.2));
+  border-radius: var(--ui-raio-borda, 6px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 200px;
+  font-size: 13px;
+  color: var(--ui-cor-texto, #e1e1e6);
+}
+
+.ui-tabela__context-item {
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--ui-cor-texto, #e1e1e6);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  transition: background-color 0.15s ease;
+}
+
+.ui-tabela__context-item:hover {
+  background-color: var(--ui-cor-hover-menu, rgba(255, 255, 255, 0.08));
+  color: var(--ui-cor-primaria, #00E08A);
+}

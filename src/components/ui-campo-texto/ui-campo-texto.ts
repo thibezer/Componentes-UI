@@ -69,6 +69,10 @@ export class UICampoTexto extends HTMLElement {
     this.rightIconContainer.addEventListener('click', this.handleRightIconClick);
     this.leftSlotElement.addEventListener('slotchange', this.handleSlotChange);
 
+    if (this.hasAttribute('value') && !this.inputElement.value) {
+      this.inputElement.value = this.getAttribute('value') || '';
+    }
+
     this.syncState();
 
     // Verificação de segurança adicional para capturar preenchimento automático (Autofill)
@@ -190,9 +194,6 @@ export class UICampoTexto extends HTMLElement {
     }
 
     // 4. Value
-    if (this.hasAttribute('value') && this.getAttribute('value') !== this.inputElement.value && !estaFocado) {
-      this.inputElement.value = this.getAttribute('value') || '';
-    }
     this.internals.setFormValue(this.inputElement.value);
 
     // 5. Disabled & Readonly
@@ -277,7 +278,8 @@ export class UICampoTexto extends HTMLElement {
   };
 
   formResetCallback() {
-    this.value = this.getAttribute('value') || '';
+    this.inputElement.value = '';
+    this.removeAttribute('value');
     this.syncState();
   }
 

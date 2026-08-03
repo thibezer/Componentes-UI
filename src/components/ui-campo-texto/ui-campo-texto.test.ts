@@ -33,7 +33,7 @@ describe('UICampoTexto', () => {
     expect(element.getAttribute('value')).toBeNull();
   });
 
-  it('should allow typing when input is prefilled with a value attribute without reverting', () => {
+  it('should allow typing when input is prefilled with a value attribute without reverting on blur', () => {
     element.setAttribute('value', 'initial');
 
     const input = element.shadowRoot.querySelector('input');
@@ -44,13 +44,12 @@ describe('UICampoTexto', () => {
     input.value = 'initial text';
     input.dispatchEvent(new Event('input', { bubbles: true }));
 
-    // Because the component is focused, the syncState should not revert the value back to 'initial'
     expect(input.value).toBe('initial text');
 
-    // Changing the attribute externally while NOT focused should update the input
+    // On blur, the edited value MUST be preserved (not reverted to attribute value 'initial')
     input.dispatchEvent(new Event('blur'));
-    element.setAttribute('value', 'new initial');
-    expect(input.value).toBe('new initial');
+    expect(input.value).toBe('initial text');
+    expect(element.value).toBe('initial text');
   });
 
   it('should reflect disabled state', () => {
@@ -76,7 +75,7 @@ describe('UICampoTexto', () => {
     expect(input.type).toBe('password');
   });
 
-  it('should support ElementInternals and be form associated', () => {
+  it('should support ElementInternals and update FormData after editing prefilled value', () => {
     const form = document.createElement('form');
     const field = document.createElement('ui-campo-texto');
     field.setAttribute('name', 'testField');
@@ -84,8 +83,14 @@ describe('UICampoTexto', () => {
     form.appendChild(field);
     document.body.appendChild(form);
 
+    const input = field.shadowRoot!.querySelector('input')!;
+    input.dispatchEvent(new Event('focus'));
+    input.value = 'updated value';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.dispatchEvent(new Event('blur'));
+
     const formData = new FormData(form);
-    expect(formData.get('testField')).toBe('initial');
+    expect(formData.get('testField')).toBe('updated value');
 
     document.body.removeChild(form);
   });

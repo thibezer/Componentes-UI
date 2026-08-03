@@ -24,3 +24,5 @@ export * from './components/ui-card';
 export * from './components/ui-modal';
 export * from './components/ui-alerta';
 export * from './components/ui-tooltip';
+export * from './components/ui-tabela';
+

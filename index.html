@@ -771,8 +771,38 @@
       </div>
     </article>
 
+    <!-- 15. Tabela Orientada a Dados (Tipo Excel / INCRA SIGEF) -->
+    <article class="card-componente full-width-card">
+      <h2>
+        <span>Tabela Orientada a Dados &amp; Alta Densidade (&lt;ui-tabela&gt;)</span>
+        <ui-badge variante="sucesso">Data-Driven &amp; Excel Mode</ui-badge>
+      </h2>
+      <p style="font-size: 13px; color: #a0a0b0; margin: 0;">
+        Web Component estritamente orientado a dados com Shadow DOM, scroll bidirecional independente, cabeçalho sticky, zebra-striping, ordenação de 3 estados client-side (Asc → Desc → Original), controle de densidade visual e corte de texto com reticências.
+      </p>
+
+      <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 12px;">
+        <ui-botao-primario id="btn-tabela-dados-incra" variante="primary" inline>Carregar Relatório INCRA/SIGEF (10 Vértices)</ui-botao-primario>
+        <ui-botao-primario id="btn-tabela-empty" variante="secondary" inline>Simular Tabela Vazia (Empty State)</ui-botao-primario>
+        
+        <div style="display: inline-flex; gap: 6px; align-items: center; background: #1a1a1e; padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08); margin-left: auto;">
+
+          <span style="font-size: 12px; color: #888899;">Densidade:</span>
+          <ui-botao-primario id="btn-densidade-compacta" variante="ghost" inline style="min-height: 20px;">Compacta</ui-botao-primario>
+          <ui-botao-primario id="btn-densidade-normal" variante="secondary" inline style="min-height: 20px;">Normal</ui-botao-primario>
+          <ui-botao-primario id="btn-densidade-relaxada" variante="ghost" inline style="min-height: 20px;">Relaxada</ui-botao-primario>
+        </div>
+      </div>
+
+      <div class="matrix-column" style="width: 100%;">
+        <ui-tabela id="tabela-demo-incra" max-height="380px" densidade="normal"></ui-tabela>
+      </div>
+    </article>
+
+
     <!-- Console de Eventos em Tempo Real -->
     <section class="console-card">
+
       <h3>Console de Eventos Customizados em Tempo Real</h3>
       <pre id="log-console">Aguardando eventos...</pre>
     </section>

@@ -94,6 +94,13 @@ export class UIBotao extends HTMLElement {
       return;
     }
     this.dispatchEvent(new CustomEvent('ui-click', { detail: { originalEvent: e }, bubbles: true, composed: true }));
+
+    if (this.hasAttribute('tipo-submit') || this.getAttribute('type') === 'submit') {
+      const form = this.closest('form');
+      if (form) {
+        form.requestSubmit();
+      }
+    }
   };
 }
 
