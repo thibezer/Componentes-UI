@@ -39,11 +39,18 @@ export class UITabela extends HTMLElement {
   private _virtualizar: boolean = true;
   private _isResizing: boolean = false;
 
-  // Gerenciamento de Ouvintes e Limpeza de Memória
+  // Gerenciamento de Ouvintes e Elementos DOM
   private _containerElement: HTMLDivElement | null = null;
+  private _tableElement: HTMLTableElement | null = null;
+  private _theadElement: HTMLTableSectionElement | null = null;
+  private _tbodyElement: HTMLTableSectionElement | null = null;
+  private _colgroupElement: HTMLTableColElement | null = null;
+  private _emptyElement: HTMLDivElement | null = null;
+
   private _scrollHandler: ((e: Event) => void) | null = null;
   private _activeResizeCleanup: (() => void) | null = null;
   private _headerEventListeners: Array<{ element: HTMLElement; type: string; listener: EventListener }> = [];
+  private _ticking = false;
 
   constructor() {
     super();
@@ -55,7 +62,7 @@ export class UITabela extends HTMLElement {
     if (!this.hasAttribute('densidade') && !this.hasAttribute('density')) {
       this.setAttribute('densidade', 'normal');
     }
-    this.render();
+    this.renderTotal();
   }
 
   disconnectedCallback() {
@@ -64,7 +71,7 @@ export class UITabela extends HTMLElement {
 
   attributeChangedCallback(_name: string, _oldVal: string | null, _newVal: string | null) {
     this.syncAttributes();
-    this.render();
+    this.renderTotal();
   }
 
   private syncAttributes() {
@@ -80,24 +87,20 @@ export class UITabela extends HTMLElement {
   }
 
   private cleanupEventListeners() {
-    // 1. Limpar handler de scroll do container
     if (this._containerElement && this._scrollHandler) {
       this._containerElement.removeEventListener('scroll', this._scrollHandler);
       this._scrollHandler = null;
     }
 
-    // 2. Limpar listeners do redimensionador de colunas se destruído durante o drag
     if (this._activeResizeCleanup) {
       this._activeResizeCleanup();
       this._activeResizeCleanup = null;
     }
 
-    // 3. Limpar listeners nos elementos do cabeçalho (th, resizer)
     this._headerEventListeners.forEach(({ element, type, listener }) => {
       element.removeEventListener(type, listener);
     });
     this._headerEventListeners = [];
-    this._containerElement = null;
   }
 
   private addHeaderListener(element: HTMLElement, type: string, listener: EventListener) {
@@ -112,7 +115,7 @@ export class UITabela extends HTMLElement {
 
   set colunas(val: TabelaColuna[]) {
     this._colunas = Array.isArray(val) ? val : [];
-    this.render();
+    this.renderTotal();
   }
 
   get dados(): Record<string, any>[] {
@@ -123,7 +126,7 @@ export class UITabela extends HTMLElement {
     const arrayVal = Array.isArray(val) ? val : [];
     this._dadosOriginais = [...arrayVal];
     this.aplicarOrdenacao();
-    this.render();
+    this.renderBody();
   }
 
   get densidade(): DensidadeTabela {
@@ -140,7 +143,7 @@ export class UITabela extends HTMLElement {
       this.removeAttribute('densidade');
       this.removeAttribute('density');
     }
-    this.render();
+    this.renderBody(); // Re-calcula windowing
   }
 
   get virtualizar(): boolean {
@@ -154,7 +157,7 @@ export class UITabela extends HTMLElement {
     } else {
       this.removeAttribute('virtualizar');
     }
-    this.render();
+    this.renderTotal();
   }
 
   get colunaOrdenada(): string | null {
@@ -169,7 +172,8 @@ export class UITabela extends HTMLElement {
       this._direcaoOrdenacao = 'asc';
     }
     this.aplicarOrdenacao();
-    this.render();
+    this.renderHeader(); // Atualiza as setinhas
+    this.renderBody();
   }
 
   get direcaoOrdenacao(): 'asc' | 'desc' | 'original' {
@@ -182,7 +186,8 @@ export class UITabela extends HTMLElement {
       this._colunaOrdenada = null;
     }
     this.aplicarOrdenacao();
-    this.render();
+    this.renderHeader();
+    this.renderBody();
   }
 
   get textoVazio(): string {
@@ -191,7 +196,7 @@ export class UITabela extends HTMLElement {
 
   set textoVazio(txt: string) {
     this._textoVazio = txt || 'Nenhum registro encontrado';
-    this.render();
+    this.renderTotal();
   }
 
   // Ordenação Local Client-Side de 3 Estados
@@ -214,7 +219,8 @@ export class UITabela extends HTMLElement {
     }
 
     this.aplicarOrdenacao();
-    this.render();
+    this.renderHeader();
+    this.renderBody();
 
     const sortDetail: UISortDetail = {
       idColuna: this._colunaOrdenada,
@@ -256,7 +262,7 @@ export class UITabela extends HTMLElement {
   }
 
   // Redimensionamento de Colunas (Drag-to-resize)
-  private initColumnResize(e: MouseEvent, coluna: TabelaColuna, thElement: HTMLTableCellElement, resizer: HTMLDivElement) {
+  private initColumnResize(e: MouseEvent, coluna: TabelaColuna, colIndex: number, thElement: HTMLTableCellElement, resizer: HTMLDivElement) {
     e.stopPropagation();
     e.preventDefault();
 
@@ -265,25 +271,29 @@ export class UITabela extends HTMLElement {
 
     const startX = e.pageX;
     const startWidth = thElement.offsetWidth;
+    const colElement = this._colgroupElement?.children[colIndex] as HTMLTableColElement;
 
     const onMouseMove = (moveEvent: MouseEvent) => {
       const deltaX = moveEvent.pageX - startX;
       let novaLargura = startWidth + deltaX;
 
       if (coluna.larguraMinima !== undefined) {
-        const minW = typeof coluna.larguraMinima === 'number' ? coluna.larguraMinima : parseInt(coluna.larguraMinima, 10);
+        const minW = typeof coluna.larguraMinima === 'number' ? coluna.larguraMinima : parseInt(coluna.larguraMinima as string, 10);
         if (!isNaN(minW)) novaLargura = Math.max(minW, novaLargura);
       } else {
         novaLargura = Math.max(60, novaLargura);
       }
 
       if (coluna.larguraMaxima !== undefined) {
-        const maxW = typeof coluna.larguraMaxima === 'number' ? coluna.larguraMaxima : parseInt(coluna.larguraMaxima, 10);
+        const maxW = typeof coluna.larguraMaxima === 'number' ? coluna.larguraMaxima : parseInt(coluna.larguraMaxima as string, 10);
         if (!isNaN(maxW)) novaLargura = Math.min(maxW, novaLargura);
       }
 
       coluna.largura = `${novaLargura}px`;
       thElement.style.width = `${novaLargura}px`;
+      if (colElement) {
+        colElement.style.width = `${novaLargura}px`;
+      }
     };
 
     const cleanup = () => {
@@ -299,7 +309,6 @@ export class UITabela extends HTMLElement {
 
     const onMouseUp = () => {
       cleanup();
-      this.render();
 
       this.dispatchEvent(
         new CustomEvent<UIColumnResizeDetail>('ui-column-resize', {
@@ -318,26 +327,65 @@ export class UITabela extends HTMLElement {
     window.addEventListener('mouseup', onMouseUp);
   }
 
-  // Menu de Contexto (Digitar Largura Exata)
-  private handleHeaderContextMenu(e: MouseEvent, coluna: TabelaColuna) {
-    e.preventDefault();
-    e.stopPropagation();
+  // Mini-Popover de Redimensionamento Exato
+  private showPromptPopover(e: MouseEvent, coluna: TabelaColuna, colIndex: number, thElement: HTMLTableCellElement) {
+    const dialog = document.createElement('dialog');
+    dialog.className = 'ui-tabela__prompt-dialog';
+    
+    // Position near click
+    dialog.style.position = 'fixed';
+    dialog.style.left = `${e.clientX}px`;
+    dialog.style.top = `${e.clientY}px`;
 
-    const larguraAtual = coluna.largura ? String(coluna.largura).replace('px', '') : 'Auto';
-    const novaLargura = prompt(`Digitar largura exata para a coluna "${coluna.rotulo}" (em pixels ou "auto"):`, larguraAtual);
+    const title = document.createElement('div');
+    title.className = 'ui-tabela__prompt-title';
+    title.textContent = `Largura para "${coluna.rotulo}" (px ou auto):`;
 
-    if (novaLargura !== null) {
+    const input = document.createElement('input');
+    input.type = 'text';
+    const larguraAtual = coluna.largura ? String(coluna.largura).replace('px', '') : 'auto';
+    input.value = larguraAtual;
+
+    const actions = document.createElement('div');
+    actions.className = 'ui-tabela__prompt-actions';
+
+    const btnOk = document.createElement('button');
+    btnOk.textContent = 'Aplicar';
+    const btnCancel = document.createElement('button');
+    btnCancel.textContent = 'Cancelar';
+
+    actions.appendChild(btnCancel);
+    actions.appendChild(btnOk);
+
+    dialog.appendChild(title);
+    dialog.appendChild(input);
+    dialog.appendChild(actions);
+
+    this.shadow.appendChild(dialog);
+    dialog.showModal();
+
+    const aplicar = () => {
+      const novaLargura = input.value;
       const valTrimmed = novaLargura.trim().toLowerCase();
       if (valTrimmed === '' || valTrimmed === 'auto') {
         coluna.largura = undefined;
+        thElement.style.width = '';
+        if (this._colgroupElement?.children[colIndex]) {
+          (this._colgroupElement.children[colIndex] as HTMLElement).style.width = '';
+        }
       } else {
         const numVal = parseInt(valTrimmed, 10);
         if (!isNaN(numVal) && numVal > 20) {
           coluna.largura = `${numVal}px`;
+          thElement.style.width = `${numVal}px`;
+          if (this._colgroupElement?.children[colIndex]) {
+            (this._colgroupElement.children[colIndex] as HTMLElement).style.width = `${numVal}px`;
+          }
         }
       }
 
-      this.render();
+      dialog.close();
+      dialog.remove();
 
       this.dispatchEvent(
         new CustomEvent<UIColumnResizeDetail>('ui-column-resize', {
@@ -349,7 +397,29 @@ export class UITabela extends HTMLElement {
           composed: true
         })
       );
-    }
+    };
+
+    btnOk.addEventListener('click', aplicar);
+    btnCancel.addEventListener('click', () => {
+      dialog.close();
+      dialog.remove();
+    });
+    input.addEventListener('keydown', (ke) => {
+      if (ke.key === 'Enter') aplicar();
+      if (ke.key === 'Escape') {
+        dialog.close();
+        dialog.remove();
+      }
+    });
+
+    input.focus();
+    input.select();
+  }
+
+  private handleHeaderContextMenu(e: MouseEvent, coluna: TabelaColuna, colIndex: number, thElement: HTMLTableCellElement) {
+    e.preventDefault();
+    e.stopPropagation();
+    this.showPromptPopover(e, coluna, colIndex, thElement);
   }
 
   private formatWidth(largura?: string | number): string {
@@ -376,12 +446,11 @@ export class UITabela extends HTMLElement {
     return 42; // normal
   }
 
-  public render() {
+  // Renderiza toda a estrutura (Container, Table, Thead)
+  public renderTotal() {
     if (!this.shadow) return;
 
-    // Limpar ouvintes antigos antes de re-renderizar o DOM
     this.cleanupEventListeners();
-
     this.shadow.innerHTML = `<style>${estilos}</style>`;
 
     const maxHeightAttr = this.getAttribute('max-height');
@@ -392,30 +461,83 @@ export class UITabela extends HTMLElement {
     }
     this._containerElement = container;
 
-    // Tratar Empty State (Tabela Vazia)
-    if (!this._dadosExibicao || this._dadosExibicao.length === 0) {
-      const emptyDiv = document.createElement('div');
-      emptyDiv.className = 'ui-tabela__empty';
-      emptyDiv.innerHTML = `
-        <svg class="ui-tabela__empty-icon" viewBox="0 0 24 24">
-          <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h2v7H7zm4-3h2v10h-2zm4 6h2v4h-2z"/>
-        </svg>
-        <span class="ui-tabela__empty-text">${this._textoVazio}</span>
-      `;
-      container.appendChild(emptyDiv);
-      this.shadow.appendChild(container);
-      return;
+    // Empty State Placeholder
+    const emptyDiv = document.createElement('div');
+    emptyDiv.className = 'ui-tabela__empty';
+    emptyDiv.style.display = 'none';
+    
+    const svgIcon = document.createElement('div');
+    svgIcon.innerHTML = `
+      <svg class="ui-tabela__empty-icon" viewBox="0 0 24 24">
+        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h2v7H7zm4-3h2v10h-2zm4 6h2v4h-2z"/>
+      </svg>`;
+      
+    const textSpan = document.createElement('span');
+    textSpan.className = 'ui-tabela__empty-text';
+    textSpan.textContent = this._textoVazio; // Evita XSS
+    
+    emptyDiv.appendChild(svgIcon);
+    emptyDiv.appendChild(textSpan);
+    this._emptyElement = emptyDiv;
+
+    // Table elements
+    this._tableElement = document.createElement('table');
+    this._tableElement.className = 'ui-tabela';
+    this._colgroupElement = document.createElement('colgroup');
+    this._theadElement = document.createElement('thead');
+    this._tbodyElement = document.createElement('tbody');
+
+    this._tableElement.appendChild(this._colgroupElement);
+    this._tableElement.appendChild(this._theadElement);
+    this._tableElement.appendChild(this._tbodyElement);
+
+    container.appendChild(this._emptyElement);
+    container.appendChild(this._tableElement);
+    this.shadow.appendChild(container);
+
+    this.renderHeader();
+    this.renderBody();
+
+    // Evento de Scroll para Virtualização
+    if (this._virtualizar && this._containerElement) {
+      this._ticking = false;
+      this._scrollHandler = () => {
+        if (!this._ticking) {
+          window.requestAnimationFrame(() => {
+            this.renderBody();
+            this._ticking = false;
+          });
+          this._ticking = true;
+        }
+      };
+      this._containerElement.addEventListener('scroll', this._scrollHandler);
     }
+  }
 
-    // Construção da Tabela com Suporte a Virtualização (Windowing)
-    const tabela = document.createElement('table');
-    tabela.className = 'ui-tabela';
+  // Renderiza apenas os cabeçalhos (Thead e Colgroup)
+  private renderHeader() {
+    if (!this._theadElement || !this._colgroupElement) return;
+    
+    // Limpar ouvintes antigos vinculados aos cabeçalhos
+    this._headerEventListeners.forEach(({ element, type, listener }) => {
+      element.removeEventListener(type, listener);
+    });
+    this._headerEventListeners = [];
 
-    // 1. Cabeçalho (thead / th)
-    const thead = document.createElement('thead');
+    this._theadElement.innerHTML = '';
+    this._colgroupElement.innerHTML = '';
+
     const trHeader = document.createElement('tr');
 
-    this._colunas.forEach((coluna) => {
+    this._colunas.forEach((coluna, index) => {
+      // Configurar <col> para redimensionamento de CSS no corpo
+      const col = document.createElement('col');
+      if (coluna.largura !== undefined) {
+        col.style.width = this.formatWidth(coluna.largura);
+      }
+      this._colgroupElement!.appendChild(col);
+
+      // Configurar <th>
       const th = document.createElement('th');
       const alignClass = this.getAlignmentClass(coluna.alinhamento);
       th.className = alignClass;
@@ -445,7 +567,7 @@ export class UITabela extends HTMLElement {
         this.addHeaderListener(th, 'click', clickListener);
       }
 
-      const contextMenuListener = (e: Event) => this.handleHeaderContextMenu(e as MouseEvent, coluna);
+      const contextMenuListener = (e: Event) => this.handleHeaderContextMenu(e as MouseEvent, coluna, index, th);
       this.addHeaderListener(th, 'contextmenu', contextMenuListener);
 
       const headerContent = document.createElement('div');
@@ -453,7 +575,7 @@ export class UITabela extends HTMLElement {
 
       const headerText = document.createElement('span');
       headerText.className = 'ui-tabela__header-text';
-      headerText.textContent = coluna.rotulo;
+      headerText.textContent = coluna.rotulo; // Evita XSS
       headerContent.appendChild(headerText);
 
       const sortIconContainer = document.createElement('span');
@@ -479,13 +601,15 @@ export class UITabela extends HTMLElement {
       resizer.className = 'ui-tabela__resizer';
       resizer.title = 'Arrastar para redimensionar largura (duplo-clique para auto-ajuste)';
 
-      const mousedownListener = (e: Event) => this.initColumnResize(e as MouseEvent, coluna, th, resizer);
+      const mousedownListener = (e: Event) => this.initColumnResize(e as MouseEvent, coluna, index, th, resizer);
       this.addHeaderListener(resizer, 'mousedown', mousedownListener);
 
       const dblclickListener = (e: Event) => {
         e.stopPropagation();
         coluna.largura = undefined;
-        this.render();
+        th.style.width = '';
+        col.style.width = '';
+        this.dispatchEvent(new CustomEvent('ui-column-resize', { bubbles: true, composed: true, detail: { idColuna: coluna.id, largura: 'auto' } }));
       };
       this.addHeaderListener(resizer, 'dblclick', dblclickListener);
 
@@ -493,134 +617,115 @@ export class UITabela extends HTMLElement {
       trHeader.appendChild(th);
     });
 
-    thead.appendChild(trHeader);
-    tabela.appendChild(thead);
+    this._theadElement.appendChild(trHeader);
+  }
 
-    // 2. Corpo da Tabela (tbody) com Virtualização de Linhas (Windowing)
-    const tbody = document.createElement('tbody');
-    tabela.appendChild(tbody);
-    container.appendChild(tabela);
-    this.shadow.appendChild(container);
+  // Renderiza apenas o corpo, preservando o scroll
+  public renderBody() {
+    if (!this._tbodyElement || !this._tableElement || !this._emptyElement || !this._containerElement) return;
+
+    if (!this._dadosExibicao || this._dadosExibicao.length === 0) {
+      this._emptyElement.style.display = 'flex';
+      this._tableElement.style.display = 'none';
+      return;
+    }
+
+    this._emptyElement.style.display = 'none';
+    this._tableElement.style.display = 'table';
 
     const totalLinhas = this._dadosExibicao.length;
     const rowHeight = this.getRowHeight();
     const usarVirtualizacao = this._virtualizar && totalLinhas > 30;
 
-    const renderRowsInWindow = () => {
-      let startIndex = 0;
-      let endIndex = totalLinhas;
+    let startIndex = 0;
+    let endIndex = totalLinhas;
 
-      if (usarVirtualizacao && container) {
-        const scrollTop = container.scrollTop;
-        const clientHeight = container.clientHeight || 400;
-        const buffer = 5;
+    if (usarVirtualizacao) {
+      const scrollTop = this._containerElement.scrollTop;
+      const clientHeight = this._containerElement.clientHeight || 400;
+      const buffer = 5;
 
-        startIndex = Math.max(0, Math.floor(scrollTop / rowHeight) - buffer);
-        endIndex = Math.min(totalLinhas, Math.ceil((scrollTop + clientHeight) / rowHeight) + buffer);
-      }
-
-      tbody.innerHTML = '';
-      const fragment = document.createDocumentFragment();
-
-      // Espaçador Superior (Top Virtual Spacer)
-      if (usarVirtualizacao && startIndex > 0) {
-        const topSpacerRow = document.createElement('tr');
-        topSpacerRow.className = 'ui-tabela__virtual-spacer';
-        topSpacerRow.style.height = `${startIndex * rowHeight}px`;
-        const tdSpacer = document.createElement('td');
-        tdSpacer.colSpan = this._colunas.length || 1;
-        topSpacerRow.appendChild(tdSpacer);
-        fragment.appendChild(topSpacerRow);
-      }
-
-      // Linhas Visíveis no Windowing
-      for (let rowIndex = startIndex; rowIndex < endIndex; rowIndex++) {
-        const item = this._dadosExibicao[rowIndex];
-        const tr = document.createElement('tr');
-
-        this._colunas.forEach((coluna) => {
-          const td = document.createElement('td');
-          const alignClass = this.getAlignmentClass(coluna.alinhamento);
-          td.className = alignClass;
-          td.style.textAlign = this.getTextAlign(coluna.alinhamento);
-
-          if (coluna.largura !== undefined) {
-            td.style.width = this.formatWidth(coluna.largura);
-          }
-          if (coluna.larguraMinima !== undefined) {
-            td.style.minWidth = this.formatWidth(coluna.larguraMinima);
-          }
-          if (coluna.larguraMaxima !== undefined) {
-            const maxWStr = this.formatWidth(coluna.larguraMaxima);
-            td.style.maxWidth = maxWStr;
-            td.style.overflow = 'hidden';
-            td.style.textOverflow = 'ellipsis';
-            td.style.whiteSpace = 'nowrap';
-          }
-
-          const cellContent = document.createElement('div');
-          cellContent.className = 'ui-tabela__cell-content';
-          if (coluna.larguraMaxima !== undefined) {
-            cellContent.classList.add('ui-tabela__cell-truncate');
-          }
-
-          const valor = item[coluna.id];
-
-          if (typeof coluna.render === 'function') {
-            const resultado = coluna.render(valor, item, rowIndex);
-            if (resultado instanceof Node) {
-              cellContent.appendChild(resultado);
-            } else {
-              cellContent.innerHTML = String(resultado ?? '');
-            }
-          } else if (valor instanceof Node) {
-            cellContent.appendChild(valor);
-          } else {
-            const texto = valor != null ? String(valor) : '';
-            cellContent.textContent = texto;
-            if (coluna.larguraMaxima !== undefined && !coluna.tooltip) {
-              td.title = texto;
-            }
-          }
-
-          td.appendChild(cellContent);
-          tr.appendChild(td);
-        });
-
-        fragment.appendChild(tr);
-      }
-
-      // Espaçador Inferior (Bottom Virtual Spacer)
-      if (usarVirtualizacao && endIndex < totalLinhas) {
-        const bottomSpacerRow = document.createElement('tr');
-        bottomSpacerRow.className = 'ui-tabela__virtual-spacer';
-        bottomSpacerRow.style.height = `${(totalLinhas - endIndex) * rowHeight}px`;
-        const tdSpacer = document.createElement('td');
-        tdSpacer.colSpan = this._colunas.length || 1;
-        bottomSpacerRow.appendChild(tdSpacer);
-        fragment.appendChild(bottomSpacerRow);
-      }
-
-      tbody.appendChild(fragment);
-    };
-
-    // Primeira renderização das linhas
-    renderRowsInWindow();
-
-    // Evento de Scroll para Virtualização
-    if (usarVirtualizacao && container) {
-      let ticking = false;
-      this._scrollHandler = () => {
-        if (!ticking) {
-          window.requestAnimationFrame(() => {
-            renderRowsInWindow();
-            ticking = false;
-          });
-          ticking = true;
-        }
-      };
-      container.addEventListener('scroll', this._scrollHandler);
+      startIndex = Math.max(0, Math.floor(scrollTop / rowHeight) - buffer);
+      endIndex = Math.min(totalLinhas, Math.ceil((scrollTop + clientHeight) / rowHeight) + buffer);
     }
+
+    this._tbodyElement.innerHTML = '';
+    const fragment = document.createDocumentFragment();
+
+    // Espaçador Superior
+    if (usarVirtualizacao && startIndex > 0) {
+      const topSpacerRow = document.createElement('tr');
+      topSpacerRow.className = 'ui-tabela__virtual-spacer';
+      topSpacerRow.style.height = `${startIndex * rowHeight}px`;
+      const tdSpacer = document.createElement('td');
+      tdSpacer.colSpan = this._colunas.length || 1;
+      topSpacerRow.appendChild(tdSpacer);
+      fragment.appendChild(topSpacerRow);
+    }
+
+    for (let rowIndex = startIndex; rowIndex < endIndex; rowIndex++) {
+      const item = this._dadosExibicao[rowIndex];
+      const tr = document.createElement('tr');
+
+      this._colunas.forEach((coluna) => {
+        const td = document.createElement('td');
+        const alignClass = this.getAlignmentClass(coluna.alinhamento);
+        td.className = alignClass;
+        td.style.textAlign = this.getTextAlign(coluna.alinhamento);
+
+        if (coluna.larguraMaxima !== undefined) {
+          const maxWStr = this.formatWidth(coluna.larguraMaxima);
+          td.style.maxWidth = maxWStr;
+          td.style.overflow = 'hidden';
+          td.style.textOverflow = 'ellipsis';
+          td.style.whiteSpace = 'nowrap';
+        }
+
+        const cellContent = document.createElement('div');
+        cellContent.className = 'ui-tabela__cell-content';
+        if (coluna.larguraMaxima !== undefined) {
+          cellContent.classList.add('ui-tabela__cell-truncate');
+        }
+
+        const valor = item[coluna.id];
+
+        if (typeof coluna.render === 'function') {
+          const resultado = coluna.render(valor, item, rowIndex);
+          if (resultado instanceof Node) {
+            cellContent.appendChild(resultado);
+          } else {
+            // FIX: XSS protection
+            cellContent.textContent = String(resultado ?? '');
+          }
+        } else if (valor instanceof Node) {
+          cellContent.appendChild(valor);
+        } else {
+          const texto = valor != null ? String(valor) : '';
+          cellContent.textContent = texto;
+          if (coluna.larguraMaxima !== undefined && !coluna.tooltip) {
+            td.title = texto;
+          }
+        }
+
+        td.appendChild(cellContent);
+        tr.appendChild(td);
+      });
+
+      fragment.appendChild(tr);
+    }
+
+    // Espaçador Inferior
+    if (usarVirtualizacao && endIndex < totalLinhas) {
+      const bottomSpacerRow = document.createElement('tr');
+      bottomSpacerRow.className = 'ui-tabela__virtual-spacer';
+      bottomSpacerRow.style.height = `${(totalLinhas - endIndex) * rowHeight}px`;
+      const tdSpacer = document.createElement('td');
+      tdSpacer.colSpan = this._colunas.length || 1;
+      bottomSpacerRow.appendChild(tdSpacer);
+      fragment.appendChild(bottomSpacerRow);
+    }
+
+    this._tbodyElement.appendChild(fragment);
   }
 }
 

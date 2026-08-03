@@ -4,6 +4,9 @@ export class UIRadio extends HTMLElement {
   static formAssociated = true;
   private internals: any;
 
+  // Registro global de grupos de rádio para exclusividade mutua fora do shadow root
+  static _registry = new Map<string, Set<UIRadio>>();
+
   static get observedAttributes() {
     return [
       'marcado',
@@ -43,6 +46,7 @@ export class UIRadio extends HTMLElement {
     this.containerElement.addEventListener('keydown', this.handleKeyDown);
     this.containerElement.addEventListener('focus', this.handleFocus);
     this.containerElement.addEventListener('blur', this.handleBlur);
+    this.register();
     this.syncState();
   }
 
@@ -51,6 +55,24 @@ export class UIRadio extends HTMLElement {
     this.containerElement.removeEventListener('keydown', this.handleKeyDown);
     this.containerElement.removeEventListener('focus', this.handleFocus);
     this.containerElement.removeEventListener('blur', this.handleBlur);
+    this.unregister();
+  }
+
+  private register() {
+    const nome = this.name;
+    if (nome) {
+      if (!UIRadio._registry.has(nome)) {
+        UIRadio._registry.set(nome, new Set());
+      }
+      UIRadio._registry.get(nome)!.add(this);
+    }
+  }
+
+  private unregister() {
+    const nome = this.name;
+    if (nome && UIRadio._registry.has(nome)) {
+      UIRadio._registry.get(nome)!.delete(this);
+    }
   }
 
   attributeChangedCallback(_name: string, _old: string | null, _value: string | null) {
@@ -68,7 +90,6 @@ export class UIRadio extends HTMLElement {
       this.removeAttribute('marcado');
       this.removeAttribute('checked');
     }
-    // We don't need syncState here since setAttribute triggers attributeChangedCallback
   }
 
   get name(): string {
@@ -76,7 +97,9 @@ export class UIRadio extends HTMLElement {
   }
 
   set name(val: string) {
+    this.unregister();
     this.setAttribute('name', val);
+    this.register();
     this.syncState();
   }
 
@@ -96,13 +119,12 @@ export class UIRadio extends HTMLElement {
   public selecionar() {
     if (this.disabled || this.marcado) return;
 
-    // Desmarcar todos os outros rádios no mesmo grupo (mesmo atributo name/nome)
+    // Desmarcar todos os outros rádios no mesmo grupo globalmente (registro estático)
     const grupoNome = this.name;
-    if (grupoNome) {
-      const root = this.getRootNode() as Document | ShadowRoot;
-      const radiosDoGrupo = root.querySelectorAll(`ui-radio[name="${grupoNome}"], ui-radio[nome="${grupoNome}"]`);
+    if (grupoNome && UIRadio._registry.has(grupoNome)) {
+      const radiosDoGrupo = UIRadio._registry.get(grupoNome)!;
       radiosDoGrupo.forEach(el => {
-        if (el !== this && el instanceof UIRadio) {
+        if (el !== this) {
           el.removeAttribute('marcado');
           el.removeAttribute('checked');
           el.syncState();
@@ -125,7 +147,7 @@ export class UIRadio extends HTMLElement {
     );
   }
 
-  private syncState() {
+  public syncState() {
     const isChecked = this.marcado;
     const isDisabled = this.disabled;
     const labelText = this.getAttribute('label');
@@ -140,8 +162,23 @@ export class UIRadio extends HTMLElement {
       this.containerElement.setAttribute('aria-disabled', 'true');
     } else {
       this.containerElement.classList.remove('ui-radio--disabled');
-      this.containerElement.setAttribute('tabindex', '0');
       this.containerElement.removeAttribute('aria-disabled');
+
+      // Roving tabindex: apenas 1 elemento tabulável por grupo
+      const grupoNome = this.name;
+      if (grupoNome && UIRadio._registry.has(grupoNome)) {
+        const radios = Array.from(UIRadio._registry.get(grupoNome)!);
+        const hasChecked = radios.some(r => r.marcado);
+
+        if (hasChecked) {
+          this.containerElement.setAttribute('tabindex', isChecked ? '0' : '-1');
+        } else {
+          // Se nenhum estiver checado, o primeiro do registro fica com tabindex 0
+          this.containerElement.setAttribute('tabindex', radios[0] === this ? '0' : '-1');
+        }
+      } else {
+        this.containerElement.setAttribute('tabindex', '0');
+      }
     }
 
     // Classes de estado
@@ -191,12 +228,35 @@ export class UIRadio extends HTMLElement {
   private handleClick = (e: MouseEvent) => {
     e.preventDefault();
     this.selecionar();
+    this.containerElement.focus();
   };
 
   private handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === ' ' || e.key === 'Enter') {
       e.preventDefault();
       this.selecionar();
+    } else if (['ArrowDown', 'ArrowRight', 'ArrowUp', 'ArrowLeft'].includes(e.key)) {
+      e.preventDefault();
+      const grupoNome = this.name;
+      if (!grupoNome || !UIRadio._registry.has(grupoNome)) return;
+
+      const radios = Array.from(UIRadio._registry.get(grupoNome)!);
+      if (radios.length <= 1) return;
+
+      const currentIndex = radios.indexOf(this);
+      let nextIndex = currentIndex;
+
+      if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+        nextIndex = (currentIndex + 1) % radios.length;
+      } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+        nextIndex = (currentIndex - 1 + radios.length) % radios.length;
+      }
+
+      if (nextIndex !== currentIndex) {
+        const nextRadio = radios[nextIndex];
+        nextRadio.selecionar();
+        nextRadio.containerElement.focus();
+      }
     }
   };
 

@@ -30,6 +30,7 @@ export class UICampoTexto extends HTMLElement {
   private _senhaVisivel: boolean = false;
   private _checkTimer: any = null;
   private _focado: boolean = false;
+  private _inputId: string;
 
   constructor() {
     super();
@@ -58,6 +59,10 @@ export class UICampoTexto extends HTMLElement {
     this.helperElement = shadow.querySelector('.ui-campo-texto__helper')!;
     this.rightIconContainer = shadow.querySelector('.ui-campo-texto__icone--direita')!;
     this.leftSlotElement = shadow.querySelector('slot[name="icone-esquerda"]')!;
+    
+    this._inputId = `ui-input-${Math.random().toString(36).substring(2, 9)}`;
+    this.inputElement.id = this._inputId;
+    this.labelElement.htmlFor = this._inputId;
   }
 
   connectedCallback() {

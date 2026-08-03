@@ -1,6 +1,8 @@
 import estilos from './ui-modal.css?inline';
 
 export class UIModal extends HTMLElement {
+  static _openCount: number = 0;
+
   static get observedAttributes() {
     return [
       'aberto',
@@ -58,8 +60,12 @@ export class UIModal extends HTMLElement {
     this.backdropElement.removeEventListener('click', this.handleBackdropClick);
     this.closeElement.removeEventListener('click', this.handleCloseClick);
     window.removeEventListener('keydown', this.handleKeyDown);
-    if (this.aberto) {
-      document.body.style.overflow = '';
+    if (this.hasAttribute('data-scroll-locked')) {
+      this.removeAttribute('data-scroll-locked');
+      UIModal._openCount = Math.max(0, UIModal._openCount - 1);
+      if (UIModal._openCount === 0) {
+        document.body.style.overflow = '';
+      }
     }
   }
 
@@ -148,9 +154,21 @@ export class UIModal extends HTMLElement {
 
     // Bloquear rolagem do corpo da página ao abrir
     if (isAberto) {
-      document.body.style.overflow = 'hidden';
+      if (!this.hasAttribute('data-scroll-locked')) {
+        this.setAttribute('data-scroll-locked', 'true');
+        UIModal._openCount++;
+        if (UIModal._openCount === 1) {
+          document.body.style.overflow = 'hidden';
+        }
+      }
     } else {
-      document.body.style.overflow = '';
+      if (this.hasAttribute('data-scroll-locked')) {
+        this.removeAttribute('data-scroll-locked');
+        UIModal._openCount = Math.max(0, UIModal._openCount - 1);
+        if (UIModal._openCount === 0) {
+          document.body.style.overflow = '';
+        }
+      }
     }
   }
 

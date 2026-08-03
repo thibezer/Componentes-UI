@@ -16,6 +16,7 @@ export class UITooltip extends HTMLElement {
   }
 
   private containerElement: HTMLDivElement;
+  private bubbleElement: HTMLDivElement;
 
   constructor() {
     super();
@@ -24,7 +25,7 @@ export class UITooltip extends HTMLElement {
       <style>${estilos}</style>
       <div class="ui-tooltip ui-tooltip--topo">
         <slot></slot>
-        <div class="ui-tooltip__bubble" role="tooltip">
+        <div class="ui-tooltip__bubble" role="tooltip" popover="manual">
           <span class="ui-tooltip__texto"></span>
           <slot name="conteudo"></slot>
           <span class="ui-tooltip__arrow"></span>
@@ -33,6 +34,7 @@ export class UITooltip extends HTMLElement {
     `;
 
     this.containerElement = shadow.querySelector('.ui-tooltip')!;
+    this.bubbleElement = shadow.querySelector('.ui-tooltip__bubble')!;
   }
 
   connectedCallback() {
@@ -52,6 +54,8 @@ export class UITooltip extends HTMLElement {
     this.removeEventListener('focusout', this.handleMouseLeave);
     this.removeEventListener('click', this.handleClick);
     document.removeEventListener('click', this.handleClickOutside);
+    
+    this.ocultar();
   }
 
   attributeChangedCallback(_name: string, _old: string | null, _value: string | null) {
@@ -94,26 +98,59 @@ export class UITooltip extends HTMLElement {
     this.aberto = false;
   }
 
-  private syncState() {
-    const isAberto = this.aberto;
-    const posicaoRaw = this.getAttribute('posicao') || this.getAttribute('position') || 'topo';
-    const textoText = this.getAttribute('texto') || this.getAttribute('text') || '';
-    const textoSpan = this.shadowRoot?.querySelector('.ui-tooltip__texto') as HTMLElement | null;
+  private posicionarBubble = () => {
+    if (!this.aberto) return;
 
-    // Normalização de Posição
+    const hostRect = this.getBoundingClientRect();
+    const bubbleRect = this.bubbleElement.getBoundingClientRect();
+    const posicaoRaw = this.getAttribute('posicao') || this.getAttribute('position') || 'topo';
+
     let posicao = 'topo';
     if (['topo', 'top'].includes(posicaoRaw)) posicao = 'topo';
     else if (['baixo', 'bottom'].includes(posicaoRaw)) posicao = 'baixo';
     else if (['esquerda', 'left'].includes(posicaoRaw)) posicao = 'esquerda';
     else if (['direita', 'right'].includes(posicaoRaw)) posicao = 'direita';
 
-    // Classes do container
-    this.containerElement.className = `ui-tooltip ui-tooltip--${posicao}`;
-    if (isAberto) {
-      this.containerElement.classList.add('ui-tooltip--visivel');
+    let top = 0;
+    let left = 0;
+    const offset = 8; // tooltip arrow + margin
+
+    if (posicao === 'topo') {
+      top = hostRect.top - bubbleRect.height - offset;
+      left = hostRect.left + (hostRect.width / 2) - (bubbleRect.width / 2);
+    } else if (posicao === 'baixo') {
+      top = hostRect.bottom + offset;
+      left = hostRect.left + (hostRect.width / 2) - (bubbleRect.width / 2);
+    } else if (posicao === 'esquerda') {
+      top = hostRect.top + (hostRect.height / 2) - (bubbleRect.height / 2);
+      left = hostRect.left - bubbleRect.width - offset;
+    } else if (posicao === 'direita') {
+      top = hostRect.top + (hostRect.height / 2) - (bubbleRect.height / 2);
+      left = hostRect.right + offset;
     }
 
-    // Texto simples (se fornecido)
+    // fallback bounds (não vazar da tela)
+    left = Math.max(8, Math.min(left, window.innerWidth - bubbleRect.width - 8));
+    top = Math.max(8, Math.min(top, window.innerHeight - bubbleRect.height - 8));
+    
+    this.bubbleElement.style.top = `${top}px`;
+    this.bubbleElement.style.left = `${left}px`;
+  };
+
+  private syncState() {
+    const isAberto = this.aberto;
+    const posicaoRaw = this.getAttribute('posicao') || this.getAttribute('position') || 'topo';
+    const textoText = this.getAttribute('texto') || this.getAttribute('text') || '';
+    const textoSpan = this.shadowRoot?.querySelector('.ui-tooltip__texto') as HTMLElement | null;
+
+    let posicao = 'topo';
+    if (['topo', 'top'].includes(posicaoRaw)) posicao = 'topo';
+    else if (['baixo', 'bottom'].includes(posicaoRaw)) posicao = 'baixo';
+    else if (['esquerda', 'left'].includes(posicaoRaw)) posicao = 'esquerda';
+    else if (['direita', 'right'].includes(posicaoRaw)) posicao = 'direita';
+
+    this.containerElement.className = `ui-tooltip ui-tooltip--${posicao}`;
+
     if (textoSpan) {
       if (textoText) {
         textoSpan.textContent = textoText;
@@ -121,6 +158,28 @@ export class UITooltip extends HTMLElement {
       } else {
         textoSpan.style.display = 'none';
       }
+    }
+
+    if (isAberto) {
+      if (typeof (this.bubbleElement as any).showPopover === 'function') {
+        try { (this.bubbleElement as any).showPopover(); } catch(_e) {}
+      }
+      this.containerElement.classList.add('ui-tooltip--visivel');
+      
+      // Calculate layout after the element is displayed
+      requestAnimationFrame(() => {
+        this.posicionarBubble();
+      });
+
+      window.addEventListener('scroll', this.posicionarBubble, { capture: true, passive: true });
+      window.addEventListener('resize', this.posicionarBubble, { passive: true });
+    } else {
+      if (typeof (this.bubbleElement as any).hidePopover === 'function') {
+        try { (this.bubbleElement as any).hidePopover(); } catch(_e) {}
+      }
+      this.containerElement.classList.remove('ui-tooltip--visivel');
+      window.removeEventListener('scroll', this.posicionarBubble, { capture: true });
+      window.removeEventListener('resize', this.posicionarBubble);
     }
   }
 

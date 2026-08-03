@@ -10,7 +10,7 @@
 }
 
 .ui-tooltip__bubble {
-  position: absolute;
+  position: fixed;
   z-index: 10001;
   padding: 6px 10px;
   border-radius: 6px;
@@ -24,10 +24,20 @@
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transition: opacity 0.15s ease, transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.15s ease;
+  transition: opacity 0.15s ease, visibility 0.15s ease;
   line-height: 1.2;
   box-sizing: border-box;
   user-select: none;
+  margin: 0;
+}
+
+.ui-tooltip__bubble[popover] {
+  margin: 0;
+  border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.16));
+  background-color: var(--ui-cor-fundo-elevado, #1e1e24);
+  color: var(--ui-cor-texto, #e1e1e6);
+  padding: 6px 10px;
+  overflow: visible;
 }
 
 .ui-tooltip__texto {
@@ -42,33 +52,14 @@
 }
 
 /* ====================================================
-   Posicionamento: TOPO (Padrão)
+   Setas Direcionais
    ==================================================== */
-.ui-tooltip--topo .ui-tooltip__bubble {
-  bottom: calc(100% + 8px);
-  left: 50%;
-  transform: translateX(-50%) translateY(4px);
-}
-
 .ui-tooltip--topo .ui-tooltip__arrow {
   bottom: -5px;
   left: 50%;
   transform: translateX(-50%);
   border-width: 5px 5px 0 5px;
   border-color: var(--ui-cor-fundo-elevado, #1e1e24) transparent transparent transparent;
-}
-
-.ui-tooltip--topo.ui-tooltip--visivel .ui-tooltip__bubble {
-  transform: translateX(-50%) translateY(0);
-}
-
-/* ====================================================
-   Posicionamento: BAIXO
-   ==================================================== */
-.ui-tooltip--baixo .ui-tooltip__bubble {
-  top: calc(100% + 8px);
-  left: 50%;
-  transform: translateX(-50%) translateY(-4px);
 }
 
 .ui-tooltip--baixo .ui-tooltip__arrow {
@@ -79,19 +70,6 @@
   border-color: transparent transparent var(--ui-cor-fundo-elevado, #1e1e24) transparent;
 }
 
-.ui-tooltip--baixo.ui-tooltip--visivel .ui-tooltip__bubble {
-  transform: translateX(-50%) translateY(0);
-}
-
-/* ====================================================
-   Posicionamento: ESQUERDA
-   ==================================================== */
-.ui-tooltip--esquerda .ui-tooltip__bubble {
-  right: calc(100% + 8px);
-  top: 50%;
-  transform: translateY(-50%) translateX(4px);
-}
-
 .ui-tooltip--esquerda .ui-tooltip__arrow {
   right: -5px;
   top: 50%;
@@ -100,29 +78,12 @@
   border-color: transparent transparent transparent var(--ui-cor-fundo-elevado, #1e1e24);
 }
 
-.ui-tooltip--esquerda.ui-tooltip--visivel .ui-tooltip__bubble {
-  transform: translateY(-50%) translateX(0);
-}
-
-/* ====================================================
-   Posicionamento: DIREITA
-   ==================================================== */
-.ui-tooltip--direita .ui-tooltip__bubble {
-  left: calc(100% + 8px);
-  top: 50%;
-  transform: translateY(-50%) translateX(-4px);
-}
-
 .ui-tooltip--direita .ui-tooltip__arrow {
   left: -5px;
   top: 50%;
   transform: translateY(-50%);
   border-width: 5px 5px 5px 0;
   border-color: transparent var(--ui-cor-fundo-elevado, #1e1e24) transparent transparent;
-}
-
-.ui-tooltip--direita.ui-tooltip--visivel .ui-tooltip__bubble {
-  transform: translateY(-50%) translateX(0);
 }
 
 /* Estado Visível */
