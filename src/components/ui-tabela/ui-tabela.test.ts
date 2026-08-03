@@ -53,25 +53,24 @@ describe('Web Component: <ui-tabela>', () => {
       payloads.push((e as CustomEvent<UISortDetail>).detail);
     });
 
-    const thPonto = tabela.shadowRoot?.querySelector('th.ui-tabela__th--ordenavel') as HTMLTableCellElement;
-    expect(thPonto).toBeTruthy();
+    const getThPonto = () => tabela.shadowRoot?.querySelector('th.ui-tabela__th--ordenavel') as HTMLTableCellElement;
 
     // 1º Clique: ASC (VRT-001, VRT-002, VRT-003)
-    thPonto.click();
+    getThPonto().click();
     expect(payloads[0]).toEqual({ idColuna: 'ponto', direcao: 'asc' });
     let rows = tabela.shadowRoot?.querySelectorAll('tbody tr');
     expect(rows?.[0].querySelector('td')?.textContent).toContain('VRT-001');
     expect(rows?.[2].querySelector('td')?.textContent).toContain('VRT-003');
 
     // 2º Clique: DESC (VRT-003, VRT-002, VRT-001)
-    thPonto.click();
+    getThPonto().click();
     expect(payloads[1]).toEqual({ idColuna: 'ponto', direcao: 'desc' });
     rows = tabela.shadowRoot?.querySelectorAll('tbody tr');
     expect(rows?.[0].querySelector('td')?.textContent).toContain('VRT-003');
     expect(rows?.[2].querySelector('td')?.textContent).toContain('VRT-001');
 
     // 3º Clique: ORIGINAL (Restaura sequência exata dos dados originais: VRT-003, VRT-001, VRT-002)
-    thPonto.click();
+    getThPonto().click();
     expect(payloads[2]).toEqual({ idColuna: null, direcao: 'original' });
     rows = tabela.shadowRoot?.querySelectorAll('tbody tr');
     expect(rows?.[0].querySelector('td')?.textContent).toContain('VRT-003');
@@ -122,6 +121,33 @@ describe('Web Component: <ui-tabela>', () => {
     expect(tds?.[0].style.textAlign).toBe('left');
     expect(tds?.[1].style.textAlign).toBe('center');
     expect(tds?.[2].style.textAlign).toBe('right');
+  });
+
+  it('deve virtualizar linhas (Windowing) para grandes conjuntos de dados', () => {
+    const tabela = document.createElement('ui-tabela') as UITabela;
+    document.body.appendChild(tabela);
+
+    tabela.colunas = [{ id: 'ponto', rotulo: 'Ponto' }];
+    
+    // Gerar 200 linhas de dados
+    const dadosGrandes = Array.from({ length: 200 }, (_, i) => ({ ponto: `PNT-${i + 1}` }));
+    tabela.dados = dadosGrandes;
+
+    const rows = tabela.shadowRoot?.querySelectorAll('tbody tr:not(.ui-tabela__virtual-spacer)');
+    // Deve renderizar apenas a janela visível inicial (muito menos que 200 linhas)
+    expect(rows?.length).toBeLessThan(50);
+  });
+
+  it('deve limpar ouvintes de eventos e referencias no disconnectedCallback() sem erros', () => {
+    const tabela = document.createElement('ui-tabela') as UITabela;
+    document.body.appendChild(tabela);
+
+    tabela.colunas = [{ id: 'ponto', rotulo: 'Ponto', ordenavel: true }];
+    tabela.dados = [{ ponto: 'P1' }];
+
+    expect(() => {
+      document.body.removeChild(tabela);
+    }).not.toThrow();
   });
 
   it('deve renderizar o estado de Empty State quando não houver dados', () => {

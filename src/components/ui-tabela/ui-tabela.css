@@ -11,11 +11,13 @@
   position: relative;
 }
 
+/* Isolamento de Responsividade no Container (Garante Sticky Header perfeito) */
 .ui-tabela-container {
   width: 100%;
   max-width: 100%;
   max-height: var(--ui-tabela-max-height, 500px);
-  overflow: auto;
+  overflow-x: auto;
+  overflow-y: auto;
   border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
   border-radius: var(--ui-raio-borda, 6px);
   background-color: var(--ui-cor-superficie, #141417);
@@ -204,6 +206,14 @@
 
 .ui-tabela tbody tr:hover {
   background-color: var(--ui-cor-hover-menu, rgba(255, 255, 255, 0.08));
+}
+
+/* Linhas Espaçadoras da Virtualização (Windowing) */
+.ui-tabela__virtual-spacer td {
+  padding: 0 !important;
+  border: none !important;
+  height: inherit;
+  background: transparent !important;
 }
 
 /* Estado de Empty State (Tabela Vazia) */
