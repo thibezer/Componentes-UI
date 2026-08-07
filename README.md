@@ -102,10 +102,38 @@ testes_componentes/
 
 ## 📖 Guia de Consumo da Biblioteca
 
-```html
-<!-- Exemplo de consumo em qualquer HTML/Framework -->
-<script type="module" src="./dist/ui-kit.es.js"></script>
+### Opção 1: Uso Direto via CDN (HTML Puro em Qualquer Site Online)
 
+Adicione as tags no `<head>` do seu site para carregar instantaneamente todos os Web Components:
+
+```html
+<!-- 1. Importe os Estilos e Design Tokens (CSS) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/thibezer/Componentes-UI@main/dist/ui-kit.css">
+
+<!-- 2. Importe o Script dos Componentes (JS ES Module) -->
+<script type="module" src="https://cdn.jsdelivr.net/gh/thibezer/Componentes-UI@main/dist/ui-kit.es.js"></script>
+```
+
+### Opção 2: Instalação via NPM / GitHub em Projetos (Vite, Next, React, Vue)
+
+Instale a biblioteca diretamente do GitHub no seu projeto:
+
+```bash
+npm install git+https://github.com/thibezer/Componentes-UI.git
+```
+
+No seu arquivo principal (ex: `main.ts`, `index.js` ou `App.tsx`), importe a biblioteca e seus estilos:
+
+```typescript
+import 'ui-components-kit/style.css';
+import 'ui-components-kit';
+```
+
+---
+
+## 💻 Exemplo Prático de Uso
+
+```html
 <ui-card elevacao="elevado">
   <div slot="cabecalho">
     <ui-avatar nome="Thiago Silva" status="online"></ui-avatar>
@@ -119,3 +147,4 @@ testes_componentes/
   </div>
 </ui-card>
 ```
+

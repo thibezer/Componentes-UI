@@ -13,7 +13,8 @@ export class UICheckbox extends HTMLElement {
       'disabled',
       'value',
       'label',
-      'posicao-label'
+      'posicao-label',
+      'name'
     ];
   }
 
@@ -70,6 +71,32 @@ export class UICheckbox extends HTMLElement {
       this.removeAttribute('marcado');
       this.removeAttribute('checked');
     }
+    this.syncState();
+  }
+
+  get checked(): boolean {
+    return this.marcado;
+  }
+
+  set checked(val: boolean) {
+    this.marcado = val;
+  }
+
+  get value(): string {
+    return this.getAttribute('value') || 'on';
+  }
+
+  set value(val: string) {
+    this.setAttribute('value', val);
+    this.syncState();
+  }
+
+  get name(): string {
+    return this.getAttribute('name') || '';
+  }
+
+  set name(val: string) {
+    this.setAttribute('name', val);
     this.syncState();
   }
 

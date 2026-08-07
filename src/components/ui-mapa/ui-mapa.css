@@ -1,0 +1,24 @@
+:host {
+  display: block;
+  width: 100%;
+  height: 400px;
+  position: relative;
+  border-radius: var(--border-radius-md, 8px);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.1));
+}
+
+.ui-mapa-container {
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+/* Garante que o Leaflet controle o SVG no z-index certo (útil para Canvas/Lines) */
+.leaflet-pane {
+  z-index: 400;
+}
+.leaflet-top,
+.leaflet-bottom {
+  z-index: 1000;
+}

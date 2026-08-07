@@ -73,6 +73,32 @@ export class UISwitch extends HTMLElement {
     this.syncState();
   }
 
+  get checked(): boolean {
+    return this.ativo;
+  }
+
+  set checked(val: boolean) {
+    this.ativo = val;
+  }
+
+  get value(): string {
+    return this.getAttribute('value') || 'on';
+  }
+
+  set value(val: string) {
+    this.setAttribute('value', val);
+    this.syncState();
+  }
+
+  get name(): string {
+    return this.getAttribute('name') || '';
+  }
+
+  set name(val: string) {
+    this.setAttribute('name', val);
+    this.syncState();
+  }
+
   get disabled(): boolean {
     return this.hasAttribute('disabled');
   }

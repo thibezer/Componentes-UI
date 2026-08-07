@@ -798,7 +798,25 @@
         <ui-tabela id="tabela-demo-incra" max-height="380px" densidade="normal"></ui-tabela>
       </div>
     </article>
+    <!-- 16. Componentes de Mapa (Leaflet) -->
+    <article class="card-componente full-width-card">
+      <h2>
+        <span>Componentes de Mapa Canvas (&lt;ui-mapa&gt;)</span>
+        <ui-badge variante="info">Leaflet Integration</ui-badge>
+      </h2>
+      <p style="font-size: 13px; color: #a0a0b0; margin: 0 0 16px 0;">
+        Um canvas interativo para renderizar mapas do OpenStreetMap com marcadores e linhas conectando pontos, encapsulado via Shadow DOM.
+      </p>
 
+      <div class="matrix-column" style="width: 100%; height: 500px; padding: 0;">
+        <ui-mapa lat="-23.550520" lng="-46.633308" zoom="13" camadas="satelite, osm, topografia, ruas">
+          <ui-mapa-marcador lat="-23.550520" lng="-46.633308" titulo="Centro de São Paulo"></ui-mapa-marcador>
+          <ui-mapa-marcador lat="-23.561494" lng="-46.655909" titulo="Avenida Paulista"></ui-mapa-marcador>
+          <ui-mapa-marcador lat="-23.587416" lng="-46.657634" titulo="Parque Ibirapuera"></ui-mapa-marcador>
+          <ui-mapa-linha pontos="[[-23.550520, -46.633308], [-23.561494, -46.655909], [-23.587416, -46.657634]]" cor="#00E08A" espessura="4"></ui-mapa-linha>
+        </ui-mapa>
+      </div>
+    </article>
 
     <!-- Console de Eventos em Tempo Real -->
     <section class="console-card">

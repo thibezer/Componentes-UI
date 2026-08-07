@@ -287,11 +287,8 @@ export class UIListaFlutuante extends HTMLElement {
   }
 
   private selecionarItem(item: ItemLista) {
-    this._value = item.id;
-    this.setAttribute('value', item.id);
-    this.textoElement.textContent = item.label;
+    this.value = item.id;
     this.fechar();
-    this.updateSelectedState();
 
     this.dispatchEvent(
       new CustomEvent('ui-selecionar', {

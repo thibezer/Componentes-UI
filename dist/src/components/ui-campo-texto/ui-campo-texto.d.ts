@@ -1,0 +1,30 @@
+export declare class UICampoTexto extends HTMLElement {
+    static formAssociated: boolean;
+    private internals;
+    static get observedAttributes(): string[];
+    private labelElement;
+    private wrapperElement;
+    private inputElement;
+    private helperElement;
+    private rightIconContainer;
+    private leftSlotElement;
+    private _senhaVisivel;
+    private _checkTimer;
+    private _focado;
+    private _inputId;
+    constructor();
+    connectedCallback(): void;
+    disconnectedCallback(): void;
+    attributeChangedCallback(name: string, _old: string | null, value: string | null): void;
+    get value(): string;
+    set value(val: string);
+    alternarVisibilidadeSenha(): void;
+    private handleSlotChange;
+    private syncState;
+    private handleRightIconClick;
+    private handleFocus;
+    private handleBlur;
+    private handleInput;
+    formResetCallback(): void;
+    private handleChange;
+}
