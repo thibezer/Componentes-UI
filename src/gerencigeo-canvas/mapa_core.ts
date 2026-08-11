@@ -18,6 +18,7 @@ export class MapaCore {
   public pontosVizinhosGroup: L.LayerGroup = L.layerGroup();
   private controller: MapaCoreControllerRef;
   private containerElement: HTMLElement | null = null;
+  private bc?: BroadcastChannel;
 
   constructor(controller: MapaCoreControllerRef) {
     this.controller = controller;
@@ -105,8 +106,8 @@ export class MapaCore {
   private listenConfigBroadcast() {
     if (typeof BroadcastChannel === 'undefined') return;
     try {
-      const bc = new BroadcastChannel('gerencigeo_map_config');
-      bc.onmessage = (event) => {
+      this.bc = new BroadcastChannel('gerencigeo_map_config');
+      this.bc.onmessage = (event) => {
         if (event.data === 'RELOAD_REQUIRED') {
           this.config = this.configManager.getConfig();
           this.applyMapStyles();
@@ -115,6 +116,12 @@ export class MapaCore {
       };
     } catch {
       // Ignora indisponibilidade do BroadcastChannel
+    }
+  }
+
+  public destroy(): void {
+    if (this.bc) {
+      this.bc.close();
     }
   }
 

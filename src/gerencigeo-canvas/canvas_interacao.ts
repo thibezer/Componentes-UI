@@ -228,9 +228,11 @@ export class CanvasInteracao {
 
       this.map.closePopup();
       setTimeout(() => {
-        if (this.ctx.layerManager) {
-          this.ctx.layerManager.ensurePanes();
-        }
+        try {
+          if (this.ctx.layerManager) {
+            this.ctx.layerManager.ensurePanes();
+          }
+        } catch (e) {}
       }, 80);
 
       const rectBounds = this.mapContainer.getBoundingClientRect();

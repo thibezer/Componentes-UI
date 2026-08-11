@@ -14,6 +14,7 @@ export class UICanvasCAD extends HTMLElement {
   private layersPanel: HTMLDivElement | null = null;
   private controller: GerenciGeoMapaController;
   private isLayersPanelOpen: boolean = false;
+  private initTimeout?: number;
 
   private _pontos: Ponto[] = [];
   private _segmentos: Segmento[] = [];
@@ -70,12 +71,15 @@ export class UICanvasCAD extends HTMLElement {
   }
 
   connectedCallback() {
-    setTimeout(() => {
+    this.initTimeout = window.setTimeout(() => {
       this.initCAD();
     }, 0);
   }
 
   disconnectedCallback() {
+    if (this.initTimeout) {
+      window.clearTimeout(this.initTimeout);
+    }
     this.controller.destroy();
   }
 

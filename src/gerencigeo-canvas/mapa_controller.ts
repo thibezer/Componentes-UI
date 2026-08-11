@@ -125,8 +125,8 @@ export class GerenciGeoMapaController {
 
     const validCoords = todosPontos
       .map(p => {
-        const rawLat = p.lat ?? (p as any).latitude ?? (p as any).y;
-        const rawLon = p.lon ?? (p as any).lng ?? (p as any).longitude ?? (p as any).x;
+        const rawLat = p.lat ?? (p as any).latitude ?? (p as any).y ?? (p as any).norte;
+        const rawLon = p.lon ?? (p as any).lng ?? (p as any).longitude ?? (p as any).x ?? (p as any).este;
         const lat = typeof rawLat === 'string' ? parseFloat(rawLat) : Number(rawLat);
         const lon = typeof rawLon === 'string' ? parseFloat(rawLon) : Number(rawLon);
         if (lat !== undefined && lon !== undefined && !isNaN(lat) && !isNaN(lon) && lat !== 0 && lon !== 0) {
@@ -136,7 +136,9 @@ export class GerenciGeoMapaController {
       })
       .filter((coord): coord is L.LatLng => coord !== null);
 
-    if (validCoords.length > 0) {
+    if (validCoords.length === 1) {
+      this.core.map.setView(validCoords[0], 18);
+    } else if (validCoords.length > 1) {
       const bounds = L.latLngBounds(validCoords);
       this.core.map.fitBounds(bounds, { padding });
       this.core.map.once('moveend', () => {
@@ -170,6 +172,7 @@ export class GerenciGeoMapaController {
   public destroy(): void {
     this.canvasInteracao.desativar();
     this.layerManager.destroy();
+    this.core.destroy();
     if (this.core.map) {
       this.core.map.remove();
       this.core.map = null;

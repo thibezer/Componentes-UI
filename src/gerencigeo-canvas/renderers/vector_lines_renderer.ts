@@ -15,8 +15,10 @@ export class VectorLinesLayerRenderer implements ILayerRenderer {
     // Se a camada estiver em modo 'world', atualiza espessura no zoom
     const zoomCallback = () => {
       if (layerDef.estilo.scaleMode === 'world') {
-        group.clearLayers();
-        this.rebuildLines(layerDef, group, map, context, paneName);
+        const newWeight = this.calculateWeight(layerDef, map, context);
+        group.eachLayer((layer: any) => {
+          if (layer.setStyle) layer.setStyle({ weight: newWeight });
+        });
       }
     };
 

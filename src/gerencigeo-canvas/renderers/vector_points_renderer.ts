@@ -15,8 +15,20 @@ export class VectorPointsLayerRenderer implements ILayerRenderer {
 
     const zoomCallback = () => {
       if (layerDef.estilo.scaleMode === 'world') {
-        group.clearLayers();
-        this.rebuildPoints(layerDef, group, map, context, paneName);
+        group.eachLayer((marker: any) => {
+          if (marker.setIcon && marker.baseSize && marker.shapeStyle && marker.markerBg && marker.pontoId) {
+            const size = this.calculateSize(layerDef, map, context, marker.baseSize);
+            const animClass = context.config.enableAnimations ? 'transition-all duration-150' : '';
+            const markerHtml = getPointShapeHtml(marker.shapeStyle, size, marker.markerBg, animClass, `map-marker-${layerDef.id}-${marker.pontoId}`);
+
+            const customIcon = L.divIcon({
+              html: markerHtml,
+              className: 'custom-leaflet-marker flex items-center justify-center',
+              iconSize: [size + 6, size + 6]
+            });
+            marker.setIcon(customIcon);
+          }
+        });
       }
     };
 
@@ -102,6 +114,9 @@ export class VectorPointsLayerRenderer implements ILayerRenderer {
         (marker as any).pontoId = p.id;
         (marker as any).layerId = layerDef.id;
         (marker as any).isVizinho = isVizinhoLayer;
+        (marker as any).baseSize = baseSize;
+        (marker as any).shapeStyle = shapeStyle;
+        (marker as any).markerBg = markerBg;
 
         if (isInteractive) {
           const popupRole = isHomologadoLayer
