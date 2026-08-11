@@ -818,6 +818,34 @@
       </div>
     </article>
 
+    <!-- 17. Canvas CAD / GIS Geodésico (<ui-canvas-cad>) -->
+    <article class="card-componente full-width-card">
+      <h2>
+        <span>Mesa CAD / GIS Geodésico (&lt;ui-canvas-cad&gt;)</span>
+        <div style="display: flex; gap: 6px;">
+          <ui-badge variante="sucesso">QGIS Layers</ui-badge>
+          <ui-badge variante="info">AutoCAD CAD Engine</ui-badge>
+        </div>
+      </h2>
+      <p style="font-size: 13px; color: #a0a0b0; margin: 0 0 14px 0;">
+        Ambiente cartográfico e mesa CAD profissional com arquitetura de camadas estilo QGIS (Layer Manager dinâmico, opacidade, bloqueio e escala fixed-world/screen), interações AutoCAD (Pan na rodinha, Janela Window azul E&rarr;D e Crossing verde D&rarr;E, atalho ESC e zoom extents), suporte a WMS SIGEF e renderização vetorial de alta performance em Canvas nativo.
+      </p>
+
+      <!-- Barra de Ações de Teste do Canvas CAD -->
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; align-items: center;">
+        <ui-botao-primario inline style="height: 32px;" variante="primary" id="btn-cad-carregar-dados">Carregar Poligonal Geodésica</ui-botao-primario>
+        <ui-botao-primario inline style="height: 32px;" variante="secondary" id="btn-cad-toggle-layers">Alternar Painel QGIS</ui-botao-primario>
+        <ui-botao-primario inline style="height: 32px;" variante="secondary" id="btn-cad-zoom-extents">Zoom Extents</ui-botao-primario>
+        <ui-botao-primario inline style="height: 32px;" variante="secondary" id="btn-cad-toggle-scale">Alternar Escala</ui-botao-primario>
+        <ui-botao-primario inline style="height: 32px;" variante="ghost" id="btn-cad-export-state">Exportar Estado JSON</ui-botao-primario>
+        <ui-botao-primario inline style="height: 32px;" variante="ghost" id="btn-cad-import-state">Restaurar Estado</ui-botao-primario>
+      </div>
+
+      <div style="width: 100%; height: 560px;">
+        <ui-canvas-cad id="demo-canvas-cad" style="height: 100%;"></ui-canvas-cad>
+      </div>
+    </article>
+
     <!-- Console de Eventos em Tempo Real -->
     <section class="console-card">
 

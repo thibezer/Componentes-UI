@@ -393,7 +393,122 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  registrarLog('Playground autônomo com Nível 3 (Modal/Bottom Sheet, Alertas, Toasts & Tabela) inicializado.');
+  // ----------------------------------------------------
+  // 17. Lógica do Web Component <ui-canvas-cad> (CAD/GIS)
+  // ----------------------------------------------------
+  const canvasCad = document.getElementById('demo-canvas-cad') as any;
+  const btnCadCarregar = document.getElementById('btn-cad-carregar-dados');
+  const btnCadToggleLayers = document.getElementById('btn-cad-toggle-layers');
+  const btnCadZoomExtents = document.getElementById('btn-cad-zoom-extents');
+  const btnCadToggleScale = document.getElementById('btn-cad-toggle-scale');
+  const btnCadExportState = document.getElementById('btn-cad-export-state');
+  const btnCadImportState = document.getElementById('btn-cad-import-state');
+
+  let savedCadState: any = null;
+  let scaleModeCurrent: 'screen' | 'world' = 'screen';
+
+  const dadosPontosGeodesicos = [
+    { id: 101, nome_vertice: 'M-01', lat: -23.766123, lon: -53.320456, tipo_ponto: 'M', tipo: 'M', este: 671234.56, norte: 7370123.45, altitude: 432.10 },
+    { id: 102, nome_vertice: 'B-01', lat: -23.765000, lon: -53.318000, tipo_ponto: 'B', tipo: 'B', este: 671480.00, norte: 7370250.00, altitude: 430.00 },
+    { id: 1, nome_vertice: 'P-01', lat: -23.764500, lon: -53.322000, tipo_ponto: 'P', tipo: 'P', ordem_caminhamento: 1, este: 671075.00, norte: 7370305.00, altitude: 428.50 },
+    { id: 2, nome_vertice: 'P-02', lat: -23.763000, lon: -53.319500, tipo_ponto: 'P', tipo: 'P', ordem_caminhamento: 2, este: 671330.00, norte: 7370470.00, altitude: 425.00 },
+    { id: 3, nome_vertice: 'P-03', lat: -23.764000, lon: -53.316000, tipo_ponto: 'P', tipo: 'P', ordem_caminhamento: 3, este: 671686.00, norte: 7370360.00, altitude: 418.20 },
+    { id: 4, nome_vertice: 'P-04', lat: -23.767500, lon: -53.317500, tipo_ponto: 'P', tipo: 'P', ordem_caminhamento: 4, este: 671533.00, norte: 7369970.00, altitude: 422.80 },
+    { id: 5, nome_vertice: 'P-05', lat: -23.768000, lon: -53.321500, tipo_ponto: 'P', tipo: 'P', ordem_caminhamento: 5, este: 671126.00, norte: 7369917.00, altitude: 431.10 }
+  ];
+
+  const dadosSegmentosGeodesicos = [
+    { ponto_inicio_id: 1, ponto_fim_id: 2, tipo_limite_sigef: 'LA1', metodo_posicionamento_sigef: 'PG1' },
+    { ponto_inicio_id: 2, ponto_fim_id: 3, tipo_limite_sigef: 'LA1', metodo_posicionamento_sigef: 'PG1' },
+    { ponto_inicio_id: 3, ponto_fim_id: 4, tipo_limite_sigef: 'LN1', metodo_posicionamento_sigef: 'PG1' },
+    { ponto_inicio_id: 4, ponto_fim_id: 5, tipo_limite_sigef: 'LA1', metodo_posicionamento_sigef: 'PG1' },
+    { ponto_inicio_id: 5, ponto_fim_id: 1, tipo_limite_sigef: 'LA1', metodo_posicionamento_sigef: 'PG1' }
+  ];
+
+  const dadosConfrontantesGeodesicos = [
+    {
+      id: 501,
+      nome: 'Carlos Eduardo Silveira',
+      nome_propriedade: 'Fazenda Boa Esperança (Matrícula 45.120)',
+      poligono_wkt: 'POLYGON((-53.3160 -23.7640, -53.3140 -23.7630, -53.3150 -23.7670, -53.3175 -23.7675, -53.3160 -23.7640))'
+    }
+  ];
+
+  if (canvasCad) {
+    // Carregamento inicial automático
+    setTimeout(() => {
+      canvasCad.pontos = dadosPontosGeodesicos;
+      canvasCad.segmentos = dadosSegmentosGeodesicos;
+      canvasCad.confrontantes = dadosConfrontantesGeodesicos;
+      canvasCad.fitBounds(dadosPontosGeodesicos);
+      registrarLog('<ui-canvas-cad> -> Carregado com 7 vértices geodésicos (M-01 Base PPP, B-01 Base Campo, P-01..P-05 Rovers), 5 divisas e confrontante WKT.');
+    }, 400);
+
+    canvasCad.addEventListener('ui-ponto-selecionado', (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      registrarLog(`<ui-canvas-cad> -> Evento ui-ponto-selecionado | Vértice ID: ${detail.lastSelectedId} | Total Selecionados: ${detail.selectedIds?.length || 0}`);
+    });
+
+    canvasCad.addEventListener('ui-camadas-alteradas', (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      registrarLog(`<ui-canvas-cad> -> Evento ui-camadas-alteradas | Total de Camadas: ${detail.layers?.length || 0}`);
+    });
+  }
+
+  if (btnCadCarregar && canvasCad) {
+    btnCadCarregar.addEventListener('click', () => {
+      canvasCad.pontos = dadosPontosGeodesicos;
+      canvasCad.segmentos = dadosSegmentosGeodesicos;
+      canvasCad.confrontantes = dadosConfrontantesGeodesicos;
+      canvasCad.fitBounds(dadosPontosGeodesicos);
+      registrarLog('<ui-canvas-cad> -> Poligonal Geodésica recarregada e enquadrada na tela.');
+    });
+  }
+
+  if (btnCadToggleLayers && canvasCad) {
+    btnCadToggleLayers.addEventListener('click', () => {
+      canvasCad.toggleLayersPanel();
+      registrarLog('<ui-canvas-cad> -> Painel QGIS de Camadas alternado.');
+    });
+  }
+
+  if (btnCadZoomExtents && canvasCad) {
+    btnCadZoomExtents.addEventListener('click', () => {
+      canvasCad.zoomExtents();
+      registrarLog('<ui-canvas-cad> -> Zoom Extents executado.');
+    });
+  }
+
+  if (btnCadToggleScale && canvasCad) {
+    btnCadToggleScale.addEventListener('click', () => {
+      scaleModeCurrent = scaleModeCurrent === 'screen' ? 'world' : 'screen';
+      canvasCad.setLayerScaleMode('perimetro', scaleModeCurrent);
+      canvasCad.setLayerScaleMode('vertices', scaleModeCurrent);
+      registrarLog(`<ui-canvas-cad> -> Modo de escala alternado para: ${scaleModeCurrent.toUpperCase()} (${scaleModeCurrent === 'world' ? 'Métrico no terreno' : 'Pixels fixos na tela'}).`);
+    });
+  }
+
+  if (btnCadExportState && canvasCad) {
+    btnCadExportState.addEventListener('click', () => {
+      savedCadState = canvasCad.exportState();
+      const stateJson = JSON.stringify(savedCadState, null, 2);
+      console.log('Estado Exportado do Canvas CAD:', stateJson);
+      registrarLog(`<ui-canvas-cad> -> Estado exportado em JSON (${savedCadState.length} camadas). Ver console.`);
+    });
+  }
+
+  if (btnCadImportState && canvasCad) {
+    btnCadImportState.addEventListener('click', () => {
+      if (savedCadState) {
+        canvasCad.importState(savedCadState);
+        registrarLog('<ui-canvas-cad> -> Estado anterior restaurado via importState().');
+      } else {
+        registrarLog('<ui-canvas-cad> -> Nenhum estado salvo previamente para restaurar.');
+      }
+    });
+  }
+
+  registrarLog('Playground autônomo com Nível 3 & Canvas CAD (<ui-canvas-cad>) inicializado.');
 });
 
 

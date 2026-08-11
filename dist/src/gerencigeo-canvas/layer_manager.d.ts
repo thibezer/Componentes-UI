@@ -1,0 +1,29 @@
+import { default as L } from 'leaflet';
+import { CanvasLayerDef, CanvasLayerState, CanvasRenderContext, CanvasGraphicScale } from './types';
+export declare const DEFAULT_LAYERS: CanvasLayerDef[];
+export declare class CanvasLayerManager {
+    private layers;
+    private layerInstances;
+    private map;
+    private context;
+    private listeners;
+    constructor(initialLayers?: CanvasLayerDef[]);
+    attachMap(map: L.Map, context: CanvasRenderContext): void;
+    ensurePanes(): void;
+    renderAllLayers(): void;
+    setLayerVisibility(id: string, visivel: boolean): void;
+    setLayerOpacity(id: string, opacidade: number): void;
+    setLayerZIndex(id: string, zIndex: number): void;
+    setLayerBlocked(id: string, bloqueada: boolean): void;
+    setLayerScaleMode(id: string, mode: 'screen' | 'world'): void;
+    setGraphicScale(scale: Partial<CanvasGraphicScale>): void;
+    updateContext(newContext: Partial<CanvasRenderContext>): void;
+    getLayers(): CanvasLayerDef[];
+    getActiveSelectableLayers(): CanvasLayerDef[];
+    isLayerActiveAndSelectable(layerId: string): boolean;
+    exportState(): CanvasLayerState[];
+    importState(state: CanvasLayerState[]): void;
+    onChange(callback: (layers: CanvasLayerDef[]) => void): () => void;
+    private notifyChange;
+    destroy(): void;
+}

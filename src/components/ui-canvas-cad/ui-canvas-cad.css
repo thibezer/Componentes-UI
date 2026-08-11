@@ -1,0 +1,340 @@
+/* ==========================================================================
+   UI Canvas CAD - Folha de Estilos do Web Component (Shadow DOM)
+   ========================================================================== */
+
+:host {
+  display: block;
+  width: 100%;
+  height: 520px;
+  position: relative;
+  border-radius: var(--ui-radius-lg, 10px);
+  overflow: hidden;
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #080d0a;
+  color: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+.cad-root {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  overflow: hidden;
+}
+
+.cad-map-container {
+  width: 100%;
+  height: 100%;
+  background: #080d0a;
+  z-index: 1;
+}
+
+/* Painel de Camadas estilo QGIS (Retrátil e Flutuante) */
+.qgis-layer-panel {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 1000;
+  width: 290px;
+  max-height: calc(100% - 24px);
+  background: rgba(10, 18, 14, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+  overflow: hidden;
+}
+
+.qgis-layer-panel.collapsed {
+  transform: translateX(-310px);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.layer-panel-header {
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.layer-panel-title {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #00f5a0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-transform: uppercase;
+}
+
+.layer-panel-close {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.layer-panel-close:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.layer-panel-body {
+  padding: 10px 14px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 400px;
+}
+
+.layer-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: rgba(255, 255, 255, 0.45);
+  margin-bottom: 2px;
+  padding: 0 4px 4px 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.layer-item {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0;
+  padding: 10px 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  transition: background 0.15s ease;
+}
+
+.layer-item:last-child {
+  border-bottom: none;
+}
+
+.layer-item:hover {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 4px;
+}
+
+.layer-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.layer-item-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  user-select: none;
+}
+
+.layer-chk-visibility {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+  margin: 0;
+}
+
+.layer-chk-visibility:hover {
+  border-color: #00f5a0;
+}
+
+.layer-chk-visibility:checked {
+  background: #00f5a0;
+  border-color: #00f5a0;
+}
+
+.layer-chk-visibility:checked::after {
+  content: '';
+  width: 4px;
+  height: 8px;
+  border: solid #04150c;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg) translate(-0.5px, -1px);
+  display: block;
+}
+
+.layer-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-layer-action {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.btn-layer-action:hover {
+  color: #00f5a0;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.btn-layer-action.active {
+  color: #f43f5e;
+  background: rgba(244, 63, 94, 0.15);
+}
+
+.layer-controls-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.5);
+  padding-left: 26px;
+}
+
+.layer-opacity-slider {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.15);
+  accent-color: #00f5a0;
+  cursor: pointer;
+}
+
+.scale-mode-pill {
+  font-size: 9px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.15s;
+}
+
+.scale-mode-pill:hover {
+  border-color: #00f5a0;
+  color: #00f5a0;
+  background: rgba(0, 245, 160, 0.1);
+}
+
+/* Toolbar Flutuante do Canvas */
+.cad-quick-toolbar {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: rgba(12, 21, 16, 0.92);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 5px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6);
+}
+
+.cad-btn-tool {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  padding: 7px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.cad-btn-tool:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.cad-btn-tool.active {
+  background: rgba(0, 245, 160, 0.15);
+  color: #00f5a0;
+  border: 1px solid rgba(0, 245, 160, 0.3);
+}
+
+/* Caixa de Seleção CAD */
+.cad-selection-box {
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+/* Estilos de Popups e Marcadores */
+.custom-leaflet-marker {
+  cursor: pointer;
+}
+
+.custom-leaflet-marker:hover {
+  filter: brightness(1.25);
+  transform: scale(1.15);
+  transition: transform 0.15s ease;
+}
+
+.compact-popup .leaflet-popup-content-wrapper {
+  background: rgba(10, 18, 14, 0.95) !important;
+  backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 8px !important;
+  color: #ffffff !important;
+  padding: 0 !important;
+}
+
+.compact-popup .leaflet-popup-content {
+  margin: 10px 12px !important;
+}
+
+.compact-popup .leaflet-popup-tip {
+  background: rgba(10, 18, 14, 0.95) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}

@@ -1,0 +1,194 @@
+/* ==========================================================================
+   GerenciGeo CAD Canvas - Folha de Estilos Completa
+   ========================================================================== */
+
+:root {
+  --table-area-h: 320px;
+  --props-panel-w: 320px;
+  --geo-mint-vibrant: #00f5a0;
+  --geo-forest-deep: #06130b;
+  --geo-bg-surface: #0e1713;
+  --geo-border-faint: rgba(255, 255, 255, 0.08);
+  --geo-border-subtle: rgba(255, 255, 255, 0.15);
+  --geo-accent: #00f5a0;
+}
+
+/* Cores de apoio para marcadores */
+.bg-mint-vibrant {
+  background-color: #00f5a0 !important;
+}
+
+.bg-indigo-500 {
+  background-color: #6366f1 !important;
+}
+
+.bg-rose-500 {
+  background-color: #f43f5e !important;
+}
+
+.bg-amber-500 {
+  background-color: #f59e0b !important;
+}
+
+.bg-forest-deep {
+  background-color: #06130b !important;
+}
+
+/* Container do Mapa Leaflet */
+#container-mapa-leaflet-parent,
+.map-container-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  min-height: 250px;
+  border-radius: 8px;
+  background: #080d0a;
+}
+
+.mapa-leaflet-canvas {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+}
+
+.leaflet-container {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  background: #080d0a !important;
+}
+
+/* Splitters de Redimensionamento */
+.row-splitter {
+  height: 4px;
+  background: var(--geo-border-faint);
+  cursor: row-resize;
+  transition: background 150ms;
+}
+
+.row-splitter:hover {
+  background: var(--geo-accent);
+}
+
+.col-splitter {
+  width: 4px;
+  background: var(--geo-border-faint);
+  cursor: col-resize;
+  transition: background 150ms;
+  flex-shrink: 0;
+  height: 100%;
+}
+
+.col-splitter:hover {
+  background: var(--geo-accent);
+}
+
+/* Barra Unificada no Canvas (Toolbar) */
+.unified-toolbar {
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  background: rgba(12, 21, 16, 0.92) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6) !important;
+  padding: 4px !important;
+}
+
+.unified-toolbar button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 4px;
+  color: rgba(255, 255, 255, 0.6);
+  transition: all 0.2s ease;
+}
+
+.unified-toolbar button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+/* Marcadores Leaflet Customizados */
+.custom-leaflet-marker,
+.banco-leaflet-marker {
+  background: transparent !important;
+  border: none !important;
+  cursor: pointer;
+}
+
+.custom-leaflet-marker:hover,
+.banco-leaflet-marker:hover {
+  filter: brightness(1.25);
+  transform: scale(1.15);
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+/* Popups Compactos Dark / Glassmorphism */
+.compact-popup .leaflet-popup-content-wrapper,
+.compact-sigef-popup .leaflet-popup-content-wrapper,
+.custom-leaflet-popup .leaflet-popup-content-wrapper,
+.glass-popup .leaflet-popup-content-wrapper {
+  background: rgba(10, 18, 14, 0.95) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.7) !important;
+  color: #ffffff !important;
+  padding: 0 !important;
+}
+
+.compact-popup .leaflet-popup-content,
+.compact-sigef-popup .leaflet-popup-content,
+.custom-leaflet-popup .leaflet-popup-content,
+.glass-popup .leaflet-popup-content {
+  margin: 10px 12px !important;
+  line-height: 1.4 !important;
+}
+
+.compact-popup .leaflet-popup-tip,
+.compact-sigef-popup .leaflet-popup-tip,
+.custom-leaflet-popup .leaflet-popup-tip,
+.glass-popup .leaflet-popup-tip {
+  background: rgba(10, 18, 14, 0.95) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+.compact-popup .leaflet-popup-close-button,
+.compact-sigef-popup .leaflet-popup-close-button,
+.custom-leaflet-popup .leaflet-popup-close-button,
+.glass-popup .leaflet-popup-close-button {
+  color: rgba(255, 255, 255, 0.5) !important;
+  padding: 4px !important;
+  top: 4px !important;
+  right: 4px !important;
+}
+
+.compact-popup .leaflet-popup-close-button:hover,
+.compact-sigef-popup .leaflet-popup-close-button:hover,
+.custom-leaflet-popup .leaflet-popup-close-button:hover,
+.glass-popup .leaflet-popup-close-button:hover {
+  color: #ffffff !important;
+}
+
+/* Camada suave sem piscar em zoom */
+.smooth-zoom-layer.leaflet-zoom-animated {
+  will-change: transform;
+}
+
+/* Spinner de carregamento */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

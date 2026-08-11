@@ -26,4 +26,6 @@ export * from './components/ui-alerta';
 export * from './components/ui-tooltip';
 export * from './components/ui-tabela';
 export * from './components/ui-mapa';
+export * from './components/ui-canvas-cad';
+export * from './gerencigeo-canvas';
 
