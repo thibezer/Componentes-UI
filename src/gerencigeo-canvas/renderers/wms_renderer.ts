@@ -26,7 +26,7 @@ export class WmsLayerRenderer implements ILayerRenderer {
     return wmsLayer;
   }
 
-  public update(layerDef: CanvasLayerDef, layerInstance: L.Layer, changes: Partial<CanvasLayerDef>): void {
+  public update(_layerDef: CanvasLayerDef, layerInstance: L.Layer, changes: Partial<CanvasLayerDef>): void {
     if (layerInstance instanceof L.TileLayer.WMS) {
       if (changes.opacidade !== undefined) {
         layerInstance.setOpacity(changes.opacidade);

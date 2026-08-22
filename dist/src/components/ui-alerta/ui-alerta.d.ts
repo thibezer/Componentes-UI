@@ -12,16 +12,17 @@ export declare class UIAlerta extends HTMLElement {
     fechar: () => void;
     protected syncState(): void;
 }
+export interface UIToastOpcoes {
+    tipo?: 'sucesso' | 'erro' | 'alerta' | 'info';
+    titulo?: string;
+    mensagem: string;
+    duracao?: number;
+    posicao?: 'bottom-right' | 'top-right';
+}
 export declare class UIToast extends UIAlerta {
     private timerId;
     connectedCallback(): void;
     disconnectedCallback(): void;
     private static obterContainer;
-    static notificar(opcoes: {
-        tipo?: 'sucesso' | 'erro' | 'alerta' | 'info';
-        titulo?: string;
-        mensagem: string;
-        duracao?: number;
-        posicao?: 'bottom-right' | 'top-right';
-    }): UIToast;
+    static notificar(opcoes: UIToastOpcoes): UIToast;
 }

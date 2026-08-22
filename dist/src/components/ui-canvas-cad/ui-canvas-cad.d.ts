@@ -8,6 +8,9 @@ export declare class UICanvasCAD extends HTMLElement {
     private layersPanel;
     private controller;
     private isLayersPanelOpen;
+    private initTimeout?;
+    private uiListeners;
+    private layerItemListeners;
     private _pontos;
     private _segmentos;
     private _bancoPontos;

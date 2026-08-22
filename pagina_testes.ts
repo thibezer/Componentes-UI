@@ -140,7 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Configuração dos Botões
   const btns = document.querySelectorAll('ui-botao-primario');
   btns.forEach(btn => {
-    btn.addEventListener('ui-click', (e) => {
+    btn.addEventListener('ui-click', () => {
       const btnId = btn.id || 'sem-id';
       const texto = btn.textContent?.trim();
       registrarLog(`<ui-botao-primario id="${btnId}"> ("${texto}") -> Clique capturado!`);
@@ -239,8 +239,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Configuração dos Cards (<ui-card>)
   const cards = document.querySelectorAll('ui-card[clicavel], ui-card[clickable]');
   cards.forEach(card => {
-    card.addEventListener('ui-click', (e: Event) => {
-      const customEvent = e as CustomEvent;
+    card.addEventListener('ui-click', () => {
       const cardId = card.id || 'sem-id';
       registrarLog(`<ui-card id="${cardId}"> -> CLIQUADO (Evento ui-click capturado!)`);
     });
@@ -292,6 +291,18 @@ document.addEventListener('DOMContentLoaded', () => {
         duracao: 4000
       });
       registrarLog('UIToast.notificar() -> Disparado Toast de ERRO 🔴');
+    });
+  }
+
+  if (btnToastAlerta) {
+    btnToastAlerta.addEventListener('ui-click', () => {
+      UIToast.notificar({
+        tipo: 'alerta',
+        titulo: 'Atenção Necessária',
+        mensagem: 'Verifique as pendências antes de prosseguir.',
+        duracao: 4000
+      });
+      registrarLog('UIToast.notificar() -> Disparado Toast de ALERTA 🟠');
     });
   }
 
@@ -357,6 +368,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  const filtroTabela = document.getElementById('filtro-tabela-incra');
+  if (filtroTabela && tabelaIncra) {
+    filtroTabela.addEventListener('ui-input', (e: Event) => {
+      const customEvt = e as CustomEvent<{ value: string }>;
+      const termo = customEvt.detail?.value || '';
+      tabelaIncra.filtrar(termo);
+      registrarLog(`<ui-tabela> -> Filtrando registros por: "${termo}"`);
+    });
+  }
 
   if (btnTabelaDados && tabelaIncra) {
     btnTabelaDados.addEventListener('ui-click', () => {
@@ -508,7 +528,35 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  registrarLog('Playground autônomo com Nível 3 & Canvas CAD (<ui-canvas-cad>) inicializado.');
+  // ----------------------------------------------------
+  // 18. Formulário Inteligente com FormData Nativo
+  // ----------------------------------------------------
+  const formInteligente = document.getElementById('form-demo-inteligente') as HTMLFormElement | null;
+  if (formInteligente) {
+    formInteligente.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const formData = new FormData(formInteligente);
+      const objetoDados = Object.fromEntries(formData.entries());
+      const jsonStr = JSON.stringify(objetoDados);
+      registrarLog(`[FormData Nativo] -> Submetido com sucesso! Dados extraídos: ${jsonStr}`);
+      UIToast.notificar({
+        tipo: 'sucesso',
+        titulo: 'Formulário Submetido!',
+        mensagem: `Extraído via FormData em 1 linha: ${jsonStr}`
+      });
+    });
+  }
+
+  // Ouvinte Global do UIBus para o Console de Logs
+  window.addEventListener('uibus:clipboard:copiado', (e: any) => {
+    registrarLog(`[UIBus] -> Texto copiado para a área de transferência: "${e.detail?.texto}"`);
+  });
+
+  window.addEventListener('uibus:modal:aberto', (e: any) => {
+    registrarLog(`[UIBus / Zero-JS] -> Modal "${e.detail?.id}" aberto automaticamente!`);
+  });
+
+  registrarLog('Playground autônomo inicializado com Suporte Inteligente (Zero-JS, FormData e UIBus).');
 });
 
 

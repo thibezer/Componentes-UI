@@ -28,4 +28,14 @@ export * from './components/ui-tabela';
 export * from './components/ui-mapa';
 export * from './components/ui-canvas-cad';
 export * from './gerencigeo-canvas';
+// 5. Núcleo Inteligente, Orquestração e Barramento de Eventos
+export * from './core/ui-bus';
+export * from './core/zero-js-triggers';
+export * from './core/listener-bag';
+
+// Inicialização automática das ações declarativas Zero-JS
+import { initZeroJSTriggers } from './core/zero-js-triggers';
+if (typeof document !== 'undefined') {
+  initZeroJSTriggers();
+}
 

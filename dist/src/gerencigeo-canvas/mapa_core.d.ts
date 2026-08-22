@@ -17,11 +17,13 @@ export declare class MapaCore {
     pontosVizinhosGroup: L.LayerGroup;
     private controller;
     private containerElement;
+    private bc?;
     constructor(controller: MapaCoreControllerRef);
     init(containerIdOrElement: string | HTMLElement): L.Map | null;
     invalidateSize(): void;
     private applyMapStyles;
     private listenConfigBroadcast;
+    destroy(): void;
     preCarregarTilesRegiao(bounds: L.LatLngBounds): void;
     private lonToTileX;
     private latToTileY;

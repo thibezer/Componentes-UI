@@ -86,13 +86,16 @@ export class UICard extends HTMLElement {
 
   private syncState() {
     const elevacao = this.getAttribute('elevacao') || this.getAttribute('elevation') || 'plano';
-    const variante = this.getAttribute('variante') || this.getAttribute('variant') || elevacao;
+    const variante = this.getAttribute('variante') || this.getAttribute('variant');
     const isClicavel = this.clicavel;
     const isCompacto = this.hasAttribute('compacto') || this.hasAttribute('compact');
     const isDisabled = this.disabled;
 
     this.cardElement.className = 'ui-card';
-    this.cardElement.classList.add(`ui-card--${variante}`);
+    this.cardElement.classList.add(`ui-card--${elevacao}`);
+    if (variante) {
+      this.cardElement.classList.add(`ui-card--${variante}`);
+    }
 
     if (isClicavel) {
       this.cardElement.classList.add('ui-card--clicavel');
@@ -135,6 +138,15 @@ export class UICard extends HTMLElement {
     if (this.clicavel) {
       this.dispatchEvent(
         new CustomEvent('ui-click', {
+          detail: {
+            id: this.id || 'sem-id'
+          },
+          bubbles: true,
+          composed: true,
+        })
+      );
+      this.dispatchEvent(
+        new CustomEvent('ui-clique', {
           detail: {
             id: this.id || 'sem-id'
           },

@@ -109,6 +109,14 @@ export class UIAlerta extends HTMLElement {
   }
 }
 
+export interface UIToastOpcoes {
+  tipo?: 'sucesso' | 'erro' | 'alerta' | 'info';
+  titulo?: string;
+  mensagem: string;
+  duracao?: number;
+  posicao?: 'bottom-right' | 'top-right';
+}
+
 export class UIToast extends UIAlerta {
   private timerId: any = null;
 
@@ -165,13 +173,7 @@ export class UIToast extends UIAlerta {
   }
 
   // Utilitário estático para disparo imperativo de Toasts de qualquer lugar no código
-  static notificar(opcoes: {
-    tipo?: 'sucesso' | 'erro' | 'alerta' | 'info';
-    titulo?: string;
-    mensagem: string;
-    duracao?: number;
-    posicao?: 'bottom-right' | 'top-right';
-  }) {
+  static notificar(opcoes: UIToastOpcoes) {
     const posicao = opcoes.posicao || 'bottom-right';
     const toast = document.createElement('ui-toast') as UIToast;
     if (opcoes.tipo) toast.setAttribute('tipo', opcoes.tipo);

@@ -1,5 +1,3 @@
-import type L from 'leaflet';
-
 export type ScaleMode = 'screen' | 'world';
 
 export type CanvasLayerCategory = 'base' | 'wms' | 'levantamento' | 'referencia' | 'anotacoes' | 'custom';

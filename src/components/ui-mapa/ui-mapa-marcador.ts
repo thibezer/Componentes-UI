@@ -30,10 +30,17 @@ export class UIMapaMarcador extends HTMLElement {
       if (name === 'titulo') {
         this.marker.unbindPopup();
         if (newVal) {
-          this.marker.bindPopup(newVal);
+          this.marker.bindPopup(this.createPopupContent(newVal));
         }
       }
     }
+  }
+
+  private createPopupContent(titulo: string): HTMLElement {
+    const container = document.createElement('div');
+    container.className = 'ui-mapa-popup';
+    container.textContent = titulo;
+    return container;
   }
   
   private initMarker() {
@@ -56,7 +63,7 @@ export class UIMapaMarcador extends HTMLElement {
     
     this.marker = L.marker([lat, lng]);
     if (titulo) {
-      this.marker.bindPopup(titulo);
+      this.marker.bindPopup(this.createPopupContent(titulo));
     }
     
     this.marker.addTo(map);

@@ -24,7 +24,7 @@ export class TileLayerRenderer implements ILayerRenderer {
     return tileLayer;
   }
 
-  public update(layerDef: CanvasLayerDef, layerInstance: L.Layer, changes: Partial<CanvasLayerDef>): void {
+  public update(_layerDef: CanvasLayerDef, layerInstance: L.Layer, changes: Partial<CanvasLayerDef>): void {
     if (layerInstance instanceof L.TileLayer) {
       if (changes.opacidade !== undefined) {
         layerInstance.setOpacity(changes.opacidade);

@@ -1,4 +1,5 @@
 import estilos from './ui-tabela.css?inline';
+import { ListenerBag } from '../../core/listener-bag';
 
 export type DensidadeTabela = 'compacta' | 'normal' | 'relaxada';
 
@@ -26,7 +27,18 @@ export interface UIColumnResizeDetail {
 
 export class UITabela extends HTMLElement {
   static get observedAttributes() {
-    return ['texto-vazio', 'empty-text', 'max-height', 'densidade', 'density', 'virtualizar', 'virtualize'];
+    return [
+      'texto-vazio',
+      'empty-text',
+      'max-height',
+      'densidade',
+      'density',
+      'virtualizar',
+      'virtualize',
+      'src',
+      'carregando',
+      'loading'
+    ];
   }
 
   private shadow: ShadowRoot;
@@ -38,6 +50,9 @@ export class UITabela extends HTMLElement {
   private _textoVazio: string = 'Nenhum registro encontrado';
   private _virtualizar: boolean = true;
   private _isResizing: boolean = false;
+  private _carregando: boolean = false;
+  private _src: string | null = null;
+  private _ultimoFiltro: string = '';
 
   // Gerenciamento de Ouvintes e Elementos DOM
   private _containerElement: HTMLDivElement | null = null;
@@ -46,10 +61,11 @@ export class UITabela extends HTMLElement {
   private _tbodyElement: HTMLTableSectionElement | null = null;
   private _colgroupElement: HTMLTableColElement | null = null;
   private _emptyElement: HTMLDivElement | null = null;
+  private _loadingElement: HTMLDivElement | null = null;
 
   private _scrollHandler: ((e: Event) => void) | null = null;
   private _activeResizeCleanup: (() => void) | null = null;
-  private _headerEventListeners: Array<{ element: HTMLElement; type: string; listener: EventListener }> = [];
+  private _headerListeners = new ListenerBag();
   private _ticking = false;
 
   constructor() {
@@ -63,6 +79,10 @@ export class UITabela extends HTMLElement {
       this.setAttribute('densidade', 'normal');
     }
     this.renderTotal();
+
+    if (this._src) {
+      this.carregarDoEndpoint(this._src);
+    }
   }
 
   disconnectedCallback() {
@@ -84,6 +104,131 @@ export class UITabela extends HTMLElement {
     if (virtAttr !== null) {
       this._virtualizar = virtAttr !== 'false';
     }
+
+    const srcAttr = this.getAttribute('src');
+    if (srcAttr && srcAttr !== this._src) {
+      this._src = srcAttr;
+      if (this.isConnected) {
+        this.carregarDoEndpoint(srcAttr);
+      }
+    }
+
+    const carregandoAttr = this.hasAttribute('carregando') || this.hasAttribute('loading');
+    this._carregando = carregandoAttr;
+    this.renderLoading();
+  }
+
+  get src(): string | null {
+    return this._src;
+  }
+
+  set src(val: string | null) {
+    this._src = val;
+    if (val) {
+      this.setAttribute('src', val);
+      this.carregarDoEndpoint(val);
+    } else {
+      this.removeAttribute('src');
+    }
+  }
+
+  get carregando(): boolean {
+    return this._carregando;
+  }
+
+  set carregando(val: boolean) {
+    this._carregando = Boolean(val);
+    if (this._carregando) {
+      this.setAttribute('carregando', '');
+    } else {
+      this.removeAttribute('carregando');
+      this.removeAttribute('loading');
+    }
+    this.renderLoading();
+  }
+
+  /**
+   * Realiza busca assíncrona automática a partir de um endpoint JSON.
+   */
+  public async carregarDoEndpoint(url?: string): Promise<void> {
+    const endpoint = url || this._src;
+    if (!endpoint) return;
+
+    this.carregando = true;
+    this.dispatchEvent(new CustomEvent('ui-fetch-start', { bubbles: true, composed: true, detail: { url: endpoint } }));
+
+    try {
+      const resposta = await fetch(endpoint);
+      if (!resposta.ok) {
+        throw new Error(`HTTP ${resposta.status}: ${resposta.statusText}`);
+      }
+      const json = await resposta.json();
+      const listaDados = Array.isArray(json) ? json : (json.dados || json.items || json.data || json.rows || []);
+      
+      this.dados = listaDados;
+      this.carregando = false;
+
+      this.dispatchEvent(
+        new CustomEvent('ui-fetch-sucesso', {
+          bubbles: true,
+          composed: true,
+          detail: { url: endpoint, total: listaDados.length, dados: listaDados }
+        })
+      );
+    } catch (erro: any) {
+      this.carregando = false;
+      console.error('[ui-tabela] Erro ao carregar dados remotos:', erro);
+      this.dispatchEvent(
+        new CustomEvent('ui-fetch-erro', {
+          bubbles: true,
+          composed: true,
+          detail: { url: endpoint, erro: erro.message || String(erro) }
+        })
+      );
+    }
+  }
+
+  /**
+   * Recarrega os dados do endpoint atual.
+   */
+  public async recarregar(): Promise<void> {
+    if (this._src) {
+      await this.carregarDoEndpoint(this._src);
+    } else {
+      this.aplicarOrdenacao();
+      this.renderBody();
+    }
+  }
+
+  /**
+   * Filtra os registros exibidos por um termo de busca em todas as colunas.
+   */
+  public filtrar(termo: string): void {
+    this._ultimoFiltro = (termo || '').trim().toLowerCase();
+    if (!this._ultimoFiltro) {
+      this.aplicarOrdenacao();
+      this.renderBody();
+      return;
+    }
+
+    const filtrados = this._dadosOriginais.filter((item) => {
+      return Object.values(item).some((valor) => {
+        if (valor == null) return false;
+        return String(valor).toLowerCase().includes(this._ultimoFiltro);
+      });
+    });
+
+    this._dadosExibicao = filtrados;
+    this.renderBody();
+  }
+
+  private renderLoading(): void {
+    if (!this._loadingElement) return;
+    if (this._carregando) {
+      this._loadingElement.style.display = 'flex';
+    } else {
+      this._loadingElement.style.display = 'none';
+    }
   }
 
   private cleanupEventListeners() {
@@ -97,15 +242,11 @@ export class UITabela extends HTMLElement {
       this._activeResizeCleanup = null;
     }
 
-    this._headerEventListeners.forEach(({ element, type, listener }) => {
-      element.removeEventListener(type, listener);
-    });
-    this._headerEventListeners = [];
+    this._headerListeners.cleanup();
   }
 
   private addHeaderListener(element: HTMLElement, type: string, listener: EventListener) {
-    element.addEventListener(type, listener);
-    this._headerEventListeners.push({ element, type, listener });
+    this._headerListeners.add(element, type, listener);
   }
 
   // Getters & Setters Reativos
@@ -493,6 +634,18 @@ export class UITabela extends HTMLElement {
 
     container.appendChild(this._emptyElement);
     container.appendChild(this._tableElement);
+
+    // Overlay de Carregamento Inteligente
+    const loadingDiv = document.createElement('div');
+    loadingDiv.className = 'ui-tabela__loading';
+    loadingDiv.style.display = this._carregando ? 'flex' : 'none';
+    loadingDiv.innerHTML = `
+      <div class="ui-tabela__spinner"></div>
+      <span>Carregando dados...</span>
+    `;
+    this._loadingElement = loadingDiv;
+    container.appendChild(this._loadingElement);
+
     this.shadow.appendChild(container);
 
     this.renderHeader();
@@ -519,10 +672,7 @@ export class UITabela extends HTMLElement {
     if (!this._theadElement || !this._colgroupElement) return;
     
     // Limpar ouvintes antigos vinculados aos cabeçalhos
-    this._headerEventListeners.forEach(({ element, type, listener }) => {
-      element.removeEventListener(type, listener);
-    });
-    this._headerEventListeners = [];
+    this._headerListeners.cleanup();
 
     this._theadElement.innerHTML = '';
     this._colgroupElement.innerHTML = '';

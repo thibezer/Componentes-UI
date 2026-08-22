@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import '../src/index';
 import { UICanvasCAD } from '../src/components/ui-canvas-cad';
 import { CanvasLayerManager, DEFAULT_LAYERS } from '../src/gerencigeo-canvas/layer_manager';
@@ -101,6 +101,28 @@ describe('Canvas CAD Engine & <ui-canvas-cad>', () => {
 
     expect(el.pontos.length).toBe(3);
     expect(el.segmentos.length).toBe(2);
+
+    document.body.removeChild(el);
+  });
+
+  it('deve limpar listeners anteriores com AbortController ao desconectar e reconectar', async () => {
+    const el = document.createElement('ui-canvas-cad') as UICanvasCAD;
+    document.body.appendChild(el);
+    await new Promise(r => setTimeout(r, 20));
+
+    const spyToggle = vi.spyOn(el, 'toggleLayersPanel');
+    const btnToggle = el.shadowRoot!.getElementById('btn-toggle-layers');
+
+    // Desconecta e reconecta o elemento simulando troca de aba/re-render do pai
+    document.body.removeChild(el);
+    document.body.appendChild(el);
+    await new Promise(r => setTimeout(r, 20));
+
+    // Clica no botão de toggle
+    btnToggle?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
+    // Deve ter sido chamado exatamente 1 vez, sem duplicação de handlers
+    expect(spyToggle).toHaveBeenCalledTimes(1);
 
     document.body.removeChild(el);
   });

@@ -1,5 +1,5 @@
 import L from 'leaflet';
-import leafletCss from 'leaflet/dist/leaflet.css?inline';
+import { leafletCss } from '../../core/leaflet-style';
 import estilos from './ui-mapa.css?inline';
 
 const BASEMAPS: Record<string, { nome: string; layer: () => L.TileLayer }> = {

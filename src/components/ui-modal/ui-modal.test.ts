@@ -62,7 +62,6 @@ describe('UIModal', () => {
 
     await new Promise(r => setTimeout(r, 10));
 
-    const btn1 = modal1.querySelector('#btn1');
     const btn2 = modal1.querySelector('#btn2');
 
     // In unit testing, true focus cycling requires manual simulation

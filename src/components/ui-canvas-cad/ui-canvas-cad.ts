@@ -1,8 +1,9 @@
-import leafletCss from 'leaflet/dist/leaflet.css?inline';
+import { leafletCss } from '../../core/leaflet-style';
 import estilos from './ui-canvas-cad.css?inline';
-import type { Ponto, Segmento, BancoPonto, Confrontante, CanvasLayerDef, CanvasLayerState, CanvasGraphicScale, MapaConfiguracoes, ScaleMode } from '../../gerencigeo-canvas/types';
+import type { Ponto, Segmento, BancoPonto, Confrontante, CanvasLayerState, CanvasGraphicScale, ScaleMode } from '../../gerencigeo-canvas/types';
 import { GerenciGeoMapaController } from '../../gerencigeo-canvas/mapa_controller';
 import type { CanvasLayerManager } from '../../gerencigeo-canvas/layer_manager';
+import { ListenerBag } from '../../core/listener-bag';
 
 export class UICanvasCAD extends HTMLElement {
   static get observedAttributes() {
@@ -15,6 +16,8 @@ export class UICanvasCAD extends HTMLElement {
   private controller: GerenciGeoMapaController;
   private isLayersPanelOpen: boolean = false;
   private initTimeout?: number;
+  private uiListeners = new ListenerBag();
+  private layerItemListeners = new ListenerBag();
 
   private _pontos: Ponto[] = [];
   private _segmentos: Segmento[] = [];
@@ -80,6 +83,8 @@ export class UICanvasCAD extends HTMLElement {
     if (this.initTimeout) {
       window.clearTimeout(this.initTimeout);
     }
+    this.uiListeners.cleanup();
+    this.layerItemListeners.cleanup();
     this.controller.destroy();
   }
 
@@ -135,24 +140,26 @@ export class UICanvasCAD extends HTMLElement {
   }
 
   private setupUIEvents() {
+    this.uiListeners.cleanup();
+
     const btnToggleLayers = this.shadow.getElementById('btn-toggle-layers');
     const btnCloseLayers = this.shadow.getElementById('btn-close-layers');
     const btnZoomExtents = this.shadow.getElementById('btn-zoom-extents');
     const btnClearSelection = this.shadow.getElementById('btn-clear-selection');
 
-    btnToggleLayers?.addEventListener('click', () => {
+    this.uiListeners.add(btnToggleLayers, 'click', () => {
       this.toggleLayersPanel();
     });
 
-    btnCloseLayers?.addEventListener('click', () => {
+    this.uiListeners.add(btnCloseLayers, 'click', () => {
       this.closeLayersPanel();
     });
 
-    btnZoomExtents?.addEventListener('click', () => {
+    this.uiListeners.add(btnZoomExtents, 'click', () => {
       this.zoomExtents();
     });
 
-    btnClearSelection?.addEventListener('click', () => {
+    this.uiListeners.add(btnClearSelection, 'click', () => {
       this.limparSelecao();
     });
   }
@@ -244,9 +251,11 @@ export class UICanvasCAD extends HTMLElement {
       `).join('')}
     `;
 
+    this.layerItemListeners.cleanup();
+
     // Eventos de checkboxes de visibilidade
     container.querySelectorAll('.layer-chk-visibility').forEach(chk => {
-      chk.addEventListener('change', (e) => {
+      this.layerItemListeners.add(chk, 'change', (e: Event) => {
         const id = (e.target as HTMLElement).getAttribute('data-layer-id');
         const checked = (e.target as HTMLInputElement).checked;
         if (id) this.setLayerVisibility(id, checked);
@@ -255,7 +264,7 @@ export class UICanvasCAD extends HTMLElement {
 
     // Eventos de slider de opacidade em tempo real
     container.querySelectorAll('.layer-opacity-slider').forEach(slider => {
-      slider.addEventListener('input', (e) => {
+      this.layerItemListeners.add(slider, 'input', (e: Event) => {
         const id = (e.target as HTMLElement).getAttribute('data-layer-id');
         const pct = parseInt((e.target as HTMLInputElement).value, 10);
         const val = pct / 100;
@@ -268,7 +277,7 @@ export class UICanvasCAD extends HTMLElement {
 
     // Eventos de bloqueio de camada
     container.querySelectorAll('.btn-lock-layer').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+      this.layerItemListeners.add(btn, 'click', (e: Event) => {
         const id = (e.currentTarget as HTMLElement).getAttribute('data-layer-id');
         if (id) {
           const l = this.controller.layerManager.getLayers().find(item => item.id === id);
@@ -279,7 +288,7 @@ export class UICanvasCAD extends HTMLElement {
 
     // Eventos de alternância de modo de escala
     container.querySelectorAll('.btn-toggle-scale-mode').forEach(pill => {
-      pill.addEventListener('click', (e) => {
+      this.layerItemListeners.add(pill, 'click', (e: Event) => {
         const id = (e.currentTarget as HTMLElement).getAttribute('data-layer-id');
         if (id) {
           const l = this.controller.layerManager.getLayers().find(item => item.id === id);

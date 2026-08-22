@@ -1,7 +1,10 @@
-name: CI/CD Build & Deploy to GitHub Pages
+name: CI/CD Build, Test & Deploy
 
 on:
   push:
+    branches:
+      - main
+  pull_request:
     branches:
       - main
   workflow_dispatch:
@@ -16,7 +19,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-and-deploy:
+  validate-and-deploy:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -40,7 +43,18 @@ jobs:
       - name: Build Library & Assets
         run: npm run build
 
+      - name: Verify dist/ Synchronization
+        run: |
+          if [ -n "$(git status --porcelain dist)" ]; then
+            echo "❌ ERRO: O diretório dist/ versionado está desatualizado em relação a src/!"
+            echo "Por favor, execute 'npm run build' localmente e comite as alterações em dist/."
+            git diff dist
+            exit 1
+          fi
+          echo "✅ O diretório dist/ está 100% sincronizado com src/."
+
       - name: Prepare Public Directory for Pages
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         run: |
           mkdir -p public_site
           cp -r dist public_site/
@@ -49,13 +63,16 @@ jobs:
           cp -r src public_site/ 2>/dev/null || true
 
       - name: Setup Pages
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: actions/configure-pages@v5
 
       - name: Upload Artifact
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v3
         with:
           path: 'public_site'
 
       - name: Deploy to GitHub Pages
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         id: deployment
         uses: actions/deploy-pages@v4

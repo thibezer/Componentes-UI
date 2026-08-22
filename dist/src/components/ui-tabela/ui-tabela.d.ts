@@ -29,21 +29,42 @@ export declare class UITabela extends HTMLElement {
     private _textoVazio;
     private _virtualizar;
     private _isResizing;
+    private _carregando;
+    private _src;
+    private _ultimoFiltro;
     private _containerElement;
     private _tableElement;
     private _theadElement;
     private _tbodyElement;
     private _colgroupElement;
     private _emptyElement;
+    private _loadingElement;
     private _scrollHandler;
     private _activeResizeCleanup;
-    private _headerEventListeners;
+    private _headerListeners;
     private _ticking;
     constructor();
     connectedCallback(): void;
     disconnectedCallback(): void;
     attributeChangedCallback(_name: string, _oldVal: string | null, _newVal: string | null): void;
     private syncAttributes;
+    get src(): string | null;
+    set src(val: string | null);
+    get carregando(): boolean;
+    set carregando(val: boolean);
+    /**
+     * Realiza busca assíncrona automática a partir de um endpoint JSON.
+     */
+    carregarDoEndpoint(url?: string): Promise<void>;
+    /**
+     * Recarrega os dados do endpoint atual.
+     */
+    recarregar(): Promise<void>;
+    /**
+     * Filtra os registros exibidos por um termo de busca em todas as colunas.
+     */
+    filtrar(termo: string): void;
+    private renderLoading;
     private cleanupEventListeners;
     private addHeaderListener;
     get colunas(): TabelaColuna[];

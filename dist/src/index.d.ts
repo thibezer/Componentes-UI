@@ -16,3 +16,6 @@ export * from './components/ui-tabela';
 export * from './components/ui-mapa';
 export * from './components/ui-canvas-cad';
 export * from './gerencigeo-canvas';
+export * from './core/ui-bus';
+export * from './core/zero-js-triggers';
+export * from './core/listener-bag';

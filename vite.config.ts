@@ -5,6 +5,7 @@ export default defineConfig({
   plugins: [
     dts({
       insertTypesEntry: true,
+      exclude: ['**/*.test.ts', 'tests/**', 'pagina_testes.ts'],
     }),
   ],
   server: {
@@ -18,10 +19,13 @@ export default defineConfig({
       fileName: (format) => `ui-kit.${format}.js`,
     },
     rollupOptions: {
+      external: ['leaflet'],
       output: {
+        globals: {
+          leaflet: 'L',
+        },
         assetFileNames: 'ui-kit.[ext]',
       },
     },
   },
 });
-

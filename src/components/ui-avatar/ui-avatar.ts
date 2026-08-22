@@ -73,15 +73,17 @@ export class UIAvatar extends HTMLElement {
     // Renderização do Conteúdo (Foto vs Iniciais vs Ícone Fallback)
     const contentSlot = this.avatarElement.querySelector('.ui-avatar__content');
     if (contentSlot) {
+      contentSlot.textContent = '';
       if (src) {
-        contentSlot.innerHTML = `<img class="ui-avatar__img" src="${src}" alt="${nome || 'Avatar'}" />`;
-        const img = contentSlot.querySelector('img');
-        if (img) {
-          img.onerror = () => {
-            // Fallback se a imagem falhar ao carregar
-            this.renderFallback(contentSlot, nome);
-          };
-        }
+        const img = document.createElement('img');
+        img.className = 'ui-avatar__img';
+        img.src = src;
+        img.alt = nome || 'Avatar';
+        img.onerror = () => {
+          // Fallback se a imagem falhar ao carregar
+          this.renderFallback(contentSlot, nome);
+        };
+        contentSlot.appendChild(img);
       } else {
         this.renderFallback(contentSlot, nome);
       }

@@ -1,4 +1,5 @@
 import estilos from './ui-lista-flutuante.css?inline';
+import { ListenerBag } from '../../core/listener-bag';
 
 export interface ItemLista {
   id: string;
@@ -10,13 +11,28 @@ export class UIListaFlutuante extends HTMLElement {
   private internals: any;
 
   static get observedAttributes() {
-    return ['aberta', 'texto-padrao', 'value', 'disabled', 'bottom-sheet', 'modo-mobile'];
+    return [
+      'aberta',
+      'texto-padrao',
+      'value',
+      'disabled',
+      'bottom-sheet',
+      'modo-mobile',
+      'label',
+      'rotulo',
+      'placeholder'
+    ];
   }
 
+  private labelElement: HTMLLabelElement;
   private button: HTMLButtonElement;
-  private content: HTMLUListElement;
+  private content: HTMLDivElement;
+  private listElement: HTMLUListElement;
   private textoElement: HTMLSpanElement;
   private backdropElement: HTMLDivElement;
+  private sheetTituloElement: HTMLSpanElement;
+  private sheetCloseButton: HTMLButtonElement;
+  private listeners = new ListenerBag();
   private _itens: ItemLista[] = [];
   private _value: string = '';
   private observer!: MutationObserver;
@@ -28,27 +44,46 @@ export class UIListaFlutuante extends HTMLElement {
     const shadow = this.attachShadow({ mode: 'open' });
     shadow.innerHTML = `
       <style>${estilos}</style>
-      <div class="ui-lista-flutuante__backdrop"></div>
-      <button class="ui-lista-flutuante__gatilho" aria-haspopup="listbox" aria-expanded="false" type="button">
-        <span class="ui-lista-flutuante__texto"></span>
-        <span class="ui-lista-flutuante__seta">▼</span>
-      </button>
-      <ul class="ui-lista-flutuante__conteudo" role="listbox" popover="manual">
-        <div class="ui-lista-flutuante__handle"></div>
-      </ul>
+      <div class="ui-lista-flutuante__container">
+        <label class="ui-lista-flutuante__label" style="display: none;"></label>
+        <div class="ui-lista-flutuante__backdrop"></div>
+        <button class="ui-lista-flutuante__gatilho" aria-haspopup="listbox" aria-expanded="false" type="button">
+          <span class="ui-lista-flutuante__texto"></span>
+          <span class="ui-lista-flutuante__seta">▼</span>
+        </button>
+        <div class="ui-lista-flutuante__conteudo" role="listbox" popover="manual">
+          <div class="ui-lista-flutuante__sheet-header">
+            <div class="ui-lista-flutuante__handle"></div>
+            <div class="ui-lista-flutuante__sheet-title-bar">
+              <span class="ui-lista-flutuante__sheet-titulo">Selecione uma opção</span>
+              <button class="ui-lista-flutuante__sheet-close" type="button" aria-label="Fechar">✕</button>
+            </div>
+          </div>
+          <ul class="ui-lista-flutuante__lista" style="margin: 0; padding: 0; list-style: none;"></ul>
+        </div>
+      </div>
     `;
+    this.labelElement = shadow.querySelector('.ui-lista-flutuante__label')!;
     this.button = shadow.querySelector('.ui-lista-flutuante__gatilho')!;
     this.content = shadow.querySelector('.ui-lista-flutuante__conteudo')!;
+    this.listElement = shadow.querySelector('.ui-lista-flutuante__lista')!;
     this.textoElement = shadow.querySelector('.ui-lista-flutuante__texto')!;
     this.backdropElement = shadow.querySelector('.ui-lista-flutuante__backdrop')!;
+    this.sheetTituloElement = shadow.querySelector('.ui-lista-flutuante__sheet-titulo')!;
+    this.sheetCloseButton = shadow.querySelector('.ui-lista-flutuante__sheet-close')!;
   }
 
   connectedCallback() {
-    this.button.addEventListener('click', this.toggleLista);
-    this.button.addEventListener('keydown', this.handleKeyDown);
-    this.content.addEventListener('keydown', this.handleListKeyDown);
-    this.backdropElement.addEventListener('click', this.fechar);
-    document.addEventListener('click', this.handleClickFora);
+    this.listeners.cleanup();
+    this.listeners.add(this.button, 'click', this.toggleLista);
+    this.listeners.add(this.button, 'keydown', this.handleKeyDown);
+    this.listeners.add(this.content, 'keydown', this.handleListKeyDown);
+    this.listeners.add(this.backdropElement, 'click', this.fechar);
+    this.listeners.add(this.sheetCloseButton, 'click', (e: Event) => {
+      e.stopPropagation();
+      this.fechar();
+    });
+    this.listeners.add(document, 'click', this.handleClickFora);
     this.carregarItensFilhos();
     this.syncState();
 
@@ -56,7 +91,7 @@ export class UIListaFlutuante extends HTMLElement {
     this.observer.observe(this, { childList: true, subtree: true });
   }
 
-  private carregarItensFilhos() {
+  public carregarItensFilhos() {
     const options = Array.from(this.querySelectorAll('option, ui-opcao, [value]'));
     if (options.length > 0) {
       this._itens = options.map((opt, idx) => ({
@@ -69,11 +104,7 @@ export class UIListaFlutuante extends HTMLElement {
   }
 
   disconnectedCallback() {
-    this.button.removeEventListener('click', this.toggleLista);
-    this.button.removeEventListener('keydown', this.handleKeyDown);
-    this.content.removeEventListener('keydown', this.handleListKeyDown);
-    this.backdropElement.removeEventListener('click', this.fechar);
-    document.removeEventListener('click', this.handleClickFora);
+    this.listeners.cleanup();
     if (this.observer) {
       this.observer.disconnect();
     }
@@ -84,7 +115,7 @@ export class UIListaFlutuante extends HTMLElement {
     if (name === 'aberta') {
       this.button.setAttribute('aria-expanded', String(value !== null));
     }
-    if (name === 'texto-padrao') {
+    if (name === 'texto-padrao' || name === 'placeholder' || name === 'label' || name === 'rotulo') {
       this.syncLabel();
     }
     if (name === 'value' && value !== this._value) {
@@ -105,6 +136,20 @@ export class UIListaFlutuante extends HTMLElement {
     this.internals.setFormValue(val);
     this.syncLabel();
     this.updateSelectedState();
+  }
+
+  get label(): string {
+    return this.getAttribute('label') || this.getAttribute('rotulo') || '';
+  }
+
+  set label(val: string) {
+    if (val) {
+      this.setAttribute('label', val);
+    } else {
+      this.removeAttribute('label');
+      this.removeAttribute('rotulo');
+    }
+    this.syncLabel();
   }
 
   formResetCallback() {
@@ -165,7 +210,7 @@ export class UIListaFlutuante extends HTMLElement {
   };
 
   private focarPrimeiroItem() {
-    const liElements = Array.from(this.content.querySelectorAll('.ui-lista-flutuante__item')) as HTMLLIElement[];
+    const liElements = Array.from(this.listElement.querySelectorAll('.ui-lista-flutuante__item')) as HTMLLIElement[];
     if (liElements.length > 0) {
       this.focusedIndex = 0;
       liElements[0].focus();
@@ -173,7 +218,7 @@ export class UIListaFlutuante extends HTMLElement {
   }
 
   private moverFoco(direcao: number) {
-    const liElements = Array.from(this.content.querySelectorAll('.ui-lista-flutuante__item')) as HTMLLIElement[];
+    const liElements = Array.from(this.listElement.querySelectorAll('.ui-lista-flutuante__item')) as HTMLLIElement[];
     if (liElements.length === 0) return;
 
     this.focusedIndex += direcao;
@@ -183,7 +228,7 @@ export class UIListaFlutuante extends HTMLElement {
     liElements[this.focusedIndex].focus();
   }
 
-  private abrir() {
+  public abrir() {
     this.setAttribute('aberta', '');
     this.posicionarConteudo();
     window.addEventListener('scroll', this.fechar, { capture: true, passive: true });
@@ -197,7 +242,7 @@ export class UIListaFlutuante extends HTMLElement {
     }
   }
 
-  private fechar = () => {
+  public fechar = () => {
     this.removeAttribute('aberta');
     window.removeEventListener('scroll', this.fechar, { capture: true });
     window.removeEventListener('resize', this.posicionarConteudo);
@@ -225,7 +270,7 @@ export class UIListaFlutuante extends HTMLElement {
     const rect = this.button.getBoundingClientRect();
     this.content.style.top = `${rect.bottom + 2}px`;
     this.content.style.left = `${rect.left}px`;
-    this.content.style.minWidth = `${Math.max(rect.width, 110)}px`;
+    this.content.style.minWidth = `${Math.max(rect.width, 120)}px`;
   };
 
   private handleClickFora = (event: MouseEvent) => {
@@ -236,18 +281,29 @@ export class UIListaFlutuante extends HTMLElement {
   };
 
   private syncLabel() {
-    const itemEncontrado = this._itens.find(i => String(i.id) === String(this._value));
+    const labelAttr = this.getAttribute('label') || this.getAttribute('rotulo');
+    if (labelAttr) {
+      this.labelElement.textContent = labelAttr;
+      this.labelElement.style.display = 'block';
+      this.sheetTituloElement.textContent = labelAttr;
+    } else {
+      this.labelElement.style.display = 'none';
+      const textoPadrao = this.getAttribute('texto-padrao') || this.getAttribute('placeholder') || 'Opções';
+      this.sheetTituloElement.textContent = textoPadrao;
+    }
+
+    const itemEncontrado = this._itens.find((i) => String(i.id) === String(this._value));
     if (itemEncontrado) {
       this.textoElement.textContent = itemEncontrado.label;
     } else {
-      const textoPadrao = this.getAttribute('texto-padrao') || 'Opções';
+      const textoPadrao = this.getAttribute('texto-padrao') || this.getAttribute('placeholder') || 'Opções';
       this.textoElement.textContent = textoPadrao;
     }
   }
 
   private updateSelectedState() {
-    const liElements = this.content.querySelectorAll('.ui-lista-flutuante__item');
-    liElements.forEach(li => {
+    const liElements = this.listElement.querySelectorAll('.ui-lista-flutuante__item');
+    liElements.forEach((li) => {
       const itemId = li.getAttribute('data-id');
       if (itemId === String(this._value)) {
         li.classList.add('ui-lista-flutuante__item--selecionado');
@@ -260,8 +316,8 @@ export class UIListaFlutuante extends HTMLElement {
   }
 
   private renderItens() {
-    this.content.innerHTML = '<div class="ui-lista-flutuante__handle"></div>';
-    this._itens.forEach(item => {
+    this.listElement.innerHTML = '';
+    this._itens.forEach((item) => {
       const li = document.createElement('li');
       const isSelected = String(item.id) === String(this._value);
       li.className = `ui-lista-flutuante__item ${isSelected ? 'ui-lista-flutuante__item--selecionado' : ''}`;
@@ -274,7 +330,7 @@ export class UIListaFlutuante extends HTMLElement {
         e.stopPropagation();
         this.selecionarItem(item);
       });
-      this.content.appendChild(li);
+      this.listElement.appendChild(li);
     });
   }
 
@@ -294,14 +350,14 @@ export class UIListaFlutuante extends HTMLElement {
       new CustomEvent('ui-selecionar', {
         detail: item,
         bubbles: true,
-        composed: true,
+        composed: true
       })
     );
 
     this.dispatchEvent(
       new Event('change', {
         bubbles: true,
-        composed: true,
+        composed: true
       })
     );
   }

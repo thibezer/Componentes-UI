@@ -228,43 +228,56 @@ export class MapaCore {
 
       if (data && data.features && data.features.length > 0) {
         const feature = data.features[0];
-        const props = feature.properties;
-        const uuid = feature.id || props.parcela_codigo || props.co_parcela || props.id_parcela;
+        const props = feature.properties || {};
+        const rawUuid = String(feature.id || props.parcela_codigo || props.co_parcela || props.id_parcela || '');
+        const nomeArea = String(props.nome_area || props.nome_imovel || 'Imóvel Sem Nome');
 
-        if (uuid) {
-          const downloadUrl = `https://sigef.incra.gov.br/geo/exportar/parcela/shp/${uuid}/`;
-          const sigefConsultarUrl = `https://sigef.incra.gov.br/geo/parcela/detalhe/${uuid}/`;
+        if (rawUuid) {
+          const safeUuid = encodeURIComponent(rawUuid);
+          const downloadUrl = `https://sigef.incra.gov.br/geo/exportar/parcela/shp/${safeUuid}/`;
+          const sigefConsultarUrl = `https://sigef.incra.gov.br/geo/parcela/detalhe/${safeUuid}/`;
 
-          const popupContent = `
-            <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.4; min-width:180px;">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; padding-bottom:5px; border-bottom:1px solid rgba(255, 255, 255, 0.1);">
-                <span style="font-weight:700; font-size:11px; color:#10b981; text-transform:uppercase; letter-spacing:0.5px;">SIGEF</span>
-                <span style="font-size:10px; color:rgba(255, 255, 255, 0.5);">${escapeHtml(props.situacao_informada || props.status || 'Certificada')}</span>
-              </div>
-              <div style="font-weight:700; font-size:12px; margin-bottom:4px; color:#ffffff; word-break:break-word;">${escapeHtml(props.nome_area || props.nome_imovel || 'Imóvel Sem Nome')}</div>
-              <div style="font-size:11px; color:rgba(255, 255, 255, 0.7); margin-bottom:2px;">Cód: <span style="font-family:monospace;">${escapeHtml(props.codigo_imovel || 'N/A')}</span></div>
-              <div style="display:flex; gap:12px; font-size:11px; color:rgba(255, 255, 255, 0.7); margin-bottom:6px;">
-                <span>Mat: <strong style="color:#ffffff;">${escapeHtml(props.registro_matricula || props.matricula || 'N/A')}</strong></span>
-                <span>${escapeHtml(props.data_submissao || '')}</span>
-              </div>
-              <div style="display:flex; flex-direction:column; gap:5px; padding-top:6px; border-top:1px solid rgba(255, 255, 255, 0.1);">
-                <a href="${downloadUrl}" target="_blank" style="display:flex; align-items:center; justify-content:center; gap:5px; padding:5px 8px; background:rgba(16, 185, 129, 0.15); border:1px solid rgba(16, 185, 129, 0.3); color:#34d399; font-size:11px; font-weight:700; border-radius:5px; text-decoration:none; cursor:pointer;">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                  Baixar Shapefile
-                </a>
-                <button onclick="window.dispatchEvent(new CustomEvent('gerencigeo:importar_vizinho_sigef', { detail: { uuid: '${uuid}', nome: '${(props.nome_area || props.nome_imovel || 'Imóvel').replace(/'/g, "\\'")}' } }))" style="display:flex; align-items:center; justify-content:center; gap:5px; padding:5px 8px; background:rgba(14, 165, 233, 0.15); border:1px solid rgba(14, 165, 233, 0.3); color:#38bdf8; font-size:11px; font-weight:700; border-radius:5px; cursor:pointer; width:100%; text-align:center;">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                  Importar Confrontante (CSV)
-                </button>
-                <a href="${sigefConsultarUrl}" target="_blank" style="display:flex; align-items:center; justify-content:center; gap:4px; padding:4px 6px; background:rgba(255, 255, 255, 0.05); border:1px solid rgba(255, 255, 255, 0.1); color:rgba(255, 255, 255, 0.7); font-size:10px; font-weight:600; border-radius:5px; text-decoration:none; cursor:pointer;">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                  Abrir no SIGEF
-                </a>
-              </div>
+          const popupContainer = document.createElement('div');
+          popupContainer.style.cssText = 'font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.4; min-width:180px;';
+          popupContainer.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; padding-bottom:5px; border-bottom:1px solid rgba(255, 255, 255, 0.1);">
+              <span style="font-weight:700; font-size:11px; color:#10b981; text-transform:uppercase; letter-spacing:0.5px;">SIGEF</span>
+              <span style="font-size:10px; color:rgba(255, 255, 255, 0.5);">${escapeHtml(props.situacao_informada || props.status || 'Certificada')}</span>
+            </div>
+            <div style="font-weight:700; font-size:12px; margin-bottom:4px; color:#ffffff; word-break:break-word;">${escapeHtml(nomeArea)}</div>
+            <div style="font-size:11px; color:rgba(255, 255, 255, 0.7); margin-bottom:2px;">Cód: <span style="font-family:monospace;">${escapeHtml(props.codigo_imovel || 'N/A')}</span></div>
+            <div style="display:flex; gap:12px; font-size:11px; color:rgba(255, 255, 255, 0.7); margin-bottom:6px;">
+              <span>Mat: <strong style="color:#ffffff;">${escapeHtml(props.registro_matricula || props.matricula || 'N/A')}</strong></span>
+              <span>${escapeHtml(props.data_submissao || '')}</span>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:5px; padding-top:6px; border-top:1px solid rgba(255, 255, 255, 0.1);">
+              <a href="${downloadUrl}" target="_blank" rel="noopener noreferrer" style="display:flex; align-items:center; justify-content:center; gap:5px; padding:5px 8px; background:rgba(16, 185, 129, 0.15); border:1px solid rgba(16, 185, 129, 0.3); color:#34d399; font-size:11px; font-weight:700; border-radius:5px; text-decoration:none; cursor:pointer;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Baixar Shapefile
+              </a>
+              <button class="btn-importar-confrontante-sigef" style="display:flex; align-items:center; justify-content:center; gap:5px; padding:5px 8px; background:rgba(14, 165, 233, 0.15); border:1px solid rgba(14, 165, 233, 0.3); color:#38bdf8; font-size:11px; font-weight:700; border-radius:5px; cursor:pointer; width:100%; text-align:center;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Importar Confrontante (CSV)
+              </button>
+              <a href="${sigefConsultarUrl}" target="_blank" rel="noopener noreferrer" style="display:flex; align-items:center; justify-content:center; gap:4px; padding:4px 6px; background:rgba(255, 255, 255, 0.05); border:1px solid rgba(255, 255, 255, 0.1); color:rgba(255, 255, 255, 0.7); font-size:10px; font-weight:600; border-radius:5px; text-decoration:none; cursor:pointer;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                Abrir no SIGEF
+              </a>
             </div>
           `;
 
-          loadingPopup.setContent(popupContent);
+          const btnImportar = popupContainer.querySelector('.btn-importar-confrontante-sigef');
+          if (btnImportar) {
+            btnImportar.addEventListener('click', () => {
+              window.dispatchEvent(
+                new CustomEvent('gerencigeo:importar_vizinho_sigef', {
+                  detail: { uuid: rawUuid, nome: nomeArea }
+                })
+              );
+            });
+          }
+
+          loadingPopup.setContent(popupContainer);
         } else {
           loadingPopup.setContent(`
             <div style="font-family:sans-serif; font-size:12px; color:#b45309; padding:2px 0;">
