@@ -59,10 +59,11 @@ document.addEventListener('DOMContentLoaded', () => {
   function atualizarAltura(altura: string) {
     alturaAtual = altura;
     const altNum = parseInt(altura, 10);
-    const altPx = isNaN(altNum) ? 20 : altNum;
+    const altPx = isNaN(altNum) ? 15 : Math.max(15, altNum);
     
-    // Atualizar variável CSS global de altura mínima em tempo real
+    // Atualizar variável CSS global de altura em tempo real com piso de 15px
     document.documentElement.style.setProperty('--ui-altura-minima', `${altPx}px`);
+    document.documentElement.style.setProperty('--ui-campo-altura', `${altPx}px`);
 
     atualizarInfoDimensao();
   }

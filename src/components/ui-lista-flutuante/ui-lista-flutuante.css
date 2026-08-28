@@ -3,41 +3,46 @@
   position: relative;
   width: 100%;
   box-sizing: border-box;
+  font-family: var(--ui-fonte-base, 'Inter', sans-serif);
+}
+
+:host([inline]) {
+  width: auto;
 }
 
 .ui-lista-flutuante__container {
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: 100%;
   position: relative;
 }
 
 .ui-lista-flutuante__label {
   font-family: var(--ui-fonte-base, 'Inter', sans-serif);
-  font-size: 12px;
-  font-weight: 500;
+  font-size: var(--ui-tamanho-corpo-sm, 12.5px);
+  font-weight: var(--ui-peso-medio, 500);
   color: var(--ui-cor-texto, #e1e1e6);
   margin-bottom: 4px;
   user-select: none;
+  flex-shrink: 0;
 }
 
 .ui-lista-flutuante__gatilho {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 4px;
+  gap: clamp(4px, 0.8vw, 8px);
   width: 100%;
-  height: 100%;
-  min-height: var(--ui-altura-minima, 15px);
+  height: var(--ui-campo-altura, 100%);
+  min-height: var(--ui-campo-altura, var(--ui-altura-minima, 15px));
   padding: 0 clamp(4px, 0.8vw, 8px);
   background-color: var(--ui-cor-fundo-elevado, #1a1a1e);
   color: var(--ui-cor-texto, #e1e1e6);
   border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
   border-radius: var(--ui-raio-borda, 6px);
   font-family: var(--ui-fonte-base, 'Inter', sans-serif);
-  font-size: clamp(11px, 0.8rem, 14px);
-  line-height: 1;
+  font-size: clamp(10.5px, 0.8rem, 13.5px);
+  line-height: normal;
   cursor: pointer;
   box-sizing: border-box;
   transition: border-color 0.15s ease, background-color 0.15s ease;

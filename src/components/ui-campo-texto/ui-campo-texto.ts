@@ -16,7 +16,12 @@ export class UICampoTexto extends HTMLElement {
       'disabled',
       'readonly',
       'label-flutuante',
-      'alternar-senha'
+      'alternar-senha',
+      'tamanho',
+      'size',
+      'altura',
+      'height',
+      'densidade'
     ];
   }
 
@@ -152,6 +157,12 @@ export class UICampoTexto extends HTMLElement {
       this.setAttribute('tem-icone-esquerda', '');
     } else {
       this.removeAttribute('tem-icone-esquerda');
+    }
+
+    // 0. Altura e Tamanho dinâmicos
+    const altura = this.getAttribute('altura') || this.getAttribute('height');
+    if (altura) {
+      this.style.setProperty('--ui-campo-altura', isNaN(Number(altura)) ? altura : `${altura}px`);
     }
 
     // 1. Label e Floating Label

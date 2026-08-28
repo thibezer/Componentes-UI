@@ -93,6 +93,56 @@ Configurações simples passadas diretamente nas tags:
 <ui-modal id="meu-modal" titulo="Confirmar Exclusão"></ui-modal>
 ```
 
+---
+
+### 📏 Ajuste de Altura e Dimensionamento Inteligente (Zero Atrito)
+
+Os campos de texto (`<ui-campo-texto>`), listas flutuantes/selects (`<ui-lista-flutuante>`, `<ui-select>`) e botões (`<ui-botao-primario>`) possuem 4 formas flexíveis de ajuste de altura:
+
+#### 1. Via Atributo de Tamanho Predefinido (`tamanho` ou `densidade`):
+```html
+<!-- Compacto (26px) - Ideal para Toolbars CAD/GIS, tabelas e alta densidade -->
+<ui-campo-texto tamanho="sm" placeholder="26px Compacto"></ui-campo-texto>
+<ui-lista-flutuante tamanho="sm" placeholder="Selecione..."></ui-lista-flutuante>
+
+<!-- Padrão (34px) - Padrão moderno e equilibrado para formulários e modais -->
+<ui-campo-texto tamanho="md" placeholder="34px Padrão"></ui-campo-texto>
+<ui-lista-flutuante tamanho="md" placeholder="Selecione..."></ui-lista-flutuante>
+
+<!-- Conforto / Touch (42px) - Otimizado para dispositivos móveis e telas sensíveis ao toque -->
+<ui-campo-texto tamanho="lg" placeholder="42px Conforto"></ui-campo-texto>
+<ui-lista-flutuante tamanho="lg" placeholder="Selecione..."></ui-lista-flutuante>
+```
+
+#### 2. Via Atributo de Altura Explícita (`altura` ou `height`):
+```html
+<!-- Define a altura exata em pixels diretamente no elemento -->
+<ui-campo-texto altura="38" placeholder="Altura de 38px"></ui-campo-texto>
+<ui-lista-flutuante altura="44px" placeholder="Altura de 44px"></ui-lista-flutuante>
+<ui-botao-primario altura="40">Salvar</ui-botao-primario>
+```
+
+#### 3. Via Variável CSS Customizável (`--ui-campo-altura`):
+```css
+/* No seu CSS global ou no container pai */
+.meu-formulario {
+  --ui-campo-altura: 36px; /* Aplica instantaneamente em todos os inputs, selects e botões filhos */
+}
+```
+
+#### 4. Via Barramento Global de Densidade (`UIBus`):
+```javascript
+import { UIBus } from 'ui-components-kit';
+
+// Altera a densidade de toda a aplicação em tempo real:
+UIBus.definirDensidade('compacta'); // 26px
+UIBus.definirDensidade('padrao');   // 34px
+UIBus.definirDensidade('relaxada'); // 42px
+UIBus.definirDensidade(38);         // Valor numérico em px customizado
+```
+
+---
+
 ### 2. Propriedades JavaScript (Dados Complexos)
 Para enviar arrays e objetos complexos:
 ```javascript

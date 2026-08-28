@@ -10,7 +10,7 @@ export type VarianteBotao =
 
 export class UIBotao extends HTMLElement {
   static get observedAttributes() {
-    return ['disabled', 'variante', 'carregando', 'loading', 'estado'];
+    return ['disabled', 'variante', 'carregando', 'loading', 'estado', 'tamanho', 'size', 'altura', 'height', 'densidade'];
   }
 
   private button: HTMLButtonElement;
@@ -62,6 +62,11 @@ export class UIBotao extends HTMLElement {
   }
 
   private syncState() {
+    const altura = this.getAttribute('altura') || this.getAttribute('height');
+    if (altura) {
+      this.style.setProperty('--ui-campo-altura', isNaN(Number(altura)) ? altura : `${altura}px`);
+    }
+
     const isCarregando = this.carregando;
     const isDisabled = this.hasAttribute('disabled') || isCarregando;
     const variante = this.getAttribute('variante') || 'primario';

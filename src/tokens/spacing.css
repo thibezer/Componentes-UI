@@ -11,6 +11,7 @@
   /* Ergonomia e Alvo de Toque Mobile */
   --ui-touch-target-min: 44px;
 
-  /* Dimensão Mínima Global dos Componentes */
+  /* Dimensão Mínima Global e Controle Fino dos Componentes */
   --ui-altura-minima: 15px;
+  --ui-campo-altura: var(--ui-altura-minima, 15px);
 }

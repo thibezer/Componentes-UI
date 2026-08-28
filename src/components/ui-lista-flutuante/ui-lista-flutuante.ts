@@ -20,7 +20,12 @@ export class UIListaFlutuante extends HTMLElement {
       'modo-mobile',
       'label',
       'rotulo',
-      'placeholder'
+      'placeholder',
+      'tamanho',
+      'size',
+      'altura',
+      'height',
+      'densidade'
     ];
   }
 
@@ -123,6 +128,13 @@ export class UIListaFlutuante extends HTMLElement {
     }
     if (name === 'disabled') {
       this.button.disabled = value !== null;
+    }
+    if (name === 'altura' || name === 'height') {
+      if (value) {
+        this.style.setProperty('--ui-campo-altura', isNaN(Number(value)) ? value : `${value}px`);
+      } else {
+        this.style.removeProperty('--ui-campo-altura');
+      }
     }
   }
 
@@ -335,6 +347,10 @@ export class UIListaFlutuante extends HTMLElement {
   }
 
   private syncState() {
+    const altura = this.getAttribute('altura') || this.getAttribute('height');
+    if (altura) {
+      this.style.setProperty('--ui-campo-altura', isNaN(Number(altura)) ? altura : `${altura}px`);
+    }
     if (this.hasAttribute('value')) {
       this._value = this.getAttribute('value') || '';
       this.internals.setFormValue(this._value);

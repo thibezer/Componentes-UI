@@ -282,35 +282,52 @@
         <!-- Linha 2: Controles de Altura -->
         <div class="resizer-row" style="border-top: 1px solid rgba(255, 255, 255, 0.06); padding-top: 10px;">
           <div class="control-group">
-            <label for="slider-altura">↕️ Altura Mínima Global:</label>
+            <label for="slider-altura">↕️ Altura Global dos Campos:</label>
             <input type="range" id="slider-altura" min="15" max="60" value="20" step="1" />
             <span id="valor-altura" style="font-weight: bold; color: #00E08A; min-width: 50px;">20px</span>
           </div>
 
           <div class="control-group">
             <span>Presets Altura:</span>
-            <button class="preset-btn preset-height" data-height="15">15px (Ultra)</button>
+            <button class="preset-btn preset-height" data-height="15">15px (Mínimo / CAD)</button>
             <button class="preset-btn preset-height" data-height="20">20px (Compacto)</button>
-            <button class="preset-btn preset-height" data-height="28">28px (Padrão)</button>
-            <button class="preset-btn preset-height" data-height="36">36px (Alto)</button>
+            <button class="preset-btn preset-height" data-height="28">28px (Médio)</button>
+            <button class="preset-btn preset-height" data-height="36">36px (Formulários)</button>
+            <button class="preset-btn preset-height" data-height="44">44px (Touch / Mobile)</button>
           </div>
         </div>
 
       </div>
     </article>
 
-    <!-- Card 3: Demonstração de Estados Básicos -->
+    <!-- Card 3: Demonstração de Estados Básicos & Escala de Altura -->
     <article class="card-componente">
-      <h2>1. &lt;ui-lista-flutuante&gt; (Estados)</h2>
+      <h2>1. &lt;ui-lista-flutuante&gt; / &lt;ui-select&gt; (Tamanhos & Estados)</h2>
       <div class="component-demo">
         <div class="demo-row">
-          <span class="demo-label">Ativo:</span>
-          <ui-lista-flutuante id="demo-lista-lotes" texto-padrao="Selecione..."
-            style="width: 200px;"></ui-lista-flutuante>
+          <span class="demo-label">Compacto (sm):</span>
+          <ui-lista-flutuante tamanho="sm" texto-padrao="26px Compacto" style="width: 220px;">
+            <option value="1">Opção 1</option>
+            <option value="2">Opção 2</option>
+          </ui-lista-flutuante>
+        </div>
+        <div class="demo-row">
+          <span class="demo-label">Padrão (md):</span>
+          <ui-lista-flutuante id="demo-lista-lotes" tamanho="md" texto-padrao="34px Padrão" style="width: 220px;">
+            <option value="1">Opção 1</option>
+            <option value="2">Opção 2</option>
+          </ui-lista-flutuante>
+        </div>
+        <div class="demo-row">
+          <span class="demo-label">Conforto (lg):</span>
+          <ui-lista-flutuante tamanho="lg" texto-padrao="42px Conforto" style="width: 220px;">
+            <option value="1">Opção 1</option>
+            <option value="2">Opção 2</option>
+          </ui-lista-flutuante>
         </div>
         <div class="demo-row">
           <span class="demo-label">Desabilitado:</span>
-          <ui-lista-flutuante texto-padrao="Bloqueado" disabled style="width: 200px;"></ui-lista-flutuante>
+          <ui-lista-flutuante texto-padrao="Bloqueado" disabled style="width: 220px;"></ui-lista-flutuante>
         </div>
       </div>
     </article>
@@ -436,7 +453,18 @@
       <h2>4. &lt;ui-campo-texto&gt; (Input / TextField)</h2>
       <div class="variations-matrix">
 
-        <!-- Coluna 1: Elementos Básicos (Label, Placeholder, Helper Text) -->
+        <!-- Coluna 1: Escala de Alturas & Tamanhos -->
+        <div class="matrix-column">
+          <span class="matrix-title">Escala de Alturas (sm, md, lg)</span>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <ui-campo-texto tamanho="sm" placeholder="tamanho='sm' (26px Compacto)"></ui-campo-texto>
+            <ui-campo-texto tamanho="md" placeholder="tamanho='md' (34px Padrão)"></ui-campo-texto>
+            <ui-campo-texto tamanho="lg" placeholder="tamanho='lg' (42px Conforto)"></ui-campo-texto>
+            <ui-campo-texto altura="48" placeholder="altura='48' (48px Custom)"></ui-campo-texto>
+          </div>
+        </div>
+
+        <!-- Coluna 2: Elementos Básicos (Label, Placeholder, Helper Text) -->
         <div class="matrix-column">
           <span class="matrix-title">Rótulos e Texto de Ajuda</span>
           <div style="display: flex; flex-direction: column; gap: 10px;">
@@ -447,9 +475,9 @@
           </div>
         </div>
 
-        <!-- Coluna 2: Rótulo Flutuante (Floating Label) -->
+        <!-- Coluna 3: Rótulo Flutuante (Floating Label) -->
         <div class="matrix-column">
-          <span class="matrix-title">Rótulo Flutuante (Compacto)</span>
+          <span class="matrix-title">Rótulo Flutuante (Floating)</span>
           <div style="display: flex; flex-direction: column; gap: 14px;">
             <ui-campo-texto id="campo-flutuante-vazio" label="Observações (Opcional)" label-flutuante
               helper-text="Fica dentro do campo e sobe ao focar."></ui-campo-texto>
@@ -458,7 +486,7 @@
           </div>
         </div>
 
-        <!-- Coluna 3: Ícones (Esquerda & Direita + Senha Interativa) -->
+        <!-- Coluna 4: Ícones (Esquerda & Direita + Senha Interativa) -->
         <div class="matrix-column">
           <span class="matrix-title">Ícones & Revelar Senha 👁️</span>
           <div style="display: flex; flex-direction: column; gap: 10px;">
@@ -472,7 +500,7 @@
           </div>
         </div>
 
-        <!-- Coluna 4: Erro & Estados Especiais -->
+        <!-- Coluna 5: Erro & Estados Especiais -->
         <div class="matrix-column">
           <span class="matrix-title">Mensagem de Erro & Estados</span>
           <div style="display: flex; flex-direction: column; gap: 10px;">

@@ -2,7 +2,7 @@ var J = Object.defineProperty;
 var ee = (g, i, e) => i in g ? J(g, i, { enumerable: !0, configurable: !0, writable: !0, value: e }) : g[i] = e;
 var n = (g, i, e) => ee(g, typeof i != "symbol" ? i + "" : i, e);
 import v from "leaflet";
-const te = ':host{display:inline-block;width:100%;height:100%;box-sizing:border-box}:host([inline]){width:auto;height:auto}.ui-botao-primario{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;height:100%;min-height:var(--ui-altura-minima, 20px);box-sizing:border-box;padding:0 clamp(6px,1.2vw,16px);border:1px solid transparent;border-radius:var(--ui-raio-borda, 6px);font-family:var(--ui-fonte-base, "Inter", sans-serif);font-size:clamp(11px,.8rem,14px);font-weight:600;line-height:1;cursor:pointer;transition:background-color .15s ease,border-color .15s ease,color .15s ease,filter .15s ease,transform .1s ease;text-align:center;-webkit-user-select:none;user-select:none}.ui-botao-primario,.ui-botao-primario--primary,.ui-botao-primario--primario{background:var(--ui-cor-primaria, #00E08A);color:var(--ui-cor-texto-sobre-primaria, #000000);border-color:transparent}.ui-botao-primario--primary:hover:not(:disabled),.ui-botao-primario--primario:hover:not(:disabled),.ui-botao-primario:hover:not(:disabled){filter:brightness(1.1)}.ui-botao-primario--destaque{background:var(--ui-cor-destaque, var(--ui-cor-primaria, #00E08A));color:var(--ui-cor-texto-sobre-primaria, #000000)}.ui-botao-primario--secondary,.ui-botao-primario--secundario{background:var(--ui-cor-botao-secundario-fundo, #1e1e24);color:var(--ui-cor-texto, #e1e1e6);border-color:var(--ui-cor-borda, rgba(255, 255, 255, .12))}.ui-botao-primario--secondary:hover:not(:disabled),.ui-botao-primario--secundario:hover:not(:disabled){background:var(--ui-cor-botao-secundario-hover, #2a2a34);border-color:#ffffff3d}.ui-botao-primario--ghost,.ui-botao-primario--terciario{background:transparent;color:var(--ui-cor-texto, #e1e1e6);border-color:transparent}.ui-botao-primario--ghost:hover:not(:disabled),.ui-botao-primario--terciario:hover:not(:disabled){background:var(--ui-cor-hover-menu, rgba(255, 255, 255, .08))}.ui-botao-primario--destructive,.ui-botao-primario--destrutivo,.ui-botao-primario--erro{background:var(--ui-cor-botao-destrutivo-fundo, #ff4444);color:var(--ui-cor-botao-destrutivo-texto, #ffffff);border-color:transparent}.ui-botao-primario--destructive:hover:not(:disabled),.ui-botao-primario--destrutivo:hover:not(:disabled),.ui-botao-primario--erro:hover:not(:disabled){background:var(--ui-cor-botao-destrutivo-hover, #e03333)}.ui-botao-primario--icon-only,.ui-botao-primario--icone{padding:0;width:var(--ui-altura-minima, 20px);min-width:var(--ui-altura-minima, 20px);height:var(--ui-altura-minima, 20px);aspect-ratio:1;border-radius:var(--ui-raio-borda, 6px)}.ui-botao-primario--hover{filter:brightness(1.15)!important}.ui-botao-primario:active:not(:disabled),.ui-botao-primario--active{transform:scale(.97)!important;filter:brightness(.9)!important}.ui-botao-primario:disabled,.ui-botao-primario--disabled{opacity:.45;cursor:not-allowed;transform:none!important;filter:none!important}.ui-botao-primario--carregando,.ui-botao-primario--loading{cursor:wait;opacity:.85;pointer-events:none}.ui-botao-primario__spinner{width:1.1em;height:1.1em;animation:ui-spin .75s linear infinite;flex-shrink:0}@keyframes ui-spin{0%{transform:rotate(0)}to{transform:rotate(360deg)}}';
+const te = ':host{display:inline-block;width:100%;box-sizing:border-box}:host([inline]){width:auto;height:auto}.ui-botao-primario{display:inline-flex;align-items:center;justify-content:center;gap:clamp(4px,.8vw,8px);width:100%;height:var(--ui-campo-altura, 100%);min-height:var(--ui-campo-altura, var(--ui-altura-minima, 15px));box-sizing:border-box;padding:0 clamp(6px,1.2vw,14px);border:1px solid transparent;border-radius:var(--ui-raio-borda, 6px);font-family:var(--ui-fonte-base, "Inter", sans-serif);font-size:clamp(10.5px,.8rem,13.5px);font-weight:600;line-height:normal;cursor:pointer;transition:background-color .15s ease,border-color .15s ease,color .15s ease,filter .15s ease,transform .1s ease;text-align:center;-webkit-user-select:none;user-select:none}.ui-botao-primario,.ui-botao-primario--primary,.ui-botao-primario--primario{background:var(--ui-cor-primaria, #00E08A);color:var(--ui-cor-texto-sobre-primaria, #000000);border-color:transparent}.ui-botao-primario--primary:hover:not(:disabled),.ui-botao-primario--primario:hover:not(:disabled),.ui-botao-primario:hover:not(:disabled){filter:brightness(1.1)}.ui-botao-primario--destaque{background:var(--ui-cor-destaque, var(--ui-cor-primaria, #00E08A));color:var(--ui-cor-texto-sobre-primaria, #000000)}.ui-botao-primario--secondary,.ui-botao-primario--secundario{background:var(--ui-cor-botao-secundario-fundo, #1e1e24);color:var(--ui-cor-texto, #e1e1e6);border-color:var(--ui-cor-borda, rgba(255, 255, 255, .12))}.ui-botao-primario--secondary:hover:not(:disabled),.ui-botao-primario--secundario:hover:not(:disabled){background:var(--ui-cor-botao-secundario-hover, #2a2a34);border-color:#ffffff3d}.ui-botao-primario--ghost,.ui-botao-primario--terciario{background:transparent;color:var(--ui-cor-texto, #e1e1e6);border-color:transparent}.ui-botao-primario--ghost:hover:not(:disabled),.ui-botao-primario--terciario:hover:not(:disabled){background:var(--ui-cor-hover-menu, rgba(255, 255, 255, .08))}.ui-botao-primario--destructive,.ui-botao-primario--destrutivo,.ui-botao-primario--erro{background:var(--ui-cor-botao-destrutivo-fundo, #ff4444);color:var(--ui-cor-botao-destrutivo-texto, #ffffff);border-color:transparent}.ui-botao-primario--destructive:hover:not(:disabled),.ui-botao-primario--destrutivo:hover:not(:disabled),.ui-botao-primario--erro:hover:not(:disabled){background:var(--ui-cor-botao-destrutivo-hover, #e03333)}.ui-botao-primario--icon-only,.ui-botao-primario--icone{padding:0;width:var(--ui-campo-altura, var(--ui-altura-minima, 15px));min-width:var(--ui-campo-altura, var(--ui-altura-minima, 15px));height:var(--ui-campo-altura, var(--ui-altura-minima, 15px));aspect-ratio:1;border-radius:var(--ui-raio-borda, 6px)}.ui-botao-primario--hover{filter:brightness(1.15)!important}.ui-botao-primario:active:not(:disabled),.ui-botao-primario--active{transform:scale(.97)!important;filter:brightness(.9)!important}.ui-botao-primario:disabled,.ui-botao-primario--disabled{opacity:.45;cursor:not-allowed;transform:none!important;filter:none!important}.ui-botao-primario--carregando,.ui-botao-primario--loading{cursor:wait;opacity:.85;pointer-events:none}.ui-botao-primario__spinner{width:1.1em;height:1.1em;animation:ui-spin .75s linear infinite;flex-shrink:0}@keyframes ui-spin{0%{transform:rotate(0)}to{transform:rotate(360deg)}}';
 class U extends HTMLElement {
   constructor() {
     super();
@@ -33,7 +33,7 @@ class U extends HTMLElement {
     `, this.button = e.querySelector("button"), this.spinnerContainer = e.querySelector(".ui-botao-primario__spinner-container");
   }
   static get observedAttributes() {
-    return ["disabled", "variante", "carregando", "loading", "estado"];
+    return ["disabled", "variante", "carregando", "loading", "estado", "tamanho", "size", "altura", "height", "densidade"];
   }
   connectedCallback() {
     this.button.addEventListener("click", this.handleClick), this.syncState();
@@ -51,17 +51,19 @@ class U extends HTMLElement {
     e ? this.setAttribute("carregando", "") : (this.removeAttribute("carregando"), this.removeAttribute("loading"));
   }
   syncState() {
-    const e = this.carregando, t = this.hasAttribute("disabled") || e, o = this.getAttribute("variante") || "primario", a = this.getAttribute("estado");
-    this.button.disabled = t, this.spinnerContainer.style.display = e ? "inline-flex" : "none";
-    const r = ["ui-botao-primario", `ui-botao-primario--${o}`];
-    t && !e && r.push("ui-botao-primario--disabled"), e && r.push("ui-botao-primario--carregando"), a && r.push(`ui-botao-primario--${a}`), this.button.className = r.join(" ");
+    const e = this.getAttribute("altura") || this.getAttribute("height");
+    e && this.style.setProperty("--ui-campo-altura", isNaN(Number(e)) ? e : `${e}px`);
+    const t = this.carregando, o = this.hasAttribute("disabled") || t, a = this.getAttribute("variante") || "primario", r = this.getAttribute("estado");
+    this.button.disabled = o, this.spinnerContainer.style.display = t ? "inline-flex" : "none";
+    const s = ["ui-botao-primario", `ui-botao-primario--${a}`];
+    o && !t && s.push("ui-botao-primario--disabled"), t && s.push("ui-botao-primario--carregando"), r && s.push(`ui-botao-primario--${r}`), this.button.className = s.join(" ");
   }
 }
 class ie extends U {
 }
 customElements.get("ui-botao") || customElements.define("ui-botao", U);
 customElements.get("ui-botao-primario") || customElements.define("ui-botao-primario", ie);
-const oe = ':host{display:inline-block;position:relative;width:100%;box-sizing:border-box}.ui-lista-flutuante__container{display:flex;flex-direction:column;width:100%;height:100%;position:relative}.ui-lista-flutuante__label{font-family:var(--ui-fonte-base, "Inter", sans-serif);font-size:12px;font-weight:500;color:var(--ui-cor-texto, #e1e1e6);margin-bottom:4px;-webkit-user-select:none;user-select:none}.ui-lista-flutuante__gatilho{display:flex;align-items:center;justify-content:space-between;gap:4px;width:100%;height:100%;min-height:var(--ui-altura-minima, 15px);padding:0 clamp(4px,.8vw,8px);background-color:var(--ui-cor-fundo-elevado, #1a1a1e);color:var(--ui-cor-texto, #e1e1e6);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));border-radius:var(--ui-raio-borda, 6px);font-family:var(--ui-fonte-base, "Inter", sans-serif);font-size:clamp(11px,.8rem,14px);line-height:1;cursor:pointer;box-sizing:border-box;transition:border-color .15s ease,background-color .15s ease}.ui-lista-flutuante__gatilho:hover:not(:disabled){border-color:var(--ui-cor-primaria, #00E08A)}.ui-lista-flutuante__gatilho:disabled{opacity:.5;cursor:not-allowed}.ui-lista-flutuante__texto{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;text-align:left}.ui-lista-flutuante__seta{font-size:clamp(8px,.65rem,11px);transition:transform .2s ease;color:var(--ui-cor-texto-secundario, #888899);flex-shrink:0}:host([aberta]) .ui-lista-flutuante__seta{transform:rotate(180deg)}.ui-lista-flutuante__backdrop{display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;z-index:9998}:host([aberta]) .ui-lista-flutuante__backdrop{display:block}.ui-lista-flutuante__conteudo{position:fixed;margin:0;padding:4px;list-style:none;background-color:var(--ui-cor-fundo-menu, #18181c);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .14));border-radius:var(--ui-raio-borda, 6px);box-shadow:0 8px 28px #0000008c;max-height:220px;overflow-y:auto;z-index:9999;box-sizing:border-box;inset:auto}.ui-lista-flutuante__sheet-header{display:none;width:100%;margin-bottom:8px}.ui-lista-flutuante__handle{width:36px;height:4px;border-radius:2px;background-color:#ffffff40;margin:2px auto 8px}.ui-lista-flutuante__sheet-title-bar{display:flex;align-items:center;justify-content:space-between;width:100%;padding:4px 6px 8px;border-bottom:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .08));margin-bottom:6px}.ui-lista-flutuante__sheet-titulo{font-size:13px;font-weight:600;color:var(--ui-cor-primaria, #00E08A);letter-spacing:.3px;text-transform:uppercase}.ui-lista-flutuante__sheet-close{background:transparent;border:none;color:var(--ui-cor-texto-secundario, #888899);font-size:14px;cursor:pointer;padding:4px 8px;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:color .15s,background-color .15s}.ui-lista-flutuante__sheet-close:hover{color:#fff;background-color:#ffffff14}.ui-lista-flutuante__item{padding:6px 10px;font-family:var(--ui-fonte-base, "Inter", sans-serif);font-size:clamp(11px,.8rem,13px);line-height:1.2;color:var(--ui-cor-texto, #e1e1e6);border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:8px;transition:background-color .12s ease,color .12s ease;-webkit-user-select:none;user-select:none}.ui-lista-flutuante__item:hover{background-color:var(--ui-cor-hover-menu, rgba(255, 255, 255, .08))}.ui-lista-flutuante__item--selecionado{background-color:#00e08a26;color:var(--ui-cor-primaria, #00E08A);font-weight:600}.ui-lista-flutuante__item--selecionado:after{content:"✓";font-size:11px;color:var(--ui-cor-primaria, #00E08A)}@media (max-width: 640px){:host([aberta]) .ui-lista-flutuante__backdrop{background-color:#00000059;-webkit-backdrop-filter:none;backdrop-filter:none}.ui-lista-flutuante__conteudo{position:fixed!important;bottom:0!important;top:auto!important;left:0!important;width:100vw!important;max-width:100vw!important;min-width:100vw!important;max-height:65vh!important;border-radius:16px 16px 0 0!important;border-bottom:none!important;padding:10px 16px 28px!important;box-shadow:0 -8px 32px #000000b3!important;animation:ui-bottom-sheet-slide .22s cubic-bezier(.4,0,.2,1)}.ui-lista-flutuante__sheet-header{display:flex!important;flex-direction:column!important}.ui-lista-flutuante__item{padding:12px 14px!important;font-size:15px!important;margin-bottom:3px}}:host([bottom-sheet][aberta]) .ui-lista-flutuante__backdrop,:host([modo-mobile][aberta]) .ui-lista-flutuante__backdrop{background-color:#00000059;-webkit-backdrop-filter:none;backdrop-filter:none}:host([bottom-sheet]) .ui-lista-flutuante__conteudo,:host([modo-mobile]) .ui-lista-flutuante__conteudo{position:fixed!important;bottom:0!important;top:auto!important;left:0!important;width:100vw!important;max-width:100vw!important;min-width:100vw!important;max-height:65vh!important;border-radius:16px 16px 0 0!important;border-bottom:none!important;padding:10px 16px 28px!important;box-shadow:0 -8px 32px #000000b3!important;animation:ui-bottom-sheet-slide .22s cubic-bezier(.4,0,.2,1)}:host([bottom-sheet]) .ui-lista-flutuante__sheet-header,:host([modo-mobile]) .ui-lista-flutuante__sheet-header{display:flex!important;flex-direction:column!important}:host([bottom-sheet]) .ui-lista-flutuante__item,:host([modo-mobile]) .ui-lista-flutuante__item{padding:12px 14px!important;font-size:15px!important;margin-bottom:3px}@keyframes ui-bottom-sheet-slide{0%{transform:translateY(100%)}to{transform:translateY(0)}}';
+const oe = ':host{display:inline-block;position:relative;width:100%;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif)}:host([inline]){width:auto}.ui-lista-flutuante__container{display:flex;flex-direction:column;width:100%;position:relative}.ui-lista-flutuante__label{font-family:var(--ui-fonte-base, "Inter", sans-serif);font-size:var(--ui-tamanho-corpo-sm, 12.5px);font-weight:var(--ui-peso-medio, 500);color:var(--ui-cor-texto, #e1e1e6);margin-bottom:4px;-webkit-user-select:none;user-select:none;flex-shrink:0}.ui-lista-flutuante__gatilho{display:flex;align-items:center;justify-content:space-between;gap:clamp(4px,.8vw,8px);width:100%;height:var(--ui-campo-altura, 100%);min-height:var(--ui-campo-altura, var(--ui-altura-minima, 15px));padding:0 clamp(4px,.8vw,8px);background-color:var(--ui-cor-fundo-elevado, #1a1a1e);color:var(--ui-cor-texto, #e1e1e6);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));border-radius:var(--ui-raio-borda, 6px);font-family:var(--ui-fonte-base, "Inter", sans-serif);font-size:clamp(10.5px,.8rem,13.5px);line-height:normal;cursor:pointer;box-sizing:border-box;transition:border-color .15s ease,background-color .15s ease}.ui-lista-flutuante__gatilho:hover:not(:disabled){border-color:var(--ui-cor-primaria, #00E08A)}.ui-lista-flutuante__gatilho:disabled{opacity:.5;cursor:not-allowed}.ui-lista-flutuante__texto{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;text-align:left}.ui-lista-flutuante__seta{font-size:clamp(8px,.65rem,11px);transition:transform .2s ease;color:var(--ui-cor-texto-secundario, #888899);flex-shrink:0}:host([aberta]) .ui-lista-flutuante__seta{transform:rotate(180deg)}.ui-lista-flutuante__backdrop{display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;z-index:9998}:host([aberta]) .ui-lista-flutuante__backdrop{display:block}.ui-lista-flutuante__conteudo{position:fixed;margin:0;padding:4px;list-style:none;background-color:var(--ui-cor-fundo-menu, #18181c);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .14));border-radius:var(--ui-raio-borda, 6px);box-shadow:0 8px 28px #0000008c;max-height:220px;overflow-y:auto;z-index:9999;box-sizing:border-box;inset:auto}.ui-lista-flutuante__sheet-header{display:none;width:100%;margin-bottom:8px}.ui-lista-flutuante__handle{width:36px;height:4px;border-radius:2px;background-color:#ffffff40;margin:2px auto 8px}.ui-lista-flutuante__sheet-title-bar{display:flex;align-items:center;justify-content:space-between;width:100%;padding:4px 6px 8px;border-bottom:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .08));margin-bottom:6px}.ui-lista-flutuante__sheet-titulo{font-size:13px;font-weight:600;color:var(--ui-cor-primaria, #00E08A);letter-spacing:.3px;text-transform:uppercase}.ui-lista-flutuante__sheet-close{background:transparent;border:none;color:var(--ui-cor-texto-secundario, #888899);font-size:14px;cursor:pointer;padding:4px 8px;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:color .15s,background-color .15s}.ui-lista-flutuante__sheet-close:hover{color:#fff;background-color:#ffffff14}.ui-lista-flutuante__item{padding:6px 10px;font-family:var(--ui-fonte-base, "Inter", sans-serif);font-size:clamp(11px,.8rem,13px);line-height:1.2;color:var(--ui-cor-texto, #e1e1e6);border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:8px;transition:background-color .12s ease,color .12s ease;-webkit-user-select:none;user-select:none}.ui-lista-flutuante__item:hover{background-color:var(--ui-cor-hover-menu, rgba(255, 255, 255, .08))}.ui-lista-flutuante__item--selecionado{background-color:#00e08a26;color:var(--ui-cor-primaria, #00E08A);font-weight:600}.ui-lista-flutuante__item--selecionado:after{content:"✓";font-size:11px;color:var(--ui-cor-primaria, #00E08A)}@media (max-width: 640px){:host([aberta]) .ui-lista-flutuante__backdrop{background-color:#00000059;-webkit-backdrop-filter:none;backdrop-filter:none}.ui-lista-flutuante__conteudo{position:fixed!important;bottom:0!important;top:auto!important;left:0!important;width:100vw!important;max-width:100vw!important;min-width:100vw!important;max-height:65vh!important;border-radius:16px 16px 0 0!important;border-bottom:none!important;padding:10px 16px 28px!important;box-shadow:0 -8px 32px #000000b3!important;animation:ui-bottom-sheet-slide .22s cubic-bezier(.4,0,.2,1)}.ui-lista-flutuante__sheet-header{display:flex!important;flex-direction:column!important}.ui-lista-flutuante__item{padding:12px 14px!important;font-size:15px!important;margin-bottom:3px}}:host([bottom-sheet][aberta]) .ui-lista-flutuante__backdrop,:host([modo-mobile][aberta]) .ui-lista-flutuante__backdrop{background-color:#00000059;-webkit-backdrop-filter:none;backdrop-filter:none}:host([bottom-sheet]) .ui-lista-flutuante__conteudo,:host([modo-mobile]) .ui-lista-flutuante__conteudo{position:fixed!important;bottom:0!important;top:auto!important;left:0!important;width:100vw!important;max-width:100vw!important;min-width:100vw!important;max-height:65vh!important;border-radius:16px 16px 0 0!important;border-bottom:none!important;padding:10px 16px 28px!important;box-shadow:0 -8px 32px #000000b3!important;animation:ui-bottom-sheet-slide .22s cubic-bezier(.4,0,.2,1)}:host([bottom-sheet]) .ui-lista-flutuante__sheet-header,:host([modo-mobile]) .ui-lista-flutuante__sheet-header{display:flex!important;flex-direction:column!important}:host([bottom-sheet]) .ui-lista-flutuante__item,:host([modo-mobile]) .ui-lista-flutuante__item{padding:12px 14px!important;font-size:15px!important;margin-bottom:3px}@keyframes ui-bottom-sheet-slide{0%{transform:translateY(100%)}to{transform:translateY(0)}}';
 class B {
   constructor() {
     n(this, "entries", []);
@@ -169,7 +171,12 @@ class F extends HTMLElement {
       "modo-mobile",
       "label",
       "rotulo",
-      "placeholder"
+      "placeholder",
+      "tamanho",
+      "size",
+      "altura",
+      "height",
+      "densidade"
     ];
   }
   connectedCallback() {
@@ -191,7 +198,7 @@ class F extends HTMLElement {
     this.listeners.cleanup(), this.observer && this.observer.disconnect(), this.fechar();
   }
   attributeChangedCallback(e, t, o) {
-    e === "aberta" && this.button.setAttribute("aria-expanded", String(o !== null)), (e === "texto-padrao" || e === "placeholder" || e === "label" || e === "rotulo") && this.syncLabel(), e === "value" && o !== this._value && (this.value = o || ""), e === "disabled" && (this.button.disabled = o !== null);
+    e === "aberta" && this.button.setAttribute("aria-expanded", String(o !== null)), (e === "texto-padrao" || e === "placeholder" || e === "label" || e === "rotulo") && this.syncLabel(), e === "value" && o !== this._value && (this.value = o || ""), e === "disabled" && (this.button.disabled = o !== null), (e === "altura" || e === "height") && (o ? this.style.setProperty("--ui-campo-altura", isNaN(Number(o)) ? o : `${o}px`) : this.style.removeProperty("--ui-campo-altura"));
   }
   get value() {
     return this._value;
@@ -263,7 +270,8 @@ class F extends HTMLElement {
     });
   }
   syncState() {
-    this.hasAttribute("value") && (this._value = this.getAttribute("value") || "", this.internals.setFormValue(this._value)), this.syncLabel();
+    const e = this.getAttribute("altura") || this.getAttribute("height");
+    e && this.style.setProperty("--ui-campo-altura", isNaN(Number(e)) ? e : `${e}px`), this.hasAttribute("value") && (this._value = this.getAttribute("value") || "", this.internals.setFormValue(this._value)), this.syncLabel();
   }
   selecionarItem(e) {
     this.value = e.id, this.fechar(), this.dispatchEvent(
@@ -336,7 +344,7 @@ class se extends HTMLElement {
   }
 }
 customElements.get("ui-texto") || customElements.define("ui-texto", se);
-const ne = ':host{display:flex;flex-direction:column;gap:4px;width:100%;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif)}.ui-campo-texto__container{position:relative;width:100%;display:flex;flex-direction:column}:host([label-flutuante]) .ui-campo-texto__container{margin-top:10px}.ui-campo-texto__label{display:flex;align-items:center;justify-content:space-between;font-size:var(--ui-tamanho-corpo-sm, 13px);font-weight:var(--ui-peso-medio, 500);color:var(--ui-cor-texto, #e1e1e6);-webkit-user-select:none;user-select:none;margin-bottom:4px}.ui-campo-texto__wrapper{position:relative;display:flex;align-items:center;width:100%;min-height:var(--ui-altura-minima, 15px);background-color:var(--ui-cor-fundo-elevado, #1a1a1e);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));border-radius:var(--ui-raio-borda, 6px);padding:0 6px;gap:6px;box-sizing:border-box;transition:border-color .15s ease,box-shadow .15s ease,background-color .15s ease}.ui-campo-texto__wrapper--foco{border-color:var(--ui-cor-primaria, #00E08A);box-shadow:0 0 0 2px #00e08a2e;background-color:var(--ui-cor-fundo-menu, #18181c)}.ui-campo-texto__wrapper--erro{border-color:var(--ui-cor-texto-erro, #ff5555)!important;box-shadow:0 0 0 2px #ff55552e!important}.ui-campo-texto__wrapper--disabled{opacity:.5;cursor:not-allowed;background-color:#ffffff08}.ui-campo-texto__input{flex:1;width:100%;height:100%;min-height:0;background:transparent;border:none;outline:none;color:var(--ui-cor-texto, #e1e1e6);font-family:inherit;font-size:clamp(11px,.8rem,14px);line-height:1;padding:0;margin:0;box-sizing:border-box}.ui-campo-texto__input::placeholder{color:var(--ui-cor-texto-secundario, #888899);opacity:.65}.ui-campo-texto__input:disabled{cursor:not-allowed}.ui-campo-texto__icone{display:inline-flex;align-items:center;justify-content:center;color:var(--ui-cor-texto-secundario, #888899);flex-shrink:0;font-size:14px}.ui-campo-texto__icone--clicavel{cursor:pointer;-webkit-user-select:none;user-select:none;transition:opacity .15s ease,transform .15s ease}.ui-campo-texto__icone--clicavel:hover{opacity:.85;transform:scale(1.1)}:host([label-flutuante]) .ui-campo-texto__label{position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--ui-cor-texto-secundario, #888899);pointer-events:none;z-index:3;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);padding:0 4px;border-radius:3px;margin-bottom:0;white-space:nowrap;max-width:calc(100% - 16px);overflow:hidden;text-overflow:ellipsis;transition:top .15s cubic-bezier(.4,0,.2,1),transform .15s cubic-bezier(.4,0,.2,1),color .15s ease,font-size .15s ease}:host([label-flutuante][tem-icone-esquerda]) .ui-campo-texto__label{left:28px}:host([label-flutuante]) .ui-campo-texto__label--ativa{top:-10px;left:8px!important;transform:translateY(0) scale(.85);transform-origin:left top;font-weight:600;color:var(--ui-cor-primaria, #00E08A);background-color:var(--ui-cor-fundo-elevado, #1a1a1e)}:host([label-flutuante][erro]) .ui-campo-texto__label--ativa,:host([label-flutuante][mensagem-erro]) .ui-campo-texto__label--ativa{color:var(--ui-cor-texto-erro, #ff5555)}.ui-campo-texto__helper{font-size:var(--ui-tamanho-caption, 11px);color:var(--ui-cor-texto-secundario, #888899);line-height:var(--ui-altura-linha-compacta, 1.2);margin-top:2px}.ui-campo-texto__helper--erro{color:var(--ui-cor-texto-erro, #ff5555);font-weight:500;display:flex;align-items:center;gap:4px}';
+const ne = ':host{display:flex;flex-direction:column;gap:4px;width:100%;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif)}:host([inline]){width:auto;display:inline-flex}.ui-campo-texto__container{position:relative;width:100%;display:flex;flex-direction:column;justify-content:center}:host([label-flutuante]) .ui-campo-texto__container{margin-top:6px}.ui-campo-texto__label{display:flex;align-items:center;justify-content:space-between;font-size:var(--ui-tamanho-corpo-sm, 12.5px);font-weight:var(--ui-peso-medio, 500);color:var(--ui-cor-texto, #e1e1e6);-webkit-user-select:none;user-select:none;margin-bottom:4px;flex-shrink:0}.ui-campo-texto__wrapper{position:relative;display:flex;align-items:center;width:100%;height:var(--ui-campo-altura, 100%);min-height:var(--ui-campo-altura, var(--ui-altura-minima, 15px));background-color:var(--ui-cor-fundo-elevado, #1a1a1e);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));border-radius:var(--ui-raio-borda, 6px);padding:0 clamp(4px,.8vw,8px);gap:clamp(4px,.8vw,8px);box-sizing:border-box;transition:border-color .15s ease,box-shadow .15s ease,background-color .15s ease}.ui-campo-texto__wrapper--foco{border-color:var(--ui-cor-primaria, #00E08A);box-shadow:0 0 0 2px #00e08a2e;background-color:var(--ui-cor-fundo-menu, #18181c)}.ui-campo-texto__wrapper--erro{border-color:var(--ui-cor-texto-erro, #ff5555)!important;box-shadow:0 0 0 2px #ff55552e!important}.ui-campo-texto__wrapper--disabled{opacity:.5;cursor:not-allowed;background-color:#ffffff08}.ui-campo-texto__input{flex:1;width:100%;height:100%;min-height:0;background:transparent;border:none;outline:none;color:var(--ui-cor-texto, #e1e1e6);font-family:inherit;font-size:clamp(10.5px,.8rem,13.5px);line-height:normal;padding:0;margin:0;box-sizing:border-box}.ui-campo-texto__input::placeholder{color:var(--ui-cor-texto-secundario, #888899);opacity:.65}.ui-campo-texto__input:disabled{cursor:not-allowed}.ui-campo-texto__icone{display:inline-flex;align-items:center;justify-content:center;color:var(--ui-cor-texto-secundario, #888899);flex-shrink:0;font-size:clamp(11px,.85em,14px);max-height:100%}.ui-campo-texto__icone--clicavel{cursor:pointer;-webkit-user-select:none;user-select:none;transition:opacity .15s ease,transform .15s ease}.ui-campo-texto__icone--clicavel:hover{opacity:.85;transform:scale(1.1)}:host([label-flutuante]) .ui-campo-texto__label{position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--ui-cor-texto-secundario, #888899);pointer-events:none;z-index:3;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);padding:0 4px;border-radius:3px;margin-bottom:0;white-space:nowrap;max-width:calc(100% - 16px);overflow:hidden;text-overflow:ellipsis;transition:top .15s cubic-bezier(.4,0,.2,1),transform .15s cubic-bezier(.4,0,.2,1),color .15s ease,font-size .15s ease}:host([label-flutuante][tem-icone-esquerda]) .ui-campo-texto__label{left:28px}:host([label-flutuante]) .ui-campo-texto__label--ativa{top:-8px;left:8px!important;transform:translateY(0) scale(.85);transform-origin:left top;font-weight:600;color:var(--ui-cor-primaria, #00E08A);background-color:var(--ui-cor-fundo-elevado, #1a1a1e)}:host([label-flutuante][erro]) .ui-campo-texto__label--ativa,:host([label-flutuante][mensagem-erro]) .ui-campo-texto__label--ativa{color:var(--ui-cor-texto-erro, #ff5555)}.ui-campo-texto__helper{font-size:var(--ui-tamanho-caption, 11px);color:var(--ui-cor-texto-secundario, #888899);line-height:var(--ui-altura-linha-compacta, 1.2);margin-top:2px}.ui-campo-texto__helper--erro{color:var(--ui-cor-texto-erro, #ff5555);font-weight:500;display:flex;align-items:center;gap:4px}';
 class Y extends HTMLElement {
   constructor() {
     super();
@@ -414,7 +422,12 @@ class Y extends HTMLElement {
       "disabled",
       "readonly",
       "label-flutuante",
-      "alternar-senha"
+      "alternar-senha",
+      "tamanho",
+      "size",
+      "altura",
+      "height",
+      "densidade"
     ];
   }
   connectedCallback() {
@@ -451,22 +464,24 @@ class Y extends HTMLElement {
   }
   syncState() {
     this.leftSlotElement.assignedNodes().length > 0 || this.querySelector('[slot="icone-esquerda"]') !== null ? this.setAttribute("tem-icone-esquerda", "") : this.removeAttribute("tem-icone-esquerda");
-    const t = this.getAttribute("label"), o = this.hasAttribute("label-flutuante"), a = this.inputElement.value.trim() !== "", r = this._focado, s = (() => {
+    const t = this.getAttribute("altura") || this.getAttribute("height");
+    t && this.style.setProperty("--ui-campo-altura", isNaN(Number(t)) ? t : `${t}px`);
+    const o = this.getAttribute("label"), a = this.hasAttribute("label-flutuante"), r = this.inputElement.value.trim() !== "", s = this._focado, l = (() => {
       try {
         return this.inputElement.matches(":-webkit-autofill");
       } catch {
         return !1;
       }
     })();
-    t ? (this.labelElement.textContent = t, this.labelElement.style.display = "flex", o ? r || a || s ? this.labelElement.classList.add("ui-campo-texto__label--ativa") : this.labelElement.classList.remove("ui-campo-texto__label--ativa") : this.labelElement.classList.remove("ui-campo-texto__label--ativa")) : this.labelElement.style.display = "none";
-    const l = this.getAttribute("placeholder") || "";
-    o && !r && !a && !s ? this.inputElement.placeholder = "" : this.inputElement.placeholder = l;
-    const d = this.getAttribute("tipo") || "text";
-    this._senhaVisivel || (this.inputElement.type = d), this.internals.setFormValue(this.inputElement.value);
-    const h = this.hasAttribute("disabled"), c = this.hasAttribute("readonly");
-    this.inputElement.disabled = h, this.inputElement.readOnly = c, h ? this.wrapperElement.classList.add("ui-campo-texto__wrapper--disabled") : this.wrapperElement.classList.remove("ui-campo-texto__wrapper--disabled"), d === "password" || this.hasAttribute("alternar-senha") ? this.rightIconContainer.classList.add("ui-campo-texto__icone--clicavel") : this.rightIconContainer.classList.remove("ui-campo-texto__icone--clicavel");
-    const p = this.hasAttribute("erro") || this.hasAttribute("mensagem-erro"), x = this.getAttribute("mensagem-erro"), m = this.getAttribute("helper-text");
-    p ? this.wrapperElement.classList.add("ui-campo-texto__wrapper--erro") : this.wrapperElement.classList.remove("ui-campo-texto__wrapper--erro"), p && x ? (this.helperElement.textContent = `⚠️ ${x}`, this.helperElement.className = "ui-campo-texto__helper ui-campo-texto__helper--erro", this.helperElement.style.display = "block") : m ? (this.helperElement.textContent = m, this.helperElement.className = "ui-campo-texto__helper", this.helperElement.style.display = "block") : this.helperElement.style.display = "none";
+    o ? (this.labelElement.textContent = o, this.labelElement.style.display = "flex", a ? s || r || l ? this.labelElement.classList.add("ui-campo-texto__label--ativa") : this.labelElement.classList.remove("ui-campo-texto__label--ativa") : this.labelElement.classList.remove("ui-campo-texto__label--ativa")) : this.labelElement.style.display = "none";
+    const d = this.getAttribute("placeholder") || "";
+    a && !s && !r && !l ? this.inputElement.placeholder = "" : this.inputElement.placeholder = d;
+    const h = this.getAttribute("tipo") || "text";
+    this._senhaVisivel || (this.inputElement.type = h), this.internals.setFormValue(this.inputElement.value);
+    const c = this.hasAttribute("disabled"), p = this.hasAttribute("readonly");
+    this.inputElement.disabled = c, this.inputElement.readOnly = p, c ? this.wrapperElement.classList.add("ui-campo-texto__wrapper--disabled") : this.wrapperElement.classList.remove("ui-campo-texto__wrapper--disabled"), h === "password" || this.hasAttribute("alternar-senha") ? this.rightIconContainer.classList.add("ui-campo-texto__icone--clicavel") : this.rightIconContainer.classList.remove("ui-campo-texto__icone--clicavel");
+    const x = this.hasAttribute("erro") || this.hasAttribute("mensagem-erro"), f = this.getAttribute("mensagem-erro"), m = this.getAttribute("helper-text");
+    x ? this.wrapperElement.classList.add("ui-campo-texto__wrapper--erro") : this.wrapperElement.classList.remove("ui-campo-texto__wrapper--erro"), x && f ? (this.helperElement.textContent = `⚠️ ${f}`, this.helperElement.className = "ui-campo-texto__helper ui-campo-texto__helper--erro", this.helperElement.style.display = "block") : m ? (this.helperElement.textContent = m, this.helperElement.className = "ui-campo-texto__helper", this.helperElement.style.display = "block") : this.helperElement.style.display = "none";
   }
   formResetCallback() {
     this.inputElement.value = "", this.removeAttribute("value"), this.syncState();
@@ -1250,10 +1265,10 @@ const _e = ':host{display:block;box-sizing:border-box;font-family:var(--ui-fonte
   }
 };
 n(z, "_openCount", 0);
-let $ = z;
-class we extends $ {
+let N = z;
+class we extends N {
 }
-customElements.get("ui-modal") || customElements.define("ui-modal", $);
+customElements.get("ui-modal") || customElements.define("ui-modal", N);
 customElements.get("ui-dialog") || customElements.define("ui-dialog", we);
 const ke = ':host{display:block;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif)}.ui-alerta{display:flex;align-items:flex-start;gap:12px;padding:12px 16px;border-radius:var(--ui-raio-borda, 8px);border:1px solid transparent;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);color:var(--ui-cor-texto, #e1e1e6);box-sizing:border-box;position:relative;transition:opacity .2s ease,transform .2s ease;line-height:1.4}.ui-alerta__icone{display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}.ui-alerta__conteudo{flex:1}.ui-alerta__titulo{font-size:.9rem;font-weight:600;margin:0 0 2px;line-height:1.2}.ui-alerta__mensagem{font-size:.825rem;margin:0;opacity:.9}.ui-alerta__close{background:transparent;border:none;color:currentColor;opacity:.7;font-size:14px;cursor:pointer;padding:2px 6px;border-radius:4px;line-height:1;flex-shrink:0;margin-top:-2px;margin-right:-4px;transition:opacity .15s ease,background-color .15s ease}.ui-alerta__close:hover{opacity:1;background-color:#ffffff26}.ui-alerta--sucesso{background-color:#00e08a1f;border-color:#00e08a4d;color:var(--ui-cor-texto-sucesso, #00E08A)}.ui-alerta--sucesso .ui-alerta__mensagem{color:var(--ui-cor-texto, #e1e1e6)}.ui-alerta--erro{background-color:#ff55551f;border-color:#ff55554d;color:var(--ui-cor-texto-erro, #ff5555)}.ui-alerta--erro .ui-alerta__mensagem{color:var(--ui-cor-texto, #e1e1e6)}.ui-alerta--alerta{background-color:#ffb86c1f;border-color:#ffb86c4d;color:var(--ui-cor-texto-alerta, #ffb86c)}.ui-alerta--alerta .ui-alerta__mensagem{color:var(--ui-cor-texto, #e1e1e6)}.ui-alerta--info{background-color:#00aaff1f;border-color:#00aaff4d;color:#0af}.ui-alerta--info .ui-alerta__mensagem{color:var(--ui-cor-texto, #e1e1e6)}:host(ui-toast){display:block;width:100%;box-sizing:border-box;pointer-events:auto;transition:transform .25s cubic-bezier(.4,0,.2,1),opacity .25s ease}.ui-toast__banner{box-shadow:0 8px 30px #0009;animation:ui-toast-slide .3s cubic-bezier(.4,0,.2,1)}@keyframes ui-toast-slide{0%{transform:translate(100%);opacity:0}to{transform:translate(0);opacity:1}}', j = {
   sucesso: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>',
@@ -1663,17 +1678,17 @@ class Le extends HTMLElement {
   initColumnResize(e, t, o, a, r) {
     var x;
     e.stopPropagation(), e.preventDefault(), this._isResizing = !0, r.classList.add("ui-tabela__resizer--ativo");
-    const s = e.pageX, l = a.offsetWidth, d = (x = this._colgroupElement) == null ? void 0 : x.children[o], h = (m) => {
-      const b = m.pageX - s;
-      let u = l + b;
+    const s = e.pageX, l = a.offsetWidth, d = (x = this._colgroupElement) == null ? void 0 : x.children[o], h = (f) => {
+      const m = f.pageX - s;
+      let u = l + m;
       if (t.larguraMinima !== void 0) {
-        const f = typeof t.larguraMinima == "number" ? t.larguraMinima : parseInt(t.larguraMinima, 10);
-        isNaN(f) || (u = Math.max(f, u));
+        const b = typeof t.larguraMinima == "number" ? t.larguraMinima : parseInt(t.larguraMinima, 10);
+        isNaN(b) || (u = Math.max(b, u));
       } else
         u = Math.max(60, u);
       if (t.larguraMaxima !== void 0) {
-        const f = typeof t.larguraMaxima == "number" ? t.larguraMaxima : parseInt(t.larguraMaxima, 10);
-        isNaN(f) || (u = Math.min(f, u));
+        const b = typeof t.larguraMaxima == "number" ? t.larguraMaxima : parseInt(t.larguraMaxima, 10);
+        isNaN(b) || (u = Math.min(b, u));
       }
       t.largura = `${u}px`, a.style.width = `${u}px`, d && (d.style.width = `${u}px`);
     }, c = () => {
@@ -1711,13 +1726,13 @@ class Le extends HTMLElement {
     const p = document.createElement("button");
     p.textContent = "Cancelar", h.appendChild(p), h.appendChild(c), r.appendChild(s), r.appendChild(l), r.appendChild(h), this.shadow.appendChild(r), r.showModal();
     const x = () => {
-      var u, f;
-      const b = l.value.trim().toLowerCase();
-      if (b === "" || b === "auto")
+      var u, b;
+      const m = l.value.trim().toLowerCase();
+      if (m === "" || m === "auto")
         t.largura = void 0, a.style.width = "", (u = this._colgroupElement) != null && u.children[o] && (this._colgroupElement.children[o].style.width = "");
       else {
-        const _ = parseInt(b, 10);
-        !isNaN(_) && _ > 20 && (t.largura = `${_}px`, a.style.width = `${_}px`, (f = this._colgroupElement) != null && f.children[o] && (this._colgroupElement.children[o].style.width = `${_}px`));
+        const _ = parseInt(m, 10);
+        !isNaN(_) && _ > 20 && (t.largura = `${_}px`, a.style.width = `${_}px`, (b = this._colgroupElement) != null && b.children[o] && (this._colgroupElement.children[o].style.width = `${_}px`));
       }
       r.close(), r.remove(), this.dispatchEvent(
         new CustomEvent("ui-column-resize", {
@@ -1732,8 +1747,8 @@ class Le extends HTMLElement {
     };
     c.addEventListener("click", x), p.addEventListener("click", () => {
       r.close(), r.remove();
-    }), l.addEventListener("keydown", (m) => {
-      m.key === "Enter" && x(), m.key === "Escape" && (r.close(), r.remove());
+    }), l.addEventListener("keydown", (f) => {
+      f.key === "Enter" && x(), f.key === "Escape" && (r.close(), r.remove());
     }), l.focus(), l.select();
   }
   handleHeaderContextMenu(e, t, o, a) {
@@ -1787,15 +1802,15 @@ class Le extends HTMLElement {
       t.largura !== void 0 && (a.style.width = this.formatWidth(t.largura)), this._colgroupElement.appendChild(a);
       const r = document.createElement("th"), s = this.getAlignmentClass(t.alinhamento);
       if (r.className = s, r.style.textAlign = this.getTextAlign(t.alinhamento), t.largura !== void 0 && (r.style.width = this.formatWidth(t.largura)), t.larguraMinima !== void 0 && (r.style.minWidth = this.formatWidth(t.larguraMinima)), t.larguraMaxima !== void 0) {
-        const b = this.formatWidth(t.larguraMaxima);
-        r.style.maxWidth = b, r.style.overflow = "hidden", r.style.textOverflow = "ellipsis", r.style.whiteSpace = "nowrap";
+        const m = this.formatWidth(t.larguraMaxima);
+        r.style.maxWidth = m, r.style.overflow = "hidden", r.style.textOverflow = "ellipsis", r.style.whiteSpace = "nowrap";
       }
       if (t.tooltip && (r.title = t.tooltip), t.ordenavel) {
         r.classList.add("ui-tabela__th--ordenavel");
-        const b = () => this.handleHeaderClick(t);
-        this.addHeaderListener(r, "click", b);
+        const m = () => this.handleHeaderClick(t);
+        this.addHeaderListener(r, "click", m);
       }
-      const l = (b) => this.handleHeaderContextMenu(b, t, o, r);
+      const l = (m) => this.handleHeaderContextMenu(m, t, o, r);
       this.addHeaderListener(r, "contextmenu", l);
       const d = document.createElement("div");
       d.className = "ui-tabela__header-content";
@@ -1803,9 +1818,9 @@ class Le extends HTMLElement {
       h.className = "ui-tabela__header-text", h.textContent = t.rotulo, d.appendChild(h);
       const c = document.createElement("span");
       if (c.className = "ui-tabela__sort-icon", t.ordenavel) {
-        const b = this._colunaOrdenada === t.id && this._direcaoOrdenacao !== "original", u = b && this._direcaoOrdenacao === "desc", f = b ? "" : "ui-tabela__sort-arrow--inativo", _ = u ? "ui-tabela__sort-arrow--desc" : "";
+        const m = this._colunaOrdenada === t.id && this._direcaoOrdenacao !== "original", u = m && this._direcaoOrdenacao === "desc", b = m ? "" : "ui-tabela__sort-arrow--inativo", _ = u ? "ui-tabela__sort-arrow--desc" : "";
         c.innerHTML = `
-          <svg class="ui-tabela__sort-arrow ${f} ${_}" viewBox="0 0 24 24">
+          <svg class="ui-tabela__sort-arrow ${b} ${_}" viewBox="0 0 24 24">
             <path d="M7 14l5-5 5 5H7z"/>
           </svg>
         `;
@@ -1813,12 +1828,12 @@ class Le extends HTMLElement {
       d.appendChild(c), r.appendChild(d);
       const p = document.createElement("div");
       p.className = "ui-tabela__resizer", p.title = "Arrastar para redimensionar largura (duplo-clique para auto-ajuste)";
-      const x = (b) => this.initColumnResize(b, t, o, r, p);
+      const x = (m) => this.initColumnResize(m, t, o, r, p);
       this.addHeaderListener(p, "mousedown", x);
-      const m = (b) => {
-        b.stopPropagation(), t.largura = void 0, r.style.width = "", a.style.width = "", this.dispatchEvent(new CustomEvent("ui-column-resize", { bubbles: !0, composed: !0, detail: { idColuna: t.id, largura: "auto" } }));
+      const f = (m) => {
+        m.stopPropagation(), t.largura = void 0, r.style.width = "", a.style.width = "", this.dispatchEvent(new CustomEvent("ui-column-resize", { bubbles: !0, composed: !0, detail: { idColuna: t.id, largura: "auto" } }));
       };
-      this.addHeaderListener(p, "dblclick", m), r.appendChild(p), e.appendChild(r);
+      this.addHeaderListener(p, "dblclick", f), r.appendChild(p), e.appendChild(r);
     }), this._theadElement.appendChild(e);
   }
   // Renderiza apenas o corpo, preservando o scroll
@@ -1851,19 +1866,19 @@ class Le extends HTMLElement {
           const u = this.formatWidth(c.larguraMaxima);
           p.style.maxWidth = u, p.style.overflow = "hidden", p.style.textOverflow = "ellipsis", p.style.whiteSpace = "nowrap";
         }
-        const m = document.createElement("div");
-        m.className = "ui-tabela__cell-content", c.larguraMaxima !== void 0 && m.classList.add("ui-tabela__cell-truncate");
-        const b = d[c.id];
+        const f = document.createElement("div");
+        f.className = "ui-tabela__cell-content", c.larguraMaxima !== void 0 && f.classList.add("ui-tabela__cell-truncate");
+        const m = d[c.id];
         if (typeof c.render == "function") {
-          const u = c.render(b, d, l);
-          u instanceof Node ? m.appendChild(u) : m.textContent = String(u ?? "");
-        } else if (b instanceof Node)
-          m.appendChild(b);
+          const u = c.render(m, d, l);
+          u instanceof Node ? f.appendChild(u) : f.textContent = String(u ?? "");
+        } else if (m instanceof Node)
+          f.appendChild(m);
         else {
-          const u = b != null ? String(b) : "";
-          m.textContent = u, c.larguraMaxima !== void 0 && !c.tooltip && (p.title = u);
+          const u = m != null ? String(m) : "";
+          f.textContent = u, c.larguraMaxima !== void 0 && !c.tooltip && (p.title = u);
         }
-        p.appendChild(m), h.appendChild(p);
+        p.appendChild(f), h.appendChild(p);
       }), s.appendChild(h);
     }
     if (o && r < e) {
@@ -2158,10 +2173,10 @@ class Te {
     let s = 0;
     const l = 300;
     for (let d = t; d <= o && s < l; d++) {
-      const h = a.getNorthWest(), c = a.getSouthEast(), p = this.lonToTileX(h.lng, d), x = this.lonToTileX(c.lng, d), m = this.latToTileY(h.lat, d), b = this.latToTileY(c.lat, d);
+      const h = a.getNorthWest(), c = a.getSouthEast(), p = this.lonToTileX(h.lng, d), x = this.lonToTileX(c.lng, d), f = this.latToTileY(h.lat, d), m = this.latToTileY(c.lat, d);
       for (let u = p; u <= x && s < l; u++)
-        for (let f = m; f <= b && s < l; f++) {
-          const A = `https://${r[(u + f) % r.length]}.google.com/vt/lyrs=s,h&x=${u}&y=${f}&z=${d}`, E = new Image();
+        for (let b = f; b <= m && s < l; b++) {
+          const A = `https://${r[(u + b) % r.length]}.google.com/vt/lyrs=s,h&x=${u}&y=${b}&z=${d}`, E = new Image();
           E.src = A, s++;
         }
     }
@@ -2192,30 +2207,30 @@ class Te {
         </div>
       `).openOn(this.map);
     try {
-      const x = typeof window < "u" && (window.location.origin.includes("localhost") || window.location.origin.includes("127.0.0.1") || window.location.origin.includes("[::1]")) ? `${this.apiBaseUrl}/proxy/sigef?url=${encodeURIComponent(d)}` : `${window.location.origin}/api.php?action=proxy_sigef&url=${encodeURIComponent(d)}`, m = await fetch(x);
-      let b = null;
-      if (m.ok) {
-        const u = await m.text();
+      const x = typeof window < "u" && (window.location.origin.includes("localhost") || window.location.origin.includes("127.0.0.1") || window.location.origin.includes("[::1]")) ? `${this.apiBaseUrl}/proxy/sigef?url=${encodeURIComponent(d)}` : `${window.location.origin}/api.php?action=proxy_sigef&url=${encodeURIComponent(d)}`, f = await fetch(x);
+      let m = null;
+      if (f.ok) {
+        const u = await f.text();
         try {
-          b = JSON.parse(u);
+          m = JSON.parse(u);
         } catch {
-          b = null;
+          m = null;
         }
       }
-      if (b && b.features && b.features.length > 0) {
-        const u = b.features[0], f = u.properties || {}, _ = String(u.id || f.parcela_codigo || f.co_parcela || f.id_parcela || ""), A = String(f.nome_area || f.nome_imovel || "Imóvel Sem Nome");
+      if (m && m.features && m.features.length > 0) {
+        const u = m.features[0], b = u.properties || {}, _ = String(u.id || b.parcela_codigo || b.co_parcela || b.id_parcela || ""), A = String(b.nome_area || b.nome_imovel || "Imóvel Sem Nome");
         if (_) {
           const E = encodeURIComponent(_), y = `https://sigef.incra.gov.br/geo/exportar/parcela/shp/${E}/`, C = `https://sigef.incra.gov.br/geo/parcela/detalhe/${E}/`, k = document.createElement("div");
           k.style.cssText = "font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.4; min-width:180px;", k.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; padding-bottom:5px; border-bottom:1px solid rgba(255, 255, 255, 0.1);">
               <span style="font-weight:700; font-size:11px; color:#10b981; text-transform:uppercase; letter-spacing:0.5px;">SIGEF</span>
-              <span style="font-size:10px; color:rgba(255, 255, 255, 0.5);">${w(f.situacao_informada || f.status || "Certificada")}</span>
+              <span style="font-size:10px; color:rgba(255, 255, 255, 0.5);">${w(b.situacao_informada || b.status || "Certificada")}</span>
             </div>
             <div style="font-weight:700; font-size:12px; margin-bottom:4px; color:#ffffff; word-break:break-word;">${w(A)}</div>
-            <div style="font-size:11px; color:rgba(255, 255, 255, 0.7); margin-bottom:2px;">Cód: <span style="font-family:monospace;">${w(f.codigo_imovel || "N/A")}</span></div>
+            <div style="font-size:11px; color:rgba(255, 255, 255, 0.7); margin-bottom:2px;">Cód: <span style="font-family:monospace;">${w(b.codigo_imovel || "N/A")}</span></div>
             <div style="display:flex; gap:12px; font-size:11px; color:rgba(255, 255, 255, 0.7); margin-bottom:6px;">
-              <span>Mat: <strong style="color:#ffffff;">${w(f.registro_matricula || f.matricula || "N/A")}</strong></span>
-              <span>${w(f.data_submissao || "")}</span>
+              <span>Mat: <strong style="color:#ffffff;">${w(b.registro_matricula || b.matricula || "N/A")}</strong></span>
+              <span>${w(b.data_submissao || "")}</span>
             </div>
             <div style="display:flex; flex-direction:column; gap:5px; padding-top:6px; border-top:1px solid rgba(255, 255, 255, 0.1);">
               <a href="${y}" target="_blank" rel="noopener noreferrer" style="display:flex; align-items:center; justify-content:center; gap:5px; padding:5px 8px; background:rgba(16, 185, 129, 0.15); border:1px solid rgba(16, 185, 129, 0.3); color:#34d399; font-size:11px; font-weight:700; border-radius:5px; text-decoration:none; cursor:pointer;">
@@ -2337,27 +2352,27 @@ class qe {
           return;
         }
         this.selectionHappened = !0;
-        const m = {
+        const f = {
           x1: Math.min(this.selectStartPoint.x, c.x),
           y1: Math.min(this.selectStartPoint.y, c.y),
           x2: Math.max(this.selectStartPoint.x, c.x),
           y2: Math.max(this.selectStartPoint.y, c.y)
-        }, b = ((r = this.ctx.mapaController) == null ? void 0 : r.getMarkers()) || [], u = ((s = this.ctx.mapaController) == null ? void 0 : s.getVizinhosMarkers()) || [], f = [], _ = [], A = !this.ctx.layerManager || this.ctx.layerManager.isLayerActiveAndSelectable("vertices"), E = !this.ctx.layerManager || this.ctx.layerManager.isLayerActiveAndSelectable("vizinhos");
-        A && b.forEach((y) => {
+        }, m = ((r = this.ctx.mapaController) == null ? void 0 : r.getMarkers()) || [], u = ((s = this.ctx.mapaController) == null ? void 0 : s.getVizinhosMarkers()) || [], b = [], _ = [], A = !this.ctx.layerManager || this.ctx.layerManager.isLayerActiveAndSelectable("vertices"), E = !this.ctx.layerManager || this.ctx.layerManager.isLayerActiveAndSelectable("vizinhos");
+        A && m.forEach((y) => {
           const C = y.pontoId;
           if (!C) return;
           const k = this.map.latLngToContainerPoint(y.getLatLng());
-          k.x >= m.x1 && k.x <= m.x2 && k.y >= m.y1 && k.y <= m.y2 && f.push(C);
+          k.x >= f.x1 && k.x <= f.x2 && k.y >= f.y1 && k.y <= f.y2 && b.push(C);
         }), E && u.forEach((y) => {
           const C = y.pontoId;
           if (!C) return;
           const k = this.map.latLngToContainerPoint(y.getLatLng());
-          k.x >= m.x1 && k.x <= m.x2 && k.y >= m.y1 && k.y <= m.y2 && _.push(C);
-        }), i.ctrlKey || i.metaKey ? (f.forEach((y) => {
+          k.x >= f.x1 && k.x <= f.x2 && k.y >= f.y1 && k.y <= f.y2 && _.push(C);
+        }), i.ctrlKey || i.metaKey ? (b.forEach((y) => {
           this.ctx.selectedPontoIds.includes(y) ? this.ctx.selectedPontoIds = this.ctx.selectedPontoIds.filter((C) => C !== y) : this.ctx.selectedPontoIds.push(y);
         }), _.forEach((y) => {
           this.ctx.selectedVizinhoPontoIds.includes(y) ? this.ctx.selectedVizinhoPontoIds = this.ctx.selectedVizinhoPontoIds.filter((C) => C !== y) : this.ctx.selectedVizinhoPontoIds.push(y);
-        })) : (this.ctx.selectedPontoIds = f, this.ctx.selectedVizinhoPontoIds = _), this.ctx.selectedPontoIds.length > 0 && (this.ctx.lastSelectedPontoId = this.ctx.selectedPontoIds[this.ctx.selectedPontoIds.length - 1]), this.notificarSelecao();
+        })) : (this.ctx.selectedPontoIds = b, this.ctx.selectedVizinhoPontoIds = _), this.ctx.selectedPontoIds.length > 0 && (this.ctx.lastSelectedPontoId = this.ctx.selectedPontoIds[this.ctx.selectedPontoIds.length - 1]), this.notificarSelecao();
       }
     });
     n(this, "handleKeyDown", (i) => {
@@ -2444,7 +2459,7 @@ class Be {
     e.hasLayer(i) && e.removeLayer(i);
   }
 }
-class $e {
+class Ne {
   render(i, e, t) {
     var d, h, c, p;
     const o = ((d = i.dados) == null ? void 0 : d.url) || "https://acervofundiario.incra.gov.br/i3geo/ogc.php", a = ((h = i.dados) == null ? void 0 : h.layers) || "certificada_sigef_particular_pr", r = ((c = i.dados) == null ? void 0 : c.format) || "image/png", s = ((p = i.dados) == null ? void 0 : p.attribution) || "INCRA/SIGEF";
@@ -2469,7 +2484,7 @@ class $e {
     e.hasLayer(i) && e.removeLayer(i);
   }
 }
-class Ne {
+class $e {
   constructor() {
     n(this, "zoomListenerMap", /* @__PURE__ */ new WeakMap());
   }
@@ -2499,9 +2514,9 @@ class Ne {
     const r = ((c = i.dados) == null ? void 0 : c.segmentos) || o.segmentos || [], s = ((p = i.dados) == null ? void 0 : p.pontos) || o.pontos || [], l = this.calculateWeight(i, t, o), d = i.opacidade !== void 0 ? i.opacidade : 1, h = i.interativo && !i.bloqueada;
     if (r && r.length > 0)
       r.forEach((x) => {
-        const m = s.find((u) => String(u.id) === String(x.ponto_inicio_id)), b = s.find((u) => String(u.id) === String(x.ponto_fim_id));
-        if (m && b && m.lat && m.lon && b.lat && b.lon) {
-          const u = x.tipo_limite_sigef || x.tipo_limite || "", f = x.metodo_posicionamento_sigef || x.metodo_posicionamento || "", _ = u === "LA1" ? "#10b981" : u === "LN1" ? "#3b82f6" : "#00f5a0", A = i.estilo.corPrimaria || _, E = v.polyline([[m.lat, m.lon], [b.lat, b.lon]], {
+        const f = s.find((u) => String(u.id) === String(x.ponto_inicio_id)), m = s.find((u) => String(u.id) === String(x.ponto_fim_id));
+        if (f && m && f.lat && f.lon && m.lat && m.lon) {
+          const u = x.tipo_limite_sigef || x.tipo_limite || "", b = x.metodo_posicionamento_sigef || x.metodo_posicionamento || "", _ = u === "LA1" ? "#10b981" : u === "LN1" ? "#3b82f6" : "#00f5a0", A = i.estilo.corPrimaria || _, E = v.polyline([[f.lat, f.lon], [m.lat, m.lon]], {
             color: A,
             weight: l,
             opacity: d,
@@ -2511,8 +2526,8 @@ class Ne {
           });
           h && E.bindPopup(`
               <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.3;">
-                <div style="font-weight:700; font-size:12px; margin-bottom:3px; color:#ffffff;">${w(m.nome_vertice)} ↔ ${w(b.nome_vertice)}</div>
-                <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">Limite: ${w(u || "N/A")} · ${w(f || "N/A")}</div>
+                <div style="font-weight:700; font-size:12px; margin-bottom:3px; color:#ffffff;">${w(f.nome_vertice)} ↔ ${w(m.nome_vertice)}</div>
+                <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">Limite: ${w(u || "N/A")} · ${w(b || "N/A")}</div>
               </div>
             `, {
             className: "compact-popup",
@@ -2523,27 +2538,27 @@ class Ne {
     else if (s && s.length >= 2) {
       const x = s.filter(
         (u) => u.lat && u.lon && u.lat !== 0 && u.lon !== 0 && u.tipo_ponto !== "B" && u.tipo !== "B" && u.ignorar_poligono !== 1
-      ), m = {};
+      ), f = {};
       x.forEach((u) => {
-        const f = u.matricula_id != null ? `mat_${u.matricula_id}` : u.planilha_origem || "default";
-        m[f] || (m[f] = []), m[f].push(u);
+        const b = u.matricula_id != null ? `mat_${u.matricula_id}` : u.planilha_origem || "default";
+        f[b] || (f[b] = []), f[b].push(u);
       });
-      const b = i.estilo.corPrimaria || "#10b981";
-      Object.values(m).forEach((u) => {
+      const m = i.estilo.corPrimaria || "#10b981";
+      Object.values(f).forEach((u) => {
         if (u.sort((E, y) => Number(E.ordem_caminhamento ?? 999999) - Number(y.ordem_caminhamento ?? 999999)), u.length < 2) return;
         for (let E = 0; E < u.length - 1; E++) {
           const y = u[E], C = u[E + 1];
           v.polyline([[y.lat, y.lon], [C.lat, C.lon]], {
-            color: b,
+            color: m,
             weight: l,
             opacity: d,
             pane: a,
             interactive: h
           }).addTo(e);
         }
-        const f = u[u.length - 1], _ = u[0];
-        v.polyline([[f.lat, f.lon], [_.lat, _.lon]], {
-          color: b,
+        const b = u[u.length - 1], _ = u[0];
+        v.polyline([[b.lat, b.lon], [_.lat, _.lon]], {
+          color: m,
           weight: l,
           opacity: d,
           dashArray: "4, 4",
@@ -2561,7 +2576,7 @@ class Ne {
     t && (e.off("zoomend", t), this.zoomListenerMap.delete(i)), i.clearLayers(), e.hasLayer(i) && e.removeLayer(i);
   }
 }
-function N(g, i, e, t = "", o = "") {
+function $(g, i, e, t = "", o = "") {
   const a = `width: ${i + 4}px; height: ${i + 4}px;`, r = i;
   switch (g) {
     case "square":
@@ -2602,7 +2617,7 @@ class He {
     const r = () => {
       i.estilo.scaleMode === "world" && o.eachLayer((s) => {
         if (s.setIcon && s.baseSize && s.shapeStyle && s.markerBg && s.pontoId) {
-          const l = this.calculateSize(i, e, t, s.baseSize), d = t.config.enableAnimations ? "transition-all duration-150" : "", h = N(s.shapeStyle, l, s.markerBg, d, `map-marker-${i.id}-${s.pontoId}`), c = v.divIcon({
+          const l = this.calculateSize(i, e, t, s.baseSize), d = t.config.enableAnimations ? "transition-all duration-150" : "", h = $(s.shapeStyle, l, s.markerBg, d, `map-marker-${i.id}-${s.pontoId}`), c = v.divIcon({
             html: h,
             className: "custom-leaflet-marker flex items-center justify-center",
             iconSize: [l + 6, l + 6]
@@ -2627,10 +2642,10 @@ class He {
     r.forEach((c) => {
       const p = c.lat ?? c.latitude, x = c.lon ?? c.lng ?? c.longitude;
       if (p && x && p !== 0 && x !== 0) {
-        const m = c.tipo_ponto === "B" || c.tipo === "B", b = c.tipo_ponto === "M" || c.tipo === "M";
-        let u = i.estilo.estiloMarcador || "x", f = "bg-mint-vibrant", _ = i.estilo.tamanhoMarcador || 7;
-        d ? (u = "circle", f = "bg-amber-500", _ = 8) : l ? (u = b ? "circle-dot" : "cross", f = "bg-[#a855f7]", _ = b ? 10 : 8) : b ? (f = "bg-indigo-500", u = "circle-dot", _ = 10) : m && (f = "bg-rose-500", u = "square", _ = 9);
-        const A = this.calculateSize(i, t, o, _), E = o.config.enableAnimations ? "transition-all duration-150" : "", y = N(u, A, f, E, `map-marker-${i.id}-${c.id}`), C = v.divIcon({
+        const f = c.tipo_ponto === "B" || c.tipo === "B", m = c.tipo_ponto === "M" || c.tipo === "M";
+        let u = i.estilo.estiloMarcador || "x", b = "bg-mint-vibrant", _ = i.estilo.tamanhoMarcador || 7;
+        d ? (u = "circle", b = "bg-amber-500", _ = 8) : l ? (u = m ? "circle-dot" : "cross", b = "bg-[#a855f7]", _ = m ? 10 : 8) : m ? (b = "bg-indigo-500", u = "circle-dot", _ = 10) : f && (b = "bg-rose-500", u = "square", _ = 9);
+        const A = this.calculateSize(i, t, o, _), E = o.config.enableAnimations ? "transition-all duration-150" : "", y = $(u, A, b, E, `map-marker-${i.id}-${c.id}`), C = v.divIcon({
           html: y,
           className: "custom-leaflet-marker flex items-center justify-center",
           iconSize: [A + 6, A + 6]
@@ -2639,8 +2654,8 @@ class He {
           pane: a,
           interactive: s
         });
-        if (k.pontoId = c.id, k.layerId = i.id, k.isVizinho = l, k.baseSize = _, k.shapeStyle = u, k.markerBg = f, s) {
-          const P = d ? "Vértice Homologado SIGEF" : l ? "Confrontante (Importado)" : b ? "Base Homologada PPP" : m ? "Base de Campo (Translação)" : "Vértice de Perímetro";
+        if (k.pontoId = c.id, k.layerId = i.id, k.isVizinho = l, k.baseSize = _, k.shapeStyle = u, k.markerBg = b, s) {
+          const P = d ? "Vértice Homologado SIGEF" : l ? "Confrontante (Importado)" : m ? "Base Homologada PPP" : f ? "Base de Campo (Translação)" : "Vértice de Perímetro";
           k.bindPopup(`
             <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.3;">
               <div style="font-weight:700; font-size:13px; margin-bottom:4px; color:#ffffff;">${w(c.nome_vertice || String(c.id))}</div>
@@ -2678,14 +2693,14 @@ class Oe {
       if (!c || !c.poligono_wkt) return;
       const p = [...c.poligono_wkt.matchAll(/\(([^()]+)\)/g)];
       if (p.length === 0) return;
-      const x = w(c.nome_propriedade || "Propriedade Vizinha"), m = w(c.nome || "Desconhecido");
-      p.forEach((b) => {
-        const u = b[1].split(",").map((_) => {
+      const x = w(c.nome_propriedade || "Propriedade Vizinha"), f = w(c.nome || "Desconhecido");
+      p.forEach((m) => {
+        const u = m[1].split(",").map((_) => {
           const A = _.trim().split(/\s+/), E = parseFloat(A[0]), y = parseFloat(A[1]);
           return !isNaN(y) && !isNaN(E) ? [y, E] : null;
         }).filter((_) => _ !== null);
         if (u.length < 3) return;
-        const f = v.polygon(u, {
+        const b = v.polygon(u, {
           color: s,
           weight: l,
           opacity: d,
@@ -2695,13 +2710,13 @@ class Oe {
           pane: o,
           interactive: r
         });
-        r && f.bindPopup(`
+        r && b.bindPopup(`
             <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.3; min-width:180px;">
               <div style="font-weight:700; font-size:12px; color:#c084fc; margin-bottom:3px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:3px;">Limite de Confrontante</div>
               <div style="font-size:11px; margin-bottom:2px;"><strong>Propriedade:</strong> ${x}</div>
-              <div style="font-size:11px;"><strong>Proprietário:</strong> ${m}</div>
+              <div style="font-size:11px;"><strong>Proprietário:</strong> ${f}</div>
             </div>
-          `, { className: "compact-popup", maxWidth: 220 }), f.addTo(e);
+          `, { className: "compact-popup", maxWidth: 220 }), b.addTo(e);
       });
     });
   }
@@ -2720,10 +2735,10 @@ class Fe {
     const o = v.layerGroup(), a = `pane-${i.id}`, r = () => {
       if (o.clearLayers(), !i.visivel) return;
       if (e.getZoom() > 20) {
-        const l = e.getBounds(), d = l.getSouth(), h = l.getNorth(), c = l.getWest(), p = l.getEast(), x = e.getCenter(), m = 8999e-9, b = Math.cos(x.lat * Math.PI / 180), u = m / (b > 0.1 ? b : 1), f = Math.floor((h - d) / m), _ = Math.floor((p - c) / u);
-        if (f < 200 && _ < 200) {
-          const A = Math.ceil(d / m) * m;
-          for (let y = A; y <= h; y += m)
+        const l = e.getBounds(), d = l.getSouth(), h = l.getNorth(), c = l.getWest(), p = l.getEast(), x = e.getCenter(), f = 8999e-9, m = Math.cos(x.lat * Math.PI / 180), u = f / (m > 0.1 ? m : 1), b = Math.floor((h - d) / f), _ = Math.floor((p - c) / u);
+        if (b < 200 && _ < 200) {
+          const A = Math.ceil(d / f) * f;
+          for (let y = A; y <= h; y += f)
             v.polyline([[y, c], [y, p]], {
               color: i.estilo.corPrimaria || "rgba(0, 245, 160, 0.18)",
               weight: i.estilo.espessuraLinha || 0.6,
@@ -2752,8 +2767,8 @@ class Fe {
   }
 }
 S.register("tile", new Be());
-S.register("wms", new $e());
-S.register("vetorial-linhas", new Ne());
+S.register("wms", new Ne());
+S.register("vetorial-linhas", new $e());
 S.register("vetorial-pontos", new He());
 S.register("vetorial-poligonos", new Oe());
 S.register("grid", new Fe());
@@ -3450,13 +3465,13 @@ class Ke {
     Object.values(t).forEach((s) => {
       if (s.sort((c, p) => Number(c.ordem_caminhamento ?? 999999) - Number(p.ordem_caminhamento ?? 999999)), s.length < 2) return;
       for (let c = 0; c < s.length - 1; c++) {
-        const p = s[c], x = s[c + 1], m = v.polyline([[p.lat, p.lon], [x.lat, x.lon]], {
+        const p = s[c], x = s[c + 1], f = v.polyline([[p.lat, p.lon], [x.lat, x.lon]], {
           color: o,
           weight: a,
           opacity: r,
           pane: "perimetroPane"
         }).addTo(this.core.map);
-        this.polylines.push(m);
+        this.polylines.push(f);
       }
       const l = s[s.length - 1], d = s[0], h = v.polyline([[l.lat, l.lon], [d.lat, d.lon]], {
         color: o,
@@ -3540,15 +3555,15 @@ class Xe {
         const s = t.tipo_ponto === "B" || t.tipo === "B", l = t.tipo_ponto === "M" || t.tipo === "M";
         let d = "bg-mint-vibrant", h = "x", c = 7;
         l ? (d = "bg-indigo-500", c = 9) : s && (d = "bg-rose-500", c = 9);
-        const p = this.core.config.enableAnimations ? "transition-all duration-150" : "", x = (a = (o = this.controller) == null ? void 0 : o.linhas) != null && a.bancoPontosAtivo ? "opacity-40 hover:opacity-100" : "", m = N(h, c, d, `${p} ${x}`, `map-marker-${t.id}`), b = v.divIcon({
-          html: m,
+        const p = this.core.config.enableAnimations ? "transition-all duration-150" : "", x = (a = (o = this.controller) == null ? void 0 : o.linhas) != null && a.bancoPontosAtivo ? "opacity-40 hover:opacity-100" : "", f = $(h, c, d, `${p} ${x}`, `map-marker-${t.id}`), m = v.divIcon({
+          html: f,
           className: "custom-leaflet-marker flex items-center justify-center",
           iconSize: [c + 6, c + 6]
-        }), u = l ? "Base Homologada PPP" : s ? "Base de Campo (Translação)" : "Vértice de Perímetro", f = v.marker([t.lat, t.lon], {
-          icon: b,
+        }), u = l ? "Base Homologada PPP" : s ? "Base de Campo (Translação)" : "Vértice de Perímetro", b = v.marker([t.lat, t.lon], {
+          icon: m,
           pane: "verticesPane"
         });
-        f.pontoId = t.id, (r = this.controller) != null && r.modoCliqueSequencialAtivo || f.bindPopup(`
+        b.pontoId = t.id, (r = this.controller) != null && r.modoCliqueSequencialAtivo || b.bindPopup(`
             <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.3;">
               <div style="font-weight:700; font-size:13px; margin-bottom:4px; color:#ffffff;">${w(t.nome_vertice)}</div>
               <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">${w(u)} · ${w(t.tipo_ponto || t.tipo)}</div>
@@ -3557,9 +3572,9 @@ class Xe {
           `, {
           className: "compact-popup",
           maxWidth: 220
-        }), f.addTo(this.core.map), f.setZIndexOffset(1e3), f.on("click", () => {
+        }), b.addTo(this.core.map), b.setZIndexOffset(1e3), b.on("click", () => {
           e(t.id);
-        }), this.markers.push(f);
+        }), this.markers.push(b);
       }
     });
   }
@@ -3608,7 +3623,7 @@ class Xe {
         `;
         let s = this.core.config.markerStyleV || "cross", l = this.core.config.markerSizeV || 8;
         o.tipo_ponto === "M" || o.tipo === "M" || o.tipo === "B" ? (s = this.core.config.markerStyleM || "circle-dot", l = this.core.config.markerSizeM || 14) : (o.tipo_ponto === "P" || o.tipo === "P" || o.tipo === "O") && (s = this.core.config.markerStyleP || "circle", l = this.core.config.markerSizeP || 10);
-        const d = this.core.config.enableAnimations ? "transition-all duration-150" : "", h = N(s, l, "bg-[#a855f7]", d, `map-marker-vizinho-${o.id}`), c = v.divIcon({
+        const d = this.core.config.enableAnimations ? "transition-all duration-150" : "", h = $(s, l, "bg-[#a855f7]", d, `map-marker-vizinho-${o.id}`), c = v.divIcon({
           html: h,
           className: "custom-leaflet-marker flex items-center justify-center",
           iconSize: [l + 4, l + 4]
@@ -3752,7 +3767,7 @@ class We {
    */
   definirDensidade(i) {
     let e = 20;
-    typeof i == "number" ? e = i : i === "compacta" ? e = 16 : i === "relaxada" ? e = 32 : e = 20, document.documentElement.style.setProperty("--ui-altura-minima", `${e}px`), document.documentElement.setAttribute("data-ui-densidade", typeof i == "string" ? i : "custom"), this.emit("densidade:alterada", { densidade: i, alturaPx: e });
+    typeof i == "number" ? e = Math.max(15, i) : i === "compacta" ? e = 15 : i === "relaxada" ? e = 32 : e = 20, document.documentElement.style.setProperty("--ui-altura-minima", `${e}px`), document.documentElement.style.setProperty("--ui-campo-altura", `${e}px`), document.documentElement.setAttribute("data-ui-densidade", typeof i == "string" ? i : "custom"), this.emit("densidade:alterada", { densidade: i, alturaPx: e });
   }
   /**
    * Alterna ou define o tema visual global.
@@ -3842,7 +3857,7 @@ export {
   ze as UIMapa,
   Ie as UIMapaLinha,
   Me as UIMapaMarcador,
-  $ as UIModal,
+  N as UIModal,
   Ae as UIPopover,
   H as UIRadio,
   ae as UISelect,
@@ -3853,12 +3868,12 @@ export {
   q as UIToast,
   pe as UIToggle,
   X as UITooltip,
-  Ne as VectorLinesLayerRenderer,
+  $e as VectorLinesLayerRenderer,
   He as VectorPointsLayerRenderer,
   Oe as VectorPolygonsLayerRenderer,
-  $e as WmsLayerRenderer,
+  Ne as WmsLayerRenderer,
   w as escapeHtml,
   Ze as formatUTM,
-  N as getPointShapeHtml,
+  $ as getPointShapeHtml,
   Ge as initZeroJSTriggers
 };

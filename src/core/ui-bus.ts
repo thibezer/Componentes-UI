@@ -166,18 +166,19 @@ class UIBusManager {
   /**
    * Altera a densidade visual global do kit (compacta, normal ou relaxada).
    */
-  public definirDensidade(densidade: 'compacta' | 'normal' | 'relaxada' | number): void {
+  public definirDensidade(densidade: 'compacta' | 'normal' | 'padrao' | 'relaxada' | number): void {
     let altura = 20;
     if (typeof densidade === 'number') {
-      altura = densidade;
+      altura = Math.max(15, densidade);
     } else if (densidade === 'compacta') {
-      altura = 16;
+      altura = 15;
     } else if (densidade === 'relaxada') {
       altura = 32;
     } else {
       altura = 20;
     }
     document.documentElement.style.setProperty('--ui-altura-minima', `${altura}px`);
+    document.documentElement.style.setProperty('--ui-campo-altura', `${altura}px`);
     document.documentElement.setAttribute('data-ui-densidade', typeof densidade === 'string' ? densidade : 'custom');
     this.emit('densidade:alterada', { densidade, alturaPx: altura });
   }

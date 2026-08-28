@@ -37,7 +37,7 @@ declare class UIBusManager {
     /**
      * Altera a densidade visual global do kit (compacta, normal ou relaxada).
      */
-    definirDensidade(densidade: 'compacta' | 'normal' | 'relaxada' | number): void;
+    definirDensidade(densidade: 'compacta' | 'normal' | 'padrao' | 'relaxada' | number): void;
     /**
      * Alterna ou define o tema visual global.
      */
