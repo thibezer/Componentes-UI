@@ -1,4 +1,5 @@
 import estilos from './ui-badge.css?inline';
+import { ListenerBag } from '../../core/listener-bag';
 
 export class UIBadge extends HTMLElement {
   static get observedAttributes() {
@@ -17,6 +18,7 @@ export class UIBadge extends HTMLElement {
   private badgeElement: HTMLSpanElement;
   private labelElement: HTMLSpanElement;
   private closeElement: HTMLSpanElement;
+  private listeners = new ListenerBag();
 
   constructor() {
     super();
@@ -26,7 +28,7 @@ export class UIBadge extends HTMLElement {
       <span class="ui-badge">
         <slot></slot>
         <span class="ui-badge__label" style="display: none;"></span>
-        <span class="ui-badge__close" style="display: none;" title="Remover">✕</span>
+        <span class="ui-badge__close" role="button" tabindex="0" aria-label="Remover" style="display: none;" title="Remover">✕</span>
       </span>
     `;
 
@@ -36,12 +38,19 @@ export class UIBadge extends HTMLElement {
   }
 
   connectedCallback() {
-    this.closeElement.addEventListener('click', this.handleRemove);
+    this.listeners.cleanup();
+    this.listeners.add(this.closeElement, 'click', this.handleRemove);
+    this.listeners.add(this.closeElement, 'keydown', (e: KeyboardEvent) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        this.handleRemove(e as any);
+      }
+    });
     this.syncState();
   }
 
   disconnectedCallback() {
-    this.closeElement.removeEventListener('click', this.handleRemove);
+    this.listeners.cleanup();
   }
 
   attributeChangedCallback(_name: string, _old: string | null, _value: string | null) {
@@ -59,7 +68,6 @@ export class UIBadge extends HTMLElement {
       this.removeAttribute('removivel');
       this.removeAttribute('removable');
     }
-    this.syncState();
   }
 
   private syncState() {

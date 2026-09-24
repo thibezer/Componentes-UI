@@ -2,7 +2,7 @@ import estilos from './ui-campo-texto.css?inline';
 
 export class UICampoTexto extends HTMLElement {
   static formAssociated = true;
-  private internals: any;
+  private internals: ReturnType<HTMLElement['attachInternals']>;
 
   static get observedAttributes() {
     return [
@@ -36,11 +36,12 @@ export class UICampoTexto extends HTMLElement {
   private _checkTimer: any = null;
   private _focado: boolean = false;
   private _inputId: string;
+  private _defaultValue: string = '';
 
   constructor() {
     super();
     this.internals = this.attachInternals();
-    const shadow = this.attachShadow({ mode: 'open' });
+    const shadow = this.attachShadow({ mode: 'open', delegatesFocus: true });
     shadow.innerHTML = `
       <style>${estilos}</style>
       <div class="ui-campo-texto__container">
@@ -68,6 +69,16 @@ export class UICampoTexto extends HTMLElement {
     this._inputId = `ui-input-${Math.random().toString(36).substring(2, 9)}`;
     this.inputElement.id = this._inputId;
     this.labelElement.htmlFor = this._inputId;
+    this.helperElement.id = `${this._inputId}-helper`;
+    this.inputElement.setAttribute('aria-describedby', `${this._inputId}-helper`);
+  }
+
+  public override focus(options?: FocusOptions) {
+    this.inputElement.focus(options);
+  }
+
+  public override blur() {
+    this.inputElement.blur();
   }
 
   connectedCallback() {
@@ -75,12 +86,13 @@ export class UICampoTexto extends HTMLElement {
     this.inputElement.addEventListener('change', this.handleChange);
     this.inputElement.addEventListener('focus', this.handleFocus);
     this.inputElement.addEventListener('blur', this.handleBlur);
-    this.inputElement.addEventListener('keyup', this.handleInput);
     this.rightIconContainer.addEventListener('click', this.handleRightIconClick);
+    this.rightIconContainer.addEventListener('keydown', this.handleRightIconKeyDown);
     this.leftSlotElement.addEventListener('slotchange', this.handleSlotChange);
 
+    this._defaultValue = this.getAttribute('value') || '';
     if (this.hasAttribute('value') && !this.inputElement.value) {
-      this.inputElement.value = this.getAttribute('value') || '';
+      this.inputElement.value = this._defaultValue;
     }
 
     this.syncState();
@@ -94,8 +106,8 @@ export class UICampoTexto extends HTMLElement {
     this.inputElement.removeEventListener('change', this.handleChange);
     this.inputElement.removeEventListener('focus', this.handleFocus);
     this.inputElement.removeEventListener('blur', this.handleBlur);
-    this.inputElement.removeEventListener('keyup', this.handleInput);
     this.rightIconContainer.removeEventListener('click', this.handleRightIconClick);
+    this.rightIconContainer.removeEventListener('keydown', this.handleRightIconKeyDown);
     this.leftSlotElement.removeEventListener('slotchange', this.handleSlotChange);
 
     if (this._checkTimer) clearTimeout(this._checkTimer);
@@ -163,6 +175,8 @@ export class UICampoTexto extends HTMLElement {
     const altura = this.getAttribute('altura') || this.getAttribute('height');
     if (altura) {
       this.style.setProperty('--ui-campo-altura', isNaN(Number(altura)) ? altura : `${altura}px`);
+    } else {
+      this.style.removeProperty('--ui-campo-altura');
     }
 
     // 1. Label e Floating Label
@@ -224,11 +238,17 @@ export class UICampoTexto extends HTMLElement {
       this.wrapperElement.classList.remove('ui-campo-texto__wrapper--disabled');
     }
 
-    // 6. Configurar ícone da direita como clicável para senha
+    // 6. Configurar ícone da direita como clicável para senha com acessibilidade
     if (tipoBase === 'password' || this.hasAttribute('alternar-senha')) {
       this.rightIconContainer.classList.add('ui-campo-texto__icone--clicavel');
+      this.rightIconContainer.setAttribute('role', 'button');
+      this.rightIconContainer.setAttribute('tabindex', '0');
+      this.rightIconContainer.setAttribute('aria-label', this._senhaVisivel ? 'Ocultar senha' : 'Exibir senha');
     } else {
       this.rightIconContainer.classList.remove('ui-campo-texto__icone--clicavel');
+      this.rightIconContainer.removeAttribute('role');
+      this.rightIconContainer.removeAttribute('tabindex');
+      this.rightIconContainer.removeAttribute('aria-label');
     }
 
     // 7. Mensagem de Erro ou Helper Text
@@ -238,8 +258,10 @@ export class UICampoTexto extends HTMLElement {
 
     if (temErro) {
       this.wrapperElement.classList.add('ui-campo-texto__wrapper--erro');
+      this.inputElement.setAttribute('aria-invalid', 'true');
     } else {
       this.wrapperElement.classList.remove('ui-campo-texto__wrapper--erro');
+      this.inputElement.removeAttribute('aria-invalid');
     }
 
     if (temErro && mensagemErro) {
@@ -260,6 +282,17 @@ export class UICampoTexto extends HTMLElement {
     if (tipoBase === 'password' || this.hasAttribute('alternar-senha')) {
       e.stopPropagation();
       this.alternarVisibilidadeSenha();
+    }
+  };
+
+  private handleRightIconKeyDown = (e: KeyboardEvent) => {
+    const tipoBase = this.getAttribute('tipo');
+    if (tipoBase === 'password' || this.hasAttribute('alternar-senha')) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        e.stopPropagation();
+        this.alternarVisibilidadeSenha();
+      }
     }
   };
 
@@ -294,8 +327,7 @@ export class UICampoTexto extends HTMLElement {
   };
 
   formResetCallback() {
-    this.inputElement.value = '';
-    this.removeAttribute('value');
+    this.inputElement.value = this._defaultValue;
     this.syncState();
   }
 

@@ -32,4 +32,38 @@ describe('Web Component: <ui-checkbox>', () => {
       (container as HTMLElement)?.click();
     });
   });
+
+  it('deve restaurar estado padrão no formResetCallback após alteração interativa', () => {
+    const form = document.createElement('form');
+    const checkbox = document.createElement('ui-checkbox') as UICheckbox;
+    checkbox.setAttribute('marcado', '');
+    checkbox.setAttribute('name', 'termos');
+    form.appendChild(checkbox);
+    document.body.appendChild(form);
+
+    expect(checkbox.marcado).toBe(true);
+
+    // Usuário desmarca o checkbox
+    checkbox.marcado = false;
+    expect(checkbox.marcado).toBe(false);
+
+    // Reset do formulário deve restaurar o estado inicial
+    checkbox.formResetCallback();
+    expect(checkbox.marcado).toBe(true);
+  });
+
+  it('deve restaurar estado desmarcado no formResetCallback se iniciou sem atributo marcado', () => {
+    const form = document.createElement('form');
+    const checkbox = document.createElement('ui-checkbox') as UICheckbox;
+    form.appendChild(checkbox);
+    document.body.appendChild(form);
+
+    expect(checkbox.marcado).toBe(false);
+    checkbox.marcado = true;
+    expect(checkbox.marcado).toBe(true);
+
+    checkbox.formResetCallback();
+    expect(checkbox.marcado).toBe(false);
+  });
 });
+

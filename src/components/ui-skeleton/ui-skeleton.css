@@ -1,0 +1,146 @@
+:host {
+  display: block;
+  box-sizing: border-box;
+}
+
+:host([inline]) {
+  display: inline-block;
+}
+
+.ui-skeleton {
+  background: var(--ui-cor-fundo-elevado, #1e1e24);
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.07) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+  border-radius: var(--ui-raio-borda, 6px);
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+  animation: ui-skeleton-shimmer 1.6s ease-in-out infinite;
+}
+
+:root[data-tema="claro"] .ui-skeleton,
+[data-tema="claro"] .ui-skeleton {
+  background: var(--ui-cor-fundo-elevado, #e9ecef);
+  background-image: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.06) 50%,
+    rgba(0, 0, 0, 0) 100%
+  );
+}
+
+/* Animação Shimmer */
+@keyframes ui-skeleton-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Animação Pulso Alternativa */
+.ui-skeleton--pulso {
+  background-image: none;
+  animation: ui-skeleton-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes ui-skeleton-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* Sem animação */
+.ui-skeleton--estatico {
+  animation: none;
+  background-image: none;
+}
+
+/* Variantes */
+.ui-skeleton--texto {
+  height: 1.1em;
+  border-radius: 4px;
+}
+
+.ui-skeleton--circular {
+  border-radius: 50% !important;
+  aspect-ratio: 1;
+  width: var(--ui-skeleton-largura, 40px);
+  height: var(--ui-skeleton-altura, 40px);
+}
+
+.ui-skeleton--retangular {
+  border-radius: var(--ui-raio-borda, 6px);
+  min-height: 20px;
+}
+
+/* Múltiplas Linhas de Texto */
+.ui-skeleton__linhas {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.ui-skeleton__linhas .ui-skeleton {
+  width: 100%;
+}
+
+.ui-skeleton__linhas .ui-skeleton:last-child:not(:first-child) {
+  width: 65%; /* Última linha de um parágrafo mais curta para naturalidade */
+}
+
+/* Variante Composta: Card */
+.ui-skeleton--card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border-radius: var(--ui-raio-borda, 10px);
+  border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.08));
+  background: var(--ui-cor-fundo-card, #18181c);
+  animation: none;
+}
+
+.ui-skeleton__card-media {
+  width: 100%;
+  height: 120px;
+  border-radius: 6px;
+}
+
+.ui-skeleton__card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ui-skeleton__card-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.ui-skeleton__card-title {
+  width: 50%;
+  height: 16px;
+}
+
+/* Acessibilidade: Redução de Movimento */
+@media (prefers-reduced-motion: reduce) {
+  .ui-skeleton {
+    animation: none !important;
+    background-image: none !important;
+    opacity: 0.7;
+  }
+}

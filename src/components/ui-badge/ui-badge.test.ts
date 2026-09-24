@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import './ui-badge';
+import fs from 'fs';
+import path from 'path';
 
 describe('UIBadge / UIChip / UITag', () => {
   let element: any;
@@ -49,5 +51,11 @@ describe('UIBadge / UIChip / UITag', () => {
 
     expect(spy).toHaveBeenCalledTimes(1);
     expect(spy.mock.calls[0][0].detail.value).toBe('item-123');
+  });
+
+  it('deve conter regras de alinhamento óptico e precisão para ícones', () => {
+    const css = fs.readFileSync(path.resolve(__dirname, './ui-badge.css'), 'utf-8');
+    expect(css).toContain('shape-rendering: geometricPrecision;');
+    expect(css).toContain('line-height: 1 !important;');
   });
 });

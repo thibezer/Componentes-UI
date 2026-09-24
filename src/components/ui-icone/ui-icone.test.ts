@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import './ui-icone';
+import fs from 'fs';
+import path from 'path';
 
 describe('UIIcone', () => {
   let element: any;
@@ -40,5 +42,26 @@ describe('UIIcone', () => {
 
     element.setAttribute('tamanho', '36');
     expect(element.style.getPropertyValue('--ui-tamanho-icone')).toBe('36px');
+  });
+
+  it('deve aplicar atributo cor/color via variável CSS e estilo', () => {
+    element.setAttribute('cor', '#00e08a');
+    expect(element.style.getPropertyValue('--ui-cor-icone')).toBe('#00e08a');
+
+    element.removeAttribute('cor');
+    expect(element.style.getPropertyValue('--ui-cor-icone')).toBe('');
+  });
+
+  it('deve preservar o elemento slot mesmo ao definir o atributo nome', () => {
+    element.setAttribute('nome', 'search');
+    expect(element.shadowRoot.querySelector('slot')).not.toBeNull();
+
+    element.removeAttribute('nome');
+    expect(element.shadowRoot.querySelector('slot')).not.toBeNull();
+  });
+
+  it('deve incluir shape-rendering: geometricPrecision para nitidez subpixel perfeita', () => {
+    const css = fs.readFileSync(path.resolve(__dirname, './ui-icone.css'), 'utf-8');
+    expect(css).toContain('shape-rendering: geometricPrecision;');
   });
 });

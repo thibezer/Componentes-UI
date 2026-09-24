@@ -25,6 +25,13 @@
   justify-content: center;
   flex-shrink: 0;
   margin-top: 2px;
+  line-height: 1;
+}
+
+.ui-alerta__icone svg,
+.ui-alerta__icone ::slotted(svg),
+.ui-alerta__icone ::slotted(ui-icone) {
+  shape-rendering: geometricPrecision;
 }
 
 .ui-alerta__conteudo {
@@ -32,14 +39,14 @@
 }
 
 .ui-alerta__titulo {
-  font-size: 0.9rem;
+  font-size: 14px;
   font-weight: 600;
   margin: 0 0 2px 0;
   line-height: 1.2;
 }
 
 .ui-alerta__mensagem {
-  font-size: 0.825rem;
+  font-size: 13px;
   margin: 0;
   opacity: 0.9;
 }
@@ -102,6 +109,68 @@
   color: var(--ui-cor-texto, #e1e1e6);
 }
 
+/* Container e Botão de Ação (ex.: "Desfazer") */
+.ui-alerta__acoes {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-left: 4px;
+}
+
+.ui-alerta__botao-acao {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: inherit;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+
+.ui-alerta__botao-acao:hover {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.ui-alerta__botao-acao:active {
+  transform: scale(0.96);
+}
+
+.ui-alerta__botao-acao:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--ui-cor-fundo, #0b0b0d), 0 0 0 4px var(--ui-cor-primaria, #00E08A);
+}
+
+.ui-alerta__botao-acao--primario {
+  background: rgba(0, 224, 138, 0.15);
+  border-color: rgba(0, 224, 138, 0.35);
+  color: var(--ui-cor-primaria, #00E08A);
+}
+
+.ui-alerta__botao-acao--primario:hover {
+  background: rgba(0, 224, 138, 0.25);
+  border-color: rgba(0, 224, 138, 0.5);
+}
+
+.ui-alerta__botao-acao--destrutivo {
+  background: rgba(255, 68, 68, 0.15);
+  border-color: rgba(255, 68, 68, 0.35);
+  color: var(--ui-cor-texto-erro, #ff5555);
+}
+
+.ui-alerta__botao-acao--destrutivo:hover {
+  background: rgba(255, 68, 68, 0.25);
+  border-color: rgba(255, 68, 68, 0.5);
+}
+
 /* ====================================================
    Componente Toast Flutuante Temporário (Empilhavel)
    ==================================================== */
@@ -110,12 +179,49 @@
   width: 100%;
   box-sizing: border-box;
   pointer-events: auto;
-  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
 }
 
 .ui-toast__banner {
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
-  animation: ui-toast-slide 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  animation: ui-toast-slide 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Barra de Progresso Temporal (Sonner Style) */
+.ui-toast__progresso {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.ui-toast__progresso-barra {
+  width: 100%;
+  height: 100%;
+  background: currentColor;
+  opacity: 0.7;
+  transform-origin: left;
+  animation: ui-toast-timer linear forwards;
+}
+
+/* Pausar animação da barra no hover ou foco via teclado */
+:host(ui-toast:hover) .ui-toast__progresso-barra,
+:host(ui-toast:focus-within) .ui-toast__progresso-barra {
+  animation-play-state: paused;
+}
+
+@keyframes ui-toast-timer {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
 }
 
 @keyframes ui-toast-slide {
@@ -126,5 +232,13 @@
   to {
     transform: translateX(0);
     opacity: 1;
+  }
+}
+
+/* Refinamento progressivo de entrada com @starting-style */
+@starting-style {
+  :host(ui-toast) {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
   }
 }

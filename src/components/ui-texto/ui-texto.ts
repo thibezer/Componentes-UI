@@ -16,6 +16,11 @@ export type CorTexto = 'primaria' | 'secundaria' | 'destaque' | 'erro' | 'sucess
 export type PesoTexto = 'normal' | 'medio' | 'seminegrito' | 'negrito';
 export type AlinhamentoTexto = 'esquerda' | 'centro' | 'direita' | 'justificado';
 
+const TAGS_PERMITIDAS = new Set([
+  'p', 'span', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+  'small', 'code', 'strong', 'em', 'label', 'blockquote', 'pre', 'b', 'i'
+]);
+
 export class UITexto extends HTMLElement {
   static get observedAttributes() {
     return ['variante', 'tag', 'cor', 'peso', 'alinhamento', 'truncar'];
@@ -46,7 +51,11 @@ export class UITexto extends HTMLElement {
   private resolveTag(): string {
     const customTag = this.getAttribute('tag');
     if (customTag) {
-      return customTag.toLowerCase();
+      const normalizada = customTag.toLowerCase().trim();
+      if (TAGS_PERMITIDAS.has(normalizada)) {
+        return normalizada;
+      }
+      console.warn(`[ui-texto] Tag "${customTag}" não permitida ou inválida. Utilizando fallback semântico.`);
     }
 
     const variante = (this.getAttribute('variante') || 'corpo').toLowerCase();

@@ -8,7 +8,7 @@ export interface ItemLista {
 
 export class UIListaFlutuante extends HTMLElement {
   static formAssociated = true;
-  private internals: any;
+  private internals: ReturnType<HTMLElement['attachInternals']>;
 
   static get observedAttributes() {
     return [
@@ -40,6 +40,7 @@ export class UIListaFlutuante extends HTMLElement {
   private listeners = new ListenerBag();
   private _itens: ItemLista[] = [];
   private _value: string = '';
+  private _defaultValue: string = '';
   private observer!: MutationObserver;
   private focusedIndex: number = -1;
 
@@ -84,11 +85,13 @@ export class UIListaFlutuante extends HTMLElement {
     this.listeners.add(this.button, 'keydown', this.handleKeyDown);
     this.listeners.add(this.content, 'keydown', this.handleListKeyDown);
     this.listeners.add(this.backdropElement, 'click', this.fechar);
+    this.listeners.add(this.listElement, 'click', this.handleListClick);
     this.listeners.add(this.sheetCloseButton, 'click', (e: Event) => {
       e.stopPropagation();
       this.fechar();
     });
     this.listeners.add(document, 'click', this.handleClickFora);
+    this._defaultValue = this.getAttribute('value') || '';
     this.carregarItensFilhos();
     this.syncState();
 
@@ -97,12 +100,15 @@ export class UIListaFlutuante extends HTMLElement {
   }
 
   public carregarItensFilhos() {
-    const options = Array.from(this.querySelectorAll('option, ui-opcao, [value]'));
+    const options = Array.from(this.querySelectorAll('option, ui-opcao, [role="option"], [data-opcao], [data-value]:not(input):not(select)'));
     if (options.length > 0) {
-      this._itens = options.map((opt, idx) => ({
-        id: opt.getAttribute('value') || String(idx + 1),
-        label: opt.textContent?.trim() || opt.getAttribute('value') || `Opção ${idx + 1}`
-      }));
+      this._itens = options.map((opt, idx) => {
+        const idVal = opt.getAttribute('value') || opt.getAttribute('data-value') || String(idx + 1);
+        return {
+          id: idVal,
+          label: opt.textContent?.trim() || idVal || `Opção ${idx + 1}`
+        };
+      });
       this.renderItens();
       this.syncLabel();
     }
@@ -165,7 +171,7 @@ export class UIListaFlutuante extends HTMLElement {
   }
 
   formResetCallback() {
-    this.value = this.getAttribute('value') || '';
+    this.value = this._defaultValue;
   }
 
   get itens(): ItemLista[] {
@@ -241,6 +247,7 @@ export class UIListaFlutuante extends HTMLElement {
   }
 
   public abrir() {
+    if (this.hasAttribute('aberta')) return;
     this.setAttribute('aberta', '');
     this.posicionarConteudo();
     window.addEventListener('scroll', this.fechar, { capture: true, passive: true });
@@ -255,6 +262,7 @@ export class UIListaFlutuante extends HTMLElement {
   }
 
   public fechar = () => {
+    if (!this.hasAttribute('aberta')) return;
     this.removeAttribute('aberta');
     window.removeEventListener('scroll', this.fechar, { capture: true });
     window.removeEventListener('resize', this.posicionarConteudo);
@@ -280,12 +288,13 @@ export class UIListaFlutuante extends HTMLElement {
     }
 
     const rect = this.button.getBoundingClientRect();
-    this.content.style.top = `${rect.bottom + 2}px`;
-    this.content.style.left = `${rect.left}px`;
-    this.content.style.minWidth = `${Math.max(rect.width, 120)}px`;
+    this.content.style.top = `${Math.round(rect.bottom + 2)}px`;
+    this.content.style.left = `${Math.round(rect.left)}px`;
+    this.content.style.minWidth = `${Math.round(Math.max(rect.width, 120))}px`;
   };
 
   private handleClickFora = (event: MouseEvent) => {
+    if (!this.hasAttribute('aberta')) return;
     const composedPath = event.composedPath();
     if (!composedPath.includes(this) && !composedPath.includes(this.content)) {
       this.fechar();
@@ -338,13 +347,20 @@ export class UIListaFlutuante extends HTMLElement {
       li.role = 'option';
       li.tabIndex = -1;
       if (isSelected) li.setAttribute('aria-selected', 'true');
-      li.addEventListener('click', (e: MouseEvent) => {
-        e.stopPropagation();
-        this.selecionarItem(item);
-      });
       this.listElement.appendChild(li);
     });
   }
+
+  private handleListClick = (e: MouseEvent) => {
+    e.stopPropagation();
+    const target = (e.target as HTMLElement)?.closest('li[data-id]');
+    if (!target) return;
+    const id = target.getAttribute('data-id');
+    const item = this._itens.find((i) => String(i.id) === String(id));
+    if (item) {
+      this.selecionarItem(item);
+    }
+  };
 
   private syncState() {
     const altura = this.getAttribute('altura') || this.getAttribute('height');

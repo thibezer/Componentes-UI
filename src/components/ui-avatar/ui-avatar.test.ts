@@ -14,7 +14,7 @@ describe('UIAvatar', () => {
   });
 
   it('should render initials safely when name is provided without src', () => {
-    element.setAttribute('nome', 'Thiago Bezerril');
+    element.setAttribute('nome', 'Thiago Bezerra');
     const content = element.shadowRoot.querySelector('.ui-avatar__content');
     expect(content.textContent).toBe('TB');
   });

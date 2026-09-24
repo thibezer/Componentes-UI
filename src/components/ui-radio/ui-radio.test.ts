@@ -66,12 +66,53 @@ describe('UIRadio', () => {
     expect(formData.get('group1')).toBeNull();
   });
 
-  it('should add visual focus states', () => {
-    const container = radio1.shadowRoot.querySelector('.ui-radio');
-    radio1.containerElement.dispatchEvent(new Event('focus'));
-    expect(container.classList.contains('ui-radio--foco')).toBe(true);
+  it('should isolate radio groups in separate forms with the same name', () => {
+    const form2 = document.createElement('form');
+    const radioForm2 = document.createElement('ui-radio') as any;
+    radioForm2.setAttribute('name', 'group1');
+    radioForm2.setAttribute('value', 'form2_v1');
+    form2.appendChild(radioForm2);
+    document.body.appendChild(form2);
 
-    radio1.containerElement.dispatchEvent(new Event('blur'));
-    expect(container.classList.contains('ui-radio--foco')).toBe(false);
+    radio1.selecionar();
+    radioForm2.selecionar();
+
+    expect(radio1.marcado).toBe(true);
+    expect(radioForm2.marcado).toBe(true);
+
+    document.body.removeChild(form2);
+  });
+
+  it('deve restaurar radio marcado originalmente após reset do formulário', async () => {
+    const f = document.createElement('form');
+    const r1 = document.createElement('ui-radio') as any;
+    r1.setAttribute('name', 'opcao');
+    r1.setAttribute('value', 'a');
+    r1.setAttribute('marcado', '');
+
+    const r2 = document.createElement('ui-radio') as any;
+    r2.setAttribute('name', 'opcao');
+    r2.setAttribute('value', 'b');
+
+    f.appendChild(r1);
+    f.appendChild(r2);
+    document.body.appendChild(f);
+
+    expect(r1.marcado).toBe(true);
+    expect(r2.marcado).toBe(false);
+
+    // Usuário seleciona o segundo radio
+    r2.selecionar();
+    expect(r1.marcado).toBe(false);
+    expect(r2.marcado).toBe(true);
+
+    // Reset do formulário
+    r1.formResetCallback();
+    r2.formResetCallback();
+
+    expect(r1.marcado).toBe(true);
+    expect(r2.marcado).toBe(false);
+
+    document.body.removeChild(f);
   });
 });

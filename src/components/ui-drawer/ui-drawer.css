@@ -1,0 +1,271 @@
+:host {
+  display: block;
+  box-sizing: border-box;
+  font-family: var(--ui-fonte-base, 'Inter', sans-serif);
+}
+
+/* Fundo Escurecido com Blur (Backdrop) */
+.ui-drawer__backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 9998;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+:host([aberto]) .ui-drawer__backdrop,
+:host([open]) .ui-drawer__backdrop {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Painel Principal do Drawer */
+.ui-drawer__painel {
+  position: fixed;
+  z-index: 9999;
+  background-color: var(--ui-cor-fundo-card, #18181c);
+  border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7);
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease, visibility 0.2s ease;
+  box-sizing: border-box;
+  color: var(--ui-cor-texto, #e1e1e6);
+}
+
+:root[data-tema="claro"] .ui-drawer__painel,
+[data-tema="claro"] .ui-drawer__painel {
+  background-color: #ffffff;
+  border-color: rgba(0, 0, 0, 0.12);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+  color: #1a1a1e;
+}
+
+/* 1. Posição Direita (Padrão para Split-View e Inspeção) */
+:host(:not([posicao])) .ui-drawer__painel,
+:host([posicao="direita"]) .ui-drawer__painel,
+:host([position="right"]) .ui-drawer__painel {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: var(--ui-drawer-largura, 480px);
+  max-width: 92vw;
+  height: 100vh;
+  transform: translateX(100%);
+  border-left: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.16));
+}
+
+:host([aberto]:not([posicao])) .ui-drawer__painel,
+:host([open]:not([posicao])) .ui-drawer__painel,
+:host([aberto][posicao="direita"]) .ui-drawer__painel,
+:host([open][posicao="direita"]) .ui-drawer__painel,
+:host([aberto][position="right"]) .ui-drawer__painel,
+:host([open][position="right"]) .ui-drawer__painel {
+  transform: translateX(0);
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* 2. Posição Esquerda */
+:host([posicao="esquerda"]) .ui-drawer__painel,
+:host([position="left"]) .ui-drawer__painel {
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: var(--ui-drawer-largura, 480px);
+  max-width: 92vw;
+  height: 100vh;
+  transform: translateX(-100%);
+  border-right: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.16));
+}
+
+:host([aberto][posicao="esquerda"]) .ui-drawer__painel,
+:host([open][posicao="esquerda"]) .ui-drawer__painel,
+:host([aberto][position="left"]) .ui-drawer__painel,
+:host([open][position="left"]) .ui-drawer__painel {
+  transform: translateX(0);
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* 3. Posição Baixo (Bottom Sheet) */
+:host([posicao="baixo"]) .ui-drawer__painel,
+:host([position="bottom"]) .ui-drawer__painel {
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100vw;
+  max-height: 85vh;
+  transform: translateY(100%);
+  border-top: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.16));
+  border-top-left-radius: 14px;
+  border-top-right-radius: 14px;
+}
+
+:host([aberto][posicao="baixo"]) .ui-drawer__painel,
+:host([open][posicao="baixo"]) .ui-drawer__painel,
+:host([aberto][position="bottom"]) .ui-drawer__painel,
+:host([open][position="bottom"]) .ui-drawer__painel {
+  transform: translateY(0);
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* 4. Posição Cima */
+:host([posicao="cima"]) .ui-drawer__painel,
+:host([position="top"]) .ui-drawer__painel {
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100vw;
+  max-height: 85vh;
+  transform: translateY(-100%);
+  border-bottom: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.16));
+  border-bottom-left-radius: 14px;
+  border-bottom-right-radius: 14px;
+}
+
+:host([aberto][posicao="cima"]) .ui-drawer__painel,
+:host([open][posicao="cima"]) .ui-drawer__painel,
+:host([aberto][position="top"]) .ui-drawer__painel,
+:host([open][position="top"]) .ui-drawer__painel {
+  transform: translateY(0);
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* Cabeçalho */
+.ui-drawer__header {
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.08));
+  flex-shrink: 0;
+}
+
+:root[data-tema="claro"] .ui-drawer__header,
+[data-tema="claro"] .ui-drawer__header {
+  border-bottom-color: rgba(0, 0, 0, 0.08);
+}
+
+.ui-drawer__titulo-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ui-drawer__titulo {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ui-cor-texto, #ffffff);
+}
+
+:root[data-tema="claro"] .ui-drawer__titulo,
+[data-tema="claro"] .ui-drawer__titulo {
+  color: #1a1a1e;
+}
+
+.ui-drawer__descricao {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ui-cor-texto-secundario, #888899);
+}
+
+.ui-drawer__close {
+  background: transparent;
+  border: none;
+  color: var(--ui-cor-texto-secundario, #888899);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.ui-drawer__close svg,
+.ui-drawer__close ::slotted(svg) {
+  shape-rendering: geometricPrecision;
+}
+
+.ui-drawer__close:hover {
+  color: var(--ui-cor-texto, #ffffff);
+  background-color: var(--ui-cor-hover-menu, rgba(255, 255, 255, 0.08));
+}
+
+.ui-drawer__close:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--ui-cor-primaria, #00E08A);
+}
+
+/* Corpo com Rolagem Independente */
+.ui-drawer__body {
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+  box-sizing: border-box;
+}
+
+/* Rodapé com Ações */
+.ui-drawer__footer {
+  padding: 14px 20px;
+  border-top: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.08));
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  background-color: rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
+}
+
+:root[data-tema="claro"] .ui-drawer__footer,
+[data-tema="claro"] .ui-drawer__footer {
+  border-top-color: rgba(0, 0, 0, 0.08);
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+/* Camada progressiva com @starting-style */
+@starting-style {
+  :host([aberto]:not([posicao])) .ui-drawer__painel,
+  :host([open]:not([posicao])) .ui-drawer__painel,
+  :host([aberto][posicao="direita"]) .ui-drawer__painel,
+  :host([open][posicao="direita"]) .ui-drawer__painel {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+
+  :host([aberto][posicao="esquerda"]) .ui-drawer__painel,
+  :host([open][posicao="esquerda"]) .ui-drawer__painel {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+
+  :host([aberto][posicao="baixo"]) .ui-drawer__painel,
+  :host([open][posicao="baixo"]) .ui-drawer__painel {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+
+  :host([aberto]) .ui-drawer__backdrop,
+  :host([open]) .ui-drawer__backdrop {
+    opacity: 0;
+  }
+}

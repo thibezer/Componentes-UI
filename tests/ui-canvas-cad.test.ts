@@ -3,6 +3,7 @@ import '../src/index';
 import { UICanvasCAD } from '../src/components/ui-canvas-cad';
 import { CanvasLayerManager, DEFAULT_LAYERS } from '../src/gerencigeo-canvas/layer_manager';
 import { LayerRendererFactory } from '../src/gerencigeo-canvas/layer_renderer_factory';
+import { parseCoordenada } from '../src/gerencigeo-canvas/utils';
 
 describe('Canvas CAD Engine & <ui-canvas-cad>', () => {
   it('deve ter todos os renderizadores padrão registrados na Factory', () => {
@@ -123,6 +124,103 @@ describe('Canvas CAD Engine & <ui-canvas-cad>', () => {
 
     // Deve ter sido chamado exatamente 1 vez, sem duplicação de handlers
     expect(spyToggle).toHaveBeenCalledTimes(1);
+
+    document.body.removeChild(el);
+  });
+
+  it('deve validar coordenadas e tratar formato brasileiro e projeção UTM via parseCoordenada', () => {
+    // 1. Vírgula decimal brasileira
+    const coordBr = parseCoordenada('-23,766100', '-53,320400');
+    expect(coordBr).not.toBeNull();
+    expect(coordBr?.lat).toBeCloseTo(-23.7661);
+    expect(coordBr?.lon).toBeCloseTo(-53.3204);
+
+    // 2. Coordenadas planas UTM (acima de 90° de latitude) devem ser rejeitadas
+    const coordUtm = parseCoordenada(7350000, 320000);
+    expect(coordUtm).toBeNull();
+
+    // 3. Null island (0, 0) deve ser rejeitado
+    const coordZero = parseCoordenada(0, 0);
+    expect(coordZero).toBeNull();
+
+    // 4. Valores nulos ou inválidos
+    expect(parseCoordenada(null, -53.3)).toBeNull();
+    expect(parseCoordenada('invalido', -53.3)).toBeNull();
+  });
+
+  it('deve incluir a camada homologados-pontos em DEFAULT_LAYERS', () => {
+    const manager = new CanvasLayerManager();
+    const layers = manager.getLayers();
+    expect(layers.some(l => l.id === 'homologados-pontos')).toBe(true);
+    expect(layers.find(l => l.id === 'homologados-pontos')?.tipo).toBe('vetorial-pontos');
+  });
+
+  it('deve suportar touch events no Canvas CAD sem disparar erros', async () => {
+    const el = document.createElement('ui-canvas-cad') as UICanvasCAD;
+    document.body.appendChild(el);
+    await new Promise(r => setTimeout(r, 20));
+
+    const mapContainer = el.shadowRoot!.getElementById('cad-map-container');
+    expect(mapContainer).toBeDefined();
+
+    // Simula touchstart e touchmove
+    const touchStart = new Event('touchstart');
+    (touchStart as any).touches = [{ clientX: 100, clientY: 100 }];
+    mapContainer?.dispatchEvent(touchStart);
+
+    const touchMove = new Event('touchmove');
+    (touchMove as any).touches = [{ clientX: 110, clientY: 110 }];
+    mapContainer?.dispatchEvent(touchMove);
+
+    const touchEnd = new Event('touchend');
+    mapContainer?.dispatchEvent(touchEnd);
+
+    // Deve concluir o ciclo sem exceções
+    expect(true).toBe(true);
+
+    document.body.removeChild(el);
+  });
+
+  it('deve restaurar pointer-events em panes legados e modernos após drag de seleção ou Escape', async () => {
+    const el = document.createElement('ui-canvas-cad') as UICanvasCAD;
+    document.body.appendChild(el);
+    await new Promise(r => setTimeout(r, 20));
+
+    const mapContainer = el.shadowRoot!.getElementById('cad-map-container');
+    const controller = el.getController();
+    const map = controller.getMap();
+    expect(map).not.toBeNull();
+
+    // Panes legados criados
+    const verticesPane = map!.getPane('verticesPane');
+    const perimetroPane = map!.getPane('perimetroPane');
+    expect(verticesPane).toBeDefined();
+    expect(perimetroPane).toBeDefined();
+
+    // 1. Simula mousedown (início de seleção CAD botão esquerdo)
+    const mouseDown = new MouseEvent('mousedown', { button: 0, clientX: 100, clientY: 100, bubbles: true });
+    mapContainer?.dispatchEvent(mouseDown);
+
+    expect(verticesPane!.style.pointerEvents).toBe('none');
+    expect(perimetroPane!.style.pointerEvents).toBe('none');
+
+    // 2. Simula mouseup (finalização de seleção)
+    const mouseUp = new MouseEvent('mouseup', { button: 0, clientX: 200, clientY: 200, bubbles: true });
+    window.dispatchEvent(mouseUp);
+
+    // Aguarda o timeout de 80ms
+    await new Promise(r => setTimeout(r, 120));
+
+    expect(verticesPane!.style.pointerEvents).toBe('auto');
+    expect(perimetroPane!.style.pointerEvents).toBe('auto');
+
+    // 3. Simula mousedown e cancelamento via Escape
+    mapContainer?.dispatchEvent(mouseDown);
+    expect(verticesPane!.style.pointerEvents).toBe('none');
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    expect(verticesPane!.style.pointerEvents).toBe('auto');
+    expect(perimetroPane!.style.pointerEvents).toBe('auto');
 
     document.body.removeChild(el);
   });

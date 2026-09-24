@@ -557,6 +557,260 @@ document.addEventListener('DOMContentLoaded', () => {
     registrarLog(`[UIBus / Zero-JS] -> Modal "${e.detail?.id}" aberto automaticamente!`);
   });
 
+  // ----------------------------------------------------
+  // 19. Tabela de Propriedades (AutoCAD & Revit)
+  // ----------------------------------------------------
+  const propAutoCAD = document.getElementById('propriedades-autocad') as any;
+  if (propAutoCAD) {
+    propAutoCAD.tipos = [
+      { id: 'Circle', rotulo: 'Circle' },
+      { id: 'Line', rotulo: 'Line' },
+      { id: 'Polyline', rotulo: 'Polyline' }
+    ];
+    propAutoCAD.tipoSelecionado = 'Circle';
+
+    propAutoCAD.categorias = [
+      {
+        id: 'general',
+        titulo: 'General',
+        aberto: true,
+        propriedades: [
+          { id: 'color', rotulo: 'Color', tipo: 'cor-cad', valor: 'ByLayer' },
+          {
+            id: 'layer',
+            rotulo: 'Layer',
+            tipo: 'selecao',
+            valor: '0',
+            opcoes: [
+              { id: '0', rotulo: '0' },
+              { id: 'confrontantes', rotulo: 'Confrontantes' },
+              { id: 'perimetro', rotulo: 'Perímetro' }
+            ]
+          },
+          {
+            id: 'linetype',
+            rotulo: 'Linetype',
+            tipo: 'linetype',
+            valor: 'ByLayer'
+          },
+          { id: 'linetype_scale', rotulo: 'Linetype scale', tipo: 'numero', valor: 1 },
+          { id: 'plot_style', rotulo: 'Plot style', tipo: 'readonly', valor: 'ByColor' },
+          {
+            id: 'lineweight',
+            rotulo: 'Lineweight',
+            tipo: 'lineweight',
+            valor: 'ByLayer'
+          },
+          { id: 'transparency', rotulo: 'Transparency', tipo: 'readonly', valor: 'ByLayer' },
+          { id: 'thickness', rotulo: 'Thickness', tipo: 'numero', valor: 0 }
+        ]
+      },
+      {
+        id: '3d_visualization',
+        titulo: '3D Visualization',
+        aberto: true,
+        propriedades: [
+          { id: 'material', rotulo: 'Material', tipo: 'readonly', valor: 'ByLayer' }
+        ]
+      },
+      {
+        id: 'geometry',
+        titulo: 'Geometry',
+        aberto: true,
+        propriedades: [
+          { id: 'center_x', rotulo: 'Center X', tipo: 'numero', valor: 2069.6436, casasDecimais: 4 },
+          { id: 'center_y', rotulo: 'Center Y', tipo: 'numero', valor: 2644.5715, casasDecimais: 4 },
+          { id: 'center_z', rotulo: 'Center Z', tipo: 'numero', valor: 0, casasDecimais: 4 },
+          { id: 'radius', rotulo: 'Radius', tipo: 'numero', valor: 266.5336, casasDecimais: 4 },
+          { id: 'diameter', rotulo: 'Diameter', tipo: 'readonly', valor: 533.0673 },
+          { id: 'circumference', rotulo: 'Circumference', tipo: 'readonly', valor: 1674.6803 },
+          { id: 'area', rotulo: 'Area', tipo: 'readonly', valor: 223179.3279 },
+          { id: 'normal_x', rotulo: 'Normal X', tipo: 'numero', valor: 0 },
+          { id: 'normal_y', rotulo: 'Normal Y', tipo: 'numero', valor: 0 },
+          { id: 'normal_z', rotulo: 'Normal Z', tipo: 'numero', valor: 1 }
+        ]
+      }
+    ];
+
+    propAutoCAD.addEventListener('ui-propriedade-alterada', (e: any) => {
+      registrarLog(`[AutoCAD Propriedades] "${e.detail.id}" alterado para: ${e.detail.valor}`);
+    });
+
+    propAutoCAD.addEventListener('ui-quick-select', () => {
+      UIToast.notificar({ tipo: 'info', mensagem: 'Disparado Quick Select (Seleção Rápida CAD)' });
+      registrarLog('[AutoCAD] Botão Quick Select clicado');
+    });
+
+    propAutoCAD.addEventListener('ui-selecionar-objetos', () => {
+      UIToast.notificar({ tipo: 'info', mensagem: 'Modo de seleção de objetos ativado no canvas' });
+      registrarLog('[AutoCAD] Botão Select Objects clicado');
+    });
+
+    propAutoCAD.addEventListener('ui-calculadora', () => {
+      UIToast.notificar({ tipo: 'info', mensagem: 'QuickCalc / Calculadora Geométrica aberta' });
+      registrarLog('[AutoCAD] Botão QuickCalc clicado');
+    });
+  }
+
+  const propRevit = document.getElementById('propriedades-revit') as any;
+  if (propRevit) {
+    propRevit.tipos = [
+      { id: 'planta_piso', rotulo: 'Planta de piso', subtipo: 'Planta de piso: Nível 1' },
+      { id: 'corte_aa', rotulo: 'Corte A-A', subtipo: 'Vista de Seção' },
+      { id: 'fachada_norte', rotulo: 'Fachada Norte', subtipo: 'Elevação Arquitetônica' }
+    ];
+    propRevit.tipoSelecionado = 'planta_piso';
+
+    propRevit.categorias = [
+      {
+        id: 'graficos',
+        titulo: 'Gráficos',
+        aberto: true,
+        propriedades: [
+          {
+            id: 'escala_vista',
+            rotulo: 'Escala da vista',
+            tipo: 'selecao',
+            valor: '1:100',
+            opcoes: [
+              { id: '1:50', rotulo: '1 : 50' },
+              { id: '1:100', rotulo: '1 : 100' },
+              { id: '1:200', rotulo: '1 : 200' },
+              { id: '1:500', rotulo: '1 : 500' }
+            ]
+          },
+          { id: 'valor_escala', rotulo: 'Valor de escala 1:', tipo: 'numero', valor: 100 },
+          {
+            id: 'exibir_modelo',
+            rotulo: 'Exibir modelo',
+            tipo: 'selecao',
+            valor: 'Normal',
+            opcoes: [
+              { id: 'Normal', rotulo: 'Normal' },
+              { id: 'Meio-tom', rotulo: 'Meio-tom' }
+            ]
+          },
+          {
+            id: 'nivel_detalhe',
+            rotulo: 'Nível de detalhe',
+            tipo: 'selecao',
+            valor: 'Baixo',
+            opcoes: [
+              { id: 'Baixo', rotulo: 'Baixo' },
+              { id: 'Medio', rotulo: 'Médio' },
+              { id: 'Alto', rotulo: 'Alto' }
+            ]
+          },
+          {
+            id: 'visibilidade_pecas',
+            rotulo: 'Visibilidade de peças',
+            tipo: 'selecao',
+            valor: 'Mostrar original',
+            opcoes: [
+              { id: 'Mostrar original', rotulo: 'Mostrar original' },
+              { id: 'Mostrar peças', rotulo: 'Mostrar peças' }
+            ]
+          },
+          {
+            id: 'visibilidade_sobreposicoes',
+            rotulo: 'Visibilidade/Sobrep...',
+            tipo: 'acao',
+            valor: 'Editar...',
+            rotuloAcao: 'Editar...',
+            onClickAcao: () => {
+              UIToast.notificar({ tipo: 'info', mensagem: 'Abrindo diálogo de Visibilidade/Gráficos (VG)...' });
+            }
+          },
+          {
+            id: 'opcoes_exibicao',
+            rotulo: 'Opções de exibição...',
+            tipo: 'acao',
+            valor: 'Editar...',
+            rotuloAcao: 'Editar...',
+            onClickAcao: () => {
+              UIToast.notificar({ tipo: 'info', mensagem: 'Abrindo Opções de Exibição de Gráficos...' });
+            }
+          },
+          {
+            id: 'orientacao',
+            rotulo: 'Orientação',
+            tipo: 'selecao',
+            valor: 'Norte do projeto',
+            opcoes: [
+              { id: 'Norte do projeto', rotulo: 'Norte do projeto' },
+              { id: 'Norte verdadeiro', rotulo: 'Norte verdadeiro' }
+            ]
+          },
+          {
+            id: 'disciplina',
+            rotulo: 'Disciplina',
+            tipo: 'selecao',
+            valor: 'Arquitetura',
+            opcoes: [
+              { id: 'Arquitetura', rotulo: 'Arquitetura' },
+              { id: 'Estrutura', rotulo: 'Estrutura' },
+              { id: 'Mecânica', rotulo: 'Mecânica' },
+              { id: 'Elétrica', rotulo: 'Elétrica' },
+              { id: 'Coordenação', rotulo: 'Coordenação' }
+            ]
+          },
+          {
+            id: 'mostrar_linhas_ocultas',
+            rotulo: 'Mostrar linhas ocultas',
+            tipo: 'selecao',
+            valor: 'Por disciplina',
+            opcoes: [
+              { id: 'Por disciplina', rotulo: 'Por disciplina' },
+              { id: 'Tudo', rotulo: 'Tudo' },
+              { id: 'Nenhum', rotulo: 'Nenhum' }
+            ]
+          },
+          {
+            id: 'esquema_cor',
+            rotulo: 'Esquema de cor',
+            tipo: 'acao',
+            valor: '<nenhum>',
+            rotuloAcao: '<nenhum>',
+            onClickAcao: () => {
+              UIToast.notificar({ tipo: 'info', mensagem: 'Seletor de Esquema de Cores acionado.' });
+            }
+          }
+        ]
+      }
+    ];
+
+    propRevit.addEventListener('ui-aplicar', (e: any) => {
+      registrarLog(`[Revit Propriedades] -> Botão APLICAR acionado! Dados consolidados: ${JSON.stringify(e.detail.valores)}`);
+      UIToast.notificar({
+        tipo: 'sucesso',
+        titulo: 'Propriedades Aplicadas!',
+        mensagem: 'As alterações foram salvas com sucesso na vista ativa.'
+      });
+    });
+
+    propRevit.addEventListener('ui-desfazer', () => {
+      registrarLog('[Revit Propriedades] -> Alterações desfeitas.');
+    });
+
+    propRevit.addEventListener('ui-ajuda', () => {
+      UIToast.notificar({
+        tipo: 'info',
+        titulo: 'Ajuda de Propriedades',
+        mensagem: 'Documentação de propriedades da vista de planta aberta na Central de Ajuda.'
+      });
+      registrarLog('[Revit] Link "Ajuda de propriedades" clicado');
+    });
+
+    propRevit.addEventListener('ui-editar-tipo-clique', (e: any) => {
+      UIToast.notificar({
+        tipo: 'alerta',
+        titulo: 'Propriedades do Tipo',
+        mensagem: `Abrindo editor de parâmetros de família para: ${e.detail.tipo?.rotulo}`
+      });
+      registrarLog(`[Revit] Botão "Editar tipo" acionado para: ${e.detail.tipo?.rotulo}`);
+    });
+  }
+
   registrarLog('Playground autônomo inicializado com Suporte Inteligente (Zero-JS, FormData e UIBus).');
 });
 

@@ -22,6 +22,25 @@
   white-space: nowrap;
 }
 
+::slotted(svg),
+::slotted(ui-icone) {
+  width: 12px !important;
+  height: 12px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  vertical-align: middle !important;
+  shape-rendering: geometricPrecision;
+  flex-shrink: 0;
+}
+
+::slotted(span) {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+}
+
 /* 1. Estilo Suave (Soft, Padrão) */
 .ui-badge--suave {
   background-color: var(--ui-cor-badge-fundo, rgba(255, 255, 255, 0.08));

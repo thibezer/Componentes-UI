@@ -73,6 +73,9 @@ export class UICanvasCAD extends HTMLElement {
     this.layersPanel = this.shadow.getElementById('qgis-layer-panel') as HTMLDivElement;
   }
 
+  private resizeObserver?: ResizeObserver;
+  private resizeDebounceTimer?: any;
+
   connectedCallback() {
     this.initTimeout = window.setTimeout(() => {
       this.initCAD();
@@ -82,6 +85,14 @@ export class UICanvasCAD extends HTMLElement {
   disconnectedCallback() {
     if (this.initTimeout) {
       window.clearTimeout(this.initTimeout);
+    }
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+      this.resizeObserver = undefined;
+    }
+    if (this.resizeDebounceTimer) {
+      clearTimeout(this.resizeDebounceTimer);
+      this.resizeDebounceTimer = undefined;
     }
     this.uiListeners.cleanup();
     this.layerItemListeners.cleanup();
@@ -133,6 +144,17 @@ export class UICanvasCAD extends HTMLElement {
         composed: true
       }));
     };
+
+    // Monitora redimensionamento automático de contêineres e janelas
+    if (typeof ResizeObserver !== 'undefined' && this.mapContainer) {
+      this.resizeObserver = new ResizeObserver(() => {
+        if (this.resizeDebounceTimer) clearTimeout(this.resizeDebounceTimer);
+        this.resizeDebounceTimer = setTimeout(() => {
+          this.controller.invalidateSize();
+        }, 60);
+      });
+      this.resizeObserver.observe(this.mapContainer);
+    }
 
     setTimeout(() => {
       this.controller.invalidateSize();

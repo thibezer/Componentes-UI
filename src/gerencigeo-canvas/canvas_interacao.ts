@@ -15,6 +15,21 @@ export interface CanvasInteracaoContext {
 }
 
 /**
+ * Lista unificada de panes interativos do CAD (cobre arquitetura legada e nova)
+ */
+export const CAD_INTERACTIVE_PANES = [
+  'verticesPane',
+  'perimetroPane',
+  'overlayPane',
+  'markerPane',
+  'pane-vertices',
+  'pane-perimetro',
+  'pane-vizinhos',
+  'pane-homologados',
+  'pane-homologados-pontos'
+];
+
+/**
  * Controlador de Interações do Canvas AutoCAD-like para o Leaflet
  * 
  * Funcionalidades CAD:
@@ -43,6 +58,11 @@ export class CanvasInteracao {
   
   // Tempo do último clique do botão do meio
   private lastMiddleClickTime: number = 0;
+
+  // Estados de Toque (Mobile/Tablet)
+  private touchStartPos = { x: 0, y: 0 };
+  private touchStartDist = 0;
+  private isTouchPanning: boolean = false;
 
   // Sinaliza que uma caixa de seleção foi arrastada
   public selectionHappened: boolean = false;
@@ -92,6 +112,12 @@ export class CanvasInteracao {
     window.addEventListener('mouseup', this.handleMouseUp);
     this.mapContainer.addEventListener('contextmenu', this.handleContextMenu);
     window.addEventListener('keydown', this.handleKeyDown);
+
+    // Registra listeners de touch para dispositivos móveis e tablets
+    this.mapContainer.addEventListener('touchstart', this.handleTouchStart, { passive: false });
+    this.mapContainer.addEventListener('touchmove', this.handleTouchMove, { passive: false });
+    this.mapContainer.addEventListener('touchend', this.handleTouchEnd);
+    this.mapContainer.addEventListener('touchcancel', this.handleTouchEnd);
   }
 
   public desativar(): void {
@@ -99,6 +125,10 @@ export class CanvasInteracao {
       this.mapContainer.removeEventListener('mousedown', this.handleMouseDown);
       this.mapContainer.removeEventListener('mousemove', this.handleMouseMove);
       this.mapContainer.removeEventListener('contextmenu', this.handleContextMenu);
+      this.mapContainer.removeEventListener('touchstart', this.handleTouchStart);
+      this.mapContainer.removeEventListener('touchmove', this.handleTouchMove);
+      this.mapContainer.removeEventListener('touchend', this.handleTouchEnd);
+      this.mapContainer.removeEventListener('touchcancel', this.handleTouchEnd);
     }
     window.removeEventListener('mouseup', this.handleMouseUp);
     window.removeEventListener('keydown', this.handleKeyDown);
@@ -112,11 +142,65 @@ export class CanvasInteracao {
       this.map.dragging.enable();
       this.map.doubleClickZoom.enable();
     }
+
+    this.setPanesPointerEvents('auto');
   }
+
+  private handleTouchStart = (e: TouchEvent): void => {
+    if (!this.map || !this.mapContainer) return;
+    if (e.touches.length === 1) {
+      this.isTouchPanning = true;
+      this.touchStartPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    } else if (e.touches.length === 2) {
+      this.isTouchPanning = false;
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      this.touchStartDist = Math.hypot(dx, dy);
+    }
+  };
+
+  private handleTouchMove = (e: TouchEvent): void => {
+    if (!this.map || !this.mapContainer) return;
+    if (e.touches.length === 1 && this.isTouchPanning) {
+      e.preventDefault();
+      const dx = this.touchStartPos.x - e.touches[0].clientX;
+      const dy = this.touchStartPos.y - e.touches[0].clientY;
+      this.map.panBy([dx, dy], { animate: false });
+      this.touchStartPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    } else if (e.touches.length === 2 && this.touchStartDist > 0) {
+      e.preventDefault();
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const dist = Math.hypot(dx, dy);
+      if (Math.abs(dist - this.touchStartDist) > 25) {
+        if (dist > this.touchStartDist) {
+          this.map.zoomIn(1);
+        } else {
+          this.map.zoomOut(1);
+        }
+        this.touchStartDist = dist;
+      }
+    }
+  };
+
+  private handleTouchEnd = (): void => {
+    this.isTouchPanning = false;
+    this.touchStartDist = 0;
+  };
 
   private handleContextMenu = (e: MouseEvent): void => {
     e.preventDefault();
   };
+
+  private setPanesPointerEvents(value: 'auto' | 'none'): void {
+    if (!this.map) return;
+    CAD_INTERACTIVE_PANES.forEach(p => {
+      const paneEl = this.map?.getPane(p);
+      if (paneEl) {
+        paneEl.style.pointerEvents = value;
+      }
+    });
+  }
 
   private handleMouseDown = (e: MouseEvent): void => {
     if (!this.map || !this.mapContainer) return;
@@ -161,11 +245,7 @@ export class CanvasInteracao {
       }
 
       // Supressão de clicks em panes durante o arrasto
-      const panes = ['verticesPane', 'perimetroPane', 'overlayPane', 'pane-vertices', 'pane-perimetro', 'pane-vizinhos'];
-      panes.forEach(p => {
-        const paneEl = this.map?.getPane(p);
-        if (paneEl) paneEl.style.pointerEvents = 'none';
-      });
+      this.setPanesPointerEvents('none');
     }
   };
 
@@ -192,20 +272,20 @@ export class CanvasInteracao {
       const left = Math.min(currentX, this.selectStartPos.x);
       const top = Math.min(currentY, this.selectStartPos.y);
 
-      this.selectionDiv.style.left = `${left}px`;
-      this.selectionDiv.style.top = `${top}px`;
-      this.selectionDiv.style.width = `${width}px`;
-      this.selectionDiv.style.height = `${height}px`;
+      this.selectionDiv.style.left = `${Math.round(left)}px`;
+      this.selectionDiv.style.top = `${Math.round(top)}px`;
+      this.selectionDiv.style.width = `${Math.round(width)}px`;
+      this.selectionDiv.style.height = `${Math.round(height)}px`;
 
       // Direção do arrasto:
       if (currentX >= this.selectStartPos.x) {
         // Window Selection (Esquerda -> Direita): Azul Sólida
         this.selectionDiv.style.background = 'rgba(14, 116, 144, 0.22)'; 
-        this.selectionDiv.style.border = '1.5px solid #06b6d4'; 
+        this.selectionDiv.style.border = '1px solid #06b6d4'; 
       } else {
         // Crossing Selection (Direita -> Esquerda): Verde Tracejada
         this.selectionDiv.style.background = 'rgba(16, 185, 129, 0.22)'; 
-        this.selectionDiv.style.border = '1.5px dashed #10b981'; 
+        this.selectionDiv.style.border = '1px dashed #10b981'; 
       }
     }
   };
@@ -229,6 +309,7 @@ export class CanvasInteracao {
       this.map.closePopup();
       setTimeout(() => {
         try {
+          this.setPanesPointerEvents('auto');
           if (this.ctx.layerManager) {
             this.ctx.layerManager.ensurePanes();
           }
@@ -255,13 +336,17 @@ export class CanvasInteracao {
         return;
       }
 
+      if (!this.selectStartPoint) {
+        return;
+      }
+
       this.selectionHappened = true;
 
       const rect = {
-        x1: Math.min(this.selectStartPoint!.x, endPoint.x),
-        y1: Math.min(this.selectStartPoint!.y, endPoint.y),
-        x2: Math.max(this.selectStartPoint!.x, endPoint.x),
-        y2: Math.max(this.selectStartPoint!.y, endPoint.y)
+        x1: Math.min(this.selectStartPoint.x, endPoint.x),
+        y1: Math.min(this.selectStartPoint.y, endPoint.y),
+        x2: Math.max(this.selectStartPoint.x, endPoint.x),
+        y2: Math.max(this.selectStartPoint.y, endPoint.y)
       };
 
       const markers = (this.ctx.mapaController?.getMarkers() || []) as L.Marker[];
@@ -328,6 +413,20 @@ export class CanvasInteracao {
 
   private handleKeyDown = (e: KeyboardEvent): void => {
     if (e.key === 'Escape') {
+      const activeEl = document.activeElement;
+      if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT' || (activeEl as HTMLElement).isContentEditable)) {
+        return; // Não interfere enquanto o usuário digita em campos de texto
+      }
+      if (this.isSelecting) {
+        this.isSelecting = false;
+        if (this.selectionDiv) {
+          this.selectionDiv.style.display = 'none';
+        }
+        this.setPanesPointerEvents('auto');
+        if (this.ctx.layerManager) {
+          this.ctx.layerManager.ensurePanes();
+        }
+      }
       this.limparSelecao();
     }
   };

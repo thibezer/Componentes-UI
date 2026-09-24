@@ -30,8 +30,15 @@ const BASEMAPS: Record<string, { nome: string; layer: () => L.TileLayer }> = {
 };
 
 export class UIMapa extends HTMLElement {
+  static get observedAttributes() {
+    return ['lat', 'lng', 'zoom'];
+  }
+
   private mapContainer: HTMLDivElement;
   private mapInstance: L.Map | null = null;
+  private _initTimer: any = null;
+  private _resizeObserver?: ResizeObserver;
+  private _resizeTimer?: any;
 
   constructor() {
     super();
@@ -49,15 +56,38 @@ export class UIMapa extends HTMLElement {
 
   connectedCallback() {
     // Timeout para garantir que o elemento está renderizado e tem dimensões
-    setTimeout(() => {
+    this._initTimer = window.setTimeout(() => {
       this.initMap();
     }, 0);
   }
 
   disconnectedCallback() {
+    if (this._initTimer) {
+      window.clearTimeout(this._initTimer);
+      this._initTimer = null;
+    }
+    if (this._resizeObserver) {
+      this._resizeObserver.disconnect();
+      this._resizeObserver = undefined;
+    }
+    if (this._resizeTimer) {
+      window.clearTimeout(this._resizeTimer);
+      this._resizeTimer = null;
+    }
     if (this.mapInstance) {
       this.mapInstance.remove();
       this.mapInstance = null;
+    }
+  }
+
+  attributeChangedCallback(_name: string, oldVal: string, newVal: string) {
+    if (oldVal !== newVal && this.mapInstance) {
+      const lat = parseFloat(this.getAttribute('lat') || '-23.550520');
+      const lng = parseFloat(this.getAttribute('lng') || '-46.633308');
+      const zoom = parseInt(this.getAttribute('zoom') || '13', 10);
+      if (!isNaN(lat) && !isNaN(lng)) {
+        this.mapInstance.setView([lat, lng], zoom);
+      }
     }
   }
   
@@ -97,10 +127,28 @@ export class UIMapa extends HTMLElement {
     // Contorno para o problema do caminho das imagens do Leaflet no Webpack/Vite
     L.Icon.Default.imagePath = 'https://unpkg.com/leaflet@1.9.4/dist/images/';
 
+    // Monitora redimensionamento do contêiner com ResizeObserver
+    if (typeof ResizeObserver !== 'undefined' && this.mapContainer) {
+      this._resizeObserver = new ResizeObserver(() => {
+        if (this._resizeTimer) clearTimeout(this._resizeTimer);
+        this._resizeTimer = setTimeout(() => {
+          if (this.mapInstance) this.mapInstance.invalidateSize();
+        }, 60);
+      });
+      this._resizeObserver.observe(this.mapContainer);
+    }
+
     // Forçar atualização de tamanho após inicialização
     setTimeout(() => {
       if (this.mapInstance) this.mapInstance.invalidateSize();
     }, 100);
+
+    // Notifica elementos filhos ou containers que o mapa está pronto
+    this.dispatchEvent(new CustomEvent('ui-mapa-pronto', {
+      detail: { map: this.mapInstance },
+      bubbles: true,
+      composed: true
+    }));
   }
 
   public getMap(): L.Map | null {

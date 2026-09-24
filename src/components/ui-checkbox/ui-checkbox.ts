@@ -1,8 +1,9 @@
 import estilos from './ui-checkbox.css?inline';
+import { ListenerBag } from '../../core/listener-bag';
 
 export class UICheckbox extends HTMLElement {
   static formAssociated = true;
-  private internals: any;
+  private internals: ReturnType<HTMLElement['attachInternals']>;
 
   static get observedAttributes() {
     return [
@@ -21,6 +22,9 @@ export class UICheckbox extends HTMLElement {
   private containerElement: HTMLDivElement;
   private markElement: HTMLSpanElement;
   private labelElement: HTMLSpanElement;
+  private listeners = new ListenerBag();
+  private _defaultChecked: boolean = false;
+  private _defaultIndeterminate: boolean = false;
 
   constructor() {
     super();
@@ -42,18 +46,18 @@ export class UICheckbox extends HTMLElement {
   }
 
   connectedCallback() {
-    this.containerElement.addEventListener('click', this.handleClick);
-    this.containerElement.addEventListener('keydown', this.handleKeyDown);
-    this.containerElement.addEventListener('focus', this.handleFocus);
-    this.containerElement.addEventListener('blur', this.handleBlur);
+    this.listeners.cleanup();
+    this.listeners.add(this.containerElement, 'click', this.handleClick);
+    this.listeners.add(this.containerElement, 'keydown', this.handleKeyDown);
+    this.listeners.add(this.containerElement, 'focus', this.handleFocus);
+    this.listeners.add(this.containerElement, 'blur', this.handleBlur);
+    this._defaultChecked = this.hasAttribute('marcado') || this.hasAttribute('checked');
+    this._defaultIndeterminate = this.hasAttribute('indeterminado') || this.hasAttribute('indeterminate');
     this.syncState();
   }
 
   disconnectedCallback() {
-    this.containerElement.removeEventListener('click', this.handleClick);
-    this.containerElement.removeEventListener('keydown', this.handleKeyDown);
-    this.containerElement.removeEventListener('focus', this.handleFocus);
-    this.containerElement.removeEventListener('blur', this.handleBlur);
+    this.listeners.cleanup();
   }
 
   attributeChangedCallback(_name: string, _old: string | null, _value: string | null) {
@@ -224,8 +228,8 @@ export class UICheckbox extends HTMLElement {
   }
 
   formResetCallback() {
-    this.marcado = this.hasAttribute('checked');
-    this.indeterminado = this.hasAttribute('indeterminate');
+    this.marcado = this._defaultChecked;
+    this.indeterminado = this._defaultIndeterminate;
   }
 
   private handleClick = (e: MouseEvent) => {

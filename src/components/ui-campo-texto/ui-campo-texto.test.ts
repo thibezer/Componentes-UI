@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import './ui-campo-texto';
+import fs from 'fs';
+import path from 'path';
 
 describe('UICampoTexto', () => {
   let element: any; // using any to access internals
@@ -31,6 +33,19 @@ describe('UICampoTexto', () => {
     // Ensure we are not directly setting the attribute, which would cause DOM refresh
     // (We updated the code to remove this.setAttribute('value', val))
     expect(element.getAttribute('value')).toBeNull();
+  });
+
+  it('should emit ui-input exactly once per input event without duplicate keyup handling', () => {
+    const spy = vi.fn();
+    element.addEventListener('ui-input', spy);
+
+    const input = element.shadowRoot.querySelector('input');
+    input.value = 'a';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.dispatchEvent(new KeyboardEvent('keyup', { key: 'a', bubbles: true }));
+
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(spy.mock.calls[0][0].detail.value).toBe('a');
   });
 
   it('should allow typing when input is prefilled with a value attribute without reverting on blur', () => {
@@ -93,5 +108,24 @@ describe('UICampoTexto', () => {
     expect(formData.get('testField')).toBe('updated value');
 
     document.body.removeChild(form);
+  });
+
+  it('should delegate focus and blur to the internal input element', () => {
+    const input = element.shadowRoot.querySelector('input');
+    const focusSpy = vi.spyOn(input, 'focus');
+    const blurSpy = vi.spyOn(input, 'blur');
+
+    element.focus();
+    expect(focusSpy).toHaveBeenCalled();
+
+    element.blur();
+    expect(blurSpy).toHaveBeenCalled();
+  });
+
+  it('deve conter regras de alinhamento e precisão subpixel', () => {
+    const css = fs.readFileSync(path.resolve(__dirname, './ui-campo-texto.css'), 'utf-8');
+    expect(css).toContain('font-size: var(--ui-tamanho-corpo-sm, 13px);');
+    expect(css).toContain('line-height: 1.2;');
+    expect(css).toContain('shape-rendering: geometricPrecision;');
   });
 });

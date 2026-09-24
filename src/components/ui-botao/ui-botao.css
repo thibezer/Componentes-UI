@@ -13,22 +13,77 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: clamp(4px, 0.8vw, 8px);
+  gap: var(--ui-espaco-sm, 6px);
   width: 100%;
   height: var(--ui-campo-altura, 100%);
   min-height: var(--ui-campo-altura, var(--ui-altura-minima, 15px));
   box-sizing: border-box;
-  padding: 0 clamp(6px, 1.2vw, 14px);
+  padding: 0 12px;
   border: 1px solid transparent;
   border-radius: var(--ui-raio-borda, 6px);
   font-family: var(--ui-fonte-base, 'Inter', sans-serif);
-  font-size: clamp(10.5px, 0.8rem, 13.5px);
+  font-size: clamp(11px, 0.85rem, 13px);
   font-weight: 600;
-  line-height: normal;
-  cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, filter 0.15s ease, transform 0.1s ease;
+  line-height: 1;
+  transition: background-color 0.15s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.15s cubic-bezier(0.16, 1, 0.3, 1),
+              color 0.15s cubic-bezier(0.16, 1, 0.3, 1),
+              filter 0.15s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.15s ease;
   text-align: center;
   user-select: none;
+}
+
+.ui-botao-primario:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--ui-cor-fundo, #0b0b0d), 0 0 0 4px var(--ui-cor-primaria, #00E08A);
+}
+
+/* ==========================================
+   Compensação Óptica Automática de Padding
+   ========================================== */
+.ui-botao-primario--has-icon-start {
+  padding-left: 8px !important;
+  padding-right: 12px !important;
+}
+
+.ui-botao-primario--has-icon-end {
+  padding-left: 12px !important;
+  padding-right: 8px !important;
+}
+
+/* ==========================================
+   Alinhamento e Normalização de Slotted Icons
+   ========================================== */
+::slotted(svg),
+::slotted(ui-icone) {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  vertical-align: middle !important;
+  flex-shrink: 0 !important;
+  line-height: 1 !important;
+  width: 14px !important;
+  height: 14px !important;
+  box-sizing: content-box;
+  shape-rendering: geometricPrecision;
+}
+
+::slotted(span),
+::slotted(label),
+::slotted(p) {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+}
+
+::slotted(div) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  height: 100%;
 }
 
 /* ==========================================
@@ -97,7 +152,22 @@
   background: var(--ui-cor-botao-destrutivo-hover, #e03333);
 }
 
-/* 5. Icon-Only */
+/* 5. Outline / Borda */
+.ui-botao-primario--outline,
+.ui-botao-primario--borda {
+  background: transparent;
+  color: var(--ui-cor-primaria, #00E08A);
+  border-color: var(--ui-cor-primaria, #00E08A);
+}
+
+.ui-botao-primario--outline:hover:not(:disabled),
+.ui-botao-primario--borda:hover:not(:disabled) {
+  background: rgba(0, 224, 138, 0.12);
+  border-color: var(--ui-cor-primaria, #00E08A);
+  filter: brightness(1.08);
+}
+
+/* 6. Icon-Only */
 .ui-botao-primario--icon-only,
 .ui-botao-primario--icone {
   padding: 0;
@@ -143,10 +213,11 @@
 
 /* Spinner SVG Animado */
 .ui-botao-primario__spinner {
-  width: 1.1em;
-  height: 1.1em;
+  width: 14px;
+  height: 14px;
   animation: ui-spin 0.75s linear infinite;
   flex-shrink: 0;
+  shape-rendering: geometricPrecision;
 }
 
 @keyframes ui-spin {

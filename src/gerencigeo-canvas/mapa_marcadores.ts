@@ -132,25 +132,30 @@ export class MapaMarcadores {
       }
 
       pontosGrupo.forEach(p => {
-        const safePId = escapeHtml(String(p.id));
-        const popupContent = `
-          <div class="p-2 font-sans text-xs bg-[#0c1510] text-white min-w-[200px] rounded">
-            <div class="font-bold text-purple-400 mb-1 border-b border-white/10 pb-1">Confrontante (Importado)</div>
-            <div class="mb-1"><strong>Vértice:</strong> <span class="font-mono">${escapeHtml(p.nome_vertice || '')}</span></div>
-            <div class="mb-1"><strong>Proprietário:</strong> ${escapeHtml(p.nome_confrontante || '') || 'Desconhecido'}</div>
-            <div class="mb-1"><strong>Propriedade:</strong> ${escapeHtml(p.nome_propriedade || '') || 'Desconhecida'}</div>
-            <div class="mb-1"><strong>Coordenadas:</strong> ${(p.lat as number).toFixed(7)}, ${(p.lon as number).toFixed(7)}</div>
-            <div class="text-[10px] text-white/50 border-t border-white/5 pt-1 mt-1 font-mono uppercase tracking-wider mb-2">Pontos Imutáveis do Vizinho</div>
-            <div style="display:flex; gap:6px; border-top:1px solid rgba(255,255,255,0.1); padding-top:6px;">
-              <button onclick="window.dispatchEvent(new CustomEvent('gerencigeo:integrar_vizinho', { detail: { pontoId: ${safePId} } }))" style="padding:3px 8px; font-size:10px; font-weight:700; border-radius:4px; background:#00f5a0; color:#04150c; border:none; cursor:pointer;" type="button">
-                Integrar
-              </button>
-              <button onclick="window.dispatchEvent(new CustomEvent('gerencigeo:ocultar_vizinho', { detail: { pontoId: ${safePId} } }))" style="padding:3px 8px; font-size:10px; font-weight:700; border-radius:4px; background:rgba(255,255,255,0.1); color:rgba(255,255,255,0.8); border:1px solid rgba(255,255,255,0.15); cursor:pointer;" type="button">
-                Ocultar
-              </button>
-            </div>
+        const popupContainer = document.createElement('div');
+        popupContainer.className = 'p-2 font-sans text-xs bg-[#0c1510] text-white min-w-[200px] rounded';
+        popupContainer.innerHTML = `
+          <div class="font-bold text-purple-400 mb-1 border-b border-white/10 pb-1">Confrontante (Importado)</div>
+          <div class="mb-1"><strong>Vértice:</strong> <span class="font-mono">${escapeHtml(p.nome_vertice || '')}</span></div>
+          <div class="mb-1"><strong>Proprietário:</strong> ${escapeHtml(p.nome_confrontante || '') || 'Desconhecido'}</div>
+          <div class="mb-1"><strong>Propriedade:</strong> ${escapeHtml(p.nome_propriedade || '') || 'Desconhecida'}</div>
+          <div class="mb-1"><strong>Coordenadas:</strong> ${(p.lat as number).toFixed(7)}, ${(p.lon as number).toFixed(7)}</div>
+          <div class="text-[10px] text-white/50 border-t border-white/5 pt-1 mt-1 font-mono uppercase tracking-wider mb-2">Pontos Imutáveis do Vizinho</div>
+          <div style="display:flex; gap:6px; border-top:1px solid rgba(255,255,255,0.1); padding-top:6px;">
+            <button class="btn-integrar" style="padding:3px 8px; font-size:10px; font-weight:700; border-radius:4px; background:#00f5a0; color:#04150c; border:none; cursor:pointer;" type="button">
+              Integrar
+            </button>
+            <button class="btn-ocultar" style="padding:3px 8px; font-size:10px; font-weight:700; border-radius:4px; background:rgba(255,255,255,0.1); color:rgba(255,255,255,0.8); border:1px solid rgba(255,255,255,0.15); cursor:pointer;" type="button">
+              Ocultar
+            </button>
           </div>
         `;
+        popupContainer.querySelector('.btn-integrar')?.addEventListener('click', () => {
+          window.dispatchEvent(new CustomEvent('gerencigeo:integrar_vizinho', { detail: { pontoId: p.id } }));
+        });
+        popupContainer.querySelector('.btn-ocultar')?.addEventListener('click', () => {
+          window.dispatchEvent(new CustomEvent('gerencigeo:ocultar_vizinho', { detail: { pontoId: p.id } }));
+        });
 
         let shapeStyle = this.core.config.markerStyleV || 'cross';
         let markerSize = this.core.config.markerSizeV || 8;
@@ -174,7 +179,7 @@ export class MapaMarcadores {
         const marker = L.marker([p.lat as number, p.lon as number], {
           icon: groupCustomIcon,
           pane: 'overlayPane'
-        }).bindPopup(popupContent, { className: 'custom-leaflet-popup' });
+        }).bindPopup(popupContainer, { className: 'custom-leaflet-popup' });
 
         (marker as any).pontoId = p.id;
         (marker as any).isVizinho = true;

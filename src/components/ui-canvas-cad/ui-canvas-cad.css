@@ -164,7 +164,7 @@
   -webkit-appearance: none;
   width: 16px;
   height: 16px;
-  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.4);
   border-radius: 4px;
   background: rgba(0, 0, 0, 0.4);
   cursor: pointer;
@@ -192,7 +192,7 @@
   height: 8px;
   border: solid #04150c;
   border-width: 0 2px 2px 0;
-  transform: rotate(45deg) translate(-0.5px, -1px);
+  transform: rotate(45deg) translate(0, -1px);
   display: block;
 }
 

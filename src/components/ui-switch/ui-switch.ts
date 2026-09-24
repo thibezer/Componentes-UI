@@ -1,8 +1,9 @@
 import estilos from './ui-switch.css?inline';
+import { ListenerBag } from '../../core/listener-bag';
 
 export class UISwitch extends HTMLElement {
   static formAssociated = true;
-  private internals: any;
+  private internals: ReturnType<HTMLElement['attachInternals']>;
 
   static get observedAttributes() {
     return [
@@ -20,6 +21,8 @@ export class UISwitch extends HTMLElement {
 
   private containerElement: HTMLDivElement;
   private labelElement: HTMLSpanElement;
+  private listeners = new ListenerBag();
+  private _defaultChecked: boolean = false;
 
   constructor() {
     super();
@@ -40,18 +43,17 @@ export class UISwitch extends HTMLElement {
   }
 
   connectedCallback() {
-    this.containerElement.addEventListener('click', this.handleClick);
-    this.containerElement.addEventListener('keydown', this.handleKeyDown);
-    this.containerElement.addEventListener('focus', this.handleFocus);
-    this.containerElement.addEventListener('blur', this.handleBlur);
+    this.listeners.cleanup();
+    this.listeners.add(this.containerElement, 'click', this.handleClick);
+    this.listeners.add(this.containerElement, 'keydown', this.handleKeyDown);
+    this.listeners.add(this.containerElement, 'focus', this.handleFocus);
+    this.listeners.add(this.containerElement, 'blur', this.handleBlur);
+    this._defaultChecked = this.hasAttribute('ativo') || this.hasAttribute('ligado') || this.hasAttribute('checked');
     this.syncState();
   }
 
   disconnectedCallback() {
-    this.containerElement.removeEventListener('click', this.handleClick);
-    this.containerElement.removeEventListener('keydown', this.handleKeyDown);
-    this.containerElement.removeEventListener('focus', this.handleFocus);
-    this.containerElement.removeEventListener('blur', this.handleBlur);
+    this.listeners.cleanup();
   }
 
   attributeChangedCallback(_name: string, _old: string | null, _value: string | null) {
@@ -186,7 +188,7 @@ export class UISwitch extends HTMLElement {
   }
 
   formResetCallback() {
-    this.ativo = this.hasAttribute('checked') || this.hasAttribute('ligado');
+    this.ativo = this._defaultChecked;
   }
 
   private handleClick = (e: MouseEvent) => {

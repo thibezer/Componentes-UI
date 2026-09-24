@@ -477,6 +477,7 @@ window.addEventListener('message', (event) => {
 | `<ui-checkbox>` | Caixa de seleção múltipla com estado indeterminado. | `marcado`, `indeterminado`, `name`, `value` | `ui-change` |
 | `<ui-radio>` | Opção única com agrupamento automático por nome. | `marcado`, `name`, `value` | `ui-change` |
 | `<ui-switch>` | Chave de alternância liga/desliga física instantânea. | `ativo`, `name`, `value` | `ui-change` |
+| `<ui-segmented>` | Controle segmentado de opções (Pills/Tabs deslizantes). | `opcoes`, `value`, `name`, `tamanho` | `ui-change`, `ui-selecionar` |
 | `<ui-badge>` / `<ui-chip>` | Tags de status e chips com botão de remoção. | `variante`, `removivel`, `value` | `ui-remove` |
 | `<ui-avatar>` | Avatar com fotos, iniciais e status online. | `nome`, `foto`, `status`, `tamanho` | - |
 
@@ -485,10 +486,14 @@ window.addEventListener('message', (event) => {
 | :--- | :--- | :--- | :--- |
 | `<ui-card>` | Cartão de conteúdo com slots nomeados e elevação. | `elevacao`, `clicavel` | `ui-click` |
 | `<ui-modal>` | Modal centralizado no PC e Bottom Sheet no Mobile. | `aberto`, `titulo`, `bottom-sheet` | `ui-abrir`, `ui-fechar` |
+| `<ui-drawer>` | Painel lateral deslizante (Sheet/Gaveta direita/esquerda). | `aberto`, `lado`, `titulo`, `largura` | `ui-abrir`, `ui-fechar` |
 | `<ui-alerta>` | Banner de notificação contextual fixo. | `variante`, `titulo`, `fechavel` | `ui-fechar` |
 | `<ui-toast>` | Notificações flutuantes inteligentes com pilha flex. | `UIToast.notificar({ tipo, mensagem })` | - |
 | `<ui-tooltip>` | Dica contextual inteligente (Hover PC / Toque Mobile). | `texto`, `posicao`, `gatilho` | - |
+| `<ui-skeleton>` | Placeholder de carregamento animado com pulsos. | `tipo`, `largura`, `altura`, `animado` | - |
+| `<ui-stat>` | Cartão KPI de estatísticas, métricas e tendências. | `rotulo`, `valor`, `variacao`, `tipo-variacao` | - |
 | `<ui-tabela>` | Tabela orientada a dados, virtualizada tipo Excel. | `colunas`, `dados`, `src`, `densidade` | `ui-sort`, `ui-column-resize` |
+| `<ui-tabela-propriedades>` | Inspetor de propriedades técnicas padrão AutoCAD & Revit com cálculos matemáticos inline (+, -, *, /, ^, %), arraste de valor contínuo (scrubbing), splitter redimensionável e editores CAD. | `categorias`, `tipo-objeto`, `splitter-pos`, `modo-aplicar`, `filtro` | `ui-propriedade-alterada`, `ui-aplicar`, `ui-desfazer`, `ui-editar-tipo`, `ui-acao-clique`, `ui-quick-select`, `ui-calculadora` |
 | `<ui-mapa>` | Mapa geográfico interativo com camadas OpenStreetMap. | `lat`, `lng`, `zoom`, `camadas` | - |
 | `<ui-canvas-cad>` | Mesa CAD/GIS para poligonais e vértices geodésicos. | `pontos`, `segmentos`, `fitBounds()` | `ui-ponto-selecionado` |
 

@@ -137,6 +137,8 @@
   display: inline-block;
   width: 12px;
   height: 12px;
+  vertical-align: middle;
+  shape-rendering: geometricPrecision;
   transition: transform 0.2s ease, fill 0.2s ease;
   fill: var(--ui-cor-primaria, #00E08A);
 }

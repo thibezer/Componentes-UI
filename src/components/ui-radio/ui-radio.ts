@@ -2,10 +2,10 @@ import estilos from './ui-radio.css?inline';
 
 export class UIRadio extends HTMLElement {
   static formAssociated = true;
-  private internals: any;
+  private internals: ReturnType<HTMLElement['attachInternals']>;
 
-  // Registro global de grupos de rádio para exclusividade mutua fora do shadow root
-  static _registry = new Map<string, Set<UIRadio>>();
+  // Registro estruturado com WeakMap para prevenir vazamentos de memória (Memory Leaks)
+  static _registry = new WeakMap<Node, Map<string, Set<UIRadio>>>();
 
   static get observedAttributes() {
     return [
@@ -22,6 +22,7 @@ export class UIRadio extends HTMLElement {
 
   private containerElement: HTMLDivElement;
   private labelElement: HTMLSpanElement;
+  private _defaultChecked: boolean = false;
 
   constructor() {
     super();
@@ -46,6 +47,7 @@ export class UIRadio extends HTMLElement {
     this.containerElement.addEventListener('keydown', this.handleKeyDown);
     this.containerElement.addEventListener('focus', this.handleFocus);
     this.containerElement.addEventListener('blur', this.handleBlur);
+    this._defaultChecked = this.hasAttribute('marcado') || this.hasAttribute('checked');
     this.register();
     this.syncState();
   }
@@ -58,21 +60,50 @@ export class UIRadio extends HTMLElement {
     this.unregister();
   }
 
+  private getScopeNode(): Node {
+    return this.closest('form') || this.getRootNode() || document;
+  }
+
   private register() {
     const nome = this.name;
     if (nome) {
-      if (!UIRadio._registry.has(nome)) {
-        UIRadio._registry.set(nome, new Set());
+      const scope = this.getScopeNode();
+      if (!UIRadio._registry.has(scope)) {
+        UIRadio._registry.set(scope, new Map());
       }
-      UIRadio._registry.get(nome)!.add(this);
+      const scopeMap = UIRadio._registry.get(scope)!;
+      if (!scopeMap.has(nome)) {
+        scopeMap.set(nome, new Set());
+      }
+      scopeMap.get(nome)!.add(this);
     }
   }
 
   private unregister() {
     const nome = this.name;
-    if (nome && UIRadio._registry.has(nome)) {
-      UIRadio._registry.get(nome)!.delete(this);
+    if (nome) {
+      const scope = this.getScopeNode();
+      const scopeMap = UIRadio._registry.get(scope);
+      if (scopeMap && scopeMap.has(nome)) {
+        const group = scopeMap.get(nome)!;
+        group.delete(this);
+        if (group.size === 0) {
+          scopeMap.delete(nome);
+        }
+        if (scopeMap.size === 0) {
+          UIRadio._registry.delete(scope);
+        }
+      }
     }
+  }
+
+  private getGroupRadios(): UIRadio[] {
+    const nome = this.name;
+    if (!nome) return [];
+    const scope = this.getScopeNode();
+    const scopeMap = UIRadio._registry.get(scope);
+    if (!scopeMap || !scopeMap.has(nome)) return [];
+    return Array.from(scopeMap.get(nome)!);
   }
 
   attributeChangedCallback(_name: string, _old: string | null, _value: string | null) {
@@ -119,18 +150,15 @@ export class UIRadio extends HTMLElement {
   public selecionar() {
     if (this.disabled || this.marcado) return;
 
-    // Desmarcar todos os outros rádios no mesmo grupo globalmente (registro estático)
-    const grupoNome = this.name;
-    if (grupoNome && UIRadio._registry.has(grupoNome)) {
-      const radiosDoGrupo = UIRadio._registry.get(grupoNome)!;
-      radiosDoGrupo.forEach(el => {
-        if (el !== this) {
-          el.removeAttribute('marcado');
-          el.removeAttribute('checked');
-          el.syncState();
-        }
-      });
-    }
+    // Desmarcar todos os outros rádios no mesmo grupo e escopo
+    const radiosDoGrupo = this.getGroupRadios();
+    radiosDoGrupo.forEach(el => {
+      if (el !== this) {
+        el.removeAttribute('marcado');
+        el.removeAttribute('checked');
+        el.syncState();
+      }
+    });
 
     this.marcado = true;
 
@@ -165,9 +193,8 @@ export class UIRadio extends HTMLElement {
       this.containerElement.removeAttribute('aria-disabled');
 
       // Roving tabindex: apenas 1 elemento tabulável por grupo
-      const grupoNome = this.name;
-      if (grupoNome && UIRadio._registry.has(grupoNome)) {
-        const radios = Array.from(UIRadio._registry.get(grupoNome)!);
+      const radios = this.getGroupRadios();
+      if (radios.length > 0) {
         const hasChecked = radios.some(r => r.marcado);
 
         if (hasChecked) {
@@ -210,14 +237,8 @@ export class UIRadio extends HTMLElement {
   }
 
   formResetCallback() {
-    const shouldBeChecked = this.hasAttribute('checked');
-    if (shouldBeChecked) {
-      this.setAttribute('marcado', '');
-    } else {
-      this.removeAttribute('marcado');
-    }
-    // Set internal form value explicitly in case attributes didn't trigger it properly during reset phase
-    if (shouldBeChecked) {
+    this.marcado = this._defaultChecked;
+    if (this._defaultChecked) {
       this.internals.setFormValue(this.getAttribute('value') || 'on');
     } else {
       this.internals.setFormValue(null);
@@ -237,23 +258,21 @@ export class UIRadio extends HTMLElement {
       this.selecionar();
     } else if (['ArrowDown', 'ArrowRight', 'ArrowUp', 'ArrowLeft'].includes(e.key)) {
       e.preventDefault();
-      const grupoNome = this.name;
-      if (!grupoNome || !UIRadio._registry.has(grupoNome)) return;
+      const radios = this.getGroupRadios();
+      const enabledRadios = radios.filter(r => !r.disabled);
+      if (enabledRadios.length <= 1) return;
 
-      const radios = Array.from(UIRadio._registry.get(grupoNome)!);
-      if (radios.length <= 1) return;
-
-      const currentIndex = radios.indexOf(this);
+      const currentIndex = enabledRadios.indexOf(this);
       let nextIndex = currentIndex;
 
       if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
-        nextIndex = (currentIndex + 1) % radios.length;
+        nextIndex = (currentIndex + 1) % enabledRadios.length;
       } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
-        nextIndex = (currentIndex - 1 + radios.length) % radios.length;
+        nextIndex = (currentIndex - 1 + enabledRadios.length) % enabledRadios.length;
       }
 
-      if (nextIndex !== currentIndex) {
-        const nextRadio = radios[nextIndex];
+      if (nextIndex !== currentIndex && nextIndex >= 0 && nextIndex < enabledRadios.length) {
+        const nextRadio = enabledRadios[nextIndex];
         nextRadio.selecionar();
         nextRadio.containerElement.focus();
       }

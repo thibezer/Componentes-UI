@@ -13,13 +13,16 @@ export function initZeroJSTriggers(): void {
   _inicializado = true;
 
   document.addEventListener('click', (evento: MouseEvent) => {
-    const alvo = evento.target as HTMLElement | null;
-    if (!alvo) return;
+    const path = evento.composedPath ? evento.composedPath() : [evento.target];
+    const triggerSelector = '[target-modal], [modal-alvo], [dismiss-modal], [fechar-modal], [target-drawer], [drawer-alvo], [dismiss-drawer], [fechar-drawer], [toast-sucesso], [toast-erro], [toast-alerta], [toast-info], [copiar-texto], [alternar-tema], [definir-densidade], [limpar-form]';
 
-    // Procura o elemento com o atributo ou seu ancestral mais próximo
-    const elementoGatilho = alvo.closest<HTMLElement>(
-      '[target-modal], [modal-alvo], [dismiss-modal], [fechar-modal], [toast-sucesso], [toast-erro], [toast-alerta], [toast-info], [copiar-texto], [alternar-tema], [definir-densidade], [limpar-form]'
-    );
+    let elementoGatilho: HTMLElement | null = null;
+    for (const target of path) {
+      if (target instanceof HTMLElement && target.matches(triggerSelector)) {
+        elementoGatilho = target;
+        break;
+      }
+    }
 
     if (!elementoGatilho) return;
 
@@ -35,14 +38,50 @@ export function initZeroJSTriggers(): void {
       if (modalAlvoEspecifico && modalAlvoEspecifico !== '') {
         UIBus.fecharModal(modalAlvoEspecifico);
       } else {
-        // Encontra o modal pai mais próximo
-        const modalPai = elementoGatilho.closest('ui-modal, ui-dialog') as any;
+        // Encontra o modal pai mais próximo no caminho de composição
+        let modalPai: any = null;
+        for (const node of path) {
+          if (node instanceof HTMLElement && (node.matches('ui-modal, ui-dialog') || node.tagName === 'UI-MODAL' || node.tagName === 'UI-DIALOG')) {
+            modalPai = node;
+            break;
+          }
+        }
         if (modalPai) {
           if (typeof modalPai.fechar === 'function') {
             modalPai.fechar();
           } else {
             modalPai.removeAttribute('aberto');
             modalPai.removeAttribute('open');
+          }
+        }
+      }
+    }
+
+    // 3. Abrir Drawer Declarativo
+    const targetDrawer = elementoGatilho.getAttribute('target-drawer') || elementoGatilho.getAttribute('drawer-alvo');
+    if (targetDrawer) {
+      UIBus.abrirDrawer(targetDrawer);
+    }
+
+    // 4. Fechar Drawer Declarativo
+    if (elementoGatilho.hasAttribute('dismiss-drawer') || elementoGatilho.hasAttribute('fechar-drawer')) {
+      const drawerAlvoEspecifico = elementoGatilho.getAttribute('dismiss-drawer') || elementoGatilho.getAttribute('fechar-drawer');
+      if (drawerAlvoEspecifico && drawerAlvoEspecifico !== '') {
+        UIBus.fecharDrawer(drawerAlvoEspecifico);
+      } else {
+        let drawerPai: any = null;
+        for (const node of path) {
+          if (node instanceof HTMLElement && (node.matches('ui-drawer, ui-sheet, ui-painel-lateral, ui-gaveta') || node.tagName.startsWith('UI-DRAWER') || node.tagName.startsWith('UI-SHEET'))) {
+            drawerPai = node;
+            break;
+          }
+        }
+        if (drawerPai) {
+          if (typeof drawerPai.fechar === 'function') {
+            drawerPai.fechar();
+          } else {
+            drawerPai.removeAttribute('aberto');
+            drawerPai.removeAttribute('open');
           }
         }
       }
@@ -75,9 +114,13 @@ export function initZeroJSTriggers(): void {
       let textoParaCopiar = copiarTexto;
       // Se começa com # ou ., tenta buscar o valor ou textContent do elemento referenciado
       if (copiarTexto.startsWith('#') || copiarTexto.startsWith('.')) {
-        const elementoOrigem = document.querySelector(copiarTexto) as any;
-        if (elementoOrigem) {
-          textoParaCopiar = elementoOrigem.value !== undefined ? elementoOrigem.value : (elementoOrigem.textContent || '');
+        try {
+          const elementoOrigem = document.querySelector(copiarTexto) as any;
+          if (elementoOrigem) {
+            textoParaCopiar = elementoOrigem.value !== undefined ? elementoOrigem.value : (elementoOrigem.textContent || '');
+          }
+        } catch {
+          // Seletor CSS inválido - mantém o texto original do atributo
         }
       }
       const msgFeedback = elementoGatilho.getAttribute('copiar-mensagem') || 'Copiado com sucesso!';

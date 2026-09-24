@@ -19,6 +19,7 @@ export class MapaCore {
   private controller: MapaCoreControllerRef;
   private containerElement: HTMLElement | null = null;
   private bc?: BroadcastChannel;
+  private currentSigefAbortController?: AbortController;
 
   constructor(controller: MapaCoreControllerRef) {
     this.controller = controller;
@@ -47,6 +48,20 @@ export class MapaCore {
 
     this.listenConfigBroadcast();
     this.applyMapStyles();
+
+    // Criação dos panes cartográficos padronizados
+    if (!this.map.getPane('sigefPane')) {
+      const p = this.map.createPane('sigefPane');
+      p.style.zIndex = '390';
+    }
+    if (!this.map.getPane('perimetroPane')) {
+      const p = this.map.createPane('perimetroPane');
+      p.style.zIndex = '450';
+    }
+    if (!this.map.getPane('verticesPane')) {
+      const p = this.map.createPane('verticesPane');
+      p.style.zIndex = '650';
+    }
 
     // 1. Controle de Escala Métrica
     L.control.scale({
@@ -120,6 +135,10 @@ export class MapaCore {
   }
 
   public destroy(): void {
+    if (this.currentSigefAbortController) {
+      this.currentSigefAbortController.abort();
+      this.currentSigefAbortController = undefined;
+    }
     if (this.bc) {
       this.bc.close();
     }
@@ -128,14 +147,14 @@ export class MapaCore {
   public preCarregarTilesRegiao(bounds: L.LatLngBounds): void {
     if (!this.map) return;
 
-    const currentZoom = this.map.getZoom();
-    const minZoom = Math.max(Math.floor(currentZoom) - 2, 10);
-    const maxZoom = Math.min(Math.floor(currentZoom) + 3, 20);
+    const currentZoom = Math.floor(this.map.getZoom());
+    const minZoom = Math.max(currentZoom, 12);
+    const maxZoom = Math.min(currentZoom + 1, 19);
 
-    const expandedBounds = bounds.pad(0.5);
+    const expandedBounds = bounds.pad(0.2);
     const subdomains = ['mt0', 'mt1', 'mt2', 'mt3'];
     let tileCount = 0;
-    const MAX_TILES = 300;
+    const MAX_TILES = 32;
 
     for (let z = minZoom; z <= maxZoom && tileCount < MAX_TILES; z++) {
       const nw = expandedBounds.getNorthWest();
@@ -204,6 +223,17 @@ export class MapaCore {
       `)
       .openOn(this.map);
 
+    if (this.currentSigefAbortController) {
+      this.currentSigefAbortController.abort();
+    }
+    this.currentSigefAbortController = new AbortController();
+    const abortSignal = this.currentSigefAbortController.signal;
+    const timeoutTimer = setTimeout(() => {
+      if (this.currentSigefAbortController) {
+        this.currentSigefAbortController.abort();
+      }
+    }, 8000);
+
     try {
       const isLocal = typeof window !== 'undefined' && (
         window.location.origin.includes('localhost') || 
@@ -215,7 +245,8 @@ export class MapaCore {
         ? `${this.apiBaseUrl}/proxy/sigef?url=${encodeURIComponent(targetUrl)}`
         : `${window.location.origin}/api.php?action=proxy_sigef&url=${encodeURIComponent(targetUrl)}`;
 
-      const res = await fetch(proxyFetchUrl);
+      const res = await fetch(proxyFetchUrl, { signal: abortSignal });
+      clearTimeout(timeoutTimer);
       let data: any = null;
       if (res.ok) {
         const text = await res.text();
@@ -292,13 +323,21 @@ export class MapaCore {
           </div>
         `);
       }
-    } catch (err) {
-      console.warn('Erro ao consultar SIGEF:', err);
-      loadingPopup.setContent(`
-        <div style="font-family:sans-serif; font-size:12px; color:#f59e0b; padding:2px 0;">
-          Serviço de consulta SIGEF indisponível nesta área.
-        </div>
-      `);
+    } catch (err: any) {
+      if (err.name === 'AbortError') {
+        loadingPopup.setContent(`
+          <div style="font-family:sans-serif; font-size:12px; color:#f59e0b; padding:2px 0;">
+            Consulta cancelada ou tempo limite de resposta esgotado.
+          </div>
+        `);
+      } else {
+        console.warn('Erro ao consultar SIGEF:', err);
+        loadingPopup.setContent(`
+          <div style="font-family:sans-serif; font-size:12px; color:#f59e0b; padding:2px 0;">
+            Serviço de consulta SIGEF indisponível nesta área.
+          </div>
+        `);
+      }
     } finally {
       mapContainer.style.cursor = '';
     }

@@ -53,6 +53,7 @@ export class UITabela extends HTMLElement {
   private _carregando: boolean = false;
   private _src: string | null = null;
   private _ultimoFiltro: string = '';
+  private _autoFetchController: AbortController | null = null;
 
   // Gerenciamento de Ouvintes e Elementos DOM
   private _containerElement: HTMLDivElement | null = null;
@@ -89,8 +90,26 @@ export class UITabela extends HTMLElement {
     this.cleanupEventListeners();
   }
 
-  attributeChangedCallback(_name: string, _oldVal: string | null, _newVal: string | null) {
+  attributeChangedCallback(name: string, _oldVal: string | null, _newVal: string | null) {
     this.syncAttributes();
+    if (name === 'max-height' && this._containerElement) {
+      this._containerElement.style.maxHeight = this.getAttribute('max-height') || '';
+      return;
+    }
+    if ((name === 'texto-vazio' || name === 'empty-text') && this._emptyElement) {
+      const textSpan = this._emptyElement.querySelector('.ui-tabela__empty-text');
+      if (textSpan) textSpan.textContent = this._textoVazio;
+      this.renderBody();
+      return;
+    }
+    if (name === 'carregando' || name === 'loading') {
+      this.renderLoading();
+      return;
+    }
+    if (name === 'densidade' || name === 'density') {
+      this.renderBody();
+      return;
+    }
     this.renderTotal();
   }
 
@@ -154,37 +173,54 @@ export class UITabela extends HTMLElement {
     const endpoint = url || this._src;
     if (!endpoint) return;
 
+    if (this._autoFetchController) {
+      this._autoFetchController.abort();
+      this._autoFetchController = null;
+    }
+
+    const controller = new AbortController();
+    this._autoFetchController = controller;
+
     this.carregando = true;
     this.dispatchEvent(new CustomEvent('ui-fetch-start', { bubbles: true, composed: true, detail: { url: endpoint } }));
 
     try {
-      const resposta = await fetch(endpoint);
+      const resposta = await fetch(endpoint, { signal: controller.signal });
       if (!resposta.ok) {
         throw new Error(`HTTP ${resposta.status}: ${resposta.statusText}`);
       }
       const json = await resposta.json();
       const listaDados = Array.isArray(json) ? json : (json.dados || json.items || json.data || json.rows || []);
       
-      this.dados = listaDados;
-      this.carregando = false;
+      if (this._autoFetchController === controller) {
+        this.dados = listaDados;
+        this.carregando = false;
+        this._autoFetchController = null;
 
-      this.dispatchEvent(
-        new CustomEvent('ui-fetch-sucesso', {
-          bubbles: true,
-          composed: true,
-          detail: { url: endpoint, total: listaDados.length, dados: listaDados }
-        })
-      );
+        this.dispatchEvent(
+          new CustomEvent('ui-fetch-sucesso', {
+            bubbles: true,
+            composed: true,
+            detail: { url: endpoint, total: listaDados.length, dados: listaDados }
+          })
+        );
+      }
     } catch (erro: any) {
-      this.carregando = false;
-      console.error('[ui-tabela] Erro ao carregar dados remotos:', erro);
-      this.dispatchEvent(
-        new CustomEvent('ui-fetch-erro', {
-          bubbles: true,
-          composed: true,
-          detail: { url: endpoint, erro: erro.message || String(erro) }
-        })
-      );
+      if (erro.name === 'AbortError') {
+        return;
+      }
+      if (this._autoFetchController === controller) {
+        this.carregando = false;
+        this._autoFetchController = null;
+        console.error('[ui-tabela] Erro ao carregar dados remotos:', erro);
+        this.dispatchEvent(
+          new CustomEvent('ui-fetch-erro', {
+            bubbles: true,
+            composed: true,
+            detail: { url: endpoint, erro: erro.message || String(erro) }
+          })
+        );
+      }
     }
   }
 
@@ -240,6 +276,11 @@ export class UITabela extends HTMLElement {
     if (this._activeResizeCleanup) {
       this._activeResizeCleanup();
       this._activeResizeCleanup = null;
+    }
+
+    if (this._autoFetchController) {
+      this._autoFetchController.abort();
+      this._autoFetchController = null;
     }
 
     this._headerListeners.cleanup();
@@ -591,68 +632,78 @@ export class UITabela extends HTMLElement {
   public renderTotal() {
     if (!this.shadow) return;
 
-    this.cleanupEventListeners();
-    this.shadow.innerHTML = `<style>${estilos}</style>`;
+    if (!this._containerElement) {
+      this.cleanupEventListeners();
+      this.shadow.innerHTML = `<style>${estilos}</style>`;
 
-    const maxHeightAttr = this.getAttribute('max-height');
-    const container = document.createElement('div');
-    container.className = 'ui-tabela-container';
-    if (maxHeightAttr) {
-      container.style.maxHeight = maxHeightAttr;
-    }
-    this._containerElement = container;
+      const maxHeightAttr = this.getAttribute('max-height');
+      const container = document.createElement('div');
+      container.className = 'ui-tabela-container';
+      if (maxHeightAttr) {
+        container.style.maxHeight = maxHeightAttr;
+      }
+      this._containerElement = container;
 
-    // Empty State Placeholder
-    const emptyDiv = document.createElement('div');
-    emptyDiv.className = 'ui-tabela__empty';
-    emptyDiv.style.display = 'none';
-    
-    const svgIcon = document.createElement('div');
-    svgIcon.innerHTML = `
-      <svg class="ui-tabela__empty-icon" viewBox="0 0 24 24">
-        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h2v7H7zm4-3h2v10h-2zm4 6h2v4h-2z"/>
-      </svg>`;
+      // Empty State Placeholder
+      const emptyDiv = document.createElement('div');
+      emptyDiv.className = 'ui-tabela__empty';
+      emptyDiv.style.display = 'none';
       
-    const textSpan = document.createElement('span');
-    textSpan.className = 'ui-tabela__empty-text';
-    textSpan.textContent = this._textoVazio; // Evita XSS
-    
-    emptyDiv.appendChild(svgIcon);
-    emptyDiv.appendChild(textSpan);
-    this._emptyElement = emptyDiv;
+      const svgIcon = document.createElement('div');
+      svgIcon.innerHTML = `
+        <svg class="ui-tabela__empty-icon" viewBox="0 0 24 24">
+          <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h2v7H7zm4-3h2v10h-2zm4 6h2v4h-2z"/>
+        </svg>`;
+        
+      const textSpan = document.createElement('span');
+      textSpan.className = 'ui-tabela__empty-text';
+      textSpan.textContent = this._textoVazio; // Evita XSS
+      
+      emptyDiv.appendChild(svgIcon);
+      emptyDiv.appendChild(textSpan);
+      this._emptyElement = emptyDiv;
 
-    // Table elements
-    this._tableElement = document.createElement('table');
-    this._tableElement.className = 'ui-tabela';
-    this._colgroupElement = document.createElement('colgroup');
-    this._theadElement = document.createElement('thead');
-    this._tbodyElement = document.createElement('tbody');
+      // Table elements
+      this._tableElement = document.createElement('table');
+      this._tableElement.className = 'ui-tabela';
+      this._colgroupElement = document.createElement('colgroup');
+      this._theadElement = document.createElement('thead');
+      this._tbodyElement = document.createElement('tbody');
 
-    this._tableElement.appendChild(this._colgroupElement);
-    this._tableElement.appendChild(this._theadElement);
-    this._tableElement.appendChild(this._tbodyElement);
+      this._tableElement.appendChild(this._colgroupElement);
+      this._tableElement.appendChild(this._theadElement);
+      this._tableElement.appendChild(this._tbodyElement);
 
-    container.appendChild(this._emptyElement);
-    container.appendChild(this._tableElement);
+      container.appendChild(this._emptyElement);
+      container.appendChild(this._tableElement);
 
-    // Overlay de Carregamento Inteligente
-    const loadingDiv = document.createElement('div');
-    loadingDiv.className = 'ui-tabela__loading';
-    loadingDiv.style.display = this._carregando ? 'flex' : 'none';
-    loadingDiv.innerHTML = `
-      <div class="ui-tabela__spinner"></div>
-      <span>Carregando dados...</span>
-    `;
-    this._loadingElement = loadingDiv;
-    container.appendChild(this._loadingElement);
+      // Overlay de Carregamento Inteligente
+      const loadingDiv = document.createElement('div');
+      loadingDiv.className = 'ui-tabela__loading';
+      loadingDiv.style.display = this._carregando ? 'flex' : 'none';
+      loadingDiv.innerHTML = `
+        <div class="ui-tabela__spinner"></div>
+        <span>Carregando dados...</span>
+      `;
+      this._loadingElement = loadingDiv;
+      container.appendChild(this._loadingElement);
 
-    this.shadow.appendChild(container);
+      this.shadow.appendChild(container);
+    } else {
+      const maxHeightAttr = this.getAttribute('max-height');
+      this._containerElement.style.maxHeight = maxHeightAttr || '';
+
+      if (this._emptyElement) {
+        const textSpan = this._emptyElement.querySelector('.ui-tabela__empty-text');
+        if (textSpan) textSpan.textContent = this._textoVazio;
+      }
+    }
 
     this.renderHeader();
     this.renderBody();
 
     // Evento de Scroll para Virtualização
-    if (this._virtualizar && this._containerElement) {
+    if (this._virtualizar && this._containerElement && !this._scrollHandler) {
       this._ticking = false;
       this._scrollHandler = () => {
         if (!this._ticking) {

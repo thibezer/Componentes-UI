@@ -17,6 +17,7 @@ export class UITooltip extends HTMLElement {
 
   private containerElement: HTMLDivElement;
   private bubbleElement: HTMLDivElement;
+  private _posicionamentoAtivo: boolean = false;
 
   constructor() {
     super();
@@ -43,7 +44,6 @@ export class UITooltip extends HTMLElement {
     this.addEventListener('focusin', this.handleMouseEnter);
     this.addEventListener('focusout', this.handleMouseLeave);
     this.addEventListener('click', this.handleClick);
-    document.addEventListener('click', this.handleClickOutside);
     this.syncState();
   }
 
@@ -55,6 +55,11 @@ export class UITooltip extends HTMLElement {
     this.removeEventListener('click', this.handleClick);
     document.removeEventListener('click', this.handleClickOutside);
     
+    if (this._posicionamentoAtivo) {
+      this._posicionamentoAtivo = false;
+      window.removeEventListener('scroll', this.posicionarBubble, { capture: true });
+      window.removeEventListener('resize', this.posicionarBubble);
+    }
     this.ocultar();
   }
 
@@ -133,8 +138,8 @@ export class UITooltip extends HTMLElement {
     left = Math.max(8, Math.min(left, window.innerWidth - bubbleRect.width - 8));
     top = Math.max(8, Math.min(top, window.innerHeight - bubbleRect.height - 8));
     
-    this.bubbleElement.style.top = `${top}px`;
-    this.bubbleElement.style.left = `${left}px`;
+    this.bubbleElement.style.top = `${Math.round(top)}px`;
+    this.bubbleElement.style.left = `${Math.round(left)}px`;
   };
 
   private syncState() {
@@ -161,6 +166,7 @@ export class UITooltip extends HTMLElement {
     }
 
     if (isAberto) {
+      document.addEventListener('click', this.handleClickOutside);
       if (typeof (this.bubbleElement as any).showPopover === 'function') {
         try { (this.bubbleElement as any).showPopover(); } catch(_e) {}
       }
@@ -171,15 +177,22 @@ export class UITooltip extends HTMLElement {
         this.posicionarBubble();
       });
 
-      window.addEventListener('scroll', this.posicionarBubble, { capture: true, passive: true });
-      window.addEventListener('resize', this.posicionarBubble, { passive: true });
+      if (!this._posicionamentoAtivo) {
+        this._posicionamentoAtivo = true;
+        window.addEventListener('scroll', this.posicionarBubble, { capture: true, passive: true });
+        window.addEventListener('resize', this.posicionarBubble, { passive: true });
+      }
     } else {
+      document.removeEventListener('click', this.handleClickOutside);
       if (typeof (this.bubbleElement as any).hidePopover === 'function') {
         try { (this.bubbleElement as any).hidePopover(); } catch(_e) {}
       }
       this.containerElement.classList.remove('ui-tooltip--visivel');
-      window.removeEventListener('scroll', this.posicionarBubble, { capture: true });
-      window.removeEventListener('resize', this.posicionarBubble);
+      if (this._posicionamentoAtivo) {
+        this._posicionamentoAtivo = false;
+        window.removeEventListener('scroll', this.posicionarBubble, { capture: true });
+        window.removeEventListener('resize', this.posicionarBubble);
+      }
     }
   }
 

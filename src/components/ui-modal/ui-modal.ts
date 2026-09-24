@@ -31,7 +31,7 @@ export class UIModal extends HTMLElement {
         <div class="ui-modal__handle"></div>
         <div class="ui-modal__header">
           <h3 class="ui-modal__titulo"></h3>
-          <button class="ui-modal__close" title="Fechar (Esc)">✕</button>
+          <button class="ui-modal__close" type="button" aria-label="Fechar modal" title="Fechar (Esc)">✕</button>
         </div>
         <div class="ui-modal__body">
           <slot></slot>
@@ -53,6 +53,12 @@ export class UIModal extends HTMLElement {
     this.backdropElement.addEventListener('click', this.handleBackdropClick);
     this.closeElement.addEventListener('click', this.handleCloseClick);
     window.addEventListener('keydown', this.handleKeyDown);
+
+    const slotElements = this.shadowRoot!.querySelectorAll('slot');
+    slotElements.forEach(slot => {
+      slot.addEventListener('slotchange', this.handleSlotChange);
+    });
+
     this.syncState();
   }
 
@@ -60,6 +66,12 @@ export class UIModal extends HTMLElement {
     this.backdropElement.removeEventListener('click', this.handleBackdropClick);
     this.closeElement.removeEventListener('click', this.handleCloseClick);
     window.removeEventListener('keydown', this.handleKeyDown);
+
+    const slotElements = this.shadowRoot!.querySelectorAll('slot');
+    slotElements.forEach(slot => {
+      slot.removeEventListener('slotchange', this.handleSlotChange);
+    });
+
     if (this.hasAttribute('data-scroll-locked')) {
       this.removeAttribute('data-scroll-locked');
       UIModal._openCount = Math.max(0, UIModal._openCount - 1);
@@ -69,9 +81,26 @@ export class UIModal extends HTMLElement {
     }
   }
 
-  attributeChangedCallback(_name: string, _old: string | null, _value: string | null) {
+  attributeChangedCallback(name: string, _old: string | null, value: string | null) {
+    if ((name === 'aberto' || name === 'open') && value !== null) {
+      if (document.activeElement && document.activeElement !== document.body) {
+        this._elementoGatilho = document.activeElement as HTMLElement;
+      }
+      setTimeout(() => {
+        this._atualizarFocables();
+        if (this._focables.length > 0) {
+          this._focables[0].focus();
+        } else {
+          this.dialogElement.focus();
+        }
+      }, 0);
+    }
     this.syncState();
   }
+
+  private handleSlotChange = () => {
+    this.syncState();
+  };
 
   get aberto(): boolean {
     return this.hasAttribute('aberto') || this.hasAttribute('open');
@@ -148,8 +177,13 @@ export class UIModal extends HTMLElement {
 
     // Ocultar rodapé se não houver elementos atribuídos
     if (footerSlot) {
-      const hasFooter = this.querySelector('[slot="rodape"], [slot="footer"]');
-      footerSlot.style.display = hasFooter ? 'flex' : 'none';
+      const footerSlots = Array.from(this.shadowRoot?.querySelectorAll('slot[name="rodape"], slot[name="footer"]') || []) as HTMLSlotElement[];
+      const hasFooterContent = footerSlots.some(s => {
+        const nodes = s.assignedNodes({ flatten: true });
+        return nodes.some(node => node.nodeType === Node.ELEMENT_NODE || (node.textContent && node.textContent.trim() !== ''));
+      }) || this.querySelector('[slot="rodape"], [slot="footer"]') !== null;
+
+      footerSlot.style.display = hasFooterContent ? 'flex' : 'none';
     }
 
     // Bloquear rolagem do corpo da página ao abrir
@@ -184,7 +218,7 @@ export class UIModal extends HTMLElement {
 
   private _atualizarFocables() {
     // Busca por elementos focáveis no shadow dom e light dom associado
-    const focusableSelectors = 'a[href], button, input, textarea, select, details, [tabindex]:not([tabindex="-1"])';
+    const focusableSelectors = 'a[href], button, input, textarea, select, details, [tabindex]:not([tabindex="-1"]), ui-campo-texto, ui-botao, ui-botao-primario, ui-checkbox, ui-switch, ui-lista-flutuante, ui-radio, ui-select';
 
     // Obter focáveis do Shadow DOM
     let shadowFocables = Array.from(this.shadowRoot!.querySelectorAll(focusableSelectors)) as HTMLElement[];

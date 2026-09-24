@@ -50,4 +50,38 @@ describe('UICard', () => {
 
     expect(spy).not.toHaveBeenCalled();
   });
+
+  it('deve disparar evento de clique ao pressionar Enter ou Espaço quando clicável', () => {
+    element.setAttribute('clicavel', '');
+    const spy = vi.fn();
+    element.addEventListener('ui-clique', spy);
+
+    const card = element.shadowRoot.querySelector('.ui-card');
+    card.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    card.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }));
+
+    expect(spy).toHaveBeenCalledTimes(2);
+  });
+
+  it('não deve disparar clique do card se o clique originou de um botão ou link interno', () => {
+    element.setAttribute('clicavel', '');
+    const spy = vi.fn();
+    element.addEventListener('ui-clique', spy);
+
+    const btn = document.createElement('button');
+    btn.textContent = 'Ação Interna';
+    element.appendChild(btn);
+
+    const card = element.shadowRoot.querySelector('.ui-card');
+    card.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(spy).toHaveBeenCalledTimes(1);
+
+    // Agora simula clique vindo do botão interno
+    const innerClick = new MouseEvent('click', { bubbles: true });
+    Object.defineProperty(innerClick, 'target', { value: btn, enumerable: true });
+    card.dispatchEvent(innerClick);
+
+    // O contador de chamadas não deve ter subido
+    expect(spy).toHaveBeenCalledTimes(1);
+  });
 });

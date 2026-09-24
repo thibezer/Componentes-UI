@@ -7,12 +7,18 @@ export class UIMapaLinha extends HTMLElement {
   }
   
   private polyline: L.Polyline | null = null;
+  private _initTimer: any = null;
+  private _retryCount: number = 0;
 
   connectedCallback() {
-    setTimeout(() => this.initLinha(), 0);
+    this._initTimer = setTimeout(() => this.initLinha(), 0);
   }
 
   disconnectedCallback() {
+    if (this._initTimer) {
+      clearTimeout(this._initTimer);
+      this._initTimer = null;
+    }
     if (this.polyline) {
       this.polyline.remove();
       this.polyline = null;
@@ -54,9 +60,17 @@ export class UIMapaLinha extends HTMLElement {
     
     const map = parentMapElement.getMap();
     if (!map) {
-      setTimeout(() => this.initLinha(), 50);
+      const MAX_RETRIES = 30;
+      if (this._retryCount >= MAX_RETRIES) {
+        console.warn('<ui-mapa-linha> Tempo limite esgotado aguardando inicialização do mapa pai.');
+        return;
+      }
+      this._retryCount++;
+      this._initTimer = setTimeout(() => this.initLinha(), 50);
       return;
     }
+    
+    this._retryCount = 0;
     
     const cor = this.getAttribute('cor') || '#3388ff';
     const espessura = parseInt(this.getAttribute('espessura') || '3', 10);

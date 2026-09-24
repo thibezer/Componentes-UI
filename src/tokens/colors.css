@@ -29,3 +29,39 @@
   /* Bordas e Divisores */
   --ui-cor-borda: rgba(255, 255, 255, 0.12);
 }
+
+/* ==========================================
+   Design Tokens - Tema Claro (Ativado via data-tema="claro")
+   ========================================== */
+:root[data-tema="claro"],
+[data-tema="claro"] {
+  /* Cores Principais */
+  --ui-cor-primaria: #00B368;
+  --ui-cor-texto-sobre-primaria: #ffffff;
+  --ui-cor-destaque: #00B368;
+
+  /* Neutros e Fundos */
+  --ui-cor-fundo: #f8f9fa;
+  --ui-cor-superficie: #ffffff;
+  --ui-cor-fundo-elevado: #f1f3f5;
+  --ui-cor-fundo-card: #ffffff;
+  --ui-cor-fundo-menu: #ffffff;
+  --ui-cor-hover-menu: rgba(0, 0, 0, 0.05);
+
+  /* Texto e Cores Temáticas */
+  --ui-cor-texto: #1a1a1e;
+  --ui-cor-texto-secundario: #6c757d;
+  --ui-cor-texto-erro: #e03131;
+  --ui-cor-texto-sucesso: #00B368;
+  --ui-cor-texto-alerta: #f59f00;
+
+  /* Cores para Variações de Botão */
+  --ui-cor-botao-secundario-fundo: #e9ecef;
+  --ui-cor-botao-secundario-hover: #dee2e6;
+  --ui-cor-botao-destrutivo-fundo: #e03131;
+  --ui-cor-botao-destrutivo-hover: #c92a2a;
+  --ui-cor-botao-destrutivo-texto: #ffffff;
+
+  /* Bordas e Divisores */
+  --ui-cor-borda: rgba(0, 0, 0, 0.12);
+}

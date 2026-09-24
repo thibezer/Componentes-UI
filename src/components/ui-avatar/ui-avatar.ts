@@ -62,8 +62,11 @@ export class UIAvatar extends HTMLElement {
 
     if (['xs', 'sm', 'md', 'lg', 'xl'].includes(tamanho)) {
       this.avatarElement.classList.add(`ui-avatar--${tamanho}`);
+      this.avatarElement.style.removeProperty('--ui-tamanho-avatar');
     } else if (tamanho && !isNaN(parseInt(tamanho, 10))) {
       this.avatarElement.style.setProperty('--ui-tamanho-avatar', `${parseInt(tamanho, 10)}px`);
+    } else {
+      this.avatarElement.style.removeProperty('--ui-tamanho-avatar');
     }
 
     if (formato === 'quadrado') {
@@ -73,18 +76,23 @@ export class UIAvatar extends HTMLElement {
     // Renderização do Conteúdo (Foto vs Iniciais vs Ícone Fallback)
     const contentSlot = this.avatarElement.querySelector('.ui-avatar__content');
     if (contentSlot) {
-      contentSlot.textContent = '';
       if (src) {
-        const img = document.createElement('img');
-        img.className = 'ui-avatar__img';
-        img.src = src;
-        img.alt = nome || 'Avatar';
-        img.onerror = () => {
-          // Fallback se a imagem falhar ao carregar
-          this.renderFallback(contentSlot, nome);
-        };
-        contentSlot.appendChild(img);
+        const existingImg = contentSlot.querySelector('img');
+        if (existingImg && existingImg.getAttribute('src') === src) {
+          existingImg.alt = nome || 'Avatar';
+        } else {
+          contentSlot.textContent = '';
+          const img = document.createElement('img');
+          img.className = 'ui-avatar__img';
+          img.src = src;
+          img.alt = nome || 'Avatar';
+          img.onerror = () => {
+            this.renderFallback(contentSlot, nome);
+          };
+          contentSlot.appendChild(img);
+        }
       } else {
+        contentSlot.textContent = '';
         this.renderFallback(contentSlot, nome);
       }
     }

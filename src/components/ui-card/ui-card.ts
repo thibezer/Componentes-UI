@@ -1,4 +1,5 @@
 import estilos from './ui-card.css?inline';
+import { ListenerBag } from '../../core/listener-bag';
 
 export class UICard extends HTMLElement {
   static get observedAttributes() {
@@ -16,6 +17,7 @@ export class UICard extends HTMLElement {
   }
 
   private cardElement: HTMLDivElement;
+  private listeners = new ListenerBag();
 
   constructor() {
     super();
@@ -45,17 +47,25 @@ export class UICard extends HTMLElement {
   }
 
   connectedCallback() {
-    this.cardElement.addEventListener('click', this.handleClick);
+    this.listeners.cleanup();
+    this.listeners.add(this.cardElement, 'click', this.handleClick);
+    this.listeners.add(this.cardElement, 'keydown', this.handleKeyDown);
+    const slots = this.shadowRoot?.querySelectorAll('slot');
+    slots?.forEach(s => this.listeners.add(s, 'slotchange', this.handleSlotChange));
     this.syncState();
   }
 
   disconnectedCallback() {
-    this.cardElement.removeEventListener('click', this.handleClick);
+    this.listeners.cleanup();
   }
 
   attributeChangedCallback(_name: string, _old: string | null, _value: string | null) {
     this.syncState();
   }
+
+  private handleSlotChange = () => {
+    this.syncState();
+  };
 
   get clicavel(): boolean {
     return this.hasAttribute('clicavel') || this.hasAttribute('clickable');
@@ -117,24 +127,35 @@ export class UICard extends HTMLElement {
     const footerSlot = this.shadowRoot?.querySelector('.ui-card__footer') as HTMLElement | null;
     const mediaSlot = this.shadowRoot?.querySelector('.ui-card__media') as HTMLElement | null;
 
+    const hasSlotContent = (slotNames: string[]) => {
+      const selectors = slotNames.map(name => `slot[name="${name}"]`).join(', ');
+      const slots = Array.from(this.shadowRoot?.querySelectorAll(selectors) || []) as HTMLSlotElement[];
+      return slots.some(s => {
+        const nodes = s.assignedNodes({ flatten: true });
+        return nodes.some(node => node.nodeType === Node.ELEMENT_NODE || (node.textContent && node.textContent.trim() !== ''));
+      }) || slotNames.some(name => this.querySelector(`[slot="${name}"]`) !== null);
+    };
+
     if (mediaSlot) {
-      const hasMedia = this.querySelector('[slot="midia"], [slot="media"]');
-      mediaSlot.style.display = hasMedia ? 'block' : 'none';
+      mediaSlot.style.display = hasSlotContent(['midia', 'media']) ? 'block' : 'none';
     }
 
     if (headerSlot) {
-      const hasHeader = this.querySelector('[slot="cabecalho"], [slot="header"]');
-      headerSlot.style.display = hasHeader ? 'flex' : 'none';
+      headerSlot.style.display = hasSlotContent(['cabecalho', 'header']) ? 'flex' : 'none';
     }
 
     if (footerSlot) {
-      const hasFooter = this.querySelector('[slot="rodape"], [slot="footer"]');
-      footerSlot.style.display = hasFooter ? 'flex' : 'none';
+      footerSlot.style.display = hasSlotContent(['rodape', 'footer']) ? 'flex' : 'none';
     }
   }
 
-  private handleClick = () => {
+  private handleClick = (e?: Event) => {
     if (this.disabled) return;
+    if (e && e.target && e.target instanceof HTMLElement) {
+      if (e.target.closest('button, a, input, select, textarea, ui-botao, ui-switch, ui-checkbox, ui-radio, [role="button"]')) {
+        return;
+      }
+    }
     if (this.clicavel) {
       this.dispatchEvent(
         new CustomEvent('ui-click', {
@@ -154,6 +175,14 @@ export class UICard extends HTMLElement {
           composed: true,
         })
       );
+    }
+  };
+
+  private handleKeyDown = (e: KeyboardEvent) => {
+    if (!this.clicavel || this.disabled) return;
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      this.handleClick();
     }
   };
 }

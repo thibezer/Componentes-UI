@@ -1,0 +1,1014 @@
+/* ====================================================
+   UI Tabela de Propriedades - Estilo AutoCAD & Revit
+   Alta densidade, grade técnica, splitter redimensionável
+   ==================================================== */
+
+:host {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  font-family: var(--ui-fonte-familia, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
+  font-size: var(--ui-tamanho-corpo-sm, 12px);
+  color: var(--ui-cor-texto, #e1e1e6);
+  background-color: var(--ui-cor-superficie, #141417);
+  border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
+  border-radius: var(--ui-raio-borda, 4px);
+  overflow: hidden;
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  min-height: 250px;
+  user-select: none;
+  --ui-prop-altura-linha: 24px;
+  --ui-prop-rotulo-largura: 45%;
+}
+
+:host([densidade="compacta"]) {
+  --ui-prop-altura-linha: 20px;
+  font-size: 11px;
+}
+
+:host([densidade="relaxada"]) {
+  --ui-prop-altura-linha: 30px;
+  font-size: 13px;
+}
+
+/* ====================================================
+   1. Cabeçalho Principal (Header)
+   ==================================================== */
+
+.ui-prop__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  background-color: var(--ui-cor-fundo-elevado, #1a1a1e);
+  border-bottom: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
+  flex-shrink: 0;
+}
+
+.ui-prop__header-titulo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ui-cor-texto, #ffffff);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ui-prop__header-icone {
+  display: flex;
+  align-items: center;
+  color: var(--ui-cor-destaque, #00E08A);
+}
+
+.ui-prop__header-acoes {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ui-prop__btn-icone {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  background: transparent;
+  border: none;
+  border-radius: 3px;
+  color: var(--ui-cor-texto-secundario, #888899);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  padding: 0;
+}
+
+.ui-prop__btn-icone:hover {
+  background-color: var(--ui-cor-hover-menu, rgba(255, 255, 255, 0.08));
+  color: var(--ui-cor-texto, #ffffff);
+}
+
+/* ====================================================
+   2. Seletor de Tipos (Estilo Revit / AutoCAD)
+   ==================================================== */
+
+.ui-prop__tipo-seletor-container {
+  padding: 8px 10px;
+  background-color: var(--ui-cor-superficie, #141417);
+  border-bottom: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.08));
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* Estilo Revit (Preview visual do tipo + subtipo + botão editar tipo) */
+.ui-prop__tipo-revit-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: var(--ui-cor-fundo-card, #18181c);
+  border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
+  border-radius: 4px;
+  padding: 6px 8px;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.ui-prop__tipo-revit-card:hover {
+  border-color: var(--ui-cor-destaque, #00E08A);
+}
+
+.ui-prop__tipo-miniatura {
+  width: 32px;
+  height: 32px;
+  border-radius: 3px;
+  background-color: var(--ui-cor-fundo-elevado, #24242a);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ui-cor-destaque, #00E08A);
+  flex-shrink: 0;
+}
+
+.ui-prop__tipo-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.ui-prop__tipo-nome {
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--ui-cor-texto, #ffffff);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ui-prop__tipo-subtexto {
+  font-size: 11px;
+  color: var(--ui-cor-texto-secundario, #888899);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ui-prop__tipo-revit-subbarra {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ui-prop__tipo-select {
+  flex: 1;
+  min-width: 0;
+  width: 0;
+  height: 24px;
+  background-color: var(--ui-cor-fundo-card, #18181c);
+  color: var(--ui-cor-texto, #e1e1e6);
+  border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.15));
+  border-radius: 3px;
+  padding: 0 22px 0 6px;
+  font-size: 11px;
+  cursor: pointer;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23888899' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 6px center;
+  background-size: 10px 6px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+
+.ui-prop__tipo-select:focus {
+  border-color: var(--ui-cor-destaque, #00E08A);
+}
+
+.ui-prop__btn-editar-tipo {
+  height: 24px;
+  padding: 0 8px;
+  background-color: var(--ui-cor-botao-secundario-fundo, #1e1e24);
+  border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.15));
+  border-radius: 3px;
+  color: var(--ui-cor-texto, #ffffff);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.ui-prop__btn-editar-tipo:hover {
+  background-color: var(--ui-cor-botao-secundario-hover, #2a2a34);
+  border-color: var(--ui-cor-destaque, #00E08A);
+}
+
+/* Estilo AutoCAD (Combobox compacto no topo com botões de ação clássicos) */
+.ui-prop__tipo-autocad-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.ui-prop__tipo-autocad-acoes {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.ui-prop__btn-autocad {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  background: var(--ui-cor-fundo-card, #18181c);
+  border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.15));
+  border-radius: 3px;
+  color: var(--ui-cor-texto, #e1e1e6);
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.15s ease;
+}
+
+.ui-prop__btn-autocad:hover {
+  background-color: var(--ui-cor-hover-menu, rgba(255, 255, 255, 0.1));
+  border-color: var(--ui-cor-destaque, #00E08A);
+  color: var(--ui-cor-destaque, #00E08A);
+}
+
+.ui-prop__btn-autocad:active {
+  transform: scale(0.95);
+}
+
+/* ====================================================
+   3. Barra de Busca / Filtro de Propriedades
+   ==================================================== */
+
+.ui-prop__filtro-container {
+  display: flex;
+  align-items: center;
+  padding: 4px 8px;
+  background-color: var(--ui-cor-fundo, #0b0b0d);
+  border-bottom: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.08));
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.ui-prop__filtro-icone {
+  color: var(--ui-cor-texto-secundario, #888899);
+  flex-shrink: 0;
+}
+
+.ui-prop__filtro-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 11px;
+  color: var(--ui-cor-texto, #e1e1e6);
+  padding: 3px 0;
+}
+
+.ui-prop__filtro-input::placeholder {
+  color: var(--ui-cor-texto-secundario, #666677);
+}
+
+/* ====================================================
+   4. Corpo Rolável da Grade de Propriedades
+   ==================================================== */
+
+.ui-prop__corpo {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background-color: var(--ui-cor-superficie, #141417);
+  position: relative;
+}
+
+/* Scrollbar técnica e compacta */
+.ui-prop__corpo::-webkit-scrollbar {
+  width: 8px;
+}
+
+.ui-prop__corpo::-webkit-scrollbar-track {
+  background: var(--ui-cor-fundo, #0b0b0d);
+}
+
+.ui-prop__corpo::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 4px;
+}
+
+.ui-prop__corpo::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* ====================================================
+   5. Categorias / Seções Dobráveis
+   ==================================================== */
+
+.ui-prop__categoria {
+  border-bottom: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.1));
+}
+
+.ui-prop__categoria-header {
+  position: relative;
+  z-index: 25;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 24px;
+  padding: 0 8px;
+  background-color: var(--ui-cor-fundo-elevado, #18181d);
+  cursor: pointer;
+  user-select: none;
+  font-weight: 600;
+  font-size: 11px;
+  color: var(--ui-cor-texto, #ffffff);
+  border-top: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.05));
+  transition: background-color 0.15s ease;
+}
+
+.ui-prop__categoria-header:hover {
+  background-color: var(--ui-cor-hover-menu, rgba(255, 255, 255, 0.06));
+}
+
+.ui-prop__categoria-titulo-bloco {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ui-prop__categoria-seta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  width: 12px;
+  height: 12px;
+  color: var(--ui-cor-texto-secundario, #888899);
+  transition: transform 0.15s ease;
+}
+
+.ui-prop__categoria--aberta .ui-prop__categoria-seta {
+  transform: rotate(90deg);
+}
+
+.ui-prop__categoria-contador {
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--ui-cor-texto-secundario, #888899);
+}
+
+.ui-prop__categoria-conteudo {
+  display: none;
+}
+
+.ui-prop__categoria--aberta .ui-prop__categoria-conteudo {
+  display: block;
+}
+
+/* ====================================================
+   6. Linhas da Grade de Propriedades (2 Colunas)
+   ==================================================== */
+
+.ui-prop__linha {
+  display: flex;
+  align-items: stretch;
+  min-height: var(--ui-prop-altura-linha, 24px);
+  border-bottom: 1px dotted var(--ui-cor-borda, rgba(255, 255, 255, 0.08));
+  box-sizing: border-box;
+  position: relative;
+  z-index: 1;
+  transition: background-color 0.1s ease;
+}
+
+.ui-prop__linha:hover {
+  background-color: var(--ui-cor-hover-menu, rgba(255, 255, 255, 0.04));
+}
+
+.ui-prop__linha:focus-within {
+  background-color: rgba(0, 224, 138, 0.08);
+}
+
+.ui-prop__linha:focus-within .ui-prop__col-rotulo {
+  color: var(--ui-cor-texto, #ffffff);
+  font-weight: 500;
+}
+
+.ui-prop__linha--modificada {
+  background-color: rgba(0, 224, 138, 0.05);
+}
+
+.ui-prop__col-rotulo {
+  width: var(--ui-prop-rotulo-largura, 45%);
+  padding: 2px 6px 2px 14px;
+  display: flex;
+  align-items: center;
+  color: var(--ui-cor-texto-secundario, #9999aa);
+  border-right: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.08));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  position: relative;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.ui-prop__col-rotulo span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Rótulo interativo com arraste scrub (estilo CAD / Blender / Figma) */
+.ui-prop__col-rotulo--scrub {
+  cursor: ew-resize;
+  user-select: none;
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.ui-prop__col-rotulo--scrub:hover {
+  color: var(--ui-cor-destaque, #00E08A);
+  background-color: rgba(0, 224, 138, 0.05);
+}
+
+.ui-prop__col-rotulo--arrastando {
+  color: #000000 !important;
+  background-color: var(--ui-cor-destaque, #00E08A) !important;
+  font-weight: 600;
+  cursor: ew-resize !important;
+}
+
+.ui-prop__col-rotulo--arrastando span {
+  color: #000000 !important;
+}
+
+/* Splitter arrastável na divisória com linha guia */
+.ui-prop__splitter {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  min-height: 100%;
+  left: calc(var(--ui-prop-rotulo-largura, 45%) - 4px);
+  width: 8px;
+  cursor: col-resize;
+  z-index: 10;
+  touch-action: none;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ui-prop__splitter::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 3px;
+  width: 2px;
+  background-color: transparent;
+  pointer-events: none;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ui-prop__splitter:hover::after,
+.ui-prop__splitter--ativo::after {
+  background-color: var(--ui-cor-destaque, #00E08A);
+  box-shadow: 0 0 6px rgba(0, 224, 138, 0.5);
+}
+
+.ui-prop__splitter--ativo {
+  background-color: rgba(0, 224, 138, 0.08);
+}
+
+.ui-prop__col-valor {
+  width: calc(100% - var(--ui-prop-rotulo-largura, 45%));
+  flex: 1 1 0px;
+  min-width: 0 !important;
+  display: flex;
+  align-items: stretch;
+  padding: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+  position: relative;
+  transition: background-color 0.1s ease, box-shadow 0.1s ease;
+}
+
+/* Foco integrado na célula inteira: preenche 100% da área sem criar caixa dentro de outra */
+.ui-prop__col-valor:focus-within {
+  background-color: var(--ui-cor-fundo, #0b0b0d);
+  box-shadow: inset 0 0 0 1px var(--ui-cor-destaque, #00E08A);
+}
+
+/* ====================================================
+   7. Editores de Valor (Campos Inline de Área Completa)
+   ==================================================== */
+
+.ui-prop__editor-input {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  min-height: var(--ui-prop-altura-linha, 24px);
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  color: var(--ui-cor-texto, #ffffff);
+  font-family: inherit;
+  font-size: 11px;
+  padding: 0 8px;
+  outline: none;
+  box-sizing: border-box;
+  transition: background-color 0.1s ease;
+}
+
+.ui-prop__editor-input:hover {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.ui-prop__editor-input--numero {
+  text-align: right;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Indicador de cálculo / expressão matemática inline digitada */
+.ui-prop__editor-input--calculando {
+  color: var(--ui-cor-destaque, #00E08A) !important;
+  font-weight: 500;
+}
+
+.ui-prop__col-valor:has(.ui-prop__editor-input--calculando) {
+  background-color: rgba(0, 224, 138, 0.08) !important;
+  box-shadow: inset 0 0 0 1.5px var(--ui-cor-destaque, #00E08A) !important;
+}
+
+.ui-prop__editor-select {
+  flex: 1 1 0px;
+  min-width: 0 !important;
+  width: 0 !important;
+  max-width: 100%;
+  height: 100%;
+  min-height: var(--ui-prop-altura-linha, 24px);
+  background-color: transparent;
+  color: var(--ui-cor-texto, #ffffff);
+  border: none;
+  border-radius: 0;
+  font-size: 11px;
+  padding: 0 20px 0 8px;
+  outline: none;
+  cursor: pointer;
+  box-sizing: border-box;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23888899' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 6px center;
+  background-size: 8px 5px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: background-color 0.1s ease;
+}
+
+.ui-prop__editor-select:hover {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.ui-prop__editor-select option {
+  background-color: var(--ui-cor-fundo-elevado, #18181c);
+  color: var(--ui-cor-texto, #ffffff);
+}
+
+/* Editor de Cor Padrão */
+.ui-prop__editor-cor-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0 !important;
+  height: 100%;
+  min-height: var(--ui-prop-altura-linha, 24px);
+  cursor: pointer;
+  padding: 0 20px 0 8px;
+  box-sizing: border-box;
+  position: relative;
+  border: none;
+  border-radius: 0;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23888899' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 6px center;
+  background-size: 8px 5px;
+  transition: background-color 0.1s ease;
+}
+
+.ui-prop__editor-cor-container:hover {
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+.ui-prop__cor-amostra {
+  width: 13px;
+  height: 13px;
+  border-radius: 2px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.ui-prop__cor-texto {
+  flex: 1 1 0px;
+  min-width: 0 !important;
+  width: 0 !important;
+  font-size: 11px;
+  color: var(--ui-cor-texto, #ffffff);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ui-prop__cor-picker-oculto {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 0;
+  height: 0;
+}
+
+/* Editor de Tipo de Linha CAD (Linetype) */
+.ui-prop__editor-linha-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0 !important;
+  height: 100%;
+  min-height: var(--ui-prop-altura-linha, 24px);
+  padding: 0 0 0 8px;
+  box-sizing: border-box;
+  overflow: hidden;
+  border: none;
+  border-radius: 0;
+}
+
+.ui-prop__linha-amostra-svg {
+  width: 24px;
+  height: 10px;
+  flex-shrink: 0;
+}
+
+.ui-prop__linha-amostra-svg line {
+  stroke: var(--ui-cor-texto, #e1e1e6);
+  stroke-width: 1.5;
+}
+
+.ui-prop__linha-select {
+  flex: 1 1 0px;
+  min-width: 0 !important;
+  width: 0 !important;
+  max-width: 100%;
+  height: 100%;
+  background: transparent;
+  color: var(--ui-cor-texto, #ffffff);
+  border: none;
+  border-radius: 0;
+  font-size: 11px;
+  padding: 0 20px 0 4px;
+  outline: none;
+  cursor: pointer;
+  box-sizing: border-box;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23888899' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 6px center;
+  background-size: 8px 5px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.ui-prop__linha-select:hover {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.ui-prop__linha-select option {
+  background-color: var(--ui-cor-fundo-elevado, #18181c);
+  color: var(--ui-cor-texto, #ffffff);
+}
+
+/* Editor de Espessura de Linha CAD (Lineweight) */
+.ui-prop__editor-espessura-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0 !important;
+  height: 100%;
+  min-height: var(--ui-prop-altura-linha, 24px);
+  padding: 0 0 0 8px;
+  box-sizing: border-box;
+  overflow: hidden;
+  border: none;
+  border-radius: 0;
+}
+
+.ui-prop__espessura-amostra-svg {
+  width: 20px;
+  height: 10px;
+  flex-shrink: 0;
+}
+
+.ui-prop__espessura-amostra-svg line {
+  stroke: var(--ui-cor-texto, #e1e1e6);
+}
+
+.ui-prop__espessura-select {
+  flex: 1 1 0px;
+  min-width: 0 !important;
+  width: 0 !important;
+  max-width: 100%;
+  height: 100%;
+  background: transparent;
+  color: var(--ui-cor-texto, #ffffff);
+  border: none;
+  border-radius: 0;
+  font-size: 11px;
+  padding: 0 20px 0 4px;
+  outline: none;
+  cursor: pointer;
+  box-sizing: border-box;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23888899' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 6px center;
+  background-size: 8px 5px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.ui-prop__espessura-select:hover {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.ui-prop__espessura-select option {
+  background-color: var(--ui-cor-fundo-elevado, #18181c);
+  color: var(--ui-cor-texto, #ffffff);
+}
+
+/* Editor de Cores CAD Avançado (ByLayer, ByBlock, Cores Indexadas) */
+.ui-prop__editor-cor-cad-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0 !important;
+  height: 100%;
+  min-height: var(--ui-prop-altura-linha, 24px);
+  padding: 0 0 0 8px;
+  box-sizing: border-box;
+  overflow: hidden;
+  border: none;
+  border-radius: 0;
+}
+
+.ui-prop__cor-cad-select {
+  flex: 1 1 0px;
+  min-width: 0 !important;
+  width: 0 !important;
+  max-width: 100%;
+  height: 100%;
+  background: transparent;
+  color: var(--ui-cor-texto, #ffffff);
+  border: none;
+  border-radius: 0;
+  font-size: 11px;
+  padding: 0 20px 0 4px;
+  outline: none;
+  cursor: pointer;
+  box-sizing: border-box;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23888899' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 6px center;
+  background-size: 8px 5px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.ui-prop__cor-cad-select:hover {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.ui-prop__cor-cad-select option {
+  background-color: var(--ui-cor-fundo-elevado, #18181c);
+  color: var(--ui-cor-texto, #ffffff);
+}
+
+/* Editor Booleano (Checkbox compacto) */
+.ui-prop__editor-booleano {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  height: 100%;
+  min-height: var(--ui-prop-altura-linha, 24px);
+  cursor: pointer;
+  padding: 0 8px;
+  box-sizing: border-box;
+  user-select: none;
+}
+
+.ui-prop__editor-booleano:hover {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.ui-prop__checkbox-custom {
+  width: 13px;
+  height: 13px;
+  border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.25));
+  border-radius: 2px;
+  background-color: var(--ui-cor-fundo, #0b0b0d);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.ui-prop__checkbox-custom--marcado {
+  background-color: var(--ui-cor-destaque, #00E08A);
+  border-color: var(--ui-cor-destaque, #00E08A);
+  color: #000000;
+}
+
+.ui-prop__booleano-rotulo {
+  font-size: 11px;
+  color: var(--ui-cor-texto, #ffffff);
+}
+
+/* Botão de Ação Inline (Editar...) */
+.ui-prop__btn-acao-inline {
+  width: 100%;
+  height: 100%;
+  min-height: var(--ui-prop-altura-linha, 24px);
+  padding: 0 8px;
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
+  color: var(--ui-cor-texto, #ffffff);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  text-align: left;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+}
+
+.ui-prop__btn-acao-inline:hover {
+  background-color: rgba(255, 255, 255, 0.04);
+  color: var(--ui-cor-destaque, #00E08A);
+}
+
+/* Valor Readonly (Apenas Leitura / Calculado) */
+.ui-prop__valor-readonly {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  min-height: var(--ui-prop-altura-linha, 24px);
+  font-size: 11px;
+  color: var(--ui-cor-texto-secundario, #777788);
+  padding: 0 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  box-sizing: border-box;
+  user-select: text;
+}
+
+.ui-prop__valor-readonly--numero {
+  justify-content: flex-end;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Unidade / Sufixo (m, m², °) */
+.ui-prop__unidade-sufixo {
+  display: flex;
+  align-items: center;
+  font-size: 10px;
+  color: var(--ui-cor-texto-secundario, #777788);
+  padding-right: 8px;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+/* Estado Vazio */
+.ui-prop__vazio {
+  padding: 24px 16px;
+  text-align: center;
+  color: var(--ui-cor-texto-secundario, #888899);
+  font-size: 12px;
+}
+
+/* ====================================================
+   8. Rodapé (Footer - Modo Revit Aplicar / Desfazer)
+   ==================================================== */
+
+.ui-prop__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  background-color: var(--ui-cor-fundo-elevado, #18181c);
+  border-top: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.1));
+  flex-shrink: 0;
+}
+
+.ui-prop__link-ajuda {
+  font-size: 11px;
+  color: var(--ui-cor-destaque, #00E08A);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.ui-prop__link-ajuda:hover {
+  text-decoration: underline;
+}
+
+.ui-prop__footer-botoes {
+  display: flex;
+  gap: 6px;
+}
+
+.ui-prop__btn-aplicar {
+  height: 24px;
+  padding: 0 12px;
+  background-color: var(--ui-cor-destaque, #00E08A);
+  color: #000000;
+  border: none;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ui-prop__btn-aplicar:disabled {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.3);
+  cursor: not-allowed;
+}
+
+.ui-prop__btn-desfazer {
+  height: 24px;
+  padding: 0 8px;
+  background: transparent;
+  color: var(--ui-cor-texto-secundario, #888899);
+  border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
+  border-radius: 3px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ui-prop__btn-desfazer:hover:not(:disabled) {
+  background-color: var(--ui-cor-hover-menu, rgba(255, 255, 255, 0.08));
+  color: var(--ui-cor-texto, #ffffff);
+}
+
+.ui-prop__btn-desfazer:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

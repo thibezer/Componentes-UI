@@ -14,11 +14,8 @@
   z-index: 1;
 }
 
-/* Garante que o Leaflet controle o SVG no z-index certo (útil para Canvas/Lines) */
-.leaflet-pane {
-  z-index: 400;
-}
 .leaflet-top,
 .leaflet-bottom {
   z-index: 1000;
 }
+

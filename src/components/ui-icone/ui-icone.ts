@@ -21,26 +21,40 @@ export class UIIcone extends HTMLElement {
   }
 
   private iconContainer: HTMLSpanElement;
+  private svgContainer: HTMLSpanElement;
+  private slotElement: HTMLSlotElement;
 
   constructor() {
     super();
     const shadow = this.attachShadow({ mode: 'open' });
     shadow.innerHTML = `
       <style>${estilos}</style>
-      <span class="ui-icone">
+      <span class="ui-icone" aria-hidden="true">
+        <span class="ui-icone__svg" style="display: none;"></span>
         <slot></slot>
       </span>
     `;
     this.iconContainer = shadow.querySelector('.ui-icone')!;
+    this.svgContainer = shadow.querySelector('.ui-icone__svg')!;
+    this.slotElement = shadow.querySelector('slot')!;
   }
 
   connectedCallback() {
+    this.slotElement.addEventListener('slotchange', this.handleSlotChange);
     this.syncState();
+  }
+
+  disconnectedCallback() {
+    this.slotElement.removeEventListener('slotchange', this.handleSlotChange);
   }
 
   attributeChangedCallback(_name: string, _old: string | null, _value: string | null) {
     this.syncState();
   }
+
+  private handleSlotChange = () => {
+    this.syncState();
+  };
 
   private resolveTamanhoPx(): string {
     const val = this.getAttribute('tamanho') || this.getAttribute('size') || 'md';
@@ -62,13 +76,31 @@ export class UIIcone extends HTMLElement {
     const tamanhoPx = this.resolveTamanhoPx();
     this.style.setProperty('--ui-tamanho-icone', tamanhoPx);
 
+    const cor = this.getAttribute('cor') || this.getAttribute('color');
+    if (cor) {
+      this.style.setProperty('--ui-cor-icone', cor);
+      this.iconContainer.style.color = cor;
+    } else {
+      this.style.removeProperty('--ui-cor-icone');
+      this.iconContainer.style.color = '';
+    }
+
+    const hasAccessibleLabel = this.hasAttribute('aria-label') || this.hasAttribute('label');
+    if (hasAccessibleLabel) {
+      this.iconContainer.removeAttribute('aria-hidden');
+    } else {
+      this.iconContainer.setAttribute('aria-hidden', 'true');
+    }
+
     const nome = this.getAttribute('nome') || this.getAttribute('name');
-    if (nome && ICONES_SVG_NATIVOS[nome]) {
-      // Se tiver nome e slot vazio, insere o SVG nativo correspondente
-      const slotEl = this.shadowRoot?.querySelector('slot') as HTMLSlotElement;
-      if (slotEl && slotEl.assignedNodes().length === 0) {
-        this.iconContainer.innerHTML = ICONES_SVG_NATIVOS[nome];
-      }
+    const temSlotConteudo = this.slotElement.assignedNodes().length > 0;
+
+    if (nome && ICONES_SVG_NATIVOS[nome] && !temSlotConteudo) {
+      this.svgContainer.innerHTML = ICONES_SVG_NATIVOS[nome];
+      this.svgContainer.style.display = 'inline-flex';
+    } else {
+      this.svgContainer.innerHTML = '';
+      this.svgContainer.style.display = 'none';
     }
   }
 }

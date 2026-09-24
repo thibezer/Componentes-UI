@@ -1,70 +1,9 @@
-var J = Object.defineProperty;
-var ee = (g, i, e) => i in g ? J(g, i, { enumerable: !0, configurable: !0, writable: !0, value: e }) : g[i] = e;
-var n = (g, i, e) => ee(g, typeof i != "symbol" ? i + "" : i, e);
-import v from "leaflet";
-const te = ':host{display:inline-block;width:100%;box-sizing:border-box}:host([inline]){width:auto;height:auto}.ui-botao-primario{display:inline-flex;align-items:center;justify-content:center;gap:clamp(4px,.8vw,8px);width:100%;height:var(--ui-campo-altura, 100%);min-height:var(--ui-campo-altura, var(--ui-altura-minima, 15px));box-sizing:border-box;padding:0 clamp(6px,1.2vw,14px);border:1px solid transparent;border-radius:var(--ui-raio-borda, 6px);font-family:var(--ui-fonte-base, "Inter", sans-serif);font-size:clamp(10.5px,.8rem,13.5px);font-weight:600;line-height:normal;cursor:pointer;transition:background-color .15s ease,border-color .15s ease,color .15s ease,filter .15s ease,transform .1s ease;text-align:center;-webkit-user-select:none;user-select:none}.ui-botao-primario,.ui-botao-primario--primary,.ui-botao-primario--primario{background:var(--ui-cor-primaria, #00E08A);color:var(--ui-cor-texto-sobre-primaria, #000000);border-color:transparent}.ui-botao-primario--primary:hover:not(:disabled),.ui-botao-primario--primario:hover:not(:disabled),.ui-botao-primario:hover:not(:disabled){filter:brightness(1.1)}.ui-botao-primario--destaque{background:var(--ui-cor-destaque, var(--ui-cor-primaria, #00E08A));color:var(--ui-cor-texto-sobre-primaria, #000000)}.ui-botao-primario--secondary,.ui-botao-primario--secundario{background:var(--ui-cor-botao-secundario-fundo, #1e1e24);color:var(--ui-cor-texto, #e1e1e6);border-color:var(--ui-cor-borda, rgba(255, 255, 255, .12))}.ui-botao-primario--secondary:hover:not(:disabled),.ui-botao-primario--secundario:hover:not(:disabled){background:var(--ui-cor-botao-secundario-hover, #2a2a34);border-color:#ffffff3d}.ui-botao-primario--ghost,.ui-botao-primario--terciario{background:transparent;color:var(--ui-cor-texto, #e1e1e6);border-color:transparent}.ui-botao-primario--ghost:hover:not(:disabled),.ui-botao-primario--terciario:hover:not(:disabled){background:var(--ui-cor-hover-menu, rgba(255, 255, 255, .08))}.ui-botao-primario--destructive,.ui-botao-primario--destrutivo,.ui-botao-primario--erro{background:var(--ui-cor-botao-destrutivo-fundo, #ff4444);color:var(--ui-cor-botao-destrutivo-texto, #ffffff);border-color:transparent}.ui-botao-primario--destructive:hover:not(:disabled),.ui-botao-primario--destrutivo:hover:not(:disabled),.ui-botao-primario--erro:hover:not(:disabled){background:var(--ui-cor-botao-destrutivo-hover, #e03333)}.ui-botao-primario--icon-only,.ui-botao-primario--icone{padding:0;width:var(--ui-campo-altura, var(--ui-altura-minima, 15px));min-width:var(--ui-campo-altura, var(--ui-altura-minima, 15px));height:var(--ui-campo-altura, var(--ui-altura-minima, 15px));aspect-ratio:1;border-radius:var(--ui-raio-borda, 6px)}.ui-botao-primario--hover{filter:brightness(1.15)!important}.ui-botao-primario:active:not(:disabled),.ui-botao-primario--active{transform:scale(.97)!important;filter:brightness(.9)!important}.ui-botao-primario:disabled,.ui-botao-primario--disabled{opacity:.45;cursor:not-allowed;transform:none!important;filter:none!important}.ui-botao-primario--carregando,.ui-botao-primario--loading{cursor:wait;opacity:.85;pointer-events:none}.ui-botao-primario__spinner{width:1.1em;height:1.1em;animation:ui-spin .75s linear infinite;flex-shrink:0}@keyframes ui-spin{0%{transform:rotate(0)}to{transform:rotate(360deg)}}';
-class U extends HTMLElement {
-  constructor() {
-    super();
-    n(this, "button");
-    n(this, "spinnerContainer");
-    n(this, "handleClick", (e) => {
-      if (this.hasAttribute("disabled") || this.carregando) {
-        e.preventDefault(), e.stopPropagation();
-        return;
-      }
-      if (this.dispatchEvent(new CustomEvent("ui-click", { detail: { originalEvent: e }, bubbles: !0, composed: !0 })), this.hasAttribute("tipo-submit") || this.getAttribute("type") === "submit") {
-        const t = this.closest("form");
-        t && t.requestSubmit();
-      }
-    });
-    const e = this.attachShadow({ mode: "open" });
-    e.innerHTML = `
-      <style>${te}</style>
-      <button class="ui-botao-primario" type="button">
-        <span class="ui-botao-primario__spinner-container" style="display: none;">
-          <svg class="ui-botao-primario__spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle>
-            <path d="M12 2 a 10 10 0 0 1 10 10"></path>
-          </svg>
-        </span>
-        <slot></slot>
-      </button>
-    `, this.button = e.querySelector("button"), this.spinnerContainer = e.querySelector(".ui-botao-primario__spinner-container");
-  }
-  static get observedAttributes() {
-    return ["disabled", "variante", "carregando", "loading", "estado", "tamanho", "size", "altura", "height", "densidade"];
-  }
-  connectedCallback() {
-    this.button.addEventListener("click", this.handleClick), this.syncState();
-  }
-  disconnectedCallback() {
-    this.button.removeEventListener("click", this.handleClick);
-  }
-  attributeChangedCallback(e, t, o) {
-    this.syncState();
-  }
-  get carregando() {
-    return this.hasAttribute("carregando") || this.hasAttribute("loading");
-  }
-  set carregando(e) {
-    e ? this.setAttribute("carregando", "") : (this.removeAttribute("carregando"), this.removeAttribute("loading"));
-  }
-  syncState() {
-    const e = this.getAttribute("altura") || this.getAttribute("height");
-    e && this.style.setProperty("--ui-campo-altura", isNaN(Number(e)) ? e : `${e}px`);
-    const t = this.carregando, o = this.hasAttribute("disabled") || t, a = this.getAttribute("variante") || "primario", r = this.getAttribute("estado");
-    this.button.disabled = o, this.spinnerContainer.style.display = t ? "inline-flex" : "none";
-    const s = ["ui-botao-primario", `ui-botao-primario--${a}`];
-    o && !t && s.push("ui-botao-primario--disabled"), t && s.push("ui-botao-primario--carregando"), r && s.push(`ui-botao-primario--${r}`), this.button.className = s.join(" ");
-  }
-}
-class ie extends U {
-}
-customElements.get("ui-botao") || customElements.define("ui-botao", U);
-customElements.get("ui-botao-primario") || customElements.define("ui-botao-primario", ie);
-const oe = ':host{display:inline-block;position:relative;width:100%;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif)}:host([inline]){width:auto}.ui-lista-flutuante__container{display:flex;flex-direction:column;width:100%;position:relative}.ui-lista-flutuante__label{font-family:var(--ui-fonte-base, "Inter", sans-serif);font-size:var(--ui-tamanho-corpo-sm, 12.5px);font-weight:var(--ui-peso-medio, 500);color:var(--ui-cor-texto, #e1e1e6);margin-bottom:4px;-webkit-user-select:none;user-select:none;flex-shrink:0}.ui-lista-flutuante__gatilho{display:flex;align-items:center;justify-content:space-between;gap:clamp(4px,.8vw,8px);width:100%;height:var(--ui-campo-altura, 100%);min-height:var(--ui-campo-altura, var(--ui-altura-minima, 15px));padding:0 clamp(4px,.8vw,8px);background-color:var(--ui-cor-fundo-elevado, #1a1a1e);color:var(--ui-cor-texto, #e1e1e6);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));border-radius:var(--ui-raio-borda, 6px);font-family:var(--ui-fonte-base, "Inter", sans-serif);font-size:clamp(10.5px,.8rem,13.5px);line-height:normal;cursor:pointer;box-sizing:border-box;transition:border-color .15s ease,background-color .15s ease}.ui-lista-flutuante__gatilho:hover:not(:disabled){border-color:var(--ui-cor-primaria, #00E08A)}.ui-lista-flutuante__gatilho:disabled{opacity:.5;cursor:not-allowed}.ui-lista-flutuante__texto{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;text-align:left}.ui-lista-flutuante__seta{font-size:clamp(8px,.65rem,11px);transition:transform .2s ease;color:var(--ui-cor-texto-secundario, #888899);flex-shrink:0}:host([aberta]) .ui-lista-flutuante__seta{transform:rotate(180deg)}.ui-lista-flutuante__backdrop{display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;z-index:9998}:host([aberta]) .ui-lista-flutuante__backdrop{display:block}.ui-lista-flutuante__conteudo{position:fixed;margin:0;padding:4px;list-style:none;background-color:var(--ui-cor-fundo-menu, #18181c);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .14));border-radius:var(--ui-raio-borda, 6px);box-shadow:0 8px 28px #0000008c;max-height:220px;overflow-y:auto;z-index:9999;box-sizing:border-box;inset:auto}.ui-lista-flutuante__sheet-header{display:none;width:100%;margin-bottom:8px}.ui-lista-flutuante__handle{width:36px;height:4px;border-radius:2px;background-color:#ffffff40;margin:2px auto 8px}.ui-lista-flutuante__sheet-title-bar{display:flex;align-items:center;justify-content:space-between;width:100%;padding:4px 6px 8px;border-bottom:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .08));margin-bottom:6px}.ui-lista-flutuante__sheet-titulo{font-size:13px;font-weight:600;color:var(--ui-cor-primaria, #00E08A);letter-spacing:.3px;text-transform:uppercase}.ui-lista-flutuante__sheet-close{background:transparent;border:none;color:var(--ui-cor-texto-secundario, #888899);font-size:14px;cursor:pointer;padding:4px 8px;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:color .15s,background-color .15s}.ui-lista-flutuante__sheet-close:hover{color:#fff;background-color:#ffffff14}.ui-lista-flutuante__item{padding:6px 10px;font-family:var(--ui-fonte-base, "Inter", sans-serif);font-size:clamp(11px,.8rem,13px);line-height:1.2;color:var(--ui-cor-texto, #e1e1e6);border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:8px;transition:background-color .12s ease,color .12s ease;-webkit-user-select:none;user-select:none}.ui-lista-flutuante__item:hover{background-color:var(--ui-cor-hover-menu, rgba(255, 255, 255, .08))}.ui-lista-flutuante__item--selecionado{background-color:#00e08a26;color:var(--ui-cor-primaria, #00E08A);font-weight:600}.ui-lista-flutuante__item--selecionado:after{content:"✓";font-size:11px;color:var(--ui-cor-primaria, #00E08A)}@media (max-width: 640px){:host([aberta]) .ui-lista-flutuante__backdrop{background-color:#00000059;-webkit-backdrop-filter:none;backdrop-filter:none}.ui-lista-flutuante__conteudo{position:fixed!important;bottom:0!important;top:auto!important;left:0!important;width:100vw!important;max-width:100vw!important;min-width:100vw!important;max-height:65vh!important;border-radius:16px 16px 0 0!important;border-bottom:none!important;padding:10px 16px 28px!important;box-shadow:0 -8px 32px #000000b3!important;animation:ui-bottom-sheet-slide .22s cubic-bezier(.4,0,.2,1)}.ui-lista-flutuante__sheet-header{display:flex!important;flex-direction:column!important}.ui-lista-flutuante__item{padding:12px 14px!important;font-size:15px!important;margin-bottom:3px}}:host([bottom-sheet][aberta]) .ui-lista-flutuante__backdrop,:host([modo-mobile][aberta]) .ui-lista-flutuante__backdrop{background-color:#00000059;-webkit-backdrop-filter:none;backdrop-filter:none}:host([bottom-sheet]) .ui-lista-flutuante__conteudo,:host([modo-mobile]) .ui-lista-flutuante__conteudo{position:fixed!important;bottom:0!important;top:auto!important;left:0!important;width:100vw!important;max-width:100vw!important;min-width:100vw!important;max-height:65vh!important;border-radius:16px 16px 0 0!important;border-bottom:none!important;padding:10px 16px 28px!important;box-shadow:0 -8px 32px #000000b3!important;animation:ui-bottom-sheet-slide .22s cubic-bezier(.4,0,.2,1)}:host([bottom-sheet]) .ui-lista-flutuante__sheet-header,:host([modo-mobile]) .ui-lista-flutuante__sheet-header{display:flex!important;flex-direction:column!important}:host([bottom-sheet]) .ui-lista-flutuante__item,:host([modo-mobile]) .ui-lista-flutuante__item{padding:12px 14px!important;font-size:15px!important;margin-bottom:3px}@keyframes ui-bottom-sheet-slide{0%{transform:translateY(100%)}to{transform:translateY(0)}}';
-class B {
+var he = Object.defineProperty;
+var pe = (b, o, e) => o in b ? he(b, o, { enumerable: !0, configurable: !0, writable: !0, value: e }) : b[o] = e;
+var n = (b, o, e) => pe(b, typeof o != "symbol" ? o + "" : o, e);
+import _ from "leaflet";
+const me = ':host{display:inline-block;width:100%;box-sizing:border-box}:host([inline]){width:auto;height:auto}.ui-botao-primario{display:inline-flex;align-items:center;justify-content:center;gap:var(--ui-espaco-sm, 6px);width:100%;height:var(--ui-campo-altura, 100%);min-height:var(--ui-campo-altura, var(--ui-altura-minima, 15px));box-sizing:border-box;padding:0 12px;border:1px solid transparent;border-radius:var(--ui-raio-borda, 6px);font-family:var(--ui-fonte-base, "Inter", sans-serif);font-size:clamp(11px,.85rem,13px);font-weight:600;line-height:1;transition:background-color .15s cubic-bezier(.16,1,.3,1),border-color .15s cubic-bezier(.16,1,.3,1),color .15s cubic-bezier(.16,1,.3,1),filter .15s cubic-bezier(.16,1,.3,1),transform .12s cubic-bezier(.34,1.56,.64,1),box-shadow .15s ease;text-align:center;-webkit-user-select:none;user-select:none}.ui-botao-primario:focus-visible{outline:none;box-shadow:0 0 0 2px var(--ui-cor-fundo, #0b0b0d),0 0 0 4px var(--ui-cor-primaria, #00E08A)}.ui-botao-primario--has-icon-start{padding-left:8px!important;padding-right:12px!important}.ui-botao-primario--has-icon-end{padding-left:12px!important;padding-right:8px!important}::slotted(svg),::slotted(ui-icone){display:inline-flex!important;align-items:center!important;justify-content:center!important;vertical-align:middle!important;flex-shrink:0!important;line-height:1!important;width:14px!important;height:14px!important;box-sizing:content-box;shape-rendering:geometricPrecision}::slotted(span),::slotted(label),::slotted(p){display:inline-flex;align-items:center;line-height:1}::slotted(div){display:inline-flex;align-items:center;justify-content:center;line-height:1;height:100%}.ui-botao-primario,.ui-botao-primario--primary,.ui-botao-primario--primario{background:var(--ui-cor-primaria, #00E08A);color:var(--ui-cor-texto-sobre-primaria, #000000);border-color:transparent}.ui-botao-primario--primary:hover:not(:disabled),.ui-botao-primario--primario:hover:not(:disabled),.ui-botao-primario:hover:not(:disabled){filter:brightness(1.1)}.ui-botao-primario--destaque{background:var(--ui-cor-destaque, var(--ui-cor-primaria, #00E08A));color:var(--ui-cor-texto-sobre-primaria, #000000)}.ui-botao-primario--secondary,.ui-botao-primario--secundario{background:var(--ui-cor-botao-secundario-fundo, #1e1e24);color:var(--ui-cor-texto, #e1e1e6);border-color:var(--ui-cor-borda, rgba(255, 255, 255, .12))}.ui-botao-primario--secondary:hover:not(:disabled),.ui-botao-primario--secundario:hover:not(:disabled){background:var(--ui-cor-botao-secundario-hover, #2a2a34);border-color:#ffffff3d}.ui-botao-primario--ghost,.ui-botao-primario--terciario{background:transparent;color:var(--ui-cor-texto, #e1e1e6);border-color:transparent}.ui-botao-primario--ghost:hover:not(:disabled),.ui-botao-primario--terciario:hover:not(:disabled){background:var(--ui-cor-hover-menu, rgba(255, 255, 255, .08))}.ui-botao-primario--destructive,.ui-botao-primario--destrutivo,.ui-botao-primario--erro{background:var(--ui-cor-botao-destrutivo-fundo, #ff4444);color:var(--ui-cor-botao-destrutivo-texto, #ffffff);border-color:transparent}.ui-botao-primario--destructive:hover:not(:disabled),.ui-botao-primario--destrutivo:hover:not(:disabled),.ui-botao-primario--erro:hover:not(:disabled){background:var(--ui-cor-botao-destrutivo-hover, #e03333)}.ui-botao-primario--outline,.ui-botao-primario--borda{background:transparent;color:var(--ui-cor-primaria, #00E08A);border-color:var(--ui-cor-primaria, #00E08A)}.ui-botao-primario--outline:hover:not(:disabled),.ui-botao-primario--borda:hover:not(:disabled){background:#00e08a1f;border-color:var(--ui-cor-primaria, #00E08A);filter:brightness(1.08)}.ui-botao-primario--icon-only,.ui-botao-primario--icone{padding:0;width:var(--ui-campo-altura, var(--ui-altura-minima, 15px));min-width:var(--ui-campo-altura, var(--ui-altura-minima, 15px));height:var(--ui-campo-altura, var(--ui-altura-minima, 15px));aspect-ratio:1;border-radius:var(--ui-raio-borda, 6px)}.ui-botao-primario--hover{filter:brightness(1.15)!important}.ui-botao-primario:active:not(:disabled),.ui-botao-primario--active{transform:scale(.97)!important;filter:brightness(.9)!important}.ui-botao-primario:disabled,.ui-botao-primario--disabled{opacity:.45;cursor:not-allowed;transform:none!important;filter:none!important}.ui-botao-primario--carregando,.ui-botao-primario--loading{cursor:wait;opacity:.85;pointer-events:none}.ui-botao-primario__spinner{width:14px;height:14px;animation:ui-spin .75s linear infinite;flex-shrink:0;shape-rendering:geometricPrecision}@keyframes ui-spin{0%{transform:rotate(0)}to{transform:rotate(360deg)}}';
+class z {
   constructor() {
     n(this, "entries", []);
   }
@@ -72,17 +11,17 @@ class B {
    * Adiciona um ouvinte de evento e rastreia sua referência para limpeza futura.
    * Suporta handlers tipados (MouseEvent, KeyboardEvent, CustomEvent, etc.).
    */
-  add(i, e, t, o) {
-    if (!i) return;
+  add(o, e, t, i) {
+    if (!o) return;
     const a = t;
-    i.addEventListener(e, a, o), this.entries.push({ target: i, type: e, listener: a, options: o });
+    o.addEventListener(e, a, i), this.entries.push({ target: o, type: e, listener: a, options: i });
   }
   /**
    * Remove todos os ouvintes de eventos atualmente registrados e esvazia a coleção.
    */
   cleanup() {
-    this.entries.forEach(({ target: i, type: e, listener: t, options: o }) => {
-      i.removeEventListener(e, t, o);
+    this.entries.forEach(({ target: o, type: e, listener: t, options: i }) => {
+      o.removeEventListener(e, t, i);
     }), this.entries = [];
   }
   /**
@@ -92,7 +31,122 @@ class B {
     return this.entries.length;
   }
 }
-class F extends HTMLElement {
+class oe extends HTMLElement {
+  constructor() {
+    super();
+    n(this, "button");
+    n(this, "spinnerContainer");
+    n(this, "slotElement");
+    n(this, "opticalState", null);
+    n(this, "listeners", new z());
+    n(this, "handleSlotChange", () => {
+      this.sanitizeAndBalanceContent(), this.syncState();
+    });
+    n(this, "handleClick", (e) => {
+      if (this.hasAttribute("disabled") || this.carregando) {
+        e.preventDefault(), e.stopPropagation();
+        return;
+      }
+      this.dispatchEvent(new CustomEvent("ui-click", { detail: { originalEvent: e }, bubbles: !0, composed: !0 }));
+      const t = this.closest("form");
+      if (t) {
+        if (this.hasAttribute("tipo-reset") || this.getAttribute("type") === "reset")
+          t.reset();
+        else if (this.hasAttribute("tipo-submit") || this.getAttribute("type") === "submit")
+          try {
+            t.requestSubmit(this.button);
+          } catch {
+            t.requestSubmit();
+          }
+      }
+    });
+    const e = this.attachShadow({ mode: "open" });
+    e.innerHTML = `
+      <style>${me}</style>
+      <button class="ui-botao-primario" type="button">
+        <span class="ui-botao-primario__spinner-container" style="display: none;">
+          <svg class="ui-botao-primario__spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle>
+            <path d="M12 2 a 10 10 0 0 1 10 10"></path>
+          </svg>
+        </span>
+        <slot></slot>
+      </button>
+    `, this.button = e.querySelector("button"), this.spinnerContainer = e.querySelector(".ui-botao-primario__spinner-container"), this.slotElement = e.querySelector("slot");
+  }
+  static get observedAttributes() {
+    return ["disabled", "variante", "carregando", "loading", "estado", "tamanho", "size", "altura", "height", "densidade"];
+  }
+  connectedCallback() {
+    this.listeners.cleanup(), this.listeners.add(this.button, "click", this.handleClick), this.listeners.add(this.slotElement, "slotchange", this.handleSlotChange), this.sanitizeAndBalanceContent(), this.syncState();
+  }
+  disconnectedCallback() {
+    this.listeners.cleanup();
+  }
+  attributeChangedCallback(e, t, i) {
+    this.syncState();
+  }
+  get carregando() {
+    return this.hasAttribute("carregando") || this.hasAttribute("loading");
+  }
+  set carregando(e) {
+    e ? this.setAttribute("carregando", "") : (this.removeAttribute("carregando"), this.removeAttribute("loading"));
+  }
+  /**
+   * Remove espaços e quebras de linha fantasmas no slot e identifica
+   * se há ícone no início ou fim para aplicar compensação óptica de padding.
+   */
+  sanitizeAndBalanceContent() {
+    const e = (a) => {
+      if (a.nodeType !== Node.ELEMENT_NODE) return !1;
+      const s = a, r = s.tagName.toLowerCase();
+      if (r === "ui-icone" || r === "svg" || r === "i" || s.hasAttribute("data-icon") || s.classList.contains("icon") || s.classList.contains("icone")) return !0;
+      const l = typeof s.className == "string" ? s.className : "";
+      return !!/\b(fa[srlb]?|fa-[\w-]+|lucide|tabler)\b/i.test(l);
+    }, t = this.slotElement ? this.slotElement.assignedNodes() : Array.from(this.childNodes), i = [];
+    for (let a = 0; a < t.length; a++) {
+      const s = t[a];
+      if (s.nodeType === Node.TEXT_NODE) {
+        const r = s.textContent || "";
+        if (!r.trim())
+          t.length > 1 && (s.textContent = "");
+        else {
+          const l = t[a - 1];
+          l && e(l) && (s.textContent = r.replace(/^\s+/, ""));
+          const u = t[a + 1];
+          u && e(u) && (s.textContent = (s.textContent || "").replace(/\s+$/, "")), (s.textContent || "").trim().length > 0 && i.push(s);
+        }
+      } else s.nodeType === Node.ELEMENT_NODE && i.push(s);
+    }
+    if (i.length >= 2)
+      e(i[0]) ? this.opticalState = "icon-start" : e(i[i.length - 1]) ? this.opticalState = "icon-end" : this.opticalState = null;
+    else if (i.length === 1) {
+      const a = i[0];
+      if (e(a))
+        this.opticalState = "icon-only";
+      else if (a.nodeType === Node.ELEMENT_NODE) {
+        const s = a;
+        s.children.length >= 2 ? e(s.firstElementChild) ? this.opticalState = "icon-start" : e(s.lastElementChild) ? this.opticalState = "icon-end" : this.opticalState = null : s.children.length === 1 && e(s.firstElementChild) ? this.opticalState = "icon-only" : this.opticalState = null;
+      } else
+        this.opticalState = null;
+    } else
+      this.opticalState = null;
+  }
+  syncState() {
+    const e = this.getAttribute("altura") || this.getAttribute("height");
+    e ? this.style.setProperty("--ui-campo-altura", isNaN(Number(e)) ? e : `${e}px`) : this.style.removeProperty("--ui-campo-altura");
+    const t = this.carregando, i = this.hasAttribute("disabled") || t, a = this.getAttribute("variante") || "primario", s = this.getAttribute("estado");
+    this.button.disabled = i, this.spinnerContainer.style.display = t ? "inline-flex" : "none";
+    const r = ["ui-botao-primario", `ui-botao-primario--${a}`];
+    i && !t && r.push("ui-botao-primario--disabled"), t && r.push("ui-botao-primario--carregando"), s && r.push(`ui-botao-primario--${s}`), this.opticalState === "icon-start" ? r.push("ui-botao-primario--has-icon-start") : this.opticalState === "icon-end" && r.push("ui-botao-primario--has-icon-end"), (this.opticalState === "icon-only" || a === "icon-only" || a === "icone") && r.push("ui-botao-primario--icon-only"), this.button.className = r.join(" ");
+  }
+}
+class fe extends oe {
+}
+customElements.get("ui-botao") || customElements.define("ui-botao", oe);
+customElements.get("ui-botao-primario") || customElements.define("ui-botao-primario", fe);
+const be = ':host{display:inline-block;position:relative;width:100%;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif)}:host([inline]){width:auto}.ui-lista-flutuante__container{display:flex;flex-direction:column;width:100%;position:relative}.ui-lista-flutuante__label{font-family:var(--ui-fonte-base, "Inter", sans-serif);font-size:var(--ui-tamanho-corpo-sm, 13px);font-weight:var(--ui-peso-medio, 500);color:var(--ui-cor-texto, #e1e1e6);margin-bottom:4px;-webkit-user-select:none;user-select:none;flex-shrink:0}.ui-lista-flutuante__gatilho{display:flex;align-items:center;justify-content:space-between;gap:6px;width:100%;height:var(--ui-campo-altura, 100%);min-height:var(--ui-campo-altura, var(--ui-altura-minima, 15px));padding:0 8px;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);color:var(--ui-cor-texto, #e1e1e6);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));border-radius:var(--ui-raio-borda, 6px);font-family:var(--ui-fonte-base, "Inter", sans-serif);font-size:clamp(11px,.85rem,13px);line-height:1;cursor:pointer;box-sizing:border-box;transition:border-color .15s ease,background-color .15s ease}.ui-lista-flutuante__gatilho:hover:not(:disabled){border-color:var(--ui-cor-primaria, #00E08A)}.ui-lista-flutuante__gatilho:disabled{opacity:.5;cursor:not-allowed}.ui-lista-flutuante__texto{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;text-align:left}.ui-lista-flutuante__seta{font-size:10px;line-height:1;display:inline-flex;align-items:center;justify-content:center;transition:transform .2s ease;color:var(--ui-cor-texto-secundario, #888899);flex-shrink:0;shape-rendering:geometricPrecision}:host([aberta]) .ui-lista-flutuante__seta{transform:rotate(180deg)}.ui-lista-flutuante__backdrop{display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;z-index:9998}:host([aberta]) .ui-lista-flutuante__backdrop{display:block}:host(:not([aberta])) .ui-lista-flutuante__conteudo{display:none!important}:host([aberta]) .ui-lista-flutuante__conteudo{display:block}.ui-lista-flutuante__conteudo{position:fixed;margin:0;padding:4px;list-style:none;background-color:var(--ui-cor-fundo-menu, #18181c);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .14));border-radius:var(--ui-raio-borda, 6px);box-shadow:0 8px 28px #0000008c;max-height:220px;overflow-y:auto;z-index:9999;box-sizing:border-box;inset:auto}.ui-lista-flutuante__sheet-header{display:none;width:100%;margin-bottom:8px}.ui-lista-flutuante__handle{width:36px;height:4px;border-radius:2px;background-color:#ffffff40;margin:2px auto 8px}.ui-lista-flutuante__sheet-title-bar{display:flex;align-items:center;justify-content:space-between;width:100%;padding:4px 6px 8px;border-bottom:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .08));margin-bottom:6px}.ui-lista-flutuante__sheet-titulo{font-size:13px;font-weight:600;color:var(--ui-cor-primaria, #00E08A);letter-spacing:.3px;text-transform:uppercase}.ui-lista-flutuante__sheet-close{background:transparent;border:none;color:var(--ui-cor-texto-secundario, #888899);font-size:14px;cursor:pointer;padding:4px 8px;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:color .15s,background-color .15s}.ui-lista-flutuante__sheet-close:hover{color:#fff;background-color:#ffffff14}.ui-lista-flutuante__item{padding:6px 10px;font-family:var(--ui-fonte-base, "Inter", sans-serif);font-size:12px;line-height:1.2;color:var(--ui-cor-texto, #e1e1e6);border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:8px;transition:background-color .12s ease,color .12s ease;-webkit-user-select:none;user-select:none}.ui-lista-flutuante__item:hover{background-color:var(--ui-cor-hover-menu, rgba(255, 255, 255, .08))}.ui-lista-flutuante__item--selecionado{background-color:#00e08a26;color:var(--ui-cor-primaria, #00E08A);font-weight:600}.ui-lista-flutuante__item--selecionado:after{content:"✓";font-size:11px;color:var(--ui-cor-primaria, #00E08A)}@media (max-width: 640px){:host([aberta]) .ui-lista-flutuante__backdrop{background-color:#00000059;-webkit-backdrop-filter:none;backdrop-filter:none}.ui-lista-flutuante__conteudo{position:fixed!important;bottom:0!important;top:auto!important;left:0!important;width:100vw!important;max-width:100vw!important;min-width:100vw!important;max-height:65vh!important;border-radius:16px 16px 0 0!important;border-bottom:none!important;padding:10px 16px 28px!important;box-shadow:0 -8px 32px #000000b3!important;animation:ui-bottom-sheet-slide .22s cubic-bezier(.4,0,.2,1)}.ui-lista-flutuante__sheet-header{display:flex!important;flex-direction:column!important}.ui-lista-flutuante__item{padding:12px 14px!important;font-size:15px!important;margin-bottom:3px}}:host([bottom-sheet][aberta]) .ui-lista-flutuante__backdrop,:host([modo-mobile][aberta]) .ui-lista-flutuante__backdrop{background-color:#00000059;-webkit-backdrop-filter:none;backdrop-filter:none}:host([bottom-sheet]) .ui-lista-flutuante__conteudo,:host([modo-mobile]) .ui-lista-flutuante__conteudo{position:fixed!important;bottom:0!important;top:auto!important;left:0!important;width:100vw!important;max-width:100vw!important;min-width:100vw!important;max-height:65vh!important;border-radius:16px 16px 0 0!important;border-bottom:none!important;padding:10px 16px 28px!important;box-shadow:0 -8px 32px #000000b3!important;animation:ui-bottom-sheet-slide .22s cubic-bezier(.4,0,.2,1)}:host([bottom-sheet]) .ui-lista-flutuante__sheet-header,:host([modo-mobile]) .ui-lista-flutuante__sheet-header{display:flex!important;flex-direction:column!important}:host([bottom-sheet]) .ui-lista-flutuante__item,:host([modo-mobile]) .ui-lista-flutuante__item{padding:12px 14px!important;font-size:15px!important;margin-bottom:3px}@keyframes ui-bottom-sheet-slide{0%{transform:translateY(100%)}to{transform:translateY(0)}}';
+class V extends HTMLElement {
   constructor() {
     super();
     n(this, "internals");
@@ -104,9 +158,10 @@ class F extends HTMLElement {
     n(this, "backdropElement");
     n(this, "sheetTituloElement");
     n(this, "sheetCloseButton");
-    n(this, "listeners", new B());
+    n(this, "listeners", new z());
     n(this, "_itens", []);
     n(this, "_value", "");
+    n(this, "_defaultValue", "");
     n(this, "observer");
     n(this, "focusedIndex", -1);
     n(this, "toggleLista", (e) => {
@@ -119,7 +174,7 @@ class F extends HTMLElement {
       this.hasAttribute("aberta") && (e.key === "ArrowDown" ? (e.preventDefault(), this.moverFoco(1)) : e.key === "ArrowUp" ? (e.preventDefault(), this.moverFoco(-1)) : e.key === "Enter" || e.key === " " ? (e.preventDefault(), this.focusedIndex >= 0 && this.focusedIndex < this._itens.length && this.selecionarItem(this._itens[this.focusedIndex])) : e.key === "Escape" && (e.preventDefault(), this.fechar(), this.button.focus()));
     });
     n(this, "fechar", () => {
-      if (this.removeAttribute("aberta"), window.removeEventListener("scroll", this.fechar, { capture: !0 }), window.removeEventListener("resize", this.posicionarConteudo), typeof this.content.hidePopover == "function")
+      if (this.hasAttribute("aberta") && (this.removeAttribute("aberta"), window.removeEventListener("scroll", this.fechar, { capture: !0 }), window.removeEventListener("resize", this.posicionarConteudo), typeof this.content.hidePopover == "function"))
         try {
           this.content.hidePopover();
         } catch {
@@ -131,16 +186,25 @@ class F extends HTMLElement {
         return;
       }
       const e = this.button.getBoundingClientRect();
-      this.content.style.top = `${e.bottom + 2}px`, this.content.style.left = `${e.left}px`, this.content.style.minWidth = `${Math.max(e.width, 120)}px`;
+      this.content.style.top = `${Math.round(e.bottom + 2)}px`, this.content.style.left = `${Math.round(e.left)}px`, this.content.style.minWidth = `${Math.round(Math.max(e.width, 120))}px`;
     });
     n(this, "handleClickFora", (e) => {
+      if (!this.hasAttribute("aberta")) return;
       const t = e.composedPath();
       !t.includes(this) && !t.includes(this.content) && this.fechar();
+    });
+    n(this, "handleListClick", (e) => {
+      var s;
+      e.stopPropagation();
+      const t = (s = e.target) == null ? void 0 : s.closest("li[data-id]");
+      if (!t) return;
+      const i = t.getAttribute("data-id"), a = this._itens.find((r) => String(r.id) === String(i));
+      a && this.selecionarItem(a);
     });
     this.internals = this.attachInternals();
     const e = this.attachShadow({ mode: "open" });
     e.innerHTML = `
-      <style>${oe}</style>
+      <style>${be}</style>
       <div class="ui-lista-flutuante__container">
         <label class="ui-lista-flutuante__label" style="display: none;"></label>
         <div class="ui-lista-flutuante__backdrop"></div>
@@ -180,25 +244,26 @@ class F extends HTMLElement {
     ];
   }
   connectedCallback() {
-    this.listeners.cleanup(), this.listeners.add(this.button, "click", this.toggleLista), this.listeners.add(this.button, "keydown", this.handleKeyDown), this.listeners.add(this.content, "keydown", this.handleListKeyDown), this.listeners.add(this.backdropElement, "click", this.fechar), this.listeners.add(this.sheetCloseButton, "click", (e) => {
+    this.listeners.cleanup(), this.listeners.add(this.button, "click", this.toggleLista), this.listeners.add(this.button, "keydown", this.handleKeyDown), this.listeners.add(this.content, "keydown", this.handleListKeyDown), this.listeners.add(this.backdropElement, "click", this.fechar), this.listeners.add(this.listElement, "click", this.handleListClick), this.listeners.add(this.sheetCloseButton, "click", (e) => {
       e.stopPropagation(), this.fechar();
-    }), this.listeners.add(document, "click", this.handleClickFora), this.carregarItensFilhos(), this.syncState(), this.observer = new MutationObserver(() => this.carregarItensFilhos()), this.observer.observe(this, { childList: !0, subtree: !0 });
+    }), this.listeners.add(document, "click", this.handleClickFora), this._defaultValue = this.getAttribute("value") || "", this.carregarItensFilhos(), this.syncState(), this.observer = new MutationObserver(() => this.carregarItensFilhos()), this.observer.observe(this, { childList: !0, subtree: !0 });
   }
   carregarItensFilhos() {
-    const e = Array.from(this.querySelectorAll("option, ui-opcao, [value]"));
-    e.length > 0 && (this._itens = e.map((t, o) => {
-      var a;
+    const e = Array.from(this.querySelectorAll('option, ui-opcao, [role="option"], [data-opcao], [data-value]:not(input):not(select)'));
+    e.length > 0 && (this._itens = e.map((t, i) => {
+      var s;
+      const a = t.getAttribute("value") || t.getAttribute("data-value") || String(i + 1);
       return {
-        id: t.getAttribute("value") || String(o + 1),
-        label: ((a = t.textContent) == null ? void 0 : a.trim()) || t.getAttribute("value") || `Opção ${o + 1}`
+        id: a,
+        label: ((s = t.textContent) == null ? void 0 : s.trim()) || a || `Opção ${i + 1}`
       };
     }), this.renderItens(), this.syncLabel());
   }
   disconnectedCallback() {
     this.listeners.cleanup(), this.observer && this.observer.disconnect(), this.fechar();
   }
-  attributeChangedCallback(e, t, o) {
-    e === "aberta" && this.button.setAttribute("aria-expanded", String(o !== null)), (e === "texto-padrao" || e === "placeholder" || e === "label" || e === "rotulo") && this.syncLabel(), e === "value" && o !== this._value && (this.value = o || ""), e === "disabled" && (this.button.disabled = o !== null), (e === "altura" || e === "height") && (o ? this.style.setProperty("--ui-campo-altura", isNaN(Number(o)) ? o : `${o}px`) : this.style.removeProperty("--ui-campo-altura"));
+  attributeChangedCallback(e, t, i) {
+    e === "aberta" && this.button.setAttribute("aria-expanded", String(i !== null)), (e === "texto-padrao" || e === "placeholder" || e === "label" || e === "rotulo") && this.syncLabel(), e === "value" && i !== this._value && (this.value = i || ""), e === "disabled" && (this.button.disabled = i !== null), (e === "altura" || e === "height") && (i ? this.style.setProperty("--ui-campo-altura", isNaN(Number(i)) ? i : `${i}px`) : this.style.removeProperty("--ui-campo-altura"));
   }
   get value() {
     return this._value;
@@ -213,7 +278,7 @@ class F extends HTMLElement {
     e ? this.setAttribute("label", e) : (this.removeAttribute("label"), this.removeAttribute("rotulo")), this.syncLabel();
   }
   formResetCallback() {
-    this.value = this.getAttribute("value") || "";
+    this.value = this._defaultValue;
   }
   get itens() {
     return this._itens;
@@ -230,7 +295,7 @@ class F extends HTMLElement {
     t.length !== 0 && (this.focusedIndex += e, this.focusedIndex < 0 && (this.focusedIndex = t.length - 1), this.focusedIndex >= t.length && (this.focusedIndex = 0), t[this.focusedIndex].focus());
   }
   abrir() {
-    if (this.setAttribute("aberta", ""), this.posicionarConteudo(), window.addEventListener("scroll", this.fechar, { capture: !0, passive: !0 }), window.addEventListener("resize", this.posicionarConteudo, { passive: !0 }), typeof this.content.showPopover == "function")
+    if (!this.hasAttribute("aberta") && (this.setAttribute("aberta", ""), this.posicionarConteudo(), window.addEventListener("scroll", this.fechar, { capture: !0, passive: !0 }), window.addEventListener("resize", this.posicionarConteudo, { passive: !0 }), typeof this.content.showPopover == "function"))
       try {
         this.content.showPopover();
       } catch {
@@ -245,15 +310,15 @@ class F extends HTMLElement {
       this.labelElement.textContent = e, this.labelElement.style.display = "block", this.sheetTituloElement.textContent = e;
     else {
       this.labelElement.style.display = "none";
-      const o = this.getAttribute("texto-padrao") || this.getAttribute("placeholder") || "Opções";
-      this.sheetTituloElement.textContent = o;
+      const i = this.getAttribute("texto-padrao") || this.getAttribute("placeholder") || "Opções";
+      this.sheetTituloElement.textContent = i;
     }
-    const t = this._itens.find((o) => String(o.id) === String(this._value));
+    const t = this._itens.find((i) => String(i.id) === String(this._value));
     if (t)
       this.textoElement.textContent = t.label;
     else {
-      const o = this.getAttribute("texto-padrao") || this.getAttribute("placeholder") || "Opções";
-      this.textoElement.textContent = o;
+      const i = this.getAttribute("texto-padrao") || this.getAttribute("placeholder") || "Opções";
+      this.textoElement.textContent = i;
     }
   }
   updateSelectedState() {
@@ -263,10 +328,8 @@ class F extends HTMLElement {
   }
   renderItens() {
     this.listElement.innerHTML = "", this._itens.forEach((e) => {
-      const t = document.createElement("li"), o = String(e.id) === String(this._value);
-      t.className = `ui-lista-flutuante__item ${o ? "ui-lista-flutuante__item--selecionado" : ""}`, t.setAttribute("data-id", e.id), t.textContent = e.label, t.role = "option", t.tabIndex = -1, o && t.setAttribute("aria-selected", "true"), t.addEventListener("click", (a) => {
-        a.stopPropagation(), this.selecionarItem(e);
-      }), this.listElement.appendChild(t);
+      const t = document.createElement("li"), i = String(e.id) === String(this._value);
+      t.className = `ui-lista-flutuante__item ${i ? "ui-lista-flutuante__item--selecionado" : ""}`, t.setAttribute("data-id", e.id), t.textContent = e.label, t.role = "option", t.tabIndex = -1, i && t.setAttribute("aria-selected", "true"), this.listElement.appendChild(t);
     });
   }
   syncState() {
@@ -288,18 +351,37 @@ class F extends HTMLElement {
     );
   }
 }
-n(F, "formAssociated", !0);
-class ae extends F {
+n(V, "formAssociated", !0);
+class ge extends V {
 }
-customElements.get("ui-lista-flutuante") || customElements.define("ui-lista-flutuante", F);
-customElements.get("ui-select") || customElements.define("ui-select", ae);
-const re = ':host{display:block;box-sizing:border-box;margin:0;padding:0;color:var(--ui-cor-texto, #e1e1e6);font-family:var(--ui-fonte-base, "Inter", sans-serif)}:host([inline]){display:inline-block}.ui-texto{margin:0;padding:0;box-sizing:border-box;font-family:inherit;color:inherit;font-size:inherit;font-weight:inherit;line-height:inherit}.ui-texto--h1{font-size:var(--ui-tamanho-h1, clamp(24px, 4vw, 36px));font-weight:var(--ui-peso-negrito, 700);line-height:var(--ui-altura-linha-titulo, 1.25);letter-spacing:-.5px}.ui-texto--h2{font-size:var(--ui-tamanho-h2, clamp(20px, 3vw, 28px));font-weight:var(--ui-peso-seminegrito, 600);line-height:var(--ui-altura-linha-titulo, 1.25);letter-spacing:-.3px}.ui-texto--h3{font-size:var(--ui-tamanho-h3, clamp(18px, 2.4vw, 24px));font-weight:var(--ui-peso-seminegrito, 600);line-height:var(--ui-altura-linha-titulo, 1.25)}.ui-texto--h4{font-size:var(--ui-tamanho-h4, clamp(16px, 2vw, 20px));font-weight:var(--ui-peso-medio, 500);line-height:var(--ui-altura-linha-titulo, 1.25)}.ui-texto--h5{font-size:var(--ui-tamanho-h5, clamp(14px, 1.6vw, 18px));font-weight:var(--ui-peso-medio, 500);line-height:var(--ui-altura-linha-titulo, 1.25)}.ui-texto--h6{font-size:var(--ui-tamanho-h6, clamp(13px, 1.2vw, 16px));font-weight:var(--ui-peso-seminegrito, 600);line-height:var(--ui-altura-linha-titulo, 1.25);text-transform:uppercase;letter-spacing:.5px}.ui-texto--corpo{font-size:var(--ui-tamanho-corpo, 14px);font-weight:var(--ui-peso-normal, 400);line-height:var(--ui-altura-linha-corpo, 1.5)}.ui-texto--corpo-sm{font-size:var(--ui-tamanho-corpo-sm, 13px);font-weight:var(--ui-peso-normal, 400);line-height:var(--ui-altura-linha-corpo, 1.5)}.ui-texto--caption{font-size:var(--ui-tamanho-caption, 11px);font-weight:var(--ui-peso-normal, 400);line-height:var(--ui-altura-linha-compacta, 1.2);color:var(--ui-cor-texto-secundario, #888899)}.ui-texto--codigo{font-family:var(--ui-fonte-codigo, monospace);font-size:var(--ui-tamanho-codigo, 12px);font-weight:var(--ui-peso-normal, 400);line-height:var(--ui-altura-linha-corpo, 1.5);background:var(--ui-cor-fundo-elevado, #1a1a1e);padding:2px 6px;border-radius:4px;border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12))}.ui-texto--cor-primaria{color:var(--ui-cor-primaria, #00E08A)}.ui-texto--cor-secundaria{color:var(--ui-cor-texto-secundario, #888899)}.ui-texto--cor-destaque{color:var(--ui-cor-destaque, #00E08A)}.ui-texto--cor-erro{color:var(--ui-cor-texto-erro, #ff5555)}.ui-texto--cor-sucesso{color:var(--ui-cor-texto-sucesso, #00E08A)}.ui-texto--cor-alerta{color:var(--ui-cor-texto-alerta, #ffb86c)}.ui-texto--peso-normal{font-weight:var(--ui-peso-normal, 400)!important}.ui-texto--peso-medio{font-weight:var(--ui-peso-medio, 500)!important}.ui-texto--peso-seminegrito{font-weight:var(--ui-peso-seminegrito, 600)!important}.ui-texto--peso-negrito{font-weight:var(--ui-peso-negrito, 700)!important}.ui-texto--alinhamento-esquerda{text-align:left}.ui-texto--alinhamento-centro{text-align:center}.ui-texto--alinhamento-direita{text-align:right}.ui-texto--alinhamento-justificado{text-align:justify}.ui-texto--truncar{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}';
-class se extends HTMLElement {
+customElements.get("ui-lista-flutuante") || customElements.define("ui-lista-flutuante", V);
+customElements.get("ui-select") || customElements.define("ui-select", ge);
+const ve = ':host{display:block;box-sizing:border-box;margin:0;padding:0;color:var(--ui-cor-texto, #e1e1e6);font-family:var(--ui-fonte-base, "Inter", sans-serif)}:host([inline]){display:inline-block}.ui-texto{margin:0;padding:0;box-sizing:border-box;font-family:inherit;color:inherit;font-size:inherit;font-weight:inherit;line-height:inherit}.ui-texto--h1{font-size:var(--ui-tamanho-h1, clamp(24px, 4vw, 36px));font-weight:var(--ui-peso-negrito, 700);line-height:var(--ui-altura-linha-titulo, 1.25);letter-spacing:-.5px}.ui-texto--h2{font-size:var(--ui-tamanho-h2, clamp(20px, 3vw, 28px));font-weight:var(--ui-peso-seminegrito, 600);line-height:var(--ui-altura-linha-titulo, 1.25);letter-spacing:-.3px}.ui-texto--h3{font-size:var(--ui-tamanho-h3, clamp(18px, 2.4vw, 24px));font-weight:var(--ui-peso-seminegrito, 600);line-height:var(--ui-altura-linha-titulo, 1.25)}.ui-texto--h4{font-size:var(--ui-tamanho-h4, clamp(16px, 2vw, 20px));font-weight:var(--ui-peso-medio, 500);line-height:var(--ui-altura-linha-titulo, 1.25)}.ui-texto--h5{font-size:var(--ui-tamanho-h5, clamp(14px, 1.6vw, 18px));font-weight:var(--ui-peso-medio, 500);line-height:var(--ui-altura-linha-titulo, 1.25)}.ui-texto--h6{font-size:var(--ui-tamanho-h6, clamp(13px, 1.2vw, 16px));font-weight:var(--ui-peso-seminegrito, 600);line-height:var(--ui-altura-linha-titulo, 1.25);text-transform:uppercase;letter-spacing:.5px}.ui-texto--corpo{font-size:var(--ui-tamanho-corpo, 14px);font-weight:var(--ui-peso-normal, 400);line-height:var(--ui-altura-linha-corpo, 1.5)}.ui-texto--corpo-sm{font-size:var(--ui-tamanho-corpo-sm, 13px);font-weight:var(--ui-peso-normal, 400);line-height:var(--ui-altura-linha-corpo, 1.5)}.ui-texto--caption{font-size:var(--ui-tamanho-caption, 11px);font-weight:var(--ui-peso-normal, 400);line-height:var(--ui-altura-linha-compacta, 1.2);color:var(--ui-cor-texto-secundario, #888899)}.ui-texto--codigo{font-family:var(--ui-fonte-codigo, monospace);font-size:var(--ui-tamanho-codigo, 12px);font-weight:var(--ui-peso-normal, 400);line-height:var(--ui-altura-linha-corpo, 1.5);background:var(--ui-cor-fundo-elevado, #1a1a1e);padding:2px 6px;border-radius:4px;border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12))}.ui-texto--cor-primaria{color:var(--ui-cor-primaria, #00E08A)}.ui-texto--cor-secundaria{color:var(--ui-cor-texto-secundario, #888899)}.ui-texto--cor-destaque{color:var(--ui-cor-destaque, #00E08A)}.ui-texto--cor-erro{color:var(--ui-cor-texto-erro, #ff5555)}.ui-texto--cor-sucesso{color:var(--ui-cor-texto-sucesso, #00E08A)}.ui-texto--cor-alerta{color:var(--ui-cor-texto-alerta, #ffb86c)}.ui-texto--peso-normal{font-weight:var(--ui-peso-normal, 400)!important}.ui-texto--peso-medio{font-weight:var(--ui-peso-medio, 500)!important}.ui-texto--peso-seminegrito{font-weight:var(--ui-peso-seminegrito, 600)!important}.ui-texto--peso-negrito{font-weight:var(--ui-peso-negrito, 700)!important}.ui-texto--alinhamento-esquerda{text-align:left}.ui-texto--alinhamento-centro{text-align:center}.ui-texto--alinhamento-direita{text-align:right}.ui-texto--alinhamento-justificado{text-align:justify}.ui-texto--truncar{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}', xe = /* @__PURE__ */ new Set([
+  "p",
+  "span",
+  "div",
+  "h1",
+  "h2",
+  "h3",
+  "h4",
+  "h5",
+  "h6",
+  "small",
+  "code",
+  "strong",
+  "em",
+  "label",
+  "blockquote",
+  "pre",
+  "b",
+  "i"
+]);
+class ye extends HTMLElement {
   constructor() {
     super();
     n(this, "container");
     n(this, "shadow");
-    this.shadow = this.attachShadow({ mode: "open" }), this.container = document.createElement("p"), this.container.className = "ui-texto ui-texto--corpo", this.container.appendChild(document.createElement("slot")), this.shadow.innerHTML = `<style>${re}</style>`, this.shadow.appendChild(this.container);
+    this.shadow = this.attachShadow({ mode: "open" }), this.container = document.createElement("p"), this.container.className = "ui-texto ui-texto--corpo", this.container.appendChild(document.createElement("slot")), this.shadow.innerHTML = `<style>${ve}</style>`, this.shadow.appendChild(this.container);
   }
   static get observedAttributes() {
     return ["variante", "tag", "cor", "peso", "alinhamento", "truncar"];
@@ -307,13 +389,17 @@ class se extends HTMLElement {
   connectedCallback() {
     this.render();
   }
-  attributeChangedCallback(e, t, o) {
+  attributeChangedCallback(e, t, i) {
     this.render();
   }
   resolveTag() {
     const e = this.getAttribute("tag");
-    if (e)
-      return e.toLowerCase();
+    if (e) {
+      const i = e.toLowerCase().trim();
+      if (xe.has(i))
+        return i;
+      console.warn(`[ui-texto] Tag "${e}" não permitida ou inválida. Utilizando fallback semântico.`);
+    }
     const t = (this.getAttribute("variante") || "corpo").toLowerCase();
     switch (t) {
       case "h1":
@@ -334,18 +420,18 @@ class se extends HTMLElement {
     }
   }
   render() {
-    const e = this.resolveTag(), t = this.getAttribute("variante") || "corpo", o = this.getAttribute("cor"), a = this.getAttribute("peso"), r = this.getAttribute("alinhamento"), s = this.hasAttribute("truncar");
+    const e = this.resolveTag(), t = this.getAttribute("variante") || "corpo", i = this.getAttribute("cor"), a = this.getAttribute("peso"), s = this.getAttribute("alinhamento"), r = this.hasAttribute("truncar");
     if (this.container.tagName.toLowerCase() !== e) {
-      const d = document.createElement(e);
-      d.appendChild(document.createElement("slot")), this.shadow.replaceChild(d, this.container), this.container = d;
+      const u = document.createElement(e);
+      u.appendChild(document.createElement("slot")), this.shadow.replaceChild(u, this.container), this.container = u;
     }
     const l = ["ui-texto", `ui-texto--${t}`];
-    o && l.push(`ui-texto--cor-${o}`), a && l.push(`ui-texto--peso-${a}`), r && l.push(`ui-texto--alinhamento-${r}`), s && l.push("ui-texto--truncar"), this.container.className = l.join(" ");
+    i && l.push(`ui-texto--cor-${i}`), a && l.push(`ui-texto--peso-${a}`), s && l.push(`ui-texto--alinhamento-${s}`), r && l.push("ui-texto--truncar"), this.container.className = l.join(" ");
   }
 }
-customElements.get("ui-texto") || customElements.define("ui-texto", se);
-const ne = ':host{display:flex;flex-direction:column;gap:4px;width:100%;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif)}:host([inline]){width:auto;display:inline-flex}.ui-campo-texto__container{position:relative;width:100%;display:flex;flex-direction:column;justify-content:center}:host([label-flutuante]) .ui-campo-texto__container{margin-top:6px}.ui-campo-texto__label{display:flex;align-items:center;justify-content:space-between;font-size:var(--ui-tamanho-corpo-sm, 12.5px);font-weight:var(--ui-peso-medio, 500);color:var(--ui-cor-texto, #e1e1e6);-webkit-user-select:none;user-select:none;margin-bottom:4px;flex-shrink:0}.ui-campo-texto__wrapper{position:relative;display:flex;align-items:center;width:100%;height:var(--ui-campo-altura, 100%);min-height:var(--ui-campo-altura, var(--ui-altura-minima, 15px));background-color:var(--ui-cor-fundo-elevado, #1a1a1e);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));border-radius:var(--ui-raio-borda, 6px);padding:0 clamp(4px,.8vw,8px);gap:clamp(4px,.8vw,8px);box-sizing:border-box;transition:border-color .15s ease,box-shadow .15s ease,background-color .15s ease}.ui-campo-texto__wrapper--foco{border-color:var(--ui-cor-primaria, #00E08A);box-shadow:0 0 0 2px #00e08a2e;background-color:var(--ui-cor-fundo-menu, #18181c)}.ui-campo-texto__wrapper--erro{border-color:var(--ui-cor-texto-erro, #ff5555)!important;box-shadow:0 0 0 2px #ff55552e!important}.ui-campo-texto__wrapper--disabled{opacity:.5;cursor:not-allowed;background-color:#ffffff08}.ui-campo-texto__input{flex:1;width:100%;height:100%;min-height:0;background:transparent;border:none;outline:none;color:var(--ui-cor-texto, #e1e1e6);font-family:inherit;font-size:clamp(10.5px,.8rem,13.5px);line-height:normal;padding:0;margin:0;box-sizing:border-box}.ui-campo-texto__input::placeholder{color:var(--ui-cor-texto-secundario, #888899);opacity:.65}.ui-campo-texto__input:disabled{cursor:not-allowed}.ui-campo-texto__icone{display:inline-flex;align-items:center;justify-content:center;color:var(--ui-cor-texto-secundario, #888899);flex-shrink:0;font-size:clamp(11px,.85em,14px);max-height:100%}.ui-campo-texto__icone--clicavel{cursor:pointer;-webkit-user-select:none;user-select:none;transition:opacity .15s ease,transform .15s ease}.ui-campo-texto__icone--clicavel:hover{opacity:.85;transform:scale(1.1)}:host([label-flutuante]) .ui-campo-texto__label{position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--ui-cor-texto-secundario, #888899);pointer-events:none;z-index:3;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);padding:0 4px;border-radius:3px;margin-bottom:0;white-space:nowrap;max-width:calc(100% - 16px);overflow:hidden;text-overflow:ellipsis;transition:top .15s cubic-bezier(.4,0,.2,1),transform .15s cubic-bezier(.4,0,.2,1),color .15s ease,font-size .15s ease}:host([label-flutuante][tem-icone-esquerda]) .ui-campo-texto__label{left:28px}:host([label-flutuante]) .ui-campo-texto__label--ativa{top:-8px;left:8px!important;transform:translateY(0) scale(.85);transform-origin:left top;font-weight:600;color:var(--ui-cor-primaria, #00E08A);background-color:var(--ui-cor-fundo-elevado, #1a1a1e)}:host([label-flutuante][erro]) .ui-campo-texto__label--ativa,:host([label-flutuante][mensagem-erro]) .ui-campo-texto__label--ativa{color:var(--ui-cor-texto-erro, #ff5555)}.ui-campo-texto__helper{font-size:var(--ui-tamanho-caption, 11px);color:var(--ui-cor-texto-secundario, #888899);line-height:var(--ui-altura-linha-compacta, 1.2);margin-top:2px}.ui-campo-texto__helper--erro{color:var(--ui-cor-texto-erro, #ff5555);font-weight:500;display:flex;align-items:center;gap:4px}';
-class Y extends HTMLElement {
+customElements.get("ui-texto") || customElements.define("ui-texto", ye);
+const _e = ':host{display:flex;flex-direction:column;gap:4px;width:100%;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif)}:host([inline]){width:auto;display:inline-flex}.ui-campo-texto__container{position:relative;width:100%;display:flex;flex-direction:column;justify-content:center}:host([label-flutuante]) .ui-campo-texto__container{margin-top:6px}.ui-campo-texto__label{display:flex;align-items:center;justify-content:space-between;font-size:var(--ui-tamanho-corpo-sm, 13px);font-weight:var(--ui-peso-medio, 500);color:var(--ui-cor-texto, #e1e1e6);-webkit-user-select:none;user-select:none;margin-bottom:4px;flex-shrink:0}.ui-campo-texto__wrapper{position:relative;display:flex;align-items:center;width:100%;height:var(--ui-campo-altura, 100%);min-height:var(--ui-campo-altura, var(--ui-altura-minima, 15px));background-color:var(--ui-cor-fundo-elevado, #1a1a1e);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));border-radius:var(--ui-raio-borda, 6px);padding:0 8px;gap:6px;box-sizing:border-box;transition:border-color .15s ease,box-shadow .15s ease,background-color .15s ease}.ui-campo-texto__wrapper--foco{border-color:var(--ui-cor-primaria, #00E08A);box-shadow:0 0 0 2px #00e08a2e;background-color:var(--ui-cor-fundo-menu, #18181c)}.ui-campo-texto__wrapper--erro{border-color:var(--ui-cor-texto-erro, #ff5555)!important;box-shadow:0 0 0 2px #ff55552e!important}.ui-campo-texto__wrapper--disabled{opacity:.5;cursor:not-allowed;background-color:#ffffff08}.ui-campo-texto__input{flex:1;width:100%;height:100%;min-height:0;background:transparent;border:none;outline:none;color:var(--ui-cor-texto, #e1e1e6);font-family:inherit;font-size:clamp(11px,.85rem,13px);line-height:1.2;padding:0;margin:0;box-sizing:border-box}.ui-campo-texto__input::placeholder{color:var(--ui-cor-texto-secundario, #888899);opacity:.65}.ui-campo-texto__input:disabled{cursor:not-allowed}.ui-campo-texto__icone{display:inline-flex;align-items:center;justify-content:center;color:var(--ui-cor-texto-secundario, #888899);flex-shrink:0;font-size:14px;line-height:1;max-height:100%}.ui-campo-texto__icone svg,.ui-campo-texto__icone ::slotted(svg),.ui-campo-texto__icone ::slotted(ui-icone){shape-rendering:geometricPrecision;display:inline-flex;vertical-align:middle}.ui-campo-texto__icone--clicavel{cursor:pointer;-webkit-user-select:none;user-select:none;transition:opacity .15s ease,transform .15s ease}.ui-campo-texto__icone--clicavel:hover{opacity:.85;transform:scale(1.1)}:host([label-flutuante]) .ui-campo-texto__label{position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--ui-cor-texto-secundario, #888899);pointer-events:none;z-index:3;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);padding:0 4px;border-radius:3px;margin-bottom:0;white-space:nowrap;max-width:calc(100% - 16px);overflow:hidden;text-overflow:ellipsis;transition:top .15s cubic-bezier(.4,0,.2,1),transform .15s cubic-bezier(.4,0,.2,1),color .15s ease,font-size .15s ease}:host([label-flutuante][tem-icone-esquerda]) .ui-campo-texto__label{left:28px}:host([label-flutuante]) .ui-campo-texto__label--ativa{top:-8px;left:8px!important;transform:translateY(0) scale(.85);transform-origin:left top;font-weight:600;color:var(--ui-cor-primaria, #00E08A);background-color:var(--ui-cor-fundo-elevado, #1a1a1e)}:host([label-flutuante][erro]) .ui-campo-texto__label--ativa,:host([label-flutuante][mensagem-erro]) .ui-campo-texto__label--ativa{color:var(--ui-cor-texto-erro, #ff5555)}.ui-campo-texto__helper{font-size:var(--ui-tamanho-caption, 11px);color:var(--ui-cor-texto-secundario, #888899);line-height:var(--ui-altura-linha-compacta, 1.2);margin-top:2px}.ui-campo-texto__helper--erro{color:var(--ui-cor-texto-erro, #ff5555);font-weight:500;display:flex;align-items:center;gap:4px}';
+class ae extends HTMLElement {
   constructor() {
     super();
     n(this, "internals");
@@ -359,11 +445,15 @@ class Y extends HTMLElement {
     n(this, "_checkTimer", null);
     n(this, "_focado", !1);
     n(this, "_inputId");
+    n(this, "_defaultValue", "");
     n(this, "handleSlotChange", () => {
       this.syncState();
     });
     n(this, "handleRightIconClick", (e) => {
       (this.getAttribute("tipo") === "password" || this.hasAttribute("alternar-senha")) && (e.stopPropagation(), this.alternarVisibilidadeSenha());
+    });
+    n(this, "handleRightIconKeyDown", (e) => {
+      (this.getAttribute("tipo") === "password" || this.hasAttribute("alternar-senha")) && (e.key === "Enter" || e.key === " ") && (e.preventDefault(), e.stopPropagation(), this.alternarVisibilidadeSenha());
     });
     n(this, "handleFocus", () => {
       this._focado = !0, this.wrapperElement.classList.add("ui-campo-texto__wrapper--foco"), this.syncState();
@@ -392,9 +482,9 @@ class Y extends HTMLElement {
       );
     });
     this.internals = this.attachInternals();
-    const e = this.attachShadow({ mode: "open" });
+    const e = this.attachShadow({ mode: "open", delegatesFocus: !0 });
     e.innerHTML = `
-      <style>${ne}</style>
+      <style>${_e}</style>
       <div class="ui-campo-texto__container">
         <label class="ui-campo-texto__label" style="display: none;"></label>
         <div class="ui-campo-texto__wrapper">
@@ -408,7 +498,7 @@ class Y extends HTMLElement {
         </div>
       </div>
       <div class="ui-campo-texto__helper" style="display: none;"></div>
-    `, this.labelElement = e.querySelector(".ui-campo-texto__label"), this.wrapperElement = e.querySelector(".ui-campo-texto__wrapper"), this.inputElement = e.querySelector(".ui-campo-texto__input"), this.helperElement = e.querySelector(".ui-campo-texto__helper"), this.rightIconContainer = e.querySelector(".ui-campo-texto__icone--direita"), this.leftSlotElement = e.querySelector('slot[name="icone-esquerda"]'), this._inputId = `ui-input-${Math.random().toString(36).substring(2, 9)}`, this.inputElement.id = this._inputId, this.labelElement.htmlFor = this._inputId;
+    `, this.labelElement = e.querySelector(".ui-campo-texto__label"), this.wrapperElement = e.querySelector(".ui-campo-texto__wrapper"), this.inputElement = e.querySelector(".ui-campo-texto__input"), this.helperElement = e.querySelector(".ui-campo-texto__helper"), this.rightIconContainer = e.querySelector(".ui-campo-texto__icone--direita"), this.leftSlotElement = e.querySelector('slot[name="icone-esquerda"]'), this._inputId = `ui-input-${Math.random().toString(36).substring(2, 9)}`, this.inputElement.id = this._inputId, this.labelElement.htmlFor = this._inputId, this.helperElement.id = `${this._inputId}-helper`, this.inputElement.setAttribute("aria-describedby", `${this._inputId}-helper`);
   }
   static get observedAttributes() {
     return [
@@ -430,15 +520,21 @@ class Y extends HTMLElement {
       "densidade"
     ];
   }
+  focus(e) {
+    this.inputElement.focus(e);
+  }
+  blur() {
+    this.inputElement.blur();
+  }
   connectedCallback() {
-    this.inputElement.addEventListener("input", this.handleInput), this.inputElement.addEventListener("change", this.handleChange), this.inputElement.addEventListener("focus", this.handleFocus), this.inputElement.addEventListener("blur", this.handleBlur), this.inputElement.addEventListener("keyup", this.handleInput), this.rightIconContainer.addEventListener("click", this.handleRightIconClick), this.leftSlotElement.addEventListener("slotchange", this.handleSlotChange), this.hasAttribute("value") && !this.inputElement.value && (this.inputElement.value = this.getAttribute("value") || ""), this.syncState(), this._checkTimer = setTimeout(() => this.syncState(), 100);
+    this.inputElement.addEventListener("input", this.handleInput), this.inputElement.addEventListener("change", this.handleChange), this.inputElement.addEventListener("focus", this.handleFocus), this.inputElement.addEventListener("blur", this.handleBlur), this.rightIconContainer.addEventListener("click", this.handleRightIconClick), this.rightIconContainer.addEventListener("keydown", this.handleRightIconKeyDown), this.leftSlotElement.addEventListener("slotchange", this.handleSlotChange), this._defaultValue = this.getAttribute("value") || "", this.hasAttribute("value") && !this.inputElement.value && (this.inputElement.value = this._defaultValue), this.syncState(), this._checkTimer = setTimeout(() => this.syncState(), 100);
   }
   disconnectedCallback() {
-    this.inputElement.removeEventListener("input", this.handleInput), this.inputElement.removeEventListener("change", this.handleChange), this.inputElement.removeEventListener("focus", this.handleFocus), this.inputElement.removeEventListener("blur", this.handleBlur), this.inputElement.removeEventListener("keyup", this.handleInput), this.rightIconContainer.removeEventListener("click", this.handleRightIconClick), this.leftSlotElement.removeEventListener("slotchange", this.handleSlotChange), this._checkTimer && clearTimeout(this._checkTimer);
+    this.inputElement.removeEventListener("input", this.handleInput), this.inputElement.removeEventListener("change", this.handleChange), this.inputElement.removeEventListener("focus", this.handleFocus), this.inputElement.removeEventListener("blur", this.handleBlur), this.rightIconContainer.removeEventListener("click", this.handleRightIconClick), this.rightIconContainer.removeEventListener("keydown", this.handleRightIconKeyDown), this.leftSlotElement.removeEventListener("slotchange", this.handleSlotChange), this._checkTimer && clearTimeout(this._checkTimer);
   }
-  attributeChangedCallback(e, t, o) {
+  attributeChangedCallback(e, t, i) {
     const a = this._focado;
-    e === "value" && o !== this.inputElement.value && !a && (this.inputElement.value = o || ""), this.syncState();
+    e === "value" && i !== this.inputElement.value && !a && (this.inputElement.value = i || ""), this.syncState();
   }
   get value() {
     return this.inputElement.value;
@@ -447,13 +543,13 @@ class Y extends HTMLElement {
     this.inputElement.value = e, this.setAttribute("value", e), this.syncState();
   }
   alternarVisibilidadeSenha() {
-    var o;
+    var i;
     if (!(this.getAttribute("tipo") === "password" || this._senhaVisivel)) return;
     this._senhaVisivel = !this._senhaVisivel, this.inputElement.type = this._senhaVisivel ? "text" : "password";
-    const t = (o = this.shadowRoot) == null ? void 0 : o.querySelector('slot[name="icone-direita"]');
-    t && t.assignedElements().forEach((r) => {
-      var s, l;
-      (((s = r.textContent) == null ? void 0 : s.trim()) === "👁️" || ((l = r.textContent) == null ? void 0 : l.trim()) === "🙈") && (r.textContent = this._senhaVisivel ? "🙈" : "👁️");
+    const t = (i = this.shadowRoot) == null ? void 0 : i.querySelector('slot[name="icone-direita"]');
+    t && t.assignedElements().forEach((s) => {
+      var r, l;
+      (((r = s.textContent) == null ? void 0 : r.trim()) === "👁️" || ((l = s.textContent) == null ? void 0 : l.trim()) === "🙈") && (s.textContent = this._senhaVisivel ? "🙈" : "👁️");
     }), this.dispatchEvent(
       new CustomEvent("ui-toggle-senha", {
         detail: { visivel: this._senhaVisivel },
@@ -465,31 +561,31 @@ class Y extends HTMLElement {
   syncState() {
     this.leftSlotElement.assignedNodes().length > 0 || this.querySelector('[slot="icone-esquerda"]') !== null ? this.setAttribute("tem-icone-esquerda", "") : this.removeAttribute("tem-icone-esquerda");
     const t = this.getAttribute("altura") || this.getAttribute("height");
-    t && this.style.setProperty("--ui-campo-altura", isNaN(Number(t)) ? t : `${t}px`);
-    const o = this.getAttribute("label"), a = this.hasAttribute("label-flutuante"), r = this.inputElement.value.trim() !== "", s = this._focado, l = (() => {
+    t ? this.style.setProperty("--ui-campo-altura", isNaN(Number(t)) ? t : `${t}px`) : this.style.removeProperty("--ui-campo-altura");
+    const i = this.getAttribute("label"), a = this.hasAttribute("label-flutuante"), s = this.inputElement.value.trim() !== "", r = this._focado, l = (() => {
       try {
         return this.inputElement.matches(":-webkit-autofill");
       } catch {
         return !1;
       }
     })();
-    o ? (this.labelElement.textContent = o, this.labelElement.style.display = "flex", a ? s || r || l ? this.labelElement.classList.add("ui-campo-texto__label--ativa") : this.labelElement.classList.remove("ui-campo-texto__label--ativa") : this.labelElement.classList.remove("ui-campo-texto__label--ativa")) : this.labelElement.style.display = "none";
-    const d = this.getAttribute("placeholder") || "";
-    a && !s && !r && !l ? this.inputElement.placeholder = "" : this.inputElement.placeholder = d;
-    const h = this.getAttribute("tipo") || "text";
-    this._senhaVisivel || (this.inputElement.type = h), this.internals.setFormValue(this.inputElement.value);
+    i ? (this.labelElement.textContent = i, this.labelElement.style.display = "flex", a ? r || s || l ? this.labelElement.classList.add("ui-campo-texto__label--ativa") : this.labelElement.classList.remove("ui-campo-texto__label--ativa") : this.labelElement.classList.remove("ui-campo-texto__label--ativa")) : this.labelElement.style.display = "none";
+    const u = this.getAttribute("placeholder") || "";
+    a && !r && !s && !l ? this.inputElement.placeholder = "" : this.inputElement.placeholder = u;
+    const d = this.getAttribute("tipo") || "text";
+    this._senhaVisivel || (this.inputElement.type = d), this.internals.setFormValue(this.inputElement.value);
     const c = this.hasAttribute("disabled"), p = this.hasAttribute("readonly");
-    this.inputElement.disabled = c, this.inputElement.readOnly = p, c ? this.wrapperElement.classList.add("ui-campo-texto__wrapper--disabled") : this.wrapperElement.classList.remove("ui-campo-texto__wrapper--disabled"), h === "password" || this.hasAttribute("alternar-senha") ? this.rightIconContainer.classList.add("ui-campo-texto__icone--clicavel") : this.rightIconContainer.classList.remove("ui-campo-texto__icone--clicavel");
-    const x = this.hasAttribute("erro") || this.hasAttribute("mensagem-erro"), f = this.getAttribute("mensagem-erro"), m = this.getAttribute("helper-text");
-    x ? this.wrapperElement.classList.add("ui-campo-texto__wrapper--erro") : this.wrapperElement.classList.remove("ui-campo-texto__wrapper--erro"), x && f ? (this.helperElement.textContent = `⚠️ ${f}`, this.helperElement.className = "ui-campo-texto__helper ui-campo-texto__helper--erro", this.helperElement.style.display = "block") : m ? (this.helperElement.textContent = m, this.helperElement.className = "ui-campo-texto__helper", this.helperElement.style.display = "block") : this.helperElement.style.display = "none";
+    this.inputElement.disabled = c, this.inputElement.readOnly = p, c ? this.wrapperElement.classList.add("ui-campo-texto__wrapper--disabled") : this.wrapperElement.classList.remove("ui-campo-texto__wrapper--disabled"), d === "password" || this.hasAttribute("alternar-senha") ? (this.rightIconContainer.classList.add("ui-campo-texto__icone--clicavel"), this.rightIconContainer.setAttribute("role", "button"), this.rightIconContainer.setAttribute("tabindex", "0"), this.rightIconContainer.setAttribute("aria-label", this._senhaVisivel ? "Ocultar senha" : "Exibir senha")) : (this.rightIconContainer.classList.remove("ui-campo-texto__icone--clicavel"), this.rightIconContainer.removeAttribute("role"), this.rightIconContainer.removeAttribute("tabindex"), this.rightIconContainer.removeAttribute("aria-label"));
+    const m = this.hasAttribute("erro") || this.hasAttribute("mensagem-erro"), h = this.getAttribute("mensagem-erro"), f = this.getAttribute("helper-text");
+    m ? (this.wrapperElement.classList.add("ui-campo-texto__wrapper--erro"), this.inputElement.setAttribute("aria-invalid", "true")) : (this.wrapperElement.classList.remove("ui-campo-texto__wrapper--erro"), this.inputElement.removeAttribute("aria-invalid")), m && h ? (this.helperElement.textContent = `⚠️ ${h}`, this.helperElement.className = "ui-campo-texto__helper ui-campo-texto__helper--erro", this.helperElement.style.display = "block") : f ? (this.helperElement.textContent = f, this.helperElement.className = "ui-campo-texto__helper", this.helperElement.style.display = "block") : this.helperElement.style.display = "none";
   }
   formResetCallback() {
-    this.inputElement.value = "", this.removeAttribute("value"), this.syncState();
+    this.inputElement.value = this._defaultValue, this.syncState();
   }
 }
-n(Y, "formAssociated", !0);
-customElements.get("ui-campo-texto") || customElements.define("ui-campo-texto", Y);
-const le = ':host{display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;line-height:1;color:inherit;flex-shrink:0;width:var(--ui-tamanho-icone, 20px);height:var(--ui-tamanho-icone, 20px);box-sizing:border-box}.ui-icone{display:inline-flex;align-items:center;justify-content:center;width:100%;height:100%;color:inherit;font-size:var(--ui-tamanho-icone, 20px)}::slotted(svg),.ui-icone svg{width:100%!important;height:100%!important;display:block}:host([cor="primaria"]),:host([color="primaria"]){color:var(--ui-cor-primaria, #00E08A)}:host([cor="secundaria"]),:host([color="secundaria"]){color:var(--ui-cor-texto-secundario, #888899)}:host([cor="erro"]),:host([color="erro"]){color:var(--ui-cor-texto-erro, #ff5555)}:host([cor="sucesso"]),:host([color="sucesso"]){color:var(--ui-cor-texto-sucesso, #00E08A)}:host([cor="alerta"]),:host([color="alerta"]){color:var(--ui-cor-texto-alerta, #ffb86c)}', D = {
+n(ae, "formAssociated", !0);
+customElements.get("ui-campo-texto") || customElements.define("ui-campo-texto", ae);
+const we = ':host{display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;line-height:1;color:inherit;flex-shrink:0;width:var(--ui-tamanho-icone, 20px);height:var(--ui-tamanho-icone, 20px);box-sizing:border-box}.ui-icone{display:inline-flex;align-items:center;justify-content:center;width:100%;height:100%;color:inherit;font-size:var(--ui-tamanho-icone, 20px)}::slotted(svg),.ui-icone svg{width:100%!important;height:100%!important;display:block;shape-rendering:geometricPrecision}:host([cor="primaria"]),:host([color="primaria"]){color:var(--ui-cor-primaria, #00E08A)}:host([cor="secundaria"]),:host([color="secundaria"]){color:var(--ui-cor-texto-secundario, #888899)}:host([cor="erro"]),:host([color="erro"]){color:var(--ui-cor-texto-erro, #ff5555)}:host([cor="sucesso"]),:host([color="sucesso"]){color:var(--ui-cor-texto-sucesso, #00E08A)}:host([cor="alerta"]),:host([color="alerta"]){color:var(--ui-cor-texto-alerta, #ffb86c)}', J = {
   search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>',
   check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>',
   eye: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>',
@@ -501,25 +597,34 @@ const le = ':host{display:inline-flex;align-items:center;justify-content:center;
   alert: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>',
   close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>'
 };
-class ce extends HTMLElement {
+class Ee extends HTMLElement {
   constructor() {
     super();
     n(this, "iconContainer");
+    n(this, "svgContainer");
+    n(this, "slotElement");
+    n(this, "handleSlotChange", () => {
+      this.syncState();
+    });
     const e = this.attachShadow({ mode: "open" });
     e.innerHTML = `
-      <style>${le}</style>
-      <span class="ui-icone">
+      <style>${we}</style>
+      <span class="ui-icone" aria-hidden="true">
+        <span class="ui-icone__svg" style="display: none;"></span>
         <slot></slot>
       </span>
-    `, this.iconContainer = e.querySelector(".ui-icone");
+    `, this.iconContainer = e.querySelector(".ui-icone"), this.svgContainer = e.querySelector(".ui-icone__svg"), this.slotElement = e.querySelector("slot");
   }
   static get observedAttributes() {
     return ["tamanho", "size", "cor", "color", "nome", "name"];
   }
   connectedCallback() {
-    this.syncState();
+    this.slotElement.addEventListener("slotchange", this.handleSlotChange), this.syncState();
   }
-  attributeChangedCallback(e, t, o) {
+  disconnectedCallback() {
+    this.slotElement.removeEventListener("slotchange", this.handleSlotChange);
+  }
+  attributeChangedCallback(e, t, i) {
     this.syncState();
   }
   resolveTamanhoPx() {
@@ -538,25 +643,26 @@ class ce extends HTMLElement {
     }
   }
   syncState() {
-    var o;
     const e = this.resolveTamanhoPx();
     this.style.setProperty("--ui-tamanho-icone", e);
-    const t = this.getAttribute("nome") || this.getAttribute("name");
-    if (t && D[t]) {
-      const a = (o = this.shadowRoot) == null ? void 0 : o.querySelector("slot");
-      a && a.assignedNodes().length === 0 && (this.iconContainer.innerHTML = D[t]);
-    }
+    const t = this.getAttribute("cor") || this.getAttribute("color");
+    t ? (this.style.setProperty("--ui-cor-icone", t), this.iconContainer.style.color = t) : (this.style.removeProperty("--ui-cor-icone"), this.iconContainer.style.color = ""), this.hasAttribute("aria-label") || this.hasAttribute("label") ? this.iconContainer.removeAttribute("aria-hidden") : this.iconContainer.setAttribute("aria-hidden", "true");
+    const a = this.getAttribute("nome") || this.getAttribute("name"), s = this.slotElement.assignedNodes().length > 0;
+    a && J[a] && !s ? (this.svgContainer.innerHTML = J[a], this.svgContainer.style.display = "inline-flex") : (this.svgContainer.innerHTML = "", this.svgContainer.style.display = "none");
   }
 }
-customElements.get("ui-icone") || customElements.define("ui-icone", ce);
-const de = ':host{display:inline-flex;align-items:center;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif);vertical-align:middle}.ui-checkbox{display:inline-flex;align-items:center;gap:8px;cursor:pointer;-webkit-user-select:none;user-select:none;line-height:1;outline:none}.ui-checkbox--disabled{opacity:.5;cursor:not-allowed!important;pointer-events:none}.ui-checkbox__box{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;min-width:16px;min-height:16px;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16));border-radius:4px;box-sizing:border-box;transition:background-color .15s ease,border-color .15s ease,box-shadow .15s ease;flex-shrink:0}.ui-checkbox:focus-visible .ui-checkbox__box,.ui-checkbox--foco .ui-checkbox__box{border-color:var(--ui-cor-primaria, #00E08A);box-shadow:0 0 0 2px #00e08a40}.ui-checkbox--checked .ui-checkbox__box,.ui-checkbox--indeterminate .ui-checkbox__box{background-color:var(--ui-cor-primaria, #00E08A);border-color:var(--ui-cor-primaria, #00E08A);color:var(--ui-cor-texto-sobre-primaria, #000000)}.ui-checkbox__mark{width:12px;height:12px;display:flex;align-items:center;justify-content:center;transition:transform .15s cubic-bezier(.4,0,.2,1),opacity .15s ease;transform:scale(0);opacity:0}.ui-checkbox--checked .ui-checkbox__mark,.ui-checkbox--indeterminate .ui-checkbox__mark{transform:scale(1);opacity:1}.ui-checkbox__mark svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.ui-checkbox__label{font-size:clamp(11px,.8rem,14px);color:var(--ui-cor-texto, #e1e1e6);line-height:1}.ui-checkbox--label-esquerda{flex-direction:row-reverse}';
-class Z extends HTMLElement {
+customElements.get("ui-icone") || customElements.define("ui-icone", Ee);
+const ke = ':host{display:inline-flex;align-items:center;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif);vertical-align:middle}.ui-checkbox{display:inline-flex;align-items:center;gap:8px;cursor:pointer;-webkit-user-select:none;user-select:none;line-height:1;outline:none}.ui-checkbox--disabled{opacity:.5;cursor:not-allowed!important;pointer-events:none}.ui-checkbox__box{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;min-width:16px;min-height:16px;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16));border-radius:4px;box-sizing:border-box;transition:background-color .15s ease,border-color .15s ease,box-shadow .15s ease;flex-shrink:0}.ui-checkbox:focus-visible .ui-checkbox__box,.ui-checkbox--foco .ui-checkbox__box{border-color:var(--ui-cor-primaria, #00E08A);box-shadow:0 0 0 2px #00e08a40}.ui-checkbox--checked .ui-checkbox__box,.ui-checkbox--indeterminate .ui-checkbox__box{background-color:var(--ui-cor-primaria, #00E08A);border-color:var(--ui-cor-primaria, #00E08A);color:var(--ui-cor-texto-sobre-primaria, #000000)}.ui-checkbox__mark{width:12px;height:12px;display:flex;align-items:center;justify-content:center;transition:transform .15s cubic-bezier(.4,0,.2,1),opacity .15s ease;transform:scale(0);opacity:0}.ui-checkbox--checked .ui-checkbox__mark,.ui-checkbox--indeterminate .ui-checkbox__mark{transform:scale(1);opacity:1}.ui-checkbox__mark svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;shape-rendering:geometricPrecision}.ui-checkbox__label{display:inline-flex;align-items:center;font-size:clamp(11px,.85rem,14px);color:var(--ui-cor-texto, #e1e1e6);line-height:1}.ui-checkbox--label-esquerda{flex-direction:row-reverse}';
+class re extends HTMLElement {
   constructor() {
     super();
     n(this, "internals");
     n(this, "containerElement");
     n(this, "markElement");
     n(this, "labelElement");
+    n(this, "listeners", new z());
+    n(this, "_defaultChecked", !1);
+    n(this, "_defaultIndeterminate", !1);
     n(this, "handleClick", (e) => {
       e.preventDefault(), this.alternar();
     });
@@ -572,7 +678,7 @@ class Z extends HTMLElement {
     this.internals = this.attachInternals();
     const e = this.attachShadow({ mode: "open" });
     e.innerHTML = `
-      <style>${de}</style>
+      <style>${ke}</style>
       <div class="ui-checkbox" tabindex="0" role="checkbox" aria-checked="false">
         <span class="ui-checkbox__box">
           <span class="ui-checkbox__mark"></span>
@@ -595,12 +701,12 @@ class Z extends HTMLElement {
     ];
   }
   connectedCallback() {
-    this.containerElement.addEventListener("click", this.handleClick), this.containerElement.addEventListener("keydown", this.handleKeyDown), this.containerElement.addEventListener("focus", this.handleFocus), this.containerElement.addEventListener("blur", this.handleBlur), this.syncState();
+    this.listeners.cleanup(), this.listeners.add(this.containerElement, "click", this.handleClick), this.listeners.add(this.containerElement, "keydown", this.handleKeyDown), this.listeners.add(this.containerElement, "focus", this.handleFocus), this.listeners.add(this.containerElement, "blur", this.handleBlur), this._defaultChecked = this.hasAttribute("marcado") || this.hasAttribute("checked"), this._defaultIndeterminate = this.hasAttribute("indeterminado") || this.hasAttribute("indeterminate"), this.syncState();
   }
   disconnectedCallback() {
-    this.containerElement.removeEventListener("click", this.handleClick), this.containerElement.removeEventListener("keydown", this.handleKeyDown), this.containerElement.removeEventListener("focus", this.handleFocus), this.containerElement.removeEventListener("blur", this.handleBlur);
+    this.listeners.cleanup();
   }
-  attributeChangedCallback(e, t, o) {
+  attributeChangedCallback(e, t, i) {
     this.syncState();
   }
   get marcado() {
@@ -653,11 +759,11 @@ class Z extends HTMLElement {
     ));
   }
   syncState() {
-    const e = this.marcado, t = this.indeterminado, o = this.disabled, a = this.getAttribute("label"), r = this.getAttribute("posicao-label") || "direita";
+    const e = this.marcado, t = this.indeterminado, i = this.disabled, a = this.getAttribute("label"), s = this.getAttribute("posicao-label") || "direita";
     this.containerElement.setAttribute(
       "aria-checked",
       t ? "mixed" : String(e)
-    ), o ? (this.containerElement.classList.add("ui-checkbox--disabled"), this.containerElement.setAttribute("tabindex", "-1"), this.containerElement.setAttribute("aria-disabled", "true")) : (this.containerElement.classList.remove("ui-checkbox--disabled"), this.containerElement.setAttribute("tabindex", "0"), this.containerElement.removeAttribute("aria-disabled")), e ? this.containerElement.classList.add("ui-checkbox--checked") : this.containerElement.classList.remove("ui-checkbox--checked"), t ? this.containerElement.classList.add("ui-checkbox--indeterminate") : this.containerElement.classList.remove("ui-checkbox--indeterminate"), r === "esquerda" ? this.containerElement.classList.add("ui-checkbox--label-esquerda") : this.containerElement.classList.remove("ui-checkbox--label-esquerda"), t ? this.markElement.innerHTML = `
+    ), i ? (this.containerElement.classList.add("ui-checkbox--disabled"), this.containerElement.setAttribute("tabindex", "-1"), this.containerElement.setAttribute("aria-disabled", "true")) : (this.containerElement.classList.remove("ui-checkbox--disabled"), this.containerElement.setAttribute("tabindex", "0"), this.containerElement.removeAttribute("aria-disabled")), e ? this.containerElement.classList.add("ui-checkbox--checked") : this.containerElement.classList.remove("ui-checkbox--checked"), t ? this.containerElement.classList.add("ui-checkbox--indeterminate") : this.containerElement.classList.remove("ui-checkbox--indeterminate"), s === "esquerda" ? this.containerElement.classList.add("ui-checkbox--label-esquerda") : this.containerElement.classList.remove("ui-checkbox--label-esquerda"), t ? this.markElement.innerHTML = `
         <svg viewBox="0 0 24 24">
           <line x1="5" y1="12" x2="19" y2="12"></line>
         </svg>
@@ -668,17 +774,18 @@ class Z extends HTMLElement {
       ` : this.markElement.innerHTML = "", a ? (this.labelElement.textContent = a, this.labelElement.style.display = "inline") : this.labelElement.style.display = "none", e ? this.internals.setFormValue(this.getAttribute("value") || "on") : this.internals.setFormValue(null);
   }
   formResetCallback() {
-    this.marcado = this.hasAttribute("checked"), this.indeterminado = this.hasAttribute("indeterminate");
+    this.marcado = this._defaultChecked, this.indeterminado = this._defaultIndeterminate;
   }
 }
-n(Z, "formAssociated", !0);
-customElements.get("ui-checkbox") || customElements.define("ui-checkbox", Z);
-const he = ':host{display:inline-flex;align-items:center;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif);vertical-align:middle}.ui-radio{display:inline-flex;align-items:center;gap:8px;cursor:pointer;-webkit-user-select:none;user-select:none;line-height:1;outline:none}.ui-radio--disabled{opacity:.5;cursor:not-allowed!important;pointer-events:none}.ui-radio__circle{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;min-width:16px;min-height:16px;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16));border-radius:50%;box-sizing:border-box;transition:background-color .15s ease,border-color .15s ease,box-shadow .15s ease;flex-shrink:0}.ui-radio:focus-visible .ui-radio__circle,.ui-radio--foco .ui-radio__circle{border-color:var(--ui-cor-primaria, #00E08A);box-shadow:0 0 0 2px #00e08a40}.ui-radio--checked .ui-radio__circle{border-color:var(--ui-cor-primaria, #00E08A)}.ui-radio__dot{width:8px;height:8px;border-radius:50%;background-color:var(--ui-cor-primaria, #00E08A);transition:transform .15s cubic-bezier(.4,0,.2,1),opacity .15s ease;transform:scale(0);opacity:0}.ui-radio--checked .ui-radio__dot{transform:scale(1);opacity:1}.ui-radio__label{font-size:clamp(11px,.8rem,14px);color:var(--ui-cor-texto, #e1e1e6);line-height:1}.ui-radio--label-esquerda{flex-direction:row-reverse}', L = class L extends HTMLElement {
+n(re, "formAssociated", !0);
+customElements.get("ui-checkbox") || customElements.define("ui-checkbox", re);
+const Ae = ':host{display:inline-flex;align-items:center;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif);vertical-align:middle}.ui-radio{display:inline-flex;align-items:center;gap:8px;cursor:pointer;-webkit-user-select:none;user-select:none;line-height:1;outline:none}.ui-radio--disabled{opacity:.5;cursor:not-allowed!important;pointer-events:none}.ui-radio__circle{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;min-width:16px;min-height:16px;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16));border-radius:50%;box-sizing:border-box;transition:background-color .15s ease,border-color .15s ease,box-shadow .15s ease;flex-shrink:0}.ui-radio:focus-visible .ui-radio__circle,.ui-radio--foco .ui-radio__circle{border-color:var(--ui-cor-primaria, #00E08A);box-shadow:0 0 0 2px #00e08a40}.ui-radio--checked .ui-radio__circle{border-color:var(--ui-cor-primaria, #00E08A)}.ui-radio__dot{width:8px;height:8px;border-radius:50%;background-color:var(--ui-cor-primaria, #00E08A);transition:transform .15s cubic-bezier(.4,0,.2,1),opacity .15s ease;transform:scale(0);opacity:0}.ui-radio--checked .ui-radio__dot{transform:scale(1);opacity:1}.ui-radio__label{display:inline-flex;align-items:center;font-size:clamp(11px,.85rem,14px);color:var(--ui-cor-texto, #e1e1e6);line-height:1}.ui-radio--label-esquerda{flex-direction:row-reverse}', P = class P extends HTMLElement {
   constructor() {
     super();
     n(this, "internals");
     n(this, "containerElement");
     n(this, "labelElement");
+    n(this, "_defaultChecked", !1);
     n(this, "handleClick", (e) => {
       e.preventDefault(), this.selecionar(), this.containerElement.focus();
     });
@@ -687,15 +794,13 @@ const he = ':host{display:inline-flex;align-items:center;box-sizing:border-box;f
         e.preventDefault(), this.selecionar();
       else if (["ArrowDown", "ArrowRight", "ArrowUp", "ArrowLeft"].includes(e.key)) {
         e.preventDefault();
-        const t = this.name;
-        if (!t || !L._registry.has(t)) return;
-        const o = Array.from(L._registry.get(t));
-        if (o.length <= 1) return;
-        const a = o.indexOf(this);
-        let r = a;
-        if (e.key === "ArrowDown" || e.key === "ArrowRight" ? r = (a + 1) % o.length : (e.key === "ArrowUp" || e.key === "ArrowLeft") && (r = (a - 1 + o.length) % o.length), r !== a) {
-          const s = o[r];
-          s.selecionar(), s.containerElement.focus();
+        const i = this.getGroupRadios().filter((r) => !r.disabled);
+        if (i.length <= 1) return;
+        const a = i.indexOf(this);
+        let s = a;
+        if (e.key === "ArrowDown" || e.key === "ArrowRight" ? s = (a + 1) % i.length : (e.key === "ArrowUp" || e.key === "ArrowLeft") && (s = (a - 1 + i.length) % i.length), s !== a && s >= 0 && s < i.length) {
+          const r = i[s];
+          r.selecionar(), r.containerElement.focus();
         }
       }
     });
@@ -708,7 +813,7 @@ const he = ':host{display:inline-flex;align-items:center;box-sizing:border-box;f
     this.internals = this.attachInternals();
     const e = this.attachShadow({ mode: "open" });
     e.innerHTML = `
-      <style>${he}</style>
+      <style>${Ae}</style>
       <div class="ui-radio" tabindex="0" role="radio" aria-checked="false">
         <span class="ui-radio__circle">
           <span class="ui-radio__dot"></span>
@@ -730,20 +835,40 @@ const he = ':host{display:inline-flex;align-items:center;box-sizing:border-box;f
     ];
   }
   connectedCallback() {
-    this.containerElement.addEventListener("click", this.handleClick), this.containerElement.addEventListener("keydown", this.handleKeyDown), this.containerElement.addEventListener("focus", this.handleFocus), this.containerElement.addEventListener("blur", this.handleBlur), this.register(), this.syncState();
+    this.containerElement.addEventListener("click", this.handleClick), this.containerElement.addEventListener("keydown", this.handleKeyDown), this.containerElement.addEventListener("focus", this.handleFocus), this.containerElement.addEventListener("blur", this.handleBlur), this._defaultChecked = this.hasAttribute("marcado") || this.hasAttribute("checked"), this.register(), this.syncState();
   }
   disconnectedCallback() {
     this.containerElement.removeEventListener("click", this.handleClick), this.containerElement.removeEventListener("keydown", this.handleKeyDown), this.containerElement.removeEventListener("focus", this.handleFocus), this.containerElement.removeEventListener("blur", this.handleBlur), this.unregister();
   }
+  getScopeNode() {
+    return this.closest("form") || this.getRootNode() || document;
+  }
   register() {
     const e = this.name;
-    e && (L._registry.has(e) || L._registry.set(e, /* @__PURE__ */ new Set()), L._registry.get(e).add(this));
+    if (e) {
+      const t = this.getScopeNode();
+      P._registry.has(t) || P._registry.set(t, /* @__PURE__ */ new Map());
+      const i = P._registry.get(t);
+      i.has(e) || i.set(e, /* @__PURE__ */ new Set()), i.get(e).add(this);
+    }
   }
   unregister() {
     const e = this.name;
-    e && L._registry.has(e) && L._registry.get(e).delete(this);
+    if (e) {
+      const t = this.getScopeNode(), i = P._registry.get(t);
+      if (i && i.has(e)) {
+        const a = i.get(e);
+        a.delete(this), a.size === 0 && i.delete(e), i.size === 0 && P._registry.delete(t);
+      }
+    }
   }
-  attributeChangedCallback(e, t, o) {
+  getGroupRadios() {
+    const e = this.name;
+    if (!e) return [];
+    const t = this.getScopeNode(), i = P._registry.get(t);
+    return !i || !i.has(e) ? [] : Array.from(i.get(e));
+  }
+  attributeChangedCallback(e, t, i) {
     this.syncState();
   }
   get marcado() {
@@ -766,9 +891,8 @@ const he = ':host{display:inline-flex;align-items:center;box-sizing:border-box;f
   }
   selecionar() {
     if (this.disabled || this.marcado) return;
-    const e = this.name;
-    e && L._registry.has(e) && L._registry.get(e).forEach((o) => {
-      o !== this && (o.removeAttribute("marcado"), o.removeAttribute("checked"), o.syncState());
+    this.getGroupRadios().forEach((t) => {
+      t !== this && (t.removeAttribute("marcado"), t.removeAttribute("checked"), t.syncState());
     }), this.marcado = !0, this.dispatchEvent(
       new CustomEvent("ui-change", {
         detail: {
@@ -782,36 +906,33 @@ const he = ':host{display:inline-flex;align-items:center;box-sizing:border-box;f
     );
   }
   syncState() {
-    const e = this.marcado, t = this.disabled, o = this.getAttribute("label"), a = this.getAttribute("posicao-label") || "direita";
+    const e = this.marcado, t = this.disabled, i = this.getAttribute("label"), a = this.getAttribute("posicao-label") || "direita";
     if (this.containerElement.setAttribute("aria-checked", String(e)), t)
       this.containerElement.classList.add("ui-radio--disabled"), this.containerElement.setAttribute("tabindex", "-1"), this.containerElement.setAttribute("aria-disabled", "true");
     else {
       this.containerElement.classList.remove("ui-radio--disabled"), this.containerElement.removeAttribute("aria-disabled");
-      const r = this.name;
-      if (r && L._registry.has(r)) {
-        const s = Array.from(L._registry.get(r));
-        s.some((d) => d.marcado) ? this.containerElement.setAttribute("tabindex", e ? "0" : "-1") : this.containerElement.setAttribute("tabindex", s[0] === this ? "0" : "-1");
-      } else
-        this.containerElement.setAttribute("tabindex", "0");
+      const s = this.getGroupRadios();
+      s.length > 0 ? s.some((l) => l.marcado) ? this.containerElement.setAttribute("tabindex", e ? "0" : "-1") : this.containerElement.setAttribute("tabindex", s[0] === this ? "0" : "-1") : this.containerElement.setAttribute("tabindex", "0");
     }
-    e ? this.containerElement.classList.add("ui-radio--checked") : this.containerElement.classList.remove("ui-radio--checked"), a === "esquerda" ? this.containerElement.classList.add("ui-radio--label-esquerda") : this.containerElement.classList.remove("ui-radio--label-esquerda"), o ? (this.labelElement.textContent = o, this.labelElement.style.display = "inline") : this.labelElement.style.display = "none", e ? this.internals.setFormValue(this.getAttribute("value") || "on") : this.internals.setFormValue(null);
+    e ? this.containerElement.classList.add("ui-radio--checked") : this.containerElement.classList.remove("ui-radio--checked"), a === "esquerda" ? this.containerElement.classList.add("ui-radio--label-esquerda") : this.containerElement.classList.remove("ui-radio--label-esquerda"), i ? (this.labelElement.textContent = i, this.labelElement.style.display = "inline") : this.labelElement.style.display = "none", e ? this.internals.setFormValue(this.getAttribute("value") || "on") : this.internals.setFormValue(null);
   }
   formResetCallback() {
-    const e = this.hasAttribute("checked");
-    e ? this.setAttribute("marcado", "") : this.removeAttribute("marcado"), e ? this.internals.setFormValue(this.getAttribute("value") || "on") : this.internals.setFormValue(null), this.syncState();
+    this.marcado = this._defaultChecked, this._defaultChecked ? this.internals.setFormValue(this.getAttribute("value") || "on") : this.internals.setFormValue(null), this.syncState();
   }
 };
-n(L, "formAssociated", !0), // Registro global de grupos de rádio para exclusividade mutua fora do shadow root
-n(L, "_registry", /* @__PURE__ */ new Map());
-let H = L;
+n(P, "formAssociated", !0), // Registro estruturado com WeakMap para prevenir vazamentos de memória (Memory Leaks)
+n(P, "_registry", /* @__PURE__ */ new WeakMap());
+let H = P;
 customElements.get("ui-radio") || customElements.define("ui-radio", H);
-const ue = ':host{display:inline-flex;align-items:center;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif);vertical-align:middle}.ui-switch{display:inline-flex;align-items:center;gap:8px;cursor:pointer;-webkit-user-select:none;user-select:none;line-height:1;outline:none}.ui-switch--disabled{opacity:.5;cursor:not-allowed!important;pointer-events:none}.ui-switch__track{display:inline-flex;align-items:center;position:relative;width:36px;height:20px;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16));border-radius:999px;box-sizing:border-box;padding:1px;transition:background-color .2s ease,border-color .2s ease,box-shadow .2s ease;flex-shrink:0}.ui-switch:focus-visible .ui-switch__track,.ui-switch--foco .ui-switch__track{border-color:var(--ui-cor-primaria, #00E08A);box-shadow:0 0 0 2px #00e08a40}.ui-switch--checked .ui-switch__track{background-color:var(--ui-cor-primaria, #00E08A);border-color:var(--ui-cor-primaria, #00E08A)}.ui-switch__thumb{display:block;width:16px;height:16px;background-color:#fff;border-radius:50%;box-shadow:0 1px 3px #0000004d;transition:transform .2s cubic-bezier(.4,0,.2,1),background-color .2s ease;transform:translate(0)}.ui-switch--checked .ui-switch__thumb{transform:translate(16px);background-color:var(--ui-cor-texto-sobre-primaria, #000000)}.ui-switch--sm .ui-switch__track{width:28px;height:16px;padding:1px}.ui-switch--sm .ui-switch__thumb{width:12px;height:12px}.ui-switch--sm.ui-switch--checked .ui-switch__thumb{transform:translate(12px)}.ui-switch--lg .ui-switch__track{width:44px;height:24px;padding:1px}.ui-switch--lg .ui-switch__thumb{width:20px;height:20px}.ui-switch--lg.ui-switch--checked .ui-switch__thumb{transform:translate(20px)}.ui-switch__label{font-size:clamp(11px,.8rem,14px);color:var(--ui-cor-texto, #e1e1e6);line-height:1}.ui-switch--label-esquerda{flex-direction:row-reverse}';
-class R extends HTMLElement {
+const Ce = ':host{display:inline-flex;align-items:center;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif);vertical-align:middle}.ui-switch{display:inline-flex;align-items:center;gap:8px;cursor:pointer;-webkit-user-select:none;user-select:none;line-height:1;outline:none}.ui-switch--disabled{opacity:.5;cursor:not-allowed!important;pointer-events:none}.ui-switch__track{display:inline-flex;align-items:center;position:relative;width:36px;height:20px;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16));border-radius:999px;box-sizing:border-box;padding:1px;transition:background-color .2s ease,border-color .2s ease,box-shadow .2s ease;flex-shrink:0}.ui-switch:focus-visible .ui-switch__track,.ui-switch--foco .ui-switch__track{border-color:var(--ui-cor-primaria, #00E08A);box-shadow:0 0 0 2px #00e08a40}.ui-switch--checked .ui-switch__track{background-color:var(--ui-cor-primaria, #00E08A);border-color:var(--ui-cor-primaria, #00E08A)}.ui-switch__thumb{display:block;width:16px;height:16px;background-color:#fff;border-radius:50%;box-shadow:0 1px 3px #0000004d;transition:transform .2s cubic-bezier(.4,0,.2,1),background-color .2s ease;transform:translate(0)}.ui-switch--checked .ui-switch__thumb{transform:translate(16px);background-color:var(--ui-cor-texto-sobre-primaria, #000000)}.ui-switch--sm .ui-switch__track{width:28px;height:16px;padding:1px}.ui-switch--sm .ui-switch__thumb{width:12px;height:12px}.ui-switch--sm.ui-switch--checked .ui-switch__thumb{transform:translate(12px)}.ui-switch--lg .ui-switch__track{width:44px;height:24px;padding:1px}.ui-switch--lg .ui-switch__thumb{width:20px;height:20px}.ui-switch--lg.ui-switch--checked .ui-switch__thumb{transform:translate(20px)}.ui-switch__label{display:inline-flex;align-items:center;font-size:clamp(11px,.85rem,14px);color:var(--ui-cor-texto, #e1e1e6);line-height:1}.ui-switch--label-esquerda{flex-direction:row-reverse}';
+class W extends HTMLElement {
   constructor() {
     super();
     n(this, "internals");
     n(this, "containerElement");
     n(this, "labelElement");
+    n(this, "listeners", new z());
+    n(this, "_defaultChecked", !1);
     n(this, "handleClick", (e) => {
       e.preventDefault(), this.alternar();
     });
@@ -827,7 +948,7 @@ class R extends HTMLElement {
     this.internals = this.attachInternals();
     const e = this.attachShadow({ mode: "open" });
     e.innerHTML = `
-      <style>${ue}</style>
+      <style>${Ce}</style>
       <div class="ui-switch" tabindex="0" role="switch" aria-checked="false">
         <span class="ui-switch__track">
           <span class="ui-switch__thumb"></span>
@@ -850,12 +971,12 @@ class R extends HTMLElement {
     ];
   }
   connectedCallback() {
-    this.containerElement.addEventListener("click", this.handleClick), this.containerElement.addEventListener("keydown", this.handleKeyDown), this.containerElement.addEventListener("focus", this.handleFocus), this.containerElement.addEventListener("blur", this.handleBlur), this.syncState();
+    this.listeners.cleanup(), this.listeners.add(this.containerElement, "click", this.handleClick), this.listeners.add(this.containerElement, "keydown", this.handleKeyDown), this.listeners.add(this.containerElement, "focus", this.handleFocus), this.listeners.add(this.containerElement, "blur", this.handleBlur), this._defaultChecked = this.hasAttribute("ativo") || this.hasAttribute("ligado") || this.hasAttribute("checked"), this.syncState();
   }
   disconnectedCallback() {
-    this.containerElement.removeEventListener("click", this.handleClick), this.containerElement.removeEventListener("keydown", this.handleKeyDown), this.containerElement.removeEventListener("focus", this.handleFocus), this.containerElement.removeEventListener("blur", this.handleBlur);
+    this.listeners.cleanup();
   }
-  attributeChangedCallback(e, t, o) {
+  attributeChangedCallback(e, t, i) {
     this.syncState();
   }
   get ativo() {
@@ -901,25 +1022,26 @@ class R extends HTMLElement {
     ));
   }
   syncState() {
-    const e = this.ativo, t = this.disabled, o = this.getAttribute("tamanho") || this.getAttribute("size") || "md", a = this.getAttribute("label"), r = this.getAttribute("posicao-label") || "direita";
-    this.containerElement.setAttribute("aria-checked", String(e)), t ? (this.containerElement.classList.add("ui-switch--disabled"), this.containerElement.setAttribute("tabindex", "-1"), this.containerElement.setAttribute("aria-disabled", "true")) : (this.containerElement.classList.remove("ui-switch--disabled"), this.containerElement.setAttribute("tabindex", "0"), this.containerElement.removeAttribute("aria-disabled")), e ? this.containerElement.classList.add("ui-switch--checked") : this.containerElement.classList.remove("ui-switch--checked"), this.containerElement.classList.remove("ui-switch--sm", "ui-switch--md", "ui-switch--lg"), ["sm", "md", "lg"].includes(o) ? this.containerElement.classList.add(`ui-switch--${o}`) : this.containerElement.classList.add("ui-switch--md"), r === "esquerda" ? this.containerElement.classList.add("ui-switch--label-esquerda") : this.containerElement.classList.remove("ui-switch--label-esquerda"), a ? (this.labelElement.textContent = a, this.labelElement.style.display = "inline") : this.labelElement.style.display = "none", e ? this.internals.setFormValue(this.getAttribute("value") || "on") : this.internals.setFormValue(null);
+    const e = this.ativo, t = this.disabled, i = this.getAttribute("tamanho") || this.getAttribute("size") || "md", a = this.getAttribute("label"), s = this.getAttribute("posicao-label") || "direita";
+    this.containerElement.setAttribute("aria-checked", String(e)), t ? (this.containerElement.classList.add("ui-switch--disabled"), this.containerElement.setAttribute("tabindex", "-1"), this.containerElement.setAttribute("aria-disabled", "true")) : (this.containerElement.classList.remove("ui-switch--disabled"), this.containerElement.setAttribute("tabindex", "0"), this.containerElement.removeAttribute("aria-disabled")), e ? this.containerElement.classList.add("ui-switch--checked") : this.containerElement.classList.remove("ui-switch--checked"), this.containerElement.classList.remove("ui-switch--sm", "ui-switch--md", "ui-switch--lg"), ["sm", "md", "lg"].includes(i) ? this.containerElement.classList.add(`ui-switch--${i}`) : this.containerElement.classList.add("ui-switch--md"), s === "esquerda" ? this.containerElement.classList.add("ui-switch--label-esquerda") : this.containerElement.classList.remove("ui-switch--label-esquerda"), a ? (this.labelElement.textContent = a, this.labelElement.style.display = "inline") : this.labelElement.style.display = "none", e ? this.internals.setFormValue(this.getAttribute("value") || "on") : this.internals.setFormValue(null);
   }
   formResetCallback() {
-    this.ativo = this.hasAttribute("checked") || this.hasAttribute("ligado");
+    this.ativo = this._defaultChecked;
   }
 }
-n(R, "formAssociated", !0);
-class pe extends R {
+n(W, "formAssociated", !0);
+class Se extends W {
 }
-customElements.get("ui-switch") || customElements.define("ui-switch", R);
-customElements.get("ui-toggle") || customElements.define("ui-toggle", pe);
-const me = ':host{display:inline-flex;align-items:center;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif);vertical-align:middle}.ui-badge{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:600;line-height:1;-webkit-user-select:none;user-select:none;box-sizing:border-box;transition:background-color .15s ease,color .15s ease,border-color .15s ease;white-space:nowrap}.ui-badge--suave{background-color:var(--ui-cor-badge-fundo, rgba(255, 255, 255, .08));color:var(--ui-cor-badge-texto, #e1e1e6);border:1px solid transparent}.ui-badge--solido{background-color:var(--ui-cor-badge-solido, #888899);color:#000;border:1px solid transparent}.ui-badge--contornado{background-color:transparent;color:var(--ui-cor-badge-texto, #e1e1e6);border:1px solid var(--ui-cor-badge-borda, rgba(255, 255, 255, .2))}.ui-badge--sucesso.ui-badge--suave{background-color:#00e08a26;color:var(--ui-cor-primaria, #00E08A)}.ui-badge--sucesso.ui-badge--solido{background-color:var(--ui-cor-primaria, #00E08A);color:#000}.ui-badge--sucesso.ui-badge--contornado{color:var(--ui-cor-primaria, #00E08A);border-color:#00e08a66}.ui-badge--erro.ui-badge--suave{background-color:#ff555526;color:var(--ui-cor-texto-erro, #ff5555)}.ui-badge--erro.ui-badge--solido{background-color:var(--ui-cor-texto-erro, #ff5555);color:#fff}.ui-badge--erro.ui-badge--contornado{color:var(--ui-cor-texto-erro, #ff5555);border-color:#f556}.ui-badge--alerta.ui-badge--suave{background-color:#ffb86c26;color:var(--ui-cor-texto-alerta, #ffb86c)}.ui-badge--alerta.ui-badge--solido{background-color:var(--ui-cor-texto-alerta, #ffb86c);color:#000}.ui-badge--alerta.ui-badge--contornado{color:var(--ui-cor-texto-alerta, #ffb86c);border-color:#ffb86c66}.ui-badge--info.ui-badge--suave,.ui-badge--primaria.ui-badge--suave{background-color:#00aaff26;color:#0af}.ui-badge--info.ui-badge--solido,.ui-badge--primaria.ui-badge--solido{background-color:#0af;color:#fff}.ui-badge--info.ui-badge--contornado,.ui-badge--primaria.ui-badge--contornado{color:#0af;border-color:#0af6}.ui-badge--neutro.ui-badge--suave{background-color:#ffffff14;color:var(--ui-cor-texto-secundario, #888899)}.ui-badge__close{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;cursor:pointer;opacity:.7;transition:opacity .15s ease,background-color .15s ease;font-size:10px;line-height:1;margin-left:2px}.ui-badge__close:hover{opacity:1;background-color:#fff3}';
-class V extends HTMLElement {
+customElements.get("ui-switch") || customElements.define("ui-switch", W);
+customElements.get("ui-toggle") || customElements.define("ui-toggle", Se);
+const ze = ':host{display:inline-flex;align-items:center;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif);vertical-align:middle}.ui-badge{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:600;line-height:1;-webkit-user-select:none;user-select:none;box-sizing:border-box;transition:background-color .15s ease,color .15s ease,border-color .15s ease;white-space:nowrap}::slotted(svg),::slotted(ui-icone){width:12px!important;height:12px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;line-height:1!important;vertical-align:middle!important;shape-rendering:geometricPrecision;flex-shrink:0}::slotted(span){display:inline-flex;align-items:center;line-height:1}.ui-badge--suave{background-color:var(--ui-cor-badge-fundo, rgba(255, 255, 255, .08));color:var(--ui-cor-badge-texto, #e1e1e6);border:1px solid transparent}.ui-badge--solido{background-color:var(--ui-cor-badge-solido, #888899);color:#000;border:1px solid transparent}.ui-badge--contornado{background-color:transparent;color:var(--ui-cor-badge-texto, #e1e1e6);border:1px solid var(--ui-cor-badge-borda, rgba(255, 255, 255, .2))}.ui-badge--sucesso.ui-badge--suave{background-color:#00e08a26;color:var(--ui-cor-primaria, #00E08A)}.ui-badge--sucesso.ui-badge--solido{background-color:var(--ui-cor-primaria, #00E08A);color:#000}.ui-badge--sucesso.ui-badge--contornado{color:var(--ui-cor-primaria, #00E08A);border-color:#00e08a66}.ui-badge--erro.ui-badge--suave{background-color:#ff555526;color:var(--ui-cor-texto-erro, #ff5555)}.ui-badge--erro.ui-badge--solido{background-color:var(--ui-cor-texto-erro, #ff5555);color:#fff}.ui-badge--erro.ui-badge--contornado{color:var(--ui-cor-texto-erro, #ff5555);border-color:#f556}.ui-badge--alerta.ui-badge--suave{background-color:#ffb86c26;color:var(--ui-cor-texto-alerta, #ffb86c)}.ui-badge--alerta.ui-badge--solido{background-color:var(--ui-cor-texto-alerta, #ffb86c);color:#000}.ui-badge--alerta.ui-badge--contornado{color:var(--ui-cor-texto-alerta, #ffb86c);border-color:#ffb86c66}.ui-badge--info.ui-badge--suave,.ui-badge--primaria.ui-badge--suave{background-color:#00aaff26;color:#0af}.ui-badge--info.ui-badge--solido,.ui-badge--primaria.ui-badge--solido{background-color:#0af;color:#fff}.ui-badge--info.ui-badge--contornado,.ui-badge--primaria.ui-badge--contornado{color:#0af;border-color:#0af6}.ui-badge--neutro.ui-badge--suave{background-color:#ffffff14;color:var(--ui-cor-texto-secundario, #888899)}.ui-badge__close{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;cursor:pointer;opacity:.7;transition:opacity .15s ease,background-color .15s ease;font-size:10px;line-height:1;margin-left:2px}.ui-badge__close:hover{opacity:1;background-color:#fff3}';
+class G extends HTMLElement {
   constructor() {
     super();
     n(this, "badgeElement");
     n(this, "labelElement");
     n(this, "closeElement");
+    n(this, "listeners", new z());
     n(this, "handleRemove", (e) => {
       var t;
       e.stopPropagation(), this.dispatchEvent(
@@ -934,11 +1056,11 @@ class V extends HTMLElement {
     });
     const e = this.attachShadow({ mode: "open" });
     e.innerHTML = `
-      <style>${me}</style>
+      <style>${ze}</style>
       <span class="ui-badge">
         <slot></slot>
         <span class="ui-badge__label" style="display: none;"></span>
-        <span class="ui-badge__close" style="display: none;" title="Remover">✕</span>
+        <span class="ui-badge__close" role="button" tabindex="0" aria-label="Remover" style="display: none;" title="Remover">✕</span>
       </span>
     `, this.badgeElement = e.querySelector(".ui-badge"), this.labelElement = e.querySelector(".ui-badge__label"), this.closeElement = e.querySelector(".ui-badge__close");
   }
@@ -955,41 +1077,43 @@ class V extends HTMLElement {
     ];
   }
   connectedCallback() {
-    this.closeElement.addEventListener("click", this.handleRemove), this.syncState();
+    this.listeners.cleanup(), this.listeners.add(this.closeElement, "click", this.handleRemove), this.listeners.add(this.closeElement, "keydown", (e) => {
+      (e.key === "Enter" || e.key === " ") && (e.preventDefault(), this.handleRemove(e));
+    }), this.syncState();
   }
   disconnectedCallback() {
-    this.closeElement.removeEventListener("click", this.handleRemove);
+    this.listeners.cleanup();
   }
-  attributeChangedCallback(e, t, o) {
+  attributeChangedCallback(e, t, i) {
     this.syncState();
   }
   get removivel() {
     return this.hasAttribute("removivel") || this.hasAttribute("removable");
   }
   set removivel(e) {
-    e ? this.setAttribute("removivel", "") : (this.removeAttribute("removivel"), this.removeAttribute("removable")), this.syncState();
+    e ? this.setAttribute("removivel", "") : (this.removeAttribute("removivel"), this.removeAttribute("removable"));
   }
   syncState() {
-    const e = this.getAttribute("variante") || this.getAttribute("variant") || "neutro", t = this.getAttribute("estilo") || "suave", o = this.getAttribute("label"), a = this.removivel;
-    this.badgeElement.className = "ui-badge", this.badgeElement.classList.add(`ui-badge--${e}`), this.badgeElement.classList.add(`ui-badge--${t}`), o ? (this.labelElement.textContent = o, this.labelElement.style.display = "inline") : this.labelElement.style.display = "none", a ? this.closeElement.style.display = "inline-flex" : this.closeElement.style.display = "none";
+    const e = this.getAttribute("variante") || this.getAttribute("variant") || "neutro", t = this.getAttribute("estilo") || "suave", i = this.getAttribute("label"), a = this.removivel;
+    this.badgeElement.className = "ui-badge", this.badgeElement.classList.add(`ui-badge--${e}`), this.badgeElement.classList.add(`ui-badge--${t}`), i ? (this.labelElement.textContent = i, this.labelElement.style.display = "inline") : this.labelElement.style.display = "none", a ? this.closeElement.style.display = "inline-flex" : this.closeElement.style.display = "none";
   }
 }
-class fe extends V {
+class Le extends G {
 }
-class be extends V {
+class Me extends G {
 }
-customElements.get("ui-badge") || customElements.define("ui-badge", V);
-customElements.get("ui-chip") || customElements.define("ui-chip", fe);
-customElements.get("ui-tag") || customElements.define("ui-tag", be);
-const ge = ':host{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif);vertical-align:middle;position:relative}.ui-avatar{position:relative;display:inline-flex;align-items:center;justify-content:center;width:var(--ui-tamanho-avatar, 36px);height:var(--ui-tamanho-avatar, 36px);min-width:var(--ui-tamanho-avatar, 36px);min-height:var(--ui-tamanho-avatar, 36px);border-radius:50%;background-color:var(--ui-cor-fundo-elevado, #22222a);color:var(--ui-cor-primaria, #00E08A);font-weight:600;font-size:clamp(10px,.4 * var(--ui-tamanho-avatar, 36px),24px);-webkit-user-select:none;user-select:none;box-sizing:border-box;overflow:hidden;border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));line-height:1}.ui-avatar__img{width:100%;height:100%;object-fit:cover;display:block}.ui-avatar--quadrado{border-radius:8px}.ui-avatar__status{position:absolute;bottom:0;right:0;width:25%;height:25%;min-width:8px;min-height:8px;max-width:14px;max-height:14px;border-radius:50%;border:2px solid var(--ui-cor-fundo-card, #121214);box-sizing:border-box}.ui-avatar__status--online{background-color:var(--ui-cor-primaria, #00E08A)}.ui-avatar__status--offline{background-color:#889}.ui-avatar__status--ausente{background-color:#ffb86c}.ui-avatar__status--ocupado{background-color:#f55}.ui-avatar--xs{--ui-tamanho-avatar: 20px}.ui-avatar--sm{--ui-tamanho-avatar: 28px}.ui-avatar--md{--ui-tamanho-avatar: 36px}.ui-avatar--lg{--ui-tamanho-avatar: 48px}.ui-avatar--xl{--ui-tamanho-avatar: 64px}';
-class xe extends HTMLElement {
+customElements.get("ui-badge") || customElements.define("ui-badge", G);
+customElements.get("ui-chip") || customElements.define("ui-chip", Le);
+customElements.get("ui-tag") || customElements.define("ui-tag", Me);
+const Ie = ':host{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif);vertical-align:middle;position:relative}.ui-avatar{position:relative;display:inline-flex;align-items:center;justify-content:center;width:var(--ui-tamanho-avatar, 36px);height:var(--ui-tamanho-avatar, 36px);min-width:var(--ui-tamanho-avatar, 36px);min-height:var(--ui-tamanho-avatar, 36px);border-radius:50%;background-color:var(--ui-cor-fundo-elevado, #22222a);color:var(--ui-cor-primaria, #00E08A);font-weight:600;font-size:var(--ui-avatar-font-size, 14px);-webkit-user-select:none;user-select:none;box-sizing:border-box;overflow:hidden;border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));line-height:1}.ui-avatar__img{width:100%;height:100%;object-fit:cover;display:block}.ui-avatar--quadrado{border-radius:8px}.ui-avatar__status{position:absolute;bottom:0;right:0;width:25%;height:25%;min-width:8px;min-height:8px;max-width:14px;max-height:14px;border-radius:50%;border:2px solid var(--ui-cor-fundo-card, #121214);box-sizing:border-box}.ui-avatar__status--online{background-color:var(--ui-cor-primaria, #00E08A)}.ui-avatar__status--offline{background-color:#889}.ui-avatar__status--ausente{background-color:#ffb86c}.ui-avatar__status--ocupado{background-color:#f55}.ui-avatar--xs{--ui-tamanho-avatar: 20px;--ui-avatar-font-size: 10px}.ui-avatar--sm{--ui-tamanho-avatar: 28px;--ui-avatar-font-size: 11px}.ui-avatar--md{--ui-tamanho-avatar: 36px;--ui-avatar-font-size: 14px}.ui-avatar--lg{--ui-tamanho-avatar: 48px;--ui-avatar-font-size: 18px}.ui-avatar--xl{--ui-tamanho-avatar: 64px;--ui-avatar-font-size: 24px}';
+class Pe extends HTMLElement {
   constructor() {
     super();
     n(this, "avatarElement");
     n(this, "statusElement");
     const e = this.attachShadow({ mode: "open" });
     e.innerHTML = `
-      <style>${ge}</style>
+      <style>${Ie}</style>
       <div class="ui-avatar">
         <span class="ui-avatar__content"></span>
       </div>
@@ -1010,7 +1134,7 @@ class xe extends HTMLElement {
   connectedCallback() {
     this.syncState();
   }
-  attributeChangedCallback(e, t, o) {
+  attributeChangedCallback(e, t, i) {
     this.syncState();
   }
   extrairIniciais(e) {
@@ -1018,22 +1142,28 @@ class xe extends HTMLElement {
     if (t.length === 0) return "?";
     if (t.length === 1)
       return t[0].substring(0, 2).toUpperCase();
-    const o = t[0][0], a = t[t.length - 1][0];
-    return (o + a).toUpperCase();
+    const i = t[0][0], a = t[t.length - 1][0];
+    return (i + a).toUpperCase();
   }
   syncState() {
-    const e = this.getAttribute("src"), t = this.getAttribute("nome") || this.getAttribute("name") || "", o = this.getAttribute("tamanho") || this.getAttribute("size") || "md", a = this.getAttribute("formato") || "circulo", r = this.getAttribute("status");
-    this.avatarElement.className = "ui-avatar", ["xs", "sm", "md", "lg", "xl"].includes(o) ? this.avatarElement.classList.add(`ui-avatar--${o}`) : isNaN(parseInt(o, 10)) || this.avatarElement.style.setProperty("--ui-tamanho-avatar", `${parseInt(o, 10)}px`), a === "quadrado" && this.avatarElement.classList.add("ui-avatar--quadrado");
-    const s = this.avatarElement.querySelector(".ui-avatar__content");
-    if (s)
-      if (s.textContent = "", e) {
-        const l = document.createElement("img");
-        l.className = "ui-avatar__img", l.src = e, l.alt = t || "Avatar", l.onerror = () => {
-          this.renderFallback(s, t);
-        }, s.appendChild(l);
+    const e = this.getAttribute("src"), t = this.getAttribute("nome") || this.getAttribute("name") || "", i = this.getAttribute("tamanho") || this.getAttribute("size") || "md", a = this.getAttribute("formato") || "circulo", s = this.getAttribute("status");
+    this.avatarElement.className = "ui-avatar", ["xs", "sm", "md", "lg", "xl"].includes(i) ? (this.avatarElement.classList.add(`ui-avatar--${i}`), this.avatarElement.style.removeProperty("--ui-tamanho-avatar")) : isNaN(parseInt(i, 10)) ? this.avatarElement.style.removeProperty("--ui-tamanho-avatar") : this.avatarElement.style.setProperty("--ui-tamanho-avatar", `${parseInt(i, 10)}px`), a === "quadrado" && this.avatarElement.classList.add("ui-avatar--quadrado");
+    const r = this.avatarElement.querySelector(".ui-avatar__content");
+    if (r)
+      if (e) {
+        const l = r.querySelector("img");
+        if (l && l.getAttribute("src") === e)
+          l.alt = t || "Avatar";
+        else {
+          r.textContent = "";
+          const u = document.createElement("img");
+          u.className = "ui-avatar__img", u.src = e, u.alt = t || "Avatar", u.onerror = () => {
+            this.renderFallback(r, t);
+          }, r.appendChild(u);
+        }
       } else
-        this.renderFallback(s, t);
-    r && ["online", "offline", "ausente", "ocupado"].includes(r) ? (this.statusElement.className = `ui-avatar__status ui-avatar__status--${r}`, this.statusElement.style.display = "block") : this.statusElement.style.display = "none";
+        r.textContent = "", this.renderFallback(r, t);
+    s && ["online", "offline", "ausente", "ocupado"].includes(s) ? (this.statusElement.className = `ui-avatar__status ui-avatar__status--${s}`, this.statusElement.style.display = "block") : this.statusElement.style.display = "none";
   }
   renderFallback(e, t) {
     t ? e.textContent = this.extrairIniciais(t) : e.innerHTML = `
@@ -1044,14 +1174,207 @@ class xe extends HTMLElement {
       `;
   }
 }
-customElements.get("ui-avatar") || customElements.define("ui-avatar", xe);
-const ve = ':host{display:block;width:100%;box-sizing:border-box}:host(.h-full),:host([style*="height: 100%"]){height:100%}.ui-card{display:flex;flex-direction:column;width:100%;height:100%;box-sizing:border-box;background-color:var(--ui-cor-fundo-card, #18181c);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));border-radius:var(--ui-raio-borda, 8px);overflow:hidden;transition:transform .2s cubic-bezier(.4,0,.2,1),box-shadow .2s cubic-bezier(.4,0,.2,1),border-color .2s ease;color:var(--ui-cor-texto, #e1e1e6);font-family:var(--ui-fonte-base, "Inter", sans-serif)}.ui-card--plano{background-color:var(--ui-cor-fundo-card, #18181c);box-shadow:none}.ui-card--elevado{background-color:var(--ui-cor-fundo-elevado, #1e1e24);box-shadow:0 8px 24px #0006;border-color:#ffffff14}.ui-card--destaque{border-color:var(--ui-cor-primaria, #00E08A);background-color:var(--ui-cor-fundo-card, #18181c);box-shadow:0 0 0 1px #00e08a40}.ui-card--clicavel{cursor:pointer;-webkit-user-select:none;user-select:none}.ui-card--clicavel:hover{transform:translateY(-3px);border-color:var(--ui-cor-primaria, #00E08A);box-shadow:0 10px 30px #00000080,0 0 15px #00e08a26}.ui-card--clicavel:active{transform:translateY(-1px)}.ui-card--disabled{opacity:.5;cursor:not-allowed!important;pointer-events:none}.ui-card__media{width:100%;overflow:hidden;display:block;line-height:0}::slotted([slot="midia"]),::slotted([slot="media"]){width:100%;height:auto;display:block;object-fit:cover}.ui-card__header{padding:14px 16px 8px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-sizing:border-box}.ui-card__body{padding:12px 16px;flex:1;box-sizing:border-box}.ui-card__footer{padding:10px 16px 14px;border-top:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between;gap:12px;box-sizing:border-box}.ui-card--compacto .ui-card__header{padding:10px 12px 6px}.ui-card--compacto .ui-card__body{padding:8px 12px}.ui-card--compacto .ui-card__footer{padding:8px 12px 10px}';
-class ye extends HTMLElement {
+customElements.get("ui-avatar") || customElements.define("ui-avatar", Pe);
+const Te = ':host{display:inline-block;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif)}:host([largura-total]),:host([full-width]){display:block;width:100%}.ui-segmented{display:inline-flex;position:relative;background-color:var(--ui-cor-fundo, #0b0b0d);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));border-radius:var(--ui-raio-borda, 8px);padding:3px;box-sizing:border-box;-webkit-user-select:none;user-select:none;gap:2px;align-items:center}:root[data-tema=claro] .ui-segmented,[data-tema=claro] .ui-segmented{background-color:var(--ui-cor-fundo-elevado, #f1f3f5);border-color:#00000014}.ui-segmented--full{display:flex;width:100%}.ui-segmented--full .ui-segmented__item{flex:1}.ui-segmented--sm{padding:2px;height:28px}.ui-segmented--sm .ui-segmented__item{font-size:12px;padding:0 8px;height:22px}.ui-segmented--md{padding:3px;height:36px}.ui-segmented--md .ui-segmented__item{font-size:13px;padding:0 14px;height:28px}.ui-segmented--lg{padding:4px;height:42px}.ui-segmented--lg .ui-segmented__item{font-size:14px;padding:0 18px;height:32px}.ui-segmented__indicador{position:absolute;top:3px;bottom:3px;left:0;background-color:var(--ui-cor-fundo-elevado, #1e1e24);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16));border-radius:calc(var(--ui-raio-borda, 8px) - 2px);box-shadow:0 2px 8px #0006;pointer-events:none;transition:transform .22s cubic-bezier(.16,1,.3,1),width .22s cubic-bezier(.16,1,.3,1),opacity .15s ease;z-index:1;opacity:0}:root[data-tema=claro] .ui-segmented__indicador,[data-tema=claro] .ui-segmented__indicador{background-color:#fff;border-color:#0000001a;box-shadow:0 2px 6px #00000014}.ui-segmented--sm .ui-segmented__indicador{top:2px;bottom:2px}.ui-segmented--lg .ui-segmented__indicador{top:4px;bottom:4px}.ui-segmented__item{position:relative;z-index:2;display:inline-flex;align-items:center;justify-content:center;gap:6px;background:transparent;border:none;color:var(--ui-cor-texto-secundario, #888899);font-family:inherit;font-weight:500;cursor:pointer;border-radius:calc(var(--ui-raio-borda, 8px) - 2px);line-height:1;white-space:nowrap;transition:color .15s ease;box-sizing:border-box}:root[data-tema=claro] .ui-segmented__item,[data-tema=claro] .ui-segmented__item{color:#6c757d}.ui-segmented__item:hover:not(:disabled){color:var(--ui-cor-texto, #e1e1e6)}:root[data-tema=claro] .ui-segmented__item:hover:not(:disabled){color:#1a1a1e}.ui-segmented__item--ativo{color:var(--ui-cor-texto, #ffffff)!important;font-weight:600}:root[data-tema=claro] .ui-segmented__item--ativo{color:#1a1a1e!important}.ui-segmented__item:focus-visible{outline:none;box-shadow:0 0 0 2px var(--ui-cor-primaria, #00E08A)}.ui-segmented__item:disabled{opacity:.35;cursor:not-allowed}.ui-segmented__icone{display:inline-flex;align-items:center;justify-content:center;line-height:1}.ui-segmented__icone ui-icone,.ui-segmented__icone svg{shape-rendering:geometricPrecision;display:inline-flex;align-items:center;justify-content:center}';
+class U extends HTMLElement {
+  constructor() {
+    super();
+    n(this, "internals");
+    n(this, "rootElement");
+    n(this, "trackElement");
+    n(this, "indicadorElement");
+    n(this, "slotElement");
+    n(this, "_opcoes", []);
+    n(this, "_defaultValue", "");
+    n(this, "listeners", new z());
+    n(this, "resizeObserver");
+    n(this, "_rafId", null);
+    n(this, "handleSlotChange", () => {
+      this._opcoes.length === 0 && this.carregarOpcoes();
+    });
+    n(this, "handleKeyDown", (e) => {
+      if (this.disabled) return;
+      const t = Array.from(
+        this.trackElement.querySelectorAll(".ui-segmented__item:not(:disabled)")
+      );
+      if (t.length === 0) return;
+      const i = t.findIndex((r) => r.classList.contains("ui-segmented__item--ativo"));
+      let a = i;
+      if (e.key === "ArrowRight" || e.key === "ArrowDown")
+        e.preventDefault(), a = (i + 1) % t.length;
+      else if (e.key === "ArrowLeft" || e.key === "ArrowUp")
+        e.preventDefault(), a = (i - 1 + t.length) % t.length;
+      else if (e.key === "Home")
+        e.preventDefault(), a = 0;
+      else if (e.key === "End")
+        e.preventDefault(), a = t.length - 1;
+      else
+        return;
+      const s = t[a];
+      if (s && s.dataset.indice) {
+        const r = parseInt(s.dataset.indice, 10);
+        this.selecionarIndice(r);
+      }
+    });
+    this.attachInternals && (this.internals = this.attachInternals());
+    const e = this.attachShadow({ mode: "open" });
+    e.innerHTML = `
+      <style>${Te}</style>
+      <div class="ui-segmented ui-segmented--md" role="radiogroup">
+        <div class="ui-segmented__indicador"></div>
+        <div class="ui-segmented__track" style="display: contents;"></div>
+        <slot style="display: none;"></slot>
+      </div>
+    `, this.rootElement = e.querySelector(".ui-segmented"), this.indicadorElement = e.querySelector(".ui-segmented__indicador"), this.trackElement = e.querySelector(".ui-segmented__track"), this.slotElement = e.querySelector("slot");
+  }
+  static get observedAttributes() {
+    return [
+      "valor",
+      "value",
+      "name",
+      "disabled",
+      "tamanho",
+      "size",
+      "largura-total",
+      "full-width"
+    ];
+  }
+  connectedCallback() {
+    this.listeners.cleanup(), this.listeners.add(this.rootElement, "keydown", this.handleKeyDown), this.listeners.add(this.slotElement, "slotchange", this.handleSlotChange), this._defaultValue || (this._defaultValue = this.getAttribute("valor") || this.getAttribute("value") || ""), typeof ResizeObserver < "u" && (this.resizeObserver = new ResizeObserver(() => {
+      this.atualizarPosicaoIndicador();
+    }), this.resizeObserver.observe(this.rootElement)), this.carregarOpcoes(), this.syncState();
+  }
+  disconnectedCallback() {
+    this.listeners.cleanup(), this.resizeObserver && (this.resizeObserver.disconnect(), this.resizeObserver = void 0), this._rafId !== null && (cancelAnimationFrame(this._rafId), this._rafId = null);
+  }
+  attributeChangedCallback(e, t, i) {
+    t !== i && (e === "valor" || e === "value" ? this.atualizarSelecao(i || "") : this.syncState());
+  }
+  formResetCallback() {
+    this.valor = this._defaultValue;
+  }
+  get valor() {
+    return this.getAttribute("valor") || this.getAttribute("value") || "";
+  }
+  set valor(e) {
+    this.setAttribute("valor", e), this.atualizarSelecao(e);
+  }
+  get value() {
+    return this.valor;
+  }
+  set value(e) {
+    this.valor = e;
+  }
+  get name() {
+    return this.getAttribute("name") || "";
+  }
+  set name(e) {
+    this.setAttribute("name", e);
+  }
+  get disabled() {
+    return this.hasAttribute("disabled");
+  }
+  set disabled(e) {
+    e ? this.setAttribute("disabled", "") : this.removeAttribute("disabled");
+  }
+  get opcoes() {
+    return this._opcoes;
+  }
+  set opcoes(e) {
+    this._opcoes = Array.isArray(e) ? e : [], this.renderizarOpcoes();
+  }
+  carregarOpcoes() {
+    const e = this.slotElement.assignedElements();
+    if (e.length > 0) {
+      const t = [];
+      e.forEach((i) => {
+        var a, s;
+        if (i instanceof HTMLElement) {
+          const r = i.getAttribute("valor") || i.getAttribute("value") || i.getAttribute("data-value") || ((a = i.textContent) == null ? void 0 : a.trim()) || "", l = i.getAttribute("label") || i.getAttribute("rotulo") || ((s = i.textContent) == null ? void 0 : s.trim()) || r, u = i.getAttribute("icone") || i.getAttribute("icon") || void 0, d = i.hasAttribute("disabled");
+          t.push({ valor: r, rotulo: l, icone: u, disabled: d });
+        }
+      }), this._opcoes = t, this.renderizarOpcoes();
+    }
+  }
+  renderizarOpcoes() {
+    this.trackElement.innerHTML = "";
+    const e = this.valor, t = this.disabled;
+    this._opcoes.forEach((i, a) => {
+      const s = document.createElement("button");
+      s.type = "button", s.role = "radio", s.className = "ui-segmented__item", s.dataset.valor = i.valor, s.dataset.indice = String(a);
+      const r = i.valor === e;
+      if (s.setAttribute("aria-checked", String(r)), s.tabIndex = r ? 0 : -1, r && s.classList.add("ui-segmented__item--ativo"), (t || i.disabled) && (s.disabled = !0), i.icone) {
+        const u = document.createElement("span");
+        u.className = "ui-segmented__icone";
+        const d = document.createElement("ui-icone");
+        d.setAttribute("nome", i.icone), d.setAttribute("tamanho", "14"), u.appendChild(d), s.appendChild(u);
+      }
+      const l = document.createElement("span");
+      l.className = "ui-segmented__texto", l.textContent = i.rotulo, s.appendChild(l), s.addEventListener("click", (u) => {
+        u.stopPropagation(), this.selecionarIndice(a);
+      }), this.trackElement.appendChild(s);
+    }), !e && this._opcoes.length > 0 ? this.selecionarIndice(0, !1) : this.atualizarPosicaoIndicador();
+  }
+  selecionarIndice(e, t = !0) {
+    if (this.disabled) return;
+    const i = this._opcoes[e];
+    if (!i || i.disabled) return;
+    const a = this.valor;
+    this.setAttribute("valor", i.valor), this.internals && this.internals.setFormValue(i.valor), this.atualizarSelecao(i.valor), t && a !== i.valor && (this.dispatchEvent(
+      new CustomEvent("ui-change", {
+        detail: { valor: i.valor, rotulo: i.rotulo, indice: e },
+        bubbles: !0,
+        composed: !0
+      })
+    ), this.dispatchEvent(
+      new CustomEvent("ui-selecionar", {
+        detail: { valor: i.valor, rotulo: i.rotulo, indice: e },
+        bubbles: !0,
+        composed: !0
+      })
+    ));
+  }
+  atualizarSelecao(e) {
+    Array.from(this.trackElement.querySelectorAll(".ui-segmented__item")).forEach((i) => {
+      const a = i.dataset.valor === e;
+      i.classList.toggle("ui-segmented__item--ativo", a), i.setAttribute("aria-checked", String(a)), i.tabIndex = a ? 0 : -1, a && i.focus();
+    }), this.internals && this.internals.setFormValue(e), this.atualizarPosicaoIndicador();
+  }
+  atualizarPosicaoIndicador() {
+    this._rafId !== null && cancelAnimationFrame(this._rafId), this._rafId = requestAnimationFrame(() => {
+      this._rafId = null;
+      const e = this.trackElement.querySelector(".ui-segmented__item--ativo");
+      if (!e) {
+        this.indicadorElement.style.opacity = "0";
+        return;
+      }
+      const t = Math.round(e.offsetLeft), i = Math.round(e.offsetWidth);
+      this.indicadorElement.style.transform = `translateX(${t}px)`, this.indicadorElement.style.width = `${i}px`, this.indicadorElement.style.opacity = "1";
+    });
+  }
+  syncState() {
+    const e = this.getAttribute("tamanho") || this.getAttribute("size") || "md", t = this.hasAttribute("largura-total") || this.hasAttribute("full-width"), i = this.disabled;
+    this.rootElement.className = `ui-segmented ui-segmented--${e}`, t && this.rootElement.classList.add("ui-segmented--full"), this.rootElement.setAttribute("aria-disabled", String(i)), Array.from(this.trackElement.querySelectorAll(".ui-segmented__item")).forEach((s) => {
+      s.disabled = i;
+    }), this.atualizarPosicaoIndicador();
+  }
+}
+n(U, "formAssociated", !0);
+class Ne extends U {
+}
+customElements.get("ui-segmented") || customElements.define("ui-segmented", U);
+customElements.get("ui-segmento") || customElements.define("ui-segmento", Ne);
+const qe = ':host{display:block;width:100%;box-sizing:border-box}:host(.h-full),:host([style*="height: 100%"]){height:100%}.ui-card{display:flex;flex-direction:column;width:100%;height:100%;box-sizing:border-box;background-color:var(--ui-cor-fundo-card, #18181c);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));border-radius:var(--ui-raio-borda, 8px);overflow:hidden;transition:transform .2s cubic-bezier(.4,0,.2,1),box-shadow .2s cubic-bezier(.4,0,.2,1),border-color .2s ease;color:var(--ui-cor-texto, #e1e1e6);font-family:var(--ui-fonte-base, "Inter", sans-serif)}.ui-card--plano{background-color:var(--ui-cor-fundo-card, #18181c);box-shadow:none}.ui-card--elevado{background-color:var(--ui-cor-fundo-elevado, #1e1e24);box-shadow:0 8px 24px #0006;border-color:#ffffff14}.ui-card--destaque{border-color:var(--ui-cor-primaria, #00E08A);background-color:var(--ui-cor-fundo-card, #18181c);box-shadow:0 0 0 1px #00e08a40}.ui-card--clicavel{cursor:pointer;-webkit-user-select:none;user-select:none}.ui-card--clicavel:hover{transform:translateY(-3px);border-color:var(--ui-cor-primaria, #00E08A);box-shadow:0 10px 30px #00000080,0 0 15px #00e08a26}.ui-card--clicavel:active{transform:translateY(-1px)}.ui-card--disabled{opacity:.5;cursor:not-allowed!important;pointer-events:none}.ui-card__media{width:100%;overflow:hidden;display:block;line-height:0}::slotted([slot="midia"]),::slotted([slot="media"]){width:100%;height:auto;display:block;object-fit:cover}.ui-card__header{padding:14px 16px 8px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-sizing:border-box}.ui-card__body{padding:12px 16px;flex:1;box-sizing:border-box}.ui-card__footer{padding:10px 16px 14px;border-top:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between;gap:12px;box-sizing:border-box}.ui-card--compacto .ui-card__header{padding:10px 12px 6px}.ui-card--compacto .ui-card__body{padding:8px 12px}.ui-card--compacto .ui-card__footer{padding:8px 12px 10px}';
+class Be extends HTMLElement {
   constructor() {
     super();
     n(this, "cardElement");
-    n(this, "handleClick", () => {
-      this.disabled || this.clicavel && (this.dispatchEvent(
+    n(this, "listeners", new z());
+    n(this, "handleSlotChange", () => {
+      this.syncState();
+    });
+    n(this, "handleClick", (e) => {
+      this.disabled || e && e.target && e.target instanceof HTMLElement && e.target.closest('button, a, input, select, textarea, ui-botao, ui-switch, ui-checkbox, ui-radio, [role="button"]') || this.clicavel && (this.dispatchEvent(
         new CustomEvent("ui-click", {
           detail: {
             id: this.id || "sem-id"
@@ -1069,9 +1392,12 @@ class ye extends HTMLElement {
         })
       ));
     });
+    n(this, "handleKeyDown", (e) => {
+      !this.clicavel || this.disabled || (e.key === "Enter" || e.key === " ") && (e.preventDefault(), this.handleClick());
+    });
     const e = this.attachShadow({ mode: "open" });
     e.innerHTML = `
-      <style>${ve}</style>
+      <style>${qe}</style>
       <div class="ui-card">
         <div class="ui-card__media">
           <slot name="midia"></slot>
@@ -1105,12 +1431,15 @@ class ye extends HTMLElement {
     ];
   }
   connectedCallback() {
-    this.cardElement.addEventListener("click", this.handleClick), this.syncState();
+    var t;
+    this.listeners.cleanup(), this.listeners.add(this.cardElement, "click", this.handleClick), this.listeners.add(this.cardElement, "keydown", this.handleKeyDown);
+    const e = (t = this.shadowRoot) == null ? void 0 : t.querySelectorAll("slot");
+    e == null || e.forEach((i) => this.listeners.add(i, "slotchange", this.handleSlotChange)), this.syncState();
   }
   disconnectedCallback() {
-    this.cardElement.removeEventListener("click", this.handleClick);
+    this.listeners.cleanup();
   }
-  attributeChangedCallback(e, t, o) {
+  attributeChangedCallback(e, t, i) {
     this.syncState();
   }
   get clicavel() {
@@ -1126,26 +1455,19 @@ class ye extends HTMLElement {
     e ? this.setAttribute("disabled", "") : this.removeAttribute("disabled"), this.syncState();
   }
   syncState() {
-    var h, c, p;
-    const e = this.getAttribute("elevacao") || this.getAttribute("elevation") || "plano", t = this.getAttribute("variante") || this.getAttribute("variant"), o = this.clicavel, a = this.hasAttribute("compacto") || this.hasAttribute("compact"), r = this.disabled;
-    this.cardElement.className = "ui-card", this.cardElement.classList.add(`ui-card--${e}`), t && this.cardElement.classList.add(`ui-card--${t}`), o ? (this.cardElement.classList.add("ui-card--clicavel"), this.cardElement.setAttribute("tabindex", "0")) : this.cardElement.removeAttribute("tabindex"), a && this.cardElement.classList.add("ui-card--compacto"), r && this.cardElement.classList.add("ui-card--disabled");
-    const s = (h = this.shadowRoot) == null ? void 0 : h.querySelector(".ui-card__header"), l = (c = this.shadowRoot) == null ? void 0 : c.querySelector(".ui-card__footer"), d = (p = this.shadowRoot) == null ? void 0 : p.querySelector(".ui-card__media");
-    if (d) {
-      const x = this.querySelector('[slot="midia"], [slot="media"]');
-      d.style.display = x ? "block" : "none";
-    }
-    if (s) {
-      const x = this.querySelector('[slot="cabecalho"], [slot="header"]');
-      s.style.display = x ? "flex" : "none";
-    }
-    if (l) {
-      const x = this.querySelector('[slot="rodape"], [slot="footer"]');
-      l.style.display = x ? "flex" : "none";
-    }
+    var c, p, m;
+    const e = this.getAttribute("elevacao") || this.getAttribute("elevation") || "plano", t = this.getAttribute("variante") || this.getAttribute("variant"), i = this.clicavel, a = this.hasAttribute("compacto") || this.hasAttribute("compact"), s = this.disabled;
+    this.cardElement.className = "ui-card", this.cardElement.classList.add(`ui-card--${e}`), t && this.cardElement.classList.add(`ui-card--${t}`), i ? (this.cardElement.classList.add("ui-card--clicavel"), this.cardElement.setAttribute("tabindex", "0")) : this.cardElement.removeAttribute("tabindex"), a && this.cardElement.classList.add("ui-card--compacto"), s && this.cardElement.classList.add("ui-card--disabled");
+    const r = (c = this.shadowRoot) == null ? void 0 : c.querySelector(".ui-card__header"), l = (p = this.shadowRoot) == null ? void 0 : p.querySelector(".ui-card__footer"), u = (m = this.shadowRoot) == null ? void 0 : m.querySelector(".ui-card__media"), d = (h) => {
+      var v;
+      const f = h.map((x) => `slot[name="${x}"]`).join(", ");
+      return Array.from(((v = this.shadowRoot) == null ? void 0 : v.querySelectorAll(f)) || []).some((x) => x.assignedNodes({ flatten: !0 }).some((E) => E.nodeType === Node.ELEMENT_NODE || E.textContent && E.textContent.trim() !== "")) || h.some((x) => this.querySelector(`[slot="${x}"]`) !== null);
+    };
+    u && (u.style.display = d(["midia", "media"]) ? "block" : "none"), r && (r.style.display = d(["cabecalho", "header"]) ? "flex" : "none"), l && (l.style.display = d(["rodape", "footer"]) ? "flex" : "none");
   }
 }
-customElements.get("ui-card") || customElements.define("ui-card", ye);
-const _e = ':host{display:block;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif)}.ui-modal__backdrop{display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background-color:#000000b3;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);z-index:9998;opacity:0;pointer-events:none;transition:opacity .25s ease}:host([aberto]) .ui-modal__backdrop,:host([open]) .ui-modal__backdrop{display:block;opacity:1;pointer-events:auto}.ui-modal__dialog{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.95);max-width:560px;width:90%;max-height:85vh;background-color:var(--ui-cor-fundo-card, #18181c);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16));border-radius:var(--ui-raio-borda, 12px);box-shadow:0 12px 36px #0009;z-index:9999;display:flex;flex-direction:column;opacity:0;visibility:hidden;pointer-events:none;overflow:hidden;transition:transform .25s cubic-bezier(.4,0,.2,1),opacity .25s ease,visibility .25s ease;box-sizing:border-box;color:var(--ui-cor-texto, #e1e1e6)}:host([aberto]) .ui-modal__dialog,:host([open]) .ui-modal__dialog{opacity:1;visibility:visible;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}.ui-modal__handle{display:none;width:36px;height:4px;border-radius:2px;background-color:#ffffff40;margin:6px auto 12px;flex-shrink:0}.ui-modal__header{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.08);gap:12px}.ui-modal__titulo{font-size:1.1rem;font-weight:600;margin:0;color:var(--ui-cor-texto, #e1e1e6)}.ui-modal__close{background:transparent;border:none;color:var(--ui-cor-texto-secundario, #888899);font-size:16px;cursor:pointer;padding:4px 8px;border-radius:4px;line-height:1;transition:color .15s ease,background-color .15s ease}.ui-modal__close:hover{color:#fff;background-color:#ffffff1a}.ui-modal__body{padding:20px;overflow-y:auto;flex:1;box-sizing:border-box}.ui-modal__footer{padding:14px 20px;display:flex;align-items:center;justify-content:flex-end;gap:12px;border-top:1px solid rgba(255,255,255,.08);background-color:#00000026}@media (max-width: 640px){.ui-modal__dialog{top:auto!important;bottom:0!important;left:0!important;transform:translateY(100%)!important;width:100vw!important;max-width:100vw!important;border-radius:16px 16px 0 0!important;max-height:80vh!important;border-bottom:none!important;box-shadow:0 -8px 32px #000000b3!important}:host([aberto]) .ui-modal__dialog,:host([open]) .ui-modal__dialog{transform:translateY(0)!important}.ui-modal__handle{display:block!important}}:host([bottom-sheet]) .ui-modal__dialog{top:auto!important;bottom:0!important;left:0!important;transform:translateY(100%)!important;width:100vw!important;max-width:100vw!important;border-radius:16px 16px 0 0!important;max-height:80vh!important;border-bottom:none!important;box-shadow:0 -8px 32px #000000b3!important}:host([bottom-sheet][aberto]) .ui-modal__dialog,:host([bottom-sheet][open]) .ui-modal__dialog{transform:translateY(0)!important}:host([bottom-sheet]) .ui-modal__handle{display:block!important}', z = class z extends HTMLElement {
+customElements.get("ui-card") || customElements.define("ui-card", Be);
+const $e = ':host{display:block;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif)}.ui-modal__backdrop{display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background-color:#000000b3;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);z-index:9998;opacity:0;pointer-events:none;transition:opacity .25s ease}:host([aberto]) .ui-modal__backdrop,:host([open]) .ui-modal__backdrop{display:block;opacity:1;pointer-events:auto}.ui-modal__dialog{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.95);max-width:560px;width:90%;max-height:85vh;background-color:var(--ui-cor-fundo-card, #18181c);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16));border-radius:var(--ui-raio-borda, 12px);box-shadow:0 12px 36px #0009;z-index:9999;display:flex;flex-direction:column;opacity:0;visibility:hidden;pointer-events:none;overflow:hidden;transition:transform .25s cubic-bezier(.16,1,.3,1),opacity .2s ease,visibility .2s ease;box-sizing:border-box;color:var(--ui-cor-texto, #e1e1e6)}:host([aberto]) .ui-modal__dialog,:host([open]) .ui-modal__dialog{opacity:1;visibility:visible;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}@starting-style{:host([aberto]) .ui-modal__dialog,:host([open]) .ui-modal__dialog{opacity:0;transform:translate(-50%,-50%) scale(.94)}:host([aberto]) .ui-modal__backdrop,:host([open]) .ui-modal__backdrop{opacity:0}}.ui-modal__handle{display:none;width:36px;height:4px;border-radius:2px;background-color:#ffffff40;margin:6px auto 12px;flex-shrink:0}.ui-modal__header{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.08);gap:12px}.ui-modal__titulo{font-size:18px;font-weight:600;margin:0;color:var(--ui-cor-texto, #e1e1e6)}.ui-modal__close{background:transparent;border:none;color:var(--ui-cor-texto-secundario, #888899);font-size:16px;cursor:pointer;padding:4px 8px;border-radius:4px;line-height:1;display:inline-flex;align-items:center;justify-content:center;transition:color .15s ease,background-color .15s ease}.ui-modal__close svg,.ui-modal__close ::slotted(svg){shape-rendering:geometricPrecision}.ui-modal__close:hover{color:#fff;background-color:#ffffff1a}.ui-modal__body{padding:20px;overflow-y:auto;flex:1;box-sizing:border-box}.ui-modal__footer{padding:14px 20px;display:flex;align-items:center;justify-content:flex-end;gap:12px;border-top:1px solid rgba(255,255,255,.08);background-color:#00000026}@media (max-width: 640px){.ui-modal__dialog{top:auto!important;bottom:0!important;left:0!important;transform:translateY(100%)!important;width:100vw!important;max-width:100vw!important;border-radius:16px 16px 0 0!important;max-height:80vh!important;border-bottom:none!important;box-shadow:0 -8px 32px #000000b3!important}:host([aberto]) .ui-modal__dialog,:host([open]) .ui-modal__dialog{transform:translateY(0)!important}.ui-modal__handle{display:block!important}}:host([bottom-sheet]) .ui-modal__dialog{top:auto!important;bottom:0!important;left:0!important;transform:translateY(100%)!important;width:100vw!important;max-width:100vw!important;border-radius:16px 16px 0 0!important;max-height:80vh!important;border-bottom:none!important;box-shadow:0 -8px 32px #000000b3!important}:host([bottom-sheet][aberto]) .ui-modal__dialog,:host([bottom-sheet][open]) .ui-modal__dialog{transform:translateY(0)!important}:host([bottom-sheet]) .ui-modal__handle{display:block!important}', I = class I extends HTMLElement {
   constructor() {
     super();
     n(this, "backdropElement");
@@ -1154,6 +1476,9 @@ const _e = ':host{display:block;box-sizing:border-box;font-family:var(--ui-fonte
     n(this, "closeElement");
     n(this, "_elementoGatilho", null);
     n(this, "_focables", []);
+    n(this, "handleSlotChange", () => {
+      this.syncState();
+    });
     n(this, "handleBackdropClick", (e) => {
       e.stopPropagation(), this.fechar();
     });
@@ -1161,7 +1486,7 @@ const _e = ':host{display:block;box-sizing:border-box;font-family:var(--ui-fonte
       e.stopPropagation(), this.fechar();
     });
     n(this, "handleKeyDown", (e) => {
-      var t, o;
+      var t, i;
       if (this.aberto && this._isTopMostModal()) {
         if (e.key === "Escape")
           this.fechar(), e.stopImmediatePropagation();
@@ -1170,20 +1495,20 @@ const _e = ':host{display:block;box-sizing:border-box;font-family:var(--ui-fonte
             e.preventDefault();
             return;
           }
-          const a = this._focables[0], r = this._focables[this._focables.length - 1], s = this.getRootNode().activeElement;
-          e.shiftKey ? (s === a || !this.contains(s) && !((t = this.shadowRoot) != null && t.contains(s))) && (e.preventDefault(), r.focus()) : (s === r || !this.contains(s) && !((o = this.shadowRoot) != null && o.contains(s))) && (e.preventDefault(), a.focus());
+          const a = this._focables[0], s = this._focables[this._focables.length - 1], r = this.getRootNode().activeElement;
+          e.shiftKey ? (r === a || !this.contains(r) && !((t = this.shadowRoot) != null && t.contains(r))) && (e.preventDefault(), s.focus()) : (r === s || !this.contains(r) && !((i = this.shadowRoot) != null && i.contains(r))) && (e.preventDefault(), a.focus());
         }
       }
     });
     const e = this.attachShadow({ mode: "open" });
     e.innerHTML = `
-      <style>${_e}</style>
+      <style>${$e}</style>
       <div class="ui-modal__backdrop"></div>
       <div class="ui-modal__dialog" role="dialog" aria-modal="true" tabindex="-1">
         <div class="ui-modal__handle"></div>
         <div class="ui-modal__header">
           <h3 class="ui-modal__titulo"></h3>
-          <button class="ui-modal__close" title="Fechar (Esc)">✕</button>
+          <button class="ui-modal__close" type="button" aria-label="Fechar modal" title="Fechar (Esc)">✕</button>
         </div>
         <div class="ui-modal__body">
           <slot></slot>
@@ -1206,13 +1531,19 @@ const _e = ':host{display:block;box-sizing:border-box;font-family:var(--ui-fonte
     ];
   }
   connectedCallback() {
-    this.backdropElement.addEventListener("click", this.handleBackdropClick), this.closeElement.addEventListener("click", this.handleCloseClick), window.addEventListener("keydown", this.handleKeyDown), this.syncState();
+    this.backdropElement.addEventListener("click", this.handleBackdropClick), this.closeElement.addEventListener("click", this.handleCloseClick), window.addEventListener("keydown", this.handleKeyDown), this.shadowRoot.querySelectorAll("slot").forEach((t) => {
+      t.addEventListener("slotchange", this.handleSlotChange);
+    }), this.syncState();
   }
   disconnectedCallback() {
-    this.backdropElement.removeEventListener("click", this.handleBackdropClick), this.closeElement.removeEventListener("click", this.handleCloseClick), window.removeEventListener("keydown", this.handleKeyDown), this.hasAttribute("data-scroll-locked") && (this.removeAttribute("data-scroll-locked"), z._openCount = Math.max(0, z._openCount - 1), z._openCount === 0 && (document.body.style.overflow = ""));
+    this.backdropElement.removeEventListener("click", this.handleBackdropClick), this.closeElement.removeEventListener("click", this.handleCloseClick), window.removeEventListener("keydown", this.handleKeyDown), this.shadowRoot.querySelectorAll("slot").forEach((t) => {
+      t.removeEventListener("slotchange", this.handleSlotChange);
+    }), this.hasAttribute("data-scroll-locked") && (this.removeAttribute("data-scroll-locked"), I._openCount = Math.max(0, I._openCount - 1), I._openCount === 0 && (document.body.style.overflow = ""));
   }
-  attributeChangedCallback(e, t, o) {
-    this.syncState();
+  attributeChangedCallback(e, t, i) {
+    (e === "aberto" || e === "open") && i !== null && (document.activeElement && document.activeElement !== document.body && (this._elementoGatilho = document.activeElement), setTimeout(() => {
+      this._atualizarFocables(), this._focables.length > 0 ? this._focables[0].focus() : this.dialogElement.focus();
+    }, 0)), this.syncState();
   }
   get aberto() {
     return this.hasAttribute("aberto") || this.hasAttribute("open");
@@ -1239,73 +1570,243 @@ const _e = ':host{display:block;box-sizing:border-box;font-family:var(--ui-fonte
     ), this._elementoGatilho && (this._elementoGatilho.focus(), this._elementoGatilho = null));
   }
   syncState() {
-    var a;
-    const e = this.aberto, t = this.getAttribute("titulo") || this.getAttribute("title") || "", o = (a = this.shadowRoot) == null ? void 0 : a.querySelector(".ui-modal__footer");
-    if (this.dialogElement.setAttribute("aria-hidden", String(!e)), t ? (this.tituloElement.textContent = t, this.tituloElement.style.display = "block") : this.tituloElement.style.display = "none", o) {
-      const r = this.querySelector('[slot="rodape"], [slot="footer"]');
-      o.style.display = r ? "flex" : "none";
+    var a, s;
+    const e = this.aberto, t = this.getAttribute("titulo") || this.getAttribute("title") || "", i = (a = this.shadowRoot) == null ? void 0 : a.querySelector(".ui-modal__footer");
+    if (this.dialogElement.setAttribute("aria-hidden", String(!e)), t ? (this.tituloElement.textContent = t, this.tituloElement.style.display = "block") : this.tituloElement.style.display = "none", i) {
+      const l = Array.from(((s = this.shadowRoot) == null ? void 0 : s.querySelectorAll('slot[name="rodape"], slot[name="footer"]')) || []).some((u) => u.assignedNodes({ flatten: !0 }).some((c) => c.nodeType === Node.ELEMENT_NODE || c.textContent && c.textContent.trim() !== "")) || this.querySelector('[slot="rodape"], [slot="footer"]') !== null;
+      i.style.display = l ? "flex" : "none";
     }
-    e ? this.hasAttribute("data-scroll-locked") || (this.setAttribute("data-scroll-locked", "true"), z._openCount++, z._openCount === 1 && (document.body.style.overflow = "hidden")) : this.hasAttribute("data-scroll-locked") && (this.removeAttribute("data-scroll-locked"), z._openCount = Math.max(0, z._openCount - 1), z._openCount === 0 && (document.body.style.overflow = ""));
+    e ? this.hasAttribute("data-scroll-locked") || (this.setAttribute("data-scroll-locked", "true"), I._openCount++, I._openCount === 1 && (document.body.style.overflow = "hidden")) : this.hasAttribute("data-scroll-locked") && (this.removeAttribute("data-scroll-locked"), I._openCount = Math.max(0, I._openCount - 1), I._openCount === 0 && (document.body.style.overflow = ""));
   }
   _atualizarFocables() {
-    const e = 'a[href], button, input, textarea, select, details, [tabindex]:not([tabindex="-1"])';
+    const e = 'a[href], button, input, textarea, select, details, [tabindex]:not([tabindex="-1"]), ui-campo-texto, ui-botao, ui-botao-primario, ui-checkbox, ui-switch, ui-lista-flutuante, ui-radio, ui-select';
     let t = Array.from(this.shadowRoot.querySelectorAll(e));
-    t = t.filter((r) => window.getComputedStyle(r).display !== "none");
-    const o = this.shadowRoot.querySelectorAll("slot");
+    t = t.filter((s) => window.getComputedStyle(s).display !== "none");
+    const i = this.shadowRoot.querySelectorAll("slot");
     let a = [];
-    o.forEach((r) => {
-      r.assignedElements({ flatten: !0 }).forEach((l) => {
+    i.forEach((s) => {
+      s.assignedElements({ flatten: !0 }).forEach((l) => {
         l instanceof HTMLElement && (l.matches(e) && a.push(l), a.push(...Array.from(l.querySelectorAll(e))));
       });
-    }), this._focables = [...t, ...a].filter((r) => !r.hasAttribute("disabled") && r.getAttribute("aria-hidden") !== "true");
+    }), this._focables = [...t, ...a].filter((s) => !s.hasAttribute("disabled") && s.getAttribute("aria-hidden") !== "true");
   }
   _isTopMostModal() {
     const e = Array.from(document.querySelectorAll("ui-modal[aberto], ui-modal[open], ui-dialog[aberto], ui-dialog[open]"));
     return e[e.length - 1] === this;
   }
 };
-n(z, "_openCount", 0);
-let N = z;
-class we extends N {
+n(I, "_openCount", 0);
+let O = I;
+class Re extends O {
 }
-customElements.get("ui-modal") || customElements.define("ui-modal", N);
-customElements.get("ui-dialog") || customElements.define("ui-dialog", we);
-const ke = ':host{display:block;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif)}.ui-alerta{display:flex;align-items:flex-start;gap:12px;padding:12px 16px;border-radius:var(--ui-raio-borda, 8px);border:1px solid transparent;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);color:var(--ui-cor-texto, #e1e1e6);box-sizing:border-box;position:relative;transition:opacity .2s ease,transform .2s ease;line-height:1.4}.ui-alerta__icone{display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}.ui-alerta__conteudo{flex:1}.ui-alerta__titulo{font-size:.9rem;font-weight:600;margin:0 0 2px;line-height:1.2}.ui-alerta__mensagem{font-size:.825rem;margin:0;opacity:.9}.ui-alerta__close{background:transparent;border:none;color:currentColor;opacity:.7;font-size:14px;cursor:pointer;padding:2px 6px;border-radius:4px;line-height:1;flex-shrink:0;margin-top:-2px;margin-right:-4px;transition:opacity .15s ease,background-color .15s ease}.ui-alerta__close:hover{opacity:1;background-color:#ffffff26}.ui-alerta--sucesso{background-color:#00e08a1f;border-color:#00e08a4d;color:var(--ui-cor-texto-sucesso, #00E08A)}.ui-alerta--sucesso .ui-alerta__mensagem{color:var(--ui-cor-texto, #e1e1e6)}.ui-alerta--erro{background-color:#ff55551f;border-color:#ff55554d;color:var(--ui-cor-texto-erro, #ff5555)}.ui-alerta--erro .ui-alerta__mensagem{color:var(--ui-cor-texto, #e1e1e6)}.ui-alerta--alerta{background-color:#ffb86c1f;border-color:#ffb86c4d;color:var(--ui-cor-texto-alerta, #ffb86c)}.ui-alerta--alerta .ui-alerta__mensagem{color:var(--ui-cor-texto, #e1e1e6)}.ui-alerta--info{background-color:#00aaff1f;border-color:#00aaff4d;color:#0af}.ui-alerta--info .ui-alerta__mensagem{color:var(--ui-cor-texto, #e1e1e6)}:host(ui-toast){display:block;width:100%;box-sizing:border-box;pointer-events:auto;transition:transform .25s cubic-bezier(.4,0,.2,1),opacity .25s ease}.ui-toast__banner{box-shadow:0 8px 30px #0009;animation:ui-toast-slide .3s cubic-bezier(.4,0,.2,1)}@keyframes ui-toast-slide{0%{transform:translate(100%);opacity:0}to{transform:translate(0);opacity:1}}', j = {
+customElements.get("ui-modal") || customElements.define("ui-modal", O);
+customElements.get("ui-dialog") || customElements.define("ui-dialog", Re);
+const Fe = ':host{display:block;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif)}.ui-drawer__backdrop{position:fixed;top:0;left:0;width:100vw;height:100vh;background-color:#000000a6;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);z-index:9998;opacity:0;pointer-events:none;transition:opacity .25s ease}:host([aberto]) .ui-drawer__backdrop,:host([open]) .ui-drawer__backdrop{opacity:1;pointer-events:auto}.ui-drawer__painel{position:fixed;z-index:9999;background-color:var(--ui-cor-fundo-card, #18181c);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));box-shadow:0 16px 40px #000000b3;display:flex;flex-direction:column;opacity:0;visibility:hidden;pointer-events:none;transition:transform .25s cubic-bezier(.16,1,.3,1),opacity .2s ease,visibility .2s ease;box-sizing:border-box;color:var(--ui-cor-texto, #e1e1e6)}:root[data-tema=claro] .ui-drawer__painel,[data-tema=claro] .ui-drawer__painel{background-color:#fff;border-color:#0000001f;box-shadow:0 12px 32px #00000026;color:#1a1a1e}:host(:not([posicao])) .ui-drawer__painel,:host([posicao="direita"]) .ui-drawer__painel,:host([position="right"]) .ui-drawer__painel{top:0;right:0;bottom:0;width:var(--ui-drawer-largura, 480px);max-width:92vw;height:100vh;transform:translate(100%);border-left:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16))}:host([aberto]:not([posicao])) .ui-drawer__painel,:host([open]:not([posicao])) .ui-drawer__painel,:host([aberto][posicao="direita"]) .ui-drawer__painel,:host([open][posicao="direita"]) .ui-drawer__painel,:host([aberto][position="right"]) .ui-drawer__painel,:host([open][position="right"]) .ui-drawer__painel{transform:translate(0);opacity:1;visibility:visible;pointer-events:auto}:host([posicao="esquerda"]) .ui-drawer__painel,:host([position="left"]) .ui-drawer__painel{top:0;left:0;bottom:0;width:var(--ui-drawer-largura, 480px);max-width:92vw;height:100vh;transform:translate(-100%);border-right:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16))}:host([aberto][posicao="esquerda"]) .ui-drawer__painel,:host([open][posicao="esquerda"]) .ui-drawer__painel,:host([aberto][position="left"]) .ui-drawer__painel,:host([open][position="left"]) .ui-drawer__painel{transform:translate(0);opacity:1;visibility:visible;pointer-events:auto}:host([posicao="baixo"]) .ui-drawer__painel,:host([position="bottom"]) .ui-drawer__painel{bottom:0;left:0;right:0;width:100vw;max-height:85vh;transform:translateY(100%);border-top:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16));border-top-left-radius:14px;border-top-right-radius:14px}:host([aberto][posicao="baixo"]) .ui-drawer__painel,:host([open][posicao="baixo"]) .ui-drawer__painel,:host([aberto][position="bottom"]) .ui-drawer__painel,:host([open][position="bottom"]) .ui-drawer__painel{transform:translateY(0);opacity:1;visibility:visible;pointer-events:auto}:host([posicao="cima"]) .ui-drawer__painel,:host([position="top"]) .ui-drawer__painel{top:0;left:0;right:0;width:100vw;max-height:85vh;transform:translateY(-100%);border-bottom:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16));border-bottom-left-radius:14px;border-bottom-right-radius:14px}:host([aberto][posicao="cima"]) .ui-drawer__painel,:host([open][posicao="cima"]) .ui-drawer__painel,:host([aberto][position="top"]) .ui-drawer__painel,:host([open][position="top"]) .ui-drawer__painel{transform:translateY(0);opacity:1;visibility:visible;pointer-events:auto}.ui-drawer__header{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .08));flex-shrink:0}:root[data-tema=claro] .ui-drawer__header,[data-tema=claro] .ui-drawer__header{border-bottom-color:#00000014}.ui-drawer__titulo-container{display:flex;flex-direction:column;gap:2px}.ui-drawer__titulo{margin:0;font-size:16px;font-weight:600;color:var(--ui-cor-texto, #ffffff)}:root[data-tema=claro] .ui-drawer__titulo,[data-tema=claro] .ui-drawer__titulo{color:#1a1a1e}.ui-drawer__descricao{margin:0;font-size:13px;color:var(--ui-cor-texto-secundario, #888899)}.ui-drawer__close{background:transparent;border:none;color:var(--ui-cor-texto-secundario, #888899);font-size:16px;cursor:pointer;padding:6px;border-radius:6px;line-height:1;display:flex;align-items:center;justify-content:center;transition:color .15s ease,background-color .15s ease}.ui-drawer__close svg,.ui-drawer__close ::slotted(svg){shape-rendering:geometricPrecision}.ui-drawer__close:hover{color:var(--ui-cor-texto, #ffffff);background-color:var(--ui-cor-hover-menu, rgba(255, 255, 255, .08))}.ui-drawer__close:focus-visible{outline:none;box-shadow:0 0 0 2px var(--ui-cor-primaria, #00E08A)}.ui-drawer__body{padding:20px;overflow-y:auto;flex:1;box-sizing:border-box}.ui-drawer__footer{padding:14px 20px;border-top:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .08));display:flex;align-items:center;justify-content:flex-end;gap:10px;background-color:#00000026;flex-shrink:0}:root[data-tema=claro] .ui-drawer__footer,[data-tema=claro] .ui-drawer__footer{border-top-color:#00000014;background-color:#00000008}@starting-style{:host([aberto]:not([posicao])) .ui-drawer__painel,:host([open]:not([posicao])) .ui-drawer__painel,:host([aberto][posicao="direita"]) .ui-drawer__painel,:host([open][posicao="direita"]) .ui-drawer__painel{transform:translate(100%);opacity:0}:host([aberto][posicao="esquerda"]) .ui-drawer__painel,:host([open][posicao="esquerda"]) .ui-drawer__painel{transform:translate(-100%);opacity:0}:host([aberto][posicao="baixo"]) .ui-drawer__painel,:host([open][posicao="baixo"]) .ui-drawer__painel{transform:translateY(100%);opacity:0}:host([aberto]) .ui-drawer__backdrop,:host([open]) .ui-drawer__backdrop{opacity:0}}';
+class N extends HTMLElement {
+  constructor() {
+    super();
+    n(this, "backdropElement");
+    n(this, "painelElement");
+    n(this, "tituloElement");
+    n(this, "descricaoElement");
+    n(this, "closeElement");
+    n(this, "listeners", new z());
+    n(this, "_elementoGatilho", null);
+    n(this, "_focables", []);
+    n(this, "handleSlotChange", () => {
+      this.syncState();
+    });
+    n(this, "handleBackdropClick", (e) => {
+      e.stopPropagation(), this.hasAttribute("estatico") || this.hasAttribute("static") || this.fechar();
+    });
+    n(this, "handleCloseClick", (e) => {
+      e.stopPropagation(), this.fechar();
+    });
+    n(this, "handleKeyDown", (e) => {
+      var t, i;
+      if (this.aberto && this._isTopMostDrawer()) {
+        if (e.key === "Escape")
+          this.hasAttribute("estatico") || this.hasAttribute("static") || (this.fechar(), e.stopImmediatePropagation());
+        else if (e.key === "Tab") {
+          if (this._atualizarFocables(), this._focables.length === 0) {
+            e.preventDefault();
+            return;
+          }
+          const a = this._focables[0], s = this._focables[this._focables.length - 1], r = this.getRootNode().activeElement;
+          e.shiftKey ? (r === a || !this.contains(r) && !((t = this.shadowRoot) != null && t.contains(r))) && (e.preventDefault(), s.focus()) : (r === s || !this.contains(r) && !((i = this.shadowRoot) != null && i.contains(r))) && (e.preventDefault(), a.focus());
+        }
+      }
+    });
+    const e = this.attachShadow({ mode: "open" });
+    e.innerHTML = `
+      <style>${Fe}</style>
+      <div class="ui-drawer__backdrop"></div>
+      <aside class="ui-drawer__painel" role="dialog" aria-modal="true" tabindex="-1">
+        <div class="ui-drawer__header">
+          <div class="ui-drawer__titulo-container">
+            <h3 class="ui-drawer__titulo"></h3>
+            <p class="ui-drawer__descricao" style="display: none;"></p>
+          </div>
+          <button type="button" class="ui-drawer__close" aria-label="Fechar painel lateral" title="Fechar">✕</button>
+        </div>
+        <div class="ui-drawer__body">
+          <slot></slot>
+        </div>
+        <div class="ui-drawer__footer">
+          <slot name="rodape"></slot>
+          <slot name="footer"></slot>
+        </div>
+      </aside>
+    `, this.backdropElement = e.querySelector(".ui-drawer__backdrop"), this.painelElement = e.querySelector(".ui-drawer__painel"), this.tituloElement = e.querySelector(".ui-drawer__titulo"), this.descricaoElement = e.querySelector(".ui-drawer__descricao"), this.closeElement = e.querySelector(".ui-drawer__close");
+  }
+  static get observedAttributes() {
+    return [
+      "aberto",
+      "open",
+      "posicao",
+      "position",
+      "titulo",
+      "title",
+      "descricao",
+      "description",
+      "largura",
+      "width",
+      "estatico",
+      "static"
+    ];
+  }
+  connectedCallback() {
+    this.listeners.cleanup(), this.listeners.add(this.backdropElement, "click", this.handleBackdropClick), this.listeners.add(this.closeElement, "click", this.handleCloseClick), this.listeners.add(window, "keydown", this.handleKeyDown), this.shadowRoot.querySelectorAll("slot").forEach((t) => {
+      this.listeners.add(t, "slotchange", this.handleSlotChange);
+    }), this.syncState();
+  }
+  disconnectedCallback() {
+    this.listeners.cleanup(), N.atualizarScrollLock();
+  }
+  attributeChangedCallback(e, t, i) {
+    (e === "aberto" || e === "open") && i !== null && (document.activeElement && document.activeElement !== document.body && (this._elementoGatilho = document.activeElement), setTimeout(() => {
+      this._atualizarFocables(), this._focables.length > 0 ? this._focables[0].focus() : this.painelElement.focus();
+    }, 0)), this.syncState();
+  }
+  get aberto() {
+    return this.hasAttribute("aberto") || this.hasAttribute("open");
+  }
+  set aberto(e) {
+    e ? this.setAttribute("aberto", "") : (this.removeAttribute("aberto"), this.removeAttribute("open")), this.syncState();
+  }
+  get posicao() {
+    const e = (this.getAttribute("posicao") || this.getAttribute("position") || "direita").toLowerCase();
+    return e === "esquerda" || e === "left" ? "esquerda" : e === "baixo" || e === "bottom" ? "baixo" : e === "cima" || e === "top" ? "cima" : "direita";
+  }
+  set posicao(e) {
+    this.setAttribute("posicao", e);
+  }
+  abrir() {
+    this.aberto || (document.activeElement && document.activeElement !== document.body && (this._elementoGatilho = document.activeElement), this.aberto = !0, this.dispatchEvent(
+      new CustomEvent("ui-abrir", {
+        bubbles: !0,
+        composed: !0
+      })
+    ), setTimeout(() => {
+      this._atualizarFocables(), this._focables.length > 0 ? this._focables[0].focus() : this.painelElement.focus();
+    }, 0));
+  }
+  fechar() {
+    this.aberto && (this.aberto = !1, this.dispatchEvent(
+      new CustomEvent("ui-fechar", {
+        bubbles: !0,
+        composed: !0
+      })
+    ), this._elementoGatilho && (this._elementoGatilho.focus(), this._elementoGatilho = null));
+  }
+  alternar() {
+    this.aberto ? this.fechar() : this.abrir();
+  }
+  syncState() {
+    var r, l;
+    const e = this.aberto, t = this.getAttribute("titulo") || this.getAttribute("title") || "", i = this.getAttribute("descricao") || this.getAttribute("description") || "", a = this.getAttribute("largura") || this.getAttribute("width"), s = (r = this.shadowRoot) == null ? void 0 : r.querySelector(".ui-drawer__footer");
+    if (this.painelElement.setAttribute("aria-hidden", String(!e)), t ? (this.tituloElement.textContent = t, this.tituloElement.style.display = "block") : this.tituloElement.style.display = "none", i ? (this.descricaoElement.textContent = i, this.descricaoElement.style.display = "block") : this.descricaoElement.style.display = "none", a ? this.style.setProperty("--ui-drawer-largura", isNaN(Number(a)) ? a : `${a}px`) : this.style.removeProperty("--ui-drawer-largura"), s) {
+      const d = Array.from(((l = this.shadowRoot) == null ? void 0 : l.querySelectorAll('slot[name="rodape"], slot[name="footer"]')) || []).some((c) => c.assignedNodes({ flatten: !0 }).some((m) => m.nodeType === Node.ELEMENT_NODE || m.textContent && m.textContent.trim() !== "")) || this.querySelector('[slot="rodape"], [slot="footer"]') !== null;
+      s.style.display = d ? "flex" : "none";
+    }
+    N.atualizarScrollLock();
+  }
+  static atualizarScrollLock() {
+    if (typeof document > "u") return;
+    document.querySelectorAll(
+      "ui-modal[aberto], ui-modal[open], ui-dialog[aberto], ui-dialog[open], ui-drawer[aberto], ui-drawer[open], ui-sheet[aberto], ui-sheet[open]"
+    ).length > 0 ? document.body.style.overflow = "hidden" : document.body.style.overflow = "";
+  }
+  _atualizarFocables() {
+    const e = 'a[href], button, input, textarea, select, details, [tabindex]:not([tabindex="-1"]), ui-campo-texto, ui-botao, ui-botao-primario, ui-checkbox, ui-switch, ui-lista-flutuante, ui-radio, ui-select, ui-segmented';
+    let t = Array.from(this.shadowRoot.querySelectorAll(e));
+    t = t.filter((s) => window.getComputedStyle(s).display !== "none");
+    const i = this.shadowRoot.querySelectorAll("slot");
+    let a = [];
+    i.forEach((s) => {
+      s.assignedElements({ flatten: !0 }).forEach((l) => {
+        l instanceof HTMLElement && (l.matches(e) && a.push(l), a.push(...Array.from(l.querySelectorAll(e))));
+      });
+    }), this._focables = [...t, ...a].filter((s) => !s.hasAttribute("disabled") && s.getAttribute("aria-hidden") !== "true");
+  }
+  _isTopMostDrawer() {
+    const e = Array.from(
+      document.querySelectorAll("ui-drawer[aberto], ui-drawer[open], ui-sheet[aberto], ui-sheet[open]")
+    );
+    return e[e.length - 1] === this;
+  }
+}
+class Oe extends N {
+}
+class De extends N {
+}
+class He extends N {
+}
+customElements.get("ui-drawer") || customElements.define("ui-drawer", N);
+customElements.get("ui-sheet") || customElements.define("ui-sheet", Oe);
+customElements.get("ui-painel-lateral") || customElements.define("ui-painel-lateral", De);
+customElements.get("ui-gaveta") || customElements.define("ui-gaveta", He);
+const je = ':host{display:block;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif)}.ui-alerta{display:flex;align-items:flex-start;gap:12px;padding:12px 16px;border-radius:var(--ui-raio-borda, 8px);border:1px solid transparent;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);color:var(--ui-cor-texto, #e1e1e6);box-sizing:border-box;position:relative;transition:opacity .2s ease,transform .2s ease;line-height:1.4}.ui-alerta__icone{display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;line-height:1}.ui-alerta__icone svg,.ui-alerta__icone ::slotted(svg),.ui-alerta__icone ::slotted(ui-icone){shape-rendering:geometricPrecision}.ui-alerta__conteudo{flex:1}.ui-alerta__titulo{font-size:14px;font-weight:600;margin:0 0 2px;line-height:1.2}.ui-alerta__mensagem{font-size:13px;margin:0;opacity:.9}.ui-alerta__close{background:transparent;border:none;color:currentColor;opacity:.7;font-size:14px;cursor:pointer;padding:2px 6px;border-radius:4px;line-height:1;flex-shrink:0;margin-top:-2px;margin-right:-4px;transition:opacity .15s ease,background-color .15s ease}.ui-alerta__close:hover{opacity:1;background-color:#ffffff26}.ui-alerta--sucesso{background-color:#00e08a1f;border-color:#00e08a4d;color:var(--ui-cor-texto-sucesso, #00E08A)}.ui-alerta--sucesso .ui-alerta__mensagem{color:var(--ui-cor-texto, #e1e1e6)}.ui-alerta--erro{background-color:#ff55551f;border-color:#ff55554d;color:var(--ui-cor-texto-erro, #ff5555)}.ui-alerta--erro .ui-alerta__mensagem{color:var(--ui-cor-texto, #e1e1e6)}.ui-alerta--alerta{background-color:#ffb86c1f;border-color:#ffb86c4d;color:var(--ui-cor-texto-alerta, #ffb86c)}.ui-alerta--alerta .ui-alerta__mensagem{color:var(--ui-cor-texto, #e1e1e6)}.ui-alerta--info{background-color:#00aaff1f;border-color:#00aaff4d;color:#0af}.ui-alerta--info .ui-alerta__mensagem{color:var(--ui-cor-texto, #e1e1e6)}.ui-alerta__acoes{display:flex;align-items:center;flex-shrink:0;margin-left:4px}.ui-alerta__botao-acao{background:#ffffff14;border:1px solid rgba(255,255,255,.16);color:inherit;font-family:inherit;font-size:12px;font-weight:600;padding:4px 10px;border-radius:5px;cursor:pointer;line-height:1;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;transition:background-color .15s ease,border-color .15s ease,transform .1s ease}.ui-alerta__botao-acao:hover{background:#ffffff2e;border-color:#ffffff4d}.ui-alerta__botao-acao:active{transform:scale(.96)}.ui-alerta__botao-acao:focus-visible{outline:none;box-shadow:0 0 0 2px var(--ui-cor-fundo, #0b0b0d),0 0 0 4px var(--ui-cor-primaria, #00E08A)}.ui-alerta__botao-acao--primario{background:#00e08a26;border-color:#00e08a59;color:var(--ui-cor-primaria, #00E08A)}.ui-alerta__botao-acao--primario:hover{background:#00e08a40;border-color:#00e08a80}.ui-alerta__botao-acao--destrutivo{background:#ff444426;border-color:#ff444459;color:var(--ui-cor-texto-erro, #ff5555)}.ui-alerta__botao-acao--destrutivo:hover{background:#ff444440;border-color:#ff444480}:host(ui-toast){display:block;width:100%;box-sizing:border-box;pointer-events:auto;transition:transform .25s cubic-bezier(.16,1,.3,1),opacity .25s ease}.ui-toast__banner{box-shadow:0 10px 32px #000000a6,0 0 0 1px #ffffff14;animation:ui-toast-slide .3s cubic-bezier(.16,1,.3,1);position:relative;overflow:hidden}.ui-toast__progresso{position:absolute;bottom:0;left:0;right:0;height:2px;background:#ffffff14;overflow:hidden}.ui-toast__progresso-barra{width:100%;height:100%;background:currentColor;opacity:.7;transform-origin:left;animation:ui-toast-timer linear forwards}:host(ui-toast:hover) .ui-toast__progresso-barra,:host(ui-toast:focus-within) .ui-toast__progresso-barra{animation-play-state:paused}@keyframes ui-toast-timer{0%{transform:scaleX(1)}to{transform:scaleX(0)}}@keyframes ui-toast-slide{0%{transform:translate(100%);opacity:0}to{transform:translate(0);opacity:1}}@starting-style{:host(ui-toast){opacity:0;transform:translateY(12px) scale(.96)}}', ee = {
   sucesso: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>',
   erro: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>',
   alerta: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>',
   info: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>'
 };
-class K extends HTMLElement {
+class se extends HTMLElement {
   constructor() {
     super();
     n(this, "alertaElement");
     n(this, "iconeElement");
     n(this, "tituloElement");
     n(this, "mensagemElement");
+    n(this, "mensagemTextoElement");
     n(this, "closeElement");
-    n(this, "fechar", () => {
-      this.dispatchEvent(
-        new CustomEvent("ui-fechar", {
-          bubbles: !0,
-          composed: !0
-        })
-      ), this.remove();
-    });
+    n(this, "acoesElement");
+    n(this, "botaoAcaoElement");
+    n(this, "progressoContainer");
+    n(this, "progressoBarra");
+    n(this, "listeners", new z());
     const e = this.attachShadow({ mode: "open" });
     e.innerHTML = `
-      <style>${ke}</style>
+      <style>${je}</style>
       <div class="ui-alerta" role="alert">
         <span class="ui-alerta__icone"></span>
         <div class="ui-alerta__conteudo">
           <h4 class="ui-alerta__titulo" style="display: none;"></h4>
           <p class="ui-alerta__mensagem">
+            <span class="ui-alerta__mensagem-texto" style="display: none;"></span>
             <slot></slot>
           </p>
         </div>
-        <button class="ui-alerta__close" style="display: none;" title="Fechar">✕</button>
+        <div class="ui-alerta__acoes" style="display: none;">
+          <button type="button" class="ui-alerta__botao-acao"></button>
+        </div>
+        <button class="ui-alerta__close" type="button" aria-label="Fechar alerta" style="display: none;" title="Fechar">✕</button>
+        <div class="ui-toast__progresso" style="display: none;">
+          <div class="ui-toast__progresso-barra"></div>
+        </div>
       </div>
-    `, this.alertaElement = e.querySelector(".ui-alerta"), this.iconeElement = e.querySelector(".ui-alerta__icone"), this.tituloElement = e.querySelector(".ui-alerta__titulo"), this.mensagemElement = e.querySelector(".ui-alerta__mensagem"), this.closeElement = e.querySelector(".ui-alerta__close");
+    `, this.alertaElement = e.querySelector(".ui-alerta"), this.iconeElement = e.querySelector(".ui-alerta__icone"), this.tituloElement = e.querySelector(".ui-alerta__titulo"), this.mensagemElement = e.querySelector(".ui-alerta__mensagem"), this.mensagemTextoElement = e.querySelector(".ui-alerta__mensagem-texto"), this.closeElement = e.querySelector(".ui-alerta__close"), this.acoesElement = e.querySelector(".ui-alerta__acoes"), this.botaoAcaoElement = e.querySelector(".ui-alerta__botao-acao"), this.progressoContainer = e.querySelector(".ui-toast__progresso"), this.progressoBarra = e.querySelector(".ui-toast__progresso-barra");
   }
   static get observedAttributes() {
     return [
@@ -1320,61 +1821,109 @@ class K extends HTMLElement {
     ];
   }
   connectedCallback() {
-    this.closeElement.addEventListener("click", this.fechar), this.syncState();
+    this.listeners.cleanup(), this.listeners.add(this.closeElement, "click", () => this.fechar()), this.syncState();
   }
   disconnectedCallback() {
-    this.closeElement.removeEventListener("click", this.fechar);
+    this.listeners.cleanup();
   }
-  attributeChangedCallback(e, t, o) {
+  attributeChangedCallback(e, t, i) {
     this.syncState();
   }
+  fechar() {
+    this.dispatchEvent(
+      new CustomEvent("ui-fechar", {
+        bubbles: !0,
+        composed: !0
+      })
+    ), this.remove();
+  }
   syncState() {
-    const e = this.getAttribute("tipo") || this.getAttribute("variante") || this.getAttribute("variant") || "info", t = this.getAttribute("titulo") || this.getAttribute("title"), o = this.getAttribute("mensagem"), a = this.hasAttribute("fechavel") || this.hasAttribute("dismissible");
-    this.alertaElement.className = "ui-alerta", this.alertaElement.classList.add(`ui-alerta--${e}`), this.iconeElement.innerHTML = j[e] || j.info, t ? (this.tituloElement.textContent = t, this.tituloElement.style.display = "block") : this.tituloElement.style.display = "none", o && (this.mensagemElement.textContent = o), a ? this.closeElement.style.display = "block" : this.closeElement.style.display = "none";
+    const e = this.getAttribute("tipo") || this.getAttribute("variante") || this.getAttribute("variant") || "info", t = this.getAttribute("titulo") || this.getAttribute("title"), i = this.getAttribute("mensagem"), a = this.hasAttribute("fechavel") || this.hasAttribute("dismissible");
+    this.alertaElement.className = "ui-alerta", this.alertaElement.classList.add(`ui-alerta--${e}`), e === "erro" || e === "alerta" ? (this.alertaElement.setAttribute("role", "alert"), this.alertaElement.setAttribute("aria-live", "assertive")) : (this.alertaElement.setAttribute("role", "status"), this.alertaElement.setAttribute("aria-live", "polite")), this.iconeElement.innerHTML = ee[e] || ee.info, t ? (this.tituloElement.textContent = t, this.tituloElement.style.display = "block") : this.tituloElement.style.display = "none", i ? (this.mensagemTextoElement.textContent = i, this.mensagemTextoElement.style.display = "inline") : (this.mensagemTextoElement.textContent = "", this.mensagemTextoElement.style.display = "none"), a ? this.closeElement.style.display = "block" : this.closeElement.style.display = "none";
   }
 }
-class q extends K {
+class F extends se {
   constructor() {
     super(...arguments);
     n(this, "timerId", null);
+    n(this, "tempoRestante", 4e3);
+    n(this, "inicioTimestamp", 0);
+    n(this, "isPausado", !1);
+    n(this, "acaoConfig");
+    n(this, "containerRef", null);
+    n(this, "handleAcaoClick", (e) => {
+      var t, i, a;
+      e.stopPropagation(), (t = this.acaoConfig) != null && t.onClick && this.acaoConfig.onClick(e), this.dispatchEvent(
+        new CustomEvent("ui-toast-acao", {
+          detail: {
+            rotulo: (i = this.acaoConfig) == null ? void 0 : i.rotulo,
+            tipo: (a = this.acaoConfig) == null ? void 0 : a.tipo
+          },
+          bubbles: !0,
+          composed: !0
+        })
+      ), this.fechar();
+    });
+    n(this, "pausarTimer", () => {
+      if (this.isPausado || this.tempoRestante <= 0) return;
+      this.isPausado = !0, this.timerId && (clearTimeout(this.timerId), this.timerId = null);
+      const e = Date.now() - this.inicioTimestamp;
+      this.tempoRestante = Math.max(0, this.tempoRestante - e), this.progressoBarra.style.animationPlayState = "paused";
+    });
+    n(this, "retomarTimer", () => {
+      !this.isPausado || this.tempoRestante <= 0 || (this.isPausado = !1, this.progressoBarra.style.animationPlayState = "running", this.iniciarTimer(Math.max(this.tempoRestante, 300)));
+    });
+  }
+  configurarAcao(e) {
+    this.acaoConfig = e, this.botaoAcaoElement.textContent = e.rotulo, this.acoesElement.style.display = "flex";
+    const t = e.tipo || "primario";
+    this.botaoAcaoElement.className = `ui-alerta__botao-acao ui-alerta__botao-acao--${t}`;
   }
   connectedCallback() {
-    super.connectedCallback(), this.alertaElement.classList.add("ui-toast__banner");
+    super.connectedCallback(), this.containerRef = this.parentElement, this.alertaElement.classList.add("ui-toast__banner"), this.acaoConfig && this.listeners.add(this.botaoAcaoElement, "click", this.handleAcaoClick);
     const e = this.getAttribute("duracao") || this.getAttribute("duration") || "4000", t = parseInt(e, 10);
-    !isNaN(t) && t > 0 && (this.timerId = setTimeout(() => {
-      this.fechar();
-    }, t));
+    this.tempoRestante = isNaN(t) ? 4e3 : t, this.tempoRestante > 0 ? (this.progressoContainer.style.display = "block", this.progressoBarra.style.animationDuration = `${this.tempoRestante}ms`, this.getAttribute("pausar-no-hover") !== "false" && (this.listeners.add(this, "mouseenter", this.pausarTimer), this.listeners.add(this, "mouseleave", this.retomarTimer), this.listeners.add(this, "focusin", this.pausarTimer), this.listeners.add(this, "focusout", this.retomarTimer)), this.iniciarTimer(this.tempoRestante)) : this.progressoContainer.style.display = "none";
+  }
+  fechar() {
+    const e = this.parentElement || this.containerRef;
+    super.fechar(), e && e.id.startsWith("ui-toast-container-") && e.children.length === 0 && e.remove();
   }
   disconnectedCallback() {
-    super.disconnectedCallback(), this.timerId && clearTimeout(this.timerId);
+    super.disconnectedCallback(), this.timerId && (clearTimeout(this.timerId), this.timerId = null), this.containerRef && this.containerRef.id.startsWith("ui-toast-container-") && this.containerRef.children.length === 0 && (this.containerRef.remove(), this.containerRef = null);
+  }
+  iniciarTimer(e) {
+    this.timerId && clearTimeout(this.timerId), this.inicioTimestamp = Date.now(), this.timerId = setTimeout(() => {
+      this.fechar();
+    }, e);
   }
   static obterContainer(e) {
     const t = `ui-toast-container-${e}`;
-    let o = document.getElementById(t);
-    return o || (o = document.createElement("div"), o.id = t, o.style.position = "fixed", o.style.zIndex = "10000", o.style.display = "flex", o.style.gap = "10px", o.style.maxWidth = "380px", o.style.width = "calc(100vw - 32px)", o.style.pointerEvents = "none", o.style.boxSizing = "border-box", o.style.transition = "all 0.2s ease", e === "top-right" ? (o.style.top = "20px", o.style.right = "20px", o.style.flexDirection = "column") : (o.style.bottom = "20px", o.style.right = "20px", o.style.flexDirection = "column-reverse"), document.body.appendChild(o)), o;
+    let i = document.getElementById(t);
+    return i || (i = document.createElement("div"), i.id = t, i.style.position = "fixed", i.style.zIndex = "10000", i.style.display = "flex", i.style.gap = "10px", i.style.maxWidth = "400px", i.style.width = "calc(100vw - 32px)", i.style.pointerEvents = "none", i.style.boxSizing = "border-box", i.style.transition = "all 0.2s ease", e === "top-right" ? (i.style.top = "20px", i.style.right = "20px", i.style.flexDirection = "column") : e === "top-left" ? (i.style.top = "20px", i.style.left = "20px", i.style.flexDirection = "column") : e === "bottom-left" ? (i.style.bottom = "20px", i.style.left = "20px", i.style.flexDirection = "column-reverse") : e === "top-center" ? (i.style.top = "20px", i.style.left = "50%", i.style.transform = "translateX(-50%)", i.style.flexDirection = "column") : e === "bottom-center" ? (i.style.bottom = "20px", i.style.left = "50%", i.style.transform = "translateX(-50%)", i.style.flexDirection = "column-reverse") : (i.style.bottom = "20px", i.style.right = "20px", i.style.flexDirection = "column-reverse"), document.body.appendChild(i)), i;
   }
   // Utilitário estático para disparo imperativo de Toasts de qualquer lugar no código
   static notificar(e) {
-    const t = e.posicao || "bottom-right", o = document.createElement("ui-toast");
-    return e.tipo && o.setAttribute("tipo", e.tipo), e.titulo && o.setAttribute("titulo", e.titulo), e.mensagem && o.setAttribute("mensagem", e.mensagem), e.duracao && o.setAttribute("duracao", String(e.duracao)), o.setAttribute("posicao", t), o.setAttribute("fechavel", ""), q.obterContainer(t).appendChild(o), o;
+    const t = e.posicao || "bottom-right", i = document.createElement("ui-toast");
+    return e.tipo && i.setAttribute("tipo", e.tipo), e.titulo && i.setAttribute("titulo", e.titulo), e.mensagem && i.setAttribute("mensagem", e.mensagem), e.duracao !== void 0 && i.setAttribute("duracao", String(e.duracao)), e.pausarNoHover === !1 && i.setAttribute("pausar-no-hover", "false"), i.setAttribute("posicao", t), e.fechavel !== !1 && i.setAttribute("fechavel", ""), e.acao && i.configurarAcao(e.acao), F.obterContainer(t).appendChild(i), i;
   }
 }
-customElements.get("ui-alerta") || customElements.define("ui-alerta", K);
-customElements.get("ui-toast") || customElements.define("ui-toast", q);
-const Ee = ":host{display:inline-flex;position:relative;align-items:center;justify-content:center;vertical-align:middle;box-sizing:border-box;--ui-tooltip-texto-distancia: 90px;--ui-tooltip-seta-espaco: 70px}.ui-tooltip__bubble{position:fixed;z-index:10001;padding:6px 10px;border-radius:6px;font-size:11px;font-weight:500;background-color:var(--ui-cor-fundo-elevado, #1e1e24);color:var(--ui-cor-texto, #e1e1e6);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16));box-shadow:0 4px 16px #00000080;white-space:nowrap;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .15s ease,visibility .15s ease;line-height:1.2;box-sizing:border-box;-webkit-user-select:none;user-select:none;margin:0}.ui-tooltip__bubble[popover]{margin:0;border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16));background-color:var(--ui-cor-fundo-elevado, #1e1e24);color:var(--ui-cor-texto, #e1e1e6);padding:6px 10px;overflow:visible}.ui-tooltip__texto{max-width:var(--ui-tooltip-texto-distancia, 90px)}.ui-tooltip__arrow{position:absolute;width:0;height:0;border-style:solid}.ui-tooltip--topo .ui-tooltip__arrow{bottom:-5px;left:50%;transform:translate(-50%);border-width:5px 5px 0 5px;border-color:var(--ui-cor-fundo-elevado, #1e1e24) transparent transparent transparent}.ui-tooltip--baixo .ui-tooltip__arrow{top:-5px;left:50%;transform:translate(-50%);border-width:0 5px 5px 5px;border-color:transparent transparent var(--ui-cor-fundo-elevado, #1e1e24) transparent}.ui-tooltip--esquerda .ui-tooltip__arrow{right:-5px;top:50%;transform:translateY(-50%);border-width:5px 0 5px 5px;border-color:transparent transparent transparent var(--ui-cor-fundo-elevado, #1e1e24)}.ui-tooltip--direita .ui-tooltip__arrow{left:-5px;top:50%;transform:translateY(-50%);border-width:5px 5px 5px 0;border-color:transparent var(--ui-cor-fundo-elevado, #1e1e24) transparent transparent}.ui-tooltip--visivel .ui-tooltip__bubble{opacity:1;visibility:visible;pointer-events:auto}";
-class X extends HTMLElement {
+customElements.get("ui-alerta") || customElements.define("ui-alerta", se);
+customElements.get("ui-toast") || customElements.define("ui-toast", F);
+const Ve = ":host{display:inline-flex;position:relative;align-items:center;justify-content:center;vertical-align:middle;box-sizing:border-box;--ui-tooltip-texto-distancia: 260px;--ui-tooltip-seta-espaco: 70px}.ui-tooltip__bubble{position:fixed;z-index:10001;padding:6px 10px;border-radius:6px;font-size:11px;font-weight:500;background-color:var(--ui-cor-fundo-elevado, #1e1e24);color:var(--ui-cor-texto, #e1e1e6);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16));box-shadow:0 4px 16px #00000080;white-space:normal;max-width:var(--ui-tooltip-texto-distancia, 260px);width:max-content;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .15s ease,visibility .15s ease;line-height:1.35;box-sizing:border-box;-webkit-user-select:none;user-select:none;margin:0}.ui-tooltip__bubble[popover]{margin:0;border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16));background-color:var(--ui-cor-fundo-elevado, #1e1e24);color:var(--ui-cor-texto, #e1e1e6);padding:6px 10px;overflow:visible;max-width:var(--ui-tooltip-texto-distancia, 260px);width:max-content;white-space:normal}.ui-tooltip__texto{display:inline-block;max-width:100%}.ui-tooltip__arrow{position:absolute;width:0;height:0;border-style:solid}.ui-tooltip--topo .ui-tooltip__arrow{bottom:-5px;left:50%;transform:translate(-50%);border-width:5px 5px 0 5px;border-color:var(--ui-cor-fundo-elevado, #1e1e24) transparent transparent transparent}.ui-tooltip--baixo .ui-tooltip__arrow{top:-5px;left:50%;transform:translate(-50%);border-width:0 5px 5px 5px;border-color:transparent transparent var(--ui-cor-fundo-elevado, #1e1e24) transparent}.ui-tooltip--esquerda .ui-tooltip__arrow{right:-5px;top:50%;transform:translateY(-50%);border-width:5px 0 5px 5px;border-color:transparent transparent transparent var(--ui-cor-fundo-elevado, #1e1e24)}.ui-tooltip--direita .ui-tooltip__arrow{left:-5px;top:50%;transform:translateY(-50%);border-width:5px 5px 5px 0;border-color:transparent var(--ui-cor-fundo-elevado, #1e1e24) transparent transparent}.ui-tooltip--visivel .ui-tooltip__bubble{opacity:1;visibility:visible;pointer-events:auto;transform:scale(1)}@starting-style{.ui-tooltip--visivel .ui-tooltip__bubble,.ui-tooltip__bubble:popover-open{opacity:0;transform:scale(.94)}}";
+class ne extends HTMLElement {
   constructor() {
     super();
     n(this, "containerElement");
     n(this, "bubbleElement");
+    n(this, "_posicionamentoAtivo", !1);
     n(this, "posicionarBubble", () => {
       if (!this.aberto) return;
-      const e = this.getBoundingClientRect(), t = this.bubbleElement.getBoundingClientRect(), o = this.getAttribute("posicao") || this.getAttribute("position") || "topo";
+      const e = this.getBoundingClientRect(), t = this.bubbleElement.getBoundingClientRect(), i = this.getAttribute("posicao") || this.getAttribute("position") || "topo";
       let a = "topo";
-      ["topo", "top"].includes(o) ? a = "topo" : ["baixo", "bottom"].includes(o) ? a = "baixo" : ["esquerda", "left"].includes(o) ? a = "esquerda" : ["direita", "right"].includes(o) && (a = "direita");
-      let r = 0, s = 0;
+      ["topo", "top"].includes(i) ? a = "topo" : ["baixo", "bottom"].includes(i) ? a = "baixo" : ["esquerda", "left"].includes(i) ? a = "esquerda" : ["direita", "right"].includes(i) && (a = "direita");
+      let s = 0, r = 0;
       const l = 8;
-      a === "topo" ? (r = e.top - t.height - l, s = e.left + e.width / 2 - t.width / 2) : a === "baixo" ? (r = e.bottom + l, s = e.left + e.width / 2 - t.width / 2) : a === "esquerda" ? (r = e.top + e.height / 2 - t.height / 2, s = e.left - t.width - l) : a === "direita" && (r = e.top + e.height / 2 - t.height / 2, s = e.right + l), s = Math.max(8, Math.min(s, window.innerWidth - t.width - 8)), r = Math.max(8, Math.min(r, window.innerHeight - t.height - 8)), this.bubbleElement.style.top = `${r}px`, this.bubbleElement.style.left = `${s}px`;
+      a === "topo" ? (s = e.top - t.height - l, r = e.left + e.width / 2 - t.width / 2) : a === "baixo" ? (s = e.bottom + l, r = e.left + e.width / 2 - t.width / 2) : a === "esquerda" ? (s = e.top + e.height / 2 - t.height / 2, r = e.left - t.width - l) : a === "direita" && (s = e.top + e.height / 2 - t.height / 2, r = e.right + l), r = Math.max(8, Math.min(r, window.innerWidth - t.width - 8)), s = Math.max(8, Math.min(s, window.innerHeight - t.height - 8)), this.bubbleElement.style.top = `${Math.round(s)}px`, this.bubbleElement.style.left = `${Math.round(r)}px`;
     });
     n(this, "handleMouseEnter", () => {
       const e = this.getAttribute("gatilho") || this.getAttribute("trigger") || "hover";
@@ -1385,15 +1934,15 @@ class X extends HTMLElement {
       (e === "hover" || e === "passar-mouse") && this.ocultar();
     });
     n(this, "handleClick", (e) => {
-      const t = this.getAttribute("gatilho") || this.getAttribute("trigger") || "hover", o = window.matchMedia("(pointer: coarse)").matches;
-      (t === "clique" || t === "click" || o) && (e.stopPropagation(), this.aberto = !this.aberto);
+      const t = this.getAttribute("gatilho") || this.getAttribute("trigger") || "hover", i = window.matchMedia("(pointer: coarse)").matches;
+      (t === "clique" || t === "click" || i) && (e.stopPropagation(), this.aberto = !this.aberto);
     });
     n(this, "handleClickOutside", (e) => {
       e.composedPath().includes(this) || this.ocultar();
     });
     const e = this.attachShadow({ mode: "open" });
     e.innerHTML = `
-      <style>${Ee}</style>
+      <style>${Ve}</style>
       <div class="ui-tooltip ui-tooltip--topo">
         <slot></slot>
         <div class="ui-tooltip__bubble" role="tooltip" popover="manual">
@@ -1418,12 +1967,12 @@ class X extends HTMLElement {
     ];
   }
   connectedCallback() {
-    this.addEventListener("mouseenter", this.handleMouseEnter), this.addEventListener("mouseleave", this.handleMouseLeave), this.addEventListener("focusin", this.handleMouseEnter), this.addEventListener("focusout", this.handleMouseLeave), this.addEventListener("click", this.handleClick), document.addEventListener("click", this.handleClickOutside), this.syncState();
+    this.addEventListener("mouseenter", this.handleMouseEnter), this.addEventListener("mouseleave", this.handleMouseLeave), this.addEventListener("focusin", this.handleMouseEnter), this.addEventListener("focusout", this.handleMouseLeave), this.addEventListener("click", this.handleClick), this.syncState();
   }
   disconnectedCallback() {
-    this.removeEventListener("mouseenter", this.handleMouseEnter), this.removeEventListener("mouseleave", this.handleMouseLeave), this.removeEventListener("focusin", this.handleMouseEnter), this.removeEventListener("focusout", this.handleMouseLeave), this.removeEventListener("click", this.handleClick), document.removeEventListener("click", this.handleClickOutside), this.ocultar();
+    this.removeEventListener("mouseenter", this.handleMouseEnter), this.removeEventListener("mouseleave", this.handleMouseLeave), this.removeEventListener("focusin", this.handleMouseEnter), this.removeEventListener("focusout", this.handleMouseLeave), this.removeEventListener("click", this.handleClick), document.removeEventListener("click", this.handleClickOutside), this._posicionamentoAtivo && (this._posicionamentoAtivo = !1, window.removeEventListener("scroll", this.posicionarBubble, { capture: !0 }), window.removeEventListener("resize", this.posicionarBubble)), this.ocultar();
   }
-  attributeChangedCallback(e, t, o) {
+  attributeChangedCallback(e, t, i) {
     this.syncState();
   }
   get aberto() {
@@ -1445,34 +1994,34 @@ class X extends HTMLElement {
     this.aberto = !1;
   }
   syncState() {
-    var s;
-    const e = this.aberto, t = this.getAttribute("posicao") || this.getAttribute("position") || "topo", o = this.getAttribute("texto") || this.getAttribute("text") || "", a = (s = this.shadowRoot) == null ? void 0 : s.querySelector(".ui-tooltip__texto");
-    let r = "topo";
-    if (["topo", "top"].includes(t) ? r = "topo" : ["baixo", "bottom"].includes(t) ? r = "baixo" : ["esquerda", "left"].includes(t) ? r = "esquerda" : ["direita", "right"].includes(t) && (r = "direita"), this.containerElement.className = `ui-tooltip ui-tooltip--${r}`, a && (o ? (a.textContent = o, a.style.display = "inline") : a.style.display = "none"), e) {
-      if (typeof this.bubbleElement.showPopover == "function")
+    var r;
+    const e = this.aberto, t = this.getAttribute("posicao") || this.getAttribute("position") || "topo", i = this.getAttribute("texto") || this.getAttribute("text") || "", a = (r = this.shadowRoot) == null ? void 0 : r.querySelector(".ui-tooltip__texto");
+    let s = "topo";
+    if (["topo", "top"].includes(t) ? s = "topo" : ["baixo", "bottom"].includes(t) ? s = "baixo" : ["esquerda", "left"].includes(t) ? s = "esquerda" : ["direita", "right"].includes(t) && (s = "direita"), this.containerElement.className = `ui-tooltip ui-tooltip--${s}`, a && (i ? (a.textContent = i, a.style.display = "inline") : a.style.display = "none"), e) {
+      if (document.addEventListener("click", this.handleClickOutside), typeof this.bubbleElement.showPopover == "function")
         try {
           this.bubbleElement.showPopover();
         } catch {
         }
       this.containerElement.classList.add("ui-tooltip--visivel"), requestAnimationFrame(() => {
         this.posicionarBubble();
-      }), window.addEventListener("scroll", this.posicionarBubble, { capture: !0, passive: !0 }), window.addEventListener("resize", this.posicionarBubble, { passive: !0 });
+      }), this._posicionamentoAtivo || (this._posicionamentoAtivo = !0, window.addEventListener("scroll", this.posicionarBubble, { capture: !0, passive: !0 }), window.addEventListener("resize", this.posicionarBubble, { passive: !0 }));
     } else {
-      if (typeof this.bubbleElement.hidePopover == "function")
+      if (document.removeEventListener("click", this.handleClickOutside), typeof this.bubbleElement.hidePopover == "function")
         try {
           this.bubbleElement.hidePopover();
         } catch {
         }
-      this.containerElement.classList.remove("ui-tooltip--visivel"), window.removeEventListener("scroll", this.posicionarBubble, { capture: !0 }), window.removeEventListener("resize", this.posicionarBubble);
+      this.containerElement.classList.remove("ui-tooltip--visivel"), this._posicionamentoAtivo && (this._posicionamentoAtivo = !1, window.removeEventListener("scroll", this.posicionarBubble, { capture: !0 }), window.removeEventListener("resize", this.posicionarBubble));
     }
   }
 }
-class Ae extends X {
+class We extends ne {
 }
-customElements.get("ui-tooltip") || customElements.define("ui-tooltip", X);
-customElements.get("ui-popover") || customElements.define("ui-popover", Ae);
-const Ce = ':host{display:block;width:100%;box-sizing:border-box;font-family:inherit;color:var(--ui-cor-texto, #e1e1e6);position:relative}.ui-tabela-container{width:100%;max-width:100%;max-height:var(--ui-tabela-max-height, 500px);overflow-x:auto;overflow-y:auto;border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));border-radius:var(--ui-raio-borda, 6px);background-color:var(--ui-cor-superficie, #141417);box-sizing:border-box;position:relative}.ui-tabela{width:100%;border-collapse:separate;border-spacing:0;text-align:left;font-size:14px}.ui-tabela thead{position:sticky;top:0;z-index:10;background-color:var(--ui-cor-fundo-elevado, #1a1a1e)}.ui-tabela th{position:sticky;top:0;z-index:10;padding:10px 16px;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);color:var(--ui-cor-texto, #e1e1e6);font-weight:600;border-bottom:2px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));white-space:nowrap;-webkit-user-select:none;user-select:none;box-sizing:border-box}.ui-tabela__resizer{position:absolute;top:0;right:0;width:6px;height:100%;cursor:col-resize;-webkit-user-select:none;user-select:none;z-index:20;transition:background-color .15s ease}.ui-tabela__resizer:hover,.ui-tabela__resizer--ativo{background-color:var(--ui-cor-primaria, #00E08A)}:host([densidade="compacta"]) th,:host([densidade="compacta"]) td,:host([density="compact"]) th,:host([density="compact"]) td{padding:4px 8px}:host([densidade="normal"]) th,:host([densidade="normal"]) td,:host([density="normal"]) th,:host([density="normal"]) td{padding:10px 16px}:host([densidade="relaxada"]) th,:host([densidade="relaxada"]) td,:host([density="relaxed"]) th,:host([density="relaxed"]) td{padding:16px 20px}.ui-tabela__header-content{display:inline-flex;align-items:center;vertical-align:middle;width:100%;box-sizing:border-box}.ui-tabela__header-text{margin-right:90px;display:inline-flex;align-items:center}.ui-tabela__sort-icon,.ui-tabela__header-icon{width:70px;min-width:70px;max-width:70px;display:inline-flex;justify-content:center;align-items:center;transition:transform .2s ease,opacity .2s ease}.ui-tabela th.ui-tabela__th--ordenavel{cursor:pointer}.ui-tabela th.ui-tabela__th--ordenavel:hover{background-color:var(--ui-cor-hover-menu, rgba(255, 255, 255, .08))}.ui-tabela__sort-arrow{display:inline-block;width:12px;height:12px;transition:transform .2s ease,fill .2s ease;fill:var(--ui-cor-primaria, #00E08A)}.ui-tabela__sort-arrow--desc{transform:rotate(180deg)}.ui-tabela__sort-arrow--inativo{opacity:.3;fill:var(--ui-cor-texto-secundario, #888899)}.ui-tabela td{padding:10px 16px;border-bottom:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .06));white-space:nowrap;vertical-align:middle;color:var(--ui-cor-texto, #e1e1e6);box-sizing:border-box}.ui-tabela__cell-content{display:inline-flex;align-items:center;vertical-align:middle}.ui-tabela__cell-truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}.ui-tabela--alinhar-esquerda{text-align:left}.ui-tabela--alinhar-esquerda .ui-tabela__header-content,.ui-tabela--alinhar-esquerda .ui-tabela__cell-content{justify-content:flex-start}.ui-tabela--alinhar-centro{text-align:center}.ui-tabela--alinhar-centro .ui-tabela__header-content,.ui-tabela--alinhar-centro .ui-tabela__cell-content{justify-content:center}.ui-tabela--alinhar-direita{text-align:right}.ui-tabela--alinhar-direita .ui-tabela__header-content,.ui-tabela--alinhar-direita .ui-tabela__cell-content{justify-content:flex-end}.ui-tabela tbody tr:nth-child(2n){background-color:var(--ui-cor-fundo-card, rgba(255, 255, 255, .02))}.ui-tabela tbody tr:hover{background-color:var(--ui-cor-hover-menu, rgba(255, 255, 255, .08))}.ui-tabela__virtual-spacer td{padding:0!important;border:none!important;height:inherit;background:transparent!important}.ui-tabela__empty{padding:48px 24px;text-align:center;border:2px dashed var(--ui-cor-borda, rgba(255, 255, 255, .2));border-radius:var(--ui-raio-borda, 6px);margin:16px;color:var(--ui-cor-texto-secundario, #888899);background-color:var(--ui-cor-fundo, #0b0b0d);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;box-sizing:border-box}.ui-tabela__empty-icon{width:32px;height:32px;opacity:.5;fill:currentColor}.ui-tabela__empty-text{font-size:14px;font-weight:500;color:var(--ui-cor-texto-secundario, #888899)}.ui-tabela__loading{position:absolute;top:0;left:0;right:0;bottom:0;background-color:#0b0b0db3;-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;z-index:50;color:var(--ui-cor-primaria, #00E08A);font-size:14px}.ui-tabela__spinner{width:32px;height:32px;border:3px solid rgba(255,255,255,.15);border-top-color:var(--ui-cor-primaria, #00E08A);border-radius:50%;animation:ui-tabela-spin .8s linear infinite}@keyframes ui-tabela-spin{to{transform:rotate(360deg)}}.ui-tabela__context-menu{position:absolute;z-index:100;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .2));border-radius:var(--ui-raio-borda, 6px);box-shadow:0 4px 20px #0009;padding:6px;display:flex;flex-direction:column;gap:4px;min-width:200px;font-size:13px;color:var(--ui-cor-texto, #e1e1e6)}.ui-tabela__context-item{padding:8px 12px;border-radius:4px;cursor:pointer;color:var(--ui-cor-texto, #e1e1e6);display:flex;align-items:center;justify-content:space-between;gap:8px;transition:background-color .15s ease}.ui-tabela__context-item:hover{background-color:var(--ui-cor-hover-menu, rgba(255, 255, 255, .08));color:var(--ui-cor-primaria, #00E08A)}.ui-tabela__prompt-dialog{border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .2));border-radius:var(--ui-raio-borda, 6px);background-color:var(--ui-cor-fundo-elevado, #1a1a1e);color:var(--ui-cor-texto, #e1e1e6);padding:12px;box-shadow:0 8px 32px #000c;font-family:inherit;font-size:14px}.ui-tabela__prompt-dialog::backdrop{background:#0000004d}.ui-tabela__prompt-title{margin-bottom:8px;font-weight:500}.ui-tabela__prompt-dialog input{width:100%;padding:6px 8px;border-radius:4px;border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .2));background:var(--ui-cor-superficie, #141417);color:var(--ui-cor-texto, #e1e1e6);margin-bottom:12px;box-sizing:border-box}.ui-tabela__prompt-actions{display:flex;justify-content:flex-end;gap:8px}.ui-tabela__prompt-actions button{background:var(--ui-cor-borda, rgba(255, 255, 255, .12));color:var(--ui-cor-texto, #e1e1e6);border:none;padding:6px 12px;border-radius:4px;cursor:pointer}.ui-tabela__prompt-actions button:last-child{background:var(--ui-cor-primaria, #00E08A);color:#000;font-weight:600}';
-class Le extends HTMLElement {
+customElements.get("ui-tooltip") || customElements.define("ui-tooltip", ne);
+customElements.get("ui-popover") || customElements.define("ui-popover", We);
+const Ge = ':host{display:block;width:100%;box-sizing:border-box;font-family:inherit;color:var(--ui-cor-texto, #e1e1e6);position:relative}.ui-tabela-container{width:100%;max-width:100%;max-height:var(--ui-tabela-max-height, 500px);overflow-x:auto;overflow-y:auto;border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));border-radius:var(--ui-raio-borda, 6px);background-color:var(--ui-cor-superficie, #141417);box-sizing:border-box;position:relative}.ui-tabela{width:100%;border-collapse:separate;border-spacing:0;text-align:left;font-size:14px}.ui-tabela thead{position:sticky;top:0;z-index:10;background-color:var(--ui-cor-fundo-elevado, #1a1a1e)}.ui-tabela th{position:sticky;top:0;z-index:10;padding:10px 16px;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);color:var(--ui-cor-texto, #e1e1e6);font-weight:600;border-bottom:2px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));white-space:nowrap;-webkit-user-select:none;user-select:none;box-sizing:border-box}.ui-tabela__resizer{position:absolute;top:0;right:0;width:6px;height:100%;cursor:col-resize;-webkit-user-select:none;user-select:none;z-index:20;transition:background-color .15s ease}.ui-tabela__resizer:hover,.ui-tabela__resizer--ativo{background-color:var(--ui-cor-primaria, #00E08A)}:host([densidade="compacta"]) th,:host([densidade="compacta"]) td,:host([density="compact"]) th,:host([density="compact"]) td{padding:4px 8px}:host([densidade="normal"]) th,:host([densidade="normal"]) td,:host([density="normal"]) th,:host([density="normal"]) td{padding:10px 16px}:host([densidade="relaxada"]) th,:host([densidade="relaxada"]) td,:host([density="relaxed"]) th,:host([density="relaxed"]) td{padding:16px 20px}.ui-tabela__header-content{display:inline-flex;align-items:center;vertical-align:middle;width:100%;box-sizing:border-box}.ui-tabela__header-text{margin-right:90px;display:inline-flex;align-items:center}.ui-tabela__sort-icon,.ui-tabela__header-icon{width:70px;min-width:70px;max-width:70px;display:inline-flex;justify-content:center;align-items:center;transition:transform .2s ease,opacity .2s ease}.ui-tabela th.ui-tabela__th--ordenavel{cursor:pointer}.ui-tabela th.ui-tabela__th--ordenavel:hover{background-color:var(--ui-cor-hover-menu, rgba(255, 255, 255, .08))}.ui-tabela__sort-arrow{display:inline-block;width:12px;height:12px;vertical-align:middle;shape-rendering:geometricPrecision;transition:transform .2s ease,fill .2s ease;fill:var(--ui-cor-primaria, #00E08A)}.ui-tabela__sort-arrow--desc{transform:rotate(180deg)}.ui-tabela__sort-arrow--inativo{opacity:.3;fill:var(--ui-cor-texto-secundario, #888899)}.ui-tabela td{padding:10px 16px;border-bottom:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .06));white-space:nowrap;vertical-align:middle;color:var(--ui-cor-texto, #e1e1e6);box-sizing:border-box}.ui-tabela__cell-content{display:inline-flex;align-items:center;vertical-align:middle}.ui-tabela__cell-truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}.ui-tabela--alinhar-esquerda{text-align:left}.ui-tabela--alinhar-esquerda .ui-tabela__header-content,.ui-tabela--alinhar-esquerda .ui-tabela__cell-content{justify-content:flex-start}.ui-tabela--alinhar-centro{text-align:center}.ui-tabela--alinhar-centro .ui-tabela__header-content,.ui-tabela--alinhar-centro .ui-tabela__cell-content{justify-content:center}.ui-tabela--alinhar-direita{text-align:right}.ui-tabela--alinhar-direita .ui-tabela__header-content,.ui-tabela--alinhar-direita .ui-tabela__cell-content{justify-content:flex-end}.ui-tabela tbody tr:nth-child(2n){background-color:var(--ui-cor-fundo-card, rgba(255, 255, 255, .02))}.ui-tabela tbody tr:hover{background-color:var(--ui-cor-hover-menu, rgba(255, 255, 255, .08))}.ui-tabela__virtual-spacer td{padding:0!important;border:none!important;height:inherit;background:transparent!important}.ui-tabela__empty{padding:48px 24px;text-align:center;border:2px dashed var(--ui-cor-borda, rgba(255, 255, 255, .2));border-radius:var(--ui-raio-borda, 6px);margin:16px;color:var(--ui-cor-texto-secundario, #888899);background-color:var(--ui-cor-fundo, #0b0b0d);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;box-sizing:border-box}.ui-tabela__empty-icon{width:32px;height:32px;opacity:.5;fill:currentColor}.ui-tabela__empty-text{font-size:14px;font-weight:500;color:var(--ui-cor-texto-secundario, #888899)}.ui-tabela__loading{position:absolute;top:0;left:0;right:0;bottom:0;background-color:#0b0b0db3;-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;z-index:50;color:var(--ui-cor-primaria, #00E08A);font-size:14px}.ui-tabela__spinner{width:32px;height:32px;border:3px solid rgba(255,255,255,.15);border-top-color:var(--ui-cor-primaria, #00E08A);border-radius:50%;animation:ui-tabela-spin .8s linear infinite}@keyframes ui-tabela-spin{to{transform:rotate(360deg)}}.ui-tabela__context-menu{position:absolute;z-index:100;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .2));border-radius:var(--ui-raio-borda, 6px);box-shadow:0 4px 20px #0009;padding:6px;display:flex;flex-direction:column;gap:4px;min-width:200px;font-size:13px;color:var(--ui-cor-texto, #e1e1e6)}.ui-tabela__context-item{padding:8px 12px;border-radius:4px;cursor:pointer;color:var(--ui-cor-texto, #e1e1e6);display:flex;align-items:center;justify-content:space-between;gap:8px;transition:background-color .15s ease}.ui-tabela__context-item:hover{background-color:var(--ui-cor-hover-menu, rgba(255, 255, 255, .08));color:var(--ui-cor-primaria, #00E08A)}.ui-tabela__prompt-dialog{border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .2));border-radius:var(--ui-raio-borda, 6px);background-color:var(--ui-cor-fundo-elevado, #1a1a1e);color:var(--ui-cor-texto, #e1e1e6);padding:12px;box-shadow:0 8px 32px #000c;font-family:inherit;font-size:14px}.ui-tabela__prompt-dialog::backdrop{background:#0000004d}.ui-tabela__prompt-title{margin-bottom:8px;font-weight:500}.ui-tabela__prompt-dialog input{width:100%;padding:6px 8px;border-radius:4px;border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .2));background:var(--ui-cor-superficie, #141417);color:var(--ui-cor-texto, #e1e1e6);margin-bottom:12px;box-sizing:border-box}.ui-tabela__prompt-actions{display:flex;justify-content:flex-end;gap:8px}.ui-tabela__prompt-actions button{background:var(--ui-cor-borda, rgba(255, 255, 255, .12));color:var(--ui-cor-texto, #e1e1e6);border:none;padding:6px 12px;border-radius:4px;cursor:pointer}.ui-tabela__prompt-actions button:last-child{background:var(--ui-cor-primaria, #00E08A);color:#000;font-weight:600}';
+class Ue extends HTMLElement {
   constructor() {
     super();
     n(this, "shadow");
@@ -1487,6 +2036,7 @@ class Le extends HTMLElement {
     n(this, "_carregando", !1);
     n(this, "_src", null);
     n(this, "_ultimoFiltro", "");
+    n(this, "_autoFetchController", null);
     // Gerenciamento de Ouvintes e Elementos DOM
     n(this, "_containerElement", null);
     n(this, "_tableElement", null);
@@ -1497,7 +2047,7 @@ class Le extends HTMLElement {
     n(this, "_loadingElement", null);
     n(this, "_scrollHandler", null);
     n(this, "_activeResizeCleanup", null);
-    n(this, "_headerListeners", new B());
+    n(this, "_headerListeners", new z());
     n(this, "_ticking", !1);
     this.shadow = this.attachShadow({ mode: "open" });
   }
@@ -1521,16 +2071,33 @@ class Le extends HTMLElement {
   disconnectedCallback() {
     this.cleanupEventListeners();
   }
-  attributeChangedCallback(e, t, o) {
-    this.syncAttributes(), this.renderTotal();
+  attributeChangedCallback(e, t, i) {
+    if (this.syncAttributes(), e === "max-height" && this._containerElement) {
+      this._containerElement.style.maxHeight = this.getAttribute("max-height") || "";
+      return;
+    }
+    if ((e === "texto-vazio" || e === "empty-text") && this._emptyElement) {
+      const a = this._emptyElement.querySelector(".ui-tabela__empty-text");
+      a && (a.textContent = this._textoVazio), this.renderBody();
+      return;
+    }
+    if (e === "carregando" || e === "loading") {
+      this.renderLoading();
+      return;
+    }
+    if (e === "densidade" || e === "density") {
+      this.renderBody();
+      return;
+    }
+    this.renderTotal();
   }
   syncAttributes() {
     const e = this.getAttribute("texto-vazio") || this.getAttribute("empty-text");
     e && (this._textoVazio = e);
     const t = this.getAttribute("virtualizar") || this.getAttribute("virtualize");
     t !== null && (this._virtualizar = t !== "false");
-    const o = this.getAttribute("src");
-    o && o !== this._src && (this._src = o, this.isConnected && this.carregarDoEndpoint(o));
+    const i = this.getAttribute("src");
+    i && i !== this._src && (this._src = i, this.isConnected && this.carregarDoEndpoint(i));
     const a = this.hasAttribute("carregando") || this.hasAttribute("loading");
     this._carregando = a, this.renderLoading();
   }
@@ -1551,29 +2118,32 @@ class Le extends HTMLElement {
    */
   async carregarDoEndpoint(e) {
     const t = e || this._src;
-    if (t) {
-      this.carregando = !0, this.dispatchEvent(new CustomEvent("ui-fetch-start", { bubbles: !0, composed: !0, detail: { url: t } }));
-      try {
-        const o = await fetch(t);
-        if (!o.ok)
-          throw new Error(`HTTP ${o.status}: ${o.statusText}`);
-        const a = await o.json(), r = Array.isArray(a) ? a : a.dados || a.items || a.data || a.rows || [];
-        this.dados = r, this.carregando = !1, this.dispatchEvent(
-          new CustomEvent("ui-fetch-sucesso", {
-            bubbles: !0,
-            composed: !0,
-            detail: { url: t, total: r.length, dados: r }
-          })
-        );
-      } catch (o) {
-        this.carregando = !1, console.error("[ui-tabela] Erro ao carregar dados remotos:", o), this.dispatchEvent(
-          new CustomEvent("ui-fetch-erro", {
-            bubbles: !0,
-            composed: !0,
-            detail: { url: t, erro: o.message || String(o) }
-          })
-        );
-      }
+    if (!t) return;
+    this._autoFetchController && (this._autoFetchController.abort(), this._autoFetchController = null);
+    const i = new AbortController();
+    this._autoFetchController = i, this.carregando = !0, this.dispatchEvent(new CustomEvent("ui-fetch-start", { bubbles: !0, composed: !0, detail: { url: t } }));
+    try {
+      const a = await fetch(t, { signal: i.signal });
+      if (!a.ok)
+        throw new Error(`HTTP ${a.status}: ${a.statusText}`);
+      const s = await a.json(), r = Array.isArray(s) ? s : s.dados || s.items || s.data || s.rows || [];
+      this._autoFetchController === i && (this.dados = r, this.carregando = !1, this._autoFetchController = null, this.dispatchEvent(
+        new CustomEvent("ui-fetch-sucesso", {
+          bubbles: !0,
+          composed: !0,
+          detail: { url: t, total: r.length, dados: r }
+        })
+      ));
+    } catch (a) {
+      if (a.name === "AbortError")
+        return;
+      this._autoFetchController === i && (this.carregando = !1, this._autoFetchController = null, console.error("[ui-tabela] Erro ao carregar dados remotos:", a), this.dispatchEvent(
+        new CustomEvent("ui-fetch-erro", {
+          bubbles: !0,
+          composed: !0,
+          detail: { url: t, erro: a.message || String(a) }
+        })
+      ));
     }
   }
   /**
@@ -1590,17 +2160,17 @@ class Le extends HTMLElement {
       this.aplicarOrdenacao(), this.renderBody();
       return;
     }
-    const t = this._dadosOriginais.filter((o) => Object.values(o).some((a) => a == null ? !1 : String(a).toLowerCase().includes(this._ultimoFiltro)));
+    const t = this._dadosOriginais.filter((i) => Object.values(i).some((a) => a == null ? !1 : String(a).toLowerCase().includes(this._ultimoFiltro)));
     this._dadosExibicao = t, this.renderBody();
   }
   renderLoading() {
     this._loadingElement && (this._carregando ? this._loadingElement.style.display = "flex" : this._loadingElement.style.display = "none");
   }
   cleanupEventListeners() {
-    this._containerElement && this._scrollHandler && (this._containerElement.removeEventListener("scroll", this._scrollHandler), this._scrollHandler = null), this._activeResizeCleanup && (this._activeResizeCleanup(), this._activeResizeCleanup = null), this._headerListeners.cleanup();
+    this._containerElement && this._scrollHandler && (this._containerElement.removeEventListener("scroll", this._scrollHandler), this._scrollHandler = null), this._activeResizeCleanup && (this._activeResizeCleanup(), this._activeResizeCleanup = null), this._autoFetchController && (this._autoFetchController.abort(), this._autoFetchController = null), this._headerListeners.cleanup();
   }
-  addHeaderListener(e, t, o) {
-    this._headerListeners.add(e, t, o);
+  addHeaderListener(e, t, i) {
+    this._headerListeners.add(e, t, i);
   }
   // Getters & Setters Reativos
   get colunas() {
@@ -1669,30 +2239,30 @@ class Le extends HTMLElement {
       return;
     }
     const e = this._colunaOrdenada, t = this._direcaoOrdenacao === "asc" ? 1 : -1;
-    this._dadosExibicao = [...this._dadosOriginais].sort((o, a) => {
-      const r = o[e], s = a[e];
-      return r === s ? 0 : r == null ? 1 * t : s == null ? -1 * t : typeof r == "number" && typeof s == "number" ? (r - s) * t : String(r).localeCompare(String(s), "pt-BR", { numeric: !0, sensitivity: "base" }) * t;
+    this._dadosExibicao = [...this._dadosOriginais].sort((i, a) => {
+      const s = i[e], r = a[e];
+      return s === r ? 0 : s == null ? 1 * t : r == null ? -1 * t : typeof s == "number" && typeof r == "number" ? (s - r) * t : String(s).localeCompare(String(r), "pt-BR", { numeric: !0, sensitivity: "base" }) * t;
     });
   }
   // Redimensionamento de Colunas (Drag-to-resize)
-  initColumnResize(e, t, o, a, r) {
-    var x;
-    e.stopPropagation(), e.preventDefault(), this._isResizing = !0, r.classList.add("ui-tabela__resizer--ativo");
-    const s = e.pageX, l = a.offsetWidth, d = (x = this._colgroupElement) == null ? void 0 : x.children[o], h = (f) => {
-      const m = f.pageX - s;
-      let u = l + m;
+  initColumnResize(e, t, i, a, s) {
+    var m;
+    e.stopPropagation(), e.preventDefault(), this._isResizing = !0, s.classList.add("ui-tabela__resizer--ativo");
+    const r = e.pageX, l = a.offsetWidth, u = (m = this._colgroupElement) == null ? void 0 : m.children[i], d = (h) => {
+      const f = h.pageX - r;
+      let g = l + f;
       if (t.larguraMinima !== void 0) {
-        const b = typeof t.larguraMinima == "number" ? t.larguraMinima : parseInt(t.larguraMinima, 10);
-        isNaN(b) || (u = Math.max(b, u));
+        const v = typeof t.larguraMinima == "number" ? t.larguraMinima : parseInt(t.larguraMinima, 10);
+        isNaN(v) || (g = Math.max(v, g));
       } else
-        u = Math.max(60, u);
+        g = Math.max(60, g);
       if (t.larguraMaxima !== void 0) {
-        const b = typeof t.larguraMaxima == "number" ? t.larguraMaxima : parseInt(t.larguraMaxima, 10);
-        isNaN(b) || (u = Math.min(b, u));
+        const v = typeof t.larguraMaxima == "number" ? t.larguraMaxima : parseInt(t.larguraMaxima, 10);
+        isNaN(v) || (g = Math.min(v, g));
       }
-      t.largura = `${u}px`, a.style.width = `${u}px`, d && (d.style.width = `${u}px`);
+      t.largura = `${g}px`, a.style.width = `${g}px`, u && (u.style.width = `${g}px`);
     }, c = () => {
-      r.classList.remove("ui-tabela__resizer--ativo"), window.removeEventListener("mousemove", h), window.removeEventListener("mouseup", p), this._activeResizeCleanup = null, setTimeout(() => {
+      s.classList.remove("ui-tabela__resizer--ativo"), window.removeEventListener("mousemove", d), window.removeEventListener("mouseup", p), this._activeResizeCleanup = null, setTimeout(() => {
         this._isResizing = !1;
       }, 50);
     }, p = () => {
@@ -1707,34 +2277,34 @@ class Le extends HTMLElement {
         })
       );
     };
-    this._activeResizeCleanup = c, window.addEventListener("mousemove", h), window.addEventListener("mouseup", p);
+    this._activeResizeCleanup = c, window.addEventListener("mousemove", d), window.addEventListener("mouseup", p);
   }
   // Mini-Popover de Redimensionamento Exato
-  showPromptPopover(e, t, o, a) {
-    const r = document.createElement("dialog");
-    r.className = "ui-tabela__prompt-dialog", r.style.position = "fixed", r.style.left = `${e.clientX}px`, r.style.top = `${e.clientY}px`;
-    const s = document.createElement("div");
-    s.className = "ui-tabela__prompt-title", s.textContent = `Largura para "${t.rotulo}" (px ou auto):`;
+  showPromptPopover(e, t, i, a) {
+    const s = document.createElement("dialog");
+    s.className = "ui-tabela__prompt-dialog", s.style.position = "fixed", s.style.left = `${e.clientX}px`, s.style.top = `${e.clientY}px`;
+    const r = document.createElement("div");
+    r.className = "ui-tabela__prompt-title", r.textContent = `Largura para "${t.rotulo}" (px ou auto):`;
     const l = document.createElement("input");
     l.type = "text";
-    const d = t.largura ? String(t.largura).replace("px", "") : "auto";
-    l.value = d;
-    const h = document.createElement("div");
-    h.className = "ui-tabela__prompt-actions";
+    const u = t.largura ? String(t.largura).replace("px", "") : "auto";
+    l.value = u;
+    const d = document.createElement("div");
+    d.className = "ui-tabela__prompt-actions";
     const c = document.createElement("button");
     c.textContent = "Aplicar";
     const p = document.createElement("button");
-    p.textContent = "Cancelar", h.appendChild(p), h.appendChild(c), r.appendChild(s), r.appendChild(l), r.appendChild(h), this.shadow.appendChild(r), r.showModal();
-    const x = () => {
-      var u, b;
-      const m = l.value.trim().toLowerCase();
-      if (m === "" || m === "auto")
-        t.largura = void 0, a.style.width = "", (u = this._colgroupElement) != null && u.children[o] && (this._colgroupElement.children[o].style.width = "");
+    p.textContent = "Cancelar", d.appendChild(p), d.appendChild(c), s.appendChild(r), s.appendChild(l), s.appendChild(d), this.shadow.appendChild(s), s.showModal();
+    const m = () => {
+      var g, v;
+      const f = l.value.trim().toLowerCase();
+      if (f === "" || f === "auto")
+        t.largura = void 0, a.style.width = "", (g = this._colgroupElement) != null && g.children[i] && (this._colgroupElement.children[i].style.width = "");
       else {
-        const _ = parseInt(m, 10);
-        !isNaN(_) && _ > 20 && (t.largura = `${_}px`, a.style.width = `${_}px`, (b = this._colgroupElement) != null && b.children[o] && (this._colgroupElement.children[o].style.width = `${_}px`));
+        const x = parseInt(f, 10);
+        !isNaN(x) && x > 20 && (t.largura = `${x}px`, a.style.width = `${x}px`, (v = this._colgroupElement) != null && v.children[i] && (this._colgroupElement.children[i].style.width = `${x}px`));
       }
-      r.close(), r.remove(), this.dispatchEvent(
+      s.close(), s.remove(), this.dispatchEvent(
         new CustomEvent("ui-column-resize", {
           detail: {
             idColuna: t.id,
@@ -1745,14 +2315,14 @@ class Le extends HTMLElement {
         })
       );
     };
-    c.addEventListener("click", x), p.addEventListener("click", () => {
-      r.close(), r.remove();
-    }), l.addEventListener("keydown", (f) => {
-      f.key === "Enter" && x(), f.key === "Escape" && (r.close(), r.remove());
+    c.addEventListener("click", m), p.addEventListener("click", () => {
+      s.close(), s.remove();
+    }), l.addEventListener("keydown", (h) => {
+      h.key === "Enter" && m(), h.key === "Escape" && (s.close(), s.remove());
     }), l.focus(), l.select();
   }
-  handleHeaderContextMenu(e, t, o, a) {
-    e.preventDefault(), e.stopPropagation(), this.showPromptPopover(e, t, o, a);
+  handleHeaderContextMenu(e, t, i, a) {
+    e.preventDefault(), e.stopPropagation(), this.showPromptPopover(e, t, i, a);
   }
   formatWidth(e) {
     return e == null || e === "" ? "" : typeof e == "number" ? `${e}px` : e;
@@ -1769,71 +2339,81 @@ class Le extends HTMLElement {
   }
   // Renderiza toda a estrutura (Container, Table, Thead)
   renderTotal() {
-    if (!this.shadow) return;
-    this.cleanupEventListeners(), this.shadow.innerHTML = `<style>${Ce}</style>`;
-    const e = this.getAttribute("max-height"), t = document.createElement("div");
-    t.className = "ui-tabela-container", e && (t.style.maxHeight = e), this._containerElement = t;
-    const o = document.createElement("div");
-    o.className = "ui-tabela__empty", o.style.display = "none";
-    const a = document.createElement("div");
-    a.innerHTML = `
-      <svg class="ui-tabela__empty-icon" viewBox="0 0 24 24">
-        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h2v7H7zm4-3h2v10h-2zm4 6h2v4h-2z"/>
-      </svg>`;
-    const r = document.createElement("span");
-    r.className = "ui-tabela__empty-text", r.textContent = this._textoVazio, o.appendChild(a), o.appendChild(r), this._emptyElement = o, this._tableElement = document.createElement("table"), this._tableElement.className = "ui-tabela", this._colgroupElement = document.createElement("colgroup"), this._theadElement = document.createElement("thead"), this._tbodyElement = document.createElement("tbody"), this._tableElement.appendChild(this._colgroupElement), this._tableElement.appendChild(this._theadElement), this._tableElement.appendChild(this._tbodyElement), t.appendChild(this._emptyElement), t.appendChild(this._tableElement);
-    const s = document.createElement("div");
-    s.className = "ui-tabela__loading", s.style.display = this._carregando ? "flex" : "none", s.innerHTML = `
-      <div class="ui-tabela__spinner"></div>
-      <span>Carregando dados...</span>
-    `, this._loadingElement = s, t.appendChild(this._loadingElement), this.shadow.appendChild(t), this.renderHeader(), this.renderBody(), this._virtualizar && this._containerElement && (this._ticking = !1, this._scrollHandler = () => {
-      this._ticking || (window.requestAnimationFrame(() => {
-        this.renderBody(), this._ticking = !1;
-      }), this._ticking = !0);
-    }, this._containerElement.addEventListener("scroll", this._scrollHandler));
+    if (this.shadow) {
+      if (this._containerElement) {
+        const e = this.getAttribute("max-height");
+        if (this._containerElement.style.maxHeight = e || "", this._emptyElement) {
+          const t = this._emptyElement.querySelector(".ui-tabela__empty-text");
+          t && (t.textContent = this._textoVazio);
+        }
+      } else {
+        this.cleanupEventListeners(), this.shadow.innerHTML = `<style>${Ge}</style>`;
+        const e = this.getAttribute("max-height"), t = document.createElement("div");
+        t.className = "ui-tabela-container", e && (t.style.maxHeight = e), this._containerElement = t;
+        const i = document.createElement("div");
+        i.className = "ui-tabela__empty", i.style.display = "none";
+        const a = document.createElement("div");
+        a.innerHTML = `
+        <svg class="ui-tabela__empty-icon" viewBox="0 0 24 24">
+          <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h2v7H7zm4-3h2v10h-2zm4 6h2v4h-2z"/>
+        </svg>`;
+        const s = document.createElement("span");
+        s.className = "ui-tabela__empty-text", s.textContent = this._textoVazio, i.appendChild(a), i.appendChild(s), this._emptyElement = i, this._tableElement = document.createElement("table"), this._tableElement.className = "ui-tabela", this._colgroupElement = document.createElement("colgroup"), this._theadElement = document.createElement("thead"), this._tbodyElement = document.createElement("tbody"), this._tableElement.appendChild(this._colgroupElement), this._tableElement.appendChild(this._theadElement), this._tableElement.appendChild(this._tbodyElement), t.appendChild(this._emptyElement), t.appendChild(this._tableElement);
+        const r = document.createElement("div");
+        r.className = "ui-tabela__loading", r.style.display = this._carregando ? "flex" : "none", r.innerHTML = `
+        <div class="ui-tabela__spinner"></div>
+        <span>Carregando dados...</span>
+      `, this._loadingElement = r, t.appendChild(this._loadingElement), this.shadow.appendChild(t);
+      }
+      this.renderHeader(), this.renderBody(), this._virtualizar && this._containerElement && !this._scrollHandler && (this._ticking = !1, this._scrollHandler = () => {
+        this._ticking || (window.requestAnimationFrame(() => {
+          this.renderBody(), this._ticking = !1;
+        }), this._ticking = !0);
+      }, this._containerElement.addEventListener("scroll", this._scrollHandler));
+    }
   }
   // Renderiza apenas os cabeçalhos (Thead e Colgroup)
   renderHeader() {
     if (!this._theadElement || !this._colgroupElement) return;
     this._headerListeners.cleanup(), this._theadElement.innerHTML = "", this._colgroupElement.innerHTML = "";
     const e = document.createElement("tr");
-    this._colunas.forEach((t, o) => {
+    this._colunas.forEach((t, i) => {
       const a = document.createElement("col");
       t.largura !== void 0 && (a.style.width = this.formatWidth(t.largura)), this._colgroupElement.appendChild(a);
-      const r = document.createElement("th"), s = this.getAlignmentClass(t.alinhamento);
-      if (r.className = s, r.style.textAlign = this.getTextAlign(t.alinhamento), t.largura !== void 0 && (r.style.width = this.formatWidth(t.largura)), t.larguraMinima !== void 0 && (r.style.minWidth = this.formatWidth(t.larguraMinima)), t.larguraMaxima !== void 0) {
-        const m = this.formatWidth(t.larguraMaxima);
-        r.style.maxWidth = m, r.style.overflow = "hidden", r.style.textOverflow = "ellipsis", r.style.whiteSpace = "nowrap";
+      const s = document.createElement("th"), r = this.getAlignmentClass(t.alinhamento);
+      if (s.className = r, s.style.textAlign = this.getTextAlign(t.alinhamento), t.largura !== void 0 && (s.style.width = this.formatWidth(t.largura)), t.larguraMinima !== void 0 && (s.style.minWidth = this.formatWidth(t.larguraMinima)), t.larguraMaxima !== void 0) {
+        const f = this.formatWidth(t.larguraMaxima);
+        s.style.maxWidth = f, s.style.overflow = "hidden", s.style.textOverflow = "ellipsis", s.style.whiteSpace = "nowrap";
       }
-      if (t.tooltip && (r.title = t.tooltip), t.ordenavel) {
-        r.classList.add("ui-tabela__th--ordenavel");
-        const m = () => this.handleHeaderClick(t);
-        this.addHeaderListener(r, "click", m);
+      if (t.tooltip && (s.title = t.tooltip), t.ordenavel) {
+        s.classList.add("ui-tabela__th--ordenavel");
+        const f = () => this.handleHeaderClick(t);
+        this.addHeaderListener(s, "click", f);
       }
-      const l = (m) => this.handleHeaderContextMenu(m, t, o, r);
-      this.addHeaderListener(r, "contextmenu", l);
-      const d = document.createElement("div");
-      d.className = "ui-tabela__header-content";
-      const h = document.createElement("span");
-      h.className = "ui-tabela__header-text", h.textContent = t.rotulo, d.appendChild(h);
+      const l = (f) => this.handleHeaderContextMenu(f, t, i, s);
+      this.addHeaderListener(s, "contextmenu", l);
+      const u = document.createElement("div");
+      u.className = "ui-tabela__header-content";
+      const d = document.createElement("span");
+      d.className = "ui-tabela__header-text", d.textContent = t.rotulo, u.appendChild(d);
       const c = document.createElement("span");
       if (c.className = "ui-tabela__sort-icon", t.ordenavel) {
-        const m = this._colunaOrdenada === t.id && this._direcaoOrdenacao !== "original", u = m && this._direcaoOrdenacao === "desc", b = m ? "" : "ui-tabela__sort-arrow--inativo", _ = u ? "ui-tabela__sort-arrow--desc" : "";
+        const f = this._colunaOrdenada === t.id && this._direcaoOrdenacao !== "original", g = f && this._direcaoOrdenacao === "desc", v = f ? "" : "ui-tabela__sort-arrow--inativo", x = g ? "ui-tabela__sort-arrow--desc" : "";
         c.innerHTML = `
-          <svg class="ui-tabela__sort-arrow ${b} ${_}" viewBox="0 0 24 24">
+          <svg class="ui-tabela__sort-arrow ${v} ${x}" viewBox="0 0 24 24">
             <path d="M7 14l5-5 5 5H7z"/>
           </svg>
         `;
       }
-      d.appendChild(c), r.appendChild(d);
+      u.appendChild(c), s.appendChild(u);
       const p = document.createElement("div");
       p.className = "ui-tabela__resizer", p.title = "Arrastar para redimensionar largura (duplo-clique para auto-ajuste)";
-      const x = (m) => this.initColumnResize(m, t, o, r, p);
-      this.addHeaderListener(p, "mousedown", x);
-      const f = (m) => {
-        m.stopPropagation(), t.largura = void 0, r.style.width = "", a.style.width = "", this.dispatchEvent(new CustomEvent("ui-column-resize", { bubbles: !0, composed: !0, detail: { idColuna: t.id, largura: "auto" } }));
+      const m = (f) => this.initColumnResize(f, t, i, s, p);
+      this.addHeaderListener(p, "mousedown", m);
+      const h = (f) => {
+        f.stopPropagation(), t.largura = void 0, s.style.width = "", a.style.width = "", this.dispatchEvent(new CustomEvent("ui-column-resize", { bubbles: !0, composed: !0, detail: { idColuna: t.id, largura: "auto" } }));
       };
-      this.addHeaderListener(p, "dblclick", f), r.appendChild(p), e.appendChild(r);
+      this.addHeaderListener(p, "dblclick", h), s.appendChild(p), e.appendChild(s);
     }), this._theadElement.appendChild(e);
   }
   // Renderiza apenas o corpo, preservando o scroll
@@ -1844,149 +2424,290 @@ class Le extends HTMLElement {
       return;
     }
     this._emptyElement.style.display = "none", this._tableElement.style.display = "table";
-    const e = this._dadosExibicao.length, t = this.getRowHeight(), o = this._virtualizar && e > 30;
-    let a = 0, r = e;
-    if (o) {
-      const l = this._containerElement.scrollTop, d = this._containerElement.clientHeight || 400, h = 5;
-      a = Math.max(0, Math.floor(l / t) - h), r = Math.min(e, Math.ceil((l + d) / t) + h);
+    const e = this._dadosExibicao.length, t = this.getRowHeight(), i = this._virtualizar && e > 30;
+    let a = 0, s = e;
+    if (i) {
+      const l = this._containerElement.scrollTop, u = this._containerElement.clientHeight || 400, d = 5;
+      a = Math.max(0, Math.floor(l / t) - d), s = Math.min(e, Math.ceil((l + u) / t) + d);
     }
     this._tbodyElement.innerHTML = "";
-    const s = document.createDocumentFragment();
-    if (o && a > 0) {
+    const r = document.createDocumentFragment();
+    if (i && a > 0) {
       const l = document.createElement("tr");
       l.className = "ui-tabela__virtual-spacer", l.style.height = `${a * t}px`;
-      const d = document.createElement("td");
-      d.colSpan = this._colunas.length || 1, l.appendChild(d), s.appendChild(l);
+      const u = document.createElement("td");
+      u.colSpan = this._colunas.length || 1, l.appendChild(u), r.appendChild(l);
     }
-    for (let l = a; l < r; l++) {
-      const d = this._dadosExibicao[l], h = document.createElement("tr");
+    for (let l = a; l < s; l++) {
+      const u = this._dadosExibicao[l], d = document.createElement("tr");
       this._colunas.forEach((c) => {
-        const p = document.createElement("td"), x = this.getAlignmentClass(c.alinhamento);
-        if (p.className = x, p.style.textAlign = this.getTextAlign(c.alinhamento), c.larguraMaxima !== void 0) {
-          const u = this.formatWidth(c.larguraMaxima);
-          p.style.maxWidth = u, p.style.overflow = "hidden", p.style.textOverflow = "ellipsis", p.style.whiteSpace = "nowrap";
+        const p = document.createElement("td"), m = this.getAlignmentClass(c.alinhamento);
+        if (p.className = m, p.style.textAlign = this.getTextAlign(c.alinhamento), c.larguraMaxima !== void 0) {
+          const g = this.formatWidth(c.larguraMaxima);
+          p.style.maxWidth = g, p.style.overflow = "hidden", p.style.textOverflow = "ellipsis", p.style.whiteSpace = "nowrap";
         }
-        const f = document.createElement("div");
-        f.className = "ui-tabela__cell-content", c.larguraMaxima !== void 0 && f.classList.add("ui-tabela__cell-truncate");
-        const m = d[c.id];
+        const h = document.createElement("div");
+        h.className = "ui-tabela__cell-content", c.larguraMaxima !== void 0 && h.classList.add("ui-tabela__cell-truncate");
+        const f = u[c.id];
         if (typeof c.render == "function") {
-          const u = c.render(m, d, l);
-          u instanceof Node ? f.appendChild(u) : f.textContent = String(u ?? "");
-        } else if (m instanceof Node)
-          f.appendChild(m);
+          const g = c.render(f, u, l);
+          g instanceof Node ? h.appendChild(g) : h.textContent = String(g ?? "");
+        } else if (f instanceof Node)
+          h.appendChild(f);
         else {
-          const u = m != null ? String(m) : "";
-          f.textContent = u, c.larguraMaxima !== void 0 && !c.tooltip && (p.title = u);
+          const g = f != null ? String(f) : "";
+          h.textContent = g, c.larguraMaxima !== void 0 && !c.tooltip && (p.title = g);
         }
-        p.appendChild(f), h.appendChild(p);
-      }), s.appendChild(h);
+        p.appendChild(h), d.appendChild(p);
+      }), r.appendChild(d);
     }
-    if (o && r < e) {
+    if (i && s < e) {
       const l = document.createElement("tr");
-      l.className = "ui-tabela__virtual-spacer", l.style.height = `${(e - r) * t}px`;
-      const d = document.createElement("td");
-      d.colSpan = this._colunas.length || 1, l.appendChild(d), s.appendChild(l);
+      l.className = "ui-tabela__virtual-spacer", l.style.height = `${(e - s) * t}px`;
+      const u = document.createElement("td");
+      u.colSpan = this._colunas.length || 1, l.appendChild(u), r.appendChild(l);
     }
-    this._tbodyElement.appendChild(s);
+    this._tbodyElement.appendChild(r);
   }
 }
-customElements.get("ui-tabela") || customElements.define("ui-tabela", Le);
-const Q = '.leaflet-pane,.leaflet-tile,.leaflet-marker-icon,.leaflet-marker-shadow,.leaflet-tile-container,.leaflet-pane>svg,.leaflet-pane>canvas,.leaflet-zoom-box,.leaflet-image-layer,.leaflet-layer{position:absolute;left:0;top:0}.leaflet-container{overflow:hidden}.leaflet-tile,.leaflet-marker-icon,.leaflet-marker-shadow{-webkit-user-select:none;-moz-user-select:none;user-select:none;-webkit-user-drag:none}.leaflet-tile::selection{background:transparent}.leaflet-safari .leaflet-tile{image-rendering:-webkit-optimize-contrast}.leaflet-safari .leaflet-tile-container{width:1600px;height:1600px;-webkit-transform-origin:0 0}.leaflet-marker-icon,.leaflet-marker-shadow{display:block}.leaflet-container .leaflet-overlay-pane svg{max-width:none!important;max-height:none!important}.leaflet-container .leaflet-marker-pane img,.leaflet-container .leaflet-shadow-pane img,.leaflet-container .leaflet-tile-pane img,.leaflet-container img.leaflet-image-layer,.leaflet-container .leaflet-tile{max-width:none!important;max-height:none!important;width:auto;padding:0}.leaflet-container img.leaflet-tile{mix-blend-mode:plus-lighter}.leaflet-container.leaflet-touch-zoom{-ms-touch-action:pan-x pan-y;touch-action:pan-x pan-y}.leaflet-container.leaflet-touch-drag{-ms-touch-action:pinch-zoom;touch-action:none;touch-action:pinch-zoom}.leaflet-container.leaflet-touch-drag.leaflet-touch-zoom{-ms-touch-action:none;touch-action:none}.leaflet-container{-webkit-tap-highlight-color:transparent}.leaflet-container a{-webkit-tap-highlight-color:rgba(51,181,229,.4)}.leaflet-tile{filter:inherit;visibility:hidden}.leaflet-tile-loaded{visibility:inherit}.leaflet-zoom-box{width:0;height:0;-moz-box-sizing:border-box;box-sizing:border-box;z-index:800}.leaflet-overlay-pane svg{-moz-user-select:none}.leaflet-pane{z-index:400}.leaflet-tile-pane{z-index:200}.leaflet-overlay-pane{z-index:400}.leaflet-shadow-pane{z-index:500}.leaflet-marker-pane{z-index:600}.leaflet-tooltip-pane{z-index:650}.leaflet-popup-pane{z-index:700}.leaflet-map-pane canvas{z-index:100}.leaflet-map-pane svg{z-index:200}.leaflet-vml-shape{width:1px;height:1px}.lvml{behavior:url(#default#VML);display:inline-block;position:absolute}.leaflet-control{position:relative;z-index:800;pointer-events:visiblePainted;pointer-events:auto}.leaflet-top,.leaflet-bottom{position:absolute;z-index:1000;pointer-events:none}.leaflet-top{top:0}.leaflet-right{right:0}.leaflet-bottom{bottom:0}.leaflet-left{left:0}.leaflet-control{float:left;clear:both}.leaflet-right .leaflet-control{float:right}.leaflet-top .leaflet-control{margin-top:10px}.leaflet-bottom .leaflet-control{margin-bottom:10px}.leaflet-left .leaflet-control{margin-left:10px}.leaflet-right .leaflet-control{margin-right:10px}.leaflet-fade-anim .leaflet-popup{opacity:0;-webkit-transition:opacity .2s linear;-moz-transition:opacity .2s linear;transition:opacity .2s linear}.leaflet-fade-anim .leaflet-map-pane .leaflet-popup{opacity:1}.leaflet-zoom-animated{-webkit-transform-origin:0 0;-ms-transform-origin:0 0;transform-origin:0 0}svg.leaflet-zoom-animated{will-change:transform}.leaflet-zoom-anim .leaflet-zoom-animated{-webkit-transition:-webkit-transform .25s cubic-bezier(0,0,.25,1);-moz-transition:-moz-transform .25s cubic-bezier(0,0,.25,1);transition:transform .25s cubic-bezier(0,0,.25,1)}.leaflet-zoom-anim .leaflet-tile,.leaflet-pan-anim .leaflet-tile{-webkit-transition:none;-moz-transition:none;transition:none}.leaflet-zoom-anim .leaflet-zoom-hide{visibility:hidden}.leaflet-interactive{cursor:pointer}.leaflet-grab{cursor:-webkit-grab;cursor:-moz-grab;cursor:grab}.leaflet-crosshair,.leaflet-crosshair .leaflet-interactive{cursor:crosshair}.leaflet-popup-pane,.leaflet-control{cursor:auto}.leaflet-dragging .leaflet-grab,.leaflet-dragging .leaflet-grab .leaflet-interactive,.leaflet-dragging .leaflet-marker-draggable{cursor:move;cursor:-webkit-grabbing;cursor:-moz-grabbing;cursor:grabbing}.leaflet-marker-icon,.leaflet-marker-shadow,.leaflet-image-layer,.leaflet-pane>svg path,.leaflet-tile-container{pointer-events:none}.leaflet-marker-icon.leaflet-interactive,.leaflet-image-layer.leaflet-interactive,.leaflet-pane>svg path.leaflet-interactive,svg.leaflet-image-layer.leaflet-interactive path{pointer-events:visiblePainted;pointer-events:auto}.leaflet-container{background:#ddd;outline-offset:1px}.leaflet-container a{color:#0078a8}.leaflet-zoom-box{border:2px dotted #38f;background:#ffffff80}.leaflet-container{font-family:Helvetica Neue,Arial,Helvetica,sans-serif;font-size:12px;font-size:.75rem;line-height:1.5}.leaflet-bar{box-shadow:0 1px 5px #000000a6;border-radius:4px}.leaflet-bar a{background-color:#fff;border-bottom:1px solid #ccc;width:26px;height:26px;line-height:26px;display:block;text-align:center;text-decoration:none;color:#000}.leaflet-bar a,.leaflet-control-layers-toggle{background-position:50% 50%;background-repeat:no-repeat;display:block}.leaflet-bar a:hover,.leaflet-bar a:focus{background-color:#f4f4f4}.leaflet-bar a:first-child{border-top-left-radius:4px;border-top-right-radius:4px}.leaflet-bar a:last-child{border-bottom-left-radius:4px;border-bottom-right-radius:4px;border-bottom:none}.leaflet-bar a.leaflet-disabled{cursor:default;background-color:#f4f4f4;color:#bbb}.leaflet-touch .leaflet-bar a{width:30px;height:30px;line-height:30px}.leaflet-touch .leaflet-bar a:first-child{border-top-left-radius:2px;border-top-right-radius:2px}.leaflet-touch .leaflet-bar a:last-child{border-bottom-left-radius:2px;border-bottom-right-radius:2px}.leaflet-control-zoom-in,.leaflet-control-zoom-out{font:700 18px Lucida Console,Monaco,monospace;text-indent:1px}.leaflet-touch .leaflet-control-zoom-in,.leaflet-touch .leaflet-control-zoom-out{font-size:22px}.leaflet-control-layers{box-shadow:0 1px 5px #0006;background:#fff;border-radius:5px}.leaflet-control-layers-toggle{background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABoAAAAaCAQAAAADQ4RFAAACf0lEQVR4AY1UM3gkARTePdvdoTxXKc+qTl3aU5U6b2Kbkz3Gtq3Zw6ziLGNPzrYx7946Tr6/ee/XeCQ4D3ykPtL5tHno4n0d/h3+xfuWHGLX81cn7r0iTNzjr7LrlxCqPtkbTQEHeqOrTy4Yyt3VCi/IOB0v7rVC7q45Q3Gr5K6jt+3Gl5nCoDD4MtO+j96Wu8atmhGqcNGHObuf8OM/x3AMx38+4Z2sPqzCxRFK2aF2e5Jol56XTLyggAMTL56XOMoS1W4pOyjUcGGQdZxU6qRh7B9Zp+PfpOFlqt0zyDZckPi1ttmIp03jX8gyJ8a/PG2yutpS/Vol7peZIbZcKBAEEheEIAgFbDkz5H6Zrkm2hVWGiXKiF4Ycw0RWKdtC16Q7qe3X4iOMxruonzegJzWaXFrU9utOSsLUmrc0YjeWYjCW4PDMADElpJSSQ0vQvA1Tm6/JlKnqFs1EGyZiFCqnRZTEJJJiKRYzVYzJck2Rm6P4iH+cmSY0YzimYa8l0EtTODFWhcMIMVqdsI2uiTvKmTisIDHJ3od5GILVhBCarCfVRmo4uTjkhrhzkiBV7SsaqS+TzrzM1qpGGUFt28pIySQHR6h7F6KSwGWm97ay+Z+ZqMcEjEWebE7wxCSQwpkhJqoZA5ivCdZDjJepuJ9IQjGGUmuXJdBFUygxVqVsxFsLMbDe8ZbDYVCGKxs+W080max1hFCarCfV+C1KATwcnvE9gRRuMP2prdbWGowm1KB1y+zwMMENkM755cJ2yPDtqhTI6ED1M/82yIDtC/4j4BijjeObflpO9I9MwXTCsSX8jWAFeHr05WoLTJ5G8IQVS/7vwR6ohirYM7f6HzYpogfS3R2OAAAAAElFTkSuQmCC);width:36px;height:36px}.leaflet-retina .leaflet-control-layers-toggle{background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADQAAAA0CAQAAABvcdNgAAAEsklEQVR4AWL4TydIhpZK1kpWOlg0w3ZXP6D2soBtG42jeI6ZmQTHzAxiTbSJsYLjO9HhP+WOmcuhciVnmHVQcJnp7DFvScowZorad/+V/fVzMdMT2g9Cv9guXGv/7pYOrXh2U+RRR3dSd9JRx6bIFc/ekqHI29JC6pJ5ZEh1yWkhkbcFeSjxgx3L2m1cb1C7bceyxA+CNjT/Ifff+/kDk2u/w/33/IeCMOSaWZ4glosqT3DNnNZQ7Cs58/3Ce5HL78iZH/vKVIaYlqzfdLu8Vi7dnvUbEza5Idt36tquZFldl6N5Z/POLof0XLK61mZCmJSWjVF9tEjUluu74IUXvgttuVIHE7YxSkaYhJZam7yiM9Pv82JYfl9nptxZaxMJE4YSPty+vF0+Y2up9d3wwijfjZbabqm/3bZ9ecKHsiGmRflnn1MW4pjHf9oLufyn2z3y1D6n8g8TZhxyzipLNPnAUpsOiuWimg52psrTZYnOWYNDTMuWBWa0tJb4rgq1UvmutpaYEbZlwU3CLJm/ayYjHW5/h7xWLn9Hh1vepDkyf7dE7MtT5LR4e7yYpHrkhOUpEfssBLq2pPhAqoSWKUkk7EDqkmK6RrCEzqDjhNDWNE+XSMvkJRDWlZTmCW0l0PHQGRZY5t1L83kT0Y3l2SItk5JAWHl2dCOBm+fPu3fo5/3v61RMCO9Jx2EEYYhb0rmNQMX/vm7gqOEJLcXTGw3CAuRNeyaPWwjR8PRqKQ1PDA/dpv+on9Shox52WFnx0KY8onHayrJzm87i5h9xGw/tfkev0jGsQizqezUKjk12hBMKJ4kbCqGPVNXudyyrShovGw5CgxsRICxF6aRmSjlBnHRzg7Gx8fKqEubI2rahQYdR1YgDIRQO7JvQyD52hoIQx0mxa0ODtW2Iozn1le2iIRdzwWewedyZzewidueOGqlsn1MvcnQpuVwLGG3/IR1hIKxCjelIDZ8ldqWz25jWAsnldEnK0Zxro19TGVb2ffIZEsIO89EIEDvKMPrzmBOQcKQ+rroye6NgRRxqR4U8EAkz0CL6uSGOm6KQCdWjvjRiSP1BPalCRS5iQYiEIvxuBMJEWgzSoHADcVMuN7IuqqTeyUPq22qFimFtxDyBBJEwNyt6TM88blFHao/6tWWhuuOM4SAK4EI4QmFHA+SEyWlp4EQoJ13cYGzMu7yszEIBOm2rVmHUNqwAIQabISNMRstmdhNWcFLsSm+0tjJH1MdRxO5Nx0WDMhCtgD6OKgZeljJqJKc9po8juskR9XN0Y1lZ3mWjLR9JCO1jRDMd0fpYC2VnvjBSEFg7wBENc0R9HFlb0xvF1+TBEpF68d+DHR6IOWVv2BECtxo46hOFUBd/APU57WIoEwJhIi2CdpyZX0m93BZicktMj1AS9dClteUFAUNUIEygRZCtik5zSxI9MubTBH1GOiHsiLJ3OCoSZkILa9PxiN0EbvhsAo8tdAf9Seepd36lGWHmtNANTv5Jd0z4QYyeo/UEJqxKRpg5LZx6btLPsOaEmdMyxYdlc8LMaJnikDlhclqmPiQnTEpLUIZEwkRagjYkEibQErwhkTAKCLQEbUgkzJQWc/0PstHHcfEdQ+UAAAAASUVORK5CYII=);background-size:26px 26px}.leaflet-touch .leaflet-control-layers-toggle{width:44px;height:44px}.leaflet-control-layers .leaflet-control-layers-list,.leaflet-control-layers-expanded .leaflet-control-layers-toggle{display:none}.leaflet-control-layers-expanded .leaflet-control-layers-list{display:block;position:relative}.leaflet-control-layers-expanded{padding:6px 10px 6px 6px;color:#333;background:#fff}.leaflet-control-layers-scrollbar{overflow-y:scroll;overflow-x:hidden;padding-right:5px}.leaflet-control-layers-selector{margin-top:2px;position:relative;top:1px}.leaflet-control-layers label{display:block;font-size:13px;font-size:1.08333em}.leaflet-control-layers-separator{height:0;border-top:1px solid #ddd;margin:5px -10px 5px -6px}.leaflet-default-icon-path{background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABkAAAApCAYAAADAk4LOAAAFgUlEQVR4Aa1XA5BjWRTN2oW17d3YaZtr2962HUzbDNpjszW24mRt28p47v7zq/bXZtrp/lWnXr337j3nPCe85NcypgSFdugCpW5YoDAMRaIMqRi6aKq5E3YqDQO3qAwjVWrD8Ncq/RBpykd8oZUb/kaJutow8r1aP9II0WmLKLIsJyv1w/kqw9Ch2MYdB++12Onxee/QMwvf4/Dk/Lfp/i4nxTXtOoQ4pW5Aj7wpici1A9erdAN2OH64x8OSP9j3Ft3b7aWkTg/Fm91siTra0f9on5sQr9INejH6CUUUpavjFNq1B+Oadhxmnfa8RfEmN8VNAsQhPqF55xHkMzz3jSmChWU6f7/XZKNH+9+hBLOHYozuKQPxyMPUKkrX/K0uWnfFaJGS1QPRtZsOPtr3NsW0uyh6NNCOkU3Yz+bXbT3I8G3xE5EXLXtCXbbqwCO9zPQYPRTZ5vIDXD7U+w7rFDEoUUf7ibHIR4y6bLVPXrz8JVZEql13trxwue/uDivd3fkWRbS6/IA2bID4uk0UpF1N8qLlbBlXs4Ee7HLTfV1j54APvODnSfOWBqtKVvjgLKzF5YdEk5ewRkGlK0i33Eofffc7HT56jD7/6U+qH3Cx7SBLNntH5YIPvODnyfIXZYRVDPqgHtLs5ABHD3YzLuespb7t79FY34DjMwrVrcTuwlT55YMPvOBnRrJ4VXTdNnYug5ucHLBjEpt30701A3Ts+HEa73u6dT3FNWwflY86eMHPk+Yu+i6pzUpRrW7SNDg5JHR4KapmM5Wv2E8Tfcb1HoqqHMHU+uWDD7zg54mz5/2BSnizi9T1Dg4QQXLToGNCkb6tb1NU+QAlGr1++eADrzhn/u8Q2YZhQVlZ5+CAOtqfbhmaUCS1ezNFVm2imDbPmPng5wmz+gwh+oHDce0eUtQ6OGDIyR0uUhUsoO3vfDmmgOezH0mZN59x7MBi++WDL1g/eEiU3avlidO671bkLfwbw5XV2P8Pzo0ydy4t2/0eu33xYSOMOD8hTf4CrBtGMSoXfPLchX+J0ruSePw3LZeK0juPJbYzrhkH0io7B3k164hiGvawhOKMLkrQLyVpZg8rHFW7E2uHOL888IBPlNZ1FPzstSJM694fWr6RwpvcJK60+0HCILTBzZLFNdtAzJaohze60T8qBzyh5ZuOg5e7uwQppofEmf2++DYvmySqGBuKaicF1blQjhuHdvCIMvp8whTTfZzI7RldpwtSzL+F1+wkdZ2TBOW2gIF88PBTzD/gpeREAMEbxnJcaJHNHrpzji0gQCS6hdkEeYt9DF/2qPcEC8RM28Hwmr3sdNyht00byAut2k3gufWNtgtOEOFGUwcXWNDbdNbpgBGxEvKkOQsxivJx33iow0Vw5S6SVTrpVq11ysA2Rp7gTfPfktc6zhtXBBC+adRLshf6sG2RfHPZ5EAc4sVZ83yCN00Fk/4kggu40ZTvIEm5g24qtU4KjBrx/BTTH8ifVASAG7gKrnWxJDcU7x8X6Ecczhm3o6YicvsLXWfh3Ch1W0k8x0nXF+0fFxgt4phz8QvypiwCCFKMqXCnqXExjq10beH+UUA7+nG6mdG/Pu0f3LgFcGrl2s0kNNjpmoJ9o4B29CMO8dMT4Q5ox8uitF6fqsrJOr8qnwNbRzv6hSnG5wP+64C7h9lp30hKNtKdWjtdkbuPA19nJ7Tz3zR/ibgARbhb4AlhavcBebmTHcFl2fvYEnW0ox9xMxKBS8btJ+KiEbq9zA4RthQXDhPa0T9TEe69gWupwc6uBUphquXgf+/FrIjweHQS4/pduMe5ERUMHUd9xv8ZR98CxkS4F2n3EUrUZ10EYNw7BWm9x1GiPssi3GgiGRDKWRYZfXlON+dfNbM+GgIwYdwAAAAASUVORK5CYII=)}.leaflet-container .leaflet-control-attribution{background:#fff;background:#fffc;margin:0}.leaflet-control-attribution,.leaflet-control-scale-line{padding:0 5px;color:#333;line-height:1.4}.leaflet-control-attribution a{text-decoration:none}.leaflet-control-attribution a:hover,.leaflet-control-attribution a:focus{text-decoration:underline}.leaflet-attribution-flag{display:inline!important;vertical-align:baseline!important;width:1em;height:.6669em}.leaflet-left .leaflet-control-scale{margin-left:5px}.leaflet-bottom .leaflet-control-scale{margin-bottom:5px}.leaflet-control-scale-line{border:2px solid #777;border-top:none;line-height:1.1;padding:2px 5px 1px;white-space:nowrap;-moz-box-sizing:border-box;box-sizing:border-box;background:#fffc;text-shadow:1px 1px #fff}.leaflet-control-scale-line:not(:first-child){border-top:2px solid #777;border-bottom:none;margin-top:-2px}.leaflet-control-scale-line:not(:first-child):not(:last-child){border-bottom:2px solid #777}.leaflet-touch .leaflet-control-attribution,.leaflet-touch .leaflet-control-layers,.leaflet-touch .leaflet-bar{box-shadow:none}.leaflet-touch .leaflet-control-layers,.leaflet-touch .leaflet-bar{border:2px solid rgba(0,0,0,.2);background-clip:padding-box}.leaflet-popup{position:absolute;text-align:center;margin-bottom:20px}.leaflet-popup-content-wrapper{padding:1px;text-align:left;border-radius:12px}.leaflet-popup-content{margin:13px 24px 13px 20px;line-height:1.3;font-size:13px;font-size:1.08333em;min-height:1px}.leaflet-popup-content p{margin:1.3em 0}.leaflet-popup-tip-container{width:40px;height:20px;position:absolute;left:50%;margin-top:-1px;margin-left:-20px;overflow:hidden;pointer-events:none}.leaflet-popup-tip{width:17px;height:17px;padding:1px;margin:-10px auto 0;pointer-events:auto;-webkit-transform:rotate(45deg);-moz-transform:rotate(45deg);-ms-transform:rotate(45deg);transform:rotate(45deg)}.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#fff;color:#333;box-shadow:0 3px 14px #0006}.leaflet-container a.leaflet-popup-close-button{position:absolute;top:0;right:0;border:none;text-align:center;width:24px;height:24px;font:16px/24px Tahoma,Verdana,sans-serif;color:#757575;text-decoration:none;background:transparent}.leaflet-container a.leaflet-popup-close-button:hover,.leaflet-container a.leaflet-popup-close-button:focus{color:#585858}.leaflet-popup-scrolled{overflow:auto}.leaflet-oldie .leaflet-popup-content-wrapper{-ms-zoom:1}.leaflet-oldie .leaflet-popup-tip{width:24px;margin:0 auto;-ms-filter:"progid:DXImageTransform.Microsoft.Matrix(M11=0.70710678, M12=0.70710678, M21=-0.70710678, M22=0.70710678)";filter:progid:DXImageTransform.Microsoft.Matrix(M11=.70710678,M12=.70710678,M21=-.70710678,M22=.70710678)}.leaflet-oldie .leaflet-control-zoom,.leaflet-oldie .leaflet-control-layers,.leaflet-oldie .leaflet-popup-content-wrapper,.leaflet-oldie .leaflet-popup-tip{border:1px solid #999}.leaflet-div-icon{background:#fff;border:1px solid #666}.leaflet-tooltip{position:absolute;padding:6px;background-color:#fff;border:1px solid #fff;border-radius:3px;color:#222;white-space:nowrap;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;pointer-events:none;box-shadow:0 1px 3px #0006}.leaflet-tooltip.leaflet-interactive{cursor:pointer;pointer-events:auto}.leaflet-tooltip-top:before,.leaflet-tooltip-bottom:before,.leaflet-tooltip-left:before,.leaflet-tooltip-right:before{position:absolute;pointer-events:none;border:6px solid transparent;background:transparent;content:""}.leaflet-tooltip-bottom{margin-top:6px}.leaflet-tooltip-top{margin-top:-6px}.leaflet-tooltip-bottom:before,.leaflet-tooltip-top:before{left:50%;margin-left:-6px}.leaflet-tooltip-top:before{bottom:0;margin-bottom:-12px;border-top-color:#fff}.leaflet-tooltip-bottom:before{top:0;margin-top:-12px;margin-left:-6px;border-bottom-color:#fff}.leaflet-tooltip-left{margin-left:-6px}.leaflet-tooltip-right{margin-left:6px}.leaflet-tooltip-left:before,.leaflet-tooltip-right:before{top:50%;margin-top:-6px}.leaflet-tooltip-left:before{right:0;margin-right:-12px;border-left-color:#fff}.leaflet-tooltip-right:before{left:0;margin-left:-12px;border-right-color:#fff}@media print{.leaflet-control{-webkit-print-color-adjust:exact;print-color-adjust:exact}}', Se = ":host{display:block;width:100%;height:400px;position:relative;border-radius:var(--border-radius-md, 8px);overflow:hidden;box-shadow:var(--shadow-sm, 0 1px 3px rgba(0,0,0,.1))}.ui-mapa-container{width:100%;height:100%;z-index:1}.leaflet-pane{z-index:400}.leaflet-top,.leaflet-bottom{z-index:1000}", T = {
+customElements.get("ui-tabela") || customElements.define("ui-tabela", Ue);
+const Ye = ':host{display:block;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif)}.ui-stat{padding:18px 20px;border-radius:var(--ui-raio-borda, 10px);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));background-color:var(--ui-cor-fundo-card, #18181c);color:var(--ui-cor-texto, #e1e1e6);box-sizing:border-box;display:flex;flex-direction:column;position:relative;transition:border-color .15s ease,box-shadow .15s ease}:root[data-tema=claro] .ui-stat,[data-tema=claro] .ui-stat{background-color:#fff;border-color:#00000017;color:#1a1a1e;box-shadow:0 1px 3px #0000000a}.ui-stat--baixa{box-shadow:0 2px 6px #0000004d}.ui-stat--media{box-shadow:0 4px 14px #0006}.ui-stat--alta{box-shadow:0 8px 24px #00000080}.ui-stat__cabecalho{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:8px}.ui-stat__rotulo{font-size:13px;font-weight:500;color:var(--ui-cor-texto-secundario, #888899);letter-spacing:.01em}:root[data-tema=claro] .ui-stat__rotulo,[data-tema=claro] .ui-stat__rotulo{color:#6c757d}.ui-stat__icone-slot{display:flex;align-items:center;color:var(--ui-cor-texto-secundario, #888899)}.ui-stat__icone-slot svg,.ui-stat__icone-slot ::slotted(svg),.ui-stat__icone-slot ::slotted(ui-icone){shape-rendering:geometricPrecision}.ui-stat__conteudo{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:6px}.ui-stat__valor{font-size:28px;font-weight:700;color:var(--ui-cor-texto, #ffffff);line-height:1.15;letter-spacing:-.025em}:root[data-tema=claro] .ui-stat__valor,[data-tema=claro] .ui-stat__valor{color:#111114}.ui-stat__indicador{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:5px;font-size:12px;font-weight:600;line-height:1}.ui-stat__indicador--positivo,.ui-stat__indicador--alta{background-color:#00e08a24;color:var(--ui-cor-primaria, #00E08A)}.ui-stat__indicador--negativo,.ui-stat__indicador--baixa{background-color:#ff444424;color:var(--ui-cor-texto-erro, #ff5555)}.ui-stat__indicador--neutro{background-color:#ffffff14;color:var(--ui-cor-texto-secundario, #888899)}:root[data-tema=claro] .ui-stat__indicador--neutro,[data-tema=claro] .ui-stat__indicador--neutro{background-color:#f1f3f5;color:#495057}.ui-stat__seta{font-size:.85em;line-height:1}.ui-stat__rodape{display:flex;flex-direction:column;gap:6px}.ui-stat__descricao{font-size:12px;color:var(--ui-cor-texto-secundario, #888899);line-height:1.3}:root[data-tema=claro] .ui-stat__descricao,[data-tema=claro] .ui-stat__descricao{color:#6c757d}';
+class Y extends HTMLElement {
+  constructor() {
+    super();
+    n(this, "statElement");
+    n(this, "rotuloElement");
+    n(this, "valorElement");
+    n(this, "indicadorElement");
+    n(this, "setaElement");
+    n(this, "variacaoElement");
+    n(this, "descricaoElement");
+    const e = this.attachShadow({ mode: "open" });
+    e.innerHTML = `
+      <style>${Ye}</style>
+      <div class="ui-stat">
+        <div class="ui-stat__cabecalho">
+          <span class="ui-stat__rotulo"></span>
+          <div class="ui-stat__icone-slot"><slot name="icone"></slot></div>
+        </div>
+        <div class="ui-stat__conteudo">
+          <div class="ui-stat__valor"></div>
+          <div class="ui-stat__indicador" style="display: none;">
+            <span class="ui-stat__seta" aria-hidden="true"></span>
+            <span class="ui-stat__variacao"></span>
+          </div>
+        </div>
+        <div class="ui-stat__rodape">
+          <span class="ui-stat__descricao" style="display: none;"></span>
+          <slot name="grafico"></slot>
+          <slot></slot>
+        </div>
+      </div>
+    `, this.statElement = e.querySelector(".ui-stat"), this.rotuloElement = e.querySelector(".ui-stat__rotulo"), this.valorElement = e.querySelector(".ui-stat__valor"), this.indicadorElement = e.querySelector(".ui-stat__indicador"), this.setaElement = e.querySelector(".ui-stat__seta"), this.variacaoElement = e.querySelector(".ui-stat__variacao"), this.descricaoElement = e.querySelector(".ui-stat__descricao");
+  }
+  static get observedAttributes() {
+    return [
+      "rotulo",
+      "label",
+      "valor",
+      "value",
+      "variacao",
+      "trend",
+      "tendencia",
+      "direction",
+      "descricao",
+      "description",
+      "elevacao",
+      "elevation"
+    ];
+  }
+  connectedCallback() {
+    this.syncState();
+  }
+  attributeChangedCallback(e, t, i) {
+    this.syncState();
+  }
+  get rotulo() {
+    return this.getAttribute("rotulo") || this.getAttribute("label") || "";
+  }
+  set rotulo(e) {
+    this.setAttribute("rotulo", e);
+  }
+  get valor() {
+    return this.getAttribute("valor") || this.getAttribute("value") || "";
+  }
+  set valor(e) {
+    this.setAttribute("valor", e);
+  }
+  get variacao() {
+    return this.getAttribute("variacao") || this.getAttribute("trend") || "";
+  }
+  set variacao(e) {
+    this.setAttribute("variacao", e);
+  }
+  get tendencia() {
+    const e = (this.getAttribute("tendencia") || this.getAttribute("direction") || "positivo").toLowerCase();
+    return e === "baixa" || e === "negativo" || e === "down" ? "baixa" : e === "neutro" || e === "neutral" ? "neutro" : "alta";
+  }
+  set tendencia(e) {
+    this.setAttribute("tendencia", e);
+  }
+  get descricao() {
+    return this.getAttribute("descricao") || this.getAttribute("description") || "";
+  }
+  set descricao(e) {
+    this.setAttribute("descricao", e);
+  }
+  syncState() {
+    const e = this.rotulo, t = this.valor, i = this.variacao, a = this.tendencia, s = this.descricao, r = this.getAttribute("elevacao") || this.getAttribute("elevation") || "baixa";
+    this.statElement.className = `ui-stat ui-stat--${r}`, this.rotuloElement.textContent = e, this.valorElement.textContent = t, i ? (this.variacaoElement.textContent = i, this.indicadorElement.style.display = "inline-flex", a === "baixa" ? (this.indicadorElement.className = "ui-stat__indicador ui-stat__indicador--negativo", this.setaElement.textContent = "↓", this.indicadorElement.setAttribute("aria-label", `Queda de ${i}`)) : a === "neutro" ? (this.indicadorElement.className = "ui-stat__indicador ui-stat__indicador--neutro", this.setaElement.textContent = "→", this.indicadorElement.setAttribute("aria-label", `Variação estável de ${i}`)) : (this.indicadorElement.className = "ui-stat__indicador ui-stat__indicador--positivo", this.setaElement.textContent = "↑", this.indicadorElement.setAttribute("aria-label", `Aumento de ${i}`))) : this.indicadorElement.style.display = "none", s ? (this.descricaoElement.textContent = s, this.descricaoElement.style.display = "block") : this.descricaoElement.style.display = "none";
+  }
+}
+class Ke extends Y {
+}
+class Xe extends Y {
+}
+customElements.get("ui-stat") || customElements.define("ui-stat", Y);
+customElements.get("ui-kpi") || customElements.define("ui-kpi", Ke);
+customElements.get("ui-metrica") || customElements.define("ui-metrica", Xe);
+const le = '.leaflet-pane,.leaflet-tile,.leaflet-marker-icon,.leaflet-marker-shadow,.leaflet-tile-container,.leaflet-pane>svg,.leaflet-pane>canvas,.leaflet-zoom-box,.leaflet-image-layer,.leaflet-layer{position:absolute;left:0;top:0}.leaflet-container{overflow:hidden}.leaflet-tile,.leaflet-marker-icon,.leaflet-marker-shadow{-webkit-user-select:none;-moz-user-select:none;user-select:none;-webkit-user-drag:none}.leaflet-tile::selection{background:transparent}.leaflet-safari .leaflet-tile{image-rendering:-webkit-optimize-contrast}.leaflet-safari .leaflet-tile-container{width:1600px;height:1600px;-webkit-transform-origin:0 0}.leaflet-marker-icon,.leaflet-marker-shadow{display:block}.leaflet-container .leaflet-overlay-pane svg{max-width:none!important;max-height:none!important}.leaflet-container .leaflet-marker-pane img,.leaflet-container .leaflet-shadow-pane img,.leaflet-container .leaflet-tile-pane img,.leaflet-container img.leaflet-image-layer,.leaflet-container .leaflet-tile{max-width:none!important;max-height:none!important;width:auto;padding:0}.leaflet-container img.leaflet-tile{mix-blend-mode:plus-lighter}.leaflet-container.leaflet-touch-zoom{-ms-touch-action:pan-x pan-y;touch-action:pan-x pan-y}.leaflet-container.leaflet-touch-drag{-ms-touch-action:pinch-zoom;touch-action:none;touch-action:pinch-zoom}.leaflet-container.leaflet-touch-drag.leaflet-touch-zoom{-ms-touch-action:none;touch-action:none}.leaflet-container{-webkit-tap-highlight-color:transparent}.leaflet-container a{-webkit-tap-highlight-color:rgba(51,181,229,.4)}.leaflet-tile{filter:inherit;visibility:hidden}.leaflet-tile-loaded{visibility:inherit}.leaflet-zoom-box{width:0;height:0;-moz-box-sizing:border-box;box-sizing:border-box;z-index:800}.leaflet-overlay-pane svg{-moz-user-select:none}.leaflet-pane{z-index:400}.leaflet-tile-pane{z-index:200}.leaflet-overlay-pane{z-index:400}.leaflet-shadow-pane{z-index:500}.leaflet-marker-pane{z-index:600}.leaflet-tooltip-pane{z-index:650}.leaflet-popup-pane{z-index:700}.leaflet-map-pane canvas{z-index:100}.leaflet-map-pane svg{z-index:200}.leaflet-vml-shape{width:1px;height:1px}.lvml{behavior:url(#default#VML);display:inline-block;position:absolute}.leaflet-control{position:relative;z-index:800;pointer-events:visiblePainted;pointer-events:auto}.leaflet-top,.leaflet-bottom{position:absolute;z-index:1000;pointer-events:none}.leaflet-top{top:0}.leaflet-right{right:0}.leaflet-bottom{bottom:0}.leaflet-left{left:0}.leaflet-control{float:left;clear:both}.leaflet-right .leaflet-control{float:right}.leaflet-top .leaflet-control{margin-top:10px}.leaflet-bottom .leaflet-control{margin-bottom:10px}.leaflet-left .leaflet-control{margin-left:10px}.leaflet-right .leaflet-control{margin-right:10px}.leaflet-fade-anim .leaflet-popup{opacity:0;-webkit-transition:opacity .2s linear;-moz-transition:opacity .2s linear;transition:opacity .2s linear}.leaflet-fade-anim .leaflet-map-pane .leaflet-popup{opacity:1}.leaflet-zoom-animated{-webkit-transform-origin:0 0;-ms-transform-origin:0 0;transform-origin:0 0}svg.leaflet-zoom-animated{will-change:transform}.leaflet-zoom-anim .leaflet-zoom-animated{-webkit-transition:-webkit-transform .25s cubic-bezier(0,0,.25,1);-moz-transition:-moz-transform .25s cubic-bezier(0,0,.25,1);transition:transform .25s cubic-bezier(0,0,.25,1)}.leaflet-zoom-anim .leaflet-tile,.leaflet-pan-anim .leaflet-tile{-webkit-transition:none;-moz-transition:none;transition:none}.leaflet-zoom-anim .leaflet-zoom-hide{visibility:hidden}.leaflet-interactive{cursor:pointer}.leaflet-grab{cursor:-webkit-grab;cursor:-moz-grab;cursor:grab}.leaflet-crosshair,.leaflet-crosshair .leaflet-interactive{cursor:crosshair}.leaflet-popup-pane,.leaflet-control{cursor:auto}.leaflet-dragging .leaflet-grab,.leaflet-dragging .leaflet-grab .leaflet-interactive,.leaflet-dragging .leaflet-marker-draggable{cursor:move;cursor:-webkit-grabbing;cursor:-moz-grabbing;cursor:grabbing}.leaflet-marker-icon,.leaflet-marker-shadow,.leaflet-image-layer,.leaflet-pane>svg path,.leaflet-tile-container{pointer-events:none}.leaflet-marker-icon.leaflet-interactive,.leaflet-image-layer.leaflet-interactive,.leaflet-pane>svg path.leaflet-interactive,svg.leaflet-image-layer.leaflet-interactive path{pointer-events:visiblePainted;pointer-events:auto}.leaflet-container{background:#ddd;outline-offset:1px}.leaflet-container a{color:#0078a8}.leaflet-zoom-box{border:2px dotted #38f;background:#ffffff80}.leaflet-container{font-family:Helvetica Neue,Arial,Helvetica,sans-serif;font-size:12px;font-size:.75rem;line-height:1.5}.leaflet-bar{box-shadow:0 1px 5px #000000a6;border-radius:4px}.leaflet-bar a{background-color:#fff;border-bottom:1px solid #ccc;width:26px;height:26px;line-height:26px;display:block;text-align:center;text-decoration:none;color:#000}.leaflet-bar a,.leaflet-control-layers-toggle{background-position:50% 50%;background-repeat:no-repeat;display:block}.leaflet-bar a:hover,.leaflet-bar a:focus{background-color:#f4f4f4}.leaflet-bar a:first-child{border-top-left-radius:4px;border-top-right-radius:4px}.leaflet-bar a:last-child{border-bottom-left-radius:4px;border-bottom-right-radius:4px;border-bottom:none}.leaflet-bar a.leaflet-disabled{cursor:default;background-color:#f4f4f4;color:#bbb}.leaflet-touch .leaflet-bar a{width:30px;height:30px;line-height:30px}.leaflet-touch .leaflet-bar a:first-child{border-top-left-radius:2px;border-top-right-radius:2px}.leaflet-touch .leaflet-bar a:last-child{border-bottom-left-radius:2px;border-bottom-right-radius:2px}.leaflet-control-zoom-in,.leaflet-control-zoom-out{font:700 18px Lucida Console,Monaco,monospace;text-indent:1px}.leaflet-touch .leaflet-control-zoom-in,.leaflet-touch .leaflet-control-zoom-out{font-size:22px}.leaflet-control-layers{box-shadow:0 1px 5px #0006;background:#fff;border-radius:5px}.leaflet-control-layers-toggle{background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABoAAAAaCAQAAAADQ4RFAAACf0lEQVR4AY1UM3gkARTePdvdoTxXKc+qTl3aU5U6b2Kbkz3Gtq3Zw6ziLGNPzrYx7946Tr6/ee/XeCQ4D3ykPtL5tHno4n0d/h3+xfuWHGLX81cn7r0iTNzjr7LrlxCqPtkbTQEHeqOrTy4Yyt3VCi/IOB0v7rVC7q45Q3Gr5K6jt+3Gl5nCoDD4MtO+j96Wu8atmhGqcNGHObuf8OM/x3AMx38+4Z2sPqzCxRFK2aF2e5Jol56XTLyggAMTL56XOMoS1W4pOyjUcGGQdZxU6qRh7B9Zp+PfpOFlqt0zyDZckPi1ttmIp03jX8gyJ8a/PG2yutpS/Vol7peZIbZcKBAEEheEIAgFbDkz5H6Zrkm2hVWGiXKiF4Ycw0RWKdtC16Q7qe3X4iOMxruonzegJzWaXFrU9utOSsLUmrc0YjeWYjCW4PDMADElpJSSQ0vQvA1Tm6/JlKnqFs1EGyZiFCqnRZTEJJJiKRYzVYzJck2Rm6P4iH+cmSY0YzimYa8l0EtTODFWhcMIMVqdsI2uiTvKmTisIDHJ3od5GILVhBCarCfVRmo4uTjkhrhzkiBV7SsaqS+TzrzM1qpGGUFt28pIySQHR6h7F6KSwGWm97ay+Z+ZqMcEjEWebE7wxCSQwpkhJqoZA5ivCdZDjJepuJ9IQjGGUmuXJdBFUygxVqVsxFsLMbDe8ZbDYVCGKxs+W080max1hFCarCfV+C1KATwcnvE9gRRuMP2prdbWGowm1KB1y+zwMMENkM755cJ2yPDtqhTI6ED1M/82yIDtC/4j4BijjeObflpO9I9MwXTCsSX8jWAFeHr05WoLTJ5G8IQVS/7vwR6ohirYM7f6HzYpogfS3R2OAAAAAElFTkSuQmCC);width:36px;height:36px}.leaflet-retina .leaflet-control-layers-toggle{background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADQAAAA0CAQAAABvcdNgAAAEsklEQVR4AWL4TydIhpZK1kpWOlg0w3ZXP6D2soBtG42jeI6ZmQTHzAxiTbSJsYLjO9HhP+WOmcuhciVnmHVQcJnp7DFvScowZorad/+V/fVzMdMT2g9Cv9guXGv/7pYOrXh2U+RRR3dSd9JRx6bIFc/ekqHI29JC6pJ5ZEh1yWkhkbcFeSjxgx3L2m1cb1C7bceyxA+CNjT/Ifff+/kDk2u/w/33/IeCMOSaWZ4glosqT3DNnNZQ7Cs58/3Ce5HL78iZH/vKVIaYlqzfdLu8Vi7dnvUbEza5Idt36tquZFldl6N5Z/POLof0XLK61mZCmJSWjVF9tEjUluu74IUXvgttuVIHE7YxSkaYhJZam7yiM9Pv82JYfl9nptxZaxMJE4YSPty+vF0+Y2up9d3wwijfjZbabqm/3bZ9ecKHsiGmRflnn1MW4pjHf9oLufyn2z3y1D6n8g8TZhxyzipLNPnAUpsOiuWimg52psrTZYnOWYNDTMuWBWa0tJb4rgq1UvmutpaYEbZlwU3CLJm/ayYjHW5/h7xWLn9Hh1vepDkyf7dE7MtT5LR4e7yYpHrkhOUpEfssBLq2pPhAqoSWKUkk7EDqkmK6RrCEzqDjhNDWNE+XSMvkJRDWlZTmCW0l0PHQGRZY5t1L83kT0Y3l2SItk5JAWHl2dCOBm+fPu3fo5/3v61RMCO9Jx2EEYYhb0rmNQMX/vm7gqOEJLcXTGw3CAuRNeyaPWwjR8PRqKQ1PDA/dpv+on9Shox52WFnx0KY8onHayrJzm87i5h9xGw/tfkev0jGsQizqezUKjk12hBMKJ4kbCqGPVNXudyyrShovGw5CgxsRICxF6aRmSjlBnHRzg7Gx8fKqEubI2rahQYdR1YgDIRQO7JvQyD52hoIQx0mxa0ODtW2Iozn1le2iIRdzwWewedyZzewidueOGqlsn1MvcnQpuVwLGG3/IR1hIKxCjelIDZ8ldqWz25jWAsnldEnK0Zxro19TGVb2ffIZEsIO89EIEDvKMPrzmBOQcKQ+rroye6NgRRxqR4U8EAkz0CL6uSGOm6KQCdWjvjRiSP1BPalCRS5iQYiEIvxuBMJEWgzSoHADcVMuN7IuqqTeyUPq22qFimFtxDyBBJEwNyt6TM88blFHao/6tWWhuuOM4SAK4EI4QmFHA+SEyWlp4EQoJ13cYGzMu7yszEIBOm2rVmHUNqwAIQabISNMRstmdhNWcFLsSm+0tjJH1MdRxO5Nx0WDMhCtgD6OKgZeljJqJKc9po8juskR9XN0Y1lZ3mWjLR9JCO1jRDMd0fpYC2VnvjBSEFg7wBENc0R9HFlb0xvF1+TBEpF68d+DHR6IOWVv2BECtxo46hOFUBd/APU57WIoEwJhIi2CdpyZX0m93BZicktMj1AS9dClteUFAUNUIEygRZCtik5zSxI9MubTBH1GOiHsiLJ3OCoSZkILa9PxiN0EbvhsAo8tdAf9Seepd36lGWHmtNANTv5Jd0z4QYyeo/UEJqxKRpg5LZx6btLPsOaEmdMyxYdlc8LMaJnikDlhclqmPiQnTEpLUIZEwkRagjYkEibQErwhkTAKCLQEbUgkzJQWc/0PstHHcfEdQ+UAAAAASUVORK5CYII=);background-size:26px 26px}.leaflet-touch .leaflet-control-layers-toggle{width:44px;height:44px}.leaflet-control-layers .leaflet-control-layers-list,.leaflet-control-layers-expanded .leaflet-control-layers-toggle{display:none}.leaflet-control-layers-expanded .leaflet-control-layers-list{display:block;position:relative}.leaflet-control-layers-expanded{padding:6px 10px 6px 6px;color:#333;background:#fff}.leaflet-control-layers-scrollbar{overflow-y:scroll;overflow-x:hidden;padding-right:5px}.leaflet-control-layers-selector{margin-top:2px;position:relative;top:1px}.leaflet-control-layers label{display:block;font-size:13px;font-size:1.08333em}.leaflet-control-layers-separator{height:0;border-top:1px solid #ddd;margin:5px -10px 5px -6px}.leaflet-default-icon-path{background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABkAAAApCAYAAADAk4LOAAAFgUlEQVR4Aa1XA5BjWRTN2oW17d3YaZtr2962HUzbDNpjszW24mRt28p47v7zq/bXZtrp/lWnXr337j3nPCe85NcypgSFdugCpW5YoDAMRaIMqRi6aKq5E3YqDQO3qAwjVWrD8Ncq/RBpykd8oZUb/kaJutow8r1aP9II0WmLKLIsJyv1w/kqw9Ch2MYdB++12Onxee/QMwvf4/Dk/Lfp/i4nxTXtOoQ4pW5Aj7wpici1A9erdAN2OH64x8OSP9j3Ft3b7aWkTg/Fm91siTra0f9on5sQr9INejH6CUUUpavjFNq1B+Oadhxmnfa8RfEmN8VNAsQhPqF55xHkMzz3jSmChWU6f7/XZKNH+9+hBLOHYozuKQPxyMPUKkrX/K0uWnfFaJGS1QPRtZsOPtr3NsW0uyh6NNCOkU3Yz+bXbT3I8G3xE5EXLXtCXbbqwCO9zPQYPRTZ5vIDXD7U+w7rFDEoUUf7ibHIR4y6bLVPXrz8JVZEql13trxwue/uDivd3fkWRbS6/IA2bID4uk0UpF1N8qLlbBlXs4Ee7HLTfV1j54APvODnSfOWBqtKVvjgLKzF5YdEk5ewRkGlK0i33Eofffc7HT56jD7/6U+qH3Cx7SBLNntH5YIPvODnyfIXZYRVDPqgHtLs5ABHD3YzLuespb7t79FY34DjMwrVrcTuwlT55YMPvOBnRrJ4VXTdNnYug5ucHLBjEpt30701A3Ts+HEa73u6dT3FNWwflY86eMHPk+Yu+i6pzUpRrW7SNDg5JHR4KapmM5Wv2E8Tfcb1HoqqHMHU+uWDD7zg54mz5/2BSnizi9T1Dg4QQXLToGNCkb6tb1NU+QAlGr1++eADrzhn/u8Q2YZhQVlZ5+CAOtqfbhmaUCS1ezNFVm2imDbPmPng5wmz+gwh+oHDce0eUtQ6OGDIyR0uUhUsoO3vfDmmgOezH0mZN59x7MBi++WDL1g/eEiU3avlidO671bkLfwbw5XV2P8Pzo0ydy4t2/0eu33xYSOMOD8hTf4CrBtGMSoXfPLchX+J0ruSePw3LZeK0juPJbYzrhkH0io7B3k164hiGvawhOKMLkrQLyVpZg8rHFW7E2uHOL888IBPlNZ1FPzstSJM694fWr6RwpvcJK60+0HCILTBzZLFNdtAzJaohze60T8qBzyh5ZuOg5e7uwQppofEmf2++DYvmySqGBuKaicF1blQjhuHdvCIMvp8whTTfZzI7RldpwtSzL+F1+wkdZ2TBOW2gIF88PBTzD/gpeREAMEbxnJcaJHNHrpzji0gQCS6hdkEeYt9DF/2qPcEC8RM28Hwmr3sdNyht00byAut2k3gufWNtgtOEOFGUwcXWNDbdNbpgBGxEvKkOQsxivJx33iow0Vw5S6SVTrpVq11ysA2Rp7gTfPfktc6zhtXBBC+adRLshf6sG2RfHPZ5EAc4sVZ83yCN00Fk/4kggu40ZTvIEm5g24qtU4KjBrx/BTTH8ifVASAG7gKrnWxJDcU7x8X6Ecczhm3o6YicvsLXWfh3Ch1W0k8x0nXF+0fFxgt4phz8QvypiwCCFKMqXCnqXExjq10beH+UUA7+nG6mdG/Pu0f3LgFcGrl2s0kNNjpmoJ9o4B29CMO8dMT4Q5ox8uitF6fqsrJOr8qnwNbRzv6hSnG5wP+64C7h9lp30hKNtKdWjtdkbuPA19nJ7Tz3zR/ibgARbhb4AlhavcBebmTHcFl2fvYEnW0ox9xMxKBS8btJ+KiEbq9zA4RthQXDhPa0T9TEe69gWupwc6uBUphquXgf+/FrIjweHQS4/pduMe5ERUMHUd9xv8ZR98CxkS4F2n3EUrUZ10EYNw7BWm9x1GiPssi3GgiGRDKWRYZfXlON+dfNbM+GgIwYdwAAAAASUVORK5CYII=)}.leaflet-container .leaflet-control-attribution{background:#fff;background:#fffc;margin:0}.leaflet-control-attribution,.leaflet-control-scale-line{padding:0 5px;color:#333;line-height:1.4}.leaflet-control-attribution a{text-decoration:none}.leaflet-control-attribution a:hover,.leaflet-control-attribution a:focus{text-decoration:underline}.leaflet-attribution-flag{display:inline!important;vertical-align:baseline!important;width:1em;height:.6669em}.leaflet-left .leaflet-control-scale{margin-left:5px}.leaflet-bottom .leaflet-control-scale{margin-bottom:5px}.leaflet-control-scale-line{border:2px solid #777;border-top:none;line-height:1.1;padding:2px 5px 1px;white-space:nowrap;-moz-box-sizing:border-box;box-sizing:border-box;background:#fffc;text-shadow:1px 1px #fff}.leaflet-control-scale-line:not(:first-child){border-top:2px solid #777;border-bottom:none;margin-top:-2px}.leaflet-control-scale-line:not(:first-child):not(:last-child){border-bottom:2px solid #777}.leaflet-touch .leaflet-control-attribution,.leaflet-touch .leaflet-control-layers,.leaflet-touch .leaflet-bar{box-shadow:none}.leaflet-touch .leaflet-control-layers,.leaflet-touch .leaflet-bar{border:2px solid rgba(0,0,0,.2);background-clip:padding-box}.leaflet-popup{position:absolute;text-align:center;margin-bottom:20px}.leaflet-popup-content-wrapper{padding:1px;text-align:left;border-radius:12px}.leaflet-popup-content{margin:13px 24px 13px 20px;line-height:1.3;font-size:13px;font-size:1.08333em;min-height:1px}.leaflet-popup-content p{margin:1.3em 0}.leaflet-popup-tip-container{width:40px;height:20px;position:absolute;left:50%;margin-top:-1px;margin-left:-20px;overflow:hidden;pointer-events:none}.leaflet-popup-tip{width:17px;height:17px;padding:1px;margin:-10px auto 0;pointer-events:auto;-webkit-transform:rotate(45deg);-moz-transform:rotate(45deg);-ms-transform:rotate(45deg);transform:rotate(45deg)}.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#fff;color:#333;box-shadow:0 3px 14px #0006}.leaflet-container a.leaflet-popup-close-button{position:absolute;top:0;right:0;border:none;text-align:center;width:24px;height:24px;font:16px/24px Tahoma,Verdana,sans-serif;color:#757575;text-decoration:none;background:transparent}.leaflet-container a.leaflet-popup-close-button:hover,.leaflet-container a.leaflet-popup-close-button:focus{color:#585858}.leaflet-popup-scrolled{overflow:auto}.leaflet-oldie .leaflet-popup-content-wrapper{-ms-zoom:1}.leaflet-oldie .leaflet-popup-tip{width:24px;margin:0 auto;-ms-filter:"progid:DXImageTransform.Microsoft.Matrix(M11=0.70710678, M12=0.70710678, M21=-0.70710678, M22=0.70710678)";filter:progid:DXImageTransform.Microsoft.Matrix(M11=.70710678,M12=.70710678,M21=-.70710678,M22=.70710678)}.leaflet-oldie .leaflet-control-zoom,.leaflet-oldie .leaflet-control-layers,.leaflet-oldie .leaflet-popup-content-wrapper,.leaflet-oldie .leaflet-popup-tip{border:1px solid #999}.leaflet-div-icon{background:#fff;border:1px solid #666}.leaflet-tooltip{position:absolute;padding:6px;background-color:#fff;border:1px solid #fff;border-radius:3px;color:#222;white-space:nowrap;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;pointer-events:none;box-shadow:0 1px 3px #0006}.leaflet-tooltip.leaflet-interactive{cursor:pointer;pointer-events:auto}.leaflet-tooltip-top:before,.leaflet-tooltip-bottom:before,.leaflet-tooltip-left:before,.leaflet-tooltip-right:before{position:absolute;pointer-events:none;border:6px solid transparent;background:transparent;content:""}.leaflet-tooltip-bottom{margin-top:6px}.leaflet-tooltip-top{margin-top:-6px}.leaflet-tooltip-bottom:before,.leaflet-tooltip-top:before{left:50%;margin-left:-6px}.leaflet-tooltip-top:before{bottom:0;margin-bottom:-12px;border-top-color:#fff}.leaflet-tooltip-bottom:before{top:0;margin-top:-12px;margin-left:-6px;border-bottom-color:#fff}.leaflet-tooltip-left{margin-left:-6px}.leaflet-tooltip-right{margin-left:6px}.leaflet-tooltip-left:before,.leaflet-tooltip-right:before{top:50%;margin-top:-6px}.leaflet-tooltip-left:before{right:0;margin-right:-12px;border-left-color:#fff}.leaflet-tooltip-right:before{left:0;margin-left:-12px;border-right-color:#fff}@media print{.leaflet-control{-webkit-print-color-adjust:exact;print-color-adjust:exact}}', Ze = ":host{display:block;width:100%;height:400px;position:relative;border-radius:var(--border-radius-md, 8px);overflow:hidden;box-shadow:var(--shadow-sm, 0 1px 3px rgba(0,0,0,.1))}.ui-mapa-container{width:100%;height:100%;z-index:1}.leaflet-top,.leaflet-bottom{z-index:1000}", R = {
   osm: {
     nome: "OpenStreetMap",
-    layer: () => v.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    layer: () => _.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     })
   },
   satelite: {
     nome: "Satélite (Esri)",
-    layer: () => v.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
+    layer: () => _.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
       attribution: "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
     })
   },
   topografia: {
     nome: "Topografia",
-    layer: () => v.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png", {
+    layer: () => _.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png", {
       attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
     })
   },
   ruas: {
     nome: "Ruas (Esri)",
-    layer: () => v.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}", {
+    layer: () => _.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}", {
       attribution: "Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012"
     })
   }
 };
-class ze extends HTMLElement {
+class Qe extends HTMLElement {
   constructor() {
     super();
     n(this, "mapContainer");
     n(this, "mapInstance", null);
+    n(this, "_initTimer", null);
+    n(this, "_resizeObserver");
+    n(this, "_resizeTimer");
     const e = this.attachShadow({ mode: "open" });
     e.innerHTML = `
       <style>
-        ${Q}
-        ${Se}
+        ${le}
+        ${Ze}
       </style>
       <div class="ui-mapa-container" id="map-container"></div>
       <div style="display: none;"><slot></slot></div>
     `, this.mapContainer = e.getElementById("map-container");
   }
+  static get observedAttributes() {
+    return ["lat", "lng", "zoom"];
+  }
   connectedCallback() {
-    setTimeout(() => {
+    this._initTimer = window.setTimeout(() => {
       this.initMap();
     }, 0);
   }
   disconnectedCallback() {
-    this.mapInstance && (this.mapInstance.remove(), this.mapInstance = null);
+    this._initTimer && (window.clearTimeout(this._initTimer), this._initTimer = null), this._resizeObserver && (this._resizeObserver.disconnect(), this._resizeObserver = void 0), this._resizeTimer && (window.clearTimeout(this._resizeTimer), this._resizeTimer = null), this.mapInstance && (this.mapInstance.remove(), this.mapInstance = null);
+  }
+  attributeChangedCallback(e, t, i) {
+    if (t !== i && this.mapInstance) {
+      const a = parseFloat(this.getAttribute("lat") || "-23.550520"), s = parseFloat(this.getAttribute("lng") || "-46.633308"), r = parseInt(this.getAttribute("zoom") || "13", 10);
+      !isNaN(a) && !isNaN(s) && this.mapInstance.setView([a, s], r);
+    }
   }
   initMap() {
     if (this.mapInstance) return;
-    const e = parseFloat(this.getAttribute("lat") || "-23.550520"), t = parseFloat(this.getAttribute("lng") || "-46.633308"), o = parseInt(this.getAttribute("zoom") || "13", 10);
-    this.mapInstance = v.map(this.mapContainer).setView([e, t], o);
+    const e = parseFloat(this.getAttribute("lat") || "-23.550520"), t = parseFloat(this.getAttribute("lng") || "-46.633308"), i = parseInt(this.getAttribute("zoom") || "13", 10);
+    this.mapInstance = _.map(this.mapContainer).setView([e, t], i);
     const a = this.getAttribute("camadas");
-    let r = ["osm"];
-    a && (r = a.split(",").map((l) => l.trim().toLowerCase()).filter((l) => T[l]), r.length === 0 && (r = ["osm"]));
-    const s = T[r[0]].layer();
-    if (s.addTo(this.mapInstance), r.length > 1) {
+    let s = ["osm"];
+    a && (s = a.split(",").map((l) => l.trim().toLowerCase()).filter((l) => R[l]), s.length === 0 && (s = ["osm"]));
+    const r = R[s[0]].layer();
+    if (r.addTo(this.mapInstance), s.length > 1) {
       const l = {};
-      l[T[r[0]].nome] = s;
-      for (let d = 1; d < r.length; d++) {
-        const h = r[d];
-        l[T[h].nome] = T[h].layer();
+      l[R[s[0]].nome] = r;
+      for (let u = 1; u < s.length; u++) {
+        const d = s[u];
+        l[R[d].nome] = R[d].layer();
       }
-      v.control.layers(l, void 0, { position: "topright" }).addTo(this.mapInstance);
+      _.control.layers(l, void 0, { position: "topright" }).addTo(this.mapInstance);
     }
-    v.Icon.Default.imagePath = "https://unpkg.com/leaflet@1.9.4/dist/images/", setTimeout(() => {
+    _.Icon.Default.imagePath = "https://unpkg.com/leaflet@1.9.4/dist/images/", typeof ResizeObserver < "u" && this.mapContainer && (this._resizeObserver = new ResizeObserver(() => {
+      this._resizeTimer && clearTimeout(this._resizeTimer), this._resizeTimer = setTimeout(() => {
+        this.mapInstance && this.mapInstance.invalidateSize();
+      }, 60);
+    }), this._resizeObserver.observe(this.mapContainer)), setTimeout(() => {
       this.mapInstance && this.mapInstance.invalidateSize();
-    }, 100);
+    }, 100), this.dispatchEvent(new CustomEvent("ui-mapa-pronto", {
+      detail: { map: this.mapInstance },
+      bubbles: !0,
+      composed: !0
+    }));
   }
   getMap() {
     return this.mapInstance;
   }
 }
-customElements.get("ui-mapa") || customElements.define("ui-mapa", ze);
-class Me extends HTMLElement {
+customElements.get("ui-mapa") || customElements.define("ui-mapa", Qe);
+const k = (b) => b == null ? "" : String(b).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"), Et = (b, o = 3) => b == null || isNaN(b) ? "—" : b.toLocaleString("pt-BR", {
+  minimumFractionDigits: o,
+  maximumFractionDigits: o
+}), q = (b, o) => {
+  if (b == null || o === null || o === void 0)
+    return null;
+  const e = (a) => {
+    if (typeof a == "number") return a;
+    if (typeof a == "string") {
+      const s = a.trim().replace(",", ".");
+      return parseFloat(s);
+    }
+    return NaN;
+  }, t = e(b), i = e(o);
+  return isNaN(t) || isNaN(i) ? null : Math.abs(t) > 90 || Math.abs(i) > 180 ? (console.warn(`[gerencigeo-canvas] Coordenada fora do limite geográfico WGS-84 (Lat: ${t}, Lon: ${i}). Parece ser projeção UTM plana.`), null) : t === 0 && i === 0 ? null : { lat: t, lon: i };
+};
+class Je extends HTMLElement {
   constructor() {
     super(...arguments);
     n(this, "marker", null);
+    n(this, "_initTimer", null);
+    n(this, "_retryCount", 0);
+    n(this, "_parentMap", null);
+    n(this, "handleMapReady", () => {
+      this.marker && (this.marker.remove(), this.marker = null), this.initMarker();
+    });
   }
   static get observedAttributes() {
     return ["lat", "lng", "titulo"];
   }
   connectedCallback() {
-    setTimeout(() => this.initMarker(), 0);
+    this._parentMap = this.closest("ui-mapa"), this._parentMap && this._parentMap.addEventListener("ui-mapa-pronto", this.handleMapReady), this._initTimer = setTimeout(() => this.initMarker(), 0);
   }
   disconnectedCallback() {
-    this.marker && (this.marker.remove(), this.marker = null);
+    this._initTimer && (clearTimeout(this._initTimer), this._initTimer = null), this._parentMap && (this._parentMap.removeEventListener("ui-mapa-pronto", this.handleMapReady), this._parentMap = null), this.marker && (this.marker.remove(), this.marker = null);
   }
-  attributeChangedCallback(e, t, o) {
-    if (t !== o && this.marker) {
+  attributeChangedCallback(e, t, i) {
+    if (t !== i && this.marker) {
       if (e === "lat" || e === "lng") {
-        const a = parseFloat(this.getAttribute("lat") || "0"), r = parseFloat(this.getAttribute("lng") || "0");
-        this.marker.setLatLng([a, r]);
+        const a = q(this.getAttribute("lat"), this.getAttribute("lng"));
+        a && this.marker.setLatLng([a.lat, a.lon]);
       }
-      e === "titulo" && (this.marker.unbindPopup(), o && this.marker.bindPopup(this.createPopupContent(o)));
+      e === "titulo" && (this.marker.unbindPopup(), i && this.marker.bindPopup(this.createPopupContent(i)));
     }
   }
   createPopupContent(e) {
@@ -1994,37 +2715,46 @@ class Me extends HTMLElement {
     return t.className = "ui-mapa-popup", t.textContent = e, t;
   }
   initMarker() {
-    const e = this.closest("ui-mapa");
+    const e = this._parentMap || this.closest("ui-mapa");
     if (!e) {
       console.warn("<ui-mapa-marcador> deve estar dentro de um elemento <ui-mapa>");
       return;
     }
     const t = e.getMap();
     if (!t) {
-      setTimeout(() => this.initMarker(), 50);
+      if (this._retryCount >= 30) {
+        console.warn("<ui-mapa-marcador> Tempo limite esgotado aguardando inicialização do mapa pai.");
+        return;
+      }
+      this._retryCount++, this._initTimer = setTimeout(() => this.initMarker(), 50);
       return;
     }
-    const o = parseFloat(this.getAttribute("lat") || "0"), a = parseFloat(this.getAttribute("lng") || "0"), r = this.getAttribute("titulo");
-    this.marker = v.marker([o, a]), r && this.marker.bindPopup(this.createPopupContent(r)), this.marker.addTo(t);
+    this._retryCount = 0;
+    const i = q(this.getAttribute("lat"), this.getAttribute("lng"));
+    if (!i) return;
+    const a = this.getAttribute("titulo");
+    this.marker = _.marker([i.lat, i.lon]), a && this.marker.bindPopup(this.createPopupContent(a)), this.marker.addTo(t);
   }
 }
-customElements.get("ui-mapa-marcador") || customElements.define("ui-mapa-marcador", Me);
-class Ie extends HTMLElement {
+customElements.get("ui-mapa-marcador") || customElements.define("ui-mapa-marcador", Je);
+class et extends HTMLElement {
   constructor() {
     super(...arguments);
     n(this, "polyline", null);
+    n(this, "_initTimer", null);
+    n(this, "_retryCount", 0);
   }
   static get observedAttributes() {
     return ["pontos", "cor", "espessura"];
   }
   connectedCallback() {
-    setTimeout(() => this.initLinha(), 0);
+    this._initTimer = setTimeout(() => this.initLinha(), 0);
   }
   disconnectedCallback() {
-    this.polyline && (this.polyline.remove(), this.polyline = null);
+    this._initTimer && (clearTimeout(this._initTimer), this._initTimer = null), this.polyline && (this.polyline.remove(), this.polyline = null);
   }
-  attributeChangedCallback(e, t, o) {
-    t !== o && this.polyline && (e === "pontos" ? this.polyline.setLatLngs(this.getPontos()) : (e === "cor" || e === "espessura") && this.polyline.setStyle({
+  attributeChangedCallback(e, t, i) {
+    t !== i && this.polyline && (e === "pontos" ? this.polyline.setLatLngs(this.getPontos()) : (e === "cor" || e === "espessura") && this.polyline.setStyle({
       color: this.getAttribute("cor") || "#3388ff",
       weight: parseInt(this.getAttribute("espessura") || "3", 10)
     }));
@@ -2047,18 +2777,120 @@ class Ie extends HTMLElement {
     }
     const t = e.getMap();
     if (!t) {
-      setTimeout(() => this.initLinha(), 50);
+      if (this._retryCount >= 30) {
+        console.warn("<ui-mapa-linha> Tempo limite esgotado aguardando inicialização do mapa pai.");
+        return;
+      }
+      this._retryCount++, this._initTimer = setTimeout(() => this.initLinha(), 50);
       return;
     }
-    const o = this.getAttribute("cor") || "#3388ff", a = parseInt(this.getAttribute("espessura") || "3", 10);
-    this.polyline = v.polyline(this.getPontos(), {
-      color: o,
+    this._retryCount = 0;
+    const i = this.getAttribute("cor") || "#3388ff", a = parseInt(this.getAttribute("espessura") || "3", 10);
+    this.polyline = _.polyline(this.getPontos(), {
+      color: i,
       weight: a
     }), this.polyline.addTo(t);
   }
 }
-customElements.get("ui-mapa-linha") || customElements.define("ui-mapa-linha", Ie);
-const Pe = ':host{display:block;width:100%;height:520px;position:relative;border-radius:var(--ui-radius-lg, 10px);overflow:hidden;box-shadow:0 10px 30px -5px #0009;border:1px solid rgba(255,255,255,.1);background:#080d0a;color:#fff;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Inter,sans-serif;user-select:none;-webkit-user-select:none}*,*:before,*:after{box-sizing:border-box}.cad-root{position:relative;width:100%;height:100%;display:flex;overflow:hidden}.cad-map-container{width:100%;height:100%;background:#080d0a;z-index:1}.qgis-layer-panel{position:absolute;top:12px;left:12px;z-index:1000;width:290px;max-height:calc(100% - 24px);background:#0a120eeb;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.15);border-radius:8px;box-shadow:0 20px 40px #000000b3;display:flex;flex-direction:column;transition:transform .25s cubic-bezier(.16,1,.3,1),opacity .25s ease;overflow:hidden}.qgis-layer-panel.collapsed{transform:translate(-310px);opacity:0;pointer-events:none}.layer-panel-header{padding:10px 14px;background:#ffffff08;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:space-between}.layer-panel-title{font-size:12px;font-weight:700;letter-spacing:.5px;color:#00f5a0;display:flex;align-items:center;gap:6px;text-transform:uppercase}.layer-panel-close{background:transparent;border:none;color:#ffffff80;cursor:pointer;padding:2px;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:all .15s}.layer-panel-close:hover{color:#fff;background:#ffffff1a}.layer-panel-body{padding:10px 14px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;max-height:400px}.layer-section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#ffffff73;margin-bottom:2px;padding:0 4px 4px;border-bottom:1px solid rgba(255,255,255,.12)}.layer-item{background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.08);border-radius:0;padding:10px 4px;display:flex;flex-direction:column;gap:7px;transition:background .15s ease}.layer-item:last-child{border-bottom:none}.layer-item:hover{background:#ffffff08;border-radius:4px}.layer-item-row{display:flex;align-items:center;justify-content:space-between}.layer-item-label{display:flex;align-items:center;gap:10px;font-size:11px;font-weight:600;color:#ffffffe6;cursor:pointer;-webkit-user-select:none;user-select:none}.layer-chk-visibility{-moz-appearance:none;appearance:none;-webkit-appearance:none;width:16px;height:16px;border:1.5px solid rgba(255,255,255,.35);border-radius:4px;background:#0006;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;position:relative;transition:all .15s ease;flex-shrink:0;margin:0}.layer-chk-visibility:hover{border-color:#00f5a0}.layer-chk-visibility:checked{background:#00f5a0;border-color:#00f5a0}.layer-chk-visibility:checked:after{content:"";width:4px;height:8px;border:solid #04150c;border-width:0 2px 2px 0;transform:rotate(45deg) translate(-.5px,-1px);display:block}.layer-item-actions{display:flex;align-items:center;gap:6px}.btn-layer-action{background:transparent;border:none;color:#fff6;cursor:pointer;padding:4px;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:all .15s}.btn-layer-action:hover{color:#00f5a0;background:#ffffff14}.btn-layer-action.active{color:#f43f5e;background:#f43f5e26}.layer-controls-row{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:10px;color:#ffffff80;padding-left:26px}.layer-opacity-slider{flex:1;height:4px;border-radius:2px;background:#ffffff26;accent-color:#00f5a0;cursor:pointer}.scale-mode-pill{font-size:9px;font-weight:600;padding:2px 7px;border-radius:10px;background:#ffffff0f;color:#ffffffb3;cursor:pointer;border:1px solid rgba(255,255,255,.1);transition:all .15s}.scale-mode-pill:hover{border-color:#00f5a0;color:#00f5a0;background:#00f5a01a}.cad-quick-toolbar{position:absolute;top:12px;right:12px;z-index:1000;display:flex;flex-direction:column;gap:6px;background:#0c1510eb;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:5px;box-shadow:0 10px 25px -5px #0009}.cad-btn-tool{background:transparent;border:none;color:#fff9;cursor:pointer;padding:7px;border-radius:5px;display:flex;align-items:center;justify-content:center;transition:all .15s}.cad-btn-tool:hover{background:#ffffff1a;color:#fff}.cad-btn-tool.active{background:#00f5a026;color:#00f5a0;border:1px solid rgba(0,245,160,.3)}.cad-selection-box{pointer-events:none;box-sizing:border-box}.custom-leaflet-marker{cursor:pointer}.custom-leaflet-marker:hover{filter:brightness(1.25);transform:scale(1.15);transition:transform .15s ease}.compact-popup .leaflet-popup-content-wrapper{background:#0a120ef2!important;-webkit-backdrop-filter:blur(16px)!important;backdrop-filter:blur(16px)!important;border:1px solid rgba(255,255,255,.15)!important;border-radius:8px!important;color:#fff!important;padding:0!important}.compact-popup .leaflet-popup-content{margin:10px 12px!important}.compact-popup .leaflet-popup-tip{background:#0a120ef2!important;border:1px solid rgba(255,255,255,.15)!important}', W = {
+customElements.get("ui-mapa-linha") || customElements.define("ui-mapa-linha", et);
+const tt = ":host{display:block;box-sizing:border-box}:host([inline]){display:inline-block}.ui-skeleton{background:var(--ui-cor-fundo-elevado, #1e1e24);background-image:linear-gradient(90deg,#fff0,#ffffff12,#fff0);background-size:200% 100%;background-repeat:no-repeat;border-radius:var(--ui-raio-borda, 6px);position:relative;overflow:hidden;box-sizing:border-box;animation:ui-skeleton-shimmer 1.6s ease-in-out infinite}:root[data-tema=claro] .ui-skeleton,[data-tema=claro] .ui-skeleton{background:var(--ui-cor-fundo-elevado, #e9ecef);background-image:linear-gradient(90deg,#0000,#0000000f,#0000)}@keyframes ui-skeleton-shimmer{0%{background-position:-200% 0}to{background-position:200% 0}}.ui-skeleton--pulso{background-image:none;animation:ui-skeleton-pulse 1.8s ease-in-out infinite}@keyframes ui-skeleton-pulse{0%,to{opacity:1}50%{opacity:.45}}.ui-skeleton--estatico{animation:none;background-image:none}.ui-skeleton--texto{height:1.1em;border-radius:4px}.ui-skeleton--circular{border-radius:50%!important;aspect-ratio:1;width:var(--ui-skeleton-largura, 40px);height:var(--ui-skeleton-altura, 40px)}.ui-skeleton--retangular{border-radius:var(--ui-raio-borda, 6px);min-height:20px}.ui-skeleton__linhas{display:flex;flex-direction:column;gap:8px;width:100%}.ui-skeleton__linhas .ui-skeleton{width:100%}.ui-skeleton__linhas .ui-skeleton:last-child:not(:first-child){width:65%}.ui-skeleton--card{display:flex;flex-direction:column;gap:12px;padding:16px;border-radius:var(--ui-raio-borda, 10px);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .08));background:var(--ui-cor-fundo-card, #18181c);animation:none}.ui-skeleton__card-media{width:100%;height:120px;border-radius:6px}.ui-skeleton__card-header{display:flex;align-items:center;gap:10px}.ui-skeleton__card-avatar{width:36px;height:36px;border-radius:50%;flex-shrink:0}.ui-skeleton__card-title{width:50%;height:16px}@media (prefers-reduced-motion: reduce){.ui-skeleton{animation:none!important;background-image:none!important;opacity:.7}}";
+class ce extends HTMLElement {
+  constructor() {
+    super();
+    n(this, "rootElement");
+    const e = this.attachShadow({ mode: "open" });
+    e.innerHTML = `
+      <style>${tt}</style>
+      <div class="ui-skeleton-container" role="status" aria-label="Carregando..."></div>
+    `, this.rootElement = e.querySelector(".ui-skeleton-container");
+  }
+  static get observedAttributes() {
+    return [
+      "variante",
+      "variant",
+      "largura",
+      "width",
+      "altura",
+      "height",
+      "raio",
+      "radius",
+      "linhas",
+      "lines",
+      "count",
+      "animado",
+      "animated"
+    ];
+  }
+  connectedCallback() {
+    this.hasAttribute("aria-hidden") || this.setAttribute("aria-hidden", "true"), this.syncState();
+  }
+  attributeChangedCallback(e, t, i) {
+    this.syncState();
+  }
+  get variante() {
+    const e = (this.getAttribute("variante") || this.getAttribute("variant") || "texto").toLowerCase();
+    return e === "circulo" || e === "circular" ? "circular" : e === "retangulo" || e === "retangular" ? "retangular" : e === "card" ? "card" : "texto";
+  }
+  set variante(e) {
+    this.setAttribute("variante", e);
+  }
+  get animado() {
+    const e = (this.getAttribute("animado") || this.getAttribute("animated") || "shimmer").toLowerCase();
+    return e === "pulse" || e === "pulso" ? "pulso" : e === "none" || e === "nenhum" || e === "estatico" ? "nenhum" : "shimmer";
+  }
+  set animado(e) {
+    this.setAttribute("animado", e);
+  }
+  get linhas() {
+    const e = parseInt(this.getAttribute("linhas") || this.getAttribute("lines") || this.getAttribute("count") || "1", 10);
+    return isNaN(e) || e < 1 ? 1 : e;
+  }
+  set linhas(e) {
+    this.setAttribute("linhas", String(e));
+  }
+  syncState() {
+    const e = this.variante, t = this.animado, i = this.getAttribute("largura") || this.getAttribute("width"), a = this.getAttribute("altura") || this.getAttribute("height"), s = this.getAttribute("raio") || this.getAttribute("radius"), r = this.linhas;
+    this.rootElement.innerHTML = "";
+    const l = t === "pulso" ? "ui-skeleton--pulso" : t === "nenhum" ? "ui-skeleton--estatico" : "";
+    if (e === "card") {
+      const d = document.createElement("div");
+      d.className = "ui-skeleton ui-skeleton--card";
+      const c = document.createElement("div");
+      c.className = `ui-skeleton ui-skeleton__card-media ${l}`;
+      const p = document.createElement("div");
+      p.className = "ui-skeleton__card-header";
+      const m = document.createElement("div");
+      m.className = `ui-skeleton ui-skeleton__card-avatar ${l}`;
+      const h = document.createElement("div");
+      h.className = `ui-skeleton ui-skeleton__card-title ${l}`, p.appendChild(m), p.appendChild(h);
+      const f = document.createElement("div");
+      f.className = "ui-skeleton__linhas";
+      for (let g = 0; g < 2; g++) {
+        const v = document.createElement("div");
+        v.className = `ui-skeleton ui-skeleton--texto ${l}`, f.appendChild(v);
+      }
+      d.appendChild(c), d.appendChild(p), d.appendChild(f), this.rootElement.appendChild(d);
+      return;
+    }
+    if (r > 1 && e === "texto") {
+      const d = document.createElement("div");
+      d.className = "ui-skeleton__linhas";
+      for (let c = 0; c < r; c++) {
+        const p = document.createElement("div");
+        p.className = `ui-skeleton ui-skeleton--texto ${l}`, a && (p.style.height = isNaN(Number(a)) ? a : `${a}px`), s && (p.style.borderRadius = isNaN(Number(s)) ? s : `${s}px`), d.appendChild(p);
+      }
+      i && (d.style.width = isNaN(Number(i)) ? i : `${i}px`), this.rootElement.appendChild(d);
+      return;
+    }
+    const u = document.createElement("div");
+    u.className = `ui-skeleton ui-skeleton--${e} ${l}`.trim(), i && (u.style.width = isNaN(Number(i)) ? i : `${i}px`), a && (u.style.height = isNaN(Number(a)) ? a : `${a}px`), s && (u.style.borderRadius = isNaN(Number(s)) ? s : `${s}px`), this.rootElement.appendChild(u);
+  }
+}
+class it extends ce {
+}
+customElements.get("ui-skeleton") || customElements.define("ui-skeleton", ce);
+customElements.get("ui-esqueleto") || customElements.define("ui-esqueleto", it);
+const ot = ':host{display:block;width:100%;height:520px;position:relative;border-radius:var(--ui-radius-lg, 10px);overflow:hidden;box-shadow:0 10px 30px -5px #0009;border:1px solid rgba(255,255,255,.1);background:#080d0a;color:#fff;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Inter,sans-serif;user-select:none;-webkit-user-select:none}*,*:before,*:after{box-sizing:border-box}.cad-root{position:relative;width:100%;height:100%;display:flex;overflow:hidden}.cad-map-container{width:100%;height:100%;background:#080d0a;z-index:1}.qgis-layer-panel{position:absolute;top:12px;left:12px;z-index:1000;width:290px;max-height:calc(100% - 24px);background:#0a120eeb;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.15);border-radius:8px;box-shadow:0 20px 40px #000000b3;display:flex;flex-direction:column;transition:transform .25s cubic-bezier(.16,1,.3,1),opacity .25s ease;overflow:hidden}.qgis-layer-panel.collapsed{transform:translate(-310px);opacity:0;pointer-events:none}.layer-panel-header{padding:10px 14px;background:#ffffff08;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:space-between}.layer-panel-title{font-size:12px;font-weight:700;letter-spacing:.5px;color:#00f5a0;display:flex;align-items:center;gap:6px;text-transform:uppercase}.layer-panel-close{background:transparent;border:none;color:#ffffff80;cursor:pointer;padding:2px;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:all .15s}.layer-panel-close:hover{color:#fff;background:#ffffff1a}.layer-panel-body{padding:10px 14px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;max-height:400px}.layer-section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#ffffff73;margin-bottom:2px;padding:0 4px 4px;border-bottom:1px solid rgba(255,255,255,.12)}.layer-item{background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.08);border-radius:0;padding:10px 4px;display:flex;flex-direction:column;gap:7px;transition:background .15s ease}.layer-item:last-child{border-bottom:none}.layer-item:hover{background:#ffffff08;border-radius:4px}.layer-item-row{display:flex;align-items:center;justify-content:space-between}.layer-item-label{display:flex;align-items:center;gap:10px;font-size:11px;font-weight:600;color:#ffffffe6;cursor:pointer;-webkit-user-select:none;user-select:none}.layer-chk-visibility{-moz-appearance:none;appearance:none;-webkit-appearance:none;width:16px;height:16px;border:1px solid rgba(255,255,255,.4);border-radius:4px;background:#0006;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;position:relative;transition:all .15s ease;flex-shrink:0;margin:0}.layer-chk-visibility:hover{border-color:#00f5a0}.layer-chk-visibility:checked{background:#00f5a0;border-color:#00f5a0}.layer-chk-visibility:checked:after{content:"";width:4px;height:8px;border:solid #04150c;border-width:0 2px 2px 0;transform:rotate(45deg) translateY(-1px);display:block}.layer-item-actions{display:flex;align-items:center;gap:6px}.btn-layer-action{background:transparent;border:none;color:#fff6;cursor:pointer;padding:4px;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:all .15s}.btn-layer-action:hover{color:#00f5a0;background:#ffffff14}.btn-layer-action.active{color:#f43f5e;background:#f43f5e26}.layer-controls-row{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:10px;color:#ffffff80;padding-left:26px}.layer-opacity-slider{flex:1;height:4px;border-radius:2px;background:#ffffff26;accent-color:#00f5a0;cursor:pointer}.scale-mode-pill{font-size:9px;font-weight:600;padding:2px 7px;border-radius:10px;background:#ffffff0f;color:#ffffffb3;cursor:pointer;border:1px solid rgba(255,255,255,.1);transition:all .15s}.scale-mode-pill:hover{border-color:#00f5a0;color:#00f5a0;background:#00f5a01a}.cad-quick-toolbar{position:absolute;top:12px;right:12px;z-index:1000;display:flex;flex-direction:column;gap:6px;background:#0c1510eb;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:5px;box-shadow:0 10px 25px -5px #0009}.cad-btn-tool{background:transparent;border:none;color:#fff9;cursor:pointer;padding:7px;border-radius:5px;display:flex;align-items:center;justify-content:center;transition:all .15s}.cad-btn-tool:hover{background:#ffffff1a;color:#fff}.cad-btn-tool.active{background:#00f5a026;color:#00f5a0;border:1px solid rgba(0,245,160,.3)}.cad-selection-box{pointer-events:none;box-sizing:border-box}.custom-leaflet-marker{cursor:pointer}.custom-leaflet-marker:hover{filter:brightness(1.25);transform:scale(1.15);transition:transform .15s ease}.compact-popup .leaflet-popup-content-wrapper{background:#0a120ef2!important;-webkit-backdrop-filter:blur(16px)!important;backdrop-filter:blur(16px)!important;border:1px solid rgba(255,255,255,.15)!important;border-radius:8px!important;color:#fff!important;padding:0!important}.compact-popup .leaflet-popup-content{margin:10px 12px!important}.compact-popup .leaflet-popup-tip{background:#0a120ef2!important;border:1px solid rgba(255,255,255,.15)!important}', te = {
   perimetroWeight: 1,
   fechamentoWeight: 1,
   vizinhoWeight: 1,
@@ -2075,60 +2907,70 @@ const Pe = ':host{display:block;width:100%;height:520px;position:relative;border
   crosshair: !1,
   satOpacity: 1,
   magnetSnap: !1
-}, I = class I {
+}, T = class T {
   constructor() {
     n(this, "config");
     this.config = this.loadConfig();
   }
   static getInstance() {
-    return I.instance || (I.instance = new I()), I.instance;
+    return T.instance || (T.instance = new T()), T.instance;
   }
   loadConfig() {
     try {
-      const i = typeof localStorage < "u" ? localStorage.getItem("gerencigeo_mapa_config") : null;
-      if (i)
-        return { ...W, ...JSON.parse(i) };
-    } catch (i) {
-      console.error("Erro ao carregar configurações do mapa", i);
+      const o = typeof localStorage < "u" ? localStorage.getItem("gerencigeo_mapa_config") : null;
+      if (o)
+        return { ...te, ...JSON.parse(o) };
+    } catch (o) {
+      console.error("Erro ao carregar configurações do mapa", o);
     }
-    return { ...W };
+    return { ...te };
   }
-  saveConfig(i) {
-    this.config = { ...this.config, ...i }, typeof localStorage < "u" && localStorage.setItem("gerencigeo_mapa_config", JSON.stringify(this.config));
+  saveConfig(o) {
+    this.config = { ...this.config, ...o }, typeof localStorage < "u" && localStorage.setItem("gerencigeo_mapa_config", JSON.stringify(this.config));
   }
   getConfig() {
     return this.config = this.loadConfig(), { ...this.config };
   }
 };
-n(I, "instance");
-let O = I;
-const w = (g) => g == null ? "" : String(g).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"), Ze = (g, i = 3) => g == null || isNaN(g) ? "—" : g.toLocaleString("pt-BR", {
-  minimumFractionDigits: i,
-  maximumFractionDigits: i
-});
-class Te {
-  constructor(i) {
+n(T, "instance");
+let j = T;
+class at {
+  constructor(o) {
     n(this, "map", null);
-    n(this, "configManager", O.getInstance());
+    n(this, "configManager", j.getInstance());
     n(this, "config", this.configManager.getConfig());
     n(this, "apiBaseUrl", "/api");
-    n(this, "bancoPontosGroup", v.layerGroup());
-    n(this, "pontosVizinhosGroup", v.layerGroup());
+    n(this, "bancoPontosGroup", _.layerGroup());
+    n(this, "pontosVizinhosGroup", _.layerGroup());
     n(this, "controller");
     n(this, "containerElement", null);
     n(this, "bc");
-    this.controller = i;
+    n(this, "currentSigefAbortController");
+    this.controller = o;
   }
-  init(i) {
+  init(o) {
     this.map && (this.map.remove(), this.map = null);
-    const e = typeof i == "string" ? document.getElementById(i) : i;
-    return e ? (this.containerElement = e, this.map = v.map(e, {
+    const e = typeof o == "string" ? document.getElementById(o) : o;
+    if (!e) return null;
+    if (this.containerElement = e, this.map = _.map(e, {
       maxZoom: 24,
       scrollWheelZoom: !0,
       preferCanvas: this.config.preferCanvas !== void 0 ? this.config.preferCanvas : !0,
       zoomControl: !1
       // O controle de zoom é gerenciado pelo CAD ou scroll
-    }).setView([-23.7661, -53.3204], 14), this.listenConfigBroadcast(), this.applyMapStyles(), v.control.scale({
+    }).setView([-23.7661, -53.3204], 14), this.listenConfigBroadcast(), this.applyMapStyles(), !this.map.getPane("sigefPane")) {
+      const t = this.map.createPane("sigefPane");
+      t.style.zIndex = "390";
+    }
+    if (!this.map.getPane("perimetroPane")) {
+      const t = this.map.createPane("perimetroPane");
+      t.style.zIndex = "450";
+    }
+    if (!this.map.getPane("verticesPane")) {
+      const t = this.map.createPane("verticesPane");
+      t.style.zIndex = "650";
+    }
+    return _.control.scale({
       metric: !0,
       imperial: !1,
       position: "bottomleft"
@@ -2142,7 +2984,7 @@ class Te {
       (this.controller.layerManager ? this.controller.layerManager.isLayerActiveAndSelectable("sigef") : !1) && this.consultarSigef(t);
     }), setTimeout(() => {
       this.invalidateSize();
-    }, 250), this.map) : null;
+    }, 250), this.map;
   }
   invalidateSize() {
     if (this.map)
@@ -2152,52 +2994,52 @@ class Te {
       }
   }
   applyMapStyles() {
-    const i = this.containerElement || document.getElementById("mapa-triagem");
-    i && (this.config.crosshair ? i.style.cursor = "crosshair" : i.style.cursor = "");
+    const o = this.containerElement || document.getElementById("mapa-triagem");
+    o && (this.config.crosshair ? o.style.cursor = "crosshair" : o.style.cursor = "");
   }
   listenConfigBroadcast() {
     if (!(typeof BroadcastChannel > "u"))
       try {
-        this.bc = new BroadcastChannel("gerencigeo_map_config"), this.bc.onmessage = (i) => {
-          i.data === "RELOAD_REQUIRED" && (this.config = this.configManager.getConfig(), this.applyMapStyles(), window.dispatchEvent(new CustomEvent("gerencigeo:map_config_changed", { detail: this.config })));
+        this.bc = new BroadcastChannel("gerencigeo_map_config"), this.bc.onmessage = (o) => {
+          o.data === "RELOAD_REQUIRED" && (this.config = this.configManager.getConfig(), this.applyMapStyles(), window.dispatchEvent(new CustomEvent("gerencigeo:map_config_changed", { detail: this.config })));
         };
       } catch {
       }
   }
   destroy() {
-    this.bc && this.bc.close();
+    this.currentSigefAbortController && (this.currentSigefAbortController.abort(), this.currentSigefAbortController = void 0), this.bc && this.bc.close();
   }
-  preCarregarTilesRegiao(i) {
+  preCarregarTilesRegiao(o) {
     if (!this.map) return;
-    const e = this.map.getZoom(), t = Math.max(Math.floor(e) - 2, 10), o = Math.min(Math.floor(e) + 3, 20), a = i.pad(0.5), r = ["mt0", "mt1", "mt2", "mt3"];
-    let s = 0;
-    const l = 300;
-    for (let d = t; d <= o && s < l; d++) {
-      const h = a.getNorthWest(), c = a.getSouthEast(), p = this.lonToTileX(h.lng, d), x = this.lonToTileX(c.lng, d), f = this.latToTileY(h.lat, d), m = this.latToTileY(c.lat, d);
-      for (let u = p; u <= x && s < l; u++)
-        for (let b = f; b <= m && s < l; b++) {
-          const A = `https://${r[(u + b) % r.length]}.google.com/vt/lyrs=s,h&x=${u}&y=${b}&z=${d}`, E = new Image();
-          E.src = A, s++;
+    const e = Math.floor(this.map.getZoom()), t = Math.max(e, 12), i = Math.min(e + 1, 19), a = o.pad(0.2), s = ["mt0", "mt1", "mt2", "mt3"];
+    let r = 0;
+    const l = 32;
+    for (let u = t; u <= i && r < l; u++) {
+      const d = a.getNorthWest(), c = a.getSouthEast(), p = this.lonToTileX(d.lng, u), m = this.lonToTileX(c.lng, u), h = this.latToTileY(d.lat, u), f = this.latToTileY(c.lat, u);
+      for (let g = p; g <= m && r < l; g++)
+        for (let v = h; v <= f && r < l; v++) {
+          const w = `https://${s[(g + v) % s.length]}.google.com/vt/lyrs=s,h&x=${g}&y=${v}&z=${u}`, E = new Image();
+          E.src = w, r++;
         }
     }
   }
-  lonToTileX(i, e) {
-    return Math.floor((i + 180) / 360 * Math.pow(2, e));
+  lonToTileX(o, e) {
+    return Math.floor((o + 180) / 360 * Math.pow(2, e));
   }
-  latToTileY(i, e) {
-    const t = i * Math.PI / 180;
+  latToTileY(o, e) {
+    const t = o * Math.PI / 180;
     return Math.floor(
       (1 - Math.log(Math.tan(t) + 1 / Math.cos(t)) / Math.PI) / 2 * Math.pow(2, e)
     );
   }
-  async consultarSigef(i) {
+  async consultarSigef(o) {
     if (!this.map) return;
-    const e = this.map.getSize(), t = this.map.getBounds(), o = t.getSouthWest(), a = t.getNorthEast(), r = `${o.lng},${o.lat},${a.lng},${a.lat}`, s = Math.round(this.map.layerPointToContainerPoint(i.layerPoint).x), l = Math.round(this.map.layerPointToContainerPoint(i.layerPoint).y), d = `https://acervofundiario.incra.gov.br/i3geo/ogc.php?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetFeatureInfo&FORMAT=image/png&TRANSPARENT=true&QUERY_LAYERS=certificada_sigef_particular_pr&LAYERS=certificada_sigef_particular_pr&INFO_FORMAT=application/json&X=${s}&Y=${l}&WIDTH=${e.x}&HEIGHT=${e.y}&SRS=EPSG:4326&BBOX=${r}`, h = this.map.getContainer();
-    h.style.cursor = "wait";
-    const c = v.popup({
+    const e = this.map.getSize(), t = this.map.getBounds(), i = t.getSouthWest(), a = t.getNorthEast(), s = `${i.lng},${i.lat},${a.lng},${a.lat}`, r = Math.round(this.map.layerPointToContainerPoint(o.layerPoint).x), l = Math.round(this.map.layerPointToContainerPoint(o.layerPoint).y), u = `https://acervofundiario.incra.gov.br/i3geo/ogc.php?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetFeatureInfo&FORMAT=image/png&TRANSPARENT=true&QUERY_LAYERS=certificada_sigef_particular_pr&LAYERS=certificada_sigef_particular_pr&INFO_FORMAT=application/json&X=${r}&Y=${l}&WIDTH=${e.x}&HEIGHT=${e.y}&SRS=EPSG:4326&BBOX=${s}`, d = this.map.getContainer();
+    d.style.cursor = "wait";
+    const c = _.popup({
       className: "compact-sigef-popup",
       maxWidth: 250
-    }).setLatLng(i.latlng).setContent(`
+    }).setLatLng(o.latlng).setContent(`
         <div style="font-family:sans-serif; display:flex; align-items:center; gap:8px; color:#555; font-size:12px;">
           <svg style="animation:spin 1s linear infinite; width:14px; height:14px; flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle cx="12" cy="12" r="10" stroke="#ccc" stroke-width="4" fill="none"></circle>
@@ -2206,34 +3048,39 @@ class Te {
           Consultando SIGEF...
         </div>
       `).openOn(this.map);
+    this.currentSigefAbortController && this.currentSigefAbortController.abort(), this.currentSigefAbortController = new AbortController();
+    const p = this.currentSigefAbortController.signal, m = setTimeout(() => {
+      this.currentSigefAbortController && this.currentSigefAbortController.abort();
+    }, 8e3);
     try {
-      const x = typeof window < "u" && (window.location.origin.includes("localhost") || window.location.origin.includes("127.0.0.1") || window.location.origin.includes("[::1]")) ? `${this.apiBaseUrl}/proxy/sigef?url=${encodeURIComponent(d)}` : `${window.location.origin}/api.php?action=proxy_sigef&url=${encodeURIComponent(d)}`, f = await fetch(x);
-      let m = null;
-      if (f.ok) {
-        const u = await f.text();
+      const f = typeof window < "u" && (window.location.origin.includes("localhost") || window.location.origin.includes("127.0.0.1") || window.location.origin.includes("[::1]")) ? `${this.apiBaseUrl}/proxy/sigef?url=${encodeURIComponent(u)}` : `${window.location.origin}/api.php?action=proxy_sigef&url=${encodeURIComponent(u)}`, g = await fetch(f, { signal: p });
+      clearTimeout(m);
+      let v = null;
+      if (g.ok) {
+        const x = await g.text();
         try {
-          m = JSON.parse(u);
+          v = JSON.parse(x);
         } catch {
-          m = null;
+          v = null;
         }
       }
-      if (m && m.features && m.features.length > 0) {
-        const u = m.features[0], b = u.properties || {}, _ = String(u.id || b.parcela_codigo || b.co_parcela || b.id_parcela || ""), A = String(b.nome_area || b.nome_imovel || "Imóvel Sem Nome");
-        if (_) {
-          const E = encodeURIComponent(_), y = `https://sigef.incra.gov.br/geo/exportar/parcela/shp/${E}/`, C = `https://sigef.incra.gov.br/geo/parcela/detalhe/${E}/`, k = document.createElement("div");
-          k.style.cssText = "font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.4; min-width:180px;", k.innerHTML = `
+      if (v && v.features && v.features.length > 0) {
+        const x = v.features[0], w = x.properties || {}, E = String(x.id || w.parcela_codigo || w.co_parcela || w.id_parcela || ""), y = String(w.nome_area || w.nome_imovel || "Imóvel Sem Nome");
+        if (E) {
+          const A = encodeURIComponent(E), C = `https://sigef.incra.gov.br/geo/exportar/parcela/shp/${A}/`, B = `https://sigef.incra.gov.br/geo/parcela/detalhe/${A}/`, $ = document.createElement("div");
+          $.style.cssText = "font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.4; min-width:180px;", $.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; padding-bottom:5px; border-bottom:1px solid rgba(255, 255, 255, 0.1);">
               <span style="font-weight:700; font-size:11px; color:#10b981; text-transform:uppercase; letter-spacing:0.5px;">SIGEF</span>
-              <span style="font-size:10px; color:rgba(255, 255, 255, 0.5);">${w(b.situacao_informada || b.status || "Certificada")}</span>
+              <span style="font-size:10px; color:rgba(255, 255, 255, 0.5);">${k(w.situacao_informada || w.status || "Certificada")}</span>
             </div>
-            <div style="font-weight:700; font-size:12px; margin-bottom:4px; color:#ffffff; word-break:break-word;">${w(A)}</div>
-            <div style="font-size:11px; color:rgba(255, 255, 255, 0.7); margin-bottom:2px;">Cód: <span style="font-family:monospace;">${w(b.codigo_imovel || "N/A")}</span></div>
+            <div style="font-weight:700; font-size:12px; margin-bottom:4px; color:#ffffff; word-break:break-word;">${k(y)}</div>
+            <div style="font-size:11px; color:rgba(255, 255, 255, 0.7); margin-bottom:2px;">Cód: <span style="font-family:monospace;">${k(w.codigo_imovel || "N/A")}</span></div>
             <div style="display:flex; gap:12px; font-size:11px; color:rgba(255, 255, 255, 0.7); margin-bottom:6px;">
-              <span>Mat: <strong style="color:#ffffff;">${w(b.registro_matricula || b.matricula || "N/A")}</strong></span>
-              <span>${w(b.data_submissao || "")}</span>
+              <span>Mat: <strong style="color:#ffffff;">${k(w.registro_matricula || w.matricula || "N/A")}</strong></span>
+              <span>${k(w.data_submissao || "")}</span>
             </div>
             <div style="display:flex; flex-direction:column; gap:5px; padding-top:6px; border-top:1px solid rgba(255, 255, 255, 0.1);">
-              <a href="${y}" target="_blank" rel="noopener noreferrer" style="display:flex; align-items:center; justify-content:center; gap:5px; padding:5px 8px; background:rgba(16, 185, 129, 0.15); border:1px solid rgba(16, 185, 129, 0.3); color:#34d399; font-size:11px; font-weight:700; border-radius:5px; text-decoration:none; cursor:pointer;">
+              <a href="${C}" target="_blank" rel="noopener noreferrer" style="display:flex; align-items:center; justify-content:center; gap:5px; padding:5px 8px; background:rgba(16, 185, 129, 0.15); border:1px solid rgba(16, 185, 129, 0.3); color:#34d399; font-size:11px; font-weight:700; border-radius:5px; text-decoration:none; cursor:pointer;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 Baixar Shapefile
               </a>
@@ -2241,20 +3088,20 @@ class Te {
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 Importar Confrontante (CSV)
               </button>
-              <a href="${C}" target="_blank" rel="noopener noreferrer" style="display:flex; align-items:center; justify-content:center; gap:4px; padding:4px 6px; background:rgba(255, 255, 255, 0.05); border:1px solid rgba(255, 255, 255, 0.1); color:rgba(255, 255, 255, 0.7); font-size:10px; font-weight:600; border-radius:5px; text-decoration:none; cursor:pointer;">
+              <a href="${B}" target="_blank" rel="noopener noreferrer" style="display:flex; align-items:center; justify-content:center; gap:4px; padding:4px 6px; background:rgba(255, 255, 255, 0.05); border:1px solid rgba(255, 255, 255, 0.1); color:rgba(255, 255, 255, 0.7); font-size:10px; font-weight:600; border-radius:5px; text-decoration:none; cursor:pointer;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                 Abrir no SIGEF
               </a>
             </div>
           `;
-          const P = k.querySelector(".btn-importar-confrontante-sigef");
-          P && P.addEventListener("click", () => {
+          const L = $.querySelector(".btn-importar-confrontante-sigef");
+          L && L.addEventListener("click", () => {
             window.dispatchEvent(
               new CustomEvent("gerencigeo:importar_vizinho_sigef", {
-                detail: { uuid: _, nome: A }
+                detail: { uuid: E, nome: y }
               })
             );
-          }), c.setContent(k);
+          }), c.setContent($);
         } else
           c.setContent(`
             <div style="font-family:sans-serif; font-size:12px; color:#b45309; padding:2px 0;">
@@ -2267,19 +3114,34 @@ class Te {
             Nenhum imóvel SIGEF certificado neste ponto.
           </div>
         `);
-    } catch (p) {
-      console.warn("Erro ao consultar SIGEF:", p), c.setContent(`
-        <div style="font-family:sans-serif; font-size:12px; color:#f59e0b; padding:2px 0;">
-          Serviço de consulta SIGEF indisponível nesta área.
-        </div>
-      `);
+    } catch (h) {
+      h.name === "AbortError" ? c.setContent(`
+          <div style="font-family:sans-serif; font-size:12px; color:#f59e0b; padding:2px 0;">
+            Consulta cancelada ou tempo limite de resposta esgotado.
+          </div>
+        `) : (console.warn("Erro ao consultar SIGEF:", h), c.setContent(`
+          <div style="font-family:sans-serif; font-size:12px; color:#f59e0b; padding:2px 0;">
+            Serviço de consulta SIGEF indisponível nesta área.
+          </div>
+        `));
     } finally {
-      h.style.cursor = "";
+      d.style.cursor = "";
     }
   }
 }
-class qe {
-  constructor(i) {
+const rt = [
+  "verticesPane",
+  "perimetroPane",
+  "overlayPane",
+  "markerPane",
+  "pane-vertices",
+  "pane-perimetro",
+  "pane-vizinhos",
+  "pane-homologados",
+  "pane-homologados-pontos"
+];
+class st {
+  constructor(o) {
     n(this, "ctx");
     n(this, "map", null);
     n(this, "mapContainer", null);
@@ -2293,111 +3155,152 @@ class qe {
     n(this, "selectionDiv", null);
     // Tempo do último clique do botão do meio
     n(this, "lastMiddleClickTime", 0);
+    // Estados de Toque (Mobile/Tablet)
+    n(this, "touchStartPos", { x: 0, y: 0 });
+    n(this, "touchStartDist", 0);
+    n(this, "isTouchPanning", !1);
     // Sinaliza que uma caixa de seleção foi arrastada
     n(this, "selectionHappened", !1);
-    n(this, "handleContextMenu", (i) => {
-      i.preventDefault();
-    });
-    n(this, "handleMouseDown", (i) => {
+    n(this, "handleTouchStart", (o) => {
       if (!(!this.map || !this.mapContainer)) {
-        if (i.button === 1) {
-          i.preventDefault();
+        if (o.touches.length === 1)
+          this.isTouchPanning = !0, this.touchStartPos = { x: o.touches[0].clientX, y: o.touches[0].clientY };
+        else if (o.touches.length === 2) {
+          this.isTouchPanning = !1;
+          const e = o.touches[0].clientX - o.touches[1].clientX, t = o.touches[0].clientY - o.touches[1].clientY;
+          this.touchStartDist = Math.hypot(e, t);
+        }
+      }
+    });
+    n(this, "handleTouchMove", (o) => {
+      if (!(!this.map || !this.mapContainer)) {
+        if (o.touches.length === 1 && this.isTouchPanning) {
+          o.preventDefault();
+          const e = this.touchStartPos.x - o.touches[0].clientX, t = this.touchStartPos.y - o.touches[0].clientY;
+          this.map.panBy([e, t], { animate: !1 }), this.touchStartPos = { x: o.touches[0].clientX, y: o.touches[0].clientY };
+        } else if (o.touches.length === 2 && this.touchStartDist > 0) {
+          o.preventDefault();
+          const e = o.touches[0].clientX - o.touches[1].clientX, t = o.touches[0].clientY - o.touches[1].clientY, i = Math.hypot(e, t);
+          Math.abs(i - this.touchStartDist) > 25 && (i > this.touchStartDist ? this.map.zoomIn(1) : this.map.zoomOut(1), this.touchStartDist = i);
+        }
+      }
+    });
+    n(this, "handleTouchEnd", () => {
+      this.isTouchPanning = !1, this.touchStartDist = 0;
+    });
+    n(this, "handleContextMenu", (o) => {
+      o.preventDefault();
+    });
+    n(this, "handleMouseDown", (o) => {
+      if (!(!this.map || !this.mapContainer)) {
+        if (o.button === 1) {
+          o.preventDefault();
           const e = Date.now();
           if (e - this.lastMiddleClickTime < 300) {
             this.zoomExtents();
             return;
           }
-          this.lastMiddleClickTime = e, this.isPanning = !0, this.lastMousePos = { x: i.clientX, y: i.clientY }, this.mapContainer.style.cursor = "grabbing";
+          this.lastMiddleClickTime = e, this.isPanning = !0, this.lastMousePos = { x: o.clientX, y: o.clientY }, this.mapContainer.style.cursor = "grabbing";
           return;
         }
-        if (i.button === 0) {
+        if (o.button === 0) {
           if (this.ctx.mapaController && this.ctx.mapaController.modoCliqueSequencialAtivo)
             return;
-          const e = this.mapContainer.getBoundingClientRect(), t = i.clientX - e.left, o = i.clientY - e.top;
-          this.isSelecting = !0, this.selectStartPos = { x: t, y: o }, this.selectStartPoint = this.map.mouseEventToContainerPoint(i), this.selectionDiv && (this.selectionDiv.style.left = `${t}px`, this.selectionDiv.style.top = `${o}px`, this.selectionDiv.style.width = "0px", this.selectionDiv.style.height = "0px", this.selectionDiv.style.display = "block"), ["verticesPane", "perimetroPane", "overlayPane", "pane-vertices", "pane-perimetro", "pane-vizinhos"].forEach((r) => {
-            var l;
-            const s = (l = this.map) == null ? void 0 : l.getPane(r);
-            s && (s.style.pointerEvents = "none");
-          });
+          const e = this.mapContainer.getBoundingClientRect(), t = o.clientX - e.left, i = o.clientY - e.top;
+          this.isSelecting = !0, this.selectStartPos = { x: t, y: i }, this.selectStartPoint = this.map.mouseEventToContainerPoint(o), this.selectionDiv && (this.selectionDiv.style.left = `${t}px`, this.selectionDiv.style.top = `${i}px`, this.selectionDiv.style.width = "0px", this.selectionDiv.style.height = "0px", this.selectionDiv.style.display = "block"), this.setPanesPointerEvents("none");
         }
       }
     });
-    n(this, "handleMouseMove", (i) => {
+    n(this, "handleMouseMove", (o) => {
       if (!(!this.map || !this.mapContainer)) {
         if (this.isPanning) {
-          const e = this.lastMousePos.x - i.clientX, t = this.lastMousePos.y - i.clientY;
-          this.map.panBy([e, t], { animate: !1 }), this.lastMousePos = { x: i.clientX, y: i.clientY };
+          const e = this.lastMousePos.x - o.clientX, t = this.lastMousePos.y - o.clientY;
+          this.map.panBy([e, t], { animate: !1 }), this.lastMousePos = { x: o.clientX, y: o.clientY };
           return;
         }
         if (this.isSelecting && this.selectionDiv) {
-          const e = this.mapContainer.getBoundingClientRect(), t = i.clientX - e.left, o = i.clientY - e.top, a = Math.abs(t - this.selectStartPos.x), r = Math.abs(o - this.selectStartPos.y), s = Math.min(t, this.selectStartPos.x), l = Math.min(o, this.selectStartPos.y);
-          this.selectionDiv.style.left = `${s}px`, this.selectionDiv.style.top = `${l}px`, this.selectionDiv.style.width = `${a}px`, this.selectionDiv.style.height = `${r}px`, t >= this.selectStartPos.x ? (this.selectionDiv.style.background = "rgba(14, 116, 144, 0.22)", this.selectionDiv.style.border = "1.5px solid #06b6d4") : (this.selectionDiv.style.background = "rgba(16, 185, 129, 0.22)", this.selectionDiv.style.border = "1.5px dashed #10b981");
+          const e = this.mapContainer.getBoundingClientRect(), t = o.clientX - e.left, i = o.clientY - e.top, a = Math.abs(t - this.selectStartPos.x), s = Math.abs(i - this.selectStartPos.y), r = Math.min(t, this.selectStartPos.x), l = Math.min(i, this.selectStartPos.y);
+          this.selectionDiv.style.left = `${Math.round(r)}px`, this.selectionDiv.style.top = `${Math.round(l)}px`, this.selectionDiv.style.width = `${Math.round(a)}px`, this.selectionDiv.style.height = `${Math.round(s)}px`, t >= this.selectStartPos.x ? (this.selectionDiv.style.background = "rgba(14, 116, 144, 0.22)", this.selectionDiv.style.border = "1px solid #06b6d4") : (this.selectionDiv.style.background = "rgba(16, 185, 129, 0.22)", this.selectionDiv.style.border = "1px dashed #10b981");
         }
       }
     });
-    n(this, "handleMouseUp", (i) => {
-      var e, t, o, a, r, s;
+    n(this, "handleMouseUp", (o) => {
+      var e, t, i, a, s, r;
       if (this.isPanning && (this.isPanning = !1, this.mapContainer && (this.mapContainer.style.cursor = "grab")), this.isSelecting) {
         if (this.isSelecting = !1, this.selectionDiv && (this.selectionDiv.style.display = "none"), !this.map || !this.mapContainer) return;
         this.map.closePopup(), setTimeout(() => {
           try {
-            this.ctx.layerManager && this.ctx.layerManager.ensurePanes();
+            this.setPanesPointerEvents("auto"), this.ctx.layerManager && this.ctx.layerManager.ensurePanes();
           } catch {
           }
         }, 80);
-        const l = this.mapContainer.getBoundingClientRect(), d = i.clientX - l.left, h = i.clientY - l.top, c = this.map.mouseEventToContainerPoint(i), p = Math.abs(d - this.selectStartPos.x), x = Math.abs(h - this.selectStartPos.y);
-        if (p < 4 && x < 4) {
-          const y = i.target;
-          y && ((e = y.classList) != null && e.contains("leaflet-container") || y.id === "mapa-triagem" || (t = y.closest) != null && t.call(y, ".leaflet-pane")) && ((o = y.closest) != null && o.call(y, ".custom-leaflet-marker") || (a = y.closest) != null && a.call(y, ".custom-div-icon") || this.limparSelecao());
+        const l = this.mapContainer.getBoundingClientRect(), u = o.clientX - l.left, d = o.clientY - l.top, c = this.map.mouseEventToContainerPoint(o), p = Math.abs(u - this.selectStartPos.x), m = Math.abs(d - this.selectStartPos.y);
+        if (p < 4 && m < 4) {
+          const y = o.target;
+          y && ((e = y.classList) != null && e.contains("leaflet-container") || y.id === "mapa-triagem" || (t = y.closest) != null && t.call(y, ".leaflet-pane")) && ((i = y.closest) != null && i.call(y, ".custom-leaflet-marker") || (a = y.closest) != null && a.call(y, ".custom-div-icon") || this.limparSelecao());
           return;
         }
+        if (!this.selectStartPoint)
+          return;
         this.selectionHappened = !0;
-        const f = {
+        const h = {
           x1: Math.min(this.selectStartPoint.x, c.x),
           y1: Math.min(this.selectStartPoint.y, c.y),
           x2: Math.max(this.selectStartPoint.x, c.x),
           y2: Math.max(this.selectStartPoint.y, c.y)
-        }, m = ((r = this.ctx.mapaController) == null ? void 0 : r.getMarkers()) || [], u = ((s = this.ctx.mapaController) == null ? void 0 : s.getVizinhosMarkers()) || [], b = [], _ = [], A = !this.ctx.layerManager || this.ctx.layerManager.isLayerActiveAndSelectable("vertices"), E = !this.ctx.layerManager || this.ctx.layerManager.isLayerActiveAndSelectable("vizinhos");
-        A && m.forEach((y) => {
-          const C = y.pontoId;
-          if (!C) return;
-          const k = this.map.latLngToContainerPoint(y.getLatLng());
-          k.x >= f.x1 && k.x <= f.x2 && k.y >= f.y1 && k.y <= f.y2 && b.push(C);
-        }), E && u.forEach((y) => {
-          const C = y.pontoId;
-          if (!C) return;
-          const k = this.map.latLngToContainerPoint(y.getLatLng());
-          k.x >= f.x1 && k.x <= f.x2 && k.y >= f.y1 && k.y <= f.y2 && _.push(C);
-        }), i.ctrlKey || i.metaKey ? (b.forEach((y) => {
-          this.ctx.selectedPontoIds.includes(y) ? this.ctx.selectedPontoIds = this.ctx.selectedPontoIds.filter((C) => C !== y) : this.ctx.selectedPontoIds.push(y);
-        }), _.forEach((y) => {
-          this.ctx.selectedVizinhoPontoIds.includes(y) ? this.ctx.selectedVizinhoPontoIds = this.ctx.selectedVizinhoPontoIds.filter((C) => C !== y) : this.ctx.selectedVizinhoPontoIds.push(y);
-        })) : (this.ctx.selectedPontoIds = b, this.ctx.selectedVizinhoPontoIds = _), this.ctx.selectedPontoIds.length > 0 && (this.ctx.lastSelectedPontoId = this.ctx.selectedPontoIds[this.ctx.selectedPontoIds.length - 1]), this.notificarSelecao();
+        }, f = ((s = this.ctx.mapaController) == null ? void 0 : s.getMarkers()) || [], g = ((r = this.ctx.mapaController) == null ? void 0 : r.getVizinhosMarkers()) || [], v = [], x = [], w = !this.ctx.layerManager || this.ctx.layerManager.isLayerActiveAndSelectable("vertices"), E = !this.ctx.layerManager || this.ctx.layerManager.isLayerActiveAndSelectable("vizinhos");
+        w && f.forEach((y) => {
+          const A = y.pontoId;
+          if (!A) return;
+          const C = this.map.latLngToContainerPoint(y.getLatLng());
+          C.x >= h.x1 && C.x <= h.x2 && C.y >= h.y1 && C.y <= h.y2 && v.push(A);
+        }), E && g.forEach((y) => {
+          const A = y.pontoId;
+          if (!A) return;
+          const C = this.map.latLngToContainerPoint(y.getLatLng());
+          C.x >= h.x1 && C.x <= h.x2 && C.y >= h.y1 && C.y <= h.y2 && x.push(A);
+        }), o.ctrlKey || o.metaKey ? (v.forEach((y) => {
+          this.ctx.selectedPontoIds.includes(y) ? this.ctx.selectedPontoIds = this.ctx.selectedPontoIds.filter((A) => A !== y) : this.ctx.selectedPontoIds.push(y);
+        }), x.forEach((y) => {
+          this.ctx.selectedVizinhoPontoIds.includes(y) ? this.ctx.selectedVizinhoPontoIds = this.ctx.selectedVizinhoPontoIds.filter((A) => A !== y) : this.ctx.selectedVizinhoPontoIds.push(y);
+        })) : (this.ctx.selectedPontoIds = v, this.ctx.selectedVizinhoPontoIds = x), this.ctx.selectedPontoIds.length > 0 && (this.ctx.lastSelectedPontoId = this.ctx.selectedPontoIds[this.ctx.selectedPontoIds.length - 1]), this.notificarSelecao();
       }
     });
-    n(this, "handleKeyDown", (i) => {
-      i.key === "Escape" && this.limparSelecao();
+    n(this, "handleKeyDown", (o) => {
+      if (o.key === "Escape") {
+        const e = document.activeElement;
+        if (e && (e.tagName === "INPUT" || e.tagName === "TEXTAREA" || e.tagName === "SELECT" || e.isContentEditable))
+          return;
+        this.isSelecting && (this.isSelecting = !1, this.selectionDiv && (this.selectionDiv.style.display = "none"), this.setPanesPointerEvents("auto"), this.ctx.layerManager && this.ctx.layerManager.ensurePanes()), this.limparSelecao();
+      }
     });
     this.ctx = {
       selectedPontoIds: [],
       selectedVizinhoPontoIds: [],
       lastSelectedPontoId: null,
       pontosList: [],
-      ...i
+      ...o
     };
   }
-  ativar(i, e) {
-    if (this.ctx.mapaController = i, e && (this.ctx.containerHost = e), this.map = i.getMap(), !!this.map && (this.mapContainer = this.map.getContainer(), !!this.mapContainer)) {
+  ativar(o, e) {
+    if (this.ctx.mapaController = o, e && (this.ctx.containerHost = e), this.map = o.getMap(), !!this.map && (this.mapContainer = this.map.getContainer(), !!this.mapContainer)) {
       if (this.map.dragging.disable(), this.map.doubleClickZoom.disable(), !this.selectionDiv) {
         this.selectionDiv = document.createElement("div"), this.selectionDiv.className = "cad-selection-box", this.selectionDiv.style.position = "absolute", this.selectionDiv.style.zIndex = "9999", this.selectionDiv.style.pointerEvents = "none", this.selectionDiv.style.display = "none", this.selectionDiv.style.borderRadius = "2px";
         const t = this.mapContainer;
         t.style.position = "relative", t.appendChild(this.selectionDiv);
       }
-      this.mapContainer.addEventListener("mousedown", this.handleMouseDown), this.mapContainer.addEventListener("mousemove", this.handleMouseMove), window.addEventListener("mouseup", this.handleMouseUp), this.mapContainer.addEventListener("contextmenu", this.handleContextMenu), window.addEventListener("keydown", this.handleKeyDown);
+      this.mapContainer.addEventListener("mousedown", this.handleMouseDown), this.mapContainer.addEventListener("mousemove", this.handleMouseMove), window.addEventListener("mouseup", this.handleMouseUp), this.mapContainer.addEventListener("contextmenu", this.handleContextMenu), window.addEventListener("keydown", this.handleKeyDown), this.mapContainer.addEventListener("touchstart", this.handleTouchStart, { passive: !1 }), this.mapContainer.addEventListener("touchmove", this.handleTouchMove, { passive: !1 }), this.mapContainer.addEventListener("touchend", this.handleTouchEnd), this.mapContainer.addEventListener("touchcancel", this.handleTouchEnd);
     }
   }
   desativar() {
-    this.mapContainer && (this.mapContainer.removeEventListener("mousedown", this.handleMouseDown), this.mapContainer.removeEventListener("mousemove", this.handleMouseMove), this.mapContainer.removeEventListener("contextmenu", this.handleContextMenu)), window.removeEventListener("mouseup", this.handleMouseUp), window.removeEventListener("keydown", this.handleKeyDown), this.selectionDiv && this.selectionDiv.parentNode && (this.selectionDiv.parentNode.removeChild(this.selectionDiv), this.selectionDiv = null), this.map && (this.map.dragging.enable(), this.map.doubleClickZoom.enable());
+    this.mapContainer && (this.mapContainer.removeEventListener("mousedown", this.handleMouseDown), this.mapContainer.removeEventListener("mousemove", this.handleMouseMove), this.mapContainer.removeEventListener("contextmenu", this.handleContextMenu), this.mapContainer.removeEventListener("touchstart", this.handleTouchStart), this.mapContainer.removeEventListener("touchmove", this.handleTouchMove), this.mapContainer.removeEventListener("touchend", this.handleTouchEnd), this.mapContainer.removeEventListener("touchcancel", this.handleTouchEnd)), window.removeEventListener("mouseup", this.handleMouseUp), window.removeEventListener("keydown", this.handleKeyDown), this.selectionDiv && this.selectionDiv.parentNode && (this.selectionDiv.parentNode.removeChild(this.selectionDiv), this.selectionDiv = null), this.map && (this.map.dragging.enable(), this.map.doubleClickZoom.enable()), this.setPanesPointerEvents("auto");
+  }
+  setPanesPointerEvents(o) {
+    this.map && rt.forEach((e) => {
+      var i;
+      const t = (i = this.map) == null ? void 0 : i.getPane(e);
+      t && (t.style.pointerEvents = o);
+    });
   }
   limparSelecao() {
     (this.ctx.selectedPontoIds.length > 0 || this.ctx.selectedVizinhoPontoIds.length > 0) && (this.ctx.selectedPontoIds = [], this.ctx.selectedVizinhoPontoIds = [], this.ctx.lastSelectedPontoId = null, this.notificarSelecao());
@@ -2413,186 +3316,189 @@ class qe {
   }
   zoomExtents() {
     if (!this.ctx.pontosList || this.ctx.pontosList.length === 0) return;
-    const i = this.ctx.pontosList.filter((e) => e.tipo_ponto !== "B" && e.tipo !== "B");
-    i.length > 0 && this.ctx.mapaController && this.ctx.mapaController.fitBounds(i);
+    const o = this.ctx.pontosList.filter((e) => e.tipo_ponto !== "B" && e.tipo !== "B");
+    o.length > 0 && this.ctx.mapaController && this.ctx.mapaController.fitBounds(o);
   }
   destroy() {
     this.desativar();
   }
 }
 class S {
-  static register(i, e) {
-    this.renderers.set(i.toLowerCase(), e);
+  static register(o, e) {
+    this.renderers.set(o.toLowerCase(), e);
   }
-  static get(i) {
-    return this.renderers.get(i.toLowerCase());
+  static get(o) {
+    return this.renderers.get(o.toLowerCase());
   }
-  static has(i) {
-    return this.renderers.has(i.toLowerCase());
+  static has(o) {
+    return this.renderers.has(o.toLowerCase());
   }
   static getRegisteredTypes() {
     return Array.from(this.renderers.keys());
   }
 }
 n(S, "renderers", /* @__PURE__ */ new Map());
-class Be {
-  render(i, e, t) {
-    var l, d, h;
-    const o = ((l = i.dados) == null ? void 0 : l.url) || "https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}", a = ((d = i.dados) == null ? void 0 : d.subdomains) || ["mt0", "mt1", "mt2", "mt3"], r = ((h = i.dados) == null ? void 0 : h.attribution) || "Google Satélite";
-    return v.tileLayer(o, {
+class nt {
+  render(o, e, t) {
+    var l, u, d;
+    const i = ((l = o.dados) == null ? void 0 : l.url) || "https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}", a = ((u = o.dados) == null ? void 0 : u.subdomains) || ["mt0", "mt1", "mt2", "mt3"], s = ((d = o.dados) == null ? void 0 : d.attribution) || "Google Satélite";
+    return _.tileLayer(i, {
       maxZoom: 24,
       maxNativeZoom: 20,
       subdomains: a,
-      attribution: r,
+      attribution: s,
       keepBuffer: 16,
       updateWhenZooming: !1,
       updateWhenIdle: !0,
       className: "smooth-zoom-layer",
-      opacity: i.opacidade !== void 0 ? i.opacidade : 1,
-      pane: `pane-${i.id}`
+      opacity: o.opacidade !== void 0 ? o.opacidade : 1,
+      pane: `pane-${o.id}`
     });
   }
-  update(i, e, t) {
-    e instanceof v.TileLayer && t.opacidade !== void 0 && e.setOpacity(t.opacidade);
+  update(o, e, t) {
+    e instanceof _.TileLayer && t.opacidade !== void 0 && e.setOpacity(t.opacidade);
   }
-  destroy(i, e) {
-    e.hasLayer(i) && e.removeLayer(i);
+  destroy(o, e) {
+    e.hasLayer(o) && e.removeLayer(o);
   }
 }
-class Ne {
-  render(i, e, t) {
-    var d, h, c, p;
-    const o = ((d = i.dados) == null ? void 0 : d.url) || "https://acervofundiario.incra.gov.br/i3geo/ogc.php", a = ((h = i.dados) == null ? void 0 : h.layers) || "certificada_sigef_particular_pr", r = ((c = i.dados) == null ? void 0 : c.format) || "image/png", s = ((p = i.dados) == null ? void 0 : p.attribution) || "INCRA/SIGEF";
-    return v.tileLayer.wms(o, {
+class lt {
+  render(o, e, t) {
+    var u, d, c, p;
+    const i = ((u = o.dados) == null ? void 0 : u.url) || "https://acervofundiario.incra.gov.br/i3geo/ogc.php", a = ((d = o.dados) == null ? void 0 : d.layers) || "certificada_sigef_particular_pr", s = ((c = o.dados) == null ? void 0 : c.format) || "image/png", r = ((p = o.dados) == null ? void 0 : p.attribution) || "INCRA/SIGEF";
+    return _.tileLayer.wms(i, {
       layers: a,
-      format: r,
+      format: s,
       transparent: !0,
       version: "1.1.1",
-      pane: `pane-${i.id}`,
-      attribution: s,
+      pane: `pane-${o.id}`,
+      attribution: r,
       className: "sigef-wms-layer",
       keepBuffer: 8,
       updateWhenZooming: !1,
       updateWhenIdle: !0,
-      opacity: i.opacidade !== void 0 ? i.opacidade : 0.85
+      opacity: o.opacidade !== void 0 ? o.opacidade : 0.85
     });
   }
-  update(i, e, t) {
-    e instanceof v.TileLayer.WMS && t.opacidade !== void 0 && e.setOpacity(t.opacidade);
+  update(o, e, t) {
+    e instanceof _.TileLayer.WMS && t.opacidade !== void 0 && e.setOpacity(t.opacidade);
   }
-  destroy(i, e) {
-    e.hasLayer(i) && e.removeLayer(i);
+  destroy(o, e) {
+    e.hasLayer(o) && e.removeLayer(o);
   }
 }
-class $e {
+class ct {
   constructor() {
     n(this, "zoomListenerMap", /* @__PURE__ */ new WeakMap());
   }
-  render(i, e, t) {
-    const o = v.layerGroup(), a = `pane-${i.id}`;
-    this.rebuildLines(i, o, e, t, a);
-    const r = () => {
-      if (i.estilo.scaleMode === "world") {
-        const s = this.calculateWeight(i, e, t);
-        o.eachLayer((l) => {
-          l.setStyle && l.setStyle({ weight: s });
+  render(o, e, t) {
+    const i = _.layerGroup(), a = `pane-${o.id}`;
+    this.rebuildLines(o, i, e, t, a);
+    const s = () => {
+      if (o.estilo.scaleMode === "world") {
+        const r = this.calculateWeight(o, e, t);
+        i.eachLayer((l) => {
+          l.setStyle && l.setStyle({ weight: r });
         });
       }
     };
-    return e.on("zoomend", r), this.zoomListenerMap.set(o, r), o;
+    return e.on("zoomend", s), this.zoomListenerMap.set(i, s), i;
   }
-  calculateWeight(i, e, t) {
-    const o = i.estilo.espessuraLinha || t.config.perimetroWeight || 2, a = t.graphicScale.lineScaleMultiplier || 1;
-    if (i.estilo.scaleMode === "world") {
-      const r = i.estilo.dimensaoMetros || 0.3, s = e.getCenter(), l = e.getZoom(), d = 40075016686e-3 * Math.abs(Math.cos(s.lat * Math.PI / 180)) / Math.pow(2, l + 8), h = r / (d > 0 ? d : 1);
-      return Math.max(1, Math.round(h * a));
+  calculateWeight(o, e, t) {
+    const i = o.estilo.espessuraLinha || t.config.perimetroWeight || 2, a = t.graphicScale.lineScaleMultiplier || 1;
+    if (o.estilo.scaleMode === "world") {
+      const s = o.estilo.dimensaoMetros || 0.3, r = e.getCenter(), l = e.getZoom(), u = 40075016686e-3 * Math.abs(Math.cos(r.lat * Math.PI / 180)) / Math.pow(2, l + 8), d = s / (u > 0 ? u : 1);
+      return Math.max(1, Math.round(d * a));
     }
-    return Math.max(1, Math.round(o * a));
+    return Math.max(1, Math.round(i * a));
   }
-  rebuildLines(i, e, t, o, a) {
-    var c, p;
-    const r = ((c = i.dados) == null ? void 0 : c.segmentos) || o.segmentos || [], s = ((p = i.dados) == null ? void 0 : p.pontos) || o.pontos || [], l = this.calculateWeight(i, t, o), d = i.opacidade !== void 0 ? i.opacidade : 1, h = i.interativo && !i.bloqueada;
-    if (r && r.length > 0)
-      r.forEach((x) => {
-        const f = s.find((u) => String(u.id) === String(x.ponto_inicio_id)), m = s.find((u) => String(u.id) === String(x.ponto_fim_id));
-        if (f && m && f.lat && f.lon && m.lat && m.lon) {
-          const u = x.tipo_limite_sigef || x.tipo_limite || "", b = x.metodo_posicionamento_sigef || x.metodo_posicionamento || "", _ = u === "LA1" ? "#10b981" : u === "LN1" ? "#3b82f6" : "#00f5a0", A = i.estilo.corPrimaria || _, E = v.polyline([[f.lat, f.lon], [m.lat, m.lon]], {
-            color: A,
-            weight: l,
+  rebuildLines(o, e, t, i, a) {
+    var m, h;
+    const s = o.id === "homologados", r = ((m = o.dados) == null ? void 0 : m.segmentos) || i.segmentos || [], l = ((h = o.dados) == null ? void 0 : h.pontos) || (s && i.bancoPontos && i.bancoPontos.length > 0 ? i.bancoPontos : i.pontos) || [], u = this.calculateWeight(o, t, i), d = o.opacidade !== void 0 ? o.opacidade : 1, c = o.interativo && !o.bloqueada, p = [];
+    if (l.forEach((f) => {
+      const g = q(f.lat ?? f.latitude ?? f.y, f.lon ?? f.lng ?? f.longitude ?? f.x);
+      g && p.push({ ...f, lat: g.lat, lon: g.lon });
+    }), !s && r && r.length > 0)
+      r.forEach((f) => {
+        const g = p.find((x) => String(x.id) === String(f.ponto_inicio_id)), v = p.find((x) => String(x.id) === String(f.ponto_fim_id));
+        if (g && v && g.lat && g.lon && v.lat && v.lon) {
+          const x = f.tipo_limite_sigef || f.tipo_limite || "", w = f.metodo_posicionamento_sigef || f.metodo_posicionamento || "", E = x === "LA1" ? "#10b981" : x === "LN1" ? "#3b82f6" : "#00f5a0", y = o.estilo.corPrimaria || E, A = _.polyline([[g.lat, g.lon], [v.lat, v.lon]], {
+            color: y,
+            weight: u,
             opacity: d,
-            dashArray: u === "LN1" ? "6, 6" : i.estilo.dashArray,
+            dashArray: x === "LN1" ? "6, 6" : o.estilo.dashArray,
             pane: a,
-            interactive: h
+            interactive: c
           });
-          h && E.bindPopup(`
+          c && A.bindPopup(`
               <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.3;">
-                <div style="font-weight:700; font-size:12px; margin-bottom:3px; color:#ffffff;">${w(f.nome_vertice)} ↔ ${w(m.nome_vertice)}</div>
-                <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">Limite: ${w(u || "N/A")} · ${w(b || "N/A")}</div>
+                <div style="font-weight:700; font-size:12px; margin-bottom:3px; color:#ffffff;">${k(g.nome_vertice)} ↔ ${k(v.nome_vertice)}</div>
+                <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">Limite: ${k(x || "N/A")} · ${k(w || "N/A")}</div>
               </div>
             `, {
             className: "compact-popup",
             maxWidth: 220
-          }), E.addTo(e);
+          }), A.addTo(e);
         }
       });
-    else if (s && s.length >= 2) {
-      const x = s.filter(
-        (u) => u.lat && u.lon && u.lat !== 0 && u.lon !== 0 && u.tipo_ponto !== "B" && u.tipo !== "B" && u.ignorar_poligono !== 1
-      ), f = {};
-      x.forEach((u) => {
-        const b = u.matricula_id != null ? `mat_${u.matricula_id}` : u.planilha_origem || "default";
-        f[b] || (f[b] = []), f[b].push(u);
+    else if (p && p.length >= 2) {
+      const f = p.filter(
+        (w) => w.lat && w.lon && w.tipo_ponto !== "B" && w.tipo !== "B" && w.ignorar_poligono !== 1
+      ), g = {};
+      f.forEach((w) => {
+        const E = w.matricula_id != null ? `mat_${w.matricula_id}` : w.planilha_origem || "default";
+        g[E] || (g[E] = []), g[E].push(w);
       });
-      const m = i.estilo.corPrimaria || "#10b981";
-      Object.values(f).forEach((u) => {
-        if (u.sort((E, y) => Number(E.ordem_caminhamento ?? 999999) - Number(y.ordem_caminhamento ?? 999999)), u.length < 2) return;
-        for (let E = 0; E < u.length - 1; E++) {
-          const y = u[E], C = u[E + 1];
-          v.polyline([[y.lat, y.lon], [C.lat, C.lon]], {
-            color: m,
-            weight: l,
+      const v = o.estilo.corPrimaria || (s ? "#f59e0b" : "#10b981"), x = o.estilo.dashArray || (s ? "6, 8" : void 0);
+      Object.values(g).forEach((w) => {
+        if (w.sort((A, C) => Number(A.ordem_caminhamento ?? A.id ?? 999999) - Number(C.ordem_caminhamento ?? C.id ?? 999999)), w.length < 2) return;
+        const E = w.map((A) => [A.lat, A.lon]);
+        if (_.polyline(E, {
+          color: v,
+          weight: u,
+          opacity: d,
+          dashArray: x,
+          pane: a,
+          interactive: c
+        }).addTo(e), E.length >= 3) {
+          const A = E[E.length - 1], C = E[0];
+          _.polyline([A, C], {
+            color: v,
+            weight: u,
             opacity: d,
+            dashArray: s ? "6, 8" : "4, 4",
             pane: a,
-            interactive: h
+            interactive: c
           }).addTo(e);
         }
-        const b = u[u.length - 1], _ = u[0];
-        v.polyline([[b.lat, b.lon], [_.lat, _.lon]], {
-          color: m,
-          weight: l,
-          opacity: d,
-          dashArray: "4, 4",
-          pane: a,
-          interactive: h
-        }).addTo(e);
       });
     }
   }
-  update(i, e, t, o, a) {
-    (t.opacidade !== void 0 || t.estilo !== void 0 || t.dados !== void 0) && (e.clearLayers(), this.rebuildLines(i, e, a, o, `pane-${i.id}`));
+  update(o, e, t, i, a) {
+    t.opacidade !== void 0 && t.estilo === void 0 && t.dados === void 0 || (t.opacidade !== void 0 || t.estilo !== void 0 || t.dados !== void 0) && (e.clearLayers(), this.rebuildLines(o, e, a, i, `pane-${o.id}`));
   }
-  destroy(i, e) {
-    const t = this.zoomListenerMap.get(i);
-    t && (e.off("zoomend", t), this.zoomListenerMap.delete(i)), i.clearLayers(), e.hasLayer(i) && e.removeLayer(i);
+  destroy(o, e) {
+    const t = this.zoomListenerMap.get(o);
+    t && (e.off("zoomend", t), this.zoomListenerMap.delete(o)), o.clearLayers(), e.hasLayer(o) && e.removeLayer(o);
   }
 }
-function $(g, i, e, t = "", o = "") {
-  const a = `width: ${i + 4}px; height: ${i + 4}px;`, r = i;
-  switch (g) {
+function D(b, o, e, t = "", i = "") {
+  const a = `width: ${o + 4}px; height: ${o + 4}px;`, s = o;
+  switch (b) {
     case "square":
-      return `<div id="${o}" class="${e} ${t} rounded-sm shadow-md" style="width:${r}px; height:${r}px;"></div>`;
+      return `<div id="${i}" class="${e} ${t} rounded-sm shadow-md" style="width:${s}px; height:${s}px;"></div>`;
     case "circle-dot":
       return `
-        <div id="${o}" class="relative flex items-center justify-center ${t}" style="${a}">
-          <div class="${e} rounded-full shadow-md" style="width:${r}px; height:${r}px;"></div>
-          <div class="absolute bg-white rounded-full" style="width:${Math.max(3, Math.floor(r / 3))}px; height:${Math.max(3, Math.floor(r / 3))}px;"></div>
+        <div id="${i}" class="relative flex items-center justify-center ${t}" style="${a}">
+          <div class="${e} rounded-full shadow-md" style="width:${s}px; height:${s}px;"></div>
+          <div class="absolute bg-white rounded-full" style="width:${Math.max(3, Math.floor(s / 3))}px; height:${Math.max(3, Math.floor(s / 3))}px;"></div>
         </div>
       `;
     case "x":
     case "cross":
       return `
-        <div id="${o}" class="relative flex items-center justify-center ${t}" style="${a}">
-          <svg width="${i + 2}" height="${i + 2}" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg" style="overflow:visible;">
+        <div id="${i}" class="relative flex items-center justify-center ${t}" style="${a}">
+          <svg width="${o + 2}" height="${o + 2}" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg" style="overflow:visible;">
             <path d="M 2,2 L 8,8 M 8,2 L 2,8" stroke="#000000" stroke-width="2.5" stroke-linecap="round" />
             <path d="M 2,2 L 8,8 M 8,2 L 2,8" stroke="#ffffff" stroke-width="1.2" stroke-linecap="round" />
           </svg>
@@ -2600,179 +3506,211 @@ function $(g, i, e, t = "", o = "") {
       `;
     case "triangle":
       return `
-        <div id="${o}" class="${t}" style="width:0; height:0; border-left:${r / 2}px solid transparent; border-right:${r / 2}px solid transparent; border-bottom:${r}px solid currentColor;"></div>
+        <div id="${i}" class="${t}" style="width:0; height:0; border-left:${s / 2}px solid transparent; border-right:${s / 2}px solid transparent; border-bottom:${s}px solid currentColor;"></div>
       `;
     case "circle":
     default:
-      return `<div id="${o}" class="${e} ${t} rounded-full shadow-md" style="width:${r}px; height:${r}px;"></div>`;
+      return `<div id="${i}" class="${e} ${t} rounded-full shadow-md" style="width:${s}px; height:${s}px;"></div>`;
   }
 }
-class He {
+class dt {
   constructor() {
     n(this, "zoomListenerMap", /* @__PURE__ */ new WeakMap());
   }
-  render(i, e, t) {
-    const o = v.layerGroup(), a = `pane-${i.id}`;
-    this.rebuildPoints(i, o, e, t, a);
-    const r = () => {
-      i.estilo.scaleMode === "world" && o.eachLayer((s) => {
-        if (s.setIcon && s.baseSize && s.shapeStyle && s.markerBg && s.pontoId) {
-          const l = this.calculateSize(i, e, t, s.baseSize), d = t.config.enableAnimations ? "transition-all duration-150" : "", h = $(s.shapeStyle, l, s.markerBg, d, `map-marker-${i.id}-${s.pontoId}`), c = v.divIcon({
-            html: h,
+  render(o, e, t) {
+    const i = _.layerGroup(), a = `pane-${o.id}`;
+    this.rebuildPoints(o, i, e, t, a);
+    const s = () => {
+      o.estilo.scaleMode === "world" && i.eachLayer((r) => {
+        if (r.setIcon && r.baseSize && r.shapeStyle && r.markerBg && r.pontoId) {
+          const l = this.calculateSize(o, e, t, r.baseSize), u = t.config.enableAnimations ? "transition-all duration-150" : "", d = D(r.shapeStyle, l, r.markerBg, u, `map-marker-${o.id}-${r.pontoId}`), c = _.divIcon({
+            html: d,
             className: "custom-leaflet-marker flex items-center justify-center",
             iconSize: [l + 6, l + 6]
           });
-          s.setIcon(c);
+          r.setIcon(c);
         }
       });
     };
-    return e.on("zoomend", r), this.zoomListenerMap.set(o, r), o;
+    return e.on("zoomend", s), this.zoomListenerMap.set(i, s), i;
   }
-  calculateSize(i, e, t, o) {
+  calculateSize(o, e, t, i) {
     const a = t.graphicScale.markerScaleMultiplier || 1;
-    if (i.estilo.scaleMode === "world") {
-      const r = i.estilo.dimensaoMetros || 0.25, s = e.getCenter(), l = e.getZoom(), d = 40075016686e-3 * Math.abs(Math.cos(s.lat * Math.PI / 180)) / Math.pow(2, l + 8), h = r / (d > 0 ? d : 1);
-      return Math.max(3, Math.round(h * a));
+    if (o.estilo.scaleMode === "world") {
+      const s = o.estilo.dimensaoMetros || 0.25, r = e.getCenter(), l = e.getZoom(), u = 40075016686e-3 * Math.abs(Math.cos(r.lat * Math.PI / 180)) / Math.pow(2, l + 8), d = s / (u > 0 ? u : 1);
+      return Math.max(i, Math.round(d * a));
     }
-    return Math.max(4, Math.round(o * a));
+    return Math.max(4, Math.round(i * a));
   }
-  rebuildPoints(i, e, t, o, a) {
-    var h;
-    const r = ((h = i.dados) == null ? void 0 : h.pontos) || o.pontos || [], s = i.interativo && !i.bloqueada, l = i.id === "vizinhos", d = i.id === "homologados";
-    r.forEach((c) => {
-      const p = c.lat ?? c.latitude, x = c.lon ?? c.lng ?? c.longitude;
-      if (p && x && p !== 0 && x !== 0) {
-        const f = c.tipo_ponto === "B" || c.tipo === "B", m = c.tipo_ponto === "M" || c.tipo === "M";
-        let u = i.estilo.estiloMarcador || "x", b = "bg-mint-vibrant", _ = i.estilo.tamanhoMarcador || 7;
-        d ? (u = "circle", b = "bg-amber-500", _ = 8) : l ? (u = m ? "circle-dot" : "cross", b = "bg-[#a855f7]", _ = m ? 10 : 8) : m ? (b = "bg-indigo-500", u = "circle-dot", _ = 10) : f && (b = "bg-rose-500", u = "square", _ = 9);
-        const A = this.calculateSize(i, t, o, _), E = o.config.enableAnimations ? "transition-all duration-150" : "", y = $(u, A, b, E, `map-marker-${i.id}-${c.id}`), C = v.divIcon({
-          html: y,
+  rebuildPoints(o, e, t, i, a) {
+    var d;
+    const s = o.id === "homologados" || o.id === "homologados-pontos", r = o.id === "vizinhos", l = ((d = o.dados) == null ? void 0 : d.pontos) || (s && i.bancoPontos && i.bancoPontos.length > 0 ? i.bancoPontos : i.pontos) || [], u = o.interativo && !o.bloqueada;
+    l.forEach((c) => {
+      const p = c.lat ?? c.latitude ?? c.y, m = c.lon ?? c.lng ?? c.longitude ?? c.x, h = q(p, m);
+      if (h) {
+        const { lat: f, lon: g } = h, v = c.tipo_ponto === "B" || c.tipo === "B", x = c.tipo_ponto === "M" || c.tipo === "M";
+        let w = o.estilo.estiloMarcador || "x", E = "bg-mint-vibrant", y = o.estilo.tamanhoMarcador || 7;
+        s ? (w = "circle", E = "bg-amber-500", y = 8) : r ? (w = x ? "circle-dot" : "cross", E = "bg-[#a855f7]", y = x ? 10 : 8) : x ? (E = "bg-indigo-500", w = "circle-dot", y = 10) : v && (E = "bg-rose-500", w = "square", y = 9);
+        const A = this.calculateSize(o, t, i, y), C = i.config.enableAnimations ? "transition-all duration-150" : "", B = D(w, A, E, C, `map-marker-${o.id}-${c.id}`), $ = _.divIcon({
+          html: B,
           className: "custom-leaflet-marker flex items-center justify-center",
           iconSize: [A + 6, A + 6]
-        }), k = v.marker([p, x], {
-          icon: C,
+        }), L = _.marker([f, g], {
+          icon: $,
           pane: a,
-          interactive: s
+          interactive: u
         });
-        if (k.pontoId = c.id, k.layerId = i.id, k.isVizinho = l, k.baseSize = _, k.shapeStyle = u, k.markerBg = b, s) {
-          const P = d ? "Vértice Homologado SIGEF" : l ? "Confrontante (Importado)" : m ? "Base Homologada PPP" : f ? "Base de Campo (Translação)" : "Vértice de Perímetro";
-          k.bindPopup(`
-            <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.3;">
-              <div style="font-weight:700; font-size:13px; margin-bottom:4px; color:#ffffff;">${w(c.nome_vertice || String(c.id))}</div>
-              <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">${w(P)} · ${w(c.tipo_ponto || c.tipo || "Vértice")}</div>
-              <div style="font-size:11px; color:rgba(255, 255, 255, 0.45); font-family:monospace; margin-top:4px;">Lat ${Number(p).toFixed(6)} &nbsp; Lon ${Number(x).toFixed(6)}</div>
+        if (L.pontoId = c.id, L.layerId = o.id, L.isVizinho = r, L.baseSize = y, L.shapeStyle = w, L.markerBg = E, u) {
+          const de = s ? "Vértice Homologado SIGEF" : r ? "Confrontante (Importado)" : x ? "Base Homologada PPP" : v ? "Base de Campo (Translação)" : "Vértice de Perímetro", ue = k(c.codigo_completo || c.nome_vertice || String(c.id)), X = typeof c.este == "number" ? `Este (E): ${c.este.toFixed(2)} m` : "", Z = typeof c.norte == "number" ? `Norte (N): ${c.norte.toFixed(2)} m` : "", Q = typeof c.altitude == "number" ? `Alt (h): ${c.altitude.toFixed(2)} m` : "";
+          L.bindPopup(`
+            <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.35; min-width:170px;">
+              <div style="font-weight:700; font-size:13px; margin-bottom:4px; color:${s ? "#fbbf24" : "#ffffff"};">${ue}</div>
+              <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">${k(de)} · ${k(c.tipo_ponto || c.tipo || "Vértice")}</div>
+              ${X || Z ? `<div style="font-size:10px; color:rgba(255, 255, 255, 0.7); font-family:monospace; margin-top:3px;">${X} ${Z}</div>` : ""}
+              ${Q ? `<div style="font-size:10px; color:rgba(255, 255, 255, 0.7); font-family:monospace;">${Q}</div>` : ""}
+              <div style="font-size:10px; color:rgba(255, 255, 255, 0.45); font-family:monospace; margin-top:3px;">Lat ${f.toFixed(6)} &nbsp; Lon ${g.toFixed(6)}</div>
             </div>
           `, {
             className: "compact-popup",
-            maxWidth: 220
-          }), k.on("click", () => {
-            o.onMarkerClick && o.onMarkerClick(c.id, l);
+            maxWidth: 240
+          }), L.on("click", () => {
+            i.onMarkerClick && i.onMarkerClick(c.id, r);
           });
         }
-        k.addTo(e);
+        L.addTo(e);
       }
     });
   }
-  update(i, e, t, o, a) {
-    (t.opacidade !== void 0 || t.estilo !== void 0 || t.dados !== void 0 || t.interativo !== void 0 || t.bloqueada !== void 0) && (e.clearLayers(), this.rebuildPoints(i, e, a, o, `pane-${i.id}`));
+  update(o, e, t, i, a) {
+    t.opacidade !== void 0 && t.estilo === void 0 && t.dados === void 0 && t.interativo === void 0 && t.bloqueada === void 0 || (t.estilo !== void 0 || t.dados !== void 0 || t.interativo !== void 0 || t.bloqueada !== void 0 || t.opacidade !== void 0) && (e.clearLayers(), this.rebuildPoints(o, e, a, i, `pane-${o.id}`));
   }
-  destroy(i, e) {
-    const t = this.zoomListenerMap.get(i);
-    t && (e.off("zoomend", t), this.zoomListenerMap.delete(i)), i.clearLayers(), e.hasLayer(i) && e.removeLayer(i);
+  destroy(o, e) {
+    const t = this.zoomListenerMap.get(o);
+    t && (e.off("zoomend", t), this.zoomListenerMap.delete(o)), o.clearLayers(), e.hasLayer(o) && e.removeLayer(o);
   }
 }
-class Oe {
-  render(i, e, t) {
-    const o = v.layerGroup(), a = `pane-${i.id}`;
-    return this.rebuildPolygons(i, o, t, a), o;
+class ut {
+  render(o, e, t) {
+    const i = _.layerGroup(), a = `pane-${o.id}`;
+    return this.rebuildPolygons(o, i, t, a), i;
   }
-  rebuildPolygons(i, e, t, o) {
-    var h;
-    const a = ((h = i.dados) == null ? void 0 : h.confrontantes) || t.confrontantes || [], r = i.interativo && !i.bloqueada, s = i.estilo.corPrimaria || "#a855f7", l = i.estilo.espessuraLinha || 1.5, d = i.opacidade !== void 0 ? i.opacidade : 0.8;
+  rebuildPolygons(o, e, t, i) {
+    var d;
+    const a = ((d = o.dados) == null ? void 0 : d.confrontantes) || t.confrontantes || [], s = o.interativo && !o.bloqueada, r = o.estilo.corPrimaria || "#a855f7", l = o.estilo.espessuraLinha || 1.5, u = o.opacidade !== void 0 ? o.opacidade : 0.8;
     a.forEach((c) => {
-      if (!c || !c.poligono_wkt) return;
-      const p = [...c.poligono_wkt.matchAll(/\(([^()]+)\)/g)];
-      if (p.length === 0) return;
-      const x = w(c.nome_propriedade || "Propriedade Vizinha"), f = w(c.nome || "Desconhecido");
-      p.forEach((m) => {
-        const u = m[1].split(",").map((_) => {
-          const A = _.trim().split(/\s+/), E = parseFloat(A[0]), y = parseFloat(A[1]);
-          return !isNaN(y) && !isNaN(E) ? [y, E] : null;
-        }).filter((_) => _ !== null);
-        if (u.length < 3) return;
-        const b = v.polygon(u, {
-          color: s,
-          weight: l,
-          opacity: d,
-          dashArray: i.estilo.dashArray || "4, 6",
-          fillColor: s,
-          fillOpacity: Math.min(0.2, d * 0.15),
-          pane: o,
-          interactive: r
+      if (c) {
+        if (c.poligono_wkt) {
+          const p = [...c.poligono_wkt.matchAll(/\(([^()]+)\)/g)];
+          if (p.length > 0) {
+            const m = k(c.nome_propriedade || "Propriedade Vizinha"), h = k(c.nome || "Desconhecido"), f = [];
+            if (p.forEach((g) => {
+              const v = g[1].split(",").map((x) => {
+                const w = x.trim().split(/\s+/);
+                if (w.length < 2) return null;
+                const E = q(w[1], w[0]);
+                return E ? [E.lat, E.lon] : null;
+              }).filter((x) => x !== null);
+              v.length >= 3 && f.push(v);
+            }), f.length > 0) {
+              const g = f.length === 1 ? f[0] : f, v = _.polygon(g, {
+                color: r,
+                weight: l,
+                opacity: u,
+                dashArray: o.estilo.dashArray || "4, 6",
+                fillColor: r,
+                fillOpacity: Math.min(0.2, u * 0.15),
+                pane: i,
+                interactive: s
+              });
+              s && v.bindPopup(`
+                <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.3; min-width:180px;">
+                  <div style="font-weight:700; font-size:12px; color:#c084fc; margin-bottom:3px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:3px;">Limite de Confrontante</div>
+                  <div style="font-size:11px; margin-bottom:2px;"><strong>Propriedade:</strong> ${m}</div>
+                  <div style="font-size:11px;"><strong>Proprietário:</strong> ${h}</div>
+                </div>
+              `, { className: "compact-popup", maxWidth: 220 }), v.addTo(e);
+            }
+          }
+        }
+        c.pontos && c.pontos.length > 0 && c.pontos.forEach((p) => {
+          const m = q(p.lat ?? p.latitude ?? p.y, p.lon ?? p.lng ?? p.longitude ?? p.x);
+          if (m) {
+            const h = _.divIcon({
+              html: '<div style="width:8px; height:8px; background:#a855f7; border-radius:50%; border:1px solid #ffffff; box-shadow:0 0 4px rgba(168,85,247,0.8);"></div>',
+              className: "custom-leaflet-marker flex items-center justify-center",
+              iconSize: [12, 12]
+            }), f = _.marker([m.lat, m.lon], {
+              icon: h,
+              pane: i,
+              interactive: s
+            });
+            f.pontoId = p.id, f.isVizinho = !0, f.layerId = o.id, s && (f.bindPopup(`
+                <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.3; min-width:170px;">
+                  <div style="font-weight:700; font-size:12px; color:#c084fc; margin-bottom:3px;">${k(p.nome_vertice || String(p.id))}</div>
+                  <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">Confrontante: ${k(c.nome || "Desconhecido")}</div>
+                  <div style="font-size:10px; color:rgba(255, 255, 255, 0.45); font-family:monospace; margin-top:3px;">Lat ${m.lat.toFixed(6)} &nbsp; Lon ${m.lon.toFixed(6)}</div>
+                </div>
+              `, { className: "compact-popup", maxWidth: 220 }), f.on("click", () => {
+              t.onMarkerClick && t.onMarkerClick(p.id, !0);
+            })), f.addTo(e);
+          }
         });
-        r && b.bindPopup(`
-            <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.3; min-width:180px;">
-              <div style="font-weight:700; font-size:12px; color:#c084fc; margin-bottom:3px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:3px;">Limite de Confrontante</div>
-              <div style="font-size:11px; margin-bottom:2px;"><strong>Propriedade:</strong> ${x}</div>
-              <div style="font-size:11px;"><strong>Proprietário:</strong> ${f}</div>
-            </div>
-          `, { className: "compact-popup", maxWidth: 220 }), b.addTo(e);
-      });
+      }
     });
   }
-  update(i, e, t, o) {
-    (t.opacidade !== void 0 || t.estilo !== void 0 || t.dados !== void 0 || t.interativo !== void 0 || t.bloqueada !== void 0) && (e.clearLayers(), this.rebuildPolygons(i, e, o, `pane-${i.id}`));
+  update(o, e, t, i) {
+    t.opacidade !== void 0 && t.estilo === void 0 && t.dados === void 0 && t.interativo === void 0 && t.bloqueada === void 0 || (t.opacidade !== void 0 || t.estilo !== void 0 || t.dados !== void 0 || t.interativo !== void 0 || t.bloqueada !== void 0) && (e.clearLayers(), this.rebuildPolygons(o, e, i, `pane-${o.id}`));
   }
-  destroy(i, e) {
-    i.clearLayers(), e.hasLayer(i) && e.removeLayer(i);
+  destroy(o, e) {
+    o.clearLayers(), e.hasLayer(o) && e.removeLayer(o);
   }
 }
-class Fe {
+class ht {
   constructor() {
     n(this, "moveListenerMap", /* @__PURE__ */ new WeakMap());
   }
-  render(i, e, t) {
-    const o = v.layerGroup(), a = `pane-${i.id}`, r = () => {
-      if (o.clearLayers(), !i.visivel) return;
+  render(o, e, t) {
+    const i = _.layerGroup(), a = `pane-${o.id}`, s = () => {
+      if (i.clearLayers(), !o.visivel) return;
       if (e.getZoom() > 20) {
-        const l = e.getBounds(), d = l.getSouth(), h = l.getNorth(), c = l.getWest(), p = l.getEast(), x = e.getCenter(), f = 8999e-9, m = Math.cos(x.lat * Math.PI / 180), u = f / (m > 0.1 ? m : 1), b = Math.floor((h - d) / f), _ = Math.floor((p - c) / u);
-        if (b < 200 && _ < 200) {
-          const A = Math.ceil(d / f) * f;
-          for (let y = A; y <= h; y += f)
-            v.polyline([[y, c], [y, p]], {
-              color: i.estilo.corPrimaria || "rgba(0, 245, 160, 0.18)",
-              weight: i.estilo.espessuraLinha || 0.6,
+        const l = e.getBounds(), u = l.getSouth(), d = l.getNorth(), c = l.getWest(), p = l.getEast(), m = e.getCenter(), h = 8999e-9, f = Math.cos(m.lat * Math.PI / 180), g = h / (f > 0.1 ? f : 1), v = Math.floor((d - u) / h), x = Math.floor((p - c) / g);
+        if (v < 200 && x < 200) {
+          const w = Math.ceil(u / h) * h;
+          for (let y = w; y <= d; y += h)
+            _.polyline([[y, c], [y, p]], {
+              color: o.estilo.corPrimaria || "rgba(0, 245, 160, 0.18)",
+              weight: o.estilo.espessuraLinha || 0.6,
               interactive: !1,
               pane: a
-            }).addTo(o);
-          const E = Math.ceil(c / u) * u;
-          for (let y = E; y <= p; y += u)
-            v.polyline([[d, y], [h, y]], {
-              color: i.estilo.corPrimaria || "rgba(0, 245, 160, 0.18)",
-              weight: i.estilo.espessuraLinha || 0.6,
+            }).addTo(i);
+          const E = Math.ceil(c / g) * g;
+          for (let y = E; y <= p; y += g)
+            _.polyline([[u, y], [d, y]], {
+              color: o.estilo.corPrimaria || "rgba(0, 245, 160, 0.18)",
+              weight: o.estilo.espessuraLinha || 0.6,
               interactive: !1,
               pane: a
-            }).addTo(o);
+            }).addTo(i);
         }
       }
     };
-    return r(), e.on("zoomend moveend", r), this.moveListenerMap.set(o, r), o;
+    return s(), e.on("zoomend moveend", s), this.moveListenerMap.set(i, s), i;
   }
-  update(i, e) {
-    i.visivel || e.clearLayers();
+  update(o, e) {
+    o.visivel || e.clearLayers();
   }
-  destroy(i, e) {
-    const t = this.moveListenerMap.get(i);
-    t && (e.off("zoomend moveend", t), this.moveListenerMap.delete(i)), i.clearLayers(), e.hasLayer(i) && e.removeLayer(i);
+  destroy(o, e) {
+    const t = this.moveListenerMap.get(o);
+    t && (e.off("zoomend moveend", t), this.moveListenerMap.delete(o)), o.clearLayers(), e.hasLayer(o) && e.removeLayer(o);
   }
 }
-S.register("tile", new Be());
-S.register("wms", new Ne());
-S.register("vetorial-linhas", new $e());
-S.register("vetorial-pontos", new He());
-S.register("vetorial-poligonos", new Oe());
-S.register("grid", new Fe());
-const Re = [
+S.register("tile", new nt());
+S.register("wms", new lt());
+S.register("vetorial-linhas", new ct());
+S.register("vetorial-pontos", new dt());
+S.register("vetorial-poligonos", new ut());
+S.register("grid", new ht());
+const pt = [
   {
     id: "satelite",
     nome: "Satélite Google Híbrido",
@@ -2811,6 +3749,23 @@ const Re = [
       corPrimaria: "#f59e0b",
       espessuraLinha: 2,
       dashArray: "6, 8",
+      scaleMode: "screen"
+    }
+  },
+  {
+    id: "homologados-pontos",
+    nome: "Marcos Homologados (SIGEF)",
+    categoria: "referencia",
+    tipo: "vetorial-pontos",
+    visivel: !0,
+    opacidade: 1,
+    zIndex: 660,
+    interativo: !0,
+    bloqueada: !1,
+    estilo: {
+      tamanhoMarcador: 8,
+      corPrimaria: "#f59e0b",
+      estiloMarcador: "circle",
       scaleMode: "screen"
     }
   },
@@ -2881,169 +3836,172 @@ const Re = [
     }
   }
 ];
-class Ve {
-  constructor(i) {
+class mt {
+  constructor(o) {
     n(this, "layers", []);
     n(this, "layerInstances", /* @__PURE__ */ new Map());
     n(this, "map", null);
     n(this, "context", null);
     n(this, "listeners", []);
-    this.layers = (i || Re).map((e) => ({ ...e, estilo: { ...e.estilo } }));
+    this.layers = (o || pt).map((e) => ({ ...e, estilo: { ...e.estilo } }));
   }
-  attachMap(i, e) {
-    this.map = i, this.context = e, this.ensurePanes(), this.renderAllLayers();
+  attachMap(o, e) {
+    this.map = o, this.context = e, this.ensurePanes(), this.renderAllLayers();
   }
   ensurePanes() {
-    this.map && this.layers.forEach((i) => {
-      const e = `pane-${i.id}`;
+    this.map && (this.layers.forEach((o) => {
+      const e = `pane-${o.id}`;
       let t = this.map.getPane(e);
-      t || (t = this.map.createPane(e)), t && (t.style.zIndex = String(i.zIndex), t.style.pointerEvents = i.interativo && !i.bloqueada && i.visivel ? "auto" : "none");
-    });
+      t || (t = this.map.createPane(e)), t && (t.style.zIndex = String(o.zIndex), t.style.pointerEvents = o.interativo && !o.bloqueada && o.visivel ? "auto" : "none");
+    }), ["verticesPane", "perimetroPane", "overlayPane"].forEach((o) => {
+      const e = this.map.getPane(o);
+      e && (e.style.pointerEvents = "auto");
+    }));
   }
   renderAllLayers() {
-    !this.map || !this.context || (this.layers.forEach((i) => {
-      if (this.layerInstances.has(i.id)) {
-        const e = this.layerInstances.get(i.id), t = S.get(i.tipo);
-        t && t.destroy(e, this.map), this.layerInstances.delete(i.id);
+    !this.map || !this.context || (this.layers.forEach((o) => {
+      if (this.layerInstances.has(o.id)) {
+        const e = this.layerInstances.get(o.id), t = S.get(o.tipo);
+        t && t.destroy(e, this.map), this.layerInstances.delete(o.id);
       }
-      if (i.visivel) {
-        const e = S.get(i.tipo);
+      if (o.visivel) {
+        const e = S.get(o.tipo);
         if (e) {
-          const t = e.render(i, this.map, this.context);
-          t && (t.addTo(this.map), this.layerInstances.set(i.id, t));
+          const t = e.render(o, this.map, this.context);
+          t && (t.addTo(this.map), this.layerInstances.set(o.id, t));
         }
       }
     }), this.notifyChange());
   }
-  setLayerVisibility(i, e) {
-    const t = this.layers.find((r) => r.id === i);
+  setLayerVisibility(o, e) {
+    const t = this.layers.find((s) => s.id === o);
     if (!t || t.visivel === e || (t.visivel = e, !this.map || !this.context)) return;
-    const o = `pane-${t.id}`, a = this.map.getPane(o);
+    const i = `pane-${t.id}`, a = this.map.getPane(i);
     if (a && (a.style.display = e ? "" : "none", a.style.pointerEvents = t.visivel && t.interativo && !t.bloqueada ? "auto" : "none"), e) {
-      if (!this.layerInstances.has(i)) {
-        const r = S.get(t.tipo);
-        if (r) {
-          const s = r.render(t, this.map, this.context);
-          s && (s.addTo(this.map), this.layerInstances.set(i, s));
+      if (!this.layerInstances.has(o)) {
+        const s = S.get(t.tipo);
+        if (s) {
+          const r = s.render(t, this.map, this.context);
+          r && (r.addTo(this.map), this.layerInstances.set(o, r));
         }
       }
-    } else if (this.layerInstances.has(i)) {
-      const r = this.layerInstances.get(i), s = S.get(t.tipo);
-      s && s.destroy(r, this.map), this.layerInstances.delete(i);
+    } else if (this.layerInstances.has(o)) {
+      const s = this.layerInstances.get(o), r = S.get(t.tipo);
+      r && r.destroy(s, this.map), this.layerInstances.delete(o);
     }
     this.notifyChange();
   }
-  setLayerOpacity(i, e) {
-    const t = this.layers.find((a) => a.id === i);
+  setLayerOpacity(o, e) {
+    const t = this.layers.find((a) => a.id === o);
     if (!t) return;
     if (t.opacidade = Math.max(0, Math.min(1, e)), this.map) {
-      const a = this.map.getPane(`pane-${i}`);
+      const a = this.map.getPane(`pane-${o}`);
       a && (a.style.opacity = String(t.opacidade));
     }
-    const o = this.layerInstances.get(i);
-    if (o && this.map && this.context) {
+    const i = this.layerInstances.get(o);
+    if (i && this.map && this.context) {
       const a = S.get(t.tipo);
-      a && a.update(t, o, { opacidade: t.opacidade }, this.context, this.map);
+      a && a.update(t, i, { opacidade: t.opacidade }, this.context, this.map);
     }
     this.notifyChange();
   }
-  setLayerZIndex(i, e) {
-    const t = this.layers.find((o) => o.id === i);
+  setLayerZIndex(o, e) {
+    const t = this.layers.find((i) => i.id === o);
     if (t) {
       if (t.zIndex = e, this.map) {
-        const o = this.map.getPane(`pane-${i}`);
-        o && (o.style.zIndex = String(e));
+        const i = this.map.getPane(`pane-${o}`);
+        i && (i.style.zIndex = String(e));
       }
       this.notifyChange();
     }
   }
-  setLayerBlocked(i, e) {
-    const t = this.layers.find((o) => o.id === i);
+  setLayerBlocked(o, e) {
+    const t = this.layers.find((i) => i.id === o);
     if (t) {
       if (t.bloqueada = e, this.map) {
-        const o = this.map.getPane(`pane-${i}`);
-        o && (o.style.pointerEvents = t.visivel && t.interativo && !e ? "auto" : "none");
+        const i = this.map.getPane(`pane-${o}`);
+        i && (i.style.pointerEvents = t.visivel && t.interativo && !e ? "auto" : "none");
       }
       this.notifyChange();
     }
   }
-  setLayerScaleMode(i, e) {
-    const t = this.layers.find((a) => a.id === i);
+  setLayerScaleMode(o, e) {
+    const t = this.layers.find((a) => a.id === o);
     if (!t) return;
     t.estilo.scaleMode = e;
-    const o = this.layerInstances.get(i);
-    if (o && this.map && this.context) {
+    const i = this.layerInstances.get(o);
+    if (i && this.map && this.context) {
       const a = S.get(t.tipo);
-      a && a.update(t, o, { estilo: t.estilo }, this.context, this.map);
+      a && a.update(t, i, { estilo: t.estilo }, this.context, this.map);
     }
     this.notifyChange();
   }
-  setGraphicScale(i) {
-    this.context && (this.context.graphicScale = { ...this.context.graphicScale, ...i }, this.renderAllLayers());
+  setGraphicScale(o) {
+    this.context && (this.context.graphicScale = { ...this.context.graphicScale, ...o }, this.renderAllLayers());
   }
-  updateContext(i) {
-    this.context && (this.context = { ...this.context, ...i }, this.renderAllLayers());
+  updateContext(o) {
+    this.context && (this.context = { ...this.context, ...o }, this.renderAllLayers());
   }
   getLayers() {
     return [...this.layers];
   }
   getActiveSelectableLayers() {
-    return this.layers.filter((i) => i.visivel && i.interativo && !i.bloqueada);
+    return this.layers.filter((o) => o.visivel && o.interativo && !o.bloqueada);
   }
-  isLayerActiveAndSelectable(i) {
-    const e = this.layers.find((t) => t.id === i);
+  isLayerActiveAndSelectable(o) {
+    const e = this.layers.find((t) => t.id === o);
     return !!(e && e.visivel && e.interativo && !e.bloqueada);
   }
   exportState() {
-    return this.layers.map((i) => ({
-      id: i.id,
-      visivel: i.visivel,
-      opacidade: i.opacidade,
-      zIndex: i.zIndex,
-      bloqueada: i.bloqueada,
-      estilo: { ...i.estilo }
+    return this.layers.map((o) => ({
+      id: o.id,
+      visivel: o.visivel,
+      opacidade: o.opacidade,
+      zIndex: o.zIndex,
+      bloqueada: o.bloqueada,
+      estilo: { ...o.estilo }
     }));
   }
-  importState(i) {
-    !i || !Array.isArray(i) || (i.forEach((e) => {
-      const t = this.layers.find((o) => o.id === e.id);
+  importState(o) {
+    !o || !Array.isArray(o) || (o.forEach((e) => {
+      const t = this.layers.find((i) => i.id === e.id);
       t && (e.visivel !== void 0 && (t.visivel = e.visivel), e.opacidade !== void 0 && (t.opacidade = e.opacidade), e.zIndex !== void 0 && (t.zIndex = e.zIndex), e.bloqueada !== void 0 && (t.bloqueada = e.bloqueada), e.estilo && (t.estilo = { ...t.estilo, ...e.estilo }));
     }), this.ensurePanes(), this.renderAllLayers());
   }
-  onChange(i) {
-    return this.listeners.push(i), () => {
-      this.listeners = this.listeners.filter((e) => e !== i);
+  onChange(o) {
+    return this.listeners.push(o), () => {
+      this.listeners = this.listeners.filter((e) => e !== o);
     };
   }
   notifyChange() {
-    const i = this.getLayers();
+    const o = this.getLayers();
     this.listeners.forEach((e) => {
       try {
-        e(i);
+        e(o);
       } catch (t) {
         console.error("Erro no listener de camadas:", t);
       }
     });
   }
   destroy() {
-    this.map && (this.layerInstances.forEach((i, e) => {
-      const t = this.layers.find((o) => o.id === e);
+    this.map && (this.layerInstances.forEach((o, e) => {
+      const t = this.layers.find((i) => i.id === e);
       if (t) {
-        const o = S.get(t.tipo);
-        o && o.destroy(i, this.map);
+        const i = S.get(t.tipo);
+        i && i.destroy(o, this.map);
       }
     }), this.layerInstances.clear()), this.listeners = [];
   }
 }
-class De {
-  constructor(i) {
+class ft {
+  constructor(o) {
     n(this, "core");
     n(this, "layerManager");
     n(this, "canvasInteracao");
     n(this, "context");
     n(this, "modoCliqueSequencialAtivo", !1);
     n(this, "levantamentoId", null);
-    this.core = new Te(this), this.layerManager = new Ve(i), this.canvasInteracao = new qe({
+    this.core = new at(this), this.layerManager = new mt(o), this.canvasInteracao = new st({
       mapaController: this,
       layerManager: this.layerManager
     }), this.context = {
@@ -3064,62 +4022,62 @@ class De {
       }
     };
   }
-  init(i, e) {
-    const t = this.core.init(i);
+  init(o, e) {
+    const t = this.core.init(o);
     return t && (this.layerManager.attachMap(t, this.context), this.canvasInteracao.ativar(this, e)), t;
   }
   invalidateSize() {
-    var i;
+    var o;
     try {
-      (i = this.core) == null || i.invalidateSize();
+      (o = this.core) == null || o.invalidateSize();
     } catch {
     }
   }
-  setPontos(i) {
-    this.context.pontos = i, this.canvasInteracao.ctx.pontosList = i, this.layerManager.updateContext({ pontos: i });
+  setPontos(o) {
+    this.context.pontos = o, this.canvasInteracao.ctx.pontosList = o, this.layerManager.updateContext({ pontos: o });
   }
-  setSegmentos(i) {
-    this.context.segmentos = i, this.layerManager.updateContext({ segmentos: i });
+  setSegmentos(o) {
+    this.context.segmentos = o, this.layerManager.updateContext({ segmentos: o });
   }
-  setBancoPontos(i) {
-    this.context.bancoPontos = i, this.layerManager.updateContext({ bancoPontos: i });
+  setBancoPontos(o) {
+    this.context.bancoPontos = o, this.layerManager.updateContext({ bancoPontos: o });
   }
-  setConfrontantes(i) {
-    this.context.confrontantes = i, this.layerManager.updateContext({ confrontantes: i });
+  setConfrontantes(o) {
+    this.context.confrontantes = o, this.layerManager.updateContext({ confrontantes: o });
   }
-  setGraphicScale(i) {
-    this.layerManager.setGraphicScale(i);
+  setGraphicScale(o) {
+    this.layerManager.setGraphicScale(o);
   }
   exportState() {
     return this.layerManager.exportState();
   }
-  importState(i) {
-    this.layerManager.importState(i);
+  importState(o) {
+    this.layerManager.importState(o);
   }
-  selectPonto(i, e) {
+  selectPonto(o, e) {
     if (!this.core.map) return;
-    const o = this.getMarkers().find((a) => a.pontoId === i);
-    if (o) {
+    const i = this.getMarkers().find((a) => a.pontoId === o);
+    if (i) {
       const a = e !== void 0 ? e : this.core.map.getZoom();
-      this.core.map.setView(o.getLatLng(), a), o.openPopup();
+      this.core.map.setView(i.getLatLng(), a), i.openPopup();
     }
   }
-  fitBounds(i, e = [40, 40], t = !1) {
+  fitBounds(o, e = [40, 40], t = !1) {
     if (!this.core.map) return;
-    let a = [...i || this.context.pontos || []];
-    t && this.context.confrontantes && this.context.confrontantes.forEach((s) => {
-      s.pontos && a.push(...s.pontos);
+    let a = [...o || this.context.pontos || []];
+    t && this.context.confrontantes && this.context.confrontantes.forEach((r) => {
+      r.pontos && a.push(...r.pontos);
     });
-    const r = a.map((s) => {
-      const l = s.lat ?? s.latitude ?? s.y ?? s.norte, d = s.lon ?? s.lng ?? s.longitude ?? s.x ?? s.este, h = typeof l == "string" ? parseFloat(l) : Number(l), c = typeof d == "string" ? parseFloat(d) : Number(d);
-      return h !== void 0 && c !== void 0 && !isNaN(h) && !isNaN(c) && h !== 0 && c !== 0 ? v.latLng(h, c) : null;
-    }).filter((s) => s !== null);
-    if (r.length === 1)
-      this.core.map.setView(r[0], 18);
-    else if (r.length > 1) {
-      const s = v.latLngBounds(r);
-      this.core.map.fitBounds(s, { padding: e }), this.core.map.once("moveend", () => {
-        this.core.preCarregarTilesRegiao(s);
+    const s = a.map((r) => {
+      const l = r.lat ?? r.latitude ?? r.y, u = r.lon ?? r.lng ?? r.longitude ?? r.x, d = q(l, u);
+      return d ? _.latLng(d.lat, d.lon) : null;
+    }).filter((r) => r !== null);
+    if (s.length === 1)
+      this.core.map.setView(s[0], 18);
+    else if (s.length > 1) {
+      const r = _.latLngBounds(s);
+      this.core.map.fitBounds(r, { padding: e }), this.core.map.once("moveend", () => {
+        this.core.preCarregarTilesRegiao(r);
       });
     }
     try {
@@ -3128,13 +4086,13 @@ class De {
     }
   }
   getMarkers() {
-    const i = [];
+    const o = [];
     return this.core.map && this.core.map.eachLayer((e) => {
-      e instanceof v.Marker && e.pontoId && i.push(e);
-    }), i;
+      e instanceof _.Marker && e.pontoId && o.push(e);
+    }), o;
   }
   getVizinhosMarkers() {
-    return this.getMarkers().filter((i) => i.isVizinho);
+    return this.getMarkers().filter((o) => o.isVizinho);
   }
   destroy() {
     this.canvasInteracao.desativar(), this.layerManager.destroy(), this.core.destroy(), this.core.map && (this.core.map.remove(), this.core.map = null);
@@ -3143,7 +4101,7 @@ class De {
     return this.core.map;
   }
 }
-class je extends HTMLElement {
+class bt extends HTMLElement {
   constructor() {
     super();
     n(this, "shadow");
@@ -3152,16 +4110,18 @@ class je extends HTMLElement {
     n(this, "controller");
     n(this, "isLayersPanelOpen", !1);
     n(this, "initTimeout");
-    n(this, "uiListeners", new B());
-    n(this, "layerItemListeners", new B());
+    n(this, "uiListeners", new z());
+    n(this, "layerItemListeners", new z());
     n(this, "_pontos", []);
     n(this, "_segmentos", []);
     n(this, "_bancoPontos", []);
     n(this, "_confrontantes", []);
-    this.shadow = this.attachShadow({ mode: "open" }), this.controller = new De(), this.shadow.innerHTML = `
+    n(this, "resizeObserver");
+    n(this, "resizeDebounceTimer");
+    this.shadow = this.attachShadow({ mode: "open" }), this.controller = new ft(), this.shadow.innerHTML = `
       <style>
-        ${Q}
-        ${Pe}
+        ${le}
+        ${ot}
       </style>
       <div class="cad-root" id="cad-root">
         <!-- Mapa Leaflet Canvas -->
@@ -3207,14 +4167,14 @@ class je extends HTMLElement {
     }, 0);
   }
   disconnectedCallback() {
-    this.initTimeout && window.clearTimeout(this.initTimeout), this.uiListeners.cleanup(), this.layerItemListeners.cleanup(), this.controller.destroy();
+    this.initTimeout && window.clearTimeout(this.initTimeout), this.resizeObserver && (this.resizeObserver.disconnect(), this.resizeObserver = void 0), this.resizeDebounceTimer && (clearTimeout(this.resizeDebounceTimer), this.resizeDebounceTimer = void 0), this.uiListeners.cleanup(), this.layerItemListeners.cleanup(), this.controller.destroy();
   }
-  attributeChangedCallback(e, t, o) {
-    if (t !== o)
+  attributeChangedCallback(e, t, i) {
+    if (t !== i)
       if (e === "sat-opacity") {
-        const a = parseFloat(o);
+        const a = parseFloat(i);
         isNaN(a) || this.setLayerOpacity("satelite", a);
-      } else e === "scale-mode" && (o === "world" || o === "screen") && (this.setLayerScaleMode("perimetro", o), this.setLayerScaleMode("vertices", o));
+      } else e === "scale-mode" && (i === "world" || i === "screen") && (this.setLayerScaleMode("perimetro", i), this.setLayerScaleMode("vertices", i));
   }
   initCAD() {
     this.mapContainer && (this.controller.init(this.mapContainer, this.shadow), this.setupUIEvents(), this.renderLayersUI(), this._pontos.length > 0 && this.controller.setPontos(this._pontos), this._segmentos.length > 0 && this.controller.setSegmentos(this._segmentos), this._bancoPontos.length > 0 && this.controller.setBancoPontos(this._bancoPontos), this._confrontantes.length > 0 && this.controller.setConfrontantes(this._confrontantes), this.controller.layerManager.onChange((e) => {
@@ -3229,18 +4189,22 @@ class je extends HTMLElement {
         bubbles: !0,
         composed: !0
       }));
-    }, setTimeout(() => {
+    }, typeof ResizeObserver < "u" && this.mapContainer && (this.resizeObserver = new ResizeObserver(() => {
+      this.resizeDebounceTimer && clearTimeout(this.resizeDebounceTimer), this.resizeDebounceTimer = setTimeout(() => {
+        this.controller.invalidateSize();
+      }, 60);
+    }), this.resizeObserver.observe(this.mapContainer)), setTimeout(() => {
       this.controller.invalidateSize();
     }, 150));
   }
   setupUIEvents() {
     this.uiListeners.cleanup();
-    const e = this.shadow.getElementById("btn-toggle-layers"), t = this.shadow.getElementById("btn-close-layers"), o = this.shadow.getElementById("btn-zoom-extents"), a = this.shadow.getElementById("btn-clear-selection");
+    const e = this.shadow.getElementById("btn-toggle-layers"), t = this.shadow.getElementById("btn-close-layers"), i = this.shadow.getElementById("btn-zoom-extents"), a = this.shadow.getElementById("btn-clear-selection");
     this.uiListeners.add(e, "click", () => {
       this.toggleLayersPanel();
     }), this.uiListeners.add(t, "click", () => {
       this.closeLayersPanel();
-    }), this.uiListeners.add(o, "click", () => {
+    }), this.uiListeners.add(i, "click", () => {
       this.zoomExtents();
     }), this.uiListeners.add(a, "click", () => {
       this.limparSelecao();
@@ -3263,15 +4227,15 @@ class je extends HTMLElement {
     const t = this.controller.layerManager.getLayers();
     if (e.querySelectorAll(".layer-item").length === t.length) {
       t.forEach((a) => {
-        const r = e.querySelector(`.layer-item[data-layer-id="${a.id}"]`);
-        if (r) {
-          const s = r.querySelector(".layer-chk-visibility");
-          s && s.checked !== a.visivel && (s.checked = a.visivel);
-          const l = r.querySelector(".layer-opacity-slider"), d = r.querySelector(".opacity-percent-label"), h = Math.round(a.opacidade * 100);
-          l && parseInt(l.value, 10) !== h && (l.value = String(h)), d && (d.textContent = `${h}%`);
-          const c = r.querySelector(".btn-lock-layer");
+        const s = e.querySelector(`.layer-item[data-layer-id="${a.id}"]`);
+        if (s) {
+          const r = s.querySelector(".layer-chk-visibility");
+          r && r.checked !== a.visivel && (r.checked = a.visivel);
+          const l = s.querySelector(".layer-opacity-slider"), u = s.querySelector(".opacity-percent-label"), d = Math.round(a.opacidade * 100);
+          l && parseInt(l.value, 10) !== d && (l.value = String(d)), u && (u.textContent = `${d}%`);
+          const c = s.querySelector(".btn-lock-layer");
           c && (c.classList.toggle("active", !!a.bloqueada), c.title = a.bloqueada ? "Desbloquear Camada" : "Bloquear Camada");
-          const p = r.querySelector(".btn-toggle-scale-mode");
+          const p = s.querySelector(".btn-toggle-scale-mode");
           p && a.estilo.scaleMode && (p.textContent = a.estilo.scaleMode === "world" ? "Métrico (m)" : "Tela (px)");
         }
       });
@@ -3305,31 +4269,31 @@ class je extends HTMLElement {
         </div>
       `).join("")}
     `, this.layerItemListeners.cleanup(), e.querySelectorAll(".layer-chk-visibility").forEach((a) => {
-      this.layerItemListeners.add(a, "change", (r) => {
-        const s = r.target.getAttribute("data-layer-id"), l = r.target.checked;
-        s && this.setLayerVisibility(s, l);
+      this.layerItemListeners.add(a, "change", (s) => {
+        const r = s.target.getAttribute("data-layer-id"), l = s.target.checked;
+        r && this.setLayerVisibility(r, l);
       });
     }), e.querySelectorAll(".layer-opacity-slider").forEach((a) => {
-      this.layerItemListeners.add(a, "input", (r) => {
-        const s = r.target.getAttribute("data-layer-id"), l = parseInt(r.target.value, 10), d = l / 100, h = r.target.closest(".layer-item"), c = h == null ? void 0 : h.querySelector(".opacity-percent-label");
-        c && (c.textContent = `${l}%`), s && this.setLayerOpacity(s, d);
+      this.layerItemListeners.add(a, "input", (s) => {
+        const r = s.target.getAttribute("data-layer-id"), l = parseInt(s.target.value, 10), u = l / 100, d = s.target.closest(".layer-item"), c = d == null ? void 0 : d.querySelector(".opacity-percent-label");
+        c && (c.textContent = `${l}%`), r && this.setLayerOpacity(r, u);
       });
     }), e.querySelectorAll(".btn-lock-layer").forEach((a) => {
-      this.layerItemListeners.add(a, "click", (r) => {
-        const s = r.currentTarget.getAttribute("data-layer-id");
-        if (s) {
-          const l = this.controller.layerManager.getLayers().find((d) => d.id === s);
-          l && this.controller.layerManager.setLayerBlocked(s, !l.bloqueada);
+      this.layerItemListeners.add(a, "click", (s) => {
+        const r = s.currentTarget.getAttribute("data-layer-id");
+        if (r) {
+          const l = this.controller.layerManager.getLayers().find((u) => u.id === r);
+          l && this.controller.layerManager.setLayerBlocked(r, !l.bloqueada);
         }
       });
     }), e.querySelectorAll(".btn-toggle-scale-mode").forEach((a) => {
-      this.layerItemListeners.add(a, "click", (r) => {
-        const s = r.currentTarget.getAttribute("data-layer-id");
-        if (s) {
-          const l = this.controller.layerManager.getLayers().find((d) => d.id === s);
+      this.layerItemListeners.add(a, "click", (s) => {
+        const r = s.currentTarget.getAttribute("data-layer-id");
+        if (r) {
+          const l = this.controller.layerManager.getLayers().find((u) => u.id === r);
           if (l) {
-            const d = l.estilo.scaleMode === "world" ? "screen" : "world";
-            this.setLayerScaleMode(s, d);
+            const u = l.estilo.scaleMode === "world" ? "screen" : "world";
+            this.setLayerScaleMode(r, u);
           }
         }
       });
@@ -3373,8 +4337,8 @@ class je extends HTMLElement {
     this.confrontantes = e;
   }
   // --- Métodos Públicos ---
-  fitBounds(e, t = [40, 40], o = !1) {
-    this.controller.fitBounds(e, t, o);
+  fitBounds(e, t = [40, 40], i = !1) {
+    this.controller.fitBounds(e, t, i);
   }
   zoomExtents() {
     this.controller.canvasInteracao.zoomExtents();
@@ -3416,31 +4380,938 @@ class je extends HTMLElement {
     return this.controller.layerManager;
   }
 }
-customElements.get("ui-canvas-cad") || customElements.define("ui-canvas-cad", je);
-class Ke {
-  constructor(i, e) {
+customElements.get("ui-canvas-cad") || customElements.define("ui-canvas-cad", bt);
+const gt = `:host{display:flex;flex-direction:column;box-sizing:border-box;font-family:var(--ui-fonte-familia, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);font-size:var(--ui-tamanho-corpo-sm, 12px);color:var(--ui-cor-texto, #e1e1e6);background-color:var(--ui-cor-superficie, #141417);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));border-radius:var(--ui-raio-borda, 4px);overflow:hidden;width:100%;max-width:100%;height:100%;min-height:250px;-webkit-user-select:none;user-select:none;--ui-prop-altura-linha: 24px;--ui-prop-rotulo-largura: 45%}:host([densidade="compacta"]){--ui-prop-altura-linha: 20px;font-size:11px}:host([densidade="relaxada"]){--ui-prop-altura-linha: 30px;font-size:13px}.ui-prop__header{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);border-bottom:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));flex-shrink:0}.ui-prop__header-titulo{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--ui-cor-texto, #ffffff);text-transform:uppercase;letter-spacing:.5px}.ui-prop__header-icone{display:flex;align-items:center;color:var(--ui-cor-destaque, #00E08A)}.ui-prop__header-acoes{display:flex;align-items:center;gap:4px}.ui-prop__btn-icone{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background:transparent;border:none;border-radius:3px;color:var(--ui-cor-texto-secundario, #888899);cursor:pointer;transition:all .15s ease;padding:0}.ui-prop__btn-icone:hover{background-color:var(--ui-cor-hover-menu, rgba(255, 255, 255, .08));color:var(--ui-cor-texto, #ffffff)}.ui-prop__tipo-seletor-container{padding:8px 10px;background-color:var(--ui-cor-superficie, #141417);border-bottom:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .08));display:flex;flex-direction:column;gap:6px;flex-shrink:0}.ui-prop__tipo-revit-card{display:flex;align-items:center;gap:10px;background-color:var(--ui-cor-fundo-card, #18181c);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));border-radius:4px;padding:6px 8px;cursor:pointer;transition:border-color .15s ease}.ui-prop__tipo-revit-card:hover{border-color:var(--ui-cor-destaque, #00E08A)}.ui-prop__tipo-miniatura{width:32px;height:32px;border-radius:3px;background-color:var(--ui-cor-fundo-elevado, #24242a);display:flex;align-items:center;justify-content:center;color:var(--ui-cor-destaque, #00E08A);flex-shrink:0}.ui-prop__tipo-info{display:flex;flex-direction:column;flex:1;min-width:0}.ui-prop__tipo-nome{font-weight:600;font-size:12px;color:var(--ui-cor-texto, #ffffff);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ui-prop__tipo-subtexto{font-size:11px;color:var(--ui-cor-texto-secundario, #888899);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ui-prop__tipo-revit-subbarra{display:flex;align-items:center;gap:6px}.ui-prop__tipo-select{flex:1;min-width:0;width:0;height:24px;background-color:var(--ui-cor-fundo-card, #18181c);color:var(--ui-cor-texto, #e1e1e6);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .15));border-radius:3px;padding:0 22px 0 6px;font-size:11px;cursor:pointer;outline:none;appearance:none;-webkit-appearance:none;-moz-appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23888899' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;background-size:10px 6px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;box-sizing:border-box}.ui-prop__tipo-select:focus{border-color:var(--ui-cor-destaque, #00E08A)}.ui-prop__btn-editar-tipo{height:24px;padding:0 8px;background-color:var(--ui-cor-botao-secundario-fundo, #1e1e24);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .15));border-radius:3px;color:var(--ui-cor-texto, #ffffff);font-size:11px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all .15s ease}.ui-prop__btn-editar-tipo:hover{background-color:var(--ui-cor-botao-secundario-hover, #2a2a34);border-color:var(--ui-cor-destaque, #00E08A)}.ui-prop__tipo-autocad-bar{display:flex;align-items:center;gap:4px;width:100%;min-width:0;box-sizing:border-box}.ui-prop__tipo-autocad-acoes{display:flex;align-items:center;gap:3px;flex-shrink:0}.ui-prop__btn-autocad{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background:var(--ui-cor-fundo-card, #18181c);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .15));border-radius:3px;color:var(--ui-cor-texto, #e1e1e6);cursor:pointer;padding:0;transition:all .15s ease}.ui-prop__btn-autocad:hover{background-color:var(--ui-cor-hover-menu, rgba(255, 255, 255, .1));border-color:var(--ui-cor-destaque, #00E08A);color:var(--ui-cor-destaque, #00E08A)}.ui-prop__btn-autocad:active{transform:scale(.95)}.ui-prop__filtro-container{display:flex;align-items:center;padding:4px 8px;background-color:var(--ui-cor-fundo, #0b0b0d);border-bottom:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .08));gap:6px;flex-shrink:0}.ui-prop__filtro-icone{color:var(--ui-cor-texto-secundario, #888899);flex-shrink:0}.ui-prop__filtro-input{flex:1;background:transparent;border:none;outline:none;font-size:11px;color:var(--ui-cor-texto, #e1e1e6);padding:3px 0}.ui-prop__filtro-input::placeholder{color:var(--ui-cor-texto-secundario, #666677)}.ui-prop__corpo{flex:1;overflow-y:auto;overflow-x:hidden;background-color:var(--ui-cor-superficie, #141417);position:relative}.ui-prop__corpo::-webkit-scrollbar{width:8px}.ui-prop__corpo::-webkit-scrollbar-track{background:var(--ui-cor-fundo, #0b0b0d)}.ui-prop__corpo::-webkit-scrollbar-thumb{background:#ffffff2e;border-radius:4px}.ui-prop__corpo::-webkit-scrollbar-thumb:hover{background:#ffffff4d}.ui-prop__categoria{border-bottom:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .1))}.ui-prop__categoria-header{position:relative;z-index:25;display:flex;align-items:center;justify-content:space-between;height:24px;padding:0 8px;background-color:var(--ui-cor-fundo-elevado, #18181d);cursor:pointer;-webkit-user-select:none;user-select:none;font-weight:600;font-size:11px;color:var(--ui-cor-texto, #ffffff);border-top:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .05));transition:background-color .15s ease}.ui-prop__categoria-header:hover{background-color:var(--ui-cor-hover-menu, rgba(255, 255, 255, .06))}.ui-prop__categoria-titulo-bloco{display:flex;align-items:center;gap:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ui-prop__categoria-seta{display:inline-flex;align-items:center;justify-content:center;font-size:9px;width:12px;height:12px;color:var(--ui-cor-texto-secundario, #888899);transition:transform .15s ease}.ui-prop__categoria--aberta .ui-prop__categoria-seta{transform:rotate(90deg)}.ui-prop__categoria-contador{font-size:10px;font-weight:400;color:var(--ui-cor-texto-secundario, #888899)}.ui-prop__categoria-conteudo{display:none}.ui-prop__categoria--aberta .ui-prop__categoria-conteudo{display:block}.ui-prop__linha{display:flex;align-items:stretch;min-height:var(--ui-prop-altura-linha, 24px);border-bottom:1px dotted var(--ui-cor-borda, rgba(255, 255, 255, .08));box-sizing:border-box;position:relative;z-index:1;transition:background-color .1s ease}.ui-prop__linha:hover{background-color:var(--ui-cor-hover-menu, rgba(255, 255, 255, .04))}.ui-prop__linha:focus-within{background-color:#00e08a14}.ui-prop__linha:focus-within .ui-prop__col-rotulo{color:var(--ui-cor-texto, #ffffff);font-weight:500}.ui-prop__linha--modificada{background-color:#00e08a0d}.ui-prop__col-rotulo{width:var(--ui-prop-rotulo-largura, 45%);padding:2px 6px 2px 14px;display:flex;align-items:center;color:var(--ui-cor-texto-secundario, #9999aa);border-right:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .08));overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;position:relative;flex-shrink:0;box-sizing:border-box}.ui-prop__col-rotulo span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ui-prop__col-rotulo--scrub{cursor:ew-resize;-webkit-user-select:none;user-select:none;transition:color .15s ease,background-color .15s ease}.ui-prop__col-rotulo--scrub:hover{color:var(--ui-cor-destaque, #00E08A);background-color:#00e08a0d}.ui-prop__col-rotulo--arrastando{color:#000!important;background-color:var(--ui-cor-destaque, #00E08A)!important;font-weight:600;cursor:ew-resize!important}.ui-prop__col-rotulo--arrastando span{color:#000!important}.ui-prop__splitter{position:absolute;top:0;bottom:0;min-height:100%;left:calc(var(--ui-prop-rotulo-largura, 45%) - 4px);width:8px;cursor:col-resize;z-index:10;touch-action:none;-webkit-user-select:none;user-select:none;display:flex;align-items:center;justify-content:center}.ui-prop__splitter:after{content:"";position:absolute;top:0;bottom:0;left:3px;width:2px;background-color:transparent;pointer-events:none;transition:background-color .15s ease,box-shadow .15s ease}.ui-prop__splitter:hover:after,.ui-prop__splitter--ativo:after{background-color:var(--ui-cor-destaque, #00E08A);box-shadow:0 0 6px #00e08a80}.ui-prop__splitter--ativo{background-color:#00e08a14}.ui-prop__col-valor{width:calc(100% - var(--ui-prop-rotulo-largura, 45%));flex:1 1 0px;min-width:0!important;display:flex;align-items:stretch;padding:0;overflow:hidden;box-sizing:border-box;position:relative;transition:background-color .1s ease,box-shadow .1s ease}.ui-prop__col-valor:focus-within{background-color:var(--ui-cor-fundo, #0b0b0d);box-shadow:inset 0 0 0 1px var(--ui-cor-destaque, #00E08A)}.ui-prop__editor-input{width:100%;min-width:0;height:100%;min-height:var(--ui-prop-altura-linha, 24px);background:transparent;border:none;border-radius:0;color:var(--ui-cor-texto, #ffffff);font-family:inherit;font-size:11px;padding:0 8px;outline:none;box-sizing:border-box;transition:background-color .1s ease}.ui-prop__editor-input:hover{background-color:#ffffff08}.ui-prop__editor-input--numero{text-align:right;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-variant-numeric:tabular-nums}.ui-prop__editor-input--calculando{color:var(--ui-cor-destaque, #00E08A)!important;font-weight:500}.ui-prop__col-valor:has(.ui-prop__editor-input--calculando){background-color:#00e08a14!important;box-shadow:inset 0 0 0 1.5px var(--ui-cor-destaque, #00E08A)!important}.ui-prop__editor-select{flex:1 1 0px;min-width:0!important;width:0!important;max-width:100%;height:100%;min-height:var(--ui-prop-altura-linha, 24px);background-color:transparent;color:var(--ui-cor-texto, #ffffff);border:none;border-radius:0;font-size:11px;padding:0 20px 0 8px;outline:none;cursor:pointer;box-sizing:border-box;appearance:none;-webkit-appearance:none;-moz-appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23888899' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;background-size:8px 5px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;transition:background-color .1s ease}.ui-prop__editor-select:hover{background-color:#ffffff08}.ui-prop__editor-select option{background-color:var(--ui-cor-fundo-elevado, #18181c);color:var(--ui-cor-texto, #ffffff)}.ui-prop__editor-cor-container{display:flex;align-items:center;gap:6px;width:100%;max-width:100%;min-width:0!important;height:100%;min-height:var(--ui-prop-altura-linha, 24px);cursor:pointer;padding:0 20px 0 8px;box-sizing:border-box;position:relative;border:none;border-radius:0;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23888899' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;background-size:8px 5px;transition:background-color .1s ease}.ui-prop__editor-cor-container:hover{background-color:#ffffff0a}.ui-prop__cor-amostra{width:13px;height:13px;border-radius:2px;border:1px solid rgba(255,255,255,.3);flex-shrink:0;box-sizing:border-box}.ui-prop__cor-texto{flex:1 1 0px;min-width:0!important;width:0!important;font-size:11px;color:var(--ui-cor-texto, #ffffff);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ui-prop__cor-picker-oculto{position:absolute;opacity:0;pointer-events:none;width:0;height:0}.ui-prop__editor-linha-container{display:flex;align-items:center;gap:6px;width:100%;max-width:100%;min-width:0!important;height:100%;min-height:var(--ui-prop-altura-linha, 24px);padding:0 0 0 8px;box-sizing:border-box;overflow:hidden;border:none;border-radius:0}.ui-prop__linha-amostra-svg{width:24px;height:10px;flex-shrink:0}.ui-prop__linha-amostra-svg line{stroke:var(--ui-cor-texto, #e1e1e6);stroke-width:1.5}.ui-prop__linha-select{flex:1 1 0px;min-width:0!important;width:0!important;max-width:100%;height:100%;background:transparent;color:var(--ui-cor-texto, #ffffff);border:none;border-radius:0;font-size:11px;padding:0 20px 0 4px;outline:none;cursor:pointer;box-sizing:border-box;appearance:none;-webkit-appearance:none;-moz-appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23888899' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;background-size:8px 5px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap}.ui-prop__linha-select:hover{background-color:#ffffff08}.ui-prop__linha-select option{background-color:var(--ui-cor-fundo-elevado, #18181c);color:var(--ui-cor-texto, #ffffff)}.ui-prop__editor-espessura-container{display:flex;align-items:center;gap:6px;width:100%;max-width:100%;min-width:0!important;height:100%;min-height:var(--ui-prop-altura-linha, 24px);padding:0 0 0 8px;box-sizing:border-box;overflow:hidden;border:none;border-radius:0}.ui-prop__espessura-amostra-svg{width:20px;height:10px;flex-shrink:0}.ui-prop__espessura-amostra-svg line{stroke:var(--ui-cor-texto, #e1e1e6)}.ui-prop__espessura-select{flex:1 1 0px;min-width:0!important;width:0!important;max-width:100%;height:100%;background:transparent;color:var(--ui-cor-texto, #ffffff);border:none;border-radius:0;font-size:11px;padding:0 20px 0 4px;outline:none;cursor:pointer;box-sizing:border-box;appearance:none;-webkit-appearance:none;-moz-appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23888899' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;background-size:8px 5px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap}.ui-prop__espessura-select:hover{background-color:#ffffff08}.ui-prop__espessura-select option{background-color:var(--ui-cor-fundo-elevado, #18181c);color:var(--ui-cor-texto, #ffffff)}.ui-prop__editor-cor-cad-container{display:flex;align-items:center;gap:6px;width:100%;max-width:100%;min-width:0!important;height:100%;min-height:var(--ui-prop-altura-linha, 24px);padding:0 0 0 8px;box-sizing:border-box;overflow:hidden;border:none;border-radius:0}.ui-prop__cor-cad-select{flex:1 1 0px;min-width:0!important;width:0!important;max-width:100%;height:100%;background:transparent;color:var(--ui-cor-texto, #ffffff);border:none;border-radius:0;font-size:11px;padding:0 20px 0 4px;outline:none;cursor:pointer;box-sizing:border-box;appearance:none;-webkit-appearance:none;-moz-appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23888899' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;background-size:8px 5px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap}.ui-prop__cor-cad-select:hover{background-color:#ffffff08}.ui-prop__cor-cad-select option{background-color:var(--ui-cor-fundo-elevado, #18181c);color:var(--ui-cor-texto, #ffffff)}.ui-prop__editor-booleano{display:flex;align-items:center;gap:6px;width:100%;height:100%;min-height:var(--ui-prop-altura-linha, 24px);cursor:pointer;padding:0 8px;box-sizing:border-box;-webkit-user-select:none;user-select:none}.ui-prop__editor-booleano:hover{background-color:#ffffff08}.ui-prop__checkbox-custom{width:13px;height:13px;border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .25));border-radius:2px;background-color:var(--ui-cor-fundo, #0b0b0d);display:flex;align-items:center;justify-content:center;transition:all .15s ease}.ui-prop__checkbox-custom--marcado{background-color:var(--ui-cor-destaque, #00E08A);border-color:var(--ui-cor-destaque, #00E08A);color:#000}.ui-prop__booleano-rotulo{font-size:11px;color:var(--ui-cor-texto, #ffffff)}.ui-prop__btn-acao-inline{width:100%;height:100%;min-height:var(--ui-prop-altura-linha, 24px);padding:0 8px;background-color:transparent;border:none;border-radius:0;color:var(--ui-cor-texto, #ffffff);font-size:11px;font-weight:500;cursor:pointer;white-space:nowrap;text-align:left;transition:all .15s ease;box-sizing:border-box}.ui-prop__btn-acao-inline:hover{background-color:#ffffff0a;color:var(--ui-cor-destaque, #00E08A)}.ui-prop__valor-readonly{display:flex;align-items:center;width:100%;height:100%;min-height:var(--ui-prop-altura-linha, 24px);font-size:11px;color:var(--ui-cor-texto-secundario, #777788);padding:0 8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;box-sizing:border-box;-webkit-user-select:text;user-select:text}.ui-prop__valor-readonly--numero{justify-content:flex-end;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-variant-numeric:tabular-nums}.ui-prop__unidade-sufixo{display:flex;align-items:center;font-size:10px;color:var(--ui-cor-texto-secundario, #777788);padding-right:8px;flex-shrink:0;-webkit-user-select:none;user-select:none}.ui-prop__vazio{padding:24px 16px;text-align:center;color:var(--ui-cor-texto-secundario, #888899);font-size:12px}.ui-prop__footer{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background-color:var(--ui-cor-fundo-elevado, #18181c);border-top:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .1));flex-shrink:0}.ui-prop__link-ajuda{font-size:11px;color:var(--ui-cor-destaque, #00E08A);text-decoration:none;cursor:pointer}.ui-prop__link-ajuda:hover{text-decoration:underline}.ui-prop__footer-botoes{display:flex;gap:6px}.ui-prop__btn-aplicar{height:24px;padding:0 12px;background-color:var(--ui-cor-destaque, #00E08A);color:#000;border:none;border-radius:3px;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s ease}.ui-prop__btn-aplicar:disabled{background-color:#ffffff1a;color:#ffffff4d;cursor:not-allowed}.ui-prop__btn-desfazer{height:24px;padding:0 8px;background:transparent;color:var(--ui-cor-texto-secundario, #888899);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));border-radius:3px;font-size:11px;cursor:pointer;transition:all .15s ease}.ui-prop__btn-desfazer:hover:not(:disabled){background-color:var(--ui-cor-hover-menu, rgba(255, 255, 255, .08));color:var(--ui-cor-texto, #ffffff)}.ui-prop__btn-desfazer:disabled{opacity:.4;cursor:not-allowed}`;
+function vt(b) {
+  if (!b || typeof b != "string") return null;
+  let o = b.trim();
+  if (!o) return null;
+  o = o.replace(/(\d),(\d)/g, "$1.$2").replace(/,/g, "."), o = o.replace(/\bpi\b/gi, String(Math.PI)), o = o.replace(/\be\b/gi, String(Math.E));
+  let e = 0;
+  function t() {
+    return o[e] || "";
+  }
+  function i() {
+    return o[e++] || "";
+  }
+  function a() {
+    for (; e < o.length && /\s/.test(o[e]); )
+      e++;
+  }
+  function s() {
+    a();
+    let d = r();
+    for (a(); e < o.length; ) {
+      const c = t();
+      if (c === "+" || c === "-") {
+        i(), a();
+        const p = e, m = r();
+        a(), o.slice(p, e).includes("%") ? d = c === "+" ? d + d * m : d - d * m : d = c === "+" ? d + m : d - m;
+      } else
+        break;
+    }
+    return d;
+  }
+  function r() {
+    a();
+    let d = l();
+    for (a(); e < o.length; ) {
+      const c = t();
+      if (c === "*" || c === "/" || c === "x" || c === "X") {
+        i(), a();
+        const p = l();
+        if (c === "/" && p === 0)
+          throw new Error("Divisão por zero");
+        d = c === "/" ? d / p : d * p, a();
+      } else
+        break;
+    }
+    return d;
+  }
+  function l() {
+    a();
+    let d = u();
+    if (a(), t() === "^") {
+      i();
+      const c = l();
+      d = Math.pow(d, c);
+    } else if (o.slice(e, e + 2) === "**") {
+      e += 2;
+      const c = l();
+      d = Math.pow(d, c);
+    }
+    return d;
+  }
+  function u() {
+    a();
+    const d = t();
+    if (d === "+" || d === "-") {
+      i();
+      const m = u();
+      return d === "-" ? -m : m;
+    }
+    if (d === "(") {
+      i();
+      const m = s();
+      return a(), t() === ")" && i(), a(), t() === "%" ? (i(), m / 100) : m;
+    }
+    const c = o.slice(e).match(/^([a-zA-Z_]\w*)\s*\(/);
+    if (c) {
+      const m = c[1].toLowerCase();
+      e += c[0].length;
+      const h = s();
+      a(), t() === ")" && i();
+      let f = h;
+      switch (m) {
+        case "sqrt":
+          f = Math.sqrt(h);
+          break;
+        case "abs":
+          f = Math.abs(h);
+          break;
+        case "round":
+          f = Math.round(h);
+          break;
+        case "floor":
+          f = Math.floor(h);
+          break;
+        case "ceil":
+          f = Math.ceil(h);
+          break;
+        case "sin":
+          f = Math.sin(h);
+          break;
+        case "cos":
+          f = Math.cos(h);
+          break;
+        case "tan":
+          f = Math.tan(h);
+          break;
+      }
+      return a(), t() === "%" ? (i(), f / 100) : f;
+    }
+    const p = o.slice(e).match(/^([0-9]+(?:\.[0-9]+)?|\.[0-9]+)/);
+    if (p) {
+      e += p[0].length;
+      let m = parseFloat(p[0]);
+      return a(), t() === "%" && (i(), m = m / 100), m;
+    }
+    throw new Error("Caractere inválido: " + d);
+  }
+  try {
+    const d = s();
+    return a(), e < o.length ? null : isFinite(d) ? d : null;
+  } catch {
+    return null;
+  }
+}
+class K extends HTMLElement {
+  constructor() {
+    super();
+    n(this, "shadow");
+    n(this, "listeners", new z());
+    n(this, "splitterListeners", new z());
+    // Dados Internos
+    n(this, "_categorias", []);
+    n(this, "_valoresOriginais", {});
+    n(this, "_valoresAtuais", {});
+    n(this, "_tipos", []);
+    n(this, "_tipoSelecionadoId", "");
+    n(this, "_termoBusca", "");
+    n(this, "_dirty", !1);
+    n(this, "_larguraRotuloPorcentagem", 45);
+    // Elementos DOM
+    n(this, "headerTituloElement");
+    n(this, "tipoContainerElement");
+    n(this, "filtroInputElement");
+    n(this, "corpoElement");
+    n(this, "footerElement");
+    n(this, "btnAplicarElement");
+    n(this, "btnDesfazerElement");
+    n(this, "splitterElement");
+    this.shadow = this.attachShadow({ mode: "open" }), this.shadow.innerHTML = `
+      <style>${gt}</style>
+      <div class="ui-prop__container" id="container">
+        <!-- 1. Header Superior -->
+        <header class="ui-prop__header" id="header">
+          <div class="ui-prop__header-titulo">
+            <span class="ui-prop__header-icone">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="3" y1="9" x2="21" y2="9"></line>
+                <line x1="9" y1="21" x2="9" y2="9"></line>
+              </svg>
+            </span>
+            <span id="header-titulo-texto">Propriedades</span>
+          </div>
+          <div class="ui-prop__header-acoes">
+            <button type="button" class="ui-prop__btn-icone" id="btn-expandir-tudo" title="Expandir/Recolher Tudo" aria-label="Expandir ou recolher tudo">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="7 13 12 18 17 13"></polyline>
+                <polyline points="7 6 12 11 17 6"></polyline>
+              </svg>
+            </button>
+            <button type="button" class="ui-prop__btn-icone" id="btn-fechar" title="Fechar" aria-label="Fechar" style="display: none;">
+              ✕
+            </button>
+          </div>
+        </header>
+
+        <!-- 2. Seletor de Tipo (AutoCAD / Revit) -->
+        <div class="ui-prop__tipo-seletor-container" id="tipo-container" style="display: none;"></div>
+
+        <!-- 3. Busca Rápida de Propriedades -->
+        <div class="ui-prop__filtro-container" id="filtro-container" style="display: none;">
+          <svg class="ui-prop__filtro-icone" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" class="ui-prop__filtro-input" id="filtro-input" placeholder="Filtrar propriedades..." />
+        </div>
+
+        <!-- 4. Corpo Rolável com Grade de Categorias -->
+        <div class="ui-prop__corpo" id="corpo">
+          <div class="ui-prop__splitter" id="splitter"></div>
+          <div class="ui-prop__lista-categorias" id="lista-categorias"></div>
+        </div>
+
+        <!-- 5. Rodapé com Ações (Aplicar / Desfazer) -->
+        <footer class="ui-prop__footer" id="footer" style="display: none;">
+          <a class="ui-prop__link-ajuda" id="link-ajuda">Ajuda de propriedades</a>
+          <div class="ui-prop__footer-botoes">
+            <button type="button" class="ui-prop__btn-desfazer" id="btn-desfazer" disabled>Desfazer</button>
+            <button type="button" class="ui-prop__btn-aplicar" id="btn-aplicar" disabled>Aplicar</button>
+          </div>
+        </footer>
+      </div>
+    `, this.headerTituloElement = this.shadow.getElementById("header-titulo-texto"), this.tipoContainerElement = this.shadow.getElementById("tipo-container"), this.filtroInputElement = this.shadow.getElementById("filtro-input"), this.corpoElement = this.shadow.getElementById("corpo"), this.footerElement = this.shadow.getElementById("footer"), this.btnAplicarElement = this.shadow.getElementById("btn-aplicar"), this.btnDesfazerElement = this.shadow.getElementById("btn-desfazer"), this.splitterElement = this.shadow.getElementById("splitter");
+  }
+  static get observedAttributes() {
+    return [
+      "titulo",
+      "estilo-visual",
+      "modo-aplicar",
+      "filtro",
+      "densidade",
+      "largura-rotulo",
+      "fechavel"
+    ];
+  }
+  connectedCallback() {
+    this.listeners.cleanup();
+    const e = this.shadow.getElementById("btn-expandir-tudo");
+    this.listeners.add(e, "click", () => this.toggleExpandirTodas());
+    const t = this.shadow.getElementById("btn-fechar");
+    this.listeners.add(t, "click", () => {
+      this.dispatchEvent(new CustomEvent("ui-fechar", { bubbles: !0, composed: !0 }));
+    }), this.listeners.add(this.filtroInputElement, "input", () => {
+      this._termoBusca = (this.filtroInputElement.value || "").trim().toLowerCase(), this.renderCategorias();
+    }), this.listeners.add(this.btnAplicarElement, "click", () => this.aplicar()), this.listeners.add(this.btnDesfazerElement, "click", () => this.desfazer());
+    const i = this.shadow.getElementById("link-ajuda");
+    i && this.listeners.add(i, "click", (a) => {
+      a.preventDefault(), this.dispatchEvent(new CustomEvent("ui-ajuda", { bubbles: !0, composed: !0 }));
+    }), this.initSplitter(), this.syncState();
+  }
+  disconnectedCallback() {
+    this.listeners.cleanup(), this.splitterListeners.cleanup();
+  }
+  attributeChangedCallback(e, t, i) {
+    this.syncState();
+  }
+  /* ====================================================
+     Getters e Setters de Propriedades Públicas
+     ==================================================== */
+  get categorias() {
+    return this._categorias;
+  }
+  set categorias(e) {
+    this._categorias = Array.isArray(e) ? e : [], this._valoresOriginais = {}, this._valoresAtuais = {}, this._categorias.forEach((t) => {
+      (t.propriedades || []).forEach((i) => {
+        this._valoresOriginais[i.id] = i.valor, this._valoresAtuais[i.id] = i.valor;
+      });
+    }), this._dirty = !1, this.atualizarBotoesFooter(), this.renderCategorias();
+  }
+  get valores() {
+    return { ...this._valoresAtuais };
+  }
+  set valores(e) {
+    e && typeof e == "object" && (this._valoresAtuais = { ...this._valoresAtuais, ...e }, this._valoresOriginais = { ...this._valoresAtuais }, this._dirty = !1, this.atualizarBotoesFooter(), this.renderCategorias());
+  }
+  get tipos() {
+    return this._tipos;
+  }
+  set tipos(e) {
+    this._tipos = Array.isArray(e) ? e : [], this._tipos.length > 0 && !this._tipoSelecionadoId && (this._tipoSelecionadoId = this._tipos[0].id), this.renderSeletorTipos();
+  }
+  get tipoSelecionado() {
+    return this._tipoSelecionadoId;
+  }
+  set tipoSelecionado(e) {
+    this._tipoSelecionadoId = String(e), this.renderSeletorTipos();
+  }
+  get dirty() {
+    return this._dirty;
+  }
+  /* ====================================================
+     Métodos Públicos de Controle
+     ==================================================== */
+  /**
+   * Define programmaticamente o valor de uma propriedade.
+   */
+  definirValor(e, t) {
+    if (this._valoresAtuais[e] !== t) {
+      const i = this._valoresAtuais[e];
+      this._valoresAtuais[e] = t, this._dirty = !0, this.atualizarBotoesFooter(), this.atualizarCampoVisual(e, t), this.getAttribute("modo-aplicar") !== "manual" && this.emitirAlteracao(e, t, i);
+    }
+  }
+  /**
+   * Obtém o valor atual de uma propriedade pelo ID.
+   */
+  obterValor(e) {
+    return this._valoresAtuais[e];
+  }
+  /**
+   * Confirma e aplica todas as edições pendentes (modo manual estilo Revit).
+   */
+  aplicar() {
+    if (!this._dirty) return;
+    this._valoresOriginais = { ...this._valoresAtuais }, this._dirty = !1, this.atualizarBotoesFooter(), this.shadow.querySelectorAll(".ui-prop__linha--modificada").forEach((t) => t.classList.remove("ui-prop__linha--modificada")), this.dispatchEvent(
+      new CustomEvent("ui-aplicar", {
+        bubbles: !0,
+        composed: !0,
+        detail: { valores: { ...this._valoresAtuais } }
+      })
+    );
+  }
+  /**
+   * Desfaz todas as alterações pendentes e restaura os valores originais.
+   */
+  desfazer() {
+    this._dirty && (this._valoresAtuais = { ...this._valoresOriginais }, this._dirty = !1, this.atualizarBotoesFooter(), this.renderCategorias(), this.dispatchEvent(
+      new CustomEvent("ui-desfazer", {
+        bubbles: !0,
+        composed: !0,
+        detail: { valores: { ...this._valoresAtuais } }
+      })
+    ));
+  }
+  /**
+   * Expande todas as categorias da tabela.
+   */
+  expandirTudo() {
+    this._categorias.forEach((t) => t.aberto = !0), this.shadow.querySelectorAll(".ui-prop__categoria").forEach((t) => t.classList.add("ui-prop__categoria--aberta"));
+  }
+  /**
+   * Colapsa todas as categorias da tabela.
+   */
+  colapsarTudo() {
+    this._categorias.forEach((t) => t.aberto = !1), this.shadow.querySelectorAll(".ui-prop__categoria").forEach((t) => t.classList.remove("ui-prop__categoria--aberta"));
+  }
+  /**
+   * Alterna uma categoria específica entre expandida e colapsada.
+   */
+  toggleCategoria(e) {
+    const t = this._categorias.find((i) => i.id === e);
+    if (t) {
+      t.aberto = t.aberto === !1;
+      const i = this.shadow.querySelector(`[data-cat-id="${e}"]`);
+      i && i.classList.toggle("ui-prop__categoria--aberta", !!t.aberto), this.dispatchEvent(
+        new CustomEvent("ui-categoria-toggle", {
+          bubbles: !0,
+          composed: !0,
+          detail: { id: e, aberto: t.aberto }
+        })
+      );
+    }
+  }
+  /* ====================================================
+     Lógica Interna e Sincronização
+     ==================================================== */
+  syncState() {
+    const e = this.getAttribute("titulo") || "Propriedades";
+    this.headerTituloElement.textContent = e;
+    const t = this.hasAttribute("fechavel"), i = this.shadow.getElementById("btn-fechar");
+    i && (i.style.display = t ? "inline-flex" : "none");
+    const a = this.hasAttribute("filtro"), s = this.shadow.getElementById("filtro-container");
+    s && (s.style.display = a ? "flex" : "none");
+    const r = this.getAttribute("largura-rotulo");
+    if (r) {
+      const u = parseFloat(r);
+      isNaN(u) || this.definirLarguraRotulo(u);
+    }
+    const l = this.getAttribute("modo-aplicar");
+    this.footerElement.style.display = l === "manual" ? "flex" : "none", this.renderSeletorTipos(), this.renderCategorias();
+  }
+  initSplitter() {
+    this.splitterListeners.cleanup();
+    let e = !1;
+    const t = (i) => {
+      if (i.button !== 0) return;
+      i.preventDefault(), i.stopPropagation(), e = !0, this.splitterElement.classList.add("ui-prop__splitter--ativo");
+      try {
+        this.splitterElement.setPointerCapture(i.pointerId);
+      } catch {
+      }
+      const a = this.corpoElement.getBoundingClientRect(), s = (l) => {
+        if (!e) return;
+        const u = a.width;
+        if (u <= 0) return;
+        const d = l.clientX - a.left;
+        let h = Math.max(80, Math.min(u - 130, d)) / u * 100;
+        h = Math.max(20, Math.min(65, h)), this.definirLarguraRotulo(h);
+      }, r = (l) => {
+        if (e) {
+          e = !1, this.splitterElement.classList.remove("ui-prop__splitter--ativo");
+          try {
+            this.splitterElement.hasPointerCapture(l.pointerId) && this.splitterElement.releasePointerCapture(l.pointerId);
+          } catch {
+          }
+          this.splitterElement.removeEventListener("pointermove", s), this.splitterElement.removeEventListener("pointerup", r), this.splitterElement.removeEventListener("pointercancel", r), this.dispatchEvent(
+            new CustomEvent("ui-splitter-resize", {
+              bubbles: !0,
+              composed: !0,
+              detail: { larguraPorcentagem: this._larguraRotuloPorcentagem }
+            })
+          );
+        }
+      };
+      this.splitterElement.addEventListener("pointermove", s), this.splitterElement.addEventListener("pointerup", r), this.splitterElement.addEventListener("pointercancel", r);
+    };
+    this.splitterListeners.add(this.splitterElement, "pointerdown", t), this.splitterListeners.add(this.splitterElement, "dblclick", () => {
+      this.definirLarguraRotulo(45), this.dispatchEvent(
+        new CustomEvent("ui-splitter-resize", {
+          bubbles: !0,
+          composed: !0,
+          detail: { larguraPorcentagem: 45 }
+        })
+      );
+    });
+  }
+  definirLarguraRotulo(e) {
+    const t = Math.max(20, Math.min(65, e));
+    this._larguraRotuloPorcentagem = t, this.style.setProperty("--ui-prop-rotulo-largura", `${t}%`), this.splitterElement && (this.splitterElement.style.left = `calc(${t}% - 4px)`);
+  }
+  toggleExpandirTodas() {
+    this._categorias.some((t) => t.aberto === !1) ? this.expandirTudo() : this.colapsarTudo();
+  }
+  renderSeletorTipos() {
+    if (!this._tipos || this._tipos.length === 0) {
+      this.tipoContainerElement.style.display = "none";
+      return;
+    }
+    this.tipoContainerElement.style.display = "flex", this.tipoContainerElement.innerHTML = "";
+    const e = this.getAttribute("estilo-visual") || "autocad", t = this._tipos.find((i) => String(i.id) === String(this._tipoSelecionadoId)) || this._tipos[0];
+    if (e === "revit") {
+      const i = document.createElement("div");
+      i.className = "ui-prop__tipo-revit-card";
+      const a = document.createElement("div");
+      a.className = "ui-prop__tipo-miniatura", t.iconeSvg ? a.innerHTML = t.iconeSvg : a.innerHTML = `
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+            <path d="M3 9h18M9 21V9"></path>
+          </svg>
+        `;
+      const s = document.createElement("div");
+      s.className = "ui-prop__tipo-info";
+      const r = document.createElement("div");
+      r.className = "ui-prop__tipo-nome", r.textContent = t.rotulo;
+      const l = document.createElement("div");
+      l.className = "ui-prop__tipo-subtexto", l.textContent = t.subtipo || "Tipo de Família", s.appendChild(r), s.appendChild(l), i.appendChild(a), i.appendChild(s);
+      const u = document.createElement("div");
+      u.className = "ui-prop__tipo-revit-subbarra";
+      const d = document.createElement("select");
+      d.className = "ui-prop__tipo-select", this._tipos.forEach((p) => {
+        const m = document.createElement("option");
+        m.value = p.id, m.textContent = `${p.rotulo}${p.subtipo ? ` : ${p.subtipo}` : ""}`, String(p.id) === String(this._tipoSelecionadoId) && (m.selected = !0), d.appendChild(m);
+      }), d.addEventListener("change", () => {
+        this.selecionarTipo(d.value);
+      });
+      const c = document.createElement("button");
+      c.type = "button", c.className = "ui-prop__btn-editar-tipo", c.innerHTML = `
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px; vertical-align: -1px;">
+          <rect x="3" y="3" width="12" height="12" rx="1"></rect>
+          <rect x="9" y="9" width="12" height="12" rx="1"></rect>
+        </svg>
+        <span>Editar tipo</span>
+      `, c.addEventListener("click", () => {
+        this.dispatchEvent(new CustomEvent("ui-editar-tipo-clique", {
+          bubbles: !0,
+          composed: !0,
+          detail: { tipo: t }
+        }));
+      }), u.appendChild(d), u.appendChild(c), this.tipoContainerElement.appendChild(i), this.tipoContainerElement.appendChild(u);
+    } else {
+      const i = document.createElement("div");
+      i.className = "ui-prop__tipo-autocad-bar";
+      const a = document.createElement("select");
+      a.className = "ui-prop__tipo-select", this._tipos.forEach((d) => {
+        const c = document.createElement("option");
+        c.value = d.id, c.textContent = d.rotulo, String(d.id) === String(this._tipoSelecionadoId) && (c.selected = !0), a.appendChild(c);
+      }), a.addEventListener("change", () => {
+        this.selecionarTipo(a.value);
+      });
+      const s = document.createElement("div");
+      s.className = "ui-prop__tipo-autocad-acoes";
+      const r = document.createElement("button");
+      r.type = "button", r.className = "ui-prop__btn-autocad", r.title = "Seleção Rápida (Quick Select)", r.setAttribute("aria-label", "Seleção rápida"), r.innerHTML = `
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+          <path d="M19 13v6M16 16h6" stroke-width="2.5"></path>
+        </svg>
+      `, r.addEventListener("click", () => {
+        this.dispatchEvent(new CustomEvent("ui-quick-select", {
+          bubbles: !0,
+          composed: !0,
+          detail: { tipo: t }
+        }));
+      });
+      const l = document.createElement("button");
+      l.type = "button", l.className = "ui-prop__btn-autocad", l.title = "Selecionar Objetos", l.setAttribute("aria-label", "Selecionar objetos"), l.innerHTML = `
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="7"></circle>
+          <line x1="12" y1="2" x2="12" y2="7"></line>
+          <line x1="12" y1="17" x2="12" y2="22"></line>
+          <line x1="2" y1="12" x2="7" y2="12"></line>
+          <line x1="17" y1="12" x2="22" y2="12"></line>
+          <line x1="12" y1="9" x2="12" y2="15" stroke-width="2.5"></line>
+          <line x1="9" y1="12" x2="15" y2="12" stroke-width="2.5"></line>
+        </svg>
+      `, l.addEventListener("click", () => {
+        this.dispatchEvent(new CustomEvent("ui-selecionar-objetos", {
+          bubbles: !0,
+          composed: !0,
+          detail: { tipo: t }
+        }));
+      });
+      const u = document.createElement("button");
+      u.type = "button", u.className = "ui-prop__btn-autocad", u.title = "Calculadora Rápida (QuickCalc)", u.setAttribute("aria-label", "Calculadora rápida"), u.innerHTML = `
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="4" y="2" width="16" height="20" rx="2"></rect>
+          <line x1="8" y1="6" x2="16" y2="6"></line>
+          <circle cx="8" cy="11" r="1" fill="currentColor"></circle>
+          <circle cx="12" cy="11" r="1" fill="currentColor"></circle>
+          <circle cx="16" cy="11" r="1" fill="currentColor"></circle>
+          <circle cx="8" cy="15" r="1" fill="currentColor"></circle>
+          <circle cx="12" cy="15" r="1" fill="currentColor"></circle>
+          <circle cx="16" cy="15" r="1" fill="currentColor"></circle>
+        </svg>
+      `, u.addEventListener("click", () => {
+        this.dispatchEvent(new CustomEvent("ui-calculadora", {
+          bubbles: !0,
+          composed: !0,
+          detail: { tipo: t }
+        }));
+      }), s.appendChild(r), s.appendChild(l), s.appendChild(u), i.appendChild(a), i.appendChild(s), this.tipoContainerElement.appendChild(i);
+    }
+  }
+  selecionarTipo(e) {
+    this._tipoSelecionadoId = e, this.renderSeletorTipos();
+    const t = this._tipos.find((i) => String(i.id) === String(e));
+    this.dispatchEvent(
+      new CustomEvent("ui-tipo-alterado", {
+        bubbles: !0,
+        composed: !0,
+        detail: { id: e, tipo: t }
+      })
+    );
+  }
+  renderCategorias() {
+    const e = this.shadow.getElementById("lista-categorias");
+    if (!e) return;
+    if (e.innerHTML = "", !this._categorias || this._categorias.length === 0) {
+      const i = document.createElement("div");
+      i.className = "ui-prop__vazio", i.textContent = "Nenhuma propriedade disponível.", e.appendChild(i);
+      return;
+    }
+    const t = document.createDocumentFragment();
+    this._categorias.forEach((i) => {
+      const a = (i.propriedades || []).filter((h) => this._termoBusca ? h.rotulo.toLowerCase().includes(this._termoBusca) || String(h.id).toLowerCase().includes(this._termoBusca) : !0);
+      if (this._termoBusca && a.length === 0)
+        return;
+      const s = i.aberto !== !1, r = document.createElement("div");
+      r.className = `ui-prop__categoria ${s ? "ui-prop__categoria--aberta" : ""}`, r.setAttribute("data-cat-id", i.id);
+      const l = document.createElement("div");
+      l.className = "ui-prop__categoria-header";
+      const u = document.createElement("div");
+      u.className = "ui-prop__categoria-titulo-bloco";
+      const d = document.createElement("span");
+      d.className = "ui-prop__categoria-seta", d.textContent = "▶";
+      const c = document.createElement("span");
+      c.textContent = i.titulo, u.appendChild(d), u.appendChild(c);
+      const p = document.createElement("span");
+      p.className = "ui-prop__categoria-contador", p.textContent = String(a.length), l.appendChild(u), l.appendChild(p), l.addEventListener("click", () => {
+        this.toggleCategoria(i.id);
+      }), l.addEventListener("dblclick", () => {
+        this.toggleCategoria(i.id);
+      });
+      const m = document.createElement("div");
+      m.className = "ui-prop__categoria-conteudo", a.forEach((h) => {
+        const f = this.criarLinhaPropriedade(i.id, h);
+        m.appendChild(f);
+      }), r.appendChild(l), r.appendChild(m), t.appendChild(r);
+    }), e.appendChild(t);
+  }
+  criarLinhaPropriedade(e, t) {
+    const i = document.createElement("div");
+    i.className = "ui-prop__linha", i.setAttribute("data-prop-id", t.id);
+    const a = this._valoresAtuais[t.id] !== void 0 ? this._valoresAtuais[t.id] : t.valor, s = this._valoresOriginais[t.id];
+    this._dirty && a !== s && i.classList.add("ui-prop__linha--modificada"), i.addEventListener("dblclick", () => {
+      const c = i.querySelector(
+        'input:not([type="color"]):not(.ui-prop__cor-picker-oculto), select, .ui-prop__btn-acao-inline'
+      );
+      c && (c.focus(), c instanceof HTMLInputElement && c.select());
+    });
+    const r = document.createElement("div");
+    r.className = "ui-prop__col-rotulo", r.title = t.rotulo;
+    const l = document.createElement("span");
+    if (l.textContent = t.rotulo, r.appendChild(l), t.tipo === "numero" && !t.somenteLeitura) {
+      r.classList.add("ui-prop__col-rotulo--scrub"), r.title = `${t.rotulo} (Arraste para ajustar, duplo-clique para editar)`;
+      let c = 0, p = 0, m = !1;
+      r.addEventListener("pointerdown", (h) => {
+        if (h.button !== 0) return;
+        c = h.clientX;
+        const f = this._valoresAtuais[t.id];
+        p = typeof f == "number" ? f : parseFloat(String(f || 0)) || 0, m = !1;
+        try {
+          r.setPointerCapture(h.pointerId);
+        } catch {
+        }
+        r.classList.add("ui-prop__col-rotulo--arrastando");
+        const g = (x) => {
+          const w = x.clientX - c;
+          if (Math.abs(w) > 2 && (m = !0), m) {
+            let E = 1;
+            x.shiftKey ? E = 0.1 : (x.ctrlKey || x.metaKey) && (E = 10);
+            const y = t.casasDecimais !== void 0 ? t.casasDecimais : 2, A = Math.pow(10, -Math.min(y, 2));
+            let C = p + w * A * E;
+            t.casasDecimais !== void 0 ? C = Number(C.toFixed(t.casasDecimais)) : C = Math.round(C * 100) / 100, this.registrarAlteracao(e, t.id, C), this.atualizarCampoVisual(t.id, C);
+          }
+        }, v = (x) => {
+          r.classList.remove("ui-prop__col-rotulo--arrastando");
+          try {
+            r.hasPointerCapture(x.pointerId) && r.releasePointerCapture(x.pointerId);
+          } catch {
+          }
+          r.removeEventListener("pointermove", g), r.removeEventListener("pointerup", v), r.removeEventListener("pointercancel", v);
+        };
+        r.addEventListener("pointermove", g), r.addEventListener("pointerup", v), r.addEventListener("pointercancel", v);
+      });
+    }
+    const u = document.createElement("div");
+    u.className = "ui-prop__col-valor";
+    const d = this.criarEditorValor(e, t, a);
+    if (u.appendChild(d), t.unidade) {
+      const c = document.createElement("span");
+      c.className = "ui-prop__unidade-sufixo", c.textContent = t.unidade, u.appendChild(c);
+    }
+    return i.appendChild(r), i.appendChild(u), i;
+  }
+  criarEditorValor(e, t, i) {
+    if (t.somenteLeitura || t.tipo === "readonly") {
+      const r = document.createElement("span"), l = typeof i == "number" || typeof i == "string" && /^-?\d+(\.\d+)?$/.test(i.trim());
+      return r.className = `ui-prop__valor-readonly ${l ? "ui-prop__valor-readonly--numero" : ""}`.trim(), r.textContent = i != null ? String(i) : "—", r;
+    }
+    if (t.tipo === "booleano") {
+      const r = document.createElement("label");
+      r.className = "ui-prop__editor-booleano";
+      const l = !!i, u = document.createElement("div");
+      u.className = `ui-prop__checkbox-custom ${l ? "ui-prop__checkbox-custom--marcado" : ""}`, u.textContent = l ? "✓" : "";
+      const d = document.createElement("span");
+      return d.className = "ui-prop__booleano-rotulo", d.textContent = l ? "Sim" : "Não", r.appendChild(u), r.appendChild(d), r.addEventListener("click", (c) => {
+        c.preventDefault();
+        const p = !this._valoresAtuais[t.id];
+        this.registrarAlteracao(e, t.id, p), u.classList.toggle("ui-prop__checkbox-custom--marcado", p), u.textContent = p ? "✓" : "", d.textContent = p ? "Sim" : "Não";
+      }), r;
+    }
+    if (t.tipo === "linha" || t.tipo === "linetype") {
+      const r = document.createElement("div");
+      r.className = "ui-prop__editor-linha-container";
+      const l = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      l.setAttribute("class", "ui-prop__linha-amostra-svg"), l.setAttribute("viewBox", "0 0 44 12");
+      const u = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      u.setAttribute("x1", "0"), u.setAttribute("y1", "6"), u.setAttribute("x2", "44"), u.setAttribute("y2", "6");
+      const d = (m) => {
+        const h = String(m || "").toLowerCase();
+        h.includes("dash") || h.includes("tracej") || h.includes("hidden") ? u.setAttribute("stroke-dasharray", "6,3") : h.includes("dot") || h.includes("ponto") || h.includes("pontilh") ? u.setAttribute("stroke-dasharray", "2,3") : h.includes("center") || h.includes("eixo") ? u.setAttribute("stroke-dasharray", "8,3,2,3") : u.setAttribute("stroke-dasharray", "none");
+      };
+      d(i), l.appendChild(u);
+      const c = document.createElement("select");
+      return c.className = "ui-prop__linha-select", (t.opcoes && t.opcoes.length > 0 ? t.opcoes : [
+        { id: "ByLayer", rotulo: "ByLayer" },
+        { id: "ByBlock", rotulo: "ByBlock" },
+        { id: "Continuous", rotulo: "Continuous" },
+        { id: "Dashed", rotulo: "Dashed" },
+        { id: "Hidden", rotulo: "Hidden" },
+        { id: "Center", rotulo: "Center" },
+        { id: "Dotted", rotulo: "Dotted" }
+      ]).forEach((m) => {
+        const h = document.createElement("option");
+        h.value = String(m.id), h.textContent = m.rotulo, String(m.id).toLowerCase() === String(i).toLowerCase() && (h.selected = !0), c.appendChild(h);
+      }), c.addEventListener("change", () => {
+        d(c.value), this.registrarAlteracao(e, t.id, c.value);
+      }), c.addEventListener("keydown", (m) => {
+        m.key === "Enter" && this.focarProximoEditor(c);
+      }), r.appendChild(l), r.appendChild(c), r;
+    }
+    if (t.tipo === "espessura" || t.tipo === "lineweight") {
+      const r = document.createElement("div");
+      r.className = "ui-prop__editor-espessura-container";
+      const l = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      l.setAttribute("class", "ui-prop__espessura-amostra-svg"), l.setAttribute("viewBox", "0 0 38 12");
+      const u = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      u.setAttribute("x1", "0"), u.setAttribute("y1", "6"), u.setAttribute("x2", "38"), u.setAttribute("y2", "6");
+      const d = (m) => {
+        const h = parseFloat(String(m).replace(/[^0-9.]/g, ""));
+        return isNaN(h) || h <= 0 ? 1.5 : Math.min(8, Math.max(1, h * 8));
+      };
+      u.setAttribute("stroke-width", String(d(i))), l.appendChild(u);
+      const c = document.createElement("select");
+      return c.className = "ui-prop__espessura-select", (t.opcoes && t.opcoes.length > 0 ? t.opcoes : [
+        { id: "ByLayer", rotulo: "ByLayer" },
+        { id: "ByBlock", rotulo: "ByBlock" },
+        { id: "0.00 mm", rotulo: "0.00 mm" },
+        { id: "0.05 mm", rotulo: "0.05 mm" },
+        { id: "0.09 mm", rotulo: "0.09 mm" },
+        { id: "0.13 mm", rotulo: "0.13 mm" },
+        { id: "0.15 mm", rotulo: "0.15 mm" },
+        { id: "0.18 mm", rotulo: "0.18 mm" },
+        { id: "0.20 mm", rotulo: "0.20 mm" },
+        { id: "0.25 mm", rotulo: "0.25 mm" },
+        { id: "0.30 mm", rotulo: "0.30 mm" },
+        { id: "0.35 mm", rotulo: "0.35 mm" },
+        { id: "0.40 mm", rotulo: "0.40 mm" },
+        { id: "0.50 mm", rotulo: "0.50 mm" },
+        { id: "0.60 mm", rotulo: "0.60 mm" },
+        { id: "0.70 mm", rotulo: "0.70 mm" },
+        { id: "1.00 mm", rotulo: "1.00 mm" },
+        { id: "1.40 mm", rotulo: "1.40 mm" },
+        { id: "2.00 mm", rotulo: "2.00 mm" }
+      ]).forEach((m) => {
+        const h = document.createElement("option");
+        h.value = String(m.id), h.textContent = m.rotulo, String(m.id).toLowerCase() === String(i).toLowerCase() && (h.selected = !0), c.appendChild(h);
+      }), c.addEventListener("change", () => {
+        u.setAttribute("stroke-width", String(d(c.value))), this.registrarAlteracao(e, t.id, c.value);
+      }), c.addEventListener("keydown", (m) => {
+        m.key === "Enter" && this.focarProximoEditor(c);
+      }), r.appendChild(l), r.appendChild(c), r;
+    }
+    if (t.tipo === "cor-cad") {
+      const r = document.createElement("div");
+      r.className = "ui-prop__editor-cor-cad-container";
+      const l = document.createElement("div");
+      l.className = "ui-prop__cor-amostra";
+      const u = (m) => {
+        const h = String(m).toLowerCase();
+        return h === "red" || h === "1" ? "#ff0000" : h === "yellow" || h === "2" ? "#ffff00" : h === "green" || h === "3" ? "#00ff00" : h === "cyan" || h === "4" ? "#00ffff" : h === "blue" || h === "5" ? "#0000ff" : h === "magenta" || h === "6" ? "#ff00ff" : h === "white" || h === "7" || h === "bylayer" || h === "byblock" ? "#ffffff" : h.startsWith("#") ? h : "#ffffff";
+      };
+      l.style.backgroundColor = u(i);
+      const d = document.createElement("select");
+      d.className = "ui-prop__cor-cad-select", [
+        { id: "ByLayer", rotulo: "ByLayer" },
+        { id: "ByBlock", rotulo: "ByBlock" },
+        { id: "Red", rotulo: "Red (1)" },
+        { id: "Yellow", rotulo: "Yellow (2)" },
+        { id: "Green", rotulo: "Green (3)" },
+        { id: "Cyan", rotulo: "Cyan (4)" },
+        { id: "Blue", rotulo: "Blue (5)" },
+        { id: "Magenta", rotulo: "Magenta (6)" },
+        { id: "White", rotulo: "White (7)" },
+        { id: "custom", rotulo: "Selecionar cor..." }
+      ].forEach((m) => {
+        const h = document.createElement("option");
+        h.value = m.id, h.textContent = m.rotulo, String(m.id).toLowerCase() === String(i).toLowerCase() && (h.selected = !0), d.appendChild(h);
+      });
+      const p = document.createElement("input");
+      return p.type = "color", p.className = "ui-prop__cor-picker-oculto", p.addEventListener("input", () => {
+        const m = p.value;
+        l.style.backgroundColor = m, this.registrarAlteracao(e, t.id, m);
+      }), d.addEventListener("change", () => {
+        d.value === "custom" ? p.click() : (l.style.backgroundColor = u(d.value), this.registrarAlteracao(e, t.id, d.value));
+      }), d.addEventListener("keydown", (m) => {
+        m.key === "Enter" && this.focarProximoEditor(d);
+      }), r.appendChild(l), r.appendChild(d), r.appendChild(p), r;
+    }
+    if (t.tipo === "selecao") {
+      const r = document.createElement("select");
+      return r.className = "ui-prop__editor-select", (t.opcoes || []).forEach((l) => {
+        const u = document.createElement("option");
+        u.value = String(l.id), u.textContent = l.rotulo, String(l.id) === String(i) && (u.selected = !0), r.appendChild(u);
+      }), r.addEventListener("change", () => {
+        this.registrarAlteracao(e, t.id, r.value);
+      }), r.addEventListener("keydown", (l) => {
+        l.key === "Enter" && this.focarProximoEditor(r);
+      }), r;
+    }
+    if (t.tipo === "cor") {
+      const r = document.createElement("div");
+      r.className = "ui-prop__editor-cor-container";
+      const l = document.createElement("div");
+      l.className = "ui-prop__cor-amostra", l.style.backgroundColor = i || "#ffffff";
+      const u = document.createElement("span");
+      u.className = "ui-prop__cor-texto", u.textContent = t.textoAmostra || String(i || "ByLayer");
+      const d = document.createElement("input");
+      return d.type = "color", d.className = "ui-prop__cor-picker-oculto", d.value = typeof i == "string" && i.startsWith("#") ? i : "#ffffff", d.addEventListener("input", () => {
+        const c = d.value;
+        l.style.backgroundColor = c, u.textContent = c, this.registrarAlteracao(e, t.id, c);
+      }), r.addEventListener("click", () => {
+        d.click();
+      }), r.appendChild(l), r.appendChild(u), r.appendChild(d), r;
+    }
+    if (t.tipo === "acao") {
+      const r = document.createElement("button");
+      return r.type = "button", r.className = "ui-prop__btn-acao-inline", r.textContent = t.rotuloAcao || "Editar...", r.addEventListener("click", () => {
+        typeof t.onClickAcao == "function" && t.onClickAcao(t), this.dispatchEvent(
+          new CustomEvent("ui-acao-clique", {
+            bubbles: !0,
+            composed: !0,
+            detail: { id: t.id, categoriaId: e, propriedade: t }
+          })
+        );
+      }), r.addEventListener("keydown", (l) => {
+        l.key === "Enter" && r.click();
+      }), r;
+    }
+    if (t.tipo === "numero") {
+      const r = document.createElement("input");
+      r.type = "text", r.inputMode = "decimal", r.autocomplete = "off", r.spellcheck = !1, r.className = "ui-prop__editor-input ui-prop__editor-input--numero", t.placeholder && (r.placeholder = t.placeholder);
+      const l = (d) => {
+        if (d == null || d === "") return "";
+        const c = Number(d);
+        return isNaN(c) ? String(d) : t.casasDecimais !== void 0 ? c.toFixed(t.casasDecimais) : String(c);
+      };
+      r.value = l(i), r.addEventListener("focus", () => {
+        r.select();
+      }), r.addEventListener("input", () => {
+        const d = r.value, c = /[\+\-\*\/\^\%\(\)]/.test(d) && !/^[+-]?[0-9]*\.?[0-9]*$/.test(d.trim());
+        r.classList.toggle("ui-prop__editor-input--calculando", c);
+      });
+      const u = () => {
+        r.classList.remove("ui-prop__editor-input--calculando");
+        const d = r.value.trim();
+        if (d === "") {
+          this.registrarAlteracao(e, t.id, null);
+          return;
+        }
+        const c = vt(d);
+        if (c !== null && !isNaN(c)) {
+          let p = c;
+          t.casasDecimais !== void 0 && (p = Number(c.toFixed(t.casasDecimais))), r.value = l(p), p !== this._valoresAtuais[t.id] && this.registrarAlteracao(e, t.id, p);
+        } else
+          r.value = l(this._valoresAtuais[t.id]);
+      };
+      return r.addEventListener("change", u), r.addEventListener("blur", u), r.addEventListener("keydown", (d) => {
+        if (d.key === "Enter")
+          u(), this.focarProximoEditor(r);
+        else if (d.key === "Escape")
+          r.classList.remove("ui-prop__editor-input--calculando"), r.value = l(this._valoresAtuais[t.id]), r.blur();
+        else if (d.key === "ArrowUp" || d.key === "ArrowDown") {
+          d.preventDefault();
+          const c = parseFloat(r.value) || 0;
+          let p = t.casasDecimais !== void 0 ? Math.pow(10, -t.casasDecimais) : 1;
+          d.shiftKey ? p *= 10 : d.altKey && (p *= 0.1);
+          let m = d.key === "ArrowUp" ? c + p : c - p;
+          t.casasDecimais !== void 0 ? m = Number(m.toFixed(t.casasDecimais)) : m = Math.round(m * 100) / 100, r.value = l(m), this.registrarAlteracao(e, t.id, m);
+        }
+      }), r;
+    }
+    const a = document.createElement("input");
+    a.type = "text", a.className = "ui-prop__editor-input", t.placeholder && (a.placeholder = t.placeholder), a.value = i != null ? String(i) : "", a.addEventListener("focus", () => {
+      a.select();
+    });
+    const s = () => {
+      a.value !== this._valoresAtuais[t.id] && this.registrarAlteracao(e, t.id, a.value);
+    };
+    return a.addEventListener("change", s), a.addEventListener("keydown", (r) => {
+      r.key === "Enter" ? (s(), this.focarProximoEditor(a)) : r.key === "Escape" && (a.value = String(this._valoresAtuais[t.id] ?? ""), a.blur());
+    }), a;
+  }
+  registrarAlteracao(e, t, i) {
+    const a = this._valoresAtuais[t];
+    this._valoresAtuais[t] = i, this._dirty = !0, this.atualizarBotoesFooter();
+    const s = this.shadow.querySelector(`[data-prop-id="${t}"]`);
+    s && s.classList.add("ui-prop__linha--modificada"), this.getAttribute("modo-aplicar") !== "manual" && this.emitirAlteracao(t, i, a, e);
+  }
+  emitirAlteracao(e, t, i, a = "") {
+    this.dispatchEvent(
+      new CustomEvent("ui-propriedade-alterada", {
+        bubbles: !0,
+        composed: !0,
+        detail: {
+          id: e,
+          categoriaId: a,
+          valor: t,
+          valorAnterior: i,
+          todosValores: { ...this._valoresAtuais }
+        }
+      })
+    );
+  }
+  atualizarBotoesFooter() {
+    this.btnAplicarElement.disabled = !this._dirty, this.btnDesfazerElement.disabled = !this._dirty;
+  }
+  focarProximoEditor(e) {
+    const t = Array.from(
+      this.shadow.querySelectorAll(
+        '.ui-prop__linha input:not([disabled]):not([type="color"]):not(.ui-prop__cor-picker-oculto), .ui-prop__linha select:not([disabled]), .ui-prop__linha .ui-prop__btn-acao-inline:not([disabled])'
+      )
+    ), i = t.indexOf(e);
+    if (i !== -1 && i + 1 < t.length) {
+      const a = t[i + 1];
+      a.focus(), a instanceof HTMLInputElement && a.select();
+    }
+  }
+  atualizarCampoVisual(e, t) {
+    const i = this.shadow.querySelector(`[data-prop-id="${e}"]`);
+    if (!i) return;
+    const a = i.querySelector('input:not([type="color"]):not(.ui-prop__cor-picker-oculto)');
+    a && (a.value = String(t ?? ""));
+    const s = i.querySelector("select");
+    s && (s.value = String(t ?? ""));
+    const r = i.querySelector(".ui-prop__linha-amostra-svg line");
+    if (r) {
+      const c = String(t || "").toLowerCase();
+      c.includes("dash") || c.includes("tracej") || c.includes("hidden") ? r.setAttribute("stroke-dasharray", "6,3") : c.includes("dot") || c.includes("ponto") || c.includes("pontilh") ? r.setAttribute("stroke-dasharray", "2,3") : c.includes("center") || c.includes("eixo") ? r.setAttribute("stroke-dasharray", "8,3,2,3") : r.setAttribute("stroke-dasharray", "none");
+    }
+    const l = i.querySelector(".ui-prop__espessura-amostra-svg line");
+    if (l) {
+      const c = parseFloat(String(t).replace(/[^0-9.]/g, "")), p = isNaN(c) || c <= 0 ? 1.5 : Math.min(8, Math.max(1, c * 8));
+      l.setAttribute("stroke-width", String(p));
+    }
+    const u = i.querySelector(".ui-prop__cor-amostra");
+    u && typeof t == "string" && (u.style.backgroundColor = t);
+    const d = i.querySelector(".ui-prop__valor-readonly");
+    d && (d.textContent = t != null ? String(t) : "—");
+  }
+}
+customElements.get("ui-tabela-propriedades") || customElements.define("ui-tabela-propriedades", K);
+customElements.get("ui-painel-propriedades") || customElements.define("ui-painel-propriedades", class extends K {
+});
+customElements.get("ui-propriedades") || customElements.define("ui-propriedades", class extends K {
+});
+class kt {
+  constructor(o, e) {
     n(this, "polylines", []);
     n(this, "bancoPontosAtivo", !1);
     n(this, "core");
-    this.core = i;
+    this.core = o;
   }
-  setBancoPontosAtivo(i) {
-    this.bancoPontosAtivo = i;
+  setBancoPontosAtivo(o) {
+    this.bancoPontosAtivo = o;
   }
-  plotSegmentos(i, e) {
-    this.core.map && i.forEach((t) => {
-      const o = e.find((r) => String(r.id) === String(t.ponto_inicio_id)), a = e.find((r) => String(r.id) === String(t.ponto_fim_id));
-      if (o && a && o.lat && o.lon && a.lat && a.lon) {
-        const r = t.tipo_limite_sigef || t.tipo_limite || "", s = t.metodo_posicionamento_sigef || t.metodo_posicionamento || "", l = this.bancoPontosAtivo ? "#94a3b8" : r === "LA1" ? "#10b981" : "#3b82f6", d = this.core.config.perimetroWeight, h = this.bancoPontosAtivo ? 0.4 : 1, c = v.polyline([[o.lat, o.lon], [a.lat, a.lon]], {
+  plotSegmentos(o, e) {
+    this.core.map && o.forEach((t) => {
+      const i = e.find((s) => String(s.id) === String(t.ponto_inicio_id)), a = e.find((s) => String(s.id) === String(t.ponto_fim_id));
+      if (i && a && i.lat && i.lon && a.lat && a.lon) {
+        const s = t.tipo_limite_sigef || t.tipo_limite || "", r = t.metodo_posicionamento_sigef || t.metodo_posicionamento || "", l = this.bancoPontosAtivo ? "#94a3b8" : s === "LA1" ? "#10b981" : "#3b82f6", u = this.core.config.perimetroWeight, d = this.bancoPontosAtivo ? 0.4 : 1, c = _.polyline([[i.lat, i.lon], [a.lat, a.lon]], {
           color: l,
-          weight: d,
-          opacity: h,
-          dashArray: r === "LN1" ? "6, 6" : void 0,
+          weight: u,
+          opacity: d,
+          dashArray: s === "LN1" ? "6, 6" : void 0,
           pane: "perimetroPane"
         }).bindPopup(`
           <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.3;">
-            <div style="font-weight:700; font-size:12px; margin-bottom:3px; color:#ffffff;">${w(o.nome_vertice)} ↔ ${w(a.nome_vertice)}</div>
-            <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">Limite: ${w(r)} · ${w(s)}</div>
+            <div style="font-weight:700; font-size:12px; margin-bottom:3px; color:#ffffff;">${k(i.nome_vertice)} ↔ ${k(a.nome_vertice)}</div>
+            <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">Limite: ${k(s)} · ${k(r)}</div>
           </div>
         `, {
           className: "compact-popup",
@@ -3450,82 +5321,82 @@ class Ke {
       }
     });
   }
-  plotPolilinhaTemporaria(i) {
+  plotPolilinhaTemporaria(o) {
     if (!this.core.map) return;
-    const e = i.filter(
-      (s) => s.lat && s.lon && s.lat !== 0 && s.lon !== 0 && s.tipo_ponto !== "B" && s.tipo !== "B" && s.ignorar_poligono !== 1
+    const e = o.filter(
+      (r) => r.lat && r.lon && r.lat !== 0 && r.lon !== 0 && r.tipo_ponto !== "B" && r.tipo !== "B" && r.ignorar_poligono !== 1
     );
     if (e.length < 2) return;
     const t = {};
-    e.forEach((s) => {
-      const l = s.matricula_id != null ? `mat_${s.matricula_id}` : s.planilha_origem || "default";
-      t[l] || (t[l] = []), t[l].push(s);
+    e.forEach((r) => {
+      const l = r.matricula_id != null ? `mat_${r.matricula_id}` : r.planilha_origem || "default";
+      t[l] || (t[l] = []), t[l].push(r);
     });
-    const o = this.bancoPontosAtivo ? "#94a3b8" : "#10b981", a = this.core.config.fechamentoWeight || 2, r = this.bancoPontosAtivo ? 0.4 : 1;
-    Object.values(t).forEach((s) => {
-      if (s.sort((c, p) => Number(c.ordem_caminhamento ?? 999999) - Number(p.ordem_caminhamento ?? 999999)), s.length < 2) return;
-      for (let c = 0; c < s.length - 1; c++) {
-        const p = s[c], x = s[c + 1], f = v.polyline([[p.lat, p.lon], [x.lat, x.lon]], {
-          color: o,
+    const i = this.bancoPontosAtivo ? "#94a3b8" : "#10b981", a = this.core.config.fechamentoWeight || 2, s = this.bancoPontosAtivo ? 0.4 : 1;
+    Object.values(t).forEach((r) => {
+      if (r.sort((c, p) => Number(c.ordem_caminhamento ?? 999999) - Number(p.ordem_caminhamento ?? 999999)), r.length < 2) return;
+      for (let c = 0; c < r.length - 1; c++) {
+        const p = r[c], m = r[c + 1], h = _.polyline([[p.lat, p.lon], [m.lat, m.lon]], {
+          color: i,
           weight: a,
-          opacity: r,
+          opacity: s,
           pane: "perimetroPane"
         }).addTo(this.core.map);
-        this.polylines.push(f);
+        this.polylines.push(h);
       }
-      const l = s[s.length - 1], d = s[0], h = v.polyline([[l.lat, l.lon], [d.lat, d.lon]], {
-        color: o,
+      const l = r[r.length - 1], u = r[0], d = _.polyline([[l.lat, l.lon], [u.lat, u.lon]], {
+        color: i,
         weight: a,
-        opacity: r,
+        opacity: s,
         dashArray: "4, 4",
         pane: "perimetroPane"
       }).addTo(this.core.map);
-      this.polylines.push(h);
+      this.polylines.push(d);
     });
   }
-  plotPoligonalHomologada(i) {
+  plotPoligonalHomologada(o) {
     if (!this.core.map || !this.core.bancoPontosGroup) return;
     this.core.bancoPontosGroup.clearLayers();
-    const e = i.filter((o) => o.lat && o.lon && o.lat !== 0 && o.lon !== 0);
+    const e = o.filter((i) => i.lat && i.lon && i.lat !== 0 && i.lon !== 0);
     if (e.length === 0) return;
-    this.bancoPontosAtivo = !0, e.forEach((o) => {
+    this.bancoPontosAtivo = !0, e.forEach((i) => {
       const a = `
-        <div class="w-4.5 h-4.5 bg-amber-500 text-slate-950 border-2 border-slate-900 rounded-full flex items-center justify-center text-[7px] font-black font-mono shadow-md hover:scale-125 transition-transform" id="banco-marker-${o.id}">
+        <div class="w-4.5 h-4.5 bg-amber-500 text-slate-950 border-2 border-slate-900 rounded-full flex items-center justify-center text-[7px] font-black font-mono shadow-md hover:scale-125 transition-transform" id="banco-marker-${i.id}">
           H
         </div>
-      `, r = v.divIcon({
+      `, s = _.divIcon({
         html: a,
         className: "banco-leaflet-marker",
         iconSize: [18, 18]
-      }), s = `
+      }), r = `
         <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.35; min-width:180px;">
           <div style="font-weight:800; font-size:11px; color:#fbbf24; text-transform:uppercase; letter-spacing:0.5px; border-bottom:1px solid rgba(255, 255, 255, 0.1); padding-bottom:3px; margin-bottom:5px;">Vértice Homologado SIGEF</div>
-          <div style="font-weight:700; font-size:13px; margin-bottom:3px; color:#ffffff;">${w(o.codigo_completo || o.nome_vertice)}</div>
-          <div style="font-size:11px; color:rgba(255, 255, 255, 0.7); font-family:monospace;">Este (E): ${o.este ? o.este.toFixed(2) : "N/A"} m</div>
-          <div style="font-size:11px; color:rgba(255, 255, 255, 0.7); font-family:monospace; margin-bottom:3px;">Norte (N): ${o.norte ? o.norte.toFixed(2) : "N/A"} m</div>
-          <div style="font-size:11px; color:rgba(255, 255, 255, 0.7); margin-bottom:2px;">Alt (h): <strong>${o.altitude ? o.altitude.toFixed(2) : "N/A"} m</strong></div>
-          <div style="font-size:10px; color:rgba(255, 255, 255, 0.45);">Método: ${w(o.metodo_posicionamento) || "N/A"} · Limite: ${w(o.tipo_limite) || "N/A"}</div>
-          ${o.confrontante_descritivo ? `<div style="font-size:10px; color:rgba(255, 255, 255, 0.65); border-top:1px solid rgba(255, 255, 255, 0.1); padding-top:4px; margin-top:4px; word-break:break-word;"><strong>Conf:</strong> ${w(o.confrontante_descritivo)}</div>` : ""}
+          <div style="font-weight:700; font-size:13px; margin-bottom:3px; color:#ffffff;">${k(i.codigo_completo || i.nome_vertice)}</div>
+          <div style="font-size:11px; color:rgba(255, 255, 255, 0.7); font-family:monospace;">Este (E): ${i.este ? i.este.toFixed(2) : "N/A"} m</div>
+          <div style="font-size:11px; color:rgba(255, 255, 255, 0.7); font-family:monospace; margin-bottom:3px;">Norte (N): ${i.norte ? i.norte.toFixed(2) : "N/A"} m</div>
+          <div style="font-size:11px; color:rgba(255, 255, 255, 0.7); margin-bottom:2px;">Alt (h): <strong>${i.altitude ? i.altitude.toFixed(2) : "N/A"} m</strong></div>
+          <div style="font-size:10px; color:rgba(255, 255, 255, 0.45);">Método: ${k(i.metodo_posicionamento) || "N/A"} · Limite: ${k(i.tipo_limite) || "N/A"}</div>
+          ${i.confrontante_descritivo ? `<div style="font-size:10px; color:rgba(255, 255, 255, 0.65); border-top:1px solid rgba(255, 255, 255, 0.1); padding-top:4px; margin-top:4px; word-break:break-word;"><strong>Conf:</strong> ${k(i.confrontante_descritivo)}</div>` : ""}
         </div>
       `;
-      v.marker([o.lat, o.lon], {
-        icon: r,
+      _.marker([i.lat, i.lon], {
+        icon: s,
         pane: "verticesPane"
-      }).bindPopup(s, { className: "compact-popup", maxWidth: 220 }).addTo(this.core.bancoPontosGroup);
+      }).bindPopup(r, { className: "compact-popup", maxWidth: 220 }).addTo(this.core.bancoPontosGroup);
     });
     const t = {};
-    e.forEach((o) => {
-      const a = o.matricula_id ? `mat_${o.matricula_id}` : o.planilha_origem || "default";
-      t[a] || (t[a] = []), t[a].push(o);
+    e.forEach((i) => {
+      const a = i.matricula_id ? `mat_${i.matricula_id}` : i.planilha_origem || "default";
+      t[a] || (t[a] = []), t[a].push(i);
     });
-    for (const o in t) {
-      const a = t[o];
-      if (a.sort((r, s) => {
-        const l = r.ordem_caminhamento !== void 0 && r.ordem_caminhamento !== null ? r.ordem_caminhamento : r.id, d = s.ordem_caminhamento !== void 0 && s.ordem_caminhamento !== null ? s.ordem_caminhamento : s.id;
-        return l - d;
+    for (const i in t) {
+      const a = t[i];
+      if (a.sort((s, r) => {
+        const l = s.ordem_caminhamento !== void 0 && s.ordem_caminhamento !== null ? s.ordem_caminhamento : s.id, u = r.ordem_caminhamento !== void 0 && r.ordem_caminhamento !== null ? r.ordem_caminhamento : r.id;
+        return l - u;
       }), a.length >= 2) {
-        const r = a.map((s) => v.latLng(s.lat, s.lon));
-        r.push(v.latLng(a[0].lat, a[0].lon)), v.polyline(r, {
+        const s = a.map((r) => _.latLng(r.lat, r.lon));
+        s.push(_.latLng(a[0].lat, a[0].lon)), _.polyline(s, {
           color: "#f59e0b",
           // Cor âmbar contrastante premium
           weight: this.core.config.bancoWeight,
@@ -3536,119 +5407,123 @@ class Ke {
     }
   }
   clearLinhas() {
-    this.core.map && this.polylines.forEach((i) => this.core.map.removeLayer(i)), this.core.bancoPontosGroup && this.core.bancoPontosGroup.clearLayers(), this.polylines = [];
+    this.core.map && this.polylines.forEach((o) => this.core.map.removeLayer(o)), this.core.bancoPontosGroup && this.core.bancoPontosGroup.clearLayers(), this.polylines = [];
   }
 }
-class Xe {
-  constructor(i, e) {
+class At {
+  constructor(o, e) {
     n(this, "markers", []);
     n(this, "vizinhosMarkers", []);
     n(this, "vizinhosPoligonos", []);
     n(this, "core");
     n(this, "controller");
-    this.core = i, this.controller = e;
+    this.core = o, this.controller = e;
   }
-  plotPontos(i, e) {
-    this.core.map && i.forEach((t) => {
-      var o, a, r;
+  plotPontos(o, e) {
+    this.core.map && o.forEach((t) => {
+      var i, a, s;
       if (t.lat && t.lon && t.lat !== 0 && t.lon !== 0) {
-        const s = t.tipo_ponto === "B" || t.tipo === "B", l = t.tipo_ponto === "M" || t.tipo === "M";
-        let d = "bg-mint-vibrant", h = "x", c = 7;
-        l ? (d = "bg-indigo-500", c = 9) : s && (d = "bg-rose-500", c = 9);
-        const p = this.core.config.enableAnimations ? "transition-all duration-150" : "", x = (a = (o = this.controller) == null ? void 0 : o.linhas) != null && a.bancoPontosAtivo ? "opacity-40 hover:opacity-100" : "", f = $(h, c, d, `${p} ${x}`, `map-marker-${t.id}`), m = v.divIcon({
-          html: f,
+        const r = t.tipo_ponto === "B" || t.tipo === "B", l = t.tipo_ponto === "M" || t.tipo === "M";
+        let u = "bg-mint-vibrant", d = "x", c = 7;
+        l ? (u = "bg-indigo-500", c = 9) : r && (u = "bg-rose-500", c = 9);
+        const p = this.core.config.enableAnimations ? "transition-all duration-150" : "", m = (a = (i = this.controller) == null ? void 0 : i.linhas) != null && a.bancoPontosAtivo ? "opacity-40 hover:opacity-100" : "", h = D(d, c, u, `${p} ${m}`, `map-marker-${t.id}`), f = _.divIcon({
+          html: h,
           className: "custom-leaflet-marker flex items-center justify-center",
           iconSize: [c + 6, c + 6]
-        }), u = l ? "Base Homologada PPP" : s ? "Base de Campo (Translação)" : "Vértice de Perímetro", b = v.marker([t.lat, t.lon], {
-          icon: m,
+        }), g = l ? "Base Homologada PPP" : r ? "Base de Campo (Translação)" : "Vértice de Perímetro", v = _.marker([t.lat, t.lon], {
+          icon: f,
           pane: "verticesPane"
         });
-        b.pontoId = t.id, (r = this.controller) != null && r.modoCliqueSequencialAtivo || b.bindPopup(`
+        v.pontoId = t.id, (s = this.controller) != null && s.modoCliqueSequencialAtivo || v.bindPopup(`
             <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.3;">
-              <div style="font-weight:700; font-size:13px; margin-bottom:4px; color:#ffffff;">${w(t.nome_vertice)}</div>
-              <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">${w(u)} · ${w(t.tipo_ponto || t.tipo)}</div>
+              <div style="font-weight:700; font-size:13px; margin-bottom:4px; color:#ffffff;">${k(t.nome_vertice)}</div>
+              <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">${k(g)} · ${k(t.tipo_ponto || t.tipo)}</div>
               <div style="font-size:11px; color:rgba(255, 255, 255, 0.45); font-family:monospace; margin-top:4px;">Lat ${t.lat.toFixed(6)} &nbsp; Lon ${t.lon.toFixed(6)}</div>
             </div>
           `, {
           className: "compact-popup",
           maxWidth: 220
-        }), b.addTo(this.core.map), b.setZIndexOffset(1e3), b.on("click", () => {
+        }), v.addTo(this.core.map), v.setZIndexOffset(1e3), v.on("click", () => {
           e(t.id);
-        }), this.markers.push(b);
+        }), this.markers.push(v);
       }
     });
   }
-  plotPontosVizinhos(i) {
+  plotPontosVizinhos(o) {
     if (!this.core.map || !this.core.pontosVizinhosGroup) return;
     this.core.map.hasLayer(this.core.pontosVizinhosGroup) || this.core.pontosVizinhosGroup.addTo(this.core.map), this.vizinhosMarkers && this.vizinhosMarkers.length > 0 && (this.vizinhosMarkers.forEach((t) => {
       t.off(), t.unbindPopup();
     }), this.vizinhosMarkers = []), this.core.pontosVizinhosGroup.clearLayers();
     const e = /* @__PURE__ */ new Map();
-    (i || []).forEach((t) => {
-      const o = t.lat ?? t.latitude ?? t.y, a = t.lon ?? t.lng ?? t.longitude ?? t.x, r = typeof o == "string" ? parseFloat(o.replace(",", ".")) : Number(o), s = typeof a == "string" ? parseFloat(a.replace(",", ".")) : Number(a);
-      if (r !== void 0 && s !== void 0 && !isNaN(r) && !isNaN(s) && r !== 0 && s !== 0) {
-        t.lat = r, t.lon = s;
+    (o || []).forEach((t) => {
+      const i = t.lat ?? t.latitude ?? t.y, a = t.lon ?? t.lng ?? t.longitude ?? t.x, s = typeof i == "string" ? parseFloat(i.replace(",", ".")) : Number(i), r = typeof a == "string" ? parseFloat(a.replace(",", ".")) : Number(a);
+      if (s !== void 0 && r !== void 0 && !isNaN(s) && !isNaN(r) && s !== 0 && r !== 0) {
+        t.lat = s, t.lon = r;
         const l = t.confrontante_id !== void 0 && t.confrontante_id !== null ? String(t.confrontante_id) : "0";
         e.has(l) || e.set(l, []), e.get(l).push(t);
       }
     }), e.forEach((t) => {
       if (t.length >= 2) {
-        t.sort((a, r) => a.id - r.id);
-        const o = t.map((a) => v.latLng(a.lat, a.lon));
-        t.length > 2 && o.push(v.latLng(t[0].lat, t[0].lon)), v.polyline(o, {
+        t.sort((a, s) => a.id - s.id);
+        const i = t.map((a) => _.latLng(a.lat, a.lon));
+        t.length > 2 && i.push(_.latLng(t[0].lat, t[0].lon)), _.polyline(i, {
           color: "#a855f7",
           weight: this.core.config.vizinhoWeight,
           dashArray: "4, 6",
           pane: "overlayPane"
         }).addTo(this.core.pontosVizinhosGroup);
       }
-      t.forEach((o) => {
-        const a = w(String(o.id)), r = `
-          <div class="p-2 font-sans text-xs bg-[#0c1510] text-white min-w-[200px] rounded">
-            <div class="font-bold text-purple-400 mb-1 border-b border-white/10 pb-1">Confrontante (Importado)</div>
-            <div class="mb-1"><strong>Vértice:</strong> <span class="font-mono">${w(o.nome_vertice || "")}</span></div>
-            <div class="mb-1"><strong>Proprietário:</strong> ${w(o.nome_confrontante || "") || "Desconhecido"}</div>
-            <div class="mb-1"><strong>Propriedade:</strong> ${w(o.nome_propriedade || "") || "Desconhecida"}</div>
-            <div class="mb-1"><strong>Coordenadas:</strong> ${o.lat.toFixed(7)}, ${o.lon.toFixed(7)}</div>
-            <div class="text-[10px] text-white/50 border-t border-white/5 pt-1 mt-1 font-mono uppercase tracking-wider mb-2">Pontos Imutáveis do Vizinho</div>
-            <div style="display:flex; gap:6px; border-top:1px solid rgba(255,255,255,0.1); padding-top:6px;">
-              <button onclick="window.dispatchEvent(new CustomEvent('gerencigeo:integrar_vizinho', { detail: { pontoId: ${a} } }))" style="padding:3px 8px; font-size:10px; font-weight:700; border-radius:4px; background:#00f5a0; color:#04150c; border:none; cursor:pointer;" type="button">
-                Integrar
-              </button>
-              <button onclick="window.dispatchEvent(new CustomEvent('gerencigeo:ocultar_vizinho', { detail: { pontoId: ${a} } }))" style="padding:3px 8px; font-size:10px; font-weight:700; border-radius:4px; background:rgba(255,255,255,0.1); color:rgba(255,255,255,0.8); border:1px solid rgba(255,255,255,0.15); cursor:pointer;" type="button">
-                Ocultar
-              </button>
-            </div>
+      t.forEach((i) => {
+        var p, m;
+        const a = document.createElement("div");
+        a.className = "p-2 font-sans text-xs bg-[#0c1510] text-white min-w-[200px] rounded", a.innerHTML = `
+          <div class="font-bold text-purple-400 mb-1 border-b border-white/10 pb-1">Confrontante (Importado)</div>
+          <div class="mb-1"><strong>Vértice:</strong> <span class="font-mono">${k(i.nome_vertice || "")}</span></div>
+          <div class="mb-1"><strong>Proprietário:</strong> ${k(i.nome_confrontante || "") || "Desconhecido"}</div>
+          <div class="mb-1"><strong>Propriedade:</strong> ${k(i.nome_propriedade || "") || "Desconhecida"}</div>
+          <div class="mb-1"><strong>Coordenadas:</strong> ${i.lat.toFixed(7)}, ${i.lon.toFixed(7)}</div>
+          <div class="text-[10px] text-white/50 border-t border-white/5 pt-1 mt-1 font-mono uppercase tracking-wider mb-2">Pontos Imutáveis do Vizinho</div>
+          <div style="display:flex; gap:6px; border-top:1px solid rgba(255,255,255,0.1); padding-top:6px;">
+            <button class="btn-integrar" style="padding:3px 8px; font-size:10px; font-weight:700; border-radius:4px; background:#00f5a0; color:#04150c; border:none; cursor:pointer;" type="button">
+              Integrar
+            </button>
+            <button class="btn-ocultar" style="padding:3px 8px; font-size:10px; font-weight:700; border-radius:4px; background:rgba(255,255,255,0.1); color:rgba(255,255,255,0.8); border:1px solid rgba(255,255,255,0.15); cursor:pointer;" type="button">
+              Ocultar
+            </button>
           </div>
-        `;
-        let s = this.core.config.markerStyleV || "cross", l = this.core.config.markerSizeV || 8;
-        o.tipo_ponto === "M" || o.tipo === "M" || o.tipo === "B" ? (s = this.core.config.markerStyleM || "circle-dot", l = this.core.config.markerSizeM || 14) : (o.tipo_ponto === "P" || o.tipo === "P" || o.tipo === "O") && (s = this.core.config.markerStyleP || "circle", l = this.core.config.markerSizeP || 10);
-        const d = this.core.config.enableAnimations ? "transition-all duration-150" : "", h = $(s, l, "bg-[#a855f7]", d, `map-marker-vizinho-${o.id}`), c = v.divIcon({
-          html: h,
+        `, (p = a.querySelector(".btn-integrar")) == null || p.addEventListener("click", () => {
+          window.dispatchEvent(new CustomEvent("gerencigeo:integrar_vizinho", { detail: { pontoId: i.id } }));
+        }), (m = a.querySelector(".btn-ocultar")) == null || m.addEventListener("click", () => {
+          window.dispatchEvent(new CustomEvent("gerencigeo:ocultar_vizinho", { detail: { pontoId: i.id } }));
+        });
+        let s = this.core.config.markerStyleV || "cross", r = this.core.config.markerSizeV || 8;
+        i.tipo_ponto === "M" || i.tipo === "M" || i.tipo === "B" ? (s = this.core.config.markerStyleM || "circle-dot", r = this.core.config.markerSizeM || 14) : (i.tipo_ponto === "P" || i.tipo === "P" || i.tipo === "O") && (s = this.core.config.markerStyleP || "circle", r = this.core.config.markerSizeP || 10);
+        const l = this.core.config.enableAnimations ? "transition-all duration-150" : "", u = D(s, r, "bg-[#a855f7]", l, `map-marker-vizinho-${i.id}`), d = _.divIcon({
+          html: u,
           className: "custom-leaflet-marker flex items-center justify-center",
-          iconSize: [l + 4, l + 4]
-        }), p = v.marker([o.lat, o.lon], {
-          icon: c,
+          iconSize: [r + 4, r + 4]
+        }), c = _.marker([i.lat, i.lon], {
+          icon: d,
           pane: "overlayPane"
-        }).bindPopup(r, { className: "custom-leaflet-popup" });
-        p.pontoId = o.id, p.isVizinho = !0, p.addTo(this.core.pontosVizinhosGroup), this.vizinhosMarkers.push(p);
+        }).bindPopup(a, { className: "custom-leaflet-popup" });
+        c.pontoId = i.id, c.isVizinho = !0, c.addTo(this.core.pontosVizinhosGroup), this.vizinhosMarkers.push(c);
       });
     });
   }
   /**
    * Desenha o perímetro (limites) dos imóveis vizinhos importados via WKT POLYGON
    */
-  plotPoligonosVizinhos(i) {
-    !this.core.map || !this.core.pontosVizinhosGroup || (this.core.map.hasLayer(this.core.pontosVizinhosGroup) || this.core.pontosVizinhosGroup.addTo(this.core.map), this.vizinhosPoligonos.length > 0 && (this.vizinhosPoligonos.forEach((e) => e.off()), this.vizinhosPoligonos = []), (i || []).forEach((e) => {
+  plotPoligonosVizinhos(o) {
+    !this.core.map || !this.core.pontosVizinhosGroup || (this.core.map.hasLayer(this.core.pontosVizinhosGroup) || this.core.pontosVizinhosGroup.addTo(this.core.map), this.vizinhosPoligonos.length > 0 && (this.vizinhosPoligonos.forEach((e) => e.off()), this.vizinhosPoligonos = []), (o || []).forEach((e) => {
       if (!e || !e.poligono_wkt) return;
       const t = /POLYGON\s*\(\s*\(\s*(.*?)\s*\)\s*\)/i.exec(e.poligono_wkt);
       if (!t) return;
-      const o = t[1].split(",").map((l) => {
-        const d = l.trim().split(/\s+/), h = parseFloat(d[0]), c = parseFloat(d[1]);
-        return !isNaN(c) && !isNaN(h) ? [c, h] : null;
+      const i = t[1].split(",").map((l) => {
+        const u = l.trim().split(/\s+/), d = parseFloat(u[0]), c = parseFloat(u[1]);
+        return !isNaN(c) && !isNaN(d) ? [c, d] : null;
       }).filter((l) => l !== null);
-      if (o.length < 3) return;
-      const a = w(e.nome_propriedade || "Propriedade Vizinha"), r = w(e.nome || "Desconhecido"), s = v.polygon(o, {
+      if (i.length < 3) return;
+      const a = k(e.nome_propriedade || "Propriedade Vizinha"), s = k(e.nome || "Desconhecido"), r = _.polygon(i, {
         color: "#a855f7",
         weight: this.core.config.vizinhoWeight,
         dashArray: "4, 6",
@@ -3659,59 +5534,47 @@ class Xe {
         <div class="p-2 font-sans text-xs bg-[#0c1510] text-white min-w-[200px] rounded">
           <div class="font-bold text-purple-400 mb-1 border-b border-white/10 pb-1">Limite do Vizinho (Importado)</div>
           <div class="mb-1"><strong>Propriedade:</strong> ${a}</div>
-          <div class="mb-1"><strong>Proprietário:</strong> ${r}</div>
+          <div class="mb-1"><strong>Proprietário:</strong> ${s}</div>
         </div>
       `, { className: "custom-leaflet-popup" });
-      s.addTo(this.core.pontosVizinhosGroup), this.vizinhosPoligonos.push(s);
+      r.addTo(this.core.pontosVizinhosGroup), this.vizinhosPoligonos.push(r);
     }));
   }
   clearMarkers() {
-    this.markers && (this.markers.forEach((i) => {
-      i.off(), i.unbindPopup(), this.core.map && this.core.map.removeLayer(i);
-    }), this.markers = []), this.vizinhosMarkers && (this.vizinhosMarkers.forEach((i) => {
-      i.off(), i.unbindPopup();
-    }), this.vizinhosMarkers = []), this.vizinhosPoligonos && (this.vizinhosPoligonos.forEach((i) => i.off()), this.vizinhosPoligonos = []), this.core.pontosVizinhosGroup && this.core.pontosVizinhosGroup.clearLayers();
+    this.markers && (this.markers.forEach((o) => {
+      o.off(), o.unbindPopup(), this.core.map && this.core.map.removeLayer(o);
+    }), this.markers = []), this.vizinhosMarkers && (this.vizinhosMarkers.forEach((o) => {
+      o.off(), o.unbindPopup();
+    }), this.vizinhosMarkers = []), this.vizinhosPoligonos && (this.vizinhosPoligonos.forEach((o) => o.off()), this.vizinhosPoligonos = []), this.core.pontosVizinhosGroup && this.core.pontosVizinhosGroup.clearLayers();
   }
 }
-class We {
+class xt {
   constructor() {
     n(this, "listeners", /* @__PURE__ */ new Map());
   }
-  /**
-   * Registra um ouvinte para um canal ou evento global.
-   */
-  on(i, e) {
-    return this.listeners.has(i) || this.listeners.set(i, /* @__PURE__ */ new Set()), this.listeners.get(i).add(e), () => this.off(i, e);
+  on(o, e) {
+    return this.listeners.has(o) || this.listeners.set(o, /* @__PURE__ */ new Set()), this.listeners.get(o).add(e), () => this.off(o, e);
   }
-  /**
-   * Registra um ouvinte que será executado apenas uma única vez.
-   */
-  once(i, e) {
-    const t = (o) => {
-      this.off(i, t), e(o);
+  once(o, e) {
+    const t = (i) => {
+      this.off(o, t), e(i);
     };
-    this.on(i, t);
+    this.on(o, t);
   }
-  /**
-   * Remove um ouvinte previamente registrado.
-   */
-  off(i, e) {
-    const t = this.listeners.get(i);
-    t && (t.delete(e), t.size === 0 && this.listeners.delete(i));
+  off(o, e) {
+    const t = this.listeners.get(o);
+    t && (t.delete(e), t.size === 0 && this.listeners.delete(o));
   }
-  /**
-   * Emite um evento com dados para todos os ouvintes inscritos.
-   */
-  emit(i, e) {
-    const t = this.listeners.get(i);
-    t && t.forEach((o) => {
+  emit(o, e) {
+    const t = this.listeners.get(o);
+    t && t.forEach((i) => {
       try {
-        o(e);
+        i(e);
       } catch (a) {
-        console.error(`[UIBus] Erro ao executar ouvinte do evento "${i}":`, a);
+        console.error(`[UIBus] Erro ao executar ouvinte do evento "${o}":`, a);
       }
     }), typeof window < "u" && window.dispatchEvent(
-      new CustomEvent(`uibus:${i}`, {
+      new CustomEvent(`uibus:${o}`, {
         detail: e,
         bubbles: !0,
         composed: !0
@@ -3724,37 +5587,60 @@ class We {
   /**
    * Abre um modal pelo seu ID no documento.
    */
-  abrirModal(i) {
-    const e = document.getElementById(i);
-    return e && typeof e.abrir == "function" ? (e.abrir(), this.emit("modal:aberto", { id: i }), !0) : e ? (e.setAttribute("aberto", ""), this.emit("modal:aberto", { id: i }), !0) : (console.warn(`[UIBus] Modal com ID "${i}" não encontrado no DOM.`), !1);
+  abrirModal(o) {
+    const e = document.getElementById(o);
+    return e && typeof e.abrir == "function" ? (e.abrir(), this.emit("modal:aberto", { id: o }), !0) : e ? (e.setAttribute("aberto", ""), this.emit("modal:aberto", { id: o }), !0) : (console.warn(`[UIBus] Modal com ID "${o}" não encontrado no DOM.`), !1);
   }
   /**
    * Fecha um modal pelo seu ID ou todos os modais abertos se nenhum ID for passado.
    */
-  fecharModal(i) {
-    if (i) {
-      const e = document.getElementById(i);
-      return e && typeof e.fechar == "function" ? (e.fechar(), this.emit("modal:fechado", { id: i }), !0) : e ? (e.removeAttribute("aberto"), e.removeAttribute("open"), this.emit("modal:fechado", { id: i }), !0) : !1;
+  fecharModal(o) {
+    if (o) {
+      const e = document.getElementById(o);
+      return e && typeof e.fechar == "function" ? (e.fechar(), this.emit("modal:fechado", { id: o }), !0) : e ? (e.removeAttribute("aberto"), e.removeAttribute("open"), this.emit("modal:fechado", { id: o }), !0) : !1;
     } else
-      return document.querySelectorAll("ui-modal[aberto], ui-modal[open], ui-dialog[aberto], ui-dialog[open]").forEach((t) => {
+      return document.querySelectorAll(
+        "ui-modal[aberto], ui-modal[open], ui-dialog[aberto], ui-dialog[open]"
+      ).forEach((t) => {
         typeof t.fechar == "function" ? t.fechar() : (t.removeAttribute("aberto"), t.removeAttribute("open"));
       }), this.emit("modal:fechado-todos"), !0;
   }
   /**
+   * Abre um painel lateral (drawer / sheet) pelo seu ID no documento.
+   */
+  abrirDrawer(o) {
+    const e = document.getElementById(o);
+    return e && typeof e.abrir == "function" ? (e.abrir(), this.emit("drawer:aberto", { id: o }), !0) : e ? (e.setAttribute("aberto", ""), this.emit("drawer:aberto", { id: o }), !0) : (console.warn(`[UIBus] Drawer com ID "${o}" não encontrado no DOM.`), !1);
+  }
+  /**
+   * Fecha um painel lateral (drawer / sheet) pelo seu ID ou todos se nenhum for passado.
+   */
+  fecharDrawer(o) {
+    if (o) {
+      const e = document.getElementById(o);
+      return e && typeof e.fechar == "function" ? (e.fechar(), this.emit("drawer:fechado", { id: o }), !0) : e ? (e.removeAttribute("aberto"), e.removeAttribute("open"), this.emit("drawer:fechado", { id: o }), !0) : !1;
+    } else
+      return document.querySelectorAll(
+        "ui-drawer[aberto], ui-drawer[open], ui-sheet[aberto], ui-sheet[open]"
+      ).forEach((t) => {
+        typeof t.fechar == "function" ? t.fechar() : (t.removeAttribute("aberto"), t.removeAttribute("open"));
+      }), this.emit("drawer:fechado-todos"), !0;
+  }
+  /**
    * Dispara uma notificação toast flutuante inteligente.
    */
-  notificar(i) {
-    typeof i == "string" ? q.notificar({ mensagem: i, tipo: "info" }) : q.notificar(i);
+  notificar(o) {
+    typeof o == "string" ? F.notificar({ mensagem: o, tipo: "info" }) : F.notificar(o);
   }
   /**
    * Copia um texto para a área de transferência do usuário e exibe feedback opcional.
    */
-  async copiar(i, e) {
+  async copiar(o, e) {
     try {
-      return await navigator.clipboard.writeText(i), e !== void 0 && this.notificar({
+      return await navigator.clipboard.writeText(o), e !== void 0 && this.notificar({
         tipo: "sucesso",
         mensagem: e || "Copiado para a área de transferência!"
-      }), this.emit("clipboard:copiado", { texto: i }), !0;
+      }), this.emit("clipboard:copiado", { texto: o }), !0;
     } catch (t) {
       return console.error("[UIBus] Falha ao copiar texto:", t), this.notificar({
         tipo: "erro",
@@ -3765,115 +5651,154 @@ class We {
   /**
    * Altera a densidade visual global do kit (compacta, normal ou relaxada).
    */
-  definirDensidade(i) {
+  definirDensidade(o) {
     let e = 20;
-    typeof i == "number" ? e = Math.max(15, i) : i === "compacta" ? e = 15 : i === "relaxada" ? e = 32 : e = 20, document.documentElement.style.setProperty("--ui-altura-minima", `${e}px`), document.documentElement.style.setProperty("--ui-campo-altura", `${e}px`), document.documentElement.setAttribute("data-ui-densidade", typeof i == "string" ? i : "custom"), this.emit("densidade:alterada", { densidade: i, alturaPx: e });
+    typeof o == "number" ? e = Math.max(15, o) : o === "compacta" ? e = 15 : o === "relaxada" ? e = 32 : e = 20, document.documentElement.style.setProperty("--ui-altura-minima", `${e}px`), document.documentElement.style.setProperty("--ui-campo-altura", `${e}px`), document.documentElement.setAttribute("data-ui-densidade", typeof o == "string" ? o : "custom"), this.emit("densidade:alterada", { densidade: o, alturaPx: e });
   }
   /**
    * Alterna ou define o tema visual global.
    */
-  definirTema(i) {
-    const e = document.documentElement, t = e.getAttribute("data-tema") || (e.classList.contains("dark") ? "escuro" : "claro"), o = i || (t === "escuro" ? "claro" : "escuro");
-    return e.setAttribute("data-tema", o), o === "escuro" ? e.classList.add("dark") : e.classList.remove("dark"), this.emit("tema:alterado", { tema: o }), o;
+  definirTema(o) {
+    const e = document.documentElement, t = e.getAttribute("data-tema") || (e.classList.contains("dark") ? "escuro" : "claro"), i = o || (t === "escuro" ? "claro" : "escuro");
+    return e.setAttribute("data-tema", i), i === "escuro" ? e.classList.add("dark") : e.classList.remove("dark"), this.emit("tema:alterado", { tema: i }), i;
   }
 }
-const M = new We();
-let G = !1;
-function Ge() {
-  G || typeof document > "u" || (G = !0, document.addEventListener("click", (g) => {
-    const i = g.target;
-    if (!i) return;
-    const e = i.closest(
-      "[target-modal], [modal-alvo], [dismiss-modal], [fechar-modal], [toast-sucesso], [toast-erro], [toast-alerta], [toast-info], [copiar-texto], [alternar-tema], [definir-densidade], [limpar-form]"
-    );
-    if (!e) return;
-    const t = e.getAttribute("target-modal") || e.getAttribute("modal-alvo");
-    if (t && M.abrirModal(t), e.hasAttribute("dismiss-modal") || e.hasAttribute("fechar-modal")) {
-      const c = e.getAttribute("dismiss-modal") || e.getAttribute("fechar-modal");
-      if (c && c !== "")
-        M.fecharModal(c);
+const M = new xt();
+let ie = !1;
+function yt() {
+  ie || typeof document > "u" || (ie = !0, document.addEventListener("click", (b) => {
+    const o = b.composedPath ? b.composedPath() : [b.target], e = "[target-modal], [modal-alvo], [dismiss-modal], [fechar-modal], [target-drawer], [drawer-alvo], [dismiss-drawer], [fechar-drawer], [toast-sucesso], [toast-erro], [toast-alerta], [toast-info], [copiar-texto], [alternar-tema], [definir-densidade], [limpar-form]";
+    let t = null;
+    for (const m of o)
+      if (m instanceof HTMLElement && m.matches(e)) {
+        t = m;
+        break;
+      }
+    if (!t) return;
+    const i = t.getAttribute("target-modal") || t.getAttribute("modal-alvo");
+    if (i && M.abrirModal(i), t.hasAttribute("dismiss-modal") || t.hasAttribute("fechar-modal")) {
+      const m = t.getAttribute("dismiss-modal") || t.getAttribute("fechar-modal");
+      if (m && m !== "")
+        M.fecharModal(m);
       else {
-        const p = e.closest("ui-modal, ui-dialog");
-        p && (typeof p.fechar == "function" ? p.fechar() : (p.removeAttribute("aberto"), p.removeAttribute("open")));
+        let h = null;
+        for (const f of o)
+          if (f instanceof HTMLElement && (f.matches("ui-modal, ui-dialog") || f.tagName === "UI-MODAL" || f.tagName === "UI-DIALOG")) {
+            h = f;
+            break;
+          }
+        h && (typeof h.fechar == "function" ? h.fechar() : (h.removeAttribute("aberto"), h.removeAttribute("open")));
       }
     }
-    const o = e.getAttribute("toast-sucesso");
-    o && M.notificar({ tipo: "sucesso", mensagem: o });
-    const a = e.getAttribute("toast-erro");
-    a && M.notificar({ tipo: "erro", mensagem: a });
-    const r = e.getAttribute("toast-alerta");
-    r && M.notificar({ tipo: "alerta", mensagem: r });
-    const s = e.getAttribute("toast-info");
-    s && M.notificar({ tipo: "info", mensagem: s });
-    const l = e.getAttribute("copiar-texto");
-    if (l !== null) {
-      let c = l;
-      if (l.startsWith("#") || l.startsWith(".")) {
-        const x = document.querySelector(l);
-        x && (c = x.value !== void 0 ? x.value : x.textContent || "");
+    const a = t.getAttribute("target-drawer") || t.getAttribute("drawer-alvo");
+    if (a && M.abrirDrawer(a), t.hasAttribute("dismiss-drawer") || t.hasAttribute("fechar-drawer")) {
+      const m = t.getAttribute("dismiss-drawer") || t.getAttribute("fechar-drawer");
+      if (m && m !== "")
+        M.fecharDrawer(m);
+      else {
+        let h = null;
+        for (const f of o)
+          if (f instanceof HTMLElement && (f.matches("ui-drawer, ui-sheet, ui-painel-lateral, ui-gaveta") || f.tagName.startsWith("UI-DRAWER") || f.tagName.startsWith("UI-SHEET"))) {
+            h = f;
+            break;
+          }
+        h && (typeof h.fechar == "function" ? h.fechar() : (h.removeAttribute("aberto"), h.removeAttribute("open")));
       }
-      const p = e.getAttribute("copiar-mensagem") || "Copiado com sucesso!";
-      M.copiar(c, p);
     }
-    e.hasAttribute("alternar-tema") && M.definirTema();
-    const d = e.getAttribute("definir-densidade");
-    d && M.definirDensidade(d);
-    const h = e.getAttribute("limpar-form");
-    if (h) {
-      const c = document.getElementById(h);
-      c && typeof c.reset == "function" && (c.reset(), M.notificar({ tipo: "info", mensagem: "Formulário limpo." }));
+    const s = t.getAttribute("toast-sucesso");
+    s && M.notificar({ tipo: "sucesso", mensagem: s });
+    const r = t.getAttribute("toast-erro");
+    r && M.notificar({ tipo: "erro", mensagem: r });
+    const l = t.getAttribute("toast-alerta");
+    l && M.notificar({ tipo: "alerta", mensagem: l });
+    const u = t.getAttribute("toast-info");
+    u && M.notificar({ tipo: "info", mensagem: u });
+    const d = t.getAttribute("copiar-texto");
+    if (d !== null) {
+      let m = d;
+      if (d.startsWith("#") || d.startsWith("."))
+        try {
+          const f = document.querySelector(d);
+          f && (m = f.value !== void 0 ? f.value : f.textContent || "");
+        } catch {
+        }
+      const h = t.getAttribute("copiar-mensagem") || "Copiado com sucesso!";
+      M.copiar(m, h);
+    }
+    t.hasAttribute("alternar-tema") && M.definirTema();
+    const c = t.getAttribute("definir-densidade");
+    c && M.definirDensidade(c);
+    const p = t.getAttribute("limpar-form");
+    if (p) {
+      const m = document.getElementById(p);
+      m && typeof m.reset == "function" && (m.reset(), M.notificar({ tipo: "info", mensagem: "Formulário limpo." }));
     }
   }));
 }
-typeof document < "u" && Ge();
+typeof document < "u" && yt();
 export {
-  qe as CanvasInteracao,
-  Ve as CanvasLayerManager,
-  W as DEFAULT_CONFIG,
-  Re as DEFAULT_LAYERS,
-  De as GerenciGeoMapaController,
-  Fe as GridLayerRenderer,
+  rt as CAD_INTERACTIVE_PANES,
+  st as CanvasInteracao,
+  mt as CanvasLayerManager,
+  te as DEFAULT_CONFIG,
+  pt as DEFAULT_LAYERS,
+  ft as GerenciGeoMapaController,
+  ht as GridLayerRenderer,
   S as LayerRendererFactory,
-  B as ListenerBag,
-  O as MapaConfigManager,
-  Te as MapaCore,
-  Ke as MapaLinhas,
-  Xe as MapaMarcadores,
-  Be as TileLayerRenderer,
-  K as UIAlerta,
-  xe as UIAvatar,
-  V as UIBadge,
-  U as UIBotao,
-  ie as UIBotaoPrimario,
+  z as ListenerBag,
+  j as MapaConfigManager,
+  at as MapaCore,
+  kt as MapaLinhas,
+  At as MapaMarcadores,
+  nt as TileLayerRenderer,
+  se as UIAlerta,
+  Pe as UIAvatar,
+  G as UIBadge,
+  oe as UIBotao,
+  fe as UIBotaoPrimario,
   M as UIBus,
-  Y as UICampoTexto,
-  je as UICanvasCAD,
-  ye as UICard,
-  Z as UICheckbox,
-  fe as UIChip,
-  we as UIDialog,
-  ce as UIIcone,
-  F as UIListaFlutuante,
-  ze as UIMapa,
-  Ie as UIMapaLinha,
-  Me as UIMapaMarcador,
-  N as UIModal,
-  Ae as UIPopover,
+  ae as UICampoTexto,
+  bt as UICanvasCAD,
+  Be as UICard,
+  re as UICheckbox,
+  Le as UIChip,
+  Re as UIDialog,
+  N as UIDrawer,
+  it as UIEsqueleto,
+  He as UIGaveta,
+  Ee as UIIcone,
+  Ke as UIKpi,
+  V as UIListaFlutuante,
+  Qe as UIMapa,
+  et as UIMapaLinha,
+  Je as UIMapaMarcador,
+  Xe as UIMetrica,
+  O as UIModal,
+  De as UIPainelLateral,
+  We as UIPopover,
   H as UIRadio,
-  ae as UISelect,
-  R as UISwitch,
-  Le as UITabela,
-  be as UITag,
-  se as UITexto,
-  q as UIToast,
-  pe as UIToggle,
-  X as UITooltip,
-  $e as VectorLinesLayerRenderer,
-  He as VectorPointsLayerRenderer,
-  Oe as VectorPolygonsLayerRenderer,
-  Ne as WmsLayerRenderer,
-  w as escapeHtml,
-  Ze as formatUTM,
-  $ as getPointShapeHtml,
-  Ge as initZeroJSTriggers
+  U as UISegmented,
+  Ne as UISegmento,
+  ge as UISelect,
+  Oe as UISheet,
+  ce as UISkeleton,
+  Y as UIStat,
+  W as UISwitch,
+  Ue as UITabela,
+  K as UITabelaPropriedades,
+  Me as UITag,
+  ye as UITexto,
+  F as UIToast,
+  Se as UIToggle,
+  ne as UITooltip,
+  ct as VectorLinesLayerRenderer,
+  dt as VectorPointsLayerRenderer,
+  ut as VectorPolygonsLayerRenderer,
+  lt as WmsLayerRenderer,
+  vt as avaliarExpressaoMatematica,
+  k as escapeHtml,
+  Et as formatUTM,
+  D as getPointShapeHtml,
+  yt as initZeroJSTriggers,
+  q as parseCoordenada
 };

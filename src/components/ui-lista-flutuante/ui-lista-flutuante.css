@@ -19,7 +19,7 @@
 
 .ui-lista-flutuante__label {
   font-family: var(--ui-fonte-base, 'Inter', sans-serif);
-  font-size: var(--ui-tamanho-corpo-sm, 12.5px);
+  font-size: var(--ui-tamanho-corpo-sm, 13px);
   font-weight: var(--ui-peso-medio, 500);
   color: var(--ui-cor-texto, #e1e1e6);
   margin-bottom: 4px;
@@ -31,18 +31,18 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: clamp(4px, 0.8vw, 8px);
+  gap: 6px;
   width: 100%;
   height: var(--ui-campo-altura, 100%);
   min-height: var(--ui-campo-altura, var(--ui-altura-minima, 15px));
-  padding: 0 clamp(4px, 0.8vw, 8px);
+  padding: 0 8px;
   background-color: var(--ui-cor-fundo-elevado, #1a1a1e);
   color: var(--ui-cor-texto, #e1e1e6);
   border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
   border-radius: var(--ui-raio-borda, 6px);
   font-family: var(--ui-fonte-base, 'Inter', sans-serif);
-  font-size: clamp(10.5px, 0.8rem, 13.5px);
-  line-height: normal;
+  font-size: clamp(11px, 0.85rem, 13px);
+  line-height: 1;
   cursor: pointer;
   box-sizing: border-box;
   transition: border-color 0.15s ease, background-color 0.15s ease;
@@ -66,10 +66,15 @@
 }
 
 .ui-lista-flutuante__seta {
-  font-size: clamp(8px, 0.65rem, 11px);
+  font-size: 10px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   transition: transform 0.2s ease;
   color: var(--ui-cor-texto-secundario, #888899);
   flex-shrink: 0;
+  shape-rendering: geometricPrecision;
 }
 
 :host([aberta]) .ui-lista-flutuante__seta {
@@ -93,7 +98,15 @@
   display: block;
 }
 
-/* Conteúdo Desktop Padrão */
+/* Conteúdo Desktop Padrão com Fallback Robusto */
+:host(:not([aberta])) .ui-lista-flutuante__conteudo {
+  display: none !important;
+}
+
+:host([aberta]) .ui-lista-flutuante__conteudo {
+  display: block;
+}
+
 .ui-lista-flutuante__conteudo {
   position: fixed;
   margin: 0;
@@ -165,7 +178,7 @@
 .ui-lista-flutuante__item {
   padding: 6px 10px;
   font-family: var(--ui-fonte-base, 'Inter', sans-serif);
-  font-size: clamp(11px, 0.8rem, 13px);
+  font-size: 12px;
   line-height: 1.2;
   color: var(--ui-cor-texto, #e1e1e6);
   border-radius: 4px;

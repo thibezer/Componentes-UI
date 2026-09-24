@@ -1,7 +1,7 @@
 import L from 'leaflet';
 import type { ILayerRenderer } from '../layer_renderer_factory';
 import type { CanvasLayerDef, CanvasRenderContext, Ponto, Segmento } from '../types';
-import { escapeHtml } from '../utils';
+import { escapeHtml, parseCoordenada } from '../utils';
 
 export class VectorLinesLayerRenderer implements ILayerRenderer {
   private zoomListenerMap = new WeakMap<L.LayerGroup, () => void>();
@@ -52,14 +52,24 @@ export class VectorLinesLayerRenderer implements ILayerRenderer {
     context: CanvasRenderContext,
     paneName: string
   ): void {
+    const isHomologadoLayer = layerDef.id === 'homologados';
     const segmentos = (layerDef.dados?.segmentos || context.segmentos || []) as Segmento[];
-    const pontos = (layerDef.dados?.pontos || context.pontos || []) as Ponto[];
+    const pontosOriginais = (layerDef.dados?.pontos || (isHomologadoLayer && context.bancoPontos && context.bancoPontos.length > 0 ? context.bancoPontos : context.pontos) || []) as Ponto[];
     const weight = this.calculateWeight(layerDef, map, context);
     const opacity = layerDef.opacidade !== undefined ? layerDef.opacidade : 1.0;
     const isInteractive = layerDef.interativo && !layerDef.bloqueada;
 
-    // 1. Plota segmentos reais vinculados
-    if (segmentos && segmentos.length > 0) {
+    // Normaliza pontos com parseCoordenada
+    const pontos: Ponto[] = [];
+    pontosOriginais.forEach(p => {
+      const coord = parseCoordenada(p.lat ?? (p as any).latitude ?? (p as any).y, p.lon ?? (p as any).lng ?? (p as any).longitude ?? (p as any).x);
+      if (coord) {
+        pontos.push({ ...p, lat: coord.lat, lon: coord.lon });
+      }
+    });
+
+    // 1. Plota segmentos reais vinculados (se não for camada de homologados sem segmentos)
+    if (!isHomologadoLayer && segmentos && segmentos.length > 0) {
       segmentos.forEach(s => {
         const pIni = pontos.find(p => String(p.id) === String(s.ponto_inicio_id));
         const pFim = pontos.find(p => String(p.id) === String(s.ponto_fim_id));
@@ -95,9 +105,9 @@ export class VectorLinesLayerRenderer implements ILayerRenderer {
         }
       });
     } else if (pontos && pontos.length >= 2) {
-      // 2. Plota polilinha sequencial temporária fechada com agrupamento inteligente por matrícula
+      // 2. Plota polilinhas contínuas otimizadas por matrícula com fechamento
       const validPoints = pontos.filter(
-        p => p.lat && p.lon && p.lat !== 0 && p.lon !== 0 && p.tipo_ponto !== 'B' && p.tipo !== 'B' && p.ignorar_poligono !== 1
+        p => p.lat && p.lon && p.tipo_ponto !== 'B' && p.tipo !== 'B' && p.ignorar_poligono !== 1
       );
 
       const grupos: { [key: string]: Ponto[] } = {};
@@ -107,42 +117,54 @@ export class VectorLinesLayerRenderer implements ILayerRenderer {
         grupos[key].push(p);
       });
 
-      const color = layerDef.estilo.corPrimaria || '#10b981';
+      const color = layerDef.estilo.corPrimaria || (isHomologadoLayer ? '#f59e0b' : '#10b981');
+      const dashArray = layerDef.estilo.dashArray || (isHomologadoLayer ? '6, 8' : undefined);
 
       Object.values(grupos).forEach(grupoPontos => {
-        grupoPontos.sort((a, b) => Number(a.ordem_caminhamento ?? 999999) - Number(b.ordem_caminhamento ?? 999999));
+        grupoPontos.sort((a, b) => Number(a.ordem_caminhamento ?? a.id ?? 999999) - Number(b.ordem_caminhamento ?? b.id ?? 999999));
         if (grupoPontos.length < 2) return;
 
-        for (let i = 0; i < grupoPontos.length - 1; i++) {
-          const pIni = grupoPontos[i];
-          const pFim = grupoPontos[i + 1];
-          const polyline = L.polyline([[pIni.lat as number, pIni.lon as number], [pFim.lat as number, pFim.lon as number]], {
-            color,
-            weight,
-            opacity,
-            pane: paneName,
-            interactive: isInteractive
-          });
-          polyline.addTo(group);
-        }
+        // Otimização: traçado unificado contínuo (1 único polyline para o corpo inteiro)
+        const latLngs: [number, number][] = grupoPontos.map(p => [p.lat as number, p.lon as number]);
 
-        // Fechamento de perímetro
-        const pLast = grupoPontos[grupoPontos.length - 1];
-        const pFirst = grupoPontos[0];
-        const polylineClose = L.polyline([[pLast.lat as number, pLast.lon as number], [pFirst.lat as number, pFirst.lon as number]], {
+        const polylineCorpo = L.polyline(latLngs, {
           color,
           weight,
           opacity,
-          dashArray: '4, 4',
+          dashArray,
           pane: paneName,
           interactive: isInteractive
         });
-        polylineClose.addTo(group);
+        polylineCorpo.addTo(group);
+
+        // Fechamento de perímetro do grupo (último -> primeiro)
+        if (latLngs.length >= 3) {
+          const pLast = latLngs[latLngs.length - 1];
+          const pFirst = latLngs[0];
+          const polylineClose = L.polyline([pLast, pFirst], {
+            color,
+            weight,
+            opacity,
+            dashArray: isHomologadoLayer ? '6, 8' : '4, 4',
+            pane: paneName,
+            interactive: isInteractive
+          });
+          polylineClose.addTo(group);
+        }
       });
     }
   }
 
   public update(layerDef: CanvasLayerDef, layerInstance: L.LayerGroup, changes: Partial<CanvasLayerDef>, context: CanvasRenderContext, map: L.Map): void {
+    const onlyOpacity = changes.opacidade !== undefined &&
+      changes.estilo === undefined &&
+      changes.dados === undefined;
+
+    if (onlyOpacity) {
+      // O LayerManager já atualiza o pane.style.opacity de forma O(1).
+      return;
+    }
+
     if (changes.opacidade !== undefined || changes.estilo !== undefined || changes.dados !== undefined) {
       layerInstance.clearLayers();
       this.rebuildLines(layerDef, layerInstance, map, context, `pane-${layerDef.id}`);

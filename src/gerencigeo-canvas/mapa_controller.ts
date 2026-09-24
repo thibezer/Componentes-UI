@@ -3,6 +3,7 @@ import type { Ponto, Segmento, BancoPonto, Confrontante, CanvasRenderContext, Ca
 import { MapaCore } from './mapa_core';
 import { CanvasInteracao } from './canvas_interacao';
 import { CanvasLayerManager } from './layer_manager';
+import { parseCoordenada } from './utils';
 
 export class GerenciGeoMapaController {
   public core: MapaCore;
@@ -125,12 +126,11 @@ export class GerenciGeoMapaController {
 
     const validCoords = todosPontos
       .map(p => {
-        const rawLat = p.lat ?? (p as any).latitude ?? (p as any).y ?? (p as any).norte;
-        const rawLon = p.lon ?? (p as any).lng ?? (p as any).longitude ?? (p as any).x ?? (p as any).este;
-        const lat = typeof rawLat === 'string' ? parseFloat(rawLat) : Number(rawLat);
-        const lon = typeof rawLon === 'string' ? parseFloat(rawLon) : Number(rawLon);
-        if (lat !== undefined && lon !== undefined && !isNaN(lat) && !isNaN(lon) && lat !== 0 && lon !== 0) {
-          return L.latLng(lat, lon);
+        const rawLat = p.lat ?? (p as any).latitude ?? (p as any).y;
+        const rawLon = p.lon ?? (p as any).lng ?? (p as any).longitude ?? (p as any).x;
+        const coord = parseCoordenada(rawLat, rawLon);
+        if (coord) {
+          return L.latLng(coord.lat, coord.lon);
         }
         return null;
       })

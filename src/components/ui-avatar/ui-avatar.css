@@ -21,7 +21,7 @@
   background-color: var(--ui-cor-fundo-elevado, #22222a);
   color: var(--ui-cor-primaria, #00E08A);
   font-weight: 600;
-  font-size: clamp(10px, 0.4 * var(--ui-tamanho-avatar, 36px), 24px);
+  font-size: var(--ui-avatar-font-size, 14px);
   user-select: none;
   box-sizing: border-box;
   overflow: hidden;
@@ -77,20 +77,25 @@
 /* Tamanhos Pré-definidos */
 .ui-avatar--xs {
   --ui-tamanho-avatar: 20px;
+  --ui-avatar-font-size: 10px;
 }
 
 .ui-avatar--sm {
   --ui-tamanho-avatar: 28px;
+  --ui-avatar-font-size: 11px;
 }
 
 .ui-avatar--md {
   --ui-tamanho-avatar: 36px;
+  --ui-avatar-font-size: 14px;
 }
 
 .ui-avatar--lg {
   --ui-tamanho-avatar: 48px;
+  --ui-avatar-font-size: 18px;
 }
 
 .ui-avatar--xl {
   --ui-tamanho-avatar: 64px;
+  --ui-avatar-font-size: 24px;
 }

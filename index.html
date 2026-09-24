@@ -1024,7 +1024,7 @@
 
           <form id="form-demo-inteligente" style="display: flex; flex-direction: column; gap: 10px; width: 100%;">
             <ui-campo-texto name="responsavel_tecnico" label="Responsável Técnico"
-              value="Eng. Thiago Bezerril"></ui-campo-texto>
+              value="Eng. Thiago Bezerra"></ui-campo-texto>
 
             <div style="display: flex; gap: 12px; align-items: center;">
               <ui-checkbox name="gerar_memorial" label="Gerar Memorial Descritivo" marcado value="sim"></ui-checkbox>
@@ -1040,6 +1040,42 @@
               </ui-botao-primario>
             </div>
           </form>
+        </div>
+      </div>
+    </article>
+
+    <!-- Nova Seção: Paleta / Tabela de Propriedades (Estilo AutoCAD & Revit) -->
+    <article class="demo-card">
+      <div class="demo-card-header">
+        <h2>📐 Paleta &amp; Tabela de Propriedades (AutoCAD &amp; Revit)</h2>
+        <p>Componente para inspeção técnica de objetos, categorias retráteis, splitter arrastável e editores inline
+          ricos.</p>
+      </div>
+
+      <div
+        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 24px; width: 100%; box-sizing: border-box;">
+        <!-- Exemplo 1: AutoCAD -->
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 13px; font-weight: 600; color: #00E08A;">1. Estilo AutoCAD (Círculo
+              Selecionado)</span>
+            <span style="font-size: 11px; color: #888899;">Splitter arrastável + Imediato</span>
+          </div>
+          <div style="height: 480px; width: 100%;">
+            <ui-tabela-propriedades id="propriedades-autocad" estilo-visual="autocad" filtro></ui-tabela-propriedades>
+          </div>
+        </div>
+
+        <!-- Exemplo 2: Revit -->
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 13px; font-weight: 600; color: #00E08A;">2. Estilo Revit (Planta de Piso)</span>
+            <span style="font-size: 11px; color: #888899;">Card de Tipo + Modo Aplicar</span>
+          </div>
+          <div style="height: 480px; width: 100%;">
+            <ui-tabela-propriedades id="propriedades-revit" estilo-visual="revit"
+              modo-aplicar="manual"></ui-tabela-propriedades>
+          </div>
         </div>
       </div>
     </article>

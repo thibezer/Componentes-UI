@@ -59,6 +59,23 @@ export const DEFAULT_LAYERS: CanvasLayerDef[] = [
     }
   },
   {
+    id: 'homologados-pontos',
+    nome: 'Marcos Homologados (SIGEF)',
+    categoria: 'referencia',
+    tipo: 'vetorial-pontos',
+    visivel: true,
+    opacidade: 1.0,
+    zIndex: 660,
+    interativo: true,
+    bloqueada: false,
+    estilo: {
+      tamanhoMarcador: 8,
+      corPrimaria: '#f59e0b',
+      estiloMarcador: 'circle',
+      scaleMode: 'screen'
+    }
+  },
+  {
     id: 'perimetro',
     nome: 'Divisas e Poligonal do Imóvel',
     categoria: 'levantamento',
@@ -156,6 +173,13 @@ export class CanvasLayerManager {
       if (pane) {
         pane.style.zIndex = String(layer.zIndex);
         pane.style.pointerEvents = layer.interativo && !layer.bloqueada && layer.visivel ? 'auto' : 'none';
+      }
+    });
+
+    ['verticesPane', 'perimetroPane', 'overlayPane'].forEach(paneName => {
+      const pane = this.map!.getPane(paneName);
+      if (pane) {
+        pane.style.pointerEvents = 'auto';
       }
     });
   }

@@ -37,4 +37,11 @@ describe('UITexto', () => {
     expect(inner.classList.contains('ui-texto--peso-negrito')).toBe(true);
     expect(inner.classList.contains('ui-texto--alinhamento-centro')).toBe(true);
   });
+
+  it('deve utilizar fallback sem quebrar caso tag inválida ou insegura seja passada', () => {
+    element.setAttribute('tag', '<script>');
+    element.setAttribute('variante', 'h2');
+    const inner = element.shadowRoot.querySelector('h2');
+    expect(inner).not.toBeNull();
+  });
 });
