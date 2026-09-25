@@ -173,6 +173,13 @@ export class UIRadio extends HTMLElement {
         composed: true,
       })
     );
+
+    this.dispatchEvent(
+      new Event('change', {
+        bubbles: true,
+        composed: true,
+      })
+    );
   }
 
   public syncState() {

@@ -78,17 +78,22 @@ describe('UIBus - Barramento Global de Eventos', () => {
     expect(busListener).toHaveBeenCalledWith({ id: 'modal-fechar' });
   });
 
-  it('deve definir densidade visual e variáveis CSS globais', () => {
+  it('deve definir densidade visual e variáveis CSS globais de acordo com as especificações (compacta=26px, padrao/normal=34px, relaxada=42px)', () => {
     const listener = vi.fn();
     UIBus.on('densidade:alterada', listener);
 
     UIBus.definirDensidade('compacta');
     expect(document.documentElement.getAttribute('data-ui-densidade')).toBe('compacta');
-    expect(document.documentElement.style.getPropertyValue('--ui-campo-altura')).toBe('15px');
-    expect(listener).toHaveBeenCalledWith({ densidade: 'compacta', alturaPx: 15 });
+    expect(document.documentElement.style.getPropertyValue('--ui-campo-altura')).toBe('26px');
+    expect(listener).toHaveBeenCalledWith({ densidade: 'compacta', alturaPx: 26 });
+
+    UIBus.definirDensidade('padrao');
+    expect(document.documentElement.style.getPropertyValue('--ui-campo-altura')).toBe('34px');
+    expect(listener).toHaveBeenCalledWith({ densidade: 'padrao', alturaPx: 34 });
 
     UIBus.definirDensidade('relaxada');
-    expect(document.documentElement.style.getPropertyValue('--ui-campo-altura')).toBe('32px');
+    expect(document.documentElement.style.getPropertyValue('--ui-campo-altura')).toBe('42px');
+    expect(listener).toHaveBeenCalledWith({ densidade: 'relaxada', alturaPx: 42 });
 
     UIBus.definirDensidade(25);
     expect(document.documentElement.style.getPropertyValue('--ui-campo-altura')).toBe('25px');

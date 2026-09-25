@@ -57,19 +57,33 @@ describe('UIListaFlutuante', () => {
     expect(element.hasAttribute('aberta')).toBe(false);
   });
 
-  it('should support ElementInternals and be form associated', () => {
+  it('should support ElementInternals and dispatch standard change and input events', () => {
     const form = document.createElement('form');
     const field = document.createElement('ui-lista-flutuante') as any;
     field.setAttribute('name', 'testList');
 
+    const changeSpy = vi.fn();
+    const inputSpy = vi.fn();
+    const uiSelecionarSpy = vi.fn();
+
+    field.addEventListener('change', changeSpy);
+    field.addEventListener('input', inputSpy);
+    field.addEventListener('ui-selecionar', uiSelecionarSpy);
+
     const opt1 = document.createElement('option');
     opt1.value = 'selectedVal';
+    opt1.textContent = 'Selected Label';
     field.appendChild(opt1);
 
     form.appendChild(field);
     document.body.appendChild(form);
 
-    field.value = 'selectedVal';
+    field.carregarItensFilhos();
+    field.selecionarItem({ id: 'selectedVal', label: 'Selected Label' });
+
+    expect(uiSelecionarSpy).toHaveBeenCalled();
+    expect(changeSpy).toHaveBeenCalled();
+    expect(inputSpy).toHaveBeenCalled();
 
     const formData = new FormData(form);
     expect(formData.get('testList')).toBe('selectedVal');

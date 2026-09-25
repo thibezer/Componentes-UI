@@ -245,15 +245,17 @@ class UIBusManager {
    * Altera a densidade visual global do kit (compacta, normal ou relaxada).
    */
   public definirDensidade(densidade: 'compacta' | 'normal' | 'padrao' | 'relaxada' | number): void {
-    let altura = 20;
+    let altura = 34;
     if (typeof densidade === 'number') {
       altura = Math.max(15, densidade);
     } else if (densidade === 'compacta') {
-      altura = 15;
+      altura = 26;
     } else if (densidade === 'relaxada') {
-      altura = 32;
+      altura = 42;
+    } else if (densidade === 'normal' || densidade === 'padrao') {
+      altura = 34;
     } else {
-      altura = 20;
+      altura = 34;
     }
     document.documentElement.style.setProperty('--ui-altura-minima', `${altura}px`);
     document.documentElement.style.setProperty('--ui-campo-altura', `${altura}px`);

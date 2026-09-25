@@ -151,6 +151,13 @@ export class UICheckbox extends HTMLElement {
         composed: true,
       })
     );
+
+    this.dispatchEvent(
+      new Event('change', {
+        bubbles: true,
+        composed: true,
+      })
+    );
   }
 
   private syncState() {

@@ -128,6 +128,13 @@ export class UISwitch extends HTMLElement {
         composed: true,
       })
     );
+
+    this.dispatchEvent(
+      new Event('change', {
+        bubbles: true,
+        composed: true,
+      })
+    );
   }
 
   private syncState() {

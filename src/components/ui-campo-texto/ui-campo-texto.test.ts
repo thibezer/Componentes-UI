@@ -15,23 +15,34 @@ describe('UICampoTexto', () => {
     document.body.removeChild(element);
   });
 
-  it('should emit ui-input event on input and preserve cursor position (not reset HTML attribute)', async () => {
-    const spy = vi.fn();
-    element.addEventListener('ui-input', spy);
+  it('should emit ui-input and native input/change events on input/change', async () => {
+    const uiInputSpy = vi.fn();
+    const nativeInputSpy = vi.fn();
+    const uiChangeSpy = vi.fn();
+    const nativeChangeSpy = vi.fn();
+
+    element.addEventListener('ui-input', uiInputSpy);
+    element.addEventListener('input', nativeInputSpy);
+    element.addEventListener('ui-change', uiChangeSpy);
+    element.addEventListener('change', nativeChangeSpy);
 
     const input = element.shadowRoot.querySelector('input');
     input.value = 'test';
 
     // Simulate input event
-    const event = new Event('input', { bubbles: true });
-    input.dispatchEvent(event);
+    input.dispatchEvent(new Event('input', { bubbles: true }));
 
-    expect(spy).toHaveBeenCalled();
-    const customEvent = spy.mock.calls[0][0];
-    expect(customEvent.detail.value).toBe('test');
+    expect(uiInputSpy).toHaveBeenCalled();
+    expect(nativeInputSpy).toHaveBeenCalled();
+    expect(uiInputSpy.mock.calls[0][0].detail.value).toBe('test');
 
-    // Ensure we are not directly setting the attribute, which would cause DOM refresh
-    // (We updated the code to remove this.setAttribute('value', val))
+    // Simulate change event
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+
+    expect(uiChangeSpy).toHaveBeenCalled();
+    expect(nativeChangeSpy).toHaveBeenCalled();
+    expect(uiChangeSpy.mock.calls[0][0].detail.value).toBe('test');
+
     expect(element.getAttribute('value')).toBeNull();
   });
 
