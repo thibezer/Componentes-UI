@@ -18,6 +18,8 @@ export declare class UICanvasCAD extends HTMLElement {
     private mouseMovedSinceDown;
     private mouseDownPos;
     private _chaveGrupo?;
+    private _zonaProjecao;
+    private configBroadcastChannel;
     private _pontos;
     private _segmentos;
     private _bancoPontos;
@@ -29,6 +31,16 @@ export declare class UICanvasCAD extends HTMLElement {
     private lastHostHeight;
     connectedCallback(): void;
     disconnectedCallback(): void;
+    /**
+     * Conecta ao canal de BroadcastChannel especificado no atributo 'canal-configuracao'.
+     * 100% configurável sem strings mágicas hardcoded.
+     */
+    private setupConfigBroadcastChannel;
+    /**
+     * Processa mensagens recebidas pelo barramento global de configuração.
+     * Atualiza cursor, opacidades de camadas e emite evento 'ui-config-aplicada'.
+     */
+    private processarMensagemConfiguracao;
     /**
      * Instancia um ResizeObserver monitorando o elemento host (this).
      * Ao detectar variação de largura ou altura > 0, aciona a invalidação de dimensões com debounce de 25ms.
@@ -90,6 +102,19 @@ export declare class UICanvasCAD extends HTMLElement {
      */
     get chaveGrupo(): string | undefined;
     set chaveGrupo(val: string | undefined);
+    /**
+     * Zona ou fuso de projeção cartográfica ativa (padrão: 22).
+     * Validado estritamente para números inteiros positivos (> 0).
+     * Sincronizado bidirecionalmente com os atributos 'zona-projecao' e 'fuso'.
+     */
+    get zonaProjecao(): number;
+    set zonaProjecao(val: number);
+    /**
+     * Nome do canal de BroadcastChannel desacoplado para barramento global de configuração em tempo real.
+     * 100% configurável via atributo 'canal-configuracao' sem strings mágicas hardcoded.
+     */
+    get canalConfiguracao(): string | null;
+    set canalConfiguracao(val: string | null);
     fitBounds(pontos?: Ponto[], padding?: [number, number], incluirVizinhos?: boolean): void;
     zoomExtents(): void;
     selectPonto(id: number, zoomLevel?: number): void;

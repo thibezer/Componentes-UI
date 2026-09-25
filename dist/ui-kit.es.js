@@ -779,7 +779,7 @@ class yt extends HTMLElement {
 }
 l(yt, "formAssociated", !0);
 customElements.get("ui-checkbox") || customElements.define("ui-checkbox", yt);
-const Ht = ':host{display:inline-flex;align-items:center;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif);vertical-align:middle}.ui-radio{display:inline-flex;align-items:center;gap:8px;cursor:pointer;-webkit-user-select:none;user-select:none;line-height:1;outline:none}.ui-radio--disabled{opacity:.5;cursor:not-allowed!important;pointer-events:none}.ui-radio__circle{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;min-width:16px;min-height:16px;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16));border-radius:50%;box-sizing:border-box;transition:background-color .15s ease,border-color .15s ease,box-shadow .15s ease;flex-shrink:0}.ui-radio:focus-visible .ui-radio__circle,.ui-radio--foco .ui-radio__circle{border-color:var(--ui-cor-primaria, #00E08A);box-shadow:0 0 0 2px #00e08a40}.ui-radio--checked .ui-radio__circle{border-color:var(--ui-cor-primaria, #00E08A)}.ui-radio__dot{width:8px;height:8px;border-radius:50%;background-color:var(--ui-cor-primaria, #00E08A);transition:transform .15s cubic-bezier(.4,0,.2,1),opacity .15s ease;transform:scale(0);opacity:0}.ui-radio--checked .ui-radio__dot{transform:scale(1);opacity:1}.ui-radio__label{display:inline-flex;align-items:center;font-size:clamp(11px,.85rem,14px);color:var(--ui-cor-texto, #e1e1e6);line-height:1}.ui-radio--label-esquerda{flex-direction:row-reverse}', G = class G extends HTMLElement {
+const Ot = ':host{display:inline-flex;align-items:center;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif);vertical-align:middle}.ui-radio{display:inline-flex;align-items:center;gap:8px;cursor:pointer;-webkit-user-select:none;user-select:none;line-height:1;outline:none}.ui-radio--disabled{opacity:.5;cursor:not-allowed!important;pointer-events:none}.ui-radio__circle{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;min-width:16px;min-height:16px;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16));border-radius:50%;box-sizing:border-box;transition:background-color .15s ease,border-color .15s ease,box-shadow .15s ease;flex-shrink:0}.ui-radio:focus-visible .ui-radio__circle,.ui-radio--foco .ui-radio__circle{border-color:var(--ui-cor-primaria, #00E08A);box-shadow:0 0 0 2px #00e08a40}.ui-radio--checked .ui-radio__circle{border-color:var(--ui-cor-primaria, #00E08A)}.ui-radio__dot{width:8px;height:8px;border-radius:50%;background-color:var(--ui-cor-primaria, #00E08A);transition:transform .15s cubic-bezier(.4,0,.2,1),opacity .15s ease;transform:scale(0);opacity:0}.ui-radio--checked .ui-radio__dot{transform:scale(1);opacity:1}.ui-radio__label{display:inline-flex;align-items:center;font-size:clamp(11px,.85rem,14px);color:var(--ui-cor-texto, #e1e1e6);line-height:1}.ui-radio--label-esquerda{flex-direction:row-reverse}', G = class G extends HTMLElement {
   constructor() {
     super();
     l(this, "internals");
@@ -813,7 +813,7 @@ const Ht = ':host{display:inline-flex;align-items:center;box-sizing:border-box;f
     this.internals = this.attachInternals();
     const t = this.attachShadow({ mode: "open" });
     t.innerHTML = `
-      <style>${Ht}</style>
+      <style>${Ot}</style>
       <div class="ui-radio" tabindex="0" role="radio" aria-checked="false">
         <span class="ui-radio__circle">
           <span class="ui-radio__dot"></span>
@@ -924,7 +924,7 @@ l(G, "formAssociated", !0), // Registro estruturado com WeakMap para prevenir va
 l(G, "_registry", /* @__PURE__ */ new WeakMap());
 let rt = G;
 customElements.get("ui-radio") || customElements.define("ui-radio", rt);
-const Ot = ':host{display:inline-flex;align-items:center;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif);vertical-align:middle}.ui-switch{display:inline-flex;align-items:center;gap:8px;cursor:pointer;-webkit-user-select:none;user-select:none;line-height:1;outline:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent}.ui-switch--disabled{opacity:.5;cursor:not-allowed!important;pointer-events:none}.ui-switch__track{display:inline-flex;align-items:center;position:relative;width:36px;height:20px;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16));border-radius:999px;box-sizing:border-box;padding:1px;transition:background-color .2s ease,border-color .2s ease,box-shadow .2s ease;flex-shrink:0}.ui-switch:focus-visible .ui-switch__track,.ui-switch--foco .ui-switch__track{border-color:var(--ui-cor-primaria, #00E08A);box-shadow:0 0 0 2px #00e08a40}.ui-switch--checked .ui-switch__track{background-color:var(--ui-cor-primaria, #00E08A);border-color:var(--ui-cor-primaria, #00E08A)}.ui-switch__thumb{display:block;width:16px;height:16px;background-color:#fff;border-radius:50%;box-shadow:0 1px 3px #0000004d;transition:transform .2s cubic-bezier(.4,0,.2,1),background-color .2s ease;transform:translate(0)}.ui-switch--checked .ui-switch__thumb{transform:translate(16px);background-color:var(--ui-cor-texto-sobre-primaria, #000000)}.ui-switch--sm .ui-switch__track{width:28px;height:16px;padding:1px}.ui-switch--sm .ui-switch__thumb{width:12px;height:12px}.ui-switch--sm.ui-switch--checked .ui-switch__thumb{transform:translate(12px)}.ui-switch--lg .ui-switch__track{width:44px;height:24px;padding:1px}.ui-switch--lg .ui-switch__thumb{width:20px;height:20px}.ui-switch--lg.ui-switch--checked .ui-switch__thumb{transform:translate(20px)}.ui-switch__label{display:inline-flex;align-items:center;font-size:clamp(11px,.85rem,14px);color:var(--ui-cor-texto, #e1e1e6);line-height:1}.ui-switch--label-esquerda{flex-direction:row-reverse}@media (max-width: 640px){.ui-switch{min-height:40px;padding:4px 0}.ui-switch__label{font-size:14px}}';
+const Ht = ':host{display:inline-flex;align-items:center;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif);vertical-align:middle}.ui-switch{display:inline-flex;align-items:center;gap:8px;cursor:pointer;-webkit-user-select:none;user-select:none;line-height:1;outline:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent}.ui-switch--disabled{opacity:.5;cursor:not-allowed!important;pointer-events:none}.ui-switch__track{display:inline-flex;align-items:center;position:relative;width:36px;height:20px;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16));border-radius:999px;box-sizing:border-box;padding:1px;transition:background-color .2s ease,border-color .2s ease,box-shadow .2s ease;flex-shrink:0}.ui-switch:focus-visible .ui-switch__track,.ui-switch--foco .ui-switch__track{border-color:var(--ui-cor-primaria, #00E08A);box-shadow:0 0 0 2px #00e08a40}.ui-switch--checked .ui-switch__track{background-color:var(--ui-cor-primaria, #00E08A);border-color:var(--ui-cor-primaria, #00E08A)}.ui-switch__thumb{display:block;width:16px;height:16px;background-color:#fff;border-radius:50%;box-shadow:0 1px 3px #0000004d;transition:transform .2s cubic-bezier(.4,0,.2,1),background-color .2s ease;transform:translate(0)}.ui-switch--checked .ui-switch__thumb{transform:translate(16px);background-color:var(--ui-cor-texto-sobre-primaria, #000000)}.ui-switch--sm .ui-switch__track{width:28px;height:16px;padding:1px}.ui-switch--sm .ui-switch__thumb{width:12px;height:12px}.ui-switch--sm.ui-switch--checked .ui-switch__thumb{transform:translate(12px)}.ui-switch--lg .ui-switch__track{width:44px;height:24px;padding:1px}.ui-switch--lg .ui-switch__thumb{width:20px;height:20px}.ui-switch--lg.ui-switch--checked .ui-switch__thumb{transform:translate(20px)}.ui-switch__label{display:inline-flex;align-items:center;font-size:clamp(11px,.85rem,14px);color:var(--ui-cor-texto, #e1e1e6);line-height:1}.ui-switch--label-esquerda{flex-direction:row-reverse}@media (max-width: 640px){.ui-switch{min-height:40px;padding:4px 0}.ui-switch__label{font-size:14px}}';
 class lt extends HTMLElement {
   constructor() {
     super();
@@ -948,7 +948,7 @@ class lt extends HTMLElement {
     this.internals = this.attachInternals();
     const t = this.attachShadow({ mode: "open" });
     t.innerHTML = `
-      <style>${Ot}</style>
+      <style>${Ht}</style>
       <div class="ui-switch" tabindex="0" role="switch" aria-checked="false">
         <span class="ui-switch__track">
           <span class="ui-switch__thumb"></span>
@@ -3499,10 +3499,10 @@ class Ee {
     };
     if (s && Array.isArray(s)) {
       s.forEach((g) => {
-        var N, H, z, O, $, A, k;
+        var N, O, z, H, $, A, k;
         const C = m(g.origemId), L = m(g.destinoId);
         if (C && L && C.lat && C.lon && L.lat && L.lon) {
-          const M = g.tipoLinha === "tracejada" || ((N = g.estilo) == null ? void 0 : N.tipoLinha) === "tracejada", T = ((H = g.estilo) == null ? void 0 : H.cor) || ((z = g.estilo) == null ? void 0 : z.color) || o.estilo.corPrimaria || "#00f5a0", q = ((O = g.estilo) == null ? void 0 : O.espessura) || (($ = g.estilo) == null ? void 0 : $.weight) || u, B = x.polyline([[C.lat, C.lon], [L.lat, L.lon]], {
+          const M = g.tipoLinha === "tracejada" || ((N = g.estilo) == null ? void 0 : N.tipoLinha) === "tracejada", T = ((O = g.estilo) == null ? void 0 : O.cor) || ((z = g.estilo) == null ? void 0 : z.color) || o.estilo.corPrimaria || "#00f5a0", q = ((H = g.estilo) == null ? void 0 : H.espessura) || (($ = g.estilo) == null ? void 0 : $.weight) || u, B = x.polyline([[C.lat, C.lon], [L.lat, L.lon]], {
             color: T,
             weight: q,
             opacity: ((A = g.estilo) == null ? void 0 : A.opacidade) ?? d,
@@ -3533,10 +3533,10 @@ class Ee {
     }
     if ((w = o.dados) != null && w.polilinhaSequencial || ((S = o.dados) == null ? void 0 : S.fechar) !== void 0 && p.length >= 2) {
       const g = ((P = o.dados) == null ? void 0 : P.chaveGrupo) || i.chaveGrupo, C = it(p, g), L = ((_ = o.dados) == null ? void 0 : _.fechar) !== !1, N = o.estilo.corPrimaria || "#00f5a0";
-      Object.entries(C).forEach(([H, z]) => {
-        const O = ot(z);
-        if (O.length < 2) return;
-        const $ = O.map((k) => [k.lat, k.lon]), A = x.polyline($, {
+      Object.entries(C).forEach(([O, z]) => {
+        const H = ot(z);
+        if (H.length < 2) return;
+        const $ = H.map((k) => [k.lat, k.lon]), A = x.polyline($, {
           color: N,
           weight: u,
           opacity: d,
@@ -3546,8 +3546,8 @@ class Ee {
         });
         if (h && A.bindPopup(`
             <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.3;">
-              <div style="font-weight:700; font-size:12px; margin-bottom:3px; color:#ffffff;">Polilinha: Grupo ${E(H)}</div>
-              <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">Vértices: ${O.length}</div>
+              <div style="font-weight:700; font-size:12px; margin-bottom:3px; color:#ffffff;">Polilinha: Grupo ${E(O)}</div>
+              <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">Vértices: ${H.length}</div>
             </div>
           `, { className: "compact-popup", maxWidth: 220 }), A.addTo(t), L && $.length >= 3) {
           const k = $[$.length - 1], M = $[0];
@@ -3566,13 +3566,13 @@ class Ee {
     if (!r && n && n.length > 0)
       n.forEach((g) => {
         var N;
-        const C = p.find((H) => String(H.id) === String(g.ponto_inicio_id)), L = p.find((H) => String(H.id) === String(g.ponto_fim_id));
+        const C = p.find((O) => String(O.id) === String(g.ponto_inicio_id)), L = p.find((O) => String(O.id) === String(g.ponto_fim_id));
         if (C && L && C.lat && C.lon && L.lat && L.lon) {
-          const H = g.tipo_limite_sigef || g.tipo_limite || "", z = g.metodo_posicionamento_sigef || g.metodo_posicionamento || "", O = H === "LA1" ? "#10b981" : H === "LN1" ? "#3b82f6" : "#00f5a0", $ = o.estilo.corPrimaria || O, A = x.polyline([[C.lat, C.lon], [L.lat, L.lon]], {
+          const O = g.tipo_limite_sigef || g.tipo_limite || "", z = g.metodo_posicionamento_sigef || g.metodo_posicionamento || "", H = O === "LA1" ? "#10b981" : O === "LN1" ? "#3b82f6" : "#00f5a0", $ = o.estilo.corPrimaria || H, A = x.polyline([[C.lat, C.lon], [L.lat, L.lon]], {
             color: $,
             weight: u,
             opacity: d,
-            dashArray: H === "LN1" ? "6, 6" : o.estilo.dashArray,
+            dashArray: O === "LN1" ? "6, 6" : o.estilo.dashArray,
             pane: a,
             interactive: h
           });
@@ -3581,7 +3581,7 @@ class Ee {
             A.bindPopup(`
               <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.3;">
                 <div style="font-weight:700; font-size:12px; margin-bottom:3px; color:#ffffff;">${E(C.nome_vertice)} ↔ ${E(L.nome_vertice)}</div>
-                <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">Limite: ${E(H || "N/A")} · ${E(z || "N/A")}</div>
+                <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">Limite: ${E(O || "N/A")} · ${E(z || "N/A")}</div>
                 ${T}
               </div>
             `, {
@@ -3601,16 +3601,16 @@ class Ee {
     else if (p && p.length >= 2) {
       const g = p.filter(
         (z) => z.lat && z.lon && z.tipo_ponto !== "B" && z.tipo !== "B" && z.ignorar_poligono !== 1
-      ), C = ((I = o.dados) == null ? void 0 : I.chaveGrupo) || i.chaveGrupo, L = it(g, C), N = o.estilo.corPrimaria || (r ? "#f59e0b" : "#10b981"), H = o.estilo.dashArray || (r ? "6, 8" : void 0);
+      ), C = ((I = o.dados) == null ? void 0 : I.chaveGrupo) || i.chaveGrupo, L = it(g, C), N = o.estilo.corPrimaria || (r ? "#f59e0b" : "#10b981"), O = o.estilo.dashArray || (r ? "6, 8" : void 0);
       Object.values(L).forEach((z) => {
-        const O = ot(z);
-        if (O.length < 2) return;
-        const $ = O.map((k) => [k.lat, k.lon]);
+        const H = ot(z);
+        if (H.length < 2) return;
+        const $ = H.map((k) => [k.lat, k.lon]);
         if (x.polyline($, {
           color: N,
           weight: u,
           opacity: d,
-          dashArray: H,
+          dashArray: O,
           pane: a,
           interactive: h
         }).addTo(t), $.length >= 3) {
@@ -3705,21 +3705,21 @@ class ke {
         const { lat: y, lon: w } = f, S = h.tipo_ponto === "B" || h.tipo === "B", P = h.tipo_ponto === "M" || h.tipo === "M";
         let _ = h.estilo || o.estilo.estiloMarcador || "circle", I = "bg-mint-vibrant", g = o.estilo.tamanhoMarcador || 7;
         r ? (_ = "circle", I = "bg-amber-500", g = 8) : s ? (_ = P ? "circle-dot" : "cross", I = "bg-[#a855f7]", g = P ? 10 : 8) : P ? (I = "bg-indigo-500", _ = "circle-dot", g = 10) : S && (I = "bg-rose-500", _ = "square", g = 9);
-        const C = this.calculateSize(o, e, i, g), L = i.config.enableAnimations ? "transition-all duration-150" : "", N = at(_, C, I, L, `map-marker-${o.id}-${h.id}`), H = x.divIcon({
+        const C = this.calculateSize(o, e, i, g), L = i.config.enableAnimations ? "transition-all duration-150" : "", N = at(_, C, I, L, `map-marker-${o.id}-${h.id}`), O = x.divIcon({
           html: N,
           className: "custom-leaflet-marker flex items-center justify-center",
           iconSize: [C + 6, C + 6]
         }), z = x.marker([y, w], {
-          icon: H,
+          icon: O,
           pane: a,
           interactive: u
         });
         if (z.pontoId = h.id, z.layerId = o.id, z.isVizinho = s, z.baseSize = g, z.shapeStyle = _, z.markerBg = I, u) {
-          let O = "";
+          let H = "";
           const $ = h.acoes || o.acoes || ((v = o.dados) == null ? void 0 : v.acoes) || [], A = J($, h.id);
           if (h.metadados && Object.keys(h.metadados).length > 0) {
             const k = Object.entries(h.metadados).map(([M, T]) => `<div style="font-size:11px; margin-bottom:2px;"><strong>${E(M)}:</strong> ${E(String(T))}</div>`).join("");
-            O = `
+            H = `
               <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.35; min-width:160px;">
                 <div style="font-weight:700; font-size:12px; margin-bottom:4px; color:#ffffff;">Ponto ${E(String(h.id))}</div>
                 ${k}
@@ -3729,7 +3729,7 @@ class ke {
             `;
           } else {
             const k = r ? "Vértice Homologado SIGEF" : s ? "Confrontante (Importado)" : P ? "Base Homologada PPP" : S ? "Base de Campo (Translação)" : "Nó / Vértice", M = E(h.codigo_completo || h.nome_vertice || `Ponto ${String(h.id)}`), T = typeof h.este == "number" ? `Este (E): ${h.este.toFixed(2)} m` : "", q = typeof h.norte == "number" ? `Norte (N): ${h.norte.toFixed(2)} m` : "", B = typeof h.altitude == "number" ? `Alt (h): ${h.altitude.toFixed(2)} m` : "";
-            O = `
+            H = `
               <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.35; min-width:170px;">
                 <div style="font-weight:700; font-size:13px; margin-bottom:4px; color:${r ? "#fbbf24" : "#ffffff"};">${M}</div>
                 <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">${E(k)} · ${E(h.tipo_ponto || h.tipo || "Ponto")}</div>
@@ -3740,7 +3740,7 @@ class ke {
               </div>
             `;
           }
-          z.bindPopup(O, {
+          z.bindPopup(H, {
             className: "compact-popup",
             maxWidth: 240
           }), z.on("click", () => {
@@ -3781,9 +3781,9 @@ class Ae {
     var d, h;
     const r = (((d = o.dados) == null ? void 0 : d.poligonos) ?? (Array.isArray(o.dados) ? o.dados : null)) || ((h = o.dados) == null ? void 0 : h.confrontantes) || e.confrontantes || [], s = o.interativo && !o.bloqueada, n = o.estilo.corPrimaria || "#a855f7", c = o.estilo.espessuraLinha || 1.5, u = o.opacidade !== void 0 ? o.opacidade : 0.8;
     r.forEach((p) => {
-      var _, I, g, C, L, N, H, z, O, $;
+      var _, I, g, C, L, N, O, z, H, $;
       if (!p) return;
-      const m = ((_ = p.estilo) == null ? void 0 : _.cor) || ((I = p.estilo) == null ? void 0 : I.color) || n, f = ((g = p.estilo) == null ? void 0 : g.espessura) || ((C = p.estilo) == null ? void 0 : C.weight) || c, v = ((L = p.estilo) == null ? void 0 : L.opacidade) ?? u, y = ((N = p.estilo) == null ? void 0 : N.fillColor) || m, w = ((H = p.estilo) == null ? void 0 : H.fillOpacity) ?? Math.min(0.2, v * 0.15), S = ((z = p.estilo) == null ? void 0 : z.dashArray) || o.estilo.dashArray || "4, 6";
+      const m = ((_ = p.estilo) == null ? void 0 : _.cor) || ((I = p.estilo) == null ? void 0 : I.color) || n, f = ((g = p.estilo) == null ? void 0 : g.espessura) || ((C = p.estilo) == null ? void 0 : C.weight) || c, v = ((L = p.estilo) == null ? void 0 : L.opacidade) ?? u, y = ((N = p.estilo) == null ? void 0 : N.fillColor) || m, w = ((O = p.estilo) == null ? void 0 : O.fillOpacity) ?? Math.min(0.2, v * 0.15), S = ((z = p.estilo) == null ? void 0 : z.dashArray) || o.estilo.dashArray || "4, 6";
       if (p.coordenadas && Array.isArray(p.coordenadas) && p.coordenadas.length >= 3) {
         const A = Array.isArray(p.coordenadas[0]) && Array.isArray(p.coordenadas[0][0]);
         let k;
@@ -3795,7 +3795,7 @@ class Ae {
         ) : k = p.coordenadas.map((M) => {
           const T = R(M[0], M[1]);
           return T ? [T.lat, T.lon] : null;
-        }).filter(Boolean), k && (A ? ((O = k[0]) == null ? void 0 : O.length) >= 3 : k.length >= 3)) {
+        }).filter(Boolean), k && (A ? ((H = k[0]) == null ? void 0 : H.length) >= 3 : k.length >= 3)) {
           const M = x.polygon(k, {
             color: m,
             weight: f,
@@ -4311,6 +4311,7 @@ class ze {
     l(this, "context");
     l(this, "modoCliqueSequencialAtivo", !1);
     l(this, "chaveGrupo");
+    l(this, "zonaProjecao", 22);
     l(this, "levantamentoId", null);
     l(this, "customMarkerClickCallback");
     l(this, "customPopupActionCallback");
@@ -4324,6 +4325,7 @@ class ze {
       segmentos: [],
       bancoPontos: [],
       confrontantes: [],
+      zonaProjecao: 22,
       config: this.core.config,
       graphicScale: {
         markerScaleMultiplier: 1,
@@ -4780,6 +4782,8 @@ class Me extends HTMLElement {
     l(this, "mouseMovedSinceDown", !1);
     l(this, "mouseDownPos", { x: 0, y: 0 });
     l(this, "_chaveGrupo");
+    l(this, "_zonaProjecao", 22);
+    l(this, "configBroadcastChannel", null);
     l(this, "_pontos", []);
     l(this, "_segmentos", []);
     l(this, "_bancoPontos", []);
@@ -4829,15 +4833,95 @@ class Me extends HTMLElement {
     `, this.mapContainer = this.shadow.getElementById("cad-map-container"), this.layersPanel = this.shadow.getElementById("qgis-layer-panel");
   }
   static get observedAttributes() {
-    return ["sat-opacity", "scale-mode", "crosshair", "modo-sequencial", "chave-grupo"];
+    return [
+      "sat-opacity",
+      "scale-mode",
+      "crosshair",
+      "modo-sequencial",
+      "chave-grupo",
+      "zona-projecao",
+      "fuso",
+      "canal-configuracao"
+    ];
   }
   connectedCallback() {
-    this.setupResizeObserver(), this.initTimeout = window.setTimeout(() => {
+    const t = this.getAttribute("zona-projecao") || this.getAttribute("fuso");
+    if (t) {
+      const e = parseInt(t, 10);
+      !isNaN(e) && e > 0 && (this._zonaProjecao = e, this.controller.zonaProjecao = e, this.controller.context.zonaProjecao = e);
+    }
+    this.setupResizeObserver(), this.setupConfigBroadcastChannel(), this.initTimeout = window.setTimeout(() => {
       this.initCAD();
     }, 0);
   }
   disconnectedCallback() {
-    this.initTimeout && (window.clearTimeout(this.initTimeout), this.initTimeout = void 0), this.resizeObserver && (this.resizeObserver.disconnect(), this.resizeObserver = null), this.resizeDebounceTimer !== null && (window.clearTimeout(this.resizeDebounceTimer), this.resizeDebounceTimer = null), this.limparDestaque(), this.uiListeners.cleanup(), this.layerItemListeners.cleanup(), this.controller.destroy();
+    if (this.initTimeout && (window.clearTimeout(this.initTimeout), this.initTimeout = void 0), this.resizeObserver && (this.resizeObserver.disconnect(), this.resizeObserver = null), this.resizeDebounceTimer !== null && (window.clearTimeout(this.resizeDebounceTimer), this.resizeDebounceTimer = null), this.configBroadcastChannel) {
+      try {
+        this.configBroadcastChannel.close();
+      } catch {
+      }
+      this.configBroadcastChannel = null;
+    }
+    this.limparDestaque(), this.uiListeners.cleanup(), this.layerItemListeners.cleanup(), this.controller.destroy();
+  }
+  /**
+   * Conecta ao canal de BroadcastChannel especificado no atributo 'canal-configuracao'.
+   * 100% configurável sem strings mágicas hardcoded.
+   */
+  setupConfigBroadcastChannel(t) {
+    if (this.configBroadcastChannel) {
+      try {
+        this.configBroadcastChannel.close();
+      } catch {
+      }
+      this.configBroadcastChannel = null;
+    }
+    const e = t !== void 0 ? t : this.getAttribute("canal-configuracao");
+    if (!(!e || typeof BroadcastChannel > "u"))
+      try {
+        this.configBroadcastChannel = new BroadcastChannel(e), this.configBroadcastChannel.onmessage = (i) => {
+          this.processarMensagemConfiguracao(i.data);
+        };
+      } catch (i) {
+        console.warn(`[ui-canvas-cad] Erro ao conectar ao BroadcastChannel "${e}":`, i);
+      }
+  }
+  /**
+   * Processa mensagens recebidas pelo barramento global de configuração.
+   * Atualiza cursor, opacidades de camadas e emite evento 'ui-config-aplicada'.
+   */
+  processarMensagemConfiguracao(t) {
+    if (!t || typeof t != "object") return;
+    const e = t.tipo || "ESTILOS_ALTERADOS", i = t.configuracoes || t;
+    if (i.crosshair !== void 0) {
+      const a = !!i.crosshair;
+      this.mapContainer && (this.mapContainer.style.cursor = a ? "crosshair" : "");
+      const r = this.controller.getMap();
+      if (r) {
+        const s = r.getContainer();
+        s && (s.style.cursor = a ? "crosshair" : "");
+      }
+      this.controller.core.config.crosshair = a;
+    }
+    if (i.opacidadeBase !== void 0) {
+      const a = parseFloat(i.opacidadeBase);
+      isNaN(a) || this.setLayerOpacity("satelite", a);
+    }
+    if (i.satOpacity !== void 0) {
+      const a = parseFloat(i.satOpacity);
+      isNaN(a) || this.setLayerOpacity("satelite", a);
+    }
+    i.opacidades && typeof i.opacidades == "object" && Object.entries(i.opacidades).forEach(([a, r]) => {
+      const s = parseFloat(r);
+      isNaN(s) || this.setLayerOpacity(a, s);
+    }), this.dispatchEvent(new CustomEvent("ui-config-aplicada", {
+      detail: {
+        tipo: e,
+        configuracoes: i
+      },
+      bubbles: !0,
+      composed: !0
+    }));
   }
   /**
    * Instancia um ResizeObserver monitorando o elemento host (this).
@@ -4876,7 +4960,7 @@ class Me extends HTMLElement {
     }
   }
   attributeChangedCallback(t, e, i) {
-    if (e !== i)
+    if (e !== i) {
       if (t === "sat-opacity") {
         const a = parseFloat(i);
         isNaN(a) || this.setLayerOpacity("satelite", a);
@@ -4885,13 +4969,38 @@ class Me extends HTMLElement {
       else if (t === "modo-sequencial") {
         const a = i !== null && i !== "false";
         this.modoSequencial = a;
-      } else t === "chave-grupo" && (this.chaveGrupo = i || void 0);
+      } else if (t === "chave-grupo")
+        this.chaveGrupo = i || void 0;
+      else if (t === "zona-projecao" || t === "fuso") {
+        const a = parseInt(i, 10);
+        !isNaN(a) && a > 0 && (this._zonaProjecao = a, t === "fuso" && this.getAttribute("zona-projecao") !== i ? this.setAttribute("zona-projecao", i) : t === "zona-projecao" && this.hasAttribute("fuso") && this.getAttribute("fuso") !== i && this.setAttribute("fuso", i), this.controller.zonaProjecao = a, this.controller.context.zonaProjecao = a);
+      } else if (t === "canal-configuracao")
+        this.setupConfigBroadcastChannel(i);
+      else if (t === "crosshair") {
+        const a = i !== null && i !== "false";
+        this.mapContainer && (this.mapContainer.style.cursor = a ? "crosshair" : "");
+        const r = this.controller.getMap();
+        if (r) {
+          const s = r.getContainer();
+          s && (s.style.cursor = a ? "crosshair" : "");
+        }
+        this.controller.core.config.crosshair = a;
+      }
+    }
   }
   initCAD() {
     if (!this.mapContainer) return;
     if (this.controller.init(this.mapContainer, this.shadow), this.setupUIEvents(), this.renderLayersUI(), this.hasAttribute("modo-sequencial") && (this.controller.modoCliqueSequencialAtivo = !0, this.controller.context.modoSequencial = !0), this.hasAttribute("chave-grupo")) {
       const i = this.getAttribute("chave-grupo");
       i && (this.chaveGrupo = i);
+    }
+    if (this.hasAttribute("zona-projecao") || this.hasAttribute("fuso")) {
+      const i = this.zonaProjecao;
+      this.controller.zonaProjecao = i, this.controller.context.zonaProjecao = i;
+    }
+    if (this.hasAttribute("crosshair")) {
+      const i = this.getAttribute("crosshair") !== "false";
+      this.mapContainer && (this.mapContainer.style.cursor = i ? "crosshair" : ""), this.controller.core.config.crosshair = i;
     }
     this._pontos.length > 0 && this.controller.setPontos(this._pontos), this._segmentos.length > 0 && this.controller.setSegmentos(this._segmentos), this._bancoPontos.length > 0 && this.controller.setBancoPontos(this._bancoPontos), this._confrontantes.length > 0 && this.controller.setConfrontantes(this._confrontantes), this.controller.layerManager.onChange((i) => {
       this.renderLayersUI(), this.dispatchEvent(new CustomEvent("ui-camadas-alteradas", {
@@ -5194,6 +5303,32 @@ class Me extends HTMLElement {
   }
   set chaveGrupo(t) {
     this._chaveGrupo = t, t ? this.getAttribute("chave-grupo") !== t && this.setAttribute("chave-grupo", t) : this.hasAttribute("chave-grupo") && this.removeAttribute("chave-grupo"), this.controller.chaveGrupo = t, this.controller.context.chaveGrupo = t, this.controller.layerManager.updateContext({ chaveGrupo: t });
+  }
+  /**
+   * Zona ou fuso de projeção cartográfica ativa (padrão: 22).
+   * Validado estritamente para números inteiros positivos (> 0).
+   * Sincronizado bidirecionalmente com os atributos 'zona-projecao' e 'fuso'.
+   */
+  get zonaProjecao() {
+    return this._zonaProjecao ?? 22;
+  }
+  set zonaProjecao(t) {
+    const e = typeof t == "number" ? Math.floor(t) : parseInt(String(t), 10);
+    if (!isNaN(e) && e > 0) {
+      this._zonaProjecao = e;
+      const i = String(e);
+      this.getAttribute("zona-projecao") !== i && this.setAttribute("zona-projecao", i), this.hasAttribute("fuso") && this.getAttribute("fuso") !== i && this.setAttribute("fuso", i), this.controller.zonaProjecao = e, this.controller.context.zonaProjecao = e;
+    }
+  }
+  /**
+   * Nome do canal de BroadcastChannel desacoplado para barramento global de configuração em tempo real.
+   * 100% configurável via atributo 'canal-configuracao' sem strings mágicas hardcoded.
+   */
+  get canalConfiguracao() {
+    return this.getAttribute("canal-configuracao");
+  }
+  set canalConfiguracao(t) {
+    t ? this.setAttribute("canal-configuracao", t) : this.removeAttribute("canal-configuracao");
   }
   // --- Métodos Públicos ---
   fitBounds(t, e = [40, 40], i = !1) {
@@ -6386,7 +6521,7 @@ class Re {
     this.core.map && this.polylines.forEach((o) => this.core.map.removeLayer(o)), this.core.bancoPontosGroup && this.core.bancoPontosGroup.clearLayers(), this.polylines = [];
   }
 }
-class He {
+class Oe {
   constructor(o, t) {
     l(this, "markers", []);
     l(this, "vizinhosMarkers", []);
@@ -6730,7 +6865,7 @@ export {
   st as MapaConfigManager,
   ve as MapaCore,
   Re as MapaLinhas,
-  He as MapaMarcadores,
+  Oe as MapaMarcadores,
   _e as TileLayerRenderer,
   _t as UIAlerta,
   Wt as UIAvatar,

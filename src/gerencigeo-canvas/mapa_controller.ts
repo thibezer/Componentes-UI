@@ -26,6 +26,7 @@ export class GerenciGeoMapaController {
   public context: CanvasRenderContext;
   public modoCliqueSequencialAtivo: boolean = false;
   public chaveGrupo?: string;
+  public zonaProjecao: number = 22;
   public levantamentoId: number | null = null;
 
   public customMarkerClickCallback?: (pId: number, isVizinho?: boolean) => void;
@@ -47,6 +48,7 @@ export class GerenciGeoMapaController {
       segmentos: [],
       bancoPontos: [],
       confrontantes: [],
+      zonaProjecao: 22,
       config: this.core.config,
       graphicScale: {
         markerScaleMultiplier: 1.0,

@@ -10,6 +10,7 @@ export declare class GerenciGeoMapaController {
     context: CanvasRenderContext;
     modoCliqueSequencialAtivo: boolean;
     chaveGrupo?: string;
+    zonaProjecao: number;
     levantamentoId: number | null;
     customMarkerClickCallback?: (pId: number, isVizinho?: boolean) => void;
     customPopupActionCallback?: (acaoId: string, elementoId: string | number, elemento: any) => void;

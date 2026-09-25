@@ -159,6 +159,7 @@ export interface CanvasRenderContext {
     apiBaseUrl?: string;
     modoSequencial?: boolean;
     chaveGrupo?: string;
+    zonaProjecao?: number;
     onMarkerClick?: (pontoId: string | number, isVizinho?: boolean, elemento?: any, coords?: {
         lat: number;
         lon: number;

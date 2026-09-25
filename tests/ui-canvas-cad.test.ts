@@ -1557,6 +1557,199 @@ describe('Canvas CAD Engine & <ui-canvas-cad>', () => {
       document.body.removeChild(el);
     });
   });
+
+  describe('Prompt 8: Configuração Declarativa de Projeção / Zona Espacial', () => {
+    it('deve ter valor padrão seguro de zona-projecao (22) no componente e controlador', () => {
+      const el = document.createElement('ui-canvas-cad') as UICanvasCAD;
+      expect(el.zonaProjecao).toBe(22);
+      expect(el.getController().zonaProjecao).toBe(22);
+      expect(el.getController().context.zonaProjecao).toBe(22);
+    });
+
+    it('deve sincronizar atributo HTML zona-projecao com a propriedade JS e o controller', async () => {
+      const el = document.createElement('ui-canvas-cad') as UICanvasCAD;
+      el.setAttribute('zona-projecao', '23');
+      document.body.appendChild(el);
+      await new Promise(r => setTimeout(r, 20));
+
+      expect(el.zonaProjecao).toBe(23);
+      expect(el.getController().zonaProjecao).toBe(23);
+      expect(el.getController().context.zonaProjecao).toBe(23);
+
+      // Atualiza via atributo fuso alternativo
+      el.setAttribute('fuso', '24');
+      expect(el.zonaProjecao).toBe(24);
+      expect(el.getController().zonaProjecao).toBe(24);
+      expect(el.getController().context.zonaProjecao).toBe(24);
+
+      document.body.removeChild(el);
+    });
+
+    it('deve sincronizar propriedade JS com o atributo HTML zona-projecao', async () => {
+      const el = document.createElement('ui-canvas-cad') as UICanvasCAD;
+      document.body.appendChild(el);
+      await new Promise(r => setTimeout(r, 20));
+
+      el.zonaProjecao = 21;
+      expect(el.getAttribute('zona-projecao')).toBe('21');
+      expect(el.getController().zonaProjecao).toBe(21);
+      expect(el.getController().context.zonaProjecao).toBe(21);
+
+      document.body.removeChild(el);
+    });
+
+    it('deve validar e rejeitar números inválidos, negativos ou menores/iguais a zero', async () => {
+      const el = document.createElement('ui-canvas-cad') as UICanvasCAD;
+      el.zonaProjecao = 22;
+
+      // Tentativas inválidas via propriedade
+      el.zonaProjecao = -5;
+      expect(el.zonaProjecao).toBe(22);
+
+      el.zonaProjecao = 0;
+      expect(el.zonaProjecao).toBe(22);
+
+      el.zonaProjecao = NaN as any;
+      expect(el.zonaProjecao).toBe(22);
+
+      // Tentativas inválidas via atributo
+      el.setAttribute('zona-projecao', 'invalido');
+      expect(el.zonaProjecao).toBe(22);
+
+      el.setAttribute('zona-projecao', '-10');
+      expect(el.zonaProjecao).toBe(22);
+    });
+  });
+
+  describe('Prompt 9: Barramento Global de Configuração em Tempo Real (canal-configuracao)', () => {
+    it('deve aceitar atributo canal-configuracao e conectar-se ao canal especificado', async () => {
+      const channelName = 'test_cad_broadcast_' + Date.now();
+      const el = document.createElement('ui-canvas-cad') as UICanvasCAD;
+      el.setAttribute('canal-configuracao', channelName);
+      document.body.appendChild(el);
+      await new Promise(r => setTimeout(r, 20));
+
+      expect(el.canalConfiguracao).toBe(channelName);
+
+      // Emissor externo simulando outra janela ou barramento global
+      const externalChannel = new BroadcastChannel(channelName);
+      const configSpy = vi.fn();
+      el.addEventListener('ui-config-aplicada', configSpy);
+
+      // Emite evento de configuração externa
+      externalChannel.postMessage({
+        tipo: 'ESTILOS_ALTERADOS',
+        configuracoes: {
+          crosshair: true,
+          opacidadeBase: 0.65
+        }
+      });
+
+      await new Promise(r => setTimeout(r, 30));
+
+      // Verifica disparo do evento com detail
+      expect(configSpy).toHaveBeenCalledTimes(1);
+      const detail = configSpy.mock.calls[0][0].detail;
+      expect(detail.tipo).toBe('ESTILOS_ALTERADOS');
+      expect(detail.configuracoes.crosshair).toBe(true);
+      expect(detail.configuracoes.opacidadeBase).toBe(0.65);
+
+      // Verifica reflexo nos estilos do mapa
+      const satLayer = el.getLayerManager().getLayers().find(l => l.id === 'satelite');
+      expect(satLayer?.opacidade).toBeCloseTo(0.65, 2);
+
+      externalChannel.close();
+      document.body.removeChild(el);
+    });
+
+    it('deve suportar atualização de opacidades múltiplas via barramento', async () => {
+      const channelName = 'test_cad_opacidades_' + Date.now();
+      const el = document.createElement('ui-canvas-cad') as UICanvasCAD;
+      el.setAttribute('canal-configuracao', channelName);
+      document.body.appendChild(el);
+      await new Promise(r => setTimeout(r, 20));
+
+      const externalChannel = new BroadcastChannel(channelName);
+
+      externalChannel.postMessage({
+        tipo: 'ESTILOS_ALTERADOS',
+        configuracoes: {
+          opacidades: {
+            satelite: 0.4,
+            perimetro: 0.75
+          }
+        }
+      });
+
+      await new Promise(r => setTimeout(r, 30));
+
+      const lm = el.getLayerManager();
+      const sat = lm.getLayers().find(l => l.id === 'satelite');
+      const perim = lm.getLayers().find(l => l.id === 'perimetro');
+
+      expect(sat?.opacidade).toBeCloseTo(0.4, 2);
+      expect(perim?.opacidade).toBeCloseTo(0.75, 2);
+
+      externalChannel.close();
+      document.body.removeChild(el);
+    });
+
+    it('deve fechar canal anterior e conectar ao novo ao alterar canal-configuracao', async () => {
+      const channel1 = 'cad_channel_1_' + Date.now();
+      const channel2 = 'cad_channel_2_' + Date.now();
+
+      const el = document.createElement('ui-canvas-cad') as UICanvasCAD;
+      el.setAttribute('canal-configuracao', channel1);
+      document.body.appendChild(el);
+      await new Promise(r => setTimeout(r, 20));
+
+      const ext1 = new BroadcastChannel(channel1);
+      const ext2 = new BroadcastChannel(channel2);
+      const configSpy = vi.fn();
+      el.addEventListener('ui-config-aplicada', configSpy);
+
+      // Altera dinamicamente o canal
+      el.canalConfiguracao = channel2;
+      expect(el.getAttribute('canal-configuracao')).toBe(channel2);
+      await new Promise(r => setTimeout(r, 20));
+
+      // Mensagem no canal antigo não deve ter efeito
+      ext1.postMessage({ tipo: 'TESTE_IGNORAR', configuracoes: { opacidadeBase: 0.1 } });
+      await new Promise(r => setTimeout(r, 20));
+      expect(configSpy).not.toHaveBeenCalled();
+
+      // Mensagem no novo canal deve ser processada
+      ext2.postMessage({ tipo: 'TESTE_NOVO_CANAL', configuracoes: { opacidadeBase: 0.85 } });
+      await new Promise(r => setTimeout(r, 30));
+      expect(configSpy).toHaveBeenCalledTimes(1);
+
+      ext1.close();
+      ext2.close();
+      document.body.removeChild(el);
+    });
+
+    it('deve fechar e anular a conexão com o BroadcastChannel no disconnectedCallback', async () => {
+      const channelName = 'cad_disconnect_channel_' + Date.now();
+      const el = document.createElement('ui-canvas-cad') as UICanvasCAD;
+      el.setAttribute('canal-configuracao', channelName);
+      document.body.appendChild(el);
+      await new Promise(r => setTimeout(r, 20));
+
+      const ext = new BroadcastChannel(channelName);
+      const configSpy = vi.fn();
+      el.addEventListener('ui-config-aplicada', configSpy);
+
+      // Desconecta elemento
+      document.body.removeChild(el);
+
+      // Mensagem após desconexão não deve disparar eventos
+      ext.postMessage({ tipo: 'DEPOIS_DE_DESCONECTAR', configuracoes: { crosshair: true } });
+      await new Promise(r => setTimeout(r, 30));
+      expect(configSpy).not.toHaveBeenCalled();
+
+      ext.close();
+    });
+  });
 });
 
 

@@ -20,7 +20,16 @@ import { ListenerBag } from '../../core/listener-bag';
 
 export class UICanvasCAD extends HTMLElement {
   static get observedAttributes() {
-    return ['sat-opacity', 'scale-mode', 'crosshair', 'modo-sequencial', 'chave-grupo'];
+    return [
+      'sat-opacity',
+      'scale-mode',
+      'crosshair',
+      'modo-sequencial',
+      'chave-grupo',
+      'zona-projecao',
+      'fuso',
+      'canal-configuracao'
+    ];
   }
 
   private shadow: ShadowRoot;
@@ -37,6 +46,8 @@ export class UICanvasCAD extends HTMLElement {
   private mouseMovedSinceDown: boolean = false;
   private mouseDownPos = { x: 0, y: 0 };
   private _chaveGrupo?: string;
+  private _zonaProjecao: number = 22;
+  private configBroadcastChannel: BroadcastChannel | null = null;
 
   private _pontos: Ponto[] = [];
   private _segmentos: Segmento[] = [];
@@ -98,7 +109,18 @@ export class UICanvasCAD extends HTMLElement {
   private lastHostHeight: number = 0;
 
   connectedCallback() {
+    const attrZona = this.getAttribute('zona-projecao') || this.getAttribute('fuso');
+    if (attrZona) {
+      const parsed = parseInt(attrZona, 10);
+      if (!isNaN(parsed) && parsed > 0) {
+        this._zonaProjecao = parsed;
+        this.controller.zonaProjecao = parsed;
+        this.controller.context.zonaProjecao = parsed;
+      }
+    }
+
     this.setupResizeObserver();
+    this.setupConfigBroadcastChannel();
 
     this.initTimeout = window.setTimeout(() => {
       this.initCAD();
@@ -118,10 +140,100 @@ export class UICanvasCAD extends HTMLElement {
       window.clearTimeout(this.resizeDebounceTimer);
       this.resizeDebounceTimer = null;
     }
+    if (this.configBroadcastChannel) {
+      try {
+        this.configBroadcastChannel.close();
+      } catch {}
+      this.configBroadcastChannel = null;
+    }
     this.limparDestaque();
     this.uiListeners.cleanup();
     this.layerItemListeners.cleanup();
     this.controller.destroy();
+  }
+
+  /**
+   * Conecta ao canal de BroadcastChannel especificado no atributo 'canal-configuracao'.
+   * 100% configurável sem strings mágicas hardcoded.
+   */
+  private setupConfigBroadcastChannel(canalNome?: string | null): void {
+    if (this.configBroadcastChannel) {
+      try {
+        this.configBroadcastChannel.close();
+      } catch {}
+      this.configBroadcastChannel = null;
+    }
+
+    const nome = canalNome !== undefined ? canalNome : this.getAttribute('canal-configuracao');
+    if (!nome || typeof BroadcastChannel === 'undefined') return;
+
+    try {
+      this.configBroadcastChannel = new BroadcastChannel(nome);
+      this.configBroadcastChannel.onmessage = (event: MessageEvent) => {
+        this.processarMensagemConfiguracao(event.data);
+      };
+    } catch (err) {
+      console.warn(`[ui-canvas-cad] Erro ao conectar ao BroadcastChannel "${nome}":`, err);
+    }
+  }
+
+  /**
+   * Processa mensagens recebidas pelo barramento global de configuração.
+   * Atualiza cursor, opacidades de camadas e emite evento 'ui-config-aplicada'.
+   */
+  private processarMensagemConfiguracao(data: any): void {
+    if (!data || typeof data !== 'object') return;
+
+    const tipo = data.tipo || 'ESTILOS_ALTERADOS';
+    const config = data.configuracoes || data;
+
+    // 1. Atualizar estilo de mira/cursor (crosshair vs default)
+    if (config.crosshair !== undefined) {
+      const isCrosshair = Boolean(config.crosshair);
+      if (this.mapContainer) {
+        this.mapContainer.style.cursor = isCrosshair ? 'crosshair' : '';
+      }
+      const map = this.controller.getMap();
+      if (map) {
+        const c = map.getContainer();
+        if (c) c.style.cursor = isCrosshair ? 'crosshair' : '';
+      }
+      this.controller.core.config.crosshair = isCrosshair;
+    }
+
+    // 2. Atualizar opacidade base (ex: satelite)
+    if (config.opacidadeBase !== undefined) {
+      const op = parseFloat(config.opacidadeBase);
+      if (!isNaN(op)) {
+        this.setLayerOpacity('satelite', op);
+      }
+    }
+    if (config.satOpacity !== undefined) {
+      const op = parseFloat(config.satOpacity);
+      if (!isNaN(op)) {
+        this.setLayerOpacity('satelite', op);
+      }
+    }
+
+    // 3. Atualizar opacidades de outras camadas se fornecidas
+    if (config.opacidades && typeof config.opacidades === 'object') {
+      Object.entries(config.opacidades).forEach(([camadaId, opVal]) => {
+        const op = parseFloat(opVal as any);
+        if (!isNaN(op)) {
+          this.setLayerOpacity(camadaId, op);
+        }
+      });
+    }
+
+    // 4. Disparar evento customizado 'ui-config-aplicada'
+    this.dispatchEvent(new CustomEvent('ui-config-aplicada', {
+      detail: {
+        tipo,
+        configuracoes: config
+      },
+      bubbles: true,
+      composed: true
+    }));
   }
 
   /**
@@ -215,6 +327,29 @@ export class UICanvasCAD extends HTMLElement {
         this.modoSequencial = isAtivo;
       } else if (name === 'chave-grupo') {
         this.chaveGrupo = newVal || undefined;
+      } else if (name === 'zona-projecao' || name === 'fuso') {
+        const parsed = parseInt(newVal, 10);
+        if (!isNaN(parsed) && parsed > 0) {
+          this._zonaProjecao = parsed;
+          if (name === 'fuso' && this.getAttribute('zona-projecao') !== newVal) {
+            this.setAttribute('zona-projecao', newVal);
+          } else if (name === 'zona-projecao' && this.hasAttribute('fuso') && this.getAttribute('fuso') !== newVal) {
+            this.setAttribute('fuso', newVal);
+          }
+          this.controller.zonaProjecao = parsed;
+          this.controller.context.zonaProjecao = parsed;
+        }
+      } else if (name === 'canal-configuracao') {
+        this.setupConfigBroadcastChannel(newVal);
+      } else if (name === 'crosshair') {
+        const isCrosshair = newVal !== null && newVal !== 'false';
+        if (this.mapContainer) this.mapContainer.style.cursor = isCrosshair ? 'crosshair' : '';
+        const map = this.controller.getMap();
+        if (map) {
+          const c = map.getContainer();
+          if (c) c.style.cursor = isCrosshair ? 'crosshair' : '';
+        }
+        this.controller.core.config.crosshair = isCrosshair;
       }
     }
   }
@@ -238,6 +373,20 @@ export class UICanvasCAD extends HTMLElement {
       if (cg) {
         this.chaveGrupo = cg;
       }
+    }
+
+    // Sincroniza zona-projecao se foi definida via atributo inicial
+    if (this.hasAttribute('zona-projecao') || this.hasAttribute('fuso')) {
+      const z = this.zonaProjecao;
+      this.controller.zonaProjecao = z;
+      this.controller.context.zonaProjecao = z;
+    }
+
+    // Sincroniza crosshair se foi definido via atributo inicial
+    if (this.hasAttribute('crosshair')) {
+      const isCrosshair = this.getAttribute('crosshair') !== 'false';
+      if (this.mapContainer) this.mapContainer.style.cursor = isCrosshair ? 'crosshair' : '';
+      this.controller.core.config.crosshair = isCrosshair;
     }
 
     // Sincroniza dados iniciais se já tiverem sido definidos
@@ -763,6 +912,47 @@ export class UICanvasCAD extends HTMLElement {
     this.controller.chaveGrupo = val;
     this.controller.context.chaveGrupo = val;
     this.controller.layerManager.updateContext({ chaveGrupo: val });
+  }
+
+  /**
+   * Zona ou fuso de projeção cartográfica ativa (padrão: 22).
+   * Validado estritamente para números inteiros positivos (> 0).
+   * Sincronizado bidirecionalmente com os atributos 'zona-projecao' e 'fuso'.
+   */
+  public get zonaProjecao(): number {
+    return this._zonaProjecao ?? 22;
+  }
+
+  public set zonaProjecao(val: number) {
+    const parsed = typeof val === 'number' ? Math.floor(val) : parseInt(String(val), 10);
+    if (!isNaN(parsed) && parsed > 0) {
+      this._zonaProjecao = parsed;
+      const strVal = String(parsed);
+      if (this.getAttribute('zona-projecao') !== strVal) {
+        this.setAttribute('zona-projecao', strVal);
+      }
+      if (this.hasAttribute('fuso') && this.getAttribute('fuso') !== strVal) {
+        this.setAttribute('fuso', strVal);
+      }
+      this.controller.zonaProjecao = parsed;
+      this.controller.context.zonaProjecao = parsed;
+    }
+  }
+
+  /**
+   * Nome do canal de BroadcastChannel desacoplado para barramento global de configuração em tempo real.
+   * 100% configurável via atributo 'canal-configuracao' sem strings mágicas hardcoded.
+   */
+  public get canalConfiguracao(): string | null {
+    return this.getAttribute('canal-configuracao');
+  }
+
+  public set canalConfiguracao(val: string | null) {
+    if (val) {
+      this.setAttribute('canal-configuracao', val);
+    } else {
+      this.removeAttribute('canal-configuracao');
+    }
   }
 
   // --- Métodos Públicos ---
