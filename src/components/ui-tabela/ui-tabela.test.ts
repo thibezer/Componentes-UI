@@ -185,4 +185,94 @@ describe('Web Component: <ui-tabela>', () => {
     expect(badgeCell).toBeTruthy();
     expect(badgeCell?.textContent).toBe('ATIVO');
   });
+
+  describe('Rolagem Programática (rolarPara)', () => {
+    it('deve rolar para um item existente no DOM e aplicar seleção quando solicitado', () => {
+      const tabela = document.createElement('ui-tabela') as UITabela;
+      document.body.appendChild(tabela);
+
+      tabela.colunas = [{ id: 'id', rotulo: 'ID' }, { id: 'nome', rotulo: 'Nome' }];
+      tabela.dados = [
+        { id: 'item-1', nome: 'Primeiro' },
+        { id: 'item-2', nome: 'Segundo' },
+        { id: 'item-3', nome: 'Terceiro' }
+      ];
+
+      let eventoDisparado = false;
+      tabela.addEventListener('ui-linha-selecionada', (e: Event) => {
+        eventoDisparado = true;
+        const detail = (e as CustomEvent).detail;
+        expect(detail.item.id).toBe('item-2');
+        expect(detail.indice).toBe(1);
+      });
+
+      const sucesso = tabela.rolarPara('item-2', { selecionar: true });
+      expect(sucesso).toBe(true);
+      expect(eventoDisparado).toBe(true);
+
+      const trSelecionada = tabela.shadowRoot?.querySelector('tr.ui-tabela__tr--selecionada');
+      expect(trSelecionada).toBeTruthy();
+      expect(trSelecionada?.getAttribute('data-id')).toBe('item-2');
+      expect(trSelecionada?.getAttribute('data-selecionada')).toBe('true');
+    });
+
+    it('deve calcular deslocamento de scroll e renderizar janela em tabelas virtualizadas', () => {
+      const tabela = document.createElement('ui-tabela') as UITabela;
+      document.body.appendChild(tabela);
+
+      tabela.colunas = [{ id: 'codigo', rotulo: 'Código' }];
+      tabela.setAttribute('chave-id', 'codigo');
+
+      // Gerar 200 itens com virtualização ativa
+      const dados = Array.from({ length: 200 }, (_, i) => ({ codigo: `COD-${i + 1}`, valor: i }));
+      tabela.dados = dados;
+
+      // Item 150 não deve existir no DOM inicial devido à virtualização
+      let tr150 = tabela.shadowRoot?.querySelector('tr[data-id="COD-150"]');
+      expect(tr150).toBeNull();
+
+      // Executa rolagem programática para COD-150
+      const sucesso = tabela.rolarPara('COD-150', { comportamento: 'auto', selecionar: true });
+      expect(sucesso).toBe(true);
+
+      // Agora a linha COD-150 deve ter sido trazida para a janela visível no DOM
+      tr150 = tabela.shadowRoot?.querySelector('tr[data-id="COD-150"]');
+      expect(tr150).toBeTruthy();
+      expect(tr150?.classList.contains('ui-tabela__tr--selecionada')).toBe(true);
+      expect(tabela.itemSelecionado?.codigo).toBe('COD-150');
+    });
+
+    it('deve suportar rolagem por índice numérico direto e predicado funcional', () => {
+      const tabela = document.createElement('ui-tabela') as UITabela;
+      document.body.appendChild(tabela);
+
+      tabela.colunas = [{ id: 'nome', rotulo: 'Nome' }];
+      tabela.dados = [
+        { nome: 'Alfa' },
+        { nome: 'Beta' },
+        { nome: 'Gama' }
+      ];
+
+      // Rolagem por índice numérico
+      const sucessoIndice = tabela.rolarPara(1, { selecionar: true });
+      expect(sucessoIndice).toBe(true);
+      expect(tabela.itemSelecionado?.nome).toBe('Beta');
+
+      // Rolagem por predicado funcional
+      const sucessoPredicado = tabela.rolarPara((item) => item.nome === 'Gama', { selecionar: true });
+      expect(sucessoPredicado).toBe(true);
+      expect(tabela.itemSelecionado?.nome).toBe('Gama');
+    });
+
+    it('deve retornar false quando o item não for encontrado', () => {
+      const tabela = document.createElement('ui-tabela') as UITabela;
+      document.body.appendChild(tabela);
+
+      tabela.colunas = [{ id: 'id', rotulo: 'ID' }];
+      tabela.dados = [{ id: '1' }, { id: '2' }];
+
+      expect(tabela.rolarPara('item-inexistente')).toBe(false);
+      expect(tabela.rolarPara(999)).toBe(false);
+    });
+  });
 });

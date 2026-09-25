@@ -1,28 +1,16 @@
-import estilos from './ui-campo-texto.css?inline';
+import { criarTemplateCampoTexto, ATRIBUTOS_OBSERVADOS_CAMPO_TEXTO } from './campo-texto-template';
+import {
+  sincronizarLabelEPlaceholder,
+  sincronizarIconeSenha,
+  sincronizarFeedbackErro
+} from './campo-texto-estados';
 
 export class UICampoTexto extends HTMLElement {
   static formAssociated = true;
   private internals: ReturnType<HTMLElement['attachInternals']>;
 
   static get observedAttributes() {
-    return [
-      'label',
-      'placeholder',
-      'value',
-      'tipo',
-      'helper-text',
-      'erro',
-      'mensagem-erro',
-      'disabled',
-      'readonly',
-      'label-flutuante',
-      'alternar-senha',
-      'tamanho',
-      'size',
-      'altura',
-      'height',
-      'densidade'
-    ];
+    return ATRIBUTOS_OBSERVADOS_CAMPO_TEXTO;
   }
 
   private labelElement: HTMLLabelElement;
@@ -42,22 +30,7 @@ export class UICampoTexto extends HTMLElement {
     super();
     this.internals = this.attachInternals();
     const shadow = this.attachShadow({ mode: 'open', delegatesFocus: true });
-    shadow.innerHTML = `
-      <style>${estilos}</style>
-      <div class="ui-campo-texto__container">
-        <label class="ui-campo-texto__label" style="display: none;"></label>
-        <div class="ui-campo-texto__wrapper">
-          <span class="ui-campo-texto__icone ui-campo-texto__icone--esquerda">
-            <slot name="icone-esquerda"></slot>
-          </span>
-          <input class="ui-campo-texto__input" type="text" />
-          <span class="ui-campo-texto__icone ui-campo-texto__icone--direita">
-            <slot name="icone-direita"></slot>
-          </span>
-        </div>
-      </div>
-      <div class="ui-campo-texto__helper" style="display: none;"></div>
-    `;
+    shadow.innerHTML = criarTemplateCampoTexto();
 
     this.labelElement = shadow.querySelector('.ui-campo-texto__label')!;
     this.wrapperElement = shadow.querySelector('.ui-campo-texto__wrapper')!;
@@ -96,8 +69,6 @@ export class UICampoTexto extends HTMLElement {
     }
 
     this.syncState();
-
-    // Verificação de segurança adicional para capturar preenchimento automático (Autofill)
     this._checkTimer = setTimeout(() => this.syncState(), 100);
   }
 
@@ -114,8 +85,7 @@ export class UICampoTexto extends HTMLElement {
   }
 
   attributeChangedCallback(name: string, _old: string | null, value: string | null) {
-    const estaFocado = this._focado;
-    if (name === 'value' && value !== this.inputElement.value && !estaFocado) {
+    if (name === 'value' && value !== this.inputElement.value && !this._focado) {
       this.inputElement.value = value || '';
     }
     this.syncState();
@@ -138,7 +108,6 @@ export class UICampoTexto extends HTMLElement {
     this._senhaVisivel = !this._senhaVisivel;
     this.inputElement.type = this._senhaVisivel ? 'text' : 'password';
 
-    // Atualizar ícone de olho no slot se fornecido
     const slotEl = this.shadowRoot?.querySelector('slot[name="icone-direita"]') as HTMLSlotElement;
     if (slotEl) {
       const assigned = slotEl.assignedElements();
@@ -163,7 +132,6 @@ export class UICampoTexto extends HTMLElement {
   };
 
   private syncState() {
-    // Detectar se há ícone na esquerda
     const temIconeEsquerda = this.leftSlotElement.assignedNodes().length > 0 || this.querySelector('[slot="icone-esquerda"]') !== null;
     if (temIconeEsquerda) {
       this.setAttribute('tem-icone-esquerda', '');
@@ -171,7 +139,6 @@ export class UICampoTexto extends HTMLElement {
       this.removeAttribute('tem-icone-esquerda');
     }
 
-    // 0. Altura e Tamanho dinâmicos
     const altura = this.getAttribute('altura') || this.getAttribute('height');
     if (altura) {
       this.style.setProperty('--ui-campo-altura', isNaN(Number(altura)) ? altura : `${altura}px`);
@@ -179,54 +146,22 @@ export class UICampoTexto extends HTMLElement {
       this.style.removeProperty('--ui-campo-altura');
     }
 
-    // 1. Label e Floating Label
-    const labelText = this.getAttribute('label');
-    const isFlutuante = this.hasAttribute('label-flutuante');
-    const temValor = this.inputElement.value.trim() !== '';
-    const estaFocado = this._focado;
-    const temAutofill = (() => {
-      try {
-        return this.inputElement.matches(':-webkit-autofill');
-      } catch (_e) {
-        return false;
-      }
-    })();
+    sincronizarLabelEPlaceholder({
+      labelElement: this.labelElement,
+      inputElement: this.inputElement,
+      labelText: this.getAttribute('label'),
+      placeholderText: this.getAttribute('placeholder') || '',
+      isFlutuante: this.hasAttribute('label-flutuante'),
+      estaFocado: this._focado
+    });
 
-    if (labelText) {
-      this.labelElement.textContent = labelText;
-      this.labelElement.style.display = 'flex';
-
-      if (isFlutuante) {
-        if (estaFocado || temValor || temAutofill) {
-          this.labelElement.classList.add('ui-campo-texto__label--ativa');
-        } else {
-          this.labelElement.classList.remove('ui-campo-texto__label--ativa');
-        }
-      } else {
-        this.labelElement.classList.remove('ui-campo-texto__label--ativa');
-      }
-    } else {
-      this.labelElement.style.display = 'none';
-    }
-
-    // 2. Placeholder
-    const placeholder = this.getAttribute('placeholder') || '';
-    if (isFlutuante && !estaFocado && !temValor && !temAutofill) {
-      this.inputElement.placeholder = '';
-    } else {
-      this.inputElement.placeholder = placeholder;
-    }
-
-    // 3. Tipo (type)
     const tipoBase = this.getAttribute('tipo') || 'text';
     if (!this._senhaVisivel) {
       this.inputElement.type = tipoBase;
     }
 
-    // 4. Value
     this.internals.setFormValue(this.inputElement.value);
 
-    // 5. Disabled & Readonly
     const isDisabled = this.hasAttribute('disabled');
     const isReadonly = this.hasAttribute('readonly');
     this.inputElement.disabled = isDisabled;
@@ -238,43 +173,18 @@ export class UICampoTexto extends HTMLElement {
       this.wrapperElement.classList.remove('ui-campo-texto__wrapper--disabled');
     }
 
-    // 6. Configurar ícone da direita como clicável para senha com acessibilidade
-    if (tipoBase === 'password' || this.hasAttribute('alternar-senha')) {
-      this.rightIconContainer.classList.add('ui-campo-texto__icone--clicavel');
-      this.rightIconContainer.setAttribute('role', 'button');
-      this.rightIconContainer.setAttribute('tabindex', '0');
-      this.rightIconContainer.setAttribute('aria-label', this._senhaVisivel ? 'Ocultar senha' : 'Exibir senha');
-    } else {
-      this.rightIconContainer.classList.remove('ui-campo-texto__icone--clicavel');
-      this.rightIconContainer.removeAttribute('role');
-      this.rightIconContainer.removeAttribute('tabindex');
-      this.rightIconContainer.removeAttribute('aria-label');
-    }
+    const ehSenhaOuAlternar = tipoBase === 'password' || this.hasAttribute('alternar-senha');
+    sincronizarIconeSenha(this.rightIconContainer, ehSenhaOuAlternar, this._senhaVisivel);
 
-    // 7. Mensagem de Erro ou Helper Text
     const temErro = this.hasAttribute('erro') || this.hasAttribute('mensagem-erro');
-    const mensagemErro = this.getAttribute('mensagem-erro');
-    const helperText = this.getAttribute('helper-text');
-
-    if (temErro) {
-      this.wrapperElement.classList.add('ui-campo-texto__wrapper--erro');
-      this.inputElement.setAttribute('aria-invalid', 'true');
-    } else {
-      this.wrapperElement.classList.remove('ui-campo-texto__wrapper--erro');
-      this.inputElement.removeAttribute('aria-invalid');
-    }
-
-    if (temErro && mensagemErro) {
-      this.helperElement.textContent = `⚠️ ${mensagemErro}`;
-      this.helperElement.className = 'ui-campo-texto__helper ui-campo-texto__helper--erro';
-      this.helperElement.style.display = 'block';
-    } else if (helperText) {
-      this.helperElement.textContent = helperText;
-      this.helperElement.className = 'ui-campo-texto__helper';
-      this.helperElement.style.display = 'block';
-    } else {
-      this.helperElement.style.display = 'none';
-    }
+    sincronizarFeedbackErro(
+      this.wrapperElement,
+      this.inputElement,
+      this.helperElement,
+      temErro,
+      this.getAttribute('mensagem-erro'),
+      this.getAttribute('helper-text')
+    );
   }
 
   private handleRightIconClick = (e: MouseEvent) => {
@@ -310,11 +220,7 @@ export class UICampoTexto extends HTMLElement {
 
   private handleInput = (e: Event) => {
     const val = (e.target as HTMLInputElement).value;
-    // O valor já está no inputElement. Apenas notifique o exterior e sincronize o label flutuante
-
     this.internals.setFormValue(val);
-
-    // Atualiza apenas classes de foco/flutuante
     this.syncState();
 
     this.dispatchEvent(
@@ -347,3 +253,6 @@ export class UICampoTexto extends HTMLElement {
 if (!customElements.get('ui-campo-texto')) {
   customElements.define('ui-campo-texto', UICampoTexto);
 }
+
+export * from './campo-texto-estados';
+export * from './campo-texto-template';

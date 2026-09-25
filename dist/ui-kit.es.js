@@ -1,7 +1,7 @@
 var Ct = Object.defineProperty;
 var St = (b, o, t) => o in b ? Ct(b, o, { enumerable: !0, configurable: !0, writable: !0, value: t }) : b[o] = t;
 var l = (b, o, t) => St(b, typeof o != "symbol" ? o + "" : o, t);
-import x from "leaflet";
+import y from "leaflet";
 const Lt = ':host{display:inline-block;width:100%;box-sizing:border-box}:host([inline]){width:auto;height:auto}.ui-botao-primario{display:inline-flex;align-items:center;justify-content:center;gap:var(--ui-espaco-sm, 6px);width:100%;height:var(--ui-campo-altura, 100%);min-height:var(--ui-campo-altura, var(--ui-altura-minima, 15px));box-sizing:border-box;padding:0 12px;border:1px solid transparent;border-radius:var(--ui-raio-borda, 6px);font-family:var(--ui-fonte-base, "Inter", sans-serif);font-size:clamp(11px,.85rem,13px);font-weight:600;line-height:1;transition:background-color .15s cubic-bezier(.16,1,.3,1),border-color .15s cubic-bezier(.16,1,.3,1),color .15s cubic-bezier(.16,1,.3,1),filter .15s cubic-bezier(.16,1,.3,1),transform .12s cubic-bezier(.34,1.56,.64,1),box-shadow .15s ease;text-align:center;-webkit-user-select:none;user-select:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent}.ui-botao-primario:focus-visible{outline:none;box-shadow:0 0 0 2px var(--ui-cor-fundo, #0b0b0d),0 0 0 4px var(--ui-cor-primaria, #00E08A)}.ui-botao-primario--has-icon-start{padding-left:8px!important;padding-right:12px!important}.ui-botao-primario--has-icon-end{padding-left:12px!important;padding-right:8px!important}::slotted(svg),::slotted(ui-icone){display:inline-flex!important;align-items:center!important;justify-content:center!important;vertical-align:middle!important;flex-shrink:0!important;line-height:1!important;width:14px!important;height:14px!important;box-sizing:content-box;shape-rendering:geometricPrecision}::slotted(span),::slotted(label),::slotted(p){display:inline-flex;align-items:center;line-height:1}::slotted(div){display:inline-flex;align-items:center;justify-content:center;line-height:1;height:100%}.ui-botao-primario,.ui-botao-primario--primary,.ui-botao-primario--primario{background:var(--ui-cor-primaria, #00E08A);color:var(--ui-cor-texto-sobre-primaria, #000000);border-color:transparent}.ui-botao-primario--primary:hover:not(:disabled),.ui-botao-primario--primario:hover:not(:disabled),.ui-botao-primario:hover:not(:disabled){filter:brightness(1.1)}.ui-botao-primario--destaque{background:var(--ui-cor-destaque, var(--ui-cor-primaria, #00E08A));color:var(--ui-cor-texto-sobre-primaria, #000000)}.ui-botao-primario--secondary,.ui-botao-primario--secundario{background:var(--ui-cor-botao-secundario-fundo, #1e1e24);color:var(--ui-cor-texto, #e1e1e6);border-color:var(--ui-cor-borda, rgba(255, 255, 255, .12))}.ui-botao-primario--secondary:hover:not(:disabled),.ui-botao-primario--secundario:hover:not(:disabled){background:var(--ui-cor-botao-secundario-hover, #2a2a34);border-color:#ffffff3d}.ui-botao-primario--ghost,.ui-botao-primario--terciario{background:transparent;color:var(--ui-cor-texto, #e1e1e6);border-color:transparent}.ui-botao-primario--ghost:hover:not(:disabled),.ui-botao-primario--terciario:hover:not(:disabled){background:var(--ui-cor-hover-menu, rgba(255, 255, 255, .08))}.ui-botao-primario--destructive,.ui-botao-primario--destrutivo,.ui-botao-primario--erro{background:var(--ui-cor-botao-destrutivo-fundo, #ff4444);color:var(--ui-cor-botao-destrutivo-texto, #ffffff);border-color:transparent}.ui-botao-primario--destructive:hover:not(:disabled),.ui-botao-primario--destrutivo:hover:not(:disabled),.ui-botao-primario--erro:hover:not(:disabled){background:var(--ui-cor-botao-destrutivo-hover, #e03333)}.ui-botao-primario--outline,.ui-botao-primario--borda{background:transparent;color:var(--ui-cor-primaria, #00E08A);border-color:var(--ui-cor-primaria, #00E08A)}.ui-botao-primario--outline:hover:not(:disabled),.ui-botao-primario--borda:hover:not(:disabled){background:#00e08a1f;border-color:var(--ui-cor-primaria, #00E08A);filter:brightness(1.08)}.ui-botao-primario--icon-only,.ui-botao-primario--icone{padding:0;width:var(--ui-campo-altura, var(--ui-altura-minima, 15px));min-width:var(--ui-campo-altura, var(--ui-altura-minima, 15px));height:var(--ui-campo-altura, var(--ui-altura-minima, 15px));aspect-ratio:1;border-radius:var(--ui-raio-borda, 6px)}.ui-botao-primario--hover{filter:brightness(1.15)!important}.ui-botao-primario:active:not(:disabled),.ui-botao-primario--active{transform:scale(.97)!important;filter:brightness(.9)!important}.ui-botao-primario:disabled,.ui-botao-primario--disabled{opacity:.45;cursor:not-allowed;transform:none!important;filter:none!important}.ui-botao-primario--carregando,.ui-botao-primario--loading{cursor:wait;opacity:.85;pointer-events:none}.ui-botao-primario__spinner{width:14px;height:14px;animation:ui-spin .75s linear infinite;flex-shrink:0;shape-rendering:geometricPrecision}@keyframes ui-spin{0%{transform:rotate(0)}to{transform:rotate(360deg)}}@media (max-width: 640px){:host(:not([inline])) .ui-botao-primario{min-height:max(var(--ui-campo-altura, 38px),38px);font-size:14px;padding:0 14px}}';
 class D {
   constructor() {
@@ -572,10 +572,10 @@ class xt extends HTMLElement {
     i ? (this.labelElement.textContent = i, this.labelElement.style.display = "flex", a ? s || r || n ? this.labelElement.classList.add("ui-campo-texto__label--ativa") : this.labelElement.classList.remove("ui-campo-texto__label--ativa") : this.labelElement.classList.remove("ui-campo-texto__label--ativa")) : this.labelElement.style.display = "none";
     const c = this.getAttribute("placeholder") || "";
     a && !s && !r && !n ? this.inputElement.placeholder = "" : this.inputElement.placeholder = c;
-    const u = this.getAttribute("tipo") || "text";
-    this._senhaVisivel || (this.inputElement.type = u), this.internals.setFormValue(this.inputElement.value);
-    const d = this.hasAttribute("disabled"), h = this.hasAttribute("readonly");
-    this.inputElement.disabled = d, this.inputElement.readOnly = h, d ? this.wrapperElement.classList.add("ui-campo-texto__wrapper--disabled") : this.wrapperElement.classList.remove("ui-campo-texto__wrapper--disabled"), u === "password" || this.hasAttribute("alternar-senha") ? (this.rightIconContainer.classList.add("ui-campo-texto__icone--clicavel"), this.rightIconContainer.setAttribute("role", "button"), this.rightIconContainer.setAttribute("tabindex", "0"), this.rightIconContainer.setAttribute("aria-label", this._senhaVisivel ? "Ocultar senha" : "Exibir senha")) : (this.rightIconContainer.classList.remove("ui-campo-texto__icone--clicavel"), this.rightIconContainer.removeAttribute("role"), this.rightIconContainer.removeAttribute("tabindex"), this.rightIconContainer.removeAttribute("aria-label"));
+    const d = this.getAttribute("tipo") || "text";
+    this._senhaVisivel || (this.inputElement.type = d), this.internals.setFormValue(this.inputElement.value);
+    const u = this.hasAttribute("disabled"), h = this.hasAttribute("readonly");
+    this.inputElement.disabled = u, this.inputElement.readOnly = h, u ? this.wrapperElement.classList.add("ui-campo-texto__wrapper--disabled") : this.wrapperElement.classList.remove("ui-campo-texto__wrapper--disabled"), d === "password" || this.hasAttribute("alternar-senha") ? (this.rightIconContainer.classList.add("ui-campo-texto__icone--clicavel"), this.rightIconContainer.setAttribute("role", "button"), this.rightIconContainer.setAttribute("tabindex", "0"), this.rightIconContainer.setAttribute("aria-label", this._senhaVisivel ? "Ocultar senha" : "Exibir senha")) : (this.rightIconContainer.classList.remove("ui-campo-texto__icone--clicavel"), this.rightIconContainer.removeAttribute("role"), this.rightIconContainer.removeAttribute("tabindex"), this.rightIconContainer.removeAttribute("aria-label"));
     const p = this.hasAttribute("erro") || this.hasAttribute("mensagem-erro"), m = this.getAttribute("mensagem-erro"), f = this.getAttribute("helper-text");
     p ? (this.wrapperElement.classList.add("ui-campo-texto__wrapper--erro"), this.inputElement.setAttribute("aria-invalid", "true")) : (this.wrapperElement.classList.remove("ui-campo-texto__wrapper--erro"), this.inputElement.removeAttribute("aria-invalid")), p && m ? (this.helperElement.textContent = `⚠️ ${m}`, this.helperElement.className = "ui-campo-texto__helper ui-campo-texto__helper--erro", this.helperElement.style.display = "block") : f ? (this.helperElement.textContent = f, this.helperElement.className = "ui-campo-texto__helper", this.helperElement.style.display = "block") : this.helperElement.style.display = "none";
   }
@@ -779,7 +779,7 @@ class yt extends HTMLElement {
 }
 l(yt, "formAssociated", !0);
 customElements.get("ui-checkbox") || customElements.define("ui-checkbox", yt);
-const Ot = ':host{display:inline-flex;align-items:center;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif);vertical-align:middle}.ui-radio{display:inline-flex;align-items:center;gap:8px;cursor:pointer;-webkit-user-select:none;user-select:none;line-height:1;outline:none}.ui-radio--disabled{opacity:.5;cursor:not-allowed!important;pointer-events:none}.ui-radio__circle{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;min-width:16px;min-height:16px;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16));border-radius:50%;box-sizing:border-box;transition:background-color .15s ease,border-color .15s ease,box-shadow .15s ease;flex-shrink:0}.ui-radio:focus-visible .ui-radio__circle,.ui-radio--foco .ui-radio__circle{border-color:var(--ui-cor-primaria, #00E08A);box-shadow:0 0 0 2px #00e08a40}.ui-radio--checked .ui-radio__circle{border-color:var(--ui-cor-primaria, #00E08A)}.ui-radio__dot{width:8px;height:8px;border-radius:50%;background-color:var(--ui-cor-primaria, #00E08A);transition:transform .15s cubic-bezier(.4,0,.2,1),opacity .15s ease;transform:scale(0);opacity:0}.ui-radio--checked .ui-radio__dot{transform:scale(1);opacity:1}.ui-radio__label{display:inline-flex;align-items:center;font-size:clamp(11px,.85rem,14px);color:var(--ui-cor-texto, #e1e1e6);line-height:1}.ui-radio--label-esquerda{flex-direction:row-reverse}', G = class G extends HTMLElement {
+const Ht = ':host{display:inline-flex;align-items:center;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif);vertical-align:middle}.ui-radio{display:inline-flex;align-items:center;gap:8px;cursor:pointer;-webkit-user-select:none;user-select:none;line-height:1;outline:none}.ui-radio--disabled{opacity:.5;cursor:not-allowed!important;pointer-events:none}.ui-radio__circle{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;min-width:16px;min-height:16px;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16));border-radius:50%;box-sizing:border-box;transition:background-color .15s ease,border-color .15s ease,box-shadow .15s ease;flex-shrink:0}.ui-radio:focus-visible .ui-radio__circle,.ui-radio--foco .ui-radio__circle{border-color:var(--ui-cor-primaria, #00E08A);box-shadow:0 0 0 2px #00e08a40}.ui-radio--checked .ui-radio__circle{border-color:var(--ui-cor-primaria, #00E08A)}.ui-radio__dot{width:8px;height:8px;border-radius:50%;background-color:var(--ui-cor-primaria, #00E08A);transition:transform .15s cubic-bezier(.4,0,.2,1),opacity .15s ease;transform:scale(0);opacity:0}.ui-radio--checked .ui-radio__dot{transform:scale(1);opacity:1}.ui-radio__label{display:inline-flex;align-items:center;font-size:clamp(11px,.85rem,14px);color:var(--ui-cor-texto, #e1e1e6);line-height:1}.ui-radio--label-esquerda{flex-direction:row-reverse}', G = class G extends HTMLElement {
   constructor() {
     super();
     l(this, "internals");
@@ -813,7 +813,7 @@ const Ot = ':host{display:inline-flex;align-items:center;box-sizing:border-box;f
     this.internals = this.attachInternals();
     const t = this.attachShadow({ mode: "open" });
     t.innerHTML = `
-      <style>${Ot}</style>
+      <style>${Ht}</style>
       <div class="ui-radio" tabindex="0" role="radio" aria-checked="false">
         <span class="ui-radio__circle">
           <span class="ui-radio__dot"></span>
@@ -924,7 +924,7 @@ l(G, "formAssociated", !0), // Registro estruturado com WeakMap para prevenir va
 l(G, "_registry", /* @__PURE__ */ new WeakMap());
 let rt = G;
 customElements.get("ui-radio") || customElements.define("ui-radio", rt);
-const Ht = ':host{display:inline-flex;align-items:center;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif);vertical-align:middle}.ui-switch{display:inline-flex;align-items:center;gap:8px;cursor:pointer;-webkit-user-select:none;user-select:none;line-height:1;outline:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent}.ui-switch--disabled{opacity:.5;cursor:not-allowed!important;pointer-events:none}.ui-switch__track{display:inline-flex;align-items:center;position:relative;width:36px;height:20px;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16));border-radius:999px;box-sizing:border-box;padding:1px;transition:background-color .2s ease,border-color .2s ease,box-shadow .2s ease;flex-shrink:0}.ui-switch:focus-visible .ui-switch__track,.ui-switch--foco .ui-switch__track{border-color:var(--ui-cor-primaria, #00E08A);box-shadow:0 0 0 2px #00e08a40}.ui-switch--checked .ui-switch__track{background-color:var(--ui-cor-primaria, #00E08A);border-color:var(--ui-cor-primaria, #00E08A)}.ui-switch__thumb{display:block;width:16px;height:16px;background-color:#fff;border-radius:50%;box-shadow:0 1px 3px #0000004d;transition:transform .2s cubic-bezier(.4,0,.2,1),background-color .2s ease;transform:translate(0)}.ui-switch--checked .ui-switch__thumb{transform:translate(16px);background-color:var(--ui-cor-texto-sobre-primaria, #000000)}.ui-switch--sm .ui-switch__track{width:28px;height:16px;padding:1px}.ui-switch--sm .ui-switch__thumb{width:12px;height:12px}.ui-switch--sm.ui-switch--checked .ui-switch__thumb{transform:translate(12px)}.ui-switch--lg .ui-switch__track{width:44px;height:24px;padding:1px}.ui-switch--lg .ui-switch__thumb{width:20px;height:20px}.ui-switch--lg.ui-switch--checked .ui-switch__thumb{transform:translate(20px)}.ui-switch__label{display:inline-flex;align-items:center;font-size:clamp(11px,.85rem,14px);color:var(--ui-cor-texto, #e1e1e6);line-height:1}.ui-switch--label-esquerda{flex-direction:row-reverse}@media (max-width: 640px){.ui-switch{min-height:40px;padding:4px 0}.ui-switch__label{font-size:14px}}';
+const Ot = ':host{display:inline-flex;align-items:center;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif);vertical-align:middle}.ui-switch{display:inline-flex;align-items:center;gap:8px;cursor:pointer;-webkit-user-select:none;user-select:none;line-height:1;outline:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent}.ui-switch--disabled{opacity:.5;cursor:not-allowed!important;pointer-events:none}.ui-switch__track{display:inline-flex;align-items:center;position:relative;width:36px;height:20px;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16));border-radius:999px;box-sizing:border-box;padding:1px;transition:background-color .2s ease,border-color .2s ease,box-shadow .2s ease;flex-shrink:0}.ui-switch:focus-visible .ui-switch__track,.ui-switch--foco .ui-switch__track{border-color:var(--ui-cor-primaria, #00E08A);box-shadow:0 0 0 2px #00e08a40}.ui-switch--checked .ui-switch__track{background-color:var(--ui-cor-primaria, #00E08A);border-color:var(--ui-cor-primaria, #00E08A)}.ui-switch__thumb{display:block;width:16px;height:16px;background-color:#fff;border-radius:50%;box-shadow:0 1px 3px #0000004d;transition:transform .2s cubic-bezier(.4,0,.2,1),background-color .2s ease;transform:translate(0)}.ui-switch--checked .ui-switch__thumb{transform:translate(16px);background-color:var(--ui-cor-texto-sobre-primaria, #000000)}.ui-switch--sm .ui-switch__track{width:28px;height:16px;padding:1px}.ui-switch--sm .ui-switch__thumb{width:12px;height:12px}.ui-switch--sm.ui-switch--checked .ui-switch__thumb{transform:translate(12px)}.ui-switch--lg .ui-switch__track{width:44px;height:24px;padding:1px}.ui-switch--lg .ui-switch__thumb{width:20px;height:20px}.ui-switch--lg.ui-switch--checked .ui-switch__thumb{transform:translate(20px)}.ui-switch__label{display:inline-flex;align-items:center;font-size:clamp(11px,.85rem,14px);color:var(--ui-cor-texto, #e1e1e6);line-height:1}.ui-switch--label-esquerda{flex-direction:row-reverse}@media (max-width: 640px){.ui-switch{min-height:40px;padding:4px 0}.ui-switch__label{font-size:14px}}';
 class lt extends HTMLElement {
   constructor() {
     super();
@@ -948,7 +948,7 @@ class lt extends HTMLElement {
     this.internals = this.attachInternals();
     const t = this.attachShadow({ mode: "open" });
     t.innerHTML = `
-      <style>${Ht}</style>
+      <style>${Ot}</style>
       <div class="ui-switch" tabindex="0" role="switch" aria-checked="false">
         <span class="ui-switch__track">
           <span class="ui-switch__thumb"></span>
@@ -1290,8 +1290,8 @@ class dt extends HTMLElement {
       t.forEach((i) => {
         var a, r;
         if (i instanceof HTMLElement) {
-          const s = i.getAttribute("valor") || i.getAttribute("value") || i.getAttribute("data-value") || ((a = i.textContent) == null ? void 0 : a.trim()) || "", n = i.getAttribute("label") || i.getAttribute("rotulo") || ((r = i.textContent) == null ? void 0 : r.trim()) || s, c = i.getAttribute("icone") || i.getAttribute("icon") || void 0, u = i.hasAttribute("disabled");
-          e.push({ valor: s, rotulo: n, icone: c, disabled: u });
+          const s = i.getAttribute("valor") || i.getAttribute("value") || i.getAttribute("data-value") || ((a = i.textContent) == null ? void 0 : a.trim()) || "", n = i.getAttribute("label") || i.getAttribute("rotulo") || ((r = i.textContent) == null ? void 0 : r.trim()) || s, c = i.getAttribute("icone") || i.getAttribute("icon") || void 0, d = i.hasAttribute("disabled");
+          e.push({ valor: s, rotulo: n, icone: c, disabled: d });
         }
       }), this._opcoes = e, this.renderizarOpcoes();
     }
@@ -1306,8 +1306,8 @@ class dt extends HTMLElement {
       if (r.setAttribute("aria-checked", String(s)), r.tabIndex = s ? 0 : -1, s && r.classList.add("ui-segmented__item--ativo"), (e || i.disabled) && (r.disabled = !0), i.icone) {
         const c = document.createElement("span");
         c.className = "ui-segmented__icone";
-        const u = document.createElement("ui-icone");
-        u.setAttribute("nome", i.icone), u.setAttribute("tamanho", "14"), c.appendChild(u), r.appendChild(c);
+        const d = document.createElement("ui-icone");
+        d.setAttribute("nome", i.icone), d.setAttribute("tamanho", "14"), c.appendChild(d), r.appendChild(c);
       }
       const n = document.createElement("span");
       n.className = "ui-segmented__texto", n.textContent = i.rotulo, r.appendChild(n), r.addEventListener("click", (c) => {
@@ -1455,15 +1455,15 @@ class Kt extends HTMLElement {
     t ? this.setAttribute("disabled", "") : this.removeAttribute("disabled"), this.syncState();
   }
   syncState() {
-    var d, h, p;
+    var u, h, p;
     const t = this.getAttribute("elevacao") || this.getAttribute("elevation") || "plano", e = this.getAttribute("variante") || this.getAttribute("variant"), i = this.clicavel, a = this.hasAttribute("compacto") || this.hasAttribute("compact"), r = this.disabled;
     this.cardElement.className = "ui-card", this.cardElement.classList.add(`ui-card--${t}`), e && this.cardElement.classList.add(`ui-card--${e}`), i ? (this.cardElement.classList.add("ui-card--clicavel"), this.cardElement.setAttribute("tabindex", "0")) : this.cardElement.removeAttribute("tabindex"), a && this.cardElement.classList.add("ui-card--compacto"), r && this.cardElement.classList.add("ui-card--disabled");
-    const s = (d = this.shadowRoot) == null ? void 0 : d.querySelector(".ui-card__header"), n = (h = this.shadowRoot) == null ? void 0 : h.querySelector(".ui-card__footer"), c = (p = this.shadowRoot) == null ? void 0 : p.querySelector(".ui-card__media"), u = (m) => {
-      var y;
+    const s = (u = this.shadowRoot) == null ? void 0 : u.querySelector(".ui-card__header"), n = (h = this.shadowRoot) == null ? void 0 : h.querySelector(".ui-card__footer"), c = (p = this.shadowRoot) == null ? void 0 : p.querySelector(".ui-card__media"), d = (m) => {
+      var v;
       const f = m.map((w) => `slot[name="${w}"]`).join(", ");
-      return Array.from(((y = this.shadowRoot) == null ? void 0 : y.querySelectorAll(f)) || []).some((w) => w.assignedNodes({ flatten: !0 }).some((P) => P.nodeType === Node.ELEMENT_NODE || P.textContent && P.textContent.trim() !== "")) || m.some((w) => this.querySelector(`[slot="${w}"]`) !== null);
+      return Array.from(((v = this.shadowRoot) == null ? void 0 : v.querySelectorAll(f)) || []).some((w) => w.assignedNodes({ flatten: !0 }).some((z) => z.nodeType === Node.ELEMENT_NODE || z.textContent && z.textContent.trim() !== "")) || m.some((w) => this.querySelector(`[slot="${w}"]`) !== null);
     };
-    c && (c.style.display = u(["midia", "media"]) ? "block" : "none"), s && (s.style.display = u(["cabecalho", "header"]) ? "flex" : "none"), n && (n.style.display = u(["rodape", "footer"]) ? "flex" : "none");
+    c && (c.style.display = d(["midia", "media"]) ? "block" : "none"), s && (s.style.display = d(["cabecalho", "header"]) ? "flex" : "none"), n && (n.style.display = d(["rodape", "footer"]) ? "flex" : "none");
   }
 }
 customElements.get("ui-card") || customElements.define("ui-card", Kt);
@@ -1508,7 +1508,7 @@ const Zt = ':host{display:block;box-sizing:border-box;font-family:var(--ui-fonte
         <div class="ui-modal__handle"></div>
         <div class="ui-modal__header">
           <h3 class="ui-modal__titulo"></h3>
-          <button class="ui-modal__close" type="button" aria-label="Fechar modal" title="Fechar (Esc)">✕</button>
+          <button class="ui-modal__close" type="button" aria-label="Fechar modal" title="Fechar">✕</button>
         </div>
         <div class="ui-modal__body">
           <slot></slot>
@@ -1573,7 +1573,7 @@ const Zt = ':host{display:block;box-sizing:border-box;font-family:var(--ui-fonte
     var a, r;
     const t = this.aberto, e = this.getAttribute("titulo") || this.getAttribute("title") || "", i = (a = this.shadowRoot) == null ? void 0 : a.querySelector(".ui-modal__footer");
     if (this.dialogElement.setAttribute("aria-hidden", String(!t)), e ? (this.tituloElement.textContent = e, this.tituloElement.style.display = "block") : this.tituloElement.style.display = "none", i) {
-      const n = Array.from(((r = this.shadowRoot) == null ? void 0 : r.querySelectorAll('slot[name="rodape"], slot[name="footer"]')) || []).some((c) => c.assignedNodes({ flatten: !0 }).some((d) => d.nodeType === Node.ELEMENT_NODE || d.textContent && d.textContent.trim() !== "")) || this.querySelector('[slot="rodape"], [slot="footer"]') !== null;
+      const n = Array.from(((r = this.shadowRoot) == null ? void 0 : r.querySelectorAll('slot[name="rodape"], slot[name="footer"]')) || []).some((c) => c.assignedNodes({ flatten: !0 }).some((u) => u.nodeType === Node.ELEMENT_NODE || u.textContent && u.textContent.trim() !== "")) || this.querySelector('[slot="rodape"], [slot="footer"]') !== null;
       i.style.display = n ? "flex" : "none";
     }
     t ? this.hasAttribute("data-scroll-locked") || (this.setAttribute("data-scroll-locked", "true"), V._openCount++, V._openCount === 1 && (document.body.style.overflow = "hidden")) : this.hasAttribute("data-scroll-locked") && (this.removeAttribute("data-scroll-locked"), V._openCount = Math.max(0, V._openCount - 1), V._openCount === 0 && (document.body.style.overflow = ""));
@@ -1597,11 +1597,11 @@ const Zt = ':host{display:block;box-sizing:border-box;font-family:var(--ui-fonte
 };
 l(V, "_openCount", 0);
 let et = V;
-class Qt extends et {
+class Jt extends et {
 }
 customElements.get("ui-modal") || customElements.define("ui-modal", et);
-customElements.get("ui-dialog") || customElements.define("ui-dialog", Qt);
-const Jt = ':host{display:block;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif)}.ui-drawer__backdrop{position:fixed;top:0;left:0;width:100vw;height:100vh;background-color:#000000a6;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);z-index:9998;opacity:0;pointer-events:none;transition:opacity .25s ease}:host([aberto]) .ui-drawer__backdrop,:host([open]) .ui-drawer__backdrop{opacity:1;pointer-events:auto}.ui-drawer__painel{position:fixed;z-index:9999;background-color:var(--ui-cor-fundo-card, #18181c);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));box-shadow:0 16px 40px #000000b3;display:flex;flex-direction:column;opacity:0;visibility:hidden;pointer-events:none;transition:transform .25s cubic-bezier(.16,1,.3,1),opacity .2s ease,visibility .2s ease;box-sizing:border-box;color:var(--ui-cor-texto, #e1e1e6)}:root[data-tema=claro] .ui-drawer__painel,[data-tema=claro] .ui-drawer__painel{background-color:#fff;border-color:#0000001f;box-shadow:0 12px 32px #00000026;color:#1a1a1e}:host(:not([posicao])) .ui-drawer__painel,:host([posicao="direita"]) .ui-drawer__painel,:host([position="right"]) .ui-drawer__painel{top:0;right:0;bottom:0;width:var(--ui-drawer-largura, 480px);max-width:92vw;height:100vh;transform:translate(100%);border-left:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16))}:host([aberto]:not([posicao])) .ui-drawer__painel,:host([open]:not([posicao])) .ui-drawer__painel,:host([aberto][posicao="direita"]) .ui-drawer__painel,:host([open][posicao="direita"]) .ui-drawer__painel,:host([aberto][position="right"]) .ui-drawer__painel,:host([open][position="right"]) .ui-drawer__painel{transform:translate(0);opacity:1;visibility:visible;pointer-events:auto}:host([posicao="esquerda"]) .ui-drawer__painel,:host([position="left"]) .ui-drawer__painel{top:0;left:0;bottom:0;width:var(--ui-drawer-largura, 480px);max-width:92vw;height:100vh;transform:translate(-100%);border-right:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16))}:host([aberto][posicao="esquerda"]) .ui-drawer__painel,:host([open][posicao="esquerda"]) .ui-drawer__painel,:host([aberto][position="left"]) .ui-drawer__painel,:host([open][position="left"]) .ui-drawer__painel{transform:translate(0);opacity:1;visibility:visible;pointer-events:auto}:host([posicao="baixo"]) .ui-drawer__painel,:host([position="bottom"]) .ui-drawer__painel{bottom:0;left:0;right:0;width:100vw;max-height:85vh;transform:translateY(100%);border-top:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16));border-top-left-radius:14px;border-top-right-radius:14px}:host([aberto][posicao="baixo"]) .ui-drawer__painel,:host([open][posicao="baixo"]) .ui-drawer__painel,:host([aberto][position="bottom"]) .ui-drawer__painel,:host([open][position="bottom"]) .ui-drawer__painel{transform:translateY(0);opacity:1;visibility:visible;pointer-events:auto}:host([posicao="cima"]) .ui-drawer__painel,:host([position="top"]) .ui-drawer__painel{top:0;left:0;right:0;width:100vw;max-height:85vh;transform:translateY(-100%);border-bottom:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16));border-bottom-left-radius:14px;border-bottom-right-radius:14px}:host([aberto][posicao="cima"]) .ui-drawer__painel,:host([open][posicao="cima"]) .ui-drawer__painel,:host([aberto][position="top"]) .ui-drawer__painel,:host([open][position="top"]) .ui-drawer__painel{transform:translateY(0);opacity:1;visibility:visible;pointer-events:auto}.ui-drawer__header{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .08));flex-shrink:0}:root[data-tema=claro] .ui-drawer__header,[data-tema=claro] .ui-drawer__header{border-bottom-color:#00000014}.ui-drawer__titulo-container{display:flex;flex-direction:column;gap:2px}.ui-drawer__titulo{margin:0;font-size:16px;font-weight:600;color:var(--ui-cor-texto, #ffffff)}:root[data-tema=claro] .ui-drawer__titulo,[data-tema=claro] .ui-drawer__titulo{color:#1a1a1e}.ui-drawer__descricao{margin:0;font-size:13px;color:var(--ui-cor-texto-secundario, #888899)}.ui-drawer__close{background:transparent;border:none;color:var(--ui-cor-texto-secundario, #888899);font-size:16px;cursor:pointer;padding:6px;border-radius:6px;line-height:1;display:flex;align-items:center;justify-content:center;transition:color .15s ease,background-color .15s ease}.ui-drawer__close svg,.ui-drawer__close ::slotted(svg){shape-rendering:geometricPrecision}.ui-drawer__close:hover{color:var(--ui-cor-texto, #ffffff);background-color:var(--ui-cor-hover-menu, rgba(255, 255, 255, .08))}.ui-drawer__close:focus-visible{outline:none;box-shadow:0 0 0 2px var(--ui-cor-primaria, #00E08A)}.ui-drawer__body{padding:20px;overflow-y:auto;flex:1;box-sizing:border-box}.ui-drawer__footer{padding:14px 20px;border-top:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .08));display:flex;align-items:center;justify-content:flex-end;gap:10px;background-color:#00000026;flex-shrink:0}:root[data-tema=claro] .ui-drawer__footer,[data-tema=claro] .ui-drawer__footer{border-top-color:#00000014;background-color:#00000008}@starting-style{:host([aberto]:not([posicao])) .ui-drawer__painel,:host([open]:not([posicao])) .ui-drawer__painel,:host([aberto][posicao="direita"]) .ui-drawer__painel,:host([open][posicao="direita"]) .ui-drawer__painel{transform:translate(100%);opacity:0}:host([aberto][posicao="esquerda"]) .ui-drawer__painel,:host([open][posicao="esquerda"]) .ui-drawer__painel{transform:translate(-100%);opacity:0}:host([aberto][posicao="baixo"]) .ui-drawer__painel,:host([open][posicao="baixo"]) .ui-drawer__painel{transform:translateY(100%);opacity:0}:host([aberto]) .ui-drawer__backdrop,:host([open]) .ui-drawer__backdrop{opacity:0}}';
+customElements.get("ui-dialog") || customElements.define("ui-dialog", Jt);
+const Qt = ':host{display:block;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif)}.ui-drawer__backdrop{position:fixed;top:0;left:0;width:100vw;height:100vh;background-color:#000000a6;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);z-index:9998;opacity:0;pointer-events:none;transition:opacity .25s ease}:host([aberto]) .ui-drawer__backdrop,:host([open]) .ui-drawer__backdrop{opacity:1;pointer-events:auto}.ui-drawer__painel{position:fixed;z-index:9999;background-color:var(--ui-cor-fundo-card, #18181c);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));box-shadow:0 16px 40px #000000b3;display:flex;flex-direction:column;opacity:0;visibility:hidden;pointer-events:none;transition:transform .25s cubic-bezier(.16,1,.3,1),opacity .2s ease,visibility .2s ease;box-sizing:border-box;color:var(--ui-cor-texto, #e1e1e6)}:root[data-tema=claro] .ui-drawer__painel,[data-tema=claro] .ui-drawer__painel{background-color:#fff;border-color:#0000001f;box-shadow:0 12px 32px #00000026;color:#1a1a1e}:host(:not([posicao])) .ui-drawer__painel,:host([posicao="direita"]) .ui-drawer__painel,:host([position="right"]) .ui-drawer__painel{top:0;right:0;bottom:0;width:var(--ui-drawer-largura, 480px);max-width:92vw;height:100vh;transform:translate(100%);border-left:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16))}:host([aberto]:not([posicao])) .ui-drawer__painel,:host([open]:not([posicao])) .ui-drawer__painel,:host([aberto][posicao="direita"]) .ui-drawer__painel,:host([open][posicao="direita"]) .ui-drawer__painel,:host([aberto][position="right"]) .ui-drawer__painel,:host([open][position="right"]) .ui-drawer__painel{transform:translate(0);opacity:1;visibility:visible;pointer-events:auto}:host([posicao="esquerda"]) .ui-drawer__painel,:host([position="left"]) .ui-drawer__painel{top:0;left:0;bottom:0;width:var(--ui-drawer-largura, 480px);max-width:92vw;height:100vh;transform:translate(-100%);border-right:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16))}:host([aberto][posicao="esquerda"]) .ui-drawer__painel,:host([open][posicao="esquerda"]) .ui-drawer__painel,:host([aberto][position="left"]) .ui-drawer__painel,:host([open][position="left"]) .ui-drawer__painel{transform:translate(0);opacity:1;visibility:visible;pointer-events:auto}:host([posicao="baixo"]) .ui-drawer__painel,:host([position="bottom"]) .ui-drawer__painel{bottom:0;left:0;right:0;width:100vw;max-height:85vh;transform:translateY(100%);border-top:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16));border-top-left-radius:14px;border-top-right-radius:14px}:host([aberto][posicao="baixo"]) .ui-drawer__painel,:host([open][posicao="baixo"]) .ui-drawer__painel,:host([aberto][position="bottom"]) .ui-drawer__painel,:host([open][position="bottom"]) .ui-drawer__painel{transform:translateY(0);opacity:1;visibility:visible;pointer-events:auto}:host([posicao="cima"]) .ui-drawer__painel,:host([position="top"]) .ui-drawer__painel{top:0;left:0;right:0;width:100vw;max-height:85vh;transform:translateY(-100%);border-bottom:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16));border-bottom-left-radius:14px;border-bottom-right-radius:14px}:host([aberto][posicao="cima"]) .ui-drawer__painel,:host([open][posicao="cima"]) .ui-drawer__painel,:host([aberto][position="top"]) .ui-drawer__painel,:host([open][position="top"]) .ui-drawer__painel{transform:translateY(0);opacity:1;visibility:visible;pointer-events:auto}.ui-drawer__header{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .08));flex-shrink:0}:root[data-tema=claro] .ui-drawer__header,[data-tema=claro] .ui-drawer__header{border-bottom-color:#00000014}.ui-drawer__titulo-container{display:flex;flex-direction:column;gap:2px}.ui-drawer__titulo{margin:0;font-size:16px;font-weight:600;color:var(--ui-cor-texto, #ffffff)}:root[data-tema=claro] .ui-drawer__titulo,[data-tema=claro] .ui-drawer__titulo{color:#1a1a1e}.ui-drawer__descricao{margin:0;font-size:13px;color:var(--ui-cor-texto-secundario, #888899)}.ui-drawer__close{background:transparent;border:none;color:var(--ui-cor-texto-secundario, #888899);font-size:16px;cursor:pointer;padding:6px;border-radius:6px;line-height:1;display:flex;align-items:center;justify-content:center;transition:color .15s ease,background-color .15s ease}.ui-drawer__close svg,.ui-drawer__close ::slotted(svg){shape-rendering:geometricPrecision}.ui-drawer__close:hover{color:var(--ui-cor-texto, #ffffff);background-color:var(--ui-cor-hover-menu, rgba(255, 255, 255, .08))}.ui-drawer__close:focus-visible{outline:none;box-shadow:0 0 0 2px var(--ui-cor-primaria, #00E08A)}.ui-drawer__body{padding:20px;overflow-y:auto;flex:1;box-sizing:border-box}.ui-drawer__footer{padding:14px 20px;border-top:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .08));display:flex;align-items:center;justify-content:flex-end;gap:10px;background-color:#00000026;flex-shrink:0}:root[data-tema=claro] .ui-drawer__footer,[data-tema=claro] .ui-drawer__footer{border-top-color:#00000014;background-color:#00000008}@starting-style{:host([aberto]:not([posicao])) .ui-drawer__painel,:host([open]:not([posicao])) .ui-drawer__painel,:host([aberto][posicao="direita"]) .ui-drawer__painel,:host([open][posicao="direita"]) .ui-drawer__painel{transform:translate(100%);opacity:0}:host([aberto][posicao="esquerda"]) .ui-drawer__painel,:host([open][posicao="esquerda"]) .ui-drawer__painel{transform:translate(-100%);opacity:0}:host([aberto][posicao="baixo"]) .ui-drawer__painel,:host([open][posicao="baixo"]) .ui-drawer__painel{transform:translateY(100%);opacity:0}:host([aberto]) .ui-drawer__backdrop,:host([open]) .ui-drawer__backdrop{opacity:0}}';
 class K extends HTMLElement {
   constructor() {
     super();
@@ -1639,7 +1639,7 @@ class K extends HTMLElement {
     });
     const t = this.attachShadow({ mode: "open" });
     t.innerHTML = `
-      <style>${Jt}</style>
+      <style>${Qt}</style>
       <div class="ui-drawer__backdrop"></div>
       <aside class="ui-drawer__painel" role="dialog" aria-modal="true" tabindex="-1">
         <div class="ui-drawer__header">
@@ -1726,8 +1726,8 @@ class K extends HTMLElement {
     var s, n;
     const t = this.aberto, e = this.getAttribute("titulo") || this.getAttribute("title") || "", i = this.getAttribute("descricao") || this.getAttribute("description") || "", a = this.getAttribute("largura") || this.getAttribute("width"), r = (s = this.shadowRoot) == null ? void 0 : s.querySelector(".ui-drawer__footer");
     if (this.painelElement.setAttribute("aria-hidden", String(!t)), e ? (this.tituloElement.textContent = e, this.tituloElement.style.display = "block") : this.tituloElement.style.display = "none", i ? (this.descricaoElement.textContent = i, this.descricaoElement.style.display = "block") : this.descricaoElement.style.display = "none", a ? this.style.setProperty("--ui-drawer-largura", isNaN(Number(a)) ? a : `${a}px`) : this.style.removeProperty("--ui-drawer-largura"), r) {
-      const u = Array.from(((n = this.shadowRoot) == null ? void 0 : n.querySelectorAll('slot[name="rodape"], slot[name="footer"]')) || []).some((d) => d.assignedNodes({ flatten: !0 }).some((p) => p.nodeType === Node.ELEMENT_NODE || p.textContent && p.textContent.trim() !== "")) || this.querySelector('[slot="rodape"], [slot="footer"]') !== null;
-      r.style.display = u ? "flex" : "none";
+      const d = Array.from(((n = this.shadowRoot) == null ? void 0 : n.querySelectorAll('slot[name="rodape"], slot[name="footer"]')) || []).some((u) => u.assignedNodes({ flatten: !0 }).some((p) => p.nodeType === Node.ELEMENT_NODE || p.textContent && p.textContent.trim() !== "")) || this.querySelector('[slot="rodape"], [slot="footer"]') !== null;
+      r.style.display = d ? "flex" : "none";
     }
     K.atualizarScrollLock();
   }
@@ -1842,7 +1842,7 @@ class _t extends HTMLElement {
     this.alertaElement.className = "ui-alerta", this.alertaElement.classList.add(`ui-alerta--${t}`), t === "erro" || t === "alerta" ? (this.alertaElement.setAttribute("role", "alert"), this.alertaElement.setAttribute("aria-live", "assertive")) : (this.alertaElement.setAttribute("role", "status"), this.alertaElement.setAttribute("aria-live", "polite")), this.iconeElement.innerHTML = mt[t] || mt.info, e ? (this.tituloElement.textContent = e, this.tituloElement.style.display = "block") : this.tituloElement.style.display = "none", i ? (this.mensagemTextoElement.textContent = i, this.mensagemTextoElement.style.display = "inline") : (this.mensagemTextoElement.textContent = "", this.mensagemTextoElement.style.display = "none"), a ? this.closeElement.style.display = "block" : this.closeElement.style.display = "none";
   }
 }
-class Q extends _t {
+class J extends _t {
   constructor() {
     super(...arguments);
     l(this, "timerId", null);
@@ -1904,11 +1904,11 @@ class Q extends _t {
   // Utilitário estático para disparo imperativo de Toasts de qualquer lugar no código
   static notificar(t) {
     const e = t.posicao || "bottom-right", i = document.createElement("ui-toast");
-    return t.tipo && i.setAttribute("tipo", t.tipo), t.titulo && i.setAttribute("titulo", t.titulo), t.mensagem && i.setAttribute("mensagem", t.mensagem), t.duracao !== void 0 && i.setAttribute("duracao", String(t.duracao)), t.pausarNoHover === !1 && i.setAttribute("pausar-no-hover", "false"), i.setAttribute("posicao", e), t.fechavel !== !1 && i.setAttribute("fechavel", ""), t.acao && i.configurarAcao(t.acao), Q.obterContainer(e).appendChild(i), i;
+    return t.tipo && i.setAttribute("tipo", t.tipo), t.titulo && i.setAttribute("titulo", t.titulo), t.mensagem && i.setAttribute("mensagem", t.mensagem), t.duracao !== void 0 && i.setAttribute("duracao", String(t.duracao)), t.pausarNoHover === !1 && i.setAttribute("pausar-no-hover", "false"), i.setAttribute("posicao", e), t.fechavel !== !1 && i.setAttribute("fechavel", ""), t.acao && i.configurarAcao(t.acao), J.obterContainer(e).appendChild(i), i;
   }
 }
 customElements.get("ui-alerta") || customElements.define("ui-alerta", _t);
-customElements.get("ui-toast") || customElements.define("ui-toast", Q);
+customElements.get("ui-toast") || customElements.define("ui-toast", J);
 const ae = ":host{display:inline-flex;position:relative;align-items:center;justify-content:center;vertical-align:middle;box-sizing:border-box;--ui-tooltip-texto-distancia: 260px;--ui-tooltip-seta-espaco: 70px}.ui-tooltip__bubble{position:fixed;z-index:10001;padding:6px 10px;border-radius:6px;font-size:11px;font-weight:500;background-color:var(--ui-cor-fundo-elevado, #1e1e24);color:var(--ui-cor-texto, #e1e1e6);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16));box-shadow:0 4px 16px #00000080;white-space:normal;max-width:var(--ui-tooltip-texto-distancia, 260px);width:max-content;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .15s ease,visibility .15s ease;line-height:1.35;box-sizing:border-box;-webkit-user-select:none;user-select:none;margin:0}.ui-tooltip__bubble[popover]{margin:0;border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16));background-color:var(--ui-cor-fundo-elevado, #1e1e24);color:var(--ui-cor-texto, #e1e1e6);padding:6px 10px;overflow:visible;max-width:var(--ui-tooltip-texto-distancia, 260px);width:max-content;white-space:normal}.ui-tooltip__texto{display:inline-block;max-width:100%}.ui-tooltip__arrow{position:absolute;width:0;height:0;border-style:solid}.ui-tooltip--topo .ui-tooltip__arrow{bottom:-5px;left:50%;transform:translate(-50%);border-width:5px 5px 0 5px;border-color:var(--ui-cor-fundo-elevado, #1e1e24) transparent transparent transparent}.ui-tooltip--baixo .ui-tooltip__arrow{top:-5px;left:50%;transform:translate(-50%);border-width:0 5px 5px 5px;border-color:transparent transparent var(--ui-cor-fundo-elevado, #1e1e24) transparent}.ui-tooltip--esquerda .ui-tooltip__arrow{right:-5px;top:50%;transform:translateY(-50%);border-width:5px 0 5px 5px;border-color:transparent transparent transparent var(--ui-cor-fundo-elevado, #1e1e24)}.ui-tooltip--direita .ui-tooltip__arrow{left:-5px;top:50%;transform:translateY(-50%);border-width:5px 5px 5px 0;border-color:transparent var(--ui-cor-fundo-elevado, #1e1e24) transparent transparent}.ui-tooltip--visivel .ui-tooltip__bubble{opacity:1;visibility:visible;pointer-events:auto;transform:scale(1)}@starting-style{.ui-tooltip--visivel .ui-tooltip__bubble,.ui-tooltip__bubble:popover-open{opacity:0;transform:scale(.94)}}";
 class wt extends HTMLElement {
   constructor() {
@@ -2020,7 +2020,7 @@ class re extends wt {
 }
 customElements.get("ui-tooltip") || customElements.define("ui-tooltip", wt);
 customElements.get("ui-popover") || customElements.define("ui-popover", re);
-const se = ':host{display:block;width:100%;box-sizing:border-box;font-family:inherit;color:var(--ui-cor-texto, #e1e1e6);position:relative}.ui-tabela-container{width:100%;max-width:100%;max-height:var(--ui-tabela-max-height, 500px);overflow-x:auto;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-x pan-y;border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));border-radius:var(--ui-raio-borda, 6px);background-color:var(--ui-cor-superficie, #141417);box-sizing:border-box;position:relative}.ui-tabela{width:100%;border-collapse:separate;border-spacing:0;text-align:left;font-size:14px}.ui-tabela thead{position:sticky;top:0;z-index:10;background-color:var(--ui-cor-fundo-elevado, #1a1a1e)}.ui-tabela th{position:sticky;top:0;z-index:10;padding:10px 16px;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);color:var(--ui-cor-texto, #e1e1e6);font-weight:600;border-bottom:2px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));white-space:nowrap;-webkit-user-select:none;user-select:none;box-sizing:border-box}.ui-tabela__resizer{position:absolute;top:0;right:0;width:6px;height:100%;cursor:col-resize;-webkit-user-select:none;user-select:none;z-index:20;transition:background-color .15s ease}.ui-tabela__resizer:hover,.ui-tabela__resizer--ativo{background-color:var(--ui-cor-primaria, #00E08A)}:host([densidade="compacta"]) th,:host([densidade="compacta"]) td,:host([density="compact"]) th,:host([density="compact"]) td{padding:4px 8px}:host([densidade="normal"]) th,:host([densidade="normal"]) td,:host([density="normal"]) th,:host([density="normal"]) td{padding:10px 16px}:host([densidade="relaxada"]) th,:host([densidade="relaxada"]) td,:host([density="relaxed"]) th,:host([density="relaxed"]) td{padding:16px 20px}.ui-tabela__header-content{display:inline-flex;align-items:center;vertical-align:middle;width:100%;box-sizing:border-box}.ui-tabela__header-text{margin-right:90px;display:inline-flex;align-items:center}.ui-tabela__sort-icon,.ui-tabela__header-icon{width:70px;min-width:70px;max-width:70px;display:inline-flex;justify-content:center;align-items:center;transition:transform .2s ease,opacity .2s ease}.ui-tabela th.ui-tabela__th--ordenavel{cursor:pointer}.ui-tabela th.ui-tabela__th--ordenavel:hover{background-color:var(--ui-cor-hover-menu, rgba(255, 255, 255, .08))}.ui-tabela__sort-arrow{display:inline-block;width:12px;height:12px;vertical-align:middle;shape-rendering:geometricPrecision;transition:transform .2s ease,fill .2s ease;fill:var(--ui-cor-primaria, #00E08A)}.ui-tabela__sort-arrow--desc{transform:rotate(180deg)}.ui-tabela__sort-arrow--inativo{opacity:.3;fill:var(--ui-cor-texto-secundario, #888899)}.ui-tabela td{padding:10px 16px;border-bottom:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .06));white-space:nowrap;vertical-align:middle;color:var(--ui-cor-texto, #e1e1e6);box-sizing:border-box}.ui-tabela__cell-content{display:inline-flex;align-items:center;vertical-align:middle}.ui-tabela__cell-truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}.ui-tabela--alinhar-esquerda{text-align:left}.ui-tabela--alinhar-esquerda .ui-tabela__header-content,.ui-tabela--alinhar-esquerda .ui-tabela__cell-content{justify-content:flex-start}.ui-tabela--alinhar-centro{text-align:center}.ui-tabela--alinhar-centro .ui-tabela__header-content,.ui-tabela--alinhar-centro .ui-tabela__cell-content{justify-content:center}.ui-tabela--alinhar-direita{text-align:right}.ui-tabela--alinhar-direita .ui-tabela__header-content,.ui-tabela--alinhar-direita .ui-tabela__cell-content{justify-content:flex-end}.ui-tabela tbody tr:nth-child(2n){background-color:var(--ui-cor-fundo-card, rgba(255, 255, 255, .02))}.ui-tabela tbody tr:hover{background-color:var(--ui-cor-hover-menu, rgba(255, 255, 255, .08))}.ui-tabela__virtual-spacer td{padding:0!important;border:none!important;height:inherit;background:transparent!important}.ui-tabela__empty{padding:48px 24px;text-align:center;border:2px dashed var(--ui-cor-borda, rgba(255, 255, 255, .2));border-radius:var(--ui-raio-borda, 6px);margin:16px;color:var(--ui-cor-texto-secundario, #888899);background-color:var(--ui-cor-fundo, #0b0b0d);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;box-sizing:border-box}.ui-tabela__empty-icon{width:32px;height:32px;opacity:.5;fill:currentColor}.ui-tabela__empty-text{font-size:14px;font-weight:500;color:var(--ui-cor-texto-secundario, #888899)}.ui-tabela__loading{position:absolute;top:0;left:0;right:0;bottom:0;background-color:#0b0b0db3;-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;z-index:50;color:var(--ui-cor-primaria, #00E08A);font-size:14px}.ui-tabela__spinner{width:32px;height:32px;border:3px solid rgba(255,255,255,.15);border-top-color:var(--ui-cor-primaria, #00E08A);border-radius:50%;animation:ui-tabela-spin .8s linear infinite}@keyframes ui-tabela-spin{to{transform:rotate(360deg)}}.ui-tabela__context-menu{position:absolute;z-index:100;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .2));border-radius:var(--ui-raio-borda, 6px);box-shadow:0 4px 20px #0009;padding:6px;display:flex;flex-direction:column;gap:4px;min-width:200px;font-size:13px;color:var(--ui-cor-texto, #e1e1e6)}.ui-tabela__context-item{padding:8px 12px;border-radius:4px;cursor:pointer;color:var(--ui-cor-texto, #e1e1e6);display:flex;align-items:center;justify-content:space-between;gap:8px;transition:background-color .15s ease}.ui-tabela__context-item:hover{background-color:var(--ui-cor-hover-menu, rgba(255, 255, 255, .08));color:var(--ui-cor-primaria, #00E08A)}.ui-tabela__prompt-dialog{border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .2));border-radius:var(--ui-raio-borda, 6px);background-color:var(--ui-cor-fundo-elevado, #1a1a1e);color:var(--ui-cor-texto, #e1e1e6);padding:12px;box-shadow:0 8px 32px #000c;font-family:inherit;font-size:14px}.ui-tabela__prompt-dialog::backdrop{background:#0000004d}.ui-tabela__prompt-title{margin-bottom:8px;font-weight:500}.ui-tabela__prompt-dialog input{width:100%;padding:6px 8px;border-radius:4px;border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .2));background:var(--ui-cor-superficie, #141417);color:var(--ui-cor-texto, #e1e1e6);margin-bottom:12px;box-sizing:border-box}.ui-tabela__prompt-actions{display:flex;justify-content:flex-end;gap:8px}.ui-tabela__prompt-actions button{background:var(--ui-cor-borda, rgba(255, 255, 255, .12));color:var(--ui-cor-texto, #e1e1e6);border:none;padding:6px 12px;border-radius:4px;cursor:pointer}.ui-tabela__prompt-actions button:last-child{background:var(--ui-cor-primaria, #00E08A);color:#000;font-weight:600}@media (max-width: 640px){.ui-tabela th{padding:8px 10px;font-size:12px}.ui-tabela td{padding:8px 10px;font-size:13px}.ui-tabela__header-text{margin-right:16px}.ui-tabela__sort-icon,.ui-tabela__header-icon{width:24px;min-width:24px;max-width:24px}.ui-tabela__resizer{width:14px}}';
+const se = ':host{display:block;width:100%;box-sizing:border-box;font-family:inherit;color:var(--ui-cor-texto, #e1e1e6);position:relative}.ui-tabela-container{width:100%;max-width:100%;max-height:var(--ui-tabela-max-height, 500px);overflow-x:auto;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-x pan-y;border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));border-radius:var(--ui-raio-borda, 6px);background-color:var(--ui-cor-superficie, #141417);box-sizing:border-box;position:relative}.ui-tabela{width:100%;border-collapse:separate;border-spacing:0;text-align:left;font-size:14px}.ui-tabela thead{position:sticky;top:0;z-index:10;background-color:var(--ui-cor-fundo-elevado, #1a1a1e)}.ui-tabela th{position:sticky;top:0;z-index:10;padding:10px 16px;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);color:var(--ui-cor-texto, #e1e1e6);font-weight:600;border-bottom:2px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));white-space:nowrap;-webkit-user-select:none;user-select:none;box-sizing:border-box}.ui-tabela__resizer{position:absolute;top:0;right:0;width:6px;height:100%;cursor:col-resize;-webkit-user-select:none;user-select:none;z-index:20;transition:background-color .15s ease}.ui-tabela__resizer:hover,.ui-tabela__resizer--ativo{background-color:var(--ui-cor-primaria, #00E08A)}:host([densidade="compacta"]) th,:host([densidade="compacta"]) td,:host([density="compact"]) th,:host([density="compact"]) td{padding:4px 8px}:host([densidade="normal"]) th,:host([densidade="normal"]) td,:host([density="normal"]) th,:host([density="normal"]) td{padding:10px 16px}:host([densidade="relaxada"]) th,:host([densidade="relaxada"]) td,:host([density="relaxed"]) th,:host([density="relaxed"]) td{padding:16px 20px}.ui-tabela__header-content{display:inline-flex;align-items:center;vertical-align:middle;width:100%;box-sizing:border-box}.ui-tabela__header-text{margin-right:90px;display:inline-flex;align-items:center}.ui-tabela__sort-icon,.ui-tabela__header-icon{width:70px;min-width:70px;max-width:70px;display:inline-flex;justify-content:center;align-items:center;transition:transform .2s ease,opacity .2s ease}.ui-tabela th.ui-tabela__th--ordenavel{cursor:pointer}.ui-tabela th.ui-tabela__th--ordenavel:hover{background-color:var(--ui-cor-hover-menu, rgba(255, 255, 255, .08))}.ui-tabela__sort-arrow{display:inline-block;width:12px;height:12px;vertical-align:middle;shape-rendering:geometricPrecision;transition:transform .2s ease,fill .2s ease;fill:var(--ui-cor-primaria, #00E08A)}.ui-tabela__sort-arrow--desc{transform:rotate(180deg)}.ui-tabela__sort-arrow--inativo{opacity:.3;fill:var(--ui-cor-texto-secundario, #888899)}.ui-tabela td{padding:10px 16px;border-bottom:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .06));white-space:nowrap;vertical-align:middle;color:var(--ui-cor-texto, #e1e1e6);box-sizing:border-box}.ui-tabela__cell-content{display:inline-flex;align-items:center;vertical-align:middle}.ui-tabela__cell-truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}.ui-tabela--alinhar-esquerda{text-align:left}.ui-tabela--alinhar-esquerda .ui-tabela__header-content,.ui-tabela--alinhar-esquerda .ui-tabela__cell-content{justify-content:flex-start}.ui-tabela--alinhar-centro{text-align:center}.ui-tabela--alinhar-centro .ui-tabela__header-content,.ui-tabela--alinhar-centro .ui-tabela__cell-content{justify-content:center}.ui-tabela--alinhar-direita{text-align:right}.ui-tabela--alinhar-direita .ui-tabela__header-content,.ui-tabela--alinhar-direita .ui-tabela__cell-content{justify-content:flex-end}.ui-tabela tbody tr:nth-child(2n){background-color:var(--ui-cor-fundo-card, rgba(255, 255, 255, .02))}.ui-tabela tbody tr:hover{background-color:var(--ui-cor-hover-menu, rgba(255, 255, 255, .08))}.ui-tabela tbody tr.ui-tabela__tr--selecionada,.ui-tabela tbody tr[data-selecionada=true]{background-color:#00e08a24!important;box-shadow:inset 3px 0 0 var(--ui-cor-primaria, #00E08A)}.ui-tabela tbody tr.ui-tabela__tr--selecionada:hover,.ui-tabela tbody tr[data-selecionada=true]:hover{background-color:#00e08a38!important}.ui-tabela__virtual-spacer td{padding:0!important;border:none!important;height:inherit;background:transparent!important}.ui-tabela__empty{padding:48px 24px;text-align:center;border:2px dashed var(--ui-cor-borda, rgba(255, 255, 255, .2));border-radius:var(--ui-raio-borda, 6px);margin:16px;color:var(--ui-cor-texto-secundario, #888899);background-color:var(--ui-cor-fundo, #0b0b0d);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;box-sizing:border-box}.ui-tabela__empty-icon{width:32px;height:32px;opacity:.5;fill:currentColor}.ui-tabela__empty-text{font-size:14px;font-weight:500;color:var(--ui-cor-texto-secundario, #888899)}.ui-tabela__loading{position:absolute;top:0;left:0;right:0;bottom:0;background-color:#0b0b0db3;-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;z-index:50;color:var(--ui-cor-primaria, #00E08A);font-size:14px}.ui-tabela__spinner{width:32px;height:32px;border:3px solid rgba(255,255,255,.15);border-top-color:var(--ui-cor-primaria, #00E08A);border-radius:50%;animation:ui-tabela-spin .8s linear infinite}@keyframes ui-tabela-spin{to{transform:rotate(360deg)}}.ui-tabela__context-menu{position:absolute;z-index:100;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .2));border-radius:var(--ui-raio-borda, 6px);box-shadow:0 4px 20px #0009;padding:6px;display:flex;flex-direction:column;gap:4px;min-width:200px;font-size:13px;color:var(--ui-cor-texto, #e1e1e6)}.ui-tabela__context-item{padding:8px 12px;border-radius:4px;cursor:pointer;color:var(--ui-cor-texto, #e1e1e6);display:flex;align-items:center;justify-content:space-between;gap:8px;transition:background-color .15s ease}.ui-tabela__context-item:hover{background-color:var(--ui-cor-hover-menu, rgba(255, 255, 255, .08));color:var(--ui-cor-primaria, #00E08A)}.ui-tabela__prompt-dialog{border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .2));border-radius:var(--ui-raio-borda, 6px);background-color:var(--ui-cor-fundo-elevado, #1a1a1e);color:var(--ui-cor-texto, #e1e1e6);padding:12px;box-shadow:0 8px 32px #000c;font-family:inherit;font-size:14px}.ui-tabela__prompt-dialog::backdrop{background:#0000004d}.ui-tabela__prompt-title{margin-bottom:8px;font-weight:500}.ui-tabela__prompt-dialog input{width:100%;padding:6px 8px;border-radius:4px;border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .2));background:var(--ui-cor-superficie, #141417);color:var(--ui-cor-texto, #e1e1e6);margin-bottom:12px;box-sizing:border-box}.ui-tabela__prompt-actions{display:flex;justify-content:flex-end;gap:8px}.ui-tabela__prompt-actions button{background:var(--ui-cor-borda, rgba(255, 255, 255, .12));color:var(--ui-cor-texto, #e1e1e6);border:none;padding:6px 12px;border-radius:4px;cursor:pointer}.ui-tabela__prompt-actions button:last-child{background:var(--ui-cor-primaria, #00E08A);color:#000;font-weight:600}@media (max-width: 640px){.ui-tabela th{padding:8px 10px;font-size:12px}.ui-tabela td{padding:8px 10px;font-size:13px}.ui-tabela__header-text{margin-right:16px}.ui-tabela__sort-icon,.ui-tabela__header-icon{width:24px;min-width:24px;max-width:24px}.ui-tabela__resizer{width:14px}}';
 class ne extends HTMLElement {
   constructor() {
     super();
@@ -2037,6 +2037,9 @@ class ne extends HTMLElement {
     l(this, "_src", null);
     l(this, "_ultimoFiltro", "");
     l(this, "_autoFetchController", null);
+    // Gerenciamento de Seleção
+    l(this, "_itemSelecionado", null);
+    l(this, "_indiceSelecionado", null);
     // Gerenciamento de Ouvintes e Elementos DOM
     l(this, "_containerElement", null);
     l(this, "_tableElement", null);
@@ -2062,7 +2065,9 @@ class ne extends HTMLElement {
       "virtualize",
       "src",
       "carregando",
-      "loading"
+      "loading",
+      "chave-id",
+      "id-key"
     ];
   }
   connectedCallback() {
@@ -2161,7 +2166,7 @@ class ne extends HTMLElement {
       return;
     }
     const e = this._dadosOriginais.filter((i) => Object.values(i).some((a) => a == null ? !1 : String(a).toLowerCase().includes(this._ultimoFiltro)));
-    this._dadosExibicao = e, this.renderBody();
+    this._dadosExibicao = e, this._itemSelecionado && (this._indiceSelecionado = this._dadosExibicao.indexOf(this._itemSelecionado)), this.renderBody();
   }
   renderLoading() {
     this._loadingElement && (this._carregando ? this._loadingElement.style.display = "flex" : this._loadingElement.style.display = "none");
@@ -2185,6 +2190,33 @@ class ne extends HTMLElement {
   set dados(t) {
     const e = Array.isArray(t) ? t : [];
     this._dadosOriginais = [...e], this.aplicarOrdenacao(), this.renderBody();
+  }
+  get itens() {
+    return this._dadosOriginais;
+  }
+  set itens(t) {
+    this.dados = t;
+  }
+  get chaveId() {
+    return this.getAttribute("chave-id") || this.getAttribute("id-key") || "id";
+  }
+  set chaveId(t) {
+    t ? this.setAttribute("chave-id", t) : (this.removeAttribute("chave-id"), this.removeAttribute("id-key"));
+  }
+  get itemSelecionado() {
+    return this._itemSelecionado;
+  }
+  set itemSelecionado(t) {
+    this._itemSelecionado = t, this._indiceSelecionado = t ? this._dadosExibicao.indexOf(t) : null, this.atualizarLinhasSelecionadas();
+  }
+  get indiceSelecionado() {
+    return this._indiceSelecionado;
+  }
+  set indiceSelecionado(t) {
+    this._indiceSelecionado = t, this._itemSelecionado = t !== null && t >= 0 && t < this._dadosExibicao.length ? this._dadosExibicao[t] : null, this.atualizarLinhasSelecionadas();
+  }
+  limparSelecao() {
+    this._itemSelecionado = null, this._indiceSelecionado = null, this.atualizarLinhasSelecionadas();
   }
   get densidade() {
     const t = this.getAttribute("densidade") || this.getAttribute("density");
@@ -2239,34 +2271,42 @@ class ne extends HTMLElement {
       return;
     }
     const t = this._colunaOrdenada, e = this._direcaoOrdenacao === "asc" ? 1 : -1;
-    this._dadosExibicao = [...this._dadosOriginais].sort((i, a) => {
+    if (this._dadosExibicao = [...this._dadosOriginais].sort((i, a) => {
       const r = i[t], s = a[t];
       return r === s ? 0 : r == null ? 1 * e : s == null ? -1 * e : typeof r == "number" && typeof s == "number" ? (r - s) * e : String(r).localeCompare(String(s), "pt-BR", { numeric: !0, sensitivity: "base" }) * e;
-    });
+    }), this._itemSelecionado && (this._indiceSelecionado = this._dadosExibicao.indexOf(this._itemSelecionado), this._indiceSelecionado === -1)) {
+      const i = this.chaveId;
+      this._indiceSelecionado = this._dadosExibicao.findIndex(
+        (a) => {
+          var r, s;
+          return a && (a[i] === ((r = this._itemSelecionado) == null ? void 0 : r[i]) || a.id === ((s = this._itemSelecionado) == null ? void 0 : s.id));
+        }
+      );
+    }
   }
   // Redimensionamento de Colunas (Drag-to-resize)
   initColumnResize(t, e, i, a, r) {
     var p;
     t.stopPropagation(), t.preventDefault(), this._isResizing = !0, r.classList.add("ui-tabela__resizer--ativo");
-    const s = t.pageX, n = a.offsetWidth, c = (p = this._colgroupElement) == null ? void 0 : p.children[i], u = (m) => {
+    const s = t.pageX, n = a.offsetWidth, c = (p = this._colgroupElement) == null ? void 0 : p.children[i], d = (m) => {
       const f = m.pageX - s;
-      let v = n + f;
+      let x = n + f;
       if (e.larguraMinima !== void 0) {
-        const y = typeof e.larguraMinima == "number" ? e.larguraMinima : parseInt(e.larguraMinima, 10);
-        isNaN(y) || (v = Math.max(y, v));
+        const v = typeof e.larguraMinima == "number" ? e.larguraMinima : parseInt(e.larguraMinima, 10);
+        isNaN(v) || (x = Math.max(v, x));
       } else
-        v = Math.max(60, v);
+        x = Math.max(60, x);
       if (e.larguraMaxima !== void 0) {
-        const y = typeof e.larguraMaxima == "number" ? e.larguraMaxima : parseInt(e.larguraMaxima, 10);
-        isNaN(y) || (v = Math.min(y, v));
+        const v = typeof e.larguraMaxima == "number" ? e.larguraMaxima : parseInt(e.larguraMaxima, 10);
+        isNaN(v) || (x = Math.min(v, x));
       }
-      e.largura = `${v}px`, a.style.width = `${v}px`, c && (c.style.width = `${v}px`);
-    }, d = () => {
-      r.classList.remove("ui-tabela__resizer--ativo"), window.removeEventListener("mousemove", u), window.removeEventListener("mouseup", h), this._activeResizeCleanup = null, setTimeout(() => {
+      e.largura = `${x}px`, a.style.width = `${x}px`, c && (c.style.width = `${x}px`);
+    }, u = () => {
+      r.classList.remove("ui-tabela__resizer--ativo"), window.removeEventListener("mousemove", d), window.removeEventListener("mouseup", h), this._activeResizeCleanup = null, setTimeout(() => {
         this._isResizing = !1;
       }, 50);
     }, h = () => {
-      d(), this.dispatchEvent(
+      u(), this.dispatchEvent(
         new CustomEvent("ui-column-resize", {
           detail: {
             idColuna: e.id,
@@ -2277,7 +2317,7 @@ class ne extends HTMLElement {
         })
       );
     };
-    this._activeResizeCleanup = d, window.addEventListener("mousemove", u), window.addEventListener("mouseup", h);
+    this._activeResizeCleanup = u, window.addEventListener("mousemove", d), window.addEventListener("mouseup", h);
   }
   // Mini-Popover de Redimensionamento Exato
   showPromptPopover(t, e, i, a) {
@@ -2289,20 +2329,20 @@ class ne extends HTMLElement {
     n.type = "text";
     const c = e.largura ? String(e.largura).replace("px", "") : "auto";
     n.value = c;
-    const u = document.createElement("div");
-    u.className = "ui-tabela__prompt-actions";
-    const d = document.createElement("button");
-    d.textContent = "Aplicar";
+    const d = document.createElement("div");
+    d.className = "ui-tabela__prompt-actions";
+    const u = document.createElement("button");
+    u.textContent = "Aplicar";
     const h = document.createElement("button");
-    h.textContent = "Cancelar", u.appendChild(h), u.appendChild(d), r.appendChild(s), r.appendChild(n), r.appendChild(u), this.shadow.appendChild(r), r.showModal();
+    h.textContent = "Cancelar", d.appendChild(h), d.appendChild(u), r.appendChild(s), r.appendChild(n), r.appendChild(d), this.shadow.appendChild(r), r.showModal();
     const p = () => {
-      var v, y;
+      var x, v;
       const f = n.value.trim().toLowerCase();
       if (f === "" || f === "auto")
-        e.largura = void 0, a.style.width = "", (v = this._colgroupElement) != null && v.children[i] && (this._colgroupElement.children[i].style.width = "");
+        e.largura = void 0, a.style.width = "", (x = this._colgroupElement) != null && x.children[i] && (this._colgroupElement.children[i].style.width = "");
       else {
         const w = parseInt(f, 10);
-        !isNaN(w) && w > 20 && (e.largura = `${w}px`, a.style.width = `${w}px`, (y = this._colgroupElement) != null && y.children[i] && (this._colgroupElement.children[i].style.width = `${w}px`));
+        !isNaN(w) && w > 20 && (e.largura = `${w}px`, a.style.width = `${w}px`, (v = this._colgroupElement) != null && v.children[i] && (this._colgroupElement.children[i].style.width = `${w}px`));
       }
       r.close(), r.remove(), this.dispatchEvent(
         new CustomEvent("ui-column-resize", {
@@ -2315,7 +2355,7 @@ class ne extends HTMLElement {
         })
       );
     };
-    d.addEventListener("click", p), h.addEventListener("click", () => {
+    u.addEventListener("click", p), h.addEventListener("click", () => {
       r.close(), r.remove();
     }), n.addEventListener("keydown", (m) => {
       m.key === "Enter" && p(), m.key === "Escape" && (r.close(), r.remove());
@@ -2394,18 +2434,18 @@ class ne extends HTMLElement {
       this.addHeaderListener(r, "contextmenu", n);
       const c = document.createElement("div");
       c.className = "ui-tabela__header-content";
-      const u = document.createElement("span");
-      u.className = "ui-tabela__header-text", u.textContent = e.rotulo, c.appendChild(u);
       const d = document.createElement("span");
-      if (d.className = "ui-tabela__sort-icon", e.ordenavel) {
-        const f = this._colunaOrdenada === e.id && this._direcaoOrdenacao !== "original", v = f && this._direcaoOrdenacao === "desc", y = f ? "" : "ui-tabela__sort-arrow--inativo", w = v ? "ui-tabela__sort-arrow--desc" : "";
-        d.innerHTML = `
-          <svg class="ui-tabela__sort-arrow ${y} ${w}" viewBox="0 0 24 24">
+      d.className = "ui-tabela__header-text", d.textContent = e.rotulo, c.appendChild(d);
+      const u = document.createElement("span");
+      if (u.className = "ui-tabela__sort-icon", e.ordenavel) {
+        const f = this._colunaOrdenada === e.id && this._direcaoOrdenacao !== "original", x = f && this._direcaoOrdenacao === "desc", v = f ? "" : "ui-tabela__sort-arrow--inativo", w = x ? "ui-tabela__sort-arrow--desc" : "";
+        u.innerHTML = `
+          <svg class="ui-tabela__sort-arrow ${v} ${w}" viewBox="0 0 24 24">
             <path d="M7 14l5-5 5 5H7z"/>
           </svg>
         `;
       }
-      c.appendChild(d), r.appendChild(c);
+      c.appendChild(u), r.appendChild(c);
       const h = document.createElement("div");
       h.className = "ui-tabela__resizer", h.title = "Arrastar para redimensionar largura (duplo-clique para auto-ajuste)";
       const p = (f) => this.initColumnResize(f, e, i, r, h);
@@ -2427,8 +2467,8 @@ class ne extends HTMLElement {
     const t = this._dadosExibicao.length, e = this.getRowHeight(), i = this._virtualizar && t > 30;
     let a = 0, r = t;
     if (i) {
-      const n = this._containerElement.scrollTop, c = this._containerElement.clientHeight || 400, u = 5;
-      a = Math.max(0, Math.floor(n / e) - u), r = Math.min(t, Math.ceil((n + c) / e) + u);
+      const n = this._containerElement.scrollTop, c = this._containerElement.clientHeight || 400, d = 5;
+      a = Math.max(0, Math.floor(n / e) - d), r = Math.min(t, Math.ceil((n + c) / e) + d);
     }
     this._tbodyElement.innerHTML = "";
     const s = document.createDocumentFragment();
@@ -2439,27 +2479,38 @@ class ne extends HTMLElement {
       c.colSpan = this._colunas.length || 1, n.appendChild(c), s.appendChild(n);
     }
     for (let n = a; n < r; n++) {
-      const c = this._dadosExibicao[n], u = document.createElement("tr");
-      this._colunas.forEach((d) => {
-        const h = document.createElement("td"), p = this.getAlignmentClass(d.alinhamento);
-        if (h.className = p, h.style.textAlign = this.getTextAlign(d.alinhamento), d.larguraMaxima !== void 0) {
-          const v = this.formatWidth(d.larguraMaxima);
-          h.style.maxWidth = v, h.style.overflow = "hidden", h.style.textOverflow = "ellipsis", h.style.whiteSpace = "nowrap";
+      const c = this._dadosExibicao[n], d = document.createElement("tr");
+      d.setAttribute("data-index", String(n));
+      const u = this.chaveId;
+      c[u] !== void 0 ? d.setAttribute("data-id", String(c[u])) : c.id !== void 0 ? d.setAttribute("data-id", String(c.id)) : c._id !== void 0 && d.setAttribute("data-id", String(c._id)), this.isItemSelecionado(c, n) && (d.classList.add("ui-tabela__tr--selecionada"), d.setAttribute("data-selecionada", "true")), d.addEventListener("click", (h) => {
+        const p = h.target;
+        p && p.closest("button, input, select, textarea, a, [data-prevent-select]") || (this._itemSelecionado = c, this._indiceSelecionado = n, this.atualizarLinhasSelecionadas(), this.dispatchEvent(
+          new CustomEvent("ui-linha-clique", {
+            bubbles: !0,
+            composed: !0,
+            detail: { item: c, indice: n }
+          })
+        ));
+      }), this._colunas.forEach((h) => {
+        const p = document.createElement("td"), m = this.getAlignmentClass(h.alinhamento);
+        if (p.className = m, p.style.textAlign = this.getTextAlign(h.alinhamento), h.larguraMaxima !== void 0) {
+          const v = this.formatWidth(h.larguraMaxima);
+          p.style.maxWidth = v, p.style.overflow = "hidden", p.style.textOverflow = "ellipsis", p.style.whiteSpace = "nowrap";
         }
-        const m = document.createElement("div");
-        m.className = "ui-tabela__cell-content", d.larguraMaxima !== void 0 && m.classList.add("ui-tabela__cell-truncate");
-        const f = c[d.id];
-        if (typeof d.render == "function") {
-          const v = d.render(f, c, n);
-          v instanceof Node ? m.appendChild(v) : m.textContent = String(v ?? "");
-        } else if (f instanceof Node)
-          m.appendChild(f);
+        const f = document.createElement("div");
+        f.className = "ui-tabela__cell-content", h.larguraMaxima !== void 0 && f.classList.add("ui-tabela__cell-truncate");
+        const x = c[h.id];
+        if (typeof h.render == "function") {
+          const v = h.render(x, c, n);
+          v instanceof Node ? f.appendChild(v) : f.textContent = String(v ?? "");
+        } else if (x instanceof Node)
+          f.appendChild(x);
         else {
-          const v = f != null ? String(f) : "";
-          m.textContent = v, d.larguraMaxima !== void 0 && !d.tooltip && (h.title = v);
+          const v = x != null ? String(x) : "";
+          f.textContent = v, h.larguraMaxima !== void 0 && !h.tooltip && (p.title = v);
         }
-        h.appendChild(m), u.appendChild(h);
-      }), s.appendChild(u);
+        p.appendChild(f), d.appendChild(p);
+      }), s.appendChild(d);
     }
     if (i && r < t) {
       const n = document.createElement("tr");
@@ -2468,6 +2519,88 @@ class ne extends HTMLElement {
       c.colSpan = this._colunas.length || 1, n.appendChild(c), s.appendChild(n);
     }
     this._tbodyElement.appendChild(s);
+  }
+  isItemSelecionado(t, e) {
+    if (this._itemSelecionado) {
+      if (this._itemSelecionado === t) return !0;
+      const i = this.chaveId;
+      if (t[i] !== void 0 && this._itemSelecionado[i] !== void 0)
+        return String(t[i]) === String(this._itemSelecionado[i]);
+      if (t.id !== void 0 && this._itemSelecionado.id !== void 0)
+        return String(t.id) === String(this._itemSelecionado.id);
+    }
+    return this._indiceSelecionado !== null && this._indiceSelecionado === e;
+  }
+  atualizarLinhasSelecionadas() {
+    if (!this._tbodyElement) return;
+    this._tbodyElement.querySelectorAll("tr:not(.ui-tabela__virtual-spacer)").forEach((e) => {
+      const i = e.getAttribute("data-index"), a = i !== null ? parseInt(i, 10) : -1, r = a >= 0 ? this._dadosExibicao[a] : null, s = r ? this.isItemSelecionado(r, a) : !1;
+      e.classList.toggle("ui-tabela__tr--selecionada", s), s ? e.setAttribute("data-selecionada", "true") : e.removeAttribute("data-selecionada");
+    });
+  }
+  /**
+   * Localiza o índice de um item pelo ID, chave ou índice direto.
+   */
+  localizarIndiceItem(t) {
+    if (!this._dadosExibicao || this._dadosExibicao.length === 0) return -1;
+    if (typeof t == "function")
+      return this._dadosExibicao.findIndex(t);
+    const e = this.chaveId, i = this._dadosExibicao.findIndex((a) => !a || typeof a != "object" ? !1 : a[e] !== void 0 && (a[e] === t || String(a[e]) === String(t)) || a.id !== void 0 && (a.id === t || String(a.id) === String(t)) || a._id !== void 0 && (a._id === t || String(a._id) === String(t)) || a.codigo !== void 0 && (a.codigo === t || String(a.codigo) === String(t)) || a.key !== void 0 && (a.key === t || String(a.key) === String(t)));
+    if (i !== -1)
+      return i;
+    if (typeof t == "number" && Number.isInteger(t)) {
+      if (t >= 0 && t < this._dadosExibicao.length)
+        return t;
+    } else if (typeof t == "string" && /^\d+$/.test(t.trim())) {
+      const a = parseInt(t.trim(), 10);
+      if (a >= 0 && a < this._dadosExibicao.length)
+        return a;
+    }
+    return -1;
+  }
+  /**
+   * Realiza a rolagem programática (e seleção opcional) até uma linha específica da tabela.
+   * Suporta virtualização (cálculo de deslocamento do scroll quando a linha não está no DOM),
+   * permitindo que aplicações externas foquem elementos facilmente.
+   * 
+   * @param idOuIndice ID do item (ou campo chave), predicado funcional ou índice na tabela.
+   * @param opcoes Opções de comportamento ('smooth' | 'auto') e seleção.
+   * @returns true se o item foi localizado e rolado com sucesso, ou false caso contrário.
+   */
+  rolarPara(t, e) {
+    var c, d, u;
+    const i = this.localizarIndiceItem(t);
+    if (i === -1)
+      return !1;
+    const a = this._dadosExibicao[i], r = (e == null ? void 0 : e.comportamento) || "smooth";
+    e != null && e.selecionar && (this._itemSelecionado = a, this._indiceSelecionado = i, this.atualizarLinhasSelecionadas(), this.dispatchEvent(
+      new CustomEvent("ui-linha-selecionada", {
+        bubbles: !0,
+        composed: !0,
+        detail: { item: a, indice: i }
+      })
+    ));
+    const s = this.getRowHeight(), n = (c = this._tbodyElement) == null ? void 0 : c.querySelector(
+      `tr[data-index="${i}"]`
+    );
+    if (n && !n.classList.contains("ui-tabela__virtual-spacer"))
+      return this._containerElement && (typeof window.happyDOM < "u" || typeof process < "u" && ((d = process.env) == null ? void 0 : d.NODE_ENV) === "test") && (this._containerElement.scrollTop = i * s), typeof n.scrollIntoView == "function" && n.scrollIntoView({ behavior: r, block: "nearest" }), !0;
+    if (this._containerElement) {
+      const h = Math.max(0, i * s);
+      if (typeof this._containerElement.scrollTo == "function")
+        try {
+          this._containerElement.scrollTo({
+            top: h,
+            behavior: r
+          });
+        } catch {
+          this._containerElement.scrollTop = h;
+        }
+      else
+        this._containerElement.scrollTop = h;
+      return (r === "auto" || typeof window.happyDOM < "u" || typeof process < "u" && ((u = process.env) == null ? void 0 : u.NODE_ENV) === "test") && (this._containerElement.scrollTop = h, this.renderBody()), !0;
+    }
+    return !1;
   }
 }
 customElements.get("ui-tabela") || customElements.define("ui-tabela", ne);
@@ -2573,25 +2706,25 @@ customElements.get("ui-metrica") || customElements.define("ui-metrica", de);
 const Et = '.leaflet-pane,.leaflet-tile,.leaflet-marker-icon,.leaflet-marker-shadow,.leaflet-tile-container,.leaflet-pane>svg,.leaflet-pane>canvas,.leaflet-zoom-box,.leaflet-image-layer,.leaflet-layer{position:absolute;left:0;top:0}.leaflet-container{overflow:hidden}.leaflet-tile,.leaflet-marker-icon,.leaflet-marker-shadow{-webkit-user-select:none;-moz-user-select:none;user-select:none;-webkit-user-drag:none}.leaflet-tile::selection{background:transparent}.leaflet-safari .leaflet-tile{image-rendering:-webkit-optimize-contrast}.leaflet-safari .leaflet-tile-container{width:1600px;height:1600px;-webkit-transform-origin:0 0}.leaflet-marker-icon,.leaflet-marker-shadow{display:block}.leaflet-container .leaflet-overlay-pane svg{max-width:none!important;max-height:none!important}.leaflet-container .leaflet-marker-pane img,.leaflet-container .leaflet-shadow-pane img,.leaflet-container .leaflet-tile-pane img,.leaflet-container img.leaflet-image-layer,.leaflet-container .leaflet-tile{max-width:none!important;max-height:none!important;width:auto;padding:0}.leaflet-container img.leaflet-tile{mix-blend-mode:plus-lighter}.leaflet-container.leaflet-touch-zoom{-ms-touch-action:pan-x pan-y;touch-action:pan-x pan-y}.leaflet-container.leaflet-touch-drag{-ms-touch-action:pinch-zoom;touch-action:none;touch-action:pinch-zoom}.leaflet-container.leaflet-touch-drag.leaflet-touch-zoom{-ms-touch-action:none;touch-action:none}.leaflet-container{-webkit-tap-highlight-color:transparent}.leaflet-container a{-webkit-tap-highlight-color:rgba(51,181,229,.4)}.leaflet-tile{filter:inherit;visibility:hidden}.leaflet-tile-loaded{visibility:inherit}.leaflet-zoom-box{width:0;height:0;-moz-box-sizing:border-box;box-sizing:border-box;z-index:800}.leaflet-overlay-pane svg{-moz-user-select:none}.leaflet-pane{z-index:400}.leaflet-tile-pane{z-index:200}.leaflet-overlay-pane{z-index:400}.leaflet-shadow-pane{z-index:500}.leaflet-marker-pane{z-index:600}.leaflet-tooltip-pane{z-index:650}.leaflet-popup-pane{z-index:700}.leaflet-map-pane canvas{z-index:100}.leaflet-map-pane svg{z-index:200}.leaflet-vml-shape{width:1px;height:1px}.lvml{behavior:url(#default#VML);display:inline-block;position:absolute}.leaflet-control{position:relative;z-index:800;pointer-events:visiblePainted;pointer-events:auto}.leaflet-top,.leaflet-bottom{position:absolute;z-index:1000;pointer-events:none}.leaflet-top{top:0}.leaflet-right{right:0}.leaflet-bottom{bottom:0}.leaflet-left{left:0}.leaflet-control{float:left;clear:both}.leaflet-right .leaflet-control{float:right}.leaflet-top .leaflet-control{margin-top:10px}.leaflet-bottom .leaflet-control{margin-bottom:10px}.leaflet-left .leaflet-control{margin-left:10px}.leaflet-right .leaflet-control{margin-right:10px}.leaflet-fade-anim .leaflet-popup{opacity:0;-webkit-transition:opacity .2s linear;-moz-transition:opacity .2s linear;transition:opacity .2s linear}.leaflet-fade-anim .leaflet-map-pane .leaflet-popup{opacity:1}.leaflet-zoom-animated{-webkit-transform-origin:0 0;-ms-transform-origin:0 0;transform-origin:0 0}svg.leaflet-zoom-animated{will-change:transform}.leaflet-zoom-anim .leaflet-zoom-animated{-webkit-transition:-webkit-transform .25s cubic-bezier(0,0,.25,1);-moz-transition:-moz-transform .25s cubic-bezier(0,0,.25,1);transition:transform .25s cubic-bezier(0,0,.25,1)}.leaflet-zoom-anim .leaflet-tile,.leaflet-pan-anim .leaflet-tile{-webkit-transition:none;-moz-transition:none;transition:none}.leaflet-zoom-anim .leaflet-zoom-hide{visibility:hidden}.leaflet-interactive{cursor:pointer}.leaflet-grab{cursor:-webkit-grab;cursor:-moz-grab;cursor:grab}.leaflet-crosshair,.leaflet-crosshair .leaflet-interactive{cursor:crosshair}.leaflet-popup-pane,.leaflet-control{cursor:auto}.leaflet-dragging .leaflet-grab,.leaflet-dragging .leaflet-grab .leaflet-interactive,.leaflet-dragging .leaflet-marker-draggable{cursor:move;cursor:-webkit-grabbing;cursor:-moz-grabbing;cursor:grabbing}.leaflet-marker-icon,.leaflet-marker-shadow,.leaflet-image-layer,.leaflet-pane>svg path,.leaflet-tile-container{pointer-events:none}.leaflet-marker-icon.leaflet-interactive,.leaflet-image-layer.leaflet-interactive,.leaflet-pane>svg path.leaflet-interactive,svg.leaflet-image-layer.leaflet-interactive path{pointer-events:visiblePainted;pointer-events:auto}.leaflet-container{background:#ddd;outline-offset:1px}.leaflet-container a{color:#0078a8}.leaflet-zoom-box{border:2px dotted #38f;background:#ffffff80}.leaflet-container{font-family:Helvetica Neue,Arial,Helvetica,sans-serif;font-size:12px;font-size:.75rem;line-height:1.5}.leaflet-bar{box-shadow:0 1px 5px #000000a6;border-radius:4px}.leaflet-bar a{background-color:#fff;border-bottom:1px solid #ccc;width:26px;height:26px;line-height:26px;display:block;text-align:center;text-decoration:none;color:#000}.leaflet-bar a,.leaflet-control-layers-toggle{background-position:50% 50%;background-repeat:no-repeat;display:block}.leaflet-bar a:hover,.leaflet-bar a:focus{background-color:#f4f4f4}.leaflet-bar a:first-child{border-top-left-radius:4px;border-top-right-radius:4px}.leaflet-bar a:last-child{border-bottom-left-radius:4px;border-bottom-right-radius:4px;border-bottom:none}.leaflet-bar a.leaflet-disabled{cursor:default;background-color:#f4f4f4;color:#bbb}.leaflet-touch .leaflet-bar a{width:30px;height:30px;line-height:30px}.leaflet-touch .leaflet-bar a:first-child{border-top-left-radius:2px;border-top-right-radius:2px}.leaflet-touch .leaflet-bar a:last-child{border-bottom-left-radius:2px;border-bottom-right-radius:2px}.leaflet-control-zoom-in,.leaflet-control-zoom-out{font:700 18px Lucida Console,Monaco,monospace;text-indent:1px}.leaflet-touch .leaflet-control-zoom-in,.leaflet-touch .leaflet-control-zoom-out{font-size:22px}.leaflet-control-layers{box-shadow:0 1px 5px #0006;background:#fff;border-radius:5px}.leaflet-control-layers-toggle{background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABoAAAAaCAQAAAADQ4RFAAACf0lEQVR4AY1UM3gkARTePdvdoTxXKc+qTl3aU5U6b2Kbkz3Gtq3Zw6ziLGNPzrYx7946Tr6/ee/XeCQ4D3ykPtL5tHno4n0d/h3+xfuWHGLX81cn7r0iTNzjr7LrlxCqPtkbTQEHeqOrTy4Yyt3VCi/IOB0v7rVC7q45Q3Gr5K6jt+3Gl5nCoDD4MtO+j96Wu8atmhGqcNGHObuf8OM/x3AMx38+4Z2sPqzCxRFK2aF2e5Jol56XTLyggAMTL56XOMoS1W4pOyjUcGGQdZxU6qRh7B9Zp+PfpOFlqt0zyDZckPi1ttmIp03jX8gyJ8a/PG2yutpS/Vol7peZIbZcKBAEEheEIAgFbDkz5H6Zrkm2hVWGiXKiF4Ycw0RWKdtC16Q7qe3X4iOMxruonzegJzWaXFrU9utOSsLUmrc0YjeWYjCW4PDMADElpJSSQ0vQvA1Tm6/JlKnqFs1EGyZiFCqnRZTEJJJiKRYzVYzJck2Rm6P4iH+cmSY0YzimYa8l0EtTODFWhcMIMVqdsI2uiTvKmTisIDHJ3od5GILVhBCarCfVRmo4uTjkhrhzkiBV7SsaqS+TzrzM1qpGGUFt28pIySQHR6h7F6KSwGWm97ay+Z+ZqMcEjEWebE7wxCSQwpkhJqoZA5ivCdZDjJepuJ9IQjGGUmuXJdBFUygxVqVsxFsLMbDe8ZbDYVCGKxs+W080max1hFCarCfV+C1KATwcnvE9gRRuMP2prdbWGowm1KB1y+zwMMENkM755cJ2yPDtqhTI6ED1M/82yIDtC/4j4BijjeObflpO9I9MwXTCsSX8jWAFeHr05WoLTJ5G8IQVS/7vwR6ohirYM7f6HzYpogfS3R2OAAAAAElFTkSuQmCC);width:36px;height:36px}.leaflet-retina .leaflet-control-layers-toggle{background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADQAAAA0CAQAAABvcdNgAAAEsklEQVR4AWL4TydIhpZK1kpWOlg0w3ZXP6D2soBtG42jeI6ZmQTHzAxiTbSJsYLjO9HhP+WOmcuhciVnmHVQcJnp7DFvScowZorad/+V/fVzMdMT2g9Cv9guXGv/7pYOrXh2U+RRR3dSd9JRx6bIFc/ekqHI29JC6pJ5ZEh1yWkhkbcFeSjxgx3L2m1cb1C7bceyxA+CNjT/Ifff+/kDk2u/w/33/IeCMOSaWZ4glosqT3DNnNZQ7Cs58/3Ce5HL78iZH/vKVIaYlqzfdLu8Vi7dnvUbEza5Idt36tquZFldl6N5Z/POLof0XLK61mZCmJSWjVF9tEjUluu74IUXvgttuVIHE7YxSkaYhJZam7yiM9Pv82JYfl9nptxZaxMJE4YSPty+vF0+Y2up9d3wwijfjZbabqm/3bZ9ecKHsiGmRflnn1MW4pjHf9oLufyn2z3y1D6n8g8TZhxyzipLNPnAUpsOiuWimg52psrTZYnOWYNDTMuWBWa0tJb4rgq1UvmutpaYEbZlwU3CLJm/ayYjHW5/h7xWLn9Hh1vepDkyf7dE7MtT5LR4e7yYpHrkhOUpEfssBLq2pPhAqoSWKUkk7EDqkmK6RrCEzqDjhNDWNE+XSMvkJRDWlZTmCW0l0PHQGRZY5t1L83kT0Y3l2SItk5JAWHl2dCOBm+fPu3fo5/3v61RMCO9Jx2EEYYhb0rmNQMX/vm7gqOEJLcXTGw3CAuRNeyaPWwjR8PRqKQ1PDA/dpv+on9Shox52WFnx0KY8onHayrJzm87i5h9xGw/tfkev0jGsQizqezUKjk12hBMKJ4kbCqGPVNXudyyrShovGw5CgxsRICxF6aRmSjlBnHRzg7Gx8fKqEubI2rahQYdR1YgDIRQO7JvQyD52hoIQx0mxa0ODtW2Iozn1le2iIRdzwWewedyZzewidueOGqlsn1MvcnQpuVwLGG3/IR1hIKxCjelIDZ8ldqWz25jWAsnldEnK0Zxro19TGVb2ffIZEsIO89EIEDvKMPrzmBOQcKQ+rroye6NgRRxqR4U8EAkz0CL6uSGOm6KQCdWjvjRiSP1BPalCRS5iQYiEIvxuBMJEWgzSoHADcVMuN7IuqqTeyUPq22qFimFtxDyBBJEwNyt6TM88blFHao/6tWWhuuOM4SAK4EI4QmFHA+SEyWlp4EQoJ13cYGzMu7yszEIBOm2rVmHUNqwAIQabISNMRstmdhNWcFLsSm+0tjJH1MdRxO5Nx0WDMhCtgD6OKgZeljJqJKc9po8juskR9XN0Y1lZ3mWjLR9JCO1jRDMd0fpYC2VnvjBSEFg7wBENc0R9HFlb0xvF1+TBEpF68d+DHR6IOWVv2BECtxo46hOFUBd/APU57WIoEwJhIi2CdpyZX0m93BZicktMj1AS9dClteUFAUNUIEygRZCtik5zSxI9MubTBH1GOiHsiLJ3OCoSZkILa9PxiN0EbvhsAo8tdAf9Seepd36lGWHmtNANTv5Jd0z4QYyeo/UEJqxKRpg5LZx6btLPsOaEmdMyxYdlc8LMaJnikDlhclqmPiQnTEpLUIZEwkRagjYkEibQErwhkTAKCLQEbUgkzJQWc/0PstHHcfEdQ+UAAAAASUVORK5CYII=);background-size:26px 26px}.leaflet-touch .leaflet-control-layers-toggle{width:44px;height:44px}.leaflet-control-layers .leaflet-control-layers-list,.leaflet-control-layers-expanded .leaflet-control-layers-toggle{display:none}.leaflet-control-layers-expanded .leaflet-control-layers-list{display:block;position:relative}.leaflet-control-layers-expanded{padding:6px 10px 6px 6px;color:#333;background:#fff}.leaflet-control-layers-scrollbar{overflow-y:scroll;overflow-x:hidden;padding-right:5px}.leaflet-control-layers-selector{margin-top:2px;position:relative;top:1px}.leaflet-control-layers label{display:block;font-size:13px;font-size:1.08333em}.leaflet-control-layers-separator{height:0;border-top:1px solid #ddd;margin:5px -10px 5px -6px}.leaflet-default-icon-path{background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABkAAAApCAYAAADAk4LOAAAFgUlEQVR4Aa1XA5BjWRTN2oW17d3YaZtr2962HUzbDNpjszW24mRt28p47v7zq/bXZtrp/lWnXr337j3nPCe85NcypgSFdugCpW5YoDAMRaIMqRi6aKq5E3YqDQO3qAwjVWrD8Ncq/RBpykd8oZUb/kaJutow8r1aP9II0WmLKLIsJyv1w/kqw9Ch2MYdB++12Onxee/QMwvf4/Dk/Lfp/i4nxTXtOoQ4pW5Aj7wpici1A9erdAN2OH64x8OSP9j3Ft3b7aWkTg/Fm91siTra0f9on5sQr9INejH6CUUUpavjFNq1B+Oadhxmnfa8RfEmN8VNAsQhPqF55xHkMzz3jSmChWU6f7/XZKNH+9+hBLOHYozuKQPxyMPUKkrX/K0uWnfFaJGS1QPRtZsOPtr3NsW0uyh6NNCOkU3Yz+bXbT3I8G3xE5EXLXtCXbbqwCO9zPQYPRTZ5vIDXD7U+w7rFDEoUUf7ibHIR4y6bLVPXrz8JVZEql13trxwue/uDivd3fkWRbS6/IA2bID4uk0UpF1N8qLlbBlXs4Ee7HLTfV1j54APvODnSfOWBqtKVvjgLKzF5YdEk5ewRkGlK0i33Eofffc7HT56jD7/6U+qH3Cx7SBLNntH5YIPvODnyfIXZYRVDPqgHtLs5ABHD3YzLuespb7t79FY34DjMwrVrcTuwlT55YMPvOBnRrJ4VXTdNnYug5ucHLBjEpt30701A3Ts+HEa73u6dT3FNWwflY86eMHPk+Yu+i6pzUpRrW7SNDg5JHR4KapmM5Wv2E8Tfcb1HoqqHMHU+uWDD7zg54mz5/2BSnizi9T1Dg4QQXLToGNCkb6tb1NU+QAlGr1++eADrzhn/u8Q2YZhQVlZ5+CAOtqfbhmaUCS1ezNFVm2imDbPmPng5wmz+gwh+oHDce0eUtQ6OGDIyR0uUhUsoO3vfDmmgOezH0mZN59x7MBi++WDL1g/eEiU3avlidO671bkLfwbw5XV2P8Pzo0ydy4t2/0eu33xYSOMOD8hTf4CrBtGMSoXfPLchX+J0ruSePw3LZeK0juPJbYzrhkH0io7B3k164hiGvawhOKMLkrQLyVpZg8rHFW7E2uHOL888IBPlNZ1FPzstSJM694fWr6RwpvcJK60+0HCILTBzZLFNdtAzJaohze60T8qBzyh5ZuOg5e7uwQppofEmf2++DYvmySqGBuKaicF1blQjhuHdvCIMvp8whTTfZzI7RldpwtSzL+F1+wkdZ2TBOW2gIF88PBTzD/gpeREAMEbxnJcaJHNHrpzji0gQCS6hdkEeYt9DF/2qPcEC8RM28Hwmr3sdNyht00byAut2k3gufWNtgtOEOFGUwcXWNDbdNbpgBGxEvKkOQsxivJx33iow0Vw5S6SVTrpVq11ysA2Rp7gTfPfktc6zhtXBBC+adRLshf6sG2RfHPZ5EAc4sVZ83yCN00Fk/4kggu40ZTvIEm5g24qtU4KjBrx/BTTH8ifVASAG7gKrnWxJDcU7x8X6Ecczhm3o6YicvsLXWfh3Ch1W0k8x0nXF+0fFxgt4phz8QvypiwCCFKMqXCnqXExjq10beH+UUA7+nG6mdG/Pu0f3LgFcGrl2s0kNNjpmoJ9o4B29CMO8dMT4Q5ox8uitF6fqsrJOr8qnwNbRzv6hSnG5wP+64C7h9lp30hKNtKdWjtdkbuPA19nJ7Tz3zR/ibgARbhb4AlhavcBebmTHcFl2fvYEnW0ox9xMxKBS8btJ+KiEbq9zA4RthQXDhPa0T9TEe69gWupwc6uBUphquXgf+/FrIjweHQS4/pduMe5ERUMHUd9xv8ZR98CxkS4F2n3EUrUZ10EYNw7BWm9x1GiPssi3GgiGRDKWRYZfXlON+dfNbM+GgIwYdwAAAAASUVORK5CYII=)}.leaflet-container .leaflet-control-attribution{background:#fff;background:#fffc;margin:0}.leaflet-control-attribution,.leaflet-control-scale-line{padding:0 5px;color:#333;line-height:1.4}.leaflet-control-attribution a{text-decoration:none}.leaflet-control-attribution a:hover,.leaflet-control-attribution a:focus{text-decoration:underline}.leaflet-attribution-flag{display:inline!important;vertical-align:baseline!important;width:1em;height:.6669em}.leaflet-left .leaflet-control-scale{margin-left:5px}.leaflet-bottom .leaflet-control-scale{margin-bottom:5px}.leaflet-control-scale-line{border:2px solid #777;border-top:none;line-height:1.1;padding:2px 5px 1px;white-space:nowrap;-moz-box-sizing:border-box;box-sizing:border-box;background:#fffc;text-shadow:1px 1px #fff}.leaflet-control-scale-line:not(:first-child){border-top:2px solid #777;border-bottom:none;margin-top:-2px}.leaflet-control-scale-line:not(:first-child):not(:last-child){border-bottom:2px solid #777}.leaflet-touch .leaflet-control-attribution,.leaflet-touch .leaflet-control-layers,.leaflet-touch .leaflet-bar{box-shadow:none}.leaflet-touch .leaflet-control-layers,.leaflet-touch .leaflet-bar{border:2px solid rgba(0,0,0,.2);background-clip:padding-box}.leaflet-popup{position:absolute;text-align:center;margin-bottom:20px}.leaflet-popup-content-wrapper{padding:1px;text-align:left;border-radius:12px}.leaflet-popup-content{margin:13px 24px 13px 20px;line-height:1.3;font-size:13px;font-size:1.08333em;min-height:1px}.leaflet-popup-content p{margin:1.3em 0}.leaflet-popup-tip-container{width:40px;height:20px;position:absolute;left:50%;margin-top:-1px;margin-left:-20px;overflow:hidden;pointer-events:none}.leaflet-popup-tip{width:17px;height:17px;padding:1px;margin:-10px auto 0;pointer-events:auto;-webkit-transform:rotate(45deg);-moz-transform:rotate(45deg);-ms-transform:rotate(45deg);transform:rotate(45deg)}.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#fff;color:#333;box-shadow:0 3px 14px #0006}.leaflet-container a.leaflet-popup-close-button{position:absolute;top:0;right:0;border:none;text-align:center;width:24px;height:24px;font:16px/24px Tahoma,Verdana,sans-serif;color:#757575;text-decoration:none;background:transparent}.leaflet-container a.leaflet-popup-close-button:hover,.leaflet-container a.leaflet-popup-close-button:focus{color:#585858}.leaflet-popup-scrolled{overflow:auto}.leaflet-oldie .leaflet-popup-content-wrapper{-ms-zoom:1}.leaflet-oldie .leaflet-popup-tip{width:24px;margin:0 auto;-ms-filter:"progid:DXImageTransform.Microsoft.Matrix(M11=0.70710678, M12=0.70710678, M21=-0.70710678, M22=0.70710678)";filter:progid:DXImageTransform.Microsoft.Matrix(M11=.70710678,M12=.70710678,M21=-.70710678,M22=.70710678)}.leaflet-oldie .leaflet-control-zoom,.leaflet-oldie .leaflet-control-layers,.leaflet-oldie .leaflet-popup-content-wrapper,.leaflet-oldie .leaflet-popup-tip{border:1px solid #999}.leaflet-div-icon{background:#fff;border:1px solid #666}.leaflet-tooltip{position:absolute;padding:6px;background-color:#fff;border:1px solid #fff;border-radius:3px;color:#222;white-space:nowrap;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;pointer-events:none;box-shadow:0 1px 3px #0006}.leaflet-tooltip.leaflet-interactive{cursor:pointer;pointer-events:auto}.leaflet-tooltip-top:before,.leaflet-tooltip-bottom:before,.leaflet-tooltip-left:before,.leaflet-tooltip-right:before{position:absolute;pointer-events:none;border:6px solid transparent;background:transparent;content:""}.leaflet-tooltip-bottom{margin-top:6px}.leaflet-tooltip-top{margin-top:-6px}.leaflet-tooltip-bottom:before,.leaflet-tooltip-top:before{left:50%;margin-left:-6px}.leaflet-tooltip-top:before{bottom:0;margin-bottom:-12px;border-top-color:#fff}.leaflet-tooltip-bottom:before{top:0;margin-top:-12px;margin-left:-6px;border-bottom-color:#fff}.leaflet-tooltip-left{margin-left:-6px}.leaflet-tooltip-right{margin-left:6px}.leaflet-tooltip-left:before,.leaflet-tooltip-right:before{top:50%;margin-top:-6px}.leaflet-tooltip-left:before{right:0;margin-right:-12px;border-left-color:#fff}.leaflet-tooltip-right:before{left:0;margin-left:-12px;border-right-color:#fff}@media print{.leaflet-control{-webkit-print-color-adjust:exact;print-color-adjust:exact}}', ue = ":host{display:block;width:100%;height:400px;position:relative;border-radius:var(--border-radius-md, 8px);overflow:hidden;box-shadow:var(--shadow-sm, 0 1px 3px rgba(0,0,0,.1))}.ui-mapa-container{width:100%;height:100%;z-index:1}.leaflet-top,.leaflet-bottom{z-index:1000}", Z = {
   osm: {
     nome: "OpenStreetMap",
-    layer: () => x.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    layer: () => y.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     })
   },
   satelite: {
     nome: "Satélite (Esri)",
-    layer: () => x.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
+    layer: () => y.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
       attribution: "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
     })
   },
   topografia: {
     nome: "Topografia",
-    layer: () => x.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png", {
+    layer: () => y.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png", {
       attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
     })
   },
   ruas: {
     nome: "Ruas (Esri)",
-    layer: () => x.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}", {
+    layer: () => y.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}", {
       attribution: "Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012"
     })
   }
@@ -2634,7 +2767,7 @@ class he extends HTMLElement {
   initMap() {
     if (this.mapInstance) return;
     const t = parseFloat(this.getAttribute("lat") || "-23.550520"), e = parseFloat(this.getAttribute("lng") || "-46.633308"), i = parseInt(this.getAttribute("zoom") || "13", 10);
-    this.mapInstance = x.map(this.mapContainer).setView([t, e], i);
+    this.mapInstance = y.map(this.mapContainer).setView([t, e], i);
     const a = this.getAttribute("camadas");
     let r = ["osm"];
     a && (r = a.split(",").map((n) => n.trim().toLowerCase()).filter((n) => Z[n]), r.length === 0 && (r = ["osm"]));
@@ -2643,12 +2776,12 @@ class he extends HTMLElement {
       const n = {};
       n[Z[r[0]].nome] = s;
       for (let c = 1; c < r.length; c++) {
-        const u = r[c];
-        n[Z[u].nome] = Z[u].layer();
+        const d = r[c];
+        n[Z[d].nome] = Z[d].layer();
       }
-      x.control.layers(n, void 0, { position: "topright" }).addTo(this.mapInstance);
+      y.control.layers(n, void 0, { position: "topright" }).addTo(this.mapInstance);
     }
-    x.Icon.Default.imagePath = "https://unpkg.com/leaflet@1.9.4/dist/images/", typeof ResizeObserver < "u" && this.mapContainer && (this._resizeObserver = new ResizeObserver(() => {
+    y.Icon.Default.imagePath = "https://unpkg.com/leaflet@1.9.4/dist/images/", typeof ResizeObserver < "u" && this.mapContainer && (this._resizeObserver = new ResizeObserver(() => {
       this._resizeTimer && clearTimeout(this._resizeTimer), this._resizeTimer = setTimeout(() => {
         this.mapInstance && this.mapInstance.invalidateSize();
       }, 60);
@@ -2680,7 +2813,7 @@ const E = (b) => b == null ? "" : String(b).replace(/&/g, "&amp;").replace(/</g,
     return NaN;
   }, e = t(b), i = t(o);
   return isNaN(e) || isNaN(i) ? null : Math.abs(e) > 90 || Math.abs(i) > 180 ? (console.warn(`[gerencigeo-canvas] Coordenada fora do limite geográfico WGS-84 (Lat: ${e}, Lon: ${i}). Parece ser projeção UTM plana.`), null) : e === 0 && i === 0 ? null : { lat: e, lon: i };
-}, J = (b, o) => !b || !Array.isArray(b) || b.length === 0 ? "" : `<div class="ui-popup-actions-footer">${b.map((e) => {
+}, Q = (b, o) => !b || !Array.isArray(b) || b.length === 0 ? "" : `<div class="ui-popup-actions-footer">${b.map((e) => {
   const i = e.variante || "secondary";
   return `<button type="button" class="ui-popup-btn ui-popup-btn-${E(i)}" data-acao-id="${E(e.id)}" data-elemento-id="${E(String(o))}">${E(e.rotulo)}</button>`;
 }).join("")}</div>`, tt = (b, o, t, e) => {
@@ -2775,7 +2908,7 @@ class pe extends HTMLElement {
     const i = R(this.getAttribute("lat"), this.getAttribute("lng"));
     if (!i) return;
     const a = this.getAttribute("titulo");
-    this.marker = x.marker([i.lat, i.lon]), a && this.marker.bindPopup(this.createPopupContent(a)), this.marker.addTo(e);
+    this.marker = y.marker([i.lat, i.lon]), a && this.marker.bindPopup(this.createPopupContent(a)), this.marker.addTo(e);
   }
 }
 customElements.get("ui-mapa-marcador") || customElements.define("ui-mapa-marcador", pe);
@@ -2828,7 +2961,7 @@ class me extends HTMLElement {
     }
     this._retryCount = 0;
     const i = this.getAttribute("cor") || "#3388ff", a = parseInt(this.getAttribute("espessura") || "3", 10);
-    this.polyline = x.polyline(this.getPontos(), {
+    this.polyline = y.polyline(this.getPontos(), {
       color: i,
       weight: a
     }), this.polyline.addTo(e);
@@ -2895,10 +3028,10 @@ class kt extends HTMLElement {
     this.rootElement.innerHTML = "";
     const n = e === "pulso" ? "ui-skeleton--pulso" : e === "nenhum" ? "ui-skeleton--estatico" : "";
     if (t === "card") {
-      const u = document.createElement("div");
-      u.className = "ui-skeleton ui-skeleton--card";
       const d = document.createElement("div");
-      d.className = `ui-skeleton ui-skeleton__card-media ${n}`;
+      d.className = "ui-skeleton ui-skeleton--card";
+      const u = document.createElement("div");
+      u.className = `ui-skeleton ui-skeleton__card-media ${n}`;
       const h = document.createElement("div");
       h.className = "ui-skeleton__card-header";
       const p = document.createElement("div");
@@ -2907,21 +3040,21 @@ class kt extends HTMLElement {
       m.className = `ui-skeleton ui-skeleton__card-title ${n}`, h.appendChild(p), h.appendChild(m);
       const f = document.createElement("div");
       f.className = "ui-skeleton__linhas";
-      for (let v = 0; v < 2; v++) {
-        const y = document.createElement("div");
-        y.className = `ui-skeleton ui-skeleton--texto ${n}`, f.appendChild(y);
+      for (let x = 0; x < 2; x++) {
+        const v = document.createElement("div");
+        v.className = `ui-skeleton ui-skeleton--texto ${n}`, f.appendChild(v);
       }
-      u.appendChild(d), u.appendChild(h), u.appendChild(f), this.rootElement.appendChild(u);
+      d.appendChild(u), d.appendChild(h), d.appendChild(f), this.rootElement.appendChild(d);
       return;
     }
     if (s > 1 && t === "texto") {
-      const u = document.createElement("div");
-      u.className = "ui-skeleton__linhas";
-      for (let d = 0; d < s; d++) {
+      const d = document.createElement("div");
+      d.className = "ui-skeleton__linhas";
+      for (let u = 0; u < s; u++) {
         const h = document.createElement("div");
-        h.className = `ui-skeleton ui-skeleton--texto ${n}`, a && (h.style.height = isNaN(Number(a)) ? a : `${a}px`), r && (h.style.borderRadius = isNaN(Number(r)) ? r : `${r}px`), u.appendChild(h);
+        h.className = `ui-skeleton ui-skeleton--texto ${n}`, a && (h.style.height = isNaN(Number(a)) ? a : `${a}px`), r && (h.style.borderRadius = isNaN(Number(r)) ? r : `${r}px`), d.appendChild(h);
       }
-      i && (u.style.width = isNaN(Number(i)) ? i : `${i}px`), this.rootElement.appendChild(u);
+      i && (d.style.width = isNaN(Number(i)) ? i : `${i}px`), this.rootElement.appendChild(d);
       return;
     }
     const c = document.createElement("div");
@@ -2932,7 +3065,7 @@ class be extends kt {
 }
 customElements.get("ui-skeleton") || customElements.define("ui-skeleton", kt);
 customElements.get("ui-esqueleto") || customElements.define("ui-esqueleto", be);
-const ge = ':host{display:block;width:100%;height:520px;position:relative;border-radius:var(--ui-radius-lg, 10px);overflow:hidden;box-shadow:0 10px 30px -5px #0009;border:1px solid rgba(255,255,255,.1);background:#080d0a;color:#fff;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Inter,sans-serif;user-select:none;-webkit-user-select:none}*,*:before,*:after{box-sizing:border-box}.cad-root{position:relative;width:100%;height:100%;display:flex;overflow:hidden}.cad-map-container{width:100%;height:100%;background:#080d0a;z-index:1}.qgis-layer-panel{position:absolute;top:12px;left:12px;z-index:1000;width:290px;max-height:calc(100% - 24px);background:#0a120eeb;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.15);border-radius:8px;box-shadow:0 20px 40px #000000b3;display:flex;flex-direction:column;transition:transform .25s cubic-bezier(.16,1,.3,1),opacity .25s ease;overflow:hidden}.qgis-layer-panel.collapsed{transform:translate(-310px);opacity:0;pointer-events:none}.layer-panel-header{padding:10px 14px;background:#ffffff08;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:space-between}.layer-panel-title{font-size:12px;font-weight:700;letter-spacing:.5px;color:#00f5a0;display:flex;align-items:center;gap:6px;text-transform:uppercase}.layer-panel-close{background:transparent;border:none;color:#ffffff80;cursor:pointer;padding:2px;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:all .15s}.layer-panel-close:hover{color:#fff;background:#ffffff1a}.layer-panel-body{padding:10px 14px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;max-height:400px}.layer-section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#ffffff73;margin-bottom:2px;padding:0 4px 4px;border-bottom:1px solid rgba(255,255,255,.12)}.layer-item{background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.08);border-radius:0;padding:10px 4px;display:flex;flex-direction:column;gap:7px;transition:background .15s ease}.layer-item:last-child{border-bottom:none}.layer-item:hover{background:#ffffff08;border-radius:4px}.layer-item-row{display:flex;align-items:center;justify-content:space-between}.layer-item-label{display:flex;align-items:center;gap:10px;font-size:11px;font-weight:600;color:#ffffffe6;cursor:pointer;-webkit-user-select:none;user-select:none}.layer-chk-visibility{-moz-appearance:none;appearance:none;-webkit-appearance:none;width:16px;height:16px;border:1px solid rgba(255,255,255,.4);border-radius:4px;background:#0006;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;position:relative;transition:all .15s ease;flex-shrink:0;margin:0}.layer-chk-visibility:hover{border-color:#00f5a0}.layer-chk-visibility:checked{background:#00f5a0;border-color:#00f5a0}.layer-chk-visibility:checked:after{content:"";width:4px;height:8px;border:solid #04150c;border-width:0 2px 2px 0;transform:rotate(45deg) translateY(-1px);display:block}.layer-item-actions{display:flex;align-items:center;gap:6px}.btn-layer-action{background:transparent;border:none;color:#fff6;cursor:pointer;padding:4px;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:all .15s}.btn-layer-action:hover{color:#00f5a0;background:#ffffff14}.btn-layer-action.active{color:#f43f5e;background:#f43f5e26}.layer-controls-row{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:10px;color:#ffffff80;padding-left:26px}.layer-opacity-slider{flex:1;height:4px;border-radius:2px;background:#ffffff26;accent-color:#00f5a0;cursor:pointer}.scale-mode-pill{font-size:9px;font-weight:600;padding:2px 7px;border-radius:10px;background:#ffffff0f;color:#ffffffb3;cursor:pointer;border:1px solid rgba(255,255,255,.1);transition:all .15s}.scale-mode-pill:hover{border-color:#00f5a0;color:#00f5a0;background:#00f5a01a}.cad-quick-toolbar{position:absolute;top:12px;right:12px;z-index:1000;display:flex;flex-direction:column;gap:6px;background:#0c1510eb;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:5px;box-shadow:0 10px 25px -5px #0009}.cad-btn-tool{background:transparent;border:none;color:#fff9;cursor:pointer;padding:7px;border-radius:5px;display:flex;align-items:center;justify-content:center;transition:all .15s}.cad-btn-tool:hover{background:#ffffff1a;color:#fff}.cad-btn-tool.active{background:#00f5a026;color:#00f5a0;border:1px solid rgba(0,245,160,.3)}.cad-selection-box{pointer-events:none;box-sizing:border-box}.custom-leaflet-marker{cursor:pointer}.custom-leaflet-marker:hover{filter:brightness(1.25);transform:scale(1.15);transition:transform .15s ease}.compact-popup .leaflet-popup-content-wrapper{background:#0a120ef2!important;-webkit-backdrop-filter:blur(16px)!important;backdrop-filter:blur(16px)!important;border:1px solid rgba(255,255,255,.15)!important;border-radius:8px!important;color:#fff!important;padding:0!important}.compact-popup .leaflet-popup-content{margin:10px 12px!important}.compact-popup .leaflet-popup-tip{background:#0a120ef2!important;border:1px solid rgba(255,255,255,.15)!important}.ui-popup-actions-footer{display:flex;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.1);justify-content:flex-end;align-items:center;flex-wrap:wrap}.ui-popup-btn{display:inline-flex;align-items:center;justify-content:center;font-family:inherit;font-size:11px;font-weight:500;padding:4px 9px;border-radius:var(--ui-raio-borda, var(--ui-radius-sm, 6px));cursor:pointer;transition:all .15s ease;border:1px solid transparent;outline:none;line-height:1.25;-webkit-user-select:none;user-select:none}.ui-popup-btn-primary{background:var(--ui-cor-primaria, #00f5a0);color:#080d0a;font-weight:600;border-color:var(--ui-cor-primaria, #00f5a0)}.ui-popup-btn-primary:hover{filter:brightness(1.1);box-shadow:0 0 10px #00f5a059}.ui-popup-btn-secondary{background:#ffffff14;color:#fff;border-color:#ffffff2e}.ui-popup-btn-secondary:hover{background:#ffffff29;border-color:#ffffff4d}.ui-popup-btn-destrutivo{background:#ef444426;color:#f87171;border-color:#ef444459}.ui-popup-btn-destrutivo:hover{background:#ef444440;border-color:#ef444499;color:#fff}@media (max-width: 520px){.qgis-layer-panel{top:8px;left:8px;right:8px;width:auto;max-height:calc(100% - 16px)}.qgis-layer-panel.collapsed{transform:translateY(-115%)}.layer-panel-close{min-width:36px;min-height:36px;font-size:16px}.layer-action-btn{min-width:32px;min-height:32px}}.cad-destaque-marker-container{pointer-events:none!important;background:transparent!important;border:none!important;overflow:visible!important}.cad-destaque-marker-container *{pointer-events:none!important}.cad-pulse-highlight{position:relative;width:52px;height:52px;display:flex;align-items:center;justify-content:center;pointer-events:none!important;user-select:none;-webkit-user-select:none}.cad-pulse-core{position:absolute;width:14px;height:14px;border-radius:50%;background-color:var(--cad-pulse-cor, #00f5a0);box-shadow:0 0 10px var(--cad-pulse-cor, #00f5a0),0 0 20px var(--cad-pulse-cor, #00f5a0);pointer-events:none!important;animation:cad-pulse-glow 1.4s ease-in-out infinite alternate}.cad-pulse-ring{position:absolute;width:100%;height:100%;border-radius:50%;border:2.5px solid var(--cad-pulse-cor, #00f5a0);box-shadow:0 0 10px var(--cad-pulse-cor, #00f5a0);pointer-events:none!important;opacity:0;animation:cad-pulse-ping 1.8s cubic-bezier(0,0,.2,1) infinite}.cad-pulse-ring.ring-2{animation-delay:.6s}@keyframes cad-pulse-ping{0%{transform:scale(.35);opacity:.95}60%{opacity:.5}to{transform:scale(2.5);opacity:0}}@keyframes cad-pulse-glow{0%{transform:scale(.85);opacity:.8}to{transform:scale(1.15);opacity:1;box-shadow:0 0 14px var(--cad-pulse-cor, #00f5a0),0 0 26px var(--cad-pulse-cor, #00f5a0)}}', bt = {
+const ge = ':host{display:block;width:100%;height:520px;position:relative;border-radius:var(--ui-radius-lg, 10px);overflow:hidden;box-shadow:0 10px 30px -5px #0009;border:1px solid rgba(255,255,255,.1);background:#080d0a;color:#fff;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Inter,sans-serif;user-select:none;-webkit-user-select:none}*,*:before,*:after{box-sizing:border-box}.cad-root{position:relative;width:100%;height:100%;display:flex;overflow:hidden}.cad-map-container{width:100%;height:100%;background:#080d0a;z-index:1}.qgis-layer-panel{position:absolute;top:12px;left:12px;z-index:1000;width:290px;max-height:calc(100% - 24px);background:#0a120eeb;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.15);border-radius:8px;box-shadow:0 20px 40px #000000b3;display:flex;flex-direction:column;transition:transform .25s cubic-bezier(.16,1,.3,1),opacity .25s ease;overflow:hidden}.qgis-layer-panel.collapsed{transform:translate(-310px);opacity:0;pointer-events:none}.layer-panel-header{padding:10px 14px;background:#ffffff08;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:space-between}.layer-panel-title{font-size:12px;font-weight:700;letter-spacing:.5px;color:#00f5a0;display:flex;align-items:center;gap:6px;text-transform:uppercase}.layer-panel-close{background:transparent;border:none;color:#ffffff80;cursor:pointer;padding:2px;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:all .15s}.layer-panel-close:hover{color:#fff;background:#ffffff1a}.layer-panel-body{padding:8px 10px;overflow-y:auto;display:flex;flex-direction:column;gap:2px;max-height:400px}.layer-panel-body::-webkit-scrollbar{width:5px}.layer-panel-body::-webkit-scrollbar-track{background:transparent}.layer-panel-body::-webkit-scrollbar-thumb{background:#fff3;border-radius:4px}.layer-panel-body::-webkit-scrollbar-thumb:hover{background:#00f5a066}.layer-item{background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.08);border-radius:0;padding:4px;display:flex;flex-direction:column;gap:3px;transition:background .15s ease}.layer-item:last-child{border-bottom:none}.layer-item:hover{background:#ffffff08;border-radius:4px}.layer-item-row{display:flex;align-items:center;justify-content:space-between;min-height:18px}.layer-item-label{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:600;line-height:1.2;color:#ffffffe6;cursor:pointer;-webkit-user-select:none;user-select:none}.layer-chk-visibility{-moz-appearance:none;appearance:none;-webkit-appearance:none;width:14px;height:14px;border:1px solid rgba(255,255,255,.4);border-radius:3px;background:#0006;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;position:relative;transition:all .15s ease;flex-shrink:0;margin:0}.layer-chk-visibility:hover{border-color:#00f5a0}.layer-chk-visibility:checked{background:#00f5a0;border-color:#00f5a0}.layer-chk-visibility:checked:after{content:"";width:3.5px;height:7px;border:solid #04150c;border-width:0 1.5px 1.5px 0;transform:rotate(45deg) translateY(-.5px);display:block}.layer-item-actions{display:flex;align-items:center;gap:4px}.btn-layer-action{background:transparent;border:none;color:#fff6;cursor:pointer;padding:2px;border-radius:3px;display:flex;align-items:center;justify-content:center;transition:all .15s}.btn-layer-action:hover{color:#00f5a0;background:#ffffff14}.btn-layer-action.active{color:#f43f5e;background:#f43f5e26}.layer-controls-row{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:9.5px;line-height:1;color:#ffffff80;padding-left:21px}.layer-opacity-slider{flex:1;height:3px;margin:0;border-radius:2px;background:#ffffff26;accent-color:#00f5a0;cursor:pointer}.scale-mode-pill{font-size:8.5px;font-weight:600;padding:1px 6px;border-radius:6px;background:#ffffff0f;color:#ffffffb3;cursor:pointer;border:1px solid rgba(255,255,255,.1);transition:all .15s;line-height:1.2}.scale-mode-pill:hover{border-color:#00f5a0;color:#00f5a0;background:#00f5a01a}.cad-quick-toolbar{position:absolute;top:12px;right:12px;z-index:1000;display:flex;flex-direction:column;gap:6px;background:#0c1510eb;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:5px;box-shadow:0 10px 25px -5px #0009}.cad-btn-tool{background:transparent;border:none;color:#fff9;cursor:pointer;padding:7px;border-radius:5px;display:flex;align-items:center;justify-content:center;transition:all .15s}.cad-btn-tool:hover{background:#ffffff1a;color:#fff}.cad-btn-tool.active{background:#00f5a026;color:#00f5a0;border:1px solid rgba(0,245,160,.3)}.cad-selection-box{pointer-events:none;box-sizing:border-box}.custom-leaflet-marker{cursor:pointer}.custom-leaflet-marker:hover{filter:brightness(1.25);transform:scale(1.15);transition:transform .15s ease}.leaflet-popup-content-wrapper{background:#0f1712!important;color:#f8fafc!important;border:1px solid rgba(255,255,255,.15)!important;border-radius:8px!important;box-shadow:0 10px 25px #0009!important;padding:0!important;backdrop-filter:blur(16px)!important;-webkit-backdrop-filter:blur(16px)!important}.leaflet-popup-tip{background:#0f1712!important;border:1px solid rgba(255,255,255,.15)!important;box-shadow:none!important}.leaflet-popup-close-button{color:#fff9!important;padding:6px!important;transition:color .15s ease}.leaflet-popup-close-button:hover{color:#fff!important}.leaflet-popup-content{margin:12px 14px!important;line-height:1.4;font-family:inherit;color:#f8fafc}.compact-popup .leaflet-popup-content{margin:10px 12px!important}.ui-popup-actions-footer{display:flex;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.1);justify-content:flex-end;align-items:center;flex-wrap:wrap}.ui-popup-btn{display:inline-flex;align-items:center;justify-content:center;font-family:inherit;font-size:11px;font-weight:500;padding:4px 9px;border-radius:var(--ui-raio-borda, var(--ui-radius-sm, 6px));cursor:pointer;transition:all .15s ease;border:1px solid transparent;outline:none;line-height:1.25;-webkit-user-select:none;user-select:none}.ui-popup-btn-primary{background:var(--ui-cor-primaria, #00f5a0);color:#080d0a;font-weight:600;border-color:var(--ui-cor-primaria, #00f5a0)}.ui-popup-btn-primary:hover{filter:brightness(1.1);box-shadow:0 0 10px #00f5a059}.ui-popup-btn-secondary{background:#ffffff14;color:#fff;border-color:#ffffff2e}.ui-popup-btn-secondary:hover{background:#ffffff29;border-color:#ffffff4d}.ui-popup-btn-destrutivo{background:#ef444426;color:#f87171;border-color:#ef444459}.ui-popup-btn-destrutivo:hover{background:#ef444440;border-color:#ef444499;color:#fff}@media (max-width: 520px){.qgis-layer-panel{top:8px;left:8px;right:8px;width:auto;max-height:calc(100% - 16px)}.qgis-layer-panel.collapsed{transform:translateY(-115%)}.layer-panel-close{min-width:36px;min-height:36px;font-size:16px}.layer-action-btn{min-width:32px;min-height:32px}}.cad-destaque-marker-container{pointer-events:none!important;background:transparent!important;border:none!important;overflow:visible!important}.cad-destaque-marker-container *{pointer-events:none!important}.cad-pulse-highlight{position:relative;width:52px;height:52px;display:flex;align-items:center;justify-content:center;pointer-events:none!important;user-select:none;-webkit-user-select:none}.cad-pulse-core{position:absolute;width:14px;height:14px;border-radius:50%;background-color:var(--cad-pulse-cor, #00f5a0);box-shadow:0 0 10px var(--cad-pulse-cor, #00f5a0),0 0 20px var(--cad-pulse-cor, #00f5a0);pointer-events:none!important;animation:cad-pulse-glow 1.4s ease-in-out infinite alternate}.cad-pulse-ring{position:absolute;width:100%;height:100%;border-radius:50%;border:2.5px solid var(--cad-pulse-cor, #00f5a0);box-shadow:0 0 10px var(--cad-pulse-cor, #00f5a0);pointer-events:none!important;opacity:0;animation:cad-pulse-ping 1.8s cubic-bezier(0,0,.2,1) infinite}.cad-pulse-ring.ring-2{animation-delay:.6s}@keyframes cad-pulse-ping{0%{transform:scale(.35);opacity:.95}60%{opacity:.5}to{transform:scale(2.5);opacity:0}}@keyframes cad-pulse-glow{0%{transform:scale(.85);opacity:.8}to{transform:scale(1.15);opacity:1;box-shadow:0 0 14px var(--cad-pulse-cor, #00f5a0),0 0 26px var(--cad-pulse-cor, #00f5a0)}}', bt = {
   perimetroWeight: 1,
   fechamentoWeight: 1,
   vizinhoWeight: 1,
@@ -2982,8 +3115,8 @@ class ve {
     l(this, "configManager", st.getInstance());
     l(this, "config", this.configManager.getConfig());
     l(this, "apiBaseUrl", "/api");
-    l(this, "bancoPontosGroup", x.layerGroup());
-    l(this, "pontosVizinhosGroup", x.layerGroup());
+    l(this, "bancoPontosGroup", y.layerGroup());
+    l(this, "pontosVizinhosGroup", y.layerGroup());
     l(this, "controller");
     l(this, "containerElement", null);
     l(this, "bc");
@@ -2991,10 +3124,22 @@ class ve {
     this.controller = o;
   }
   init(o) {
-    this.map && (this.map.remove(), this.map = null);
+    if (this.map)
+      try {
+        this.map.off(), this.map.remove();
+      } catch {
+      } finally {
+        this.map = null;
+      }
     const t = typeof o == "string" ? document.getElementById(o) : o;
     if (!t) return null;
-    if (this.containerElement = t, this.map = x.map(t, {
+    if (this.containerElement = t, t._leaflet_id)
+      try {
+        delete t._leaflet_id;
+      } catch {
+        t._leaflet_id = void 0;
+      }
+    if (this.map = y.map(t, {
       maxZoom: 24,
       scrollWheelZoom: !0,
       preferCanvas: this.config.preferCanvas !== void 0 ? this.config.preferCanvas : !0,
@@ -3012,7 +3157,7 @@ class ve {
       const e = this.map.createPane("verticesPane");
       e.style.zIndex = "650";
     }
-    return x.control.scale({
+    return y.control.scale({
       metric: !0,
       imperial: !1,
       position: "bottomleft"
@@ -3052,7 +3197,26 @@ class ve {
       }
   }
   destroy() {
-    this.currentSigefAbortController && (this.currentSigefAbortController.abort(), this.currentSigefAbortController = void 0), this.bc && this.bc.close();
+    if (this.currentSigefAbortController && (this.currentSigefAbortController.abort(), this.currentSigefAbortController = void 0), this.bc) {
+      try {
+        this.bc.close();
+      } catch {
+      }
+      this.bc = void 0;
+    }
+    if (this.map)
+      try {
+        this.map.off(), this.map.remove();
+      } catch {
+      } finally {
+        this.map = null;
+      }
+    if (this.containerElement && this.containerElement._leaflet_id)
+      try {
+        delete this.containerElement._leaflet_id;
+      } catch {
+        this.containerElement._leaflet_id = void 0;
+      }
   }
   preCarregarTilesRegiao(o) {
     if (!this.map) return;
@@ -3060,11 +3224,11 @@ class ve {
     let s = 0;
     const n = 32;
     for (let c = e; c <= i && s < n; c++) {
-      const u = a.getNorthWest(), d = a.getSouthEast(), h = this.lonToTileX(u.lng, c), p = this.lonToTileX(d.lng, c), m = this.latToTileY(u.lat, c), f = this.latToTileY(d.lat, c);
-      for (let v = h; v <= p && s < n; v++)
-        for (let y = m; y <= f && s < n; y++) {
-          const S = `https://${r[(v + y) % r.length]}.google.com/vt/lyrs=s,h&x=${v}&y=${y}&z=${c}`, P = new Image();
-          P.src = S, s++;
+      const d = a.getNorthWest(), u = a.getSouthEast(), h = this.lonToTileX(d.lng, c), p = this.lonToTileX(u.lng, c), m = this.latToTileY(d.lat, c), f = this.latToTileY(u.lat, c);
+      for (let x = h; x <= p && s < n; x++)
+        for (let v = m; v <= f && s < n; v++) {
+          const S = `https://${r[(x + v) % r.length]}.google.com/vt/lyrs=s,h&x=${x}&y=${v}&z=${c}`, z = new Image();
+          z.src = S, s++;
         }
     }
   }
@@ -3091,18 +3255,18 @@ class ve {
     } catch {
       s = 0, n = 0;
     }
-    const c = `https://acervofundiario.incra.gov.br/i3geo/ogc.php?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetFeatureInfo&FORMAT=image/png&TRANSPARENT=true&QUERY_LAYERS=certificada_sigef_particular_pr&LAYERS=certificada_sigef_particular_pr&INFO_FORMAT=application/json&X=${s}&Y=${n}&WIDTH=${t.x}&HEIGHT=${t.y}&SRS=EPSG:4326&BBOX=${r}`, u = this.map.getContainer();
-    u.style.cursor = "wait";
-    const d = x.popup({
+    const c = `https://acervofundiario.incra.gov.br/i3geo/ogc.php?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetFeatureInfo&FORMAT=image/png&TRANSPARENT=true&QUERY_LAYERS=certificada_sigef_particular_pr&LAYERS=certificada_sigef_particular_pr&INFO_FORMAT=application/json&X=${s}&Y=${n}&WIDTH=${t.x}&HEIGHT=${t.y}&SRS=EPSG:4326&BBOX=${r}`, d = this.map.getContainer();
+    d.style.cursor = "wait";
+    const u = y.popup({
       className: "compact-sigef-popup",
       maxWidth: 250
     }).setLatLng(o.latlng).setContent(`
-        <div style="font-family:sans-serif; display:flex; align-items:center; gap:8px; color:#555; font-size:12px;">
+        <div style="font-family:sans-serif; display:flex; align-items:center; gap:8px; color:rgba(255,255,255,0.9); font-size:12px;">
           <svg style="animation:spin 1s linear infinite; width:14px; height:14px; flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="10" stroke="#ccc" stroke-width="4" fill="none"></circle>
-            <path fill="#10b981" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            <circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.2)" stroke-width="4" fill="none"></circle>
+            <path fill="#00f5a0" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
-          Consultando SIGEF...
+          Consultando...
         </div>
       `).openOn(this.map);
     this.currentSigefAbortController && this.currentSigefAbortController.abort(), this.currentSigefAbortController = new AbortController();
@@ -3110,21 +3274,21 @@ class ve {
       this.currentSigefAbortController && this.currentSigefAbortController.abort();
     }, 8e3);
     try {
-      const f = typeof window < "u" && (window.location.origin.includes("localhost") || window.location.origin.includes("127.0.0.1") || window.location.origin.includes("[::1]")) ? `${this.apiBaseUrl}/proxy/sigef?url=${encodeURIComponent(c)}` : `${window.location.origin}/api.php?action=proxy_sigef&url=${encodeURIComponent(c)}`, v = await fetch(f, { signal: h });
+      const f = typeof window < "u" && (window.location.origin.includes("localhost") || window.location.origin.includes("127.0.0.1") || window.location.origin.includes("[::1]")) ? `${this.apiBaseUrl}/proxy/sigef?url=${encodeURIComponent(c)}` : `${window.location.origin}/api.php?action=proxy_sigef&url=${encodeURIComponent(c)}`, x = await fetch(f, { signal: h });
       clearTimeout(p);
-      let y = null;
-      if (v.ok) {
-        const w = await v.text();
+      let v = null;
+      if (x.ok) {
+        const w = await x.text();
         try {
-          y = JSON.parse(w);
+          v = JSON.parse(w);
         } catch {
-          y = null;
+          v = null;
         }
       }
-      if (y && y.features && y.features.length > 0) {
-        const w = y.features[0], S = w.properties || {}, P = String(w.id || S.parcela_codigo || S.co_parcela || S.id_parcela || ""), _ = String(S.nome_area || S.nome_imovel || "Imóvel Sem Nome");
-        if (P) {
-          const I = encodeURIComponent(P), g = `https://sigef.incra.gov.br/geo/exportar/parcela/shp/${I}/`, C = `https://sigef.incra.gov.br/geo/parcela/detalhe/${I}/`, L = document.createElement("div");
+      if (v && v.features && v.features.length > 0) {
+        const w = v.features[0], S = w.properties || {}, z = String(w.id || S.parcela_codigo || S.co_parcela || S.id_parcela || ""), _ = String(S.nome_area || S.nome_imovel || "Imóvel Sem Nome");
+        if (z) {
+          const M = encodeURIComponent(z), g = `https://sigef.incra.gov.br/geo/exportar/parcela/shp/${M}/`, k = `https://sigef.incra.gov.br/geo/parcela/detalhe/${M}/`, L = document.createElement("div");
           L.style.cssText = "font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.4; min-width:180px;", L.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; padding-bottom:5px; border-bottom:1px solid rgba(255, 255, 255, 0.1);">
               <span style="font-weight:700; font-size:11px; color:#10b981; text-transform:uppercase; letter-spacing:0.5px;">SIGEF</span>
@@ -3145,44 +3309,44 @@ class ve {
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 Importar Confrontante (CSV)
               </button>
-              <a href="${C}" target="_blank" rel="noopener noreferrer" style="display:flex; align-items:center; justify-content:center; gap:4px; padding:4px 6px; background:rgba(255, 255, 255, 0.05); border:1px solid rgba(255, 255, 255, 0.1); color:rgba(255, 255, 255, 0.7); font-size:10px; font-weight:600; border-radius:5px; text-decoration:none; cursor:pointer;">
+              <a href="${k}" target="_blank" rel="noopener noreferrer" style="display:flex; align-items:center; justify-content:center; gap:4px; padding:4px 6px; background:rgba(255, 255, 255, 0.05); border:1px solid rgba(255, 255, 255, 0.1); color:rgba(255, 255, 255, 0.7); font-size:10px; font-weight:600; border-radius:5px; text-decoration:none; cursor:pointer;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                 Abrir no SIGEF
               </a>
             </div>
           `;
-          const N = L.querySelector(".btn-importar-confrontante-sigef");
-          N && N.addEventListener("click", () => {
+          const q = L.querySelector(".btn-importar-confrontante-sigef");
+          q && q.addEventListener("click", () => {
             window.dispatchEvent(
               new CustomEvent("gerencigeo:importar_vizinho_sigef", {
-                detail: { uuid: P, nome: _ }
+                detail: { uuid: z, nome: _ }
               })
             );
-          }), d.setContent(L);
+          }), u.setContent(L);
         } else
-          d.setContent(`
+          u.setContent(`
             <div style="font-family:sans-serif; font-size:12px; color:#b45309; padding:2px 0;">
               Lote identificado, mas código da parcela indisponível.
             </div>
           `);
       } else
-        d.setContent(`
+        u.setContent(`
           <div style="font-family:sans-serif; font-size:12px; color:rgba(255, 255, 255, 0.7); padding:2px 0;">
             Nenhum imóvel SIGEF certificado neste ponto.
           </div>
         `);
     } catch (m) {
-      m.name === "AbortError" ? d.setContent(`
+      m.name === "AbortError" ? u.setContent(`
           <div style="font-family:sans-serif; font-size:12px; color:#f59e0b; padding:2px 0;">
             Consulta cancelada ou tempo limite de resposta esgotado.
           </div>
-        `) : (console.warn("Erro ao consultar SIGEF:", m), d.setContent(`
+        `) : (console.warn("Erro ao consultar SIGEF:", m), u.setContent(`
           <div style="font-family:sans-serif; font-size:12px; color:#f59e0b; padding:2px 0;">
             Serviço de consulta SIGEF indisponível nesta área.
           </div>
         `));
     } finally {
-      u.style.cursor = "";
+      d.style.cursor = "";
     }
   }
 }
@@ -3297,7 +3461,7 @@ class ye {
           } catch {
           }
         }, 80);
-        const n = this.mapContainer.getBoundingClientRect(), c = o.clientX - n.left, u = o.clientY - n.top, d = this.map.mouseEventToContainerPoint(o), h = Math.abs(c - this.selectStartPos.x), p = Math.abs(u - this.selectStartPos.y);
+        const n = this.mapContainer.getBoundingClientRect(), c = o.clientX - n.left, d = o.clientY - n.top, u = this.map.mouseEventToContainerPoint(o), h = Math.abs(c - this.selectStartPos.x), p = Math.abs(d - this.selectStartPos.y);
         if (h < 4 && p < 4) {
           this.selectionHappened = !1;
           const _ = o.target;
@@ -3310,26 +3474,26 @@ class ye {
           this.selectionHappened = !1;
         }, 120);
         const m = {
-          x1: Math.min(this.selectStartPoint.x, d.x),
-          y1: Math.min(this.selectStartPoint.y, d.y),
-          x2: Math.max(this.selectStartPoint.x, d.x),
-          y2: Math.max(this.selectStartPoint.y, d.y)
-        }, f = ((r = this.ctx.mapaController) == null ? void 0 : r.getMarkers()) || [], v = ((s = this.ctx.mapaController) == null ? void 0 : s.getVizinhosMarkers()) || [], y = [], w = [], S = !this.ctx.layerManager || this.ctx.layerManager.isLayerActiveAndSelectable("vertices"), P = !this.ctx.layerManager || this.ctx.layerManager.isLayerActiveAndSelectable("vizinhos");
+          x1: Math.min(this.selectStartPoint.x, u.x),
+          y1: Math.min(this.selectStartPoint.y, u.y),
+          x2: Math.max(this.selectStartPoint.x, u.x),
+          y2: Math.max(this.selectStartPoint.y, u.y)
+        }, f = ((r = this.ctx.mapaController) == null ? void 0 : r.getMarkers()) || [], x = ((s = this.ctx.mapaController) == null ? void 0 : s.getVizinhosMarkers()) || [], v = [], w = [], S = !this.ctx.layerManager || this.ctx.layerManager.isLayerActiveAndSelectable("vertices"), z = !this.ctx.layerManager || this.ctx.layerManager.isLayerActiveAndSelectable("vizinhos");
         S && f.forEach((_) => {
-          const I = _.pontoId;
-          if (!I) return;
+          const M = _.pontoId;
+          if (!M) return;
           const g = this.map.latLngToContainerPoint(_.getLatLng());
-          g.x >= m.x1 && g.x <= m.x2 && g.y >= m.y1 && g.y <= m.y2 && y.push(I);
-        }), P && v.forEach((_) => {
-          const I = _.pontoId;
-          if (!I) return;
+          g.x >= m.x1 && g.x <= m.x2 && g.y >= m.y1 && g.y <= m.y2 && v.push(M);
+        }), z && x.forEach((_) => {
+          const M = _.pontoId;
+          if (!M) return;
           const g = this.map.latLngToContainerPoint(_.getLatLng());
-          g.x >= m.x1 && g.x <= m.x2 && g.y >= m.y1 && g.y <= m.y2 && w.push(I);
-        }), o.ctrlKey || o.metaKey ? (y.forEach((_) => {
-          this.ctx.selectedPontoIds.includes(_) ? this.ctx.selectedPontoIds = this.ctx.selectedPontoIds.filter((I) => I !== _) : this.ctx.selectedPontoIds.push(_);
+          g.x >= m.x1 && g.x <= m.x2 && g.y >= m.y1 && g.y <= m.y2 && w.push(M);
+        }), o.ctrlKey || o.metaKey ? (v.forEach((_) => {
+          this.ctx.selectedPontoIds.includes(_) ? this.ctx.selectedPontoIds = this.ctx.selectedPontoIds.filter((M) => M !== _) : this.ctx.selectedPontoIds.push(_);
         }), w.forEach((_) => {
-          this.ctx.selectedVizinhoPontoIds.includes(_) ? this.ctx.selectedVizinhoPontoIds = this.ctx.selectedVizinhoPontoIds.filter((I) => I !== _) : this.ctx.selectedVizinhoPontoIds.push(_);
-        })) : (this.ctx.selectedPontoIds = y, this.ctx.selectedVizinhoPontoIds = w), this.ctx.selectedPontoIds.length > 0 && (this.ctx.lastSelectedPontoId = this.ctx.selectedPontoIds[this.ctx.selectedPontoIds.length - 1]), this.notificarSelecao();
+          this.ctx.selectedVizinhoPontoIds.includes(_) ? this.ctx.selectedVizinhoPontoIds = this.ctx.selectedVizinhoPontoIds.filter((M) => M !== _) : this.ctx.selectedVizinhoPontoIds.push(_);
+        })) : (this.ctx.selectedPontoIds = v, this.ctx.selectedVizinhoPontoIds = w), this.ctx.selectedPontoIds.length > 0 && (this.ctx.lastSelectedPontoId = this.ctx.selectedPontoIds[this.ctx.selectedPontoIds.length - 1]), this.notificarSelecao();
       }
     });
     l(this, "handleKeyDown", (o) => {
@@ -3406,9 +3570,9 @@ class F {
 l(F, "renderers", /* @__PURE__ */ new Map());
 class _e {
   render(o, t, e) {
-    var n, c, u;
-    const i = ((n = o.dados) == null ? void 0 : n.url) || "https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}", a = ((c = o.dados) == null ? void 0 : c.subdomains) || ["mt0", "mt1", "mt2", "mt3"], r = ((u = o.dados) == null ? void 0 : u.attribution) || "Google Satélite";
-    return x.tileLayer(i, {
+    var n, c, d;
+    const i = ((n = o.dados) == null ? void 0 : n.url) || "https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}", a = ((c = o.dados) == null ? void 0 : c.subdomains) || ["mt0", "mt1", "mt2", "mt3"], r = ((d = o.dados) == null ? void 0 : d.attribution) || "Google Satélite";
+    return y.tileLayer(i, {
       maxZoom: 24,
       maxNativeZoom: 20,
       subdomains: a,
@@ -3422,7 +3586,7 @@ class _e {
     });
   }
   update(o, t, e) {
-    t instanceof x.TileLayer && e.opacidade !== void 0 && t.setOpacity(e.opacidade);
+    t instanceof y.TileLayer && e.opacidade !== void 0 && t.setOpacity(e.opacidade);
   }
   destroy(o, t) {
     t.hasLayer(o) && t.removeLayer(o);
@@ -3430,9 +3594,9 @@ class _e {
 }
 class we {
   render(o, t, e) {
-    var c, u, d, h;
-    const i = ((c = o.dados) == null ? void 0 : c.url) || "https://acervofundiario.incra.gov.br/i3geo/ogc.php", a = ((u = o.dados) == null ? void 0 : u.layers) || "certificada_sigef_particular_pr", r = ((d = o.dados) == null ? void 0 : d.format) || "image/png", s = ((h = o.dados) == null ? void 0 : h.attribution) || "INCRA/SIGEF";
-    return x.tileLayer.wms(i, {
+    var c, d, u, h;
+    const i = ((c = o.dados) == null ? void 0 : c.url) || "https://acervofundiario.incra.gov.br/i3geo/ogc.php", a = ((d = o.dados) == null ? void 0 : d.layers) || "certificada_sigef_particular_pr", r = ((u = o.dados) == null ? void 0 : u.format) || "image/png", s = ((h = o.dados) == null ? void 0 : h.attribution) || "INCRA/SIGEF";
+    return y.tileLayer.wms(i, {
       layers: a,
       format: r,
       transparent: !0,
@@ -3447,7 +3611,7 @@ class we {
     });
   }
   update(o, t, e) {
-    t instanceof x.TileLayer.WMS && e.opacidade !== void 0 && t.setOpacity(e.opacidade);
+    t instanceof y.TileLayer.WMS && e.opacidade !== void 0 && t.setOpacity(e.opacidade);
   }
   destroy(o, t) {
     t.hasLayer(o) && t.removeLayer(o);
@@ -3458,7 +3622,7 @@ class Ee {
     l(this, "zoomListenerMap", /* @__PURE__ */ new WeakMap());
   }
   render(o, t, e) {
-    const i = x.layerGroup(), a = `pane-${o.id}`;
+    const i = y.layerGroup(), a = `pane-${o.id}`;
     this.rebuildLines(o, i, t, e, a);
     const r = () => {
       if (o.estilo.scaleMode === "world") {
@@ -3473,45 +3637,45 @@ class Ee {
   calculateWeight(o, t, e) {
     const i = o.estilo.espessuraLinha || e.config.perimetroWeight || 2, a = e.graphicScale.lineScaleMultiplier || 1;
     if (o.estilo.scaleMode === "world") {
-      const r = o.estilo.dimensaoMetros || 0.3, s = t.getCenter(), n = t.getZoom(), c = 40075016686e-3 * Math.abs(Math.cos(s.lat * Math.PI / 180)) / Math.pow(2, n + 8), u = r / (c > 0 ? c : 1);
-      return Math.max(1, Math.round(u * a));
+      const r = o.estilo.dimensaoMetros || 0.3, s = t.getCenter(), n = t.getZoom(), c = 40075016686e-3 * Math.abs(Math.cos(s.lat * Math.PI / 180)) / Math.pow(2, n + 8), d = r / (c > 0 ? c : 1);
+      return Math.max(1, Math.round(d * a));
     }
     return Math.max(1, Math.round(i * a));
   }
   rebuildLines(o, t, e, i, a) {
-    var f, v, y, w, S, P, _, I;
-    const r = o.id === "homologados", s = ((f = o.dados) == null ? void 0 : f.conexoes) ?? (Array.isArray(o.dados) && o.dados.length > 0 && "origemId" in o.dados[0] ? o.dados : null), n = ((v = o.dados) == null ? void 0 : v.segmentos) || i.segmentos || [], c = ((y = o.dados) == null ? void 0 : y.pontos) || (r ? i.bancoPontos || [] : i.pontos) || [], u = this.calculateWeight(o, e, i), d = o.opacidade !== void 0 ? o.opacidade : 1, h = o.interativo && !o.bloqueada, p = [];
+    var f, x, v, w, S, z, _, M;
+    const r = o.id === "homologados", s = ((f = o.dados) == null ? void 0 : f.conexoes) ?? (Array.isArray(o.dados) && o.dados.length > 0 && "origemId" in o.dados[0] ? o.dados : null), n = ((x = o.dados) == null ? void 0 : x.segmentos) || i.segmentos || [], c = ((v = o.dados) == null ? void 0 : v.pontos) || (r ? i.bancoPontos || [] : i.pontos) || [], d = this.calculateWeight(o, e, i), u = o.opacidade !== void 0 ? o.opacidade : 1, h = o.interativo && !o.bloqueada, p = [];
     c.forEach((g) => {
-      const C = R(g.lat ?? g.latitude ?? g.y, g.lon ?? g.lng ?? g.longitude ?? g.x);
-      C && p.push({ ...g, lat: C.lat, lon: C.lon });
+      const k = R(g.lat ?? g.latitude ?? g.y, g.lon ?? g.lng ?? g.longitude ?? g.x);
+      k && p.push({ ...g, lat: k.lat, lon: k.lon });
     });
     const m = (g) => {
-      const C = p.find((L) => String(L.id) === String(g));
-      if (C) return C;
+      const k = p.find((L) => String(L.id) === String(g));
+      if (k) return k;
       if (i.pontos) {
-        const L = i.pontos.find((N) => String(N.id) === String(g));
+        const L = i.pontos.find((q) => String(q.id) === String(g));
         if (L) {
-          const N = R(L.lat, L.lon);
-          if (N) return { ...L, lat: N.lat, lon: N.lon };
+          const q = R(L.lat, L.lon);
+          if (q) return { ...L, lat: q.lat, lon: q.lon };
         }
       }
       return null;
     };
     if (s && Array.isArray(s)) {
       s.forEach((g) => {
-        var N, O, z, H, $, A, k;
-        const C = m(g.origemId), L = m(g.destinoId);
-        if (C && L && C.lat && C.lon && L.lat && L.lon) {
-          const M = g.tipoLinha === "tracejada" || ((N = g.estilo) == null ? void 0 : N.tipoLinha) === "tracejada", T = ((O = g.estilo) == null ? void 0 : O.cor) || ((z = g.estilo) == null ? void 0 : z.color) || o.estilo.corPrimaria || "#00f5a0", q = ((H = g.estilo) == null ? void 0 : H.espessura) || (($ = g.estilo) == null ? void 0 : $.weight) || u, B = x.polyline([[C.lat, C.lon], [L.lat, L.lon]], {
+        var q, H, P, O, $, C, A;
+        const k = m(g.origemId), L = m(g.destinoId);
+        if (k && L && k.lat && k.lon && L.lat && L.lon) {
+          const I = g.tipoLinha === "tracejada" || ((q = g.estilo) == null ? void 0 : q.tipoLinha) === "tracejada", T = ((H = g.estilo) == null ? void 0 : H.cor) || ((P = g.estilo) == null ? void 0 : P.color) || o.estilo.corPrimaria || "#00f5a0", N = ((O = g.estilo) == null ? void 0 : O.espessura) || (($ = g.estilo) == null ? void 0 : $.weight) || d, B = y.polyline([[k.lat, k.lon], [L.lat, L.lon]], {
             color: T,
-            weight: q,
-            opacity: ((A = g.estilo) == null ? void 0 : A.opacidade) ?? d,
-            dashArray: M ? "6, 6" : o.estilo.dashArray,
+            weight: N,
+            opacity: ((C = g.estilo) == null ? void 0 : C.opacidade) ?? u,
+            dashArray: I ? "6, 6" : o.estilo.dashArray,
             pane: a,
             interactive: h
           });
           if (h) {
-            const W = g.acoes || o.acoes || ((k = o.dados) == null ? void 0 : k.acoes) || [], U = `${g.origemId}-${g.destinoId}`, Y = J(W, U);
+            const W = g.acoes || o.acoes || ((A = o.dados) == null ? void 0 : A.acoes) || [], U = `${g.origemId}-${g.destinoId}`, Y = Q(W, U);
             B.bindPopup(`
               <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.3;">
                 <div style="font-weight:700; font-size:12px; margin-bottom:3px; color:#ffffff;">Conexão ${E(String(g.origemId))} ↔ ${E(String(g.destinoId))}</div>
@@ -3532,29 +3696,29 @@ class Ee {
       return;
     }
     if ((w = o.dados) != null && w.polilinhaSequencial || ((S = o.dados) == null ? void 0 : S.fechar) !== void 0 && p.length >= 2) {
-      const g = ((P = o.dados) == null ? void 0 : P.chaveGrupo) || i.chaveGrupo, C = it(p, g), L = ((_ = o.dados) == null ? void 0 : _.fechar) !== !1, N = o.estilo.corPrimaria || "#00f5a0";
-      Object.entries(C).forEach(([O, z]) => {
-        const H = ot(z);
-        if (H.length < 2) return;
-        const $ = H.map((k) => [k.lat, k.lon]), A = x.polyline($, {
-          color: N,
-          weight: u,
-          opacity: d,
+      const g = ((z = o.dados) == null ? void 0 : z.chaveGrupo) || i.chaveGrupo, k = it(p, g), L = ((_ = o.dados) == null ? void 0 : _.fechar) !== !1, q = o.estilo.corPrimaria || "#00f5a0";
+      Object.entries(k).forEach(([H, P]) => {
+        const O = ot(P);
+        if (O.length < 2) return;
+        const $ = O.map((A) => [A.lat, A.lon]), C = y.polyline($, {
+          color: q,
+          weight: d,
+          opacity: u,
           dashArray: o.estilo.dashArray,
           pane: a,
           interactive: h
         });
-        if (h && A.bindPopup(`
+        if (h && C.bindPopup(`
             <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.3;">
-              <div style="font-weight:700; font-size:12px; margin-bottom:3px; color:#ffffff;">Polilinha: Grupo ${E(O)}</div>
-              <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">Vértices: ${H.length}</div>
+              <div style="font-weight:700; font-size:12px; margin-bottom:3px; color:#ffffff;">Polilinha: Grupo ${E(H)}</div>
+              <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">Vértices: ${O.length}</div>
             </div>
-          `, { className: "compact-popup", maxWidth: 220 }), A.addTo(t), L && $.length >= 3) {
-          const k = $[$.length - 1], M = $[0];
-          x.polyline([k, M], {
-            color: N,
-            weight: u,
-            opacity: d,
+          `, { className: "compact-popup", maxWidth: 220 }), C.addTo(t), L && $.length >= 3) {
+          const A = $[$.length - 1], I = $[0];
+          y.polyline([A, I], {
+            color: q,
+            weight: d,
+            opacity: u,
             dashArray: "4, 4",
             pane: a,
             interactive: h
@@ -3565,60 +3729,60 @@ class Ee {
     }
     if (!r && n && n.length > 0)
       n.forEach((g) => {
-        var N;
-        const C = p.find((O) => String(O.id) === String(g.ponto_inicio_id)), L = p.find((O) => String(O.id) === String(g.ponto_fim_id));
-        if (C && L && C.lat && C.lon && L.lat && L.lon) {
-          const O = g.tipo_limite_sigef || g.tipo_limite || "", z = g.metodo_posicionamento_sigef || g.metodo_posicionamento || "", H = O === "LA1" ? "#10b981" : O === "LN1" ? "#3b82f6" : "#00f5a0", $ = o.estilo.corPrimaria || H, A = x.polyline([[C.lat, C.lon], [L.lat, L.lon]], {
+        var q;
+        const k = p.find((H) => String(H.id) === String(g.ponto_inicio_id)), L = p.find((H) => String(H.id) === String(g.ponto_fim_id));
+        if (k && L && k.lat && k.lon && L.lat && L.lon) {
+          const H = g.tipo_limite_sigef || g.tipo_limite || "", P = g.metodo_posicionamento_sigef || g.metodo_posicionamento || "", O = H === "LA1" ? "#10b981" : H === "LN1" ? "#3b82f6" : "#00f5a0", $ = o.estilo.corPrimaria || O, C = y.polyline([[k.lat, k.lon], [L.lat, L.lon]], {
             color: $,
-            weight: u,
-            opacity: d,
-            dashArray: O === "LN1" ? "6, 6" : o.estilo.dashArray,
+            weight: d,
+            opacity: u,
+            dashArray: H === "LN1" ? "6, 6" : o.estilo.dashArray,
             pane: a,
             interactive: h
           });
           if (h) {
-            const k = g.acoes || o.acoes || ((N = o.dados) == null ? void 0 : N.acoes) || [], M = `${g.ponto_inicio_id}-${g.ponto_fim_id}`, T = J(k, M);
-            A.bindPopup(`
+            const A = g.acoes || o.acoes || ((q = o.dados) == null ? void 0 : q.acoes) || [], I = `${g.ponto_inicio_id}-${g.ponto_fim_id}`, T = Q(A, I);
+            C.bindPopup(`
               <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.3;">
-                <div style="font-weight:700; font-size:12px; margin-bottom:3px; color:#ffffff;">${E(C.nome_vertice)} ↔ ${E(L.nome_vertice)}</div>
-                <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">Limite: ${E(O || "N/A")} · ${E(z || "N/A")}</div>
+                <div style="font-weight:700; font-size:12px; margin-bottom:3px; color:#ffffff;">${E(k.nome_vertice)} ↔ ${E(L.nome_vertice)}</div>
+                <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">Limite: ${E(H || "N/A")} · ${E(P || "N/A")}</div>
                 ${T}
               </div>
             `, {
               className: "compact-popup",
               maxWidth: 220
-            }), A.on("popupopen", (q) => {
+            }), C.on("popupopen", (N) => {
               if (i.modoSequencial) {
-                A.closePopup();
+                C.closePopup();
                 return;
               }
-              tt(q.popup, g, i, A);
+              tt(N.popup, g, i, C);
             });
           }
-          A.addTo(t);
+          C.addTo(t);
         }
       });
     else if (p && p.length >= 2) {
       const g = p.filter(
-        (z) => z.lat && z.lon && z.tipo_ponto !== "B" && z.tipo !== "B" && z.ignorar_poligono !== 1
-      ), C = ((I = o.dados) == null ? void 0 : I.chaveGrupo) || i.chaveGrupo, L = it(g, C), N = o.estilo.corPrimaria || (r ? "#f59e0b" : "#10b981"), O = o.estilo.dashArray || (r ? "6, 8" : void 0);
-      Object.values(L).forEach((z) => {
-        const H = ot(z);
-        if (H.length < 2) return;
-        const $ = H.map((k) => [k.lat, k.lon]);
-        if (x.polyline($, {
-          color: N,
-          weight: u,
-          opacity: d,
-          dashArray: O,
+        (P) => P.lat && P.lon && P.tipo_ponto !== "B" && P.tipo !== "B" && P.ignorar_poligono !== 1
+      ), k = ((M = o.dados) == null ? void 0 : M.chaveGrupo) || i.chaveGrupo, L = it(g, k), q = o.estilo.corPrimaria || (r ? "#f59e0b" : "#10b981"), H = o.estilo.dashArray || (r ? "6, 8" : void 0);
+      Object.values(L).forEach((P) => {
+        const O = ot(P);
+        if (O.length < 2) return;
+        const $ = O.map((A) => [A.lat, A.lon]);
+        if (y.polyline($, {
+          color: q,
+          weight: d,
+          opacity: u,
+          dashArray: H,
           pane: a,
           interactive: h
         }).addTo(t), $.length >= 3) {
-          const k = $[$.length - 1], M = $[0];
-          x.polyline([k, M], {
-            color: N,
-            weight: u,
-            opacity: d,
+          const A = $[$.length - 1], I = $[0];
+          y.polyline([A, I], {
+            color: q,
+            weight: d,
+            opacity: u,
             dashArray: r ? "6, 8" : "4, 4",
             pane: a,
             interactive: h
@@ -3671,17 +3835,17 @@ class ke {
     l(this, "zoomListenerMap", /* @__PURE__ */ new WeakMap());
   }
   render(o, t, e) {
-    const i = x.layerGroup(), a = `pane-${o.id}`;
+    const i = y.layerGroup(), a = `pane-${o.id}`;
     this.rebuildPoints(o, i, t, e, a);
     const r = () => {
       o.estilo.scaleMode === "world" && i.eachLayer((s) => {
         if (s.setIcon && s.baseSize && s.shapeStyle && s.markerBg && s.pontoId) {
-          const n = this.calculateSize(o, t, e, s.baseSize), c = e.config.enableAnimations ? "transition-all duration-150" : "", u = at(s.shapeStyle, n, s.markerBg, c, `map-marker-${o.id}-${s.pontoId}`), d = x.divIcon({
-            html: u,
+          const n = this.calculateSize(o, t, e, s.baseSize), c = e.config.enableAnimations ? "transition-all duration-150" : "", d = at(s.shapeStyle, n, s.markerBg, c, `map-marker-${o.id}-${s.pontoId}`), u = y.divIcon({
+            html: d,
             className: "custom-leaflet-marker flex items-center justify-center",
             iconSize: [n + 6, n + 6]
           });
-          s.setIcon(d);
+          s.setIcon(u);
         }
       });
     };
@@ -3690,77 +3854,77 @@ class ke {
   calculateSize(o, t, e, i) {
     const a = e.graphicScale.markerScaleMultiplier || 1;
     if (o.estilo.scaleMode === "world") {
-      const r = o.estilo.dimensaoMetros || 0.25, s = t.getCenter(), n = t.getZoom(), c = 40075016686e-3 * Math.abs(Math.cos(s.lat * Math.PI / 180)) / Math.pow(2, n + 8), u = r / (c > 0 ? c : 1);
-      return Math.max(i, Math.round(u * a));
+      const r = o.estilo.dimensaoMetros || 0.25, s = t.getCenter(), n = t.getZoom(), c = 40075016686e-3 * Math.abs(Math.cos(s.lat * Math.PI / 180)) / Math.pow(2, n + 8), d = r / (c > 0 ? c : 1);
+      return Math.max(i, Math.round(d * a));
     }
     return Math.max(4, Math.round(i * a));
   }
   rebuildPoints(o, t, e, i, a) {
-    var d;
-    const r = o.id === "homologados" || o.id === "homologados-pontos", s = o.id === "vizinhos", c = (((d = o.dados) == null ? void 0 : d.pontos) ?? (Array.isArray(o.dados) ? o.dados : null)) || (r ? i.bancoPontos || [] : i.pontos) || [], u = o.interativo && !o.bloqueada;
+    var u;
+    const r = o.id === "homologados" || o.id === "homologados-pontos", s = o.id === "vizinhos", c = (((u = o.dados) == null ? void 0 : u.pontos) ?? (Array.isArray(o.dados) ? o.dados : null)) || (r ? i.bancoPontos || [] : i.pontos) || [], d = o.interativo && !o.bloqueada;
     c.forEach((h) => {
-      var v;
+      var x;
       const p = h.lat ?? h.latitude ?? h.y, m = h.lon ?? h.lng ?? h.longitude ?? h.x, f = R(p, m);
       if (f) {
-        const { lat: y, lon: w } = f, S = h.tipo_ponto === "B" || h.tipo === "B", P = h.tipo_ponto === "M" || h.tipo === "M";
-        let _ = h.estilo || o.estilo.estiloMarcador || "circle", I = "bg-mint-vibrant", g = o.estilo.tamanhoMarcador || 7;
-        r ? (_ = "circle", I = "bg-amber-500", g = 8) : s ? (_ = P ? "circle-dot" : "cross", I = "bg-[#a855f7]", g = P ? 10 : 8) : P ? (I = "bg-indigo-500", _ = "circle-dot", g = 10) : S && (I = "bg-rose-500", _ = "square", g = 9);
-        const C = this.calculateSize(o, e, i, g), L = i.config.enableAnimations ? "transition-all duration-150" : "", N = at(_, C, I, L, `map-marker-${o.id}-${h.id}`), O = x.divIcon({
-          html: N,
+        const { lat: v, lon: w } = f, S = h.tipo_ponto === "B" || h.tipo === "B", z = h.tipo_ponto === "M" || h.tipo === "M";
+        let _ = h.estilo || o.estilo.estiloMarcador || "circle", M = "bg-mint-vibrant", g = o.estilo.tamanhoMarcador || 7;
+        r ? (_ = "circle", M = "bg-amber-500", g = 8) : s ? (_ = z ? "circle-dot" : "cross", M = "bg-[#a855f7]", g = z ? 10 : 8) : z ? (M = "bg-indigo-500", _ = "circle-dot", g = 10) : S && (M = "bg-rose-500", _ = "square", g = 9);
+        const k = this.calculateSize(o, e, i, g), L = i.config.enableAnimations ? "transition-all duration-150" : "", q = at(_, k, M, L, `map-marker-${o.id}-${h.id}`), H = y.divIcon({
+          html: q,
           className: "custom-leaflet-marker flex items-center justify-center",
-          iconSize: [C + 6, C + 6]
-        }), z = x.marker([y, w], {
-          icon: O,
+          iconSize: [k + 6, k + 6]
+        }), P = y.marker([v, w], {
+          icon: H,
           pane: a,
-          interactive: u
+          interactive: d
         });
-        if (z.pontoId = h.id, z.layerId = o.id, z.isVizinho = s, z.baseSize = g, z.shapeStyle = _, z.markerBg = I, u) {
-          let H = "";
-          const $ = h.acoes || o.acoes || ((v = o.dados) == null ? void 0 : v.acoes) || [], A = J($, h.id);
+        if (P.pontoId = h.id, P.layerId = o.id, P.isVizinho = s, P.baseSize = g, P.shapeStyle = _, P.markerBg = M, d) {
+          let O = "";
+          const $ = h.acoes || o.acoes || ((x = o.dados) == null ? void 0 : x.acoes) || [], C = Q($, h.id);
           if (h.metadados && Object.keys(h.metadados).length > 0) {
-            const k = Object.entries(h.metadados).map(([M, T]) => `<div style="font-size:11px; margin-bottom:2px;"><strong>${E(M)}:</strong> ${E(String(T))}</div>`).join("");
-            H = `
+            const A = Object.entries(h.metadados).map(([I, T]) => `<div style="font-size:11px; margin-bottom:2px;"><strong>${E(I)}:</strong> ${E(String(T))}</div>`).join("");
+            O = `
               <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.35; min-width:160px;">
                 <div style="font-weight:700; font-size:12px; margin-bottom:4px; color:#ffffff;">Ponto ${E(String(h.id))}</div>
-                ${k}
-                <div style="font-size:10px; color:rgba(255, 255, 255, 0.45); font-family:monospace; margin-top:3px;">Lat ${y.toFixed(6)} &nbsp; Lon ${w.toFixed(6)}</div>
                 ${A}
+                <div style="font-size:10px; color:rgba(255, 255, 255, 0.45); font-family:monospace; margin-top:3px;">Lat ${v.toFixed(6)} &nbsp; Lon ${w.toFixed(6)}</div>
+                ${C}
               </div>
             `;
           } else {
-            const k = r ? "Vértice Homologado SIGEF" : s ? "Confrontante (Importado)" : P ? "Base Homologada PPP" : S ? "Base de Campo (Translação)" : "Nó / Vértice", M = E(h.codigo_completo || h.nome_vertice || `Ponto ${String(h.id)}`), T = typeof h.este == "number" ? `Este (E): ${h.este.toFixed(2)} m` : "", q = typeof h.norte == "number" ? `Norte (N): ${h.norte.toFixed(2)} m` : "", B = typeof h.altitude == "number" ? `Alt (h): ${h.altitude.toFixed(2)} m` : "";
-            H = `
+            const A = r ? "Vértice Homologado SIGEF" : s ? "Confrontante (Importado)" : z ? "Base Homologada PPP" : S ? "Base de Campo (Translação)" : "Nó / Vértice", I = E(h.codigo_completo || h.nome_vertice || `Ponto ${String(h.id)}`), T = typeof h.este == "number" ? `Este (E): ${h.este.toFixed(2)} m` : "", N = typeof h.norte == "number" ? `Norte (N): ${h.norte.toFixed(2)} m` : "", B = typeof h.altitude == "number" ? `Alt (h): ${h.altitude.toFixed(2)} m` : "";
+            O = `
               <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.35; min-width:170px;">
-                <div style="font-weight:700; font-size:13px; margin-bottom:4px; color:${r ? "#fbbf24" : "#ffffff"};">${M}</div>
-                <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">${E(k)} · ${E(h.tipo_ponto || h.tipo || "Ponto")}</div>
-                ${T || q ? `<div style="font-size:10px; color:rgba(255, 255, 255, 0.7); font-family:monospace; margin-top:3px;">${T} ${q}</div>` : ""}
+                <div style="font-weight:700; font-size:13px; margin-bottom:4px; color:${r ? "#fbbf24" : "#ffffff"};">${I}</div>
+                <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">${E(A)} · ${E(h.tipo_ponto || h.tipo || "Ponto")}</div>
+                ${T || N ? `<div style="font-size:10px; color:rgba(255, 255, 255, 0.7); font-family:monospace; margin-top:3px;">${T} ${N}</div>` : ""}
                 ${B ? `<div style="font-size:10px; color:rgba(255, 255, 255, 0.7); font-family:monospace;">${B}</div>` : ""}
-                <div style="font-size:10px; color:rgba(255, 255, 255, 0.45); font-family:monospace; margin-top:3px;">Lat ${y.toFixed(6)} &nbsp; Lon ${w.toFixed(6)}</div>
-                ${A}
+                <div style="font-size:10px; color:rgba(255, 255, 255, 0.45); font-family:monospace; margin-top:3px;">Lat ${v.toFixed(6)} &nbsp; Lon ${w.toFixed(6)}</div>
+                ${C}
               </div>
             `;
           }
-          z.bindPopup(H, {
+          P.bindPopup(O, {
             className: "compact-popup",
             maxWidth: 240
-          }), z.on("click", () => {
-            var k;
-            if (i.modoSequencial && z.closePopup(), (k = o.dados) != null && k.onClique)
+          }), P.on("click", () => {
+            var A;
+            if (i.modoSequencial && P.closePopup(), (A = o.dados) != null && A.onClique)
               try {
                 o.dados.onClique(h);
-              } catch (M) {
-                console.error("Erro no callback onClique do ponto:", M);
+              } catch (I) {
+                console.error("Erro no callback onClique do ponto:", I);
               }
-            i.onMarkerClick && i.onMarkerClick(h.id, s, h, { lat: y, lon: w });
-          }), z.on("popupopen", (k) => {
+            i.onMarkerClick && i.onMarkerClick(h.id, s, h, { lat: v, lon: w });
+          }), P.on("popupopen", (A) => {
             if (i.modoSequencial) {
-              z.closePopup();
+              P.closePopup();
               return;
             }
-            tt(k.popup, h, i, z);
+            tt(A.popup, h, i, P);
           });
         }
-        z.addTo(t);
+        P.addTo(t);
       }
     });
   }
@@ -3774,60 +3938,60 @@ class ke {
 }
 class Ae {
   render(o, t, e) {
-    const i = x.layerGroup(), a = `pane-${o.id}`;
+    const i = y.layerGroup(), a = `pane-${o.id}`;
     return this.rebuildPolygons(o, i, e, a), i;
   }
   rebuildPolygons(o, t, e, i) {
-    var d, h;
-    const r = (((d = o.dados) == null ? void 0 : d.poligonos) ?? (Array.isArray(o.dados) ? o.dados : null)) || ((h = o.dados) == null ? void 0 : h.confrontantes) || e.confrontantes || [], s = o.interativo && !o.bloqueada, n = o.estilo.corPrimaria || "#a855f7", c = o.estilo.espessuraLinha || 1.5, u = o.opacidade !== void 0 ? o.opacidade : 0.8;
+    var u, h;
+    const r = (((u = o.dados) == null ? void 0 : u.poligonos) ?? (Array.isArray(o.dados) ? o.dados : null)) || ((h = o.dados) == null ? void 0 : h.confrontantes) || e.confrontantes || [], s = o.interativo && !o.bloqueada, n = o.estilo.corPrimaria || "#a855f7", c = o.estilo.espessuraLinha || 1.5, d = o.opacidade !== void 0 ? o.opacidade : 0.8;
     r.forEach((p) => {
-      var _, I, g, C, L, N, O, z, H, $;
+      var _, M, g, k, L, q, H, P, O, $;
       if (!p) return;
-      const m = ((_ = p.estilo) == null ? void 0 : _.cor) || ((I = p.estilo) == null ? void 0 : I.color) || n, f = ((g = p.estilo) == null ? void 0 : g.espessura) || ((C = p.estilo) == null ? void 0 : C.weight) || c, v = ((L = p.estilo) == null ? void 0 : L.opacidade) ?? u, y = ((N = p.estilo) == null ? void 0 : N.fillColor) || m, w = ((O = p.estilo) == null ? void 0 : O.fillOpacity) ?? Math.min(0.2, v * 0.15), S = ((z = p.estilo) == null ? void 0 : z.dashArray) || o.estilo.dashArray || "4, 6";
+      const m = ((_ = p.estilo) == null ? void 0 : _.cor) || ((M = p.estilo) == null ? void 0 : M.color) || n, f = ((g = p.estilo) == null ? void 0 : g.espessura) || ((k = p.estilo) == null ? void 0 : k.weight) || c, x = ((L = p.estilo) == null ? void 0 : L.opacidade) ?? d, v = ((q = p.estilo) == null ? void 0 : q.fillColor) || m, w = ((H = p.estilo) == null ? void 0 : H.fillOpacity) ?? Math.min(0.2, x * 0.15), S = ((P = p.estilo) == null ? void 0 : P.dashArray) || o.estilo.dashArray || "4, 6";
       if (p.coordenadas && Array.isArray(p.coordenadas) && p.coordenadas.length >= 3) {
-        const A = Array.isArray(p.coordenadas[0]) && Array.isArray(p.coordenadas[0][0]);
-        let k;
-        if (A ? k = p.coordenadas.map(
-          (M) => M.map((T) => {
-            const q = R(T[0], T[1]);
-            return q ? [q.lat, q.lon] : null;
+        const C = Array.isArray(p.coordenadas[0]) && Array.isArray(p.coordenadas[0][0]);
+        let A;
+        if (C ? A = p.coordenadas.map(
+          (I) => I.map((T) => {
+            const N = R(T[0], T[1]);
+            return N ? [N.lat, N.lon] : null;
           }).filter(Boolean)
-        ) : k = p.coordenadas.map((M) => {
-          const T = R(M[0], M[1]);
+        ) : A = p.coordenadas.map((I) => {
+          const T = R(I[0], I[1]);
           return T ? [T.lat, T.lon] : null;
-        }).filter(Boolean), k && (A ? ((H = k[0]) == null ? void 0 : H.length) >= 3 : k.length >= 3)) {
-          const M = x.polygon(k, {
+        }).filter(Boolean), A && (C ? ((O = A[0]) == null ? void 0 : O.length) >= 3 : A.length >= 3)) {
+          const I = y.polygon(A, {
             color: m,
             weight: f,
-            opacity: v,
+            opacity: x,
             dashArray: S,
-            fillColor: y,
+            fillColor: v,
             fillOpacity: w,
             pane: i,
             interactive: s
           });
-          if (M.poligonoId = p.id, M.layerId = o.id, s) {
+          if (I.poligonoId = p.id, I.layerId = o.id, s) {
             let T = "";
-            p.metadados && Object.keys(p.metadados).length > 0 && (T = Object.entries(p.metadados).map(([q, B]) => `<div style="font-size:11px;"><strong>${E(q)}:</strong> ${E(String(B))}</div>`).join("")), M.bindPopup(`
+            p.metadados && Object.keys(p.metadados).length > 0 && (T = Object.entries(p.metadados).map(([N, B]) => `<div style="font-size:11px;"><strong>${E(N)}:</strong> ${E(String(B))}</div>`).join("")), I.bindPopup(`
               <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.3; min-width:180px;">
                 <div style="font-weight:700; font-size:12px; color:#c084fc; margin-bottom:3px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:3px;">Polígono ${E(String(p.id ?? ""))}</div>
                 ${T || `<div style="font-size:11px;">Área vetorial definida por ${p.coordenadas.length} vértices</div>`}
               </div>
-            `, { className: "compact-popup", maxWidth: 220 }), M.on("popupopen", () => {
-              e.modoSequencial && M.closePopup();
+            `, { className: "compact-popup", maxWidth: 220 }), I.on("popupopen", () => {
+              e.modoSequencial && I.closePopup();
             });
           }
-          M.addTo(t);
+          I.addTo(t);
           return;
         }
       }
-      const P = p.wkt || p.poligono_wkt;
-      if (P) {
-        const A = [...P.matchAll(/\(([^()]+)\)/g)];
-        if (A.length > 0) {
-          const k = E(p.nome_propriedade || `Polígono ${String(p.id || "")}`), M = E(p.nome || "Proprietário"), T = [];
-          if (A.forEach((q) => {
-            const B = q[1].split(",").map((W) => {
+      const z = p.wkt || p.poligono_wkt;
+      if (z) {
+        const C = [...z.matchAll(/\(([^()]+)\)/g)];
+        if (C.length > 0) {
+          const A = E(p.nome_propriedade || `Polígono ${String(p.id || "")}`), I = E(p.nome || "Proprietário"), T = [];
+          if (C.forEach((N) => {
+            const B = N[1].split(",").map((W) => {
               const U = W.trim().split(/\s+/);
               if (U.length < 2) return null;
               const Y = R(U[1], U[0]);
@@ -3835,23 +3999,23 @@ class Ae {
             }).filter((W) => W !== null);
             B.length >= 3 && T.push(B);
           }), T.length > 0) {
-            const q = T.length === 1 ? T[0] : T, B = x.polygon(q, {
+            const N = T.length === 1 ? T[0] : T, B = y.polygon(N, {
               color: m,
               weight: f,
-              opacity: v,
+              opacity: x,
               dashArray: S,
-              fillColor: y,
+              fillColor: v,
               fillOpacity: w,
               pane: i,
               interactive: s
             });
             if (B.poligonoId = p.id, B.layerId = o.id, s) {
-              const W = p.acoes || o.acoes || (($ = o.dados) == null ? void 0 : $.acoes) || [], U = J(W, p.id);
+              const W = p.acoes || o.acoes || (($ = o.dados) == null ? void 0 : $.acoes) || [], U = Q(W, p.id);
               B.bindPopup(`
                 <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.3; min-width:180px;">
-                  <div style="font-weight:700; font-size:12px; color:#c084fc; margin-bottom:3px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:3px;">${k}</div>
+                  <div style="font-weight:700; font-size:12px; color:#c084fc; margin-bottom:3px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:3px;">${A}</div>
                   <div style="font-size:11px; margin-bottom:2px;"><strong>Identificador:</strong> ${E(String(p.id ?? ""))}</div>
-                  ${p.nome ? `<div style="font-size:11px;"><strong>Proprietário:</strong> ${M}</div>` : ""}
+                  ${p.nome ? `<div style="font-size:11px;"><strong>Proprietário:</strong> ${I}</div>` : ""}
                   ${U}
                 </div>
               `, { className: "compact-popup", maxWidth: 220 }), B.on("popupopen", (Y) => {
@@ -3866,39 +4030,39 @@ class Ae {
           }
         }
       }
-      p.pontos && p.pontos.length > 0 && p.pontos.forEach((A) => {
-        var M;
-        const k = R(A.lat ?? A.latitude ?? A.y, A.lon ?? A.lng ?? A.longitude ?? A.x);
-        if (k) {
-          const T = x.divIcon({
+      p.pontos && p.pontos.length > 0 && p.pontos.forEach((C) => {
+        var I;
+        const A = R(C.lat ?? C.latitude ?? C.y, C.lon ?? C.lng ?? C.longitude ?? C.x);
+        if (A) {
+          const T = y.divIcon({
             html: '<div style="width:8px; height:8px; background:#a855f7; border-radius:50%; border:1px solid #ffffff; box-shadow:0 0 4px rgba(168,85,247,0.8);"></div>',
             className: "custom-leaflet-marker flex items-center justify-center",
             iconSize: [12, 12]
-          }), q = x.marker([k.lat, k.lon], {
+          }), N = y.marker([A.lat, A.lon], {
             icon: T,
             pane: i,
             interactive: s
           });
-          if (q.pontoId = A.id, q.isVizinho = !0, q.layerId = o.id, s) {
-            const B = A.acoes || p.acoes || o.acoes || ((M = o.dados) == null ? void 0 : M.acoes) || [], W = J(B, A.id);
-            q.bindPopup(`
+          if (N.pontoId = C.id, N.isVizinho = !0, N.layerId = o.id, s) {
+            const B = C.acoes || p.acoes || o.acoes || ((I = o.dados) == null ? void 0 : I.acoes) || [], W = Q(B, C.id);
+            N.bindPopup(`
                 <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.3; min-width:170px;">
-                  <div style="font-weight:700; font-size:12px; color:#c084fc; margin-bottom:3px;">${E(A.nome_vertice || String(A.id))}</div>
+                  <div style="font-weight:700; font-size:12px; color:#c084fc; margin-bottom:3px;">${E(C.nome_vertice || String(C.id))}</div>
                   <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">Confrontante: ${E(p.nome || "Desconhecido")}</div>
-                  <div style="font-size:10px; color:rgba(255, 255, 255, 0.45); font-family:monospace; margin-top:3px;">Lat ${k.lat.toFixed(6)} &nbsp; Lon ${k.lon.toFixed(6)}</div>
+                  <div style="font-size:10px; color:rgba(255, 255, 255, 0.45); font-family:monospace; margin-top:3px;">Lat ${A.lat.toFixed(6)} &nbsp; Lon ${A.lon.toFixed(6)}</div>
                   ${W}
                 </div>
-              `, { className: "compact-popup", maxWidth: 220 }), q.on("click", () => {
-              e.modoSequencial && q.closePopup(), e.onMarkerClick && e.onMarkerClick(A.id, !0, A, { lat: k.lat, lon: k.lon });
-            }), q.on("popupopen", (U) => {
+              `, { className: "compact-popup", maxWidth: 220 }), N.on("click", () => {
+              e.modoSequencial && N.closePopup(), e.onMarkerClick && e.onMarkerClick(C.id, !0, C, { lat: A.lat, lon: A.lon });
+            }), N.on("popupopen", (U) => {
               if (e.modoSequencial) {
-                q.closePopup();
+                N.closePopup();
                 return;
               }
-              tt(U.popup, A, e, q);
+              tt(U.popup, C, e, N);
             });
           }
-          q.addTo(t);
+          N.addTo(t);
         }
       });
     });
@@ -3915,22 +4079,22 @@ class Ce {
     l(this, "moveListenerMap", /* @__PURE__ */ new WeakMap());
   }
   render(o, t, e) {
-    const i = x.layerGroup(), a = `pane-${o.id}`, r = () => {
+    const i = y.layerGroup(), a = `pane-${o.id}`, r = () => {
       if (i.clearLayers(), !o.visivel) return;
       if (t.getZoom() > 20) {
-        const n = t.getBounds(), c = n.getSouth(), u = n.getNorth(), d = n.getWest(), h = n.getEast(), p = t.getCenter(), m = 8999e-9, f = Math.cos(p.lat * Math.PI / 180), v = m / (f > 0.1 ? f : 1), y = Math.floor((u - c) / m), w = Math.floor((h - d) / v);
-        if (y < 200 && w < 200) {
+        const n = t.getBounds(), c = n.getSouth(), d = n.getNorth(), u = n.getWest(), h = n.getEast(), p = t.getCenter(), m = 8999e-9, f = Math.cos(p.lat * Math.PI / 180), x = m / (f > 0.1 ? f : 1), v = Math.floor((d - c) / m), w = Math.floor((h - u) / x);
+        if (v < 200 && w < 200) {
           const S = Math.ceil(c / m) * m;
-          for (let _ = S; _ <= u; _ += m)
-            x.polyline([[_, d], [_, h]], {
+          for (let _ = S; _ <= d; _ += m)
+            y.polyline([[_, u], [_, h]], {
               color: o.estilo.corPrimaria || "rgba(0, 245, 160, 0.18)",
               weight: o.estilo.espessuraLinha || 0.6,
               interactive: !1,
               pane: a
             }).addTo(i);
-          const P = Math.ceil(d / v) * v;
-          for (let _ = P; _ <= h; _ += v)
-            x.polyline([[c, _], [u, _]], {
+          const z = Math.ceil(u / x) * x;
+          for (let _ = z; _ <= h; _ += x)
+            y.polyline([[c, _], [d, _]], {
               color: o.estilo.corPrimaria || "rgba(0, 245, 160, 0.18)",
               weight: o.estilo.espessuraLinha || 0.6,
               interactive: !1,
@@ -4439,7 +4603,7 @@ class ze {
       const t = [], e = this.layerManager.getLayerInstance(o);
       if (e) {
         const i = (a) => {
-          a instanceof x.Marker && t.push(a);
+          a instanceof y.Marker && t.push(a);
         };
         i(e), typeof e.eachLayer == "function" && e.eachLayer(i);
       }
@@ -4492,8 +4656,8 @@ class ze {
     t.forEach((r) => {
       const s = r.lat ?? r.latitude ?? r.y, n = r.lon ?? r.lng ?? r.longitude ?? r.x, c = R(s, n);
       c && (r.lat = c.lat, r.lon = c.lon);
-      const u = r.confrontante_id ?? r.id_confrontante ?? 0;
-      e.has(u) || e.set(u, []), e.get(u).push(r);
+      const d = r.confrontante_id ?? r.id_confrontante ?? 0;
+      e.has(d) || e.set(d, []), e.get(d).push(r);
     });
     const i = /* @__PURE__ */ new Map();
     (this.context.confrontantes || []).forEach((r) => {
@@ -4502,8 +4666,8 @@ class ze {
     }), e.forEach((r, s) => {
       var n, c;
       if (i.has(s)) {
-        const u = i.get(s);
-        u.pontos = r;
+        const d = i.get(s);
+        d.pontos = r;
       } else
         i.set(s, {
           id: s,
@@ -4565,13 +4729,13 @@ class ze {
       s.pontos && a.push(...s.pontos);
     });
     const r = a.map((s) => {
-      const n = s.lat ?? s.latitude ?? s.y, c = s.lon ?? s.lng ?? s.longitude ?? s.x, u = R(n, c);
-      return u ? x.latLng(u.lat, u.lon) : null;
+      const n = s.lat ?? s.latitude ?? s.y, c = s.lon ?? s.lng ?? s.longitude ?? s.x, d = R(n, c);
+      return d ? y.latLng(d.lat, d.lon) : null;
     }).filter((s) => s !== null);
     if (r.length === 1)
       this.core.map.setView(r[0], 18);
     else if (r.length > 1) {
-      const s = x.latLngBounds(r);
+      const s = y.latLngBounds(r);
       this.core.map.fitBounds(s, { padding: t }), this.core.map.once("moveend", () => {
         this.core.preCarregarTilesRegiao(s);
       });
@@ -4583,7 +4747,7 @@ class ze {
   }
   getMarkers() {
     const o = [], t = /* @__PURE__ */ new Set(), e = (i) => {
-      i instanceof x.Marker && i.pontoId !== void 0 && !t.has(i) && (t.add(i), o.push(i));
+      i instanceof y.Marker && i.pontoId !== void 0 && !t.has(i) && (t.add(i), o.push(i));
     };
     return this.core.map && this.core.map.eachLayer((i) => {
       e(i), typeof i.eachLayer == "function" && i.eachLayer(e);
@@ -4605,30 +4769,30 @@ class ze {
     var r, s;
     if (o == null) return null;
     const t = String(o).trim(), e = (n) => n ? (n.lon = n.lng, n) : null, a = this.getMarkers().find((n) => {
-      var p, m, f, v;
-      const c = n.pontoId, u = n.elementoId ?? n.id ?? ((p = n.options) == null ? void 0 : p.pontoId) ?? ((m = n.options) == null ? void 0 : m.id), d = (f = n.elemento) == null ? void 0 : f.nome_vertice, h = (v = n.elemento) == null ? void 0 : v.codigo_completo;
-      return String(c) === t || String(u) === t || d && String(d).toLowerCase() === t.toLowerCase() || h && String(h).toLowerCase() === t.toLowerCase();
+      var p, m, f, x;
+      const c = n.pontoId, d = n.elementoId ?? n.id ?? ((p = n.options) == null ? void 0 : p.pontoId) ?? ((m = n.options) == null ? void 0 : m.id), u = (f = n.elemento) == null ? void 0 : f.nome_vertice, h = (x = n.elemento) == null ? void 0 : x.codigo_completo;
+      return String(c) === t || String(d) === t || u && String(u).toLowerCase() === t.toLowerCase() || h && String(h).toLowerCase() === t.toLowerCase();
     });
     if (a && typeof a.getLatLng == "function")
       return e(a.getLatLng());
     if (this.layerManager)
       for (const n of this.layerManager.getAllLayerInstances()) {
         let c = null;
-        const u = (d) => {
-          var m, f, v, y, w;
+        const d = (u) => {
+          var m, f, x, v, w;
           if (c) return;
-          const h = d.pontoId ?? d.elementoId ?? d.id ?? ((m = d.options) == null ? void 0 : m.id) ?? ((f = d.options) == null ? void 0 : f.pontoId), p = ((v = d.elemento) == null ? void 0 : v.nome) ?? ((y = d.elemento) == null ? void 0 : y.nome_vertice) ?? ((w = d.options) == null ? void 0 : w.nome);
-          (String(h) === t || p && String(p).toLowerCase() === t.toLowerCase()) && (typeof d.getLatLng == "function" ? c = d.getLatLng() : typeof d.getBounds == "function" && (c = d.getBounds().getCenter()));
+          const h = u.pontoId ?? u.elementoId ?? u.id ?? ((m = u.options) == null ? void 0 : m.id) ?? ((f = u.options) == null ? void 0 : f.pontoId), p = ((x = u.elemento) == null ? void 0 : x.nome) ?? ((v = u.elemento) == null ? void 0 : v.nome_vertice) ?? ((w = u.options) == null ? void 0 : w.nome);
+          (String(h) === t || p && String(p).toLowerCase() === t.toLowerCase()) && (typeof u.getLatLng == "function" ? c = u.getLatLng() : typeof u.getBounds == "function" && (c = u.getBounds().getCenter()));
         };
-        if (u(n), typeof n.eachLayer == "function" && n.eachLayer(u), c) return e(c);
+        if (d(n), typeof n.eachLayer == "function" && n.eachLayer(d), c) return e(c);
       }
     if (this.context.pontos && this.context.pontos.length > 0) {
       const n = this.context.pontos.find(
         (c) => String(c.id) === t || c.nome_vertice && String(c.nome_vertice).toLowerCase() === t.toLowerCase()
       );
       if (n) {
-        const c = n.lat ?? n.latitude ?? n.y, u = n.lon ?? n.lng ?? n.longitude ?? n.x, d = R(c, u);
-        if (d) return e(x.latLng(d.lat, d.lon));
+        const c = n.lat ?? n.latitude ?? n.y, d = n.lon ?? n.lng ?? n.longitude ?? n.x, u = R(c, d);
+        if (u) return e(y.latLng(u.lat, u.lon));
       }
     }
     if (this.context.bancoPontos && this.context.bancoPontos.length > 0) {
@@ -4636,8 +4800,8 @@ class ze {
         (c) => String(c.id) === t || c.codigo_completo && String(c.codigo_completo).toLowerCase() === t.toLowerCase() || c.nome_vertice && String(c.nome_vertice).toLowerCase() === t.toLowerCase()
       );
       if (n) {
-        const c = n.lat ?? n.latitude ?? n.y, u = n.lon ?? n.lng ?? n.longitude ?? n.x, d = R(c, u);
-        if (d) return e(x.latLng(d.lat, d.lon));
+        const c = n.lat ?? n.latitude ?? n.y, d = n.lon ?? n.lng ?? n.longitude ?? n.x, u = R(c, d);
+        if (u) return e(y.latLng(u.lat, u.lon));
       }
     }
     if (this.context.confrontantes && this.context.confrontantes.length > 0) {
@@ -4646,17 +4810,17 @@ class ze {
       );
       if (n) {
         if (n.pontos && n.pontos.length > 0) {
-          let c = 0, u = 0, d = 0;
+          let c = 0, d = 0, u = 0;
           for (const h of n.pontos) {
             const p = h.lat ?? h.latitude ?? h.y, m = h.lon ?? h.lng ?? h.longitude ?? h.x, f = R(p, m);
-            f && (c += f.lat, u += f.lon, d++);
+            f && (c += f.lat, d += f.lon, u++);
           }
-          if (d > 0)
-            return e(x.latLng(c / d, u / d));
+          if (u > 0)
+            return e(y.latLng(c / u, d / u));
         }
         if (n.poligono_wkt) {
           const c = ft(n.poligono_wkt);
-          if (c) return e(x.latLng(c.lat, c.lon));
+          if (c) return e(y.latLng(c.lat, c.lon));
         }
       }
     }
@@ -4665,11 +4829,11 @@ class ze {
         (c) => String(c.id) === t || `${c.ponto_inicio_id}-${c.ponto_fim_id}` === t
       );
       if (n) {
-        const c = (r = this.context.pontos) == null ? void 0 : r.find((d) => String(d.id) === String(n.ponto_inicio_id)), u = (s = this.context.pontos) == null ? void 0 : s.find((d) => String(d.id) === String(n.ponto_fim_id));
-        if (c && u) {
-          const d = R(c.lat ?? c.latitude, c.lon ?? c.longitude), h = R(u.lat ?? u.latitude, u.lon ?? u.longitude);
-          if (d && h)
-            return e(x.latLng((d.lat + h.lat) / 2, (d.lon + h.lon) / 2));
+        const c = (r = this.context.pontos) == null ? void 0 : r.find((u) => String(u.id) === String(n.ponto_inicio_id)), d = (s = this.context.pontos) == null ? void 0 : s.find((u) => String(u.id) === String(n.ponto_fim_id));
+        if (c && d) {
+          const u = R(c.lat ?? c.latitude, c.lon ?? c.longitude), h = R(d.lat ?? d.latitude, d.lon ?? d.longitude);
+          if (u && h)
+            return e(y.latLng((u.lat + h.lat) / 2, (u.lon + h.lon) / 2));
         }
       }
     }
@@ -4677,26 +4841,26 @@ class ze {
       for (const n of this.layerManager.getLayers())
         if (n.dados) {
           if (Array.isArray(n.dados.pontos)) {
-            const c = n.dados.pontos.find((u) => String(u.id) === t || u.nome_vertice && String(u.nome_vertice) === t);
+            const c = n.dados.pontos.find((d) => String(d.id) === t || d.nome_vertice && String(d.nome_vertice) === t);
             if (c) {
-              const u = R(c.lat, c.lon);
-              if (u) return e(x.latLng(u.lat, u.lon));
+              const d = R(c.lat, c.lon);
+              if (d) return e(y.latLng(d.lat, d.lon));
             }
           }
           if (Array.isArray(n.dados.poligonos)) {
-            const c = n.dados.poligonos.find((u) => String(u.id) === t);
+            const c = n.dados.poligonos.find((d) => String(d.id) === t);
             if (c) {
               if (c.wkt) {
-                const u = ft(c.wkt);
-                if (u) return e(x.latLng(u.lat, u.lon));
+                const d = ft(c.wkt);
+                if (d) return e(y.latLng(d.lat, d.lon));
               }
               if (Array.isArray(c.coordenadas) && c.coordenadas.length > 0) {
-                let u = 0, d = 0, h = 0;
+                let d = 0, u = 0, h = 0;
                 for (const p of c.coordenadas) {
                   const m = R(p[0], p[1]) || R(p[1], p[0]);
-                  m && (u += m.lat, d += m.lon, h++);
+                  m && (d += m.lat, u += m.lon, h++);
                 }
-                if (h > 0) return e(x.latLng(u / h, d / h));
+                if (h > 0) return e(y.latLng(d / h, u / h));
               }
             }
           }
@@ -4726,7 +4890,7 @@ class ze {
     const s = (t == null ? void 0 : t.cor) || "#00f5a0", n = "pane-destaque";
     let c = e.getPane(n);
     c || (c = e.createPane(n)), c && (c.style.zIndex = "850", c.style.pointerEvents = "none");
-    const u = x.divIcon({
+    const d = y.divIcon({
       className: "cad-destaque-marker-container",
       html: `
         <div class="cad-pulse-highlight" style="--cad-pulse-cor: ${E(s)};">
@@ -4738,14 +4902,14 @@ class ze {
       iconSize: [52, 52],
       iconAnchor: [26, 26]
     });
-    this.destaqueMarker = x.marker(i, {
-      icon: u,
+    this.destaqueMarker = y.marker(i, {
+      icon: d,
       pane: n,
       interactive: !1,
       keyboard: !1
     }), this.destaqueMarker.addTo(e);
-    const d = (p = (h = this.destaqueMarker).getElement) == null ? void 0 : p.call(h);
-    d && (d.style.pointerEvents = "none"), t != null && t.duracaoMs && t.duracaoMs > 0 && (this.destaqueTimeoutId = window.setTimeout(() => {
+    const u = (p = (h = this.destaqueMarker).getElement) == null ? void 0 : p.call(h);
+    u && (u.style.pointerEvents = "none"), t != null && t.duracaoMs && t.duracaoMs > 0 && (this.destaqueTimeoutId = window.setTimeout(() => {
       this.limparDestaque();
     }, t.duracaoMs));
   }
@@ -4759,7 +4923,13 @@ class ze {
     }
   }
   destroy() {
-    this.limparDestaque(), this.canvasInteracao.desativar(), this.layerManager.destroy(), this.core.destroy(), this.core.map && (this.core.map.remove(), this.core.map = null);
+    if (this.limparDestaque(), this.canvasInteracao.desativar(), this.layerManager.destroy(), this.core.destroy(), this.core.map)
+      try {
+        this.core.map.off(), this.core.map.remove();
+      } catch {
+      } finally {
+        this.core.map = null;
+      }
   }
   getMap() {
     return this.core.map;
@@ -4801,14 +4971,14 @@ class Me extends HTMLElement {
         <!-- Mapa Leaflet Canvas -->
         <div class="cad-map-container" id="cad-map-container"></div>
 
-        <!-- Painel de Camadas estilo QGIS -->
+        <!-- Painel de Camadas -->
         <div class="qgis-layer-panel collapsed" id="qgis-layer-panel">
           <div class="layer-panel-header">
             <div class="layer-panel-title">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
-              Camadas (QGIS)
+              Camadas
             </div>
-            <button class="layer-panel-close" id="btn-close-layers" type="button" title="Fechar Painel">
+            <button class="layer-panel-close" id="btn-close-layers" type="button" title="Fechar">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
           </div>
@@ -4819,13 +4989,13 @@ class Me extends HTMLElement {
 
         <!-- Toolbar Rápida do Canvas -->
         <div class="cad-quick-toolbar">
-          <button class="cad-btn-tool" id="btn-toggle-layers" type="button" title="Gerenciador de Camadas (QGIS)">
+          <button class="cad-btn-tool" id="btn-toggle-layers" type="button" title="Camadas">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
           </button>
-          <button class="cad-btn-tool" id="btn-zoom-extents" type="button" title="Enquadrar Levantamento (Zoom Extents)">
+          <button class="cad-btn-tool" id="btn-zoom-extents" type="button" title="Enquadrar">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>
           </button>
-          <button class="cad-btn-tool" id="btn-clear-selection" type="button" title="Limpar Seleção (ESC)">
+          <button class="cad-btn-tool" id="btn-clear-selection" type="button" title="Limpar seleção">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" stroke-dasharray="3 3"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>
           </button>
         </div>
@@ -4854,7 +5024,7 @@ class Me extends HTMLElement {
       this.initCAD();
     }, 0);
   }
-  disconnectedCallback() {
+  destroy() {
     if (this.initTimeout && (window.clearTimeout(this.initTimeout), this.initTimeout = void 0), this.resizeObserver && (this.resizeObserver.disconnect(), this.resizeObserver = null), this.resizeDebounceTimer !== null && (window.clearTimeout(this.resizeDebounceTimer), this.resizeDebounceTimer = null), this.configBroadcastChannel) {
       try {
         this.configBroadcastChannel.close();
@@ -4862,7 +5032,15 @@ class Me extends HTMLElement {
       }
       this.configBroadcastChannel = null;
     }
-    this.limparDestaque(), this.uiListeners.cleanup(), this.layerItemListeners.cleanup(), this.controller.destroy();
+    if (this.limparDestaque(), this.uiListeners.cleanup(), this.layerItemListeners.cleanup(), this.controller.destroy(), this.mapContainer && this.mapContainer._leaflet_id)
+      try {
+        delete this.mapContainer._leaflet_id;
+      } catch {
+        this.mapContainer._leaflet_id = void 0;
+      }
+  }
+  disconnectedCallback() {
+    this.destroy();
   }
   /**
    * Conecta ao canal de BroadcastChannel especificado no atributo 'canal-configuracao'.
@@ -4990,6 +5168,12 @@ class Me extends HTMLElement {
   }
   initCAD() {
     if (!this.mapContainer) return;
+    if (this.mapContainer._leaflet_id && !this.controller.getMap())
+      try {
+        delete this.mapContainer._leaflet_id;
+      } catch {
+        this.mapContainer._leaflet_id = void 0;
+      }
     if (this.controller.init(this.mapContainer, this.shadow), this.setupUIEvents(), this.renderLayersUI(), this.hasAttribute("modo-sequencial") && (this.controller.modoCliqueSequencialAtivo = !0, this.controller.context.modoSequencial = !0), this.hasAttribute("chave-grupo")) {
       const i = this.getAttribute("chave-grupo");
       i && (this.chaveGrupo = i);
@@ -5011,16 +5195,16 @@ class Me extends HTMLElement {
     });
     const t = this.controller.context.onMarkerClick;
     this.controller.context.onMarkerClick = (i, a, r, s) => {
-      var u;
+      var d;
       let n = r;
-      n || (n = this._pontos.find((d) => String(d.id) === String(i)) || this._bancoPontos.find((d) => String(d.id) === String(i)) || this._confrontantes.find((d) => String(d.id) === String(i)));
+      n || (n = this._pontos.find((u) => String(u.id) === String(i)) || this._bancoPontos.find((u) => String(u.id) === String(i)) || this._confrontantes.find((u) => String(u.id) === String(i)));
       let c = s;
       if (!c && n) {
-        const d = n.lat ?? n.latitude ?? 0, h = n.lon ?? n.lng ?? n.longitude ?? 0;
-        c = { lat: Number(d), lon: Number(h) };
+        const u = n.lat ?? n.latitude ?? 0, h = n.lon ?? n.lng ?? n.longitude ?? 0;
+        c = { lat: Number(u), lon: Number(h) };
       }
       if (c || (c = { lat: 0, lon: 0 }), this.modoSequencial) {
-        (u = this.controller.getMap()) == null || u.closePopup(), this.dispatchEvent(new CustomEvent("ui-clique-sequencial", {
+        (d = this.controller.getMap()) == null || d.closePopup(), this.dispatchEvent(new CustomEvent("ui-clique-sequencial", {
           detail: {
             id: i,
             elemento: n ?? { id: i, lat: c.lat, lon: c.lon },
@@ -5034,14 +5218,14 @@ class Me extends HTMLElement {
       if (this.customMarkerClickHandler)
         try {
           this.customMarkerClickHandler(Number(i), a);
-        } catch (d) {
-          console.error("Erro no callback de clique de marcador:", d);
+        } catch (u) {
+          console.error("Erro no callback de clique de marcador:", u);
         }
       if (t)
         try {
           t(i, a, n, c);
-        } catch (d) {
-          console.error("Erro no handler anterior de marker click:", d);
+        } catch (u) {
+          console.error("Erro no handler anterior de marker click:", u);
         }
       this.dispatchEvent(new CustomEvent("ui-ponto-selecionado", {
         detail: { selectedIds: [i], lastSelectedId: i, isVizinho: a },
@@ -5057,10 +5241,7 @@ class Me extends HTMLElement {
     };
     const e = this.controller.getMap();
     e && e.on("click", (i) => {
-      var r, s;
-      if (this.mouseMovedSinceDown) return;
-      const a = i.originalEvent || new MouseEvent("click", { clientX: ((r = i.containerPoint) == null ? void 0 : r.x) || 0, clientY: ((s = i.containerPoint) == null ? void 0 : s.y) || 0 });
-      this.tratarCliqueLivreCanvas(a, i.latlng, i.containerPoint);
+      this.mouseMovedSinceDown || this.tratarCliqueLivreCanvas(i, i.latlng, i.containerPoint);
     }), setTimeout(() => {
       this.invalidateSizeSafely();
     }, 150);
@@ -5087,8 +5268,8 @@ class Me extends HTMLElement {
       const s = r.composedPath ? r.composedPath()[0] : r.target, n = (c = s == null ? void 0 : s.closest) == null ? void 0 : c.call(s, ".ui-popup-btn");
       if (n) {
         r.preventDefault(), r.stopPropagation();
-        const u = n.getAttribute("data-acao-id"), d = n.getAttribute("data-elemento-id");
-        u && d !== null && this.dispararAcaoPopup(u, d);
+        const d = n.getAttribute("data-acao-id"), u = n.getAttribute("data-elemento-id");
+        d && u !== null && this.dispararAcaoPopup(d, u);
       }
     });
   }
@@ -5097,39 +5278,47 @@ class Me extends HTMLElement {
    * Assegura que o evento não dispare indevidamente durante operações de arraste ou janelas de seleção CAD.
    */
   tratarCliqueLivreCanvas(t, e, i) {
-    var p, m;
+    var w, S, z, _, M, g;
     const a = Date.now();
     if (a - this.lastCanvasClickTime < 50 || (this.lastCanvasClickTime = a, this.modoSequencial) || this.controller.canvasInteracao.selectionHappened || this.controller.canvasInteracao.panHappened || this.mouseMovedSinceDown) return;
-    const r = typeof t.composedPath == "function" ? t.composedPath() : [], s = r.length > 0 ? r[0] : t.target;
-    if (s) {
-      const f = '.custom-leaflet-marker, .leaflet-marker-icon, .leaflet-interactive, .compact-popup, .leaflet-popup, .ui-popup-btn, .cad-btn-tool, .qgis-layer-panel, [class*="leaflet-marker"], [class*="leaflet-popup"]';
-      if (((p = s.matches) == null ? void 0 : p.call(s, f)) || ((m = s.closest) == null ? void 0 : m.call(s, f))) return;
+    const r = (t == null ? void 0 : t.originalEvent) || t, s = typeof (r == null ? void 0 : r.composedPath) == "function" ? r.composedPath() : [], n = s.length > 0 ? s[0] : (r == null ? void 0 : r.target) || (t == null ? void 0 : t.target);
+    if (n) {
+      const k = '.custom-leaflet-marker, .leaflet-marker-icon, .leaflet-interactive, .compact-popup, .leaflet-popup, .ui-popup-btn, .cad-btn-tool, .qgis-layer-panel, [class*="leaflet-marker"], [class*="leaflet-popup"]';
+      if (((w = n.matches) == null ? void 0 : w.call(n, k)) || ((S = n.closest) == null ? void 0 : S.call(n, k))) return;
     }
-    const n = this.controller.getMap();
-    if (!n || !this.mapContainer) return;
-    let c = i;
-    if (!c) {
-      const f = this.mapContainer.getBoundingClientRect();
-      c = {
-        x: Math.round(t.clientX - f.left),
-        y: Math.round(t.clientY - f.top)
-      };
-    }
-    let u, d;
-    if (e)
-      u = e.lat, d = e.lng ?? e.lon;
+    const c = this.controller.getMap();
+    if (!c || !this.mapContainer) return;
+    let d, u;
+    if (i)
+      d = Math.round(i.x), u = Math.round(i.y);
+    else if (t != null && t.containerPoint || t != null && t.layerPoint)
+      d = Math.round(((z = t.containerPoint) == null ? void 0 : z.x) ?? ((_ = t.layerPoint) == null ? void 0 : _.x) ?? 0), u = Math.round(((M = t.containerPoint) == null ? void 0 : M.y) ?? ((g = t.layerPoint) == null ? void 0 : g.y) ?? 0);
     else {
-      const f = n.containerPointToLatLng(x.point(c.x, c.y));
-      u = f.lat, d = f.lng;
+      const k = this.mapContainer.getBoundingClientRect(), L = (r == null ? void 0 : r.clientX) ?? 0, q = (r == null ? void 0 : r.clientY) ?? 0;
+      d = Math.round(L - k.left), u = Math.round(q - k.top);
     }
-    const h = this.controller.layerManager.getLayers().filter((f) => f.visivel).map((f) => f.id);
+    const h = { x: d, y: u };
+    let p, m;
+    const f = e || (t == null ? void 0 : t.latlng);
+    if (f && typeof f.lat == "number")
+      p = f.lat, m = f.lng ?? f.lon ?? 0;
+    else {
+      const k = c.containerPointToLatLng(y.point(h.x, h.y));
+      p = k.lat, m = k.lng;
+    }
+    const x = this.controller.layerManager ? this.controller.layerManager.getLayers().filter((k) => k.visivel).map((k) => k.id) : [], v = r;
     this.dispatchEvent(new CustomEvent("ui-canvas-clique", {
       detail: {
-        lat: u,
-        lon: d,
-        pontoPixel: c,
-        camadasAtivas: h,
-        eventoOriginal: t
+        coordenadas: {
+          lat: p,
+          lng: m
+        },
+        pontoPixel: h,
+        eventoOriginal: v,
+        lat: p,
+        lon: m,
+        lng: m,
+        camadasAtivas: x
       },
       bubbles: !0,
       composed: !0
@@ -5176,18 +5365,17 @@ class Me extends HTMLElement {
         if (r) {
           const s = r.querySelector(".layer-chk-visibility");
           s && s.checked !== a.visivel && (s.checked = a.visivel);
-          const n = r.querySelector(".layer-opacity-slider"), c = r.querySelector(".opacity-percent-label"), u = Math.round(a.opacidade * 100);
-          n && parseInt(n.value, 10) !== u && (n.value = String(u)), c && (c.textContent = `${u}%`);
-          const d = r.querySelector(".btn-lock-layer");
-          d && (d.classList.toggle("active", !!a.bloqueada), d.title = a.bloqueada ? "Desbloquear Camada" : "Bloquear Camada");
+          const n = r.querySelector(".layer-opacity-slider"), c = r.querySelector(".opacity-percent-label"), d = Math.round(a.opacidade * 100);
+          n && parseInt(n.value, 10) !== d && (n.value = String(d)), c && (c.textContent = `${d}%`);
+          const u = r.querySelector(".btn-lock-layer");
+          u && (u.classList.toggle("active", !!a.bloqueada), u.title = a.bloqueada ? "Desbloquear Camada" : "Bloquear Camada");
           const h = r.querySelector(".btn-toggle-scale-mode");
-          h && a.estilo.scaleMode && (h.textContent = a.estilo.scaleMode === "world" ? "Métrico (m)" : "Tela (px)");
+          h && a.estilo.scaleMode && (h.textContent = a.estilo.scaleMode === "world" ? "Métrico" : "Tela");
         }
       });
       return;
     }
     t.innerHTML = `
-      <div class="layer-section-title">Camadas Ativas</div>
       ${e.map((a) => `
         <div class="layer-item" data-layer-id="${a.id}">
           <div class="layer-item-row">
@@ -5200,8 +5388,8 @@ class Me extends HTMLElement {
                 ${a.bloqueada ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>' : '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>'}
               </button>
               ${a.estilo.scaleMode ? `
-                <span class="scale-mode-pill btn-toggle-scale-mode" data-layer-id="${a.id}" title="Alternar Tela (px) / Métrico (m)">
-                  ${a.estilo.scaleMode === "world" ? "Métrico (m)" : "Tela (px)"}
+                <span class="scale-mode-pill btn-toggle-scale-mode" data-layer-id="${a.id}" title="Alternar modo de escala">
+                  ${a.estilo.scaleMode === "world" ? "Métrico" : "Tela"}
                 </span>
               ` : ""}
             </div>
@@ -5220,8 +5408,8 @@ class Me extends HTMLElement {
       });
     }), t.querySelectorAll(".layer-opacity-slider").forEach((a) => {
       this.layerItemListeners.add(a, "input", (r) => {
-        const s = r.target.getAttribute("data-layer-id"), n = parseInt(r.target.value, 10), c = n / 100, u = r.target.closest(".layer-item"), d = u == null ? void 0 : u.querySelector(".opacity-percent-label");
-        d && (d.textContent = `${n}%`), s && this.setLayerOpacity(s, c);
+        const s = r.target.getAttribute("data-layer-id"), n = parseInt(r.target.value, 10), c = n / 100, d = r.target.closest(".layer-item"), u = d == null ? void 0 : d.querySelector(".opacity-percent-label");
+        u && (u.textContent = `${n}%`), s && this.setLayerOpacity(s, c);
       });
     }), t.querySelectorAll(".btn-lock-layer").forEach((a) => {
       this.layerItemListeners.add(a, "click", (r) => {
@@ -5520,65 +5708,65 @@ function Ie(b) {
   }
   function r() {
     a();
-    let u = s();
+    let d = s();
     for (a(); t < o.length; ) {
-      const d = e();
-      if (d === "+" || d === "-") {
+      const u = e();
+      if (u === "+" || u === "-") {
         i(), a();
         const h = t, p = s();
-        a(), o.slice(h, t).includes("%") ? u = d === "+" ? u + u * p : u - u * p : u = d === "+" ? u + p : u - p;
+        a(), o.slice(h, t).includes("%") ? d = u === "+" ? d + d * p : d - d * p : d = u === "+" ? d + p : d - p;
       } else
         break;
     }
-    return u;
+    return d;
   }
   function s() {
     a();
-    let u = n();
+    let d = n();
     for (a(); t < o.length; ) {
-      const d = e();
-      if (d === "*" || d === "/" || d === "x" || d === "X") {
+      const u = e();
+      if (u === "*" || u === "/" || u === "x" || u === "X") {
         i(), a();
         const h = n();
-        if (d === "/" && h === 0)
+        if (u === "/" && h === 0)
           throw new Error("Divisão por zero");
-        u = d === "/" ? u / h : u * h, a();
+        d = u === "/" ? d / h : d * h, a();
       } else
         break;
     }
-    return u;
+    return d;
   }
   function n() {
     a();
-    let u = c();
+    let d = c();
     if (a(), e() === "^") {
       i();
-      const d = n();
-      u = Math.pow(u, d);
+      const u = n();
+      d = Math.pow(d, u);
     } else if (o.slice(t, t + 2) === "**") {
       t += 2;
-      const d = n();
-      u = Math.pow(u, d);
+      const u = n();
+      d = Math.pow(d, u);
     }
-    return u;
+    return d;
   }
   function c() {
     a();
-    const u = e();
-    if (u === "+" || u === "-") {
+    const d = e();
+    if (d === "+" || d === "-") {
       i();
       const p = c();
-      return u === "-" ? -p : p;
+      return d === "-" ? -p : p;
     }
-    if (u === "(") {
+    if (d === "(") {
       i();
       const p = r();
       return a(), e() === ")" && i(), a(), e() === "%" ? (i(), p / 100) : p;
     }
-    const d = o.slice(t).match(/^([a-zA-Z_]\w*)\s*\(/);
-    if (d) {
-      const p = d[1].toLowerCase();
-      t += d[0].length;
+    const u = o.slice(t).match(/^([a-zA-Z_]\w*)\s*\(/);
+    if (u) {
+      const p = u[1].toLowerCase();
+      t += u[0].length;
       const m = r();
       a(), e() === ")" && i();
       let f = m;
@@ -5616,11 +5804,11 @@ function Ie(b) {
       let p = parseFloat(h[0]);
       return a(), e() === "%" && (i(), p = p / 100), p;
     }
-    throw new Error("Caractere inválido: " + u);
+    throw new Error("Caractere inválido: " + d);
   }
   try {
-    const u = r();
-    return a(), t < o.length ? null : isFinite(u) ? u : null;
+    const d = r();
+    return a(), t < o.length ? null : isFinite(d) ? d : null;
   } catch {
     return null;
   }
@@ -5876,8 +6064,8 @@ class ht extends HTMLElement {
         if (!t) return;
         const c = a.width;
         if (c <= 0) return;
-        const u = n.clientX - a.left;
-        let m = Math.max(80, Math.min(c - 130, u)) / c * 100;
+        const d = n.clientX - a.left;
+        let m = Math.max(80, Math.min(c - 130, d)) / c * 100;
         m = Math.max(20, Math.min(65, m)), this.definirLarguraRotulo(m);
       }, s = (n) => {
         if (t) {
@@ -5939,41 +6127,41 @@ class ht extends HTMLElement {
       n.className = "ui-prop__tipo-subtexto", n.textContent = e.subtipo || "Tipo de Família", r.appendChild(s), r.appendChild(n), i.appendChild(a), i.appendChild(r);
       const c = document.createElement("div");
       c.className = "ui-prop__tipo-revit-subbarra";
-      const u = document.createElement("select");
-      u.className = "ui-prop__tipo-select", this._tipos.forEach((h) => {
+      const d = document.createElement("select");
+      d.className = "ui-prop__tipo-select", this._tipos.forEach((h) => {
         const p = document.createElement("option");
-        p.value = h.id, p.textContent = `${h.rotulo}${h.subtipo ? ` : ${h.subtipo}` : ""}`, String(h.id) === String(this._tipoSelecionadoId) && (p.selected = !0), u.appendChild(p);
-      }), u.addEventListener("change", () => {
-        this.selecionarTipo(u.value);
+        p.value = h.id, p.textContent = `${h.rotulo}${h.subtipo ? ` : ${h.subtipo}` : ""}`, String(h.id) === String(this._tipoSelecionadoId) && (p.selected = !0), d.appendChild(p);
+      }), d.addEventListener("change", () => {
+        this.selecionarTipo(d.value);
       });
-      const d = document.createElement("button");
-      d.type = "button", d.className = "ui-prop__btn-editar-tipo", d.innerHTML = `
+      const u = document.createElement("button");
+      u.type = "button", u.className = "ui-prop__btn-editar-tipo", u.innerHTML = `
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px; vertical-align: -1px;">
           <rect x="3" y="3" width="12" height="12" rx="1"></rect>
           <rect x="9" y="9" width="12" height="12" rx="1"></rect>
         </svg>
         <span>Editar tipo</span>
-      `, d.addEventListener("click", () => {
+      `, u.addEventListener("click", () => {
         this.dispatchEvent(new CustomEvent("ui-editar-tipo-clique", {
           bubbles: !0,
           composed: !0,
           detail: { tipo: e }
         }));
-      }), c.appendChild(u), c.appendChild(d), this.tipoContainerElement.appendChild(i), this.tipoContainerElement.appendChild(c);
+      }), c.appendChild(d), c.appendChild(u), this.tipoContainerElement.appendChild(i), this.tipoContainerElement.appendChild(c);
     } else {
       const i = document.createElement("div");
       i.className = "ui-prop__tipo-autocad-bar";
       const a = document.createElement("select");
-      a.className = "ui-prop__tipo-select", this._tipos.forEach((u) => {
-        const d = document.createElement("option");
-        d.value = u.id, d.textContent = u.rotulo, String(u.id) === String(this._tipoSelecionadoId) && (d.selected = !0), a.appendChild(d);
+      a.className = "ui-prop__tipo-select", this._tipos.forEach((d) => {
+        const u = document.createElement("option");
+        u.value = d.id, u.textContent = d.rotulo, String(d.id) === String(this._tipoSelecionadoId) && (u.selected = !0), a.appendChild(u);
       }), a.addEventListener("change", () => {
         this.selecionarTipo(a.value);
       });
       const r = document.createElement("div");
       r.className = "ui-prop__tipo-autocad-acoes";
       const s = document.createElement("button");
-      s.type = "button", s.className = "ui-prop__btn-autocad", s.title = "Seleção Rápida (Quick Select)", s.setAttribute("aria-label", "Seleção rápida"), s.innerHTML = `
+      s.type = "button", s.className = "ui-prop__btn-autocad", s.title = "Seleção rápida", s.setAttribute("aria-label", "Seleção rápida"), s.innerHTML = `
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
           <path d="M19 13v6M16 16h6" stroke-width="2.5"></path>
@@ -5986,7 +6174,7 @@ class ht extends HTMLElement {
         }));
       });
       const n = document.createElement("button");
-      n.type = "button", n.className = "ui-prop__btn-autocad", n.title = "Selecionar Objetos", n.setAttribute("aria-label", "Selecionar objetos"), n.innerHTML = `
+      n.type = "button", n.className = "ui-prop__btn-autocad", n.title = "Selecionar objetos", n.setAttribute("aria-label", "Selecionar objetos"), n.innerHTML = `
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="12" r="7"></circle>
           <line x1="12" y1="2" x2="12" y2="7"></line>
@@ -6004,7 +6192,7 @@ class ht extends HTMLElement {
         }));
       });
       const c = document.createElement("button");
-      c.type = "button", c.className = "ui-prop__btn-autocad", c.title = "Calculadora Rápida (QuickCalc)", c.setAttribute("aria-label", "Calculadora rápida"), c.innerHTML = `
+      c.type = "button", c.className = "ui-prop__btn-autocad", c.title = "Calculadora rápida", c.setAttribute("aria-label", "Calculadora rápida"), c.innerHTML = `
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <rect x="4" y="2" width="16" height="20" rx="2"></rect>
           <line x1="8" y1="6" x2="16" y2="6"></line>
@@ -6054,10 +6242,10 @@ class ht extends HTMLElement {
       n.className = "ui-prop__categoria-header";
       const c = document.createElement("div");
       c.className = "ui-prop__categoria-titulo-bloco";
-      const u = document.createElement("span");
-      u.className = "ui-prop__categoria-seta", u.textContent = "▶";
       const d = document.createElement("span");
-      d.textContent = i.titulo, c.appendChild(u), c.appendChild(d);
+      d.className = "ui-prop__categoria-seta", d.textContent = "▶";
+      const u = document.createElement("span");
+      u.textContent = i.titulo, c.appendChild(d), c.appendChild(u);
       const h = document.createElement("span");
       h.className = "ui-prop__categoria-contador", h.textContent = String(a.length), n.appendChild(c), n.appendChild(h), n.addEventListener("click", () => {
         this.toggleCategoria(i.id);
@@ -6076,20 +6264,20 @@ class ht extends HTMLElement {
     i.className = "ui-prop__linha", i.setAttribute("data-prop-id", e.id);
     const a = this._valoresAtuais[e.id] !== void 0 ? this._valoresAtuais[e.id] : e.valor, r = this._valoresOriginais[e.id];
     this._dirty && a !== r && i.classList.add("ui-prop__linha--modificada"), i.addEventListener("dblclick", () => {
-      const d = i.querySelector(
+      const u = i.querySelector(
         'input:not([type="color"]):not(.ui-prop__cor-picker-oculto), select, .ui-prop__btn-acao-inline'
       );
-      d && (d.focus(), d instanceof HTMLInputElement && d.select());
+      u && (u.focus(), u instanceof HTMLInputElement && u.select());
     });
     const s = document.createElement("div");
     s.className = "ui-prop__col-rotulo", s.title = e.rotulo;
     const n = document.createElement("span");
     if (n.textContent = e.rotulo, s.appendChild(n), e.tipo === "numero" && !e.somenteLeitura) {
       s.classList.add("ui-prop__col-rotulo--scrub"), s.title = `${e.rotulo} (Arraste para ajustar, duplo-clique para editar)`;
-      let d = 0, h = 0, p = !1;
+      let u = 0, h = 0, p = !1;
       s.addEventListener("pointerdown", (m) => {
         if (m.button !== 0) return;
-        d = m.clientX;
+        u = m.clientX;
         const f = this._valoresAtuais[e.id];
         h = typeof f == "number" ? f : parseFloat(String(f || 0)) || 0, p = !1;
         try {
@@ -6097,32 +6285,32 @@ class ht extends HTMLElement {
         } catch {
         }
         s.classList.add("ui-prop__col-rotulo--arrastando");
-        const v = (w) => {
-          const S = w.clientX - d;
+        const x = (w) => {
+          const S = w.clientX - u;
           if (Math.abs(S) > 2 && (p = !0), p) {
-            let P = 1;
-            w.shiftKey ? P = 0.1 : (w.ctrlKey || w.metaKey) && (P = 10);
-            const _ = e.casasDecimais !== void 0 ? e.casasDecimais : 2, I = Math.pow(10, -Math.min(_, 2));
-            let g = h + S * I * P;
+            let z = 1;
+            w.shiftKey ? z = 0.1 : (w.ctrlKey || w.metaKey) && (z = 10);
+            const _ = e.casasDecimais !== void 0 ? e.casasDecimais : 2, M = Math.pow(10, -Math.min(_, 2));
+            let g = h + S * M * z;
             e.casasDecimais !== void 0 ? g = Number(g.toFixed(e.casasDecimais)) : g = Math.round(g * 100) / 100, this.registrarAlteracao(t, e.id, g), this.atualizarCampoVisual(e.id, g);
           }
-        }, y = (w) => {
+        }, v = (w) => {
           s.classList.remove("ui-prop__col-rotulo--arrastando");
           try {
             s.hasPointerCapture(w.pointerId) && s.releasePointerCapture(w.pointerId);
           } catch {
           }
-          s.removeEventListener("pointermove", v), s.removeEventListener("pointerup", y), s.removeEventListener("pointercancel", y);
+          s.removeEventListener("pointermove", x), s.removeEventListener("pointerup", v), s.removeEventListener("pointercancel", v);
         };
-        s.addEventListener("pointermove", v), s.addEventListener("pointerup", y), s.addEventListener("pointercancel", y);
+        s.addEventListener("pointermove", x), s.addEventListener("pointerup", v), s.addEventListener("pointercancel", v);
       });
     }
     const c = document.createElement("div");
     c.className = "ui-prop__col-valor";
-    const u = this.criarEditorValor(t, e, a);
-    if (c.appendChild(u), e.unidade) {
-      const d = document.createElement("span");
-      d.className = "ui-prop__unidade-sufixo", d.textContent = e.unidade, c.appendChild(d);
+    const d = this.criarEditorValor(t, e, a);
+    if (c.appendChild(d), e.unidade) {
+      const u = document.createElement("span");
+      u.className = "ui-prop__unidade-sufixo", u.textContent = e.unidade, c.appendChild(u);
     }
     return i.appendChild(s), i.appendChild(c), i;
   }
@@ -6136,11 +6324,11 @@ class ht extends HTMLElement {
       s.className = "ui-prop__editor-booleano";
       const n = !!i, c = document.createElement("div");
       c.className = `ui-prop__checkbox-custom ${n ? "ui-prop__checkbox-custom--marcado" : ""}`, c.textContent = n ? "✓" : "";
-      const u = document.createElement("span");
-      return u.className = "ui-prop__booleano-rotulo", u.textContent = n ? "Sim" : "Não", s.appendChild(c), s.appendChild(u), s.addEventListener("click", (d) => {
-        d.preventDefault();
+      const d = document.createElement("span");
+      return d.className = "ui-prop__booleano-rotulo", d.textContent = n ? "Sim" : "Não", s.appendChild(c), s.appendChild(d), s.addEventListener("click", (u) => {
+        u.preventDefault();
         const h = !this._valoresAtuais[e.id];
-        this.registrarAlteracao(t, e.id, h), c.classList.toggle("ui-prop__checkbox-custom--marcado", h), c.textContent = h ? "✓" : "", u.textContent = h ? "Sim" : "Não";
+        this.registrarAlteracao(t, e.id, h), c.classList.toggle("ui-prop__checkbox-custom--marcado", h), c.textContent = h ? "✓" : "", d.textContent = h ? "Sim" : "Não";
       }), s;
     }
     if (e.tipo === "linha" || e.tipo === "linetype") {
@@ -6150,13 +6338,13 @@ class ht extends HTMLElement {
       n.setAttribute("class", "ui-prop__linha-amostra-svg"), n.setAttribute("viewBox", "0 0 44 12");
       const c = document.createElementNS("http://www.w3.org/2000/svg", "line");
       c.setAttribute("x1", "0"), c.setAttribute("y1", "6"), c.setAttribute("x2", "44"), c.setAttribute("y2", "6");
-      const u = (p) => {
+      const d = (p) => {
         const m = String(p || "").toLowerCase();
         m.includes("dash") || m.includes("tracej") || m.includes("hidden") ? c.setAttribute("stroke-dasharray", "6,3") : m.includes("dot") || m.includes("ponto") || m.includes("pontilh") ? c.setAttribute("stroke-dasharray", "2,3") : m.includes("center") || m.includes("eixo") ? c.setAttribute("stroke-dasharray", "8,3,2,3") : c.setAttribute("stroke-dasharray", "none");
       };
-      u(i), n.appendChild(c);
-      const d = document.createElement("select");
-      return d.className = "ui-prop__linha-select", (e.opcoes && e.opcoes.length > 0 ? e.opcoes : [
+      d(i), n.appendChild(c);
+      const u = document.createElement("select");
+      return u.className = "ui-prop__linha-select", (e.opcoes && e.opcoes.length > 0 ? e.opcoes : [
         { id: "ByLayer", rotulo: "ByLayer" },
         { id: "ByBlock", rotulo: "ByBlock" },
         { id: "Continuous", rotulo: "Continuous" },
@@ -6166,12 +6354,12 @@ class ht extends HTMLElement {
         { id: "Dotted", rotulo: "Dotted" }
       ]).forEach((p) => {
         const m = document.createElement("option");
-        m.value = String(p.id), m.textContent = p.rotulo, String(p.id).toLowerCase() === String(i).toLowerCase() && (m.selected = !0), d.appendChild(m);
-      }), d.addEventListener("change", () => {
-        u(d.value), this.registrarAlteracao(t, e.id, d.value);
-      }), d.addEventListener("keydown", (p) => {
-        p.key === "Enter" && this.focarProximoEditor(d);
-      }), s.appendChild(n), s.appendChild(d), s;
+        m.value = String(p.id), m.textContent = p.rotulo, String(p.id).toLowerCase() === String(i).toLowerCase() && (m.selected = !0), u.appendChild(m);
+      }), u.addEventListener("change", () => {
+        d(u.value), this.registrarAlteracao(t, e.id, u.value);
+      }), u.addEventListener("keydown", (p) => {
+        p.key === "Enter" && this.focarProximoEditor(u);
+      }), s.appendChild(n), s.appendChild(u), s;
     }
     if (e.tipo === "espessura" || e.tipo === "lineweight") {
       const s = document.createElement("div");
@@ -6180,13 +6368,13 @@ class ht extends HTMLElement {
       n.setAttribute("class", "ui-prop__espessura-amostra-svg"), n.setAttribute("viewBox", "0 0 38 12");
       const c = document.createElementNS("http://www.w3.org/2000/svg", "line");
       c.setAttribute("x1", "0"), c.setAttribute("y1", "6"), c.setAttribute("x2", "38"), c.setAttribute("y2", "6");
-      const u = (p) => {
+      const d = (p) => {
         const m = parseFloat(String(p).replace(/[^0-9.]/g, ""));
         return isNaN(m) || m <= 0 ? 1.5 : Math.min(8, Math.max(1, m * 8));
       };
-      c.setAttribute("stroke-width", String(u(i))), n.appendChild(c);
-      const d = document.createElement("select");
-      return d.className = "ui-prop__espessura-select", (e.opcoes && e.opcoes.length > 0 ? e.opcoes : [
+      c.setAttribute("stroke-width", String(d(i))), n.appendChild(c);
+      const u = document.createElement("select");
+      return u.className = "ui-prop__espessura-select", (e.opcoes && e.opcoes.length > 0 ? e.opcoes : [
         { id: "ByLayer", rotulo: "ByLayer" },
         { id: "ByBlock", rotulo: "ByBlock" },
         { id: "0.00 mm", rotulo: "0.00 mm" },
@@ -6208,12 +6396,12 @@ class ht extends HTMLElement {
         { id: "2.00 mm", rotulo: "2.00 mm" }
       ]).forEach((p) => {
         const m = document.createElement("option");
-        m.value = String(p.id), m.textContent = p.rotulo, String(p.id).toLowerCase() === String(i).toLowerCase() && (m.selected = !0), d.appendChild(m);
-      }), d.addEventListener("change", () => {
-        c.setAttribute("stroke-width", String(u(d.value))), this.registrarAlteracao(t, e.id, d.value);
-      }), d.addEventListener("keydown", (p) => {
-        p.key === "Enter" && this.focarProximoEditor(d);
-      }), s.appendChild(n), s.appendChild(d), s;
+        m.value = String(p.id), m.textContent = p.rotulo, String(p.id).toLowerCase() === String(i).toLowerCase() && (m.selected = !0), u.appendChild(m);
+      }), u.addEventListener("change", () => {
+        c.setAttribute("stroke-width", String(d(u.value))), this.registrarAlteracao(t, e.id, u.value);
+      }), u.addEventListener("keydown", (p) => {
+        p.key === "Enter" && this.focarProximoEditor(u);
+      }), s.appendChild(n), s.appendChild(u), s;
     }
     if (e.tipo === "cor-cad") {
       const s = document.createElement("div");
@@ -6225,8 +6413,8 @@ class ht extends HTMLElement {
         return m === "red" || m === "1" ? "#ff0000" : m === "yellow" || m === "2" ? "#ffff00" : m === "green" || m === "3" ? "#00ff00" : m === "cyan" || m === "4" ? "#00ffff" : m === "blue" || m === "5" ? "#0000ff" : m === "magenta" || m === "6" ? "#ff00ff" : m === "white" || m === "7" || m === "bylayer" || m === "byblock" ? "#ffffff" : m.startsWith("#") ? m : "#ffffff";
       };
       n.style.backgroundColor = c(i);
-      const u = document.createElement("select");
-      u.className = "ui-prop__cor-cad-select", [
+      const d = document.createElement("select");
+      d.className = "ui-prop__cor-cad-select", [
         { id: "ByLayer", rotulo: "ByLayer" },
         { id: "ByBlock", rotulo: "ByBlock" },
         { id: "Red", rotulo: "Red (1)" },
@@ -6239,17 +6427,17 @@ class ht extends HTMLElement {
         { id: "custom", rotulo: "Selecionar cor..." }
       ].forEach((p) => {
         const m = document.createElement("option");
-        m.value = p.id, m.textContent = p.rotulo, String(p.id).toLowerCase() === String(i).toLowerCase() && (m.selected = !0), u.appendChild(m);
+        m.value = p.id, m.textContent = p.rotulo, String(p.id).toLowerCase() === String(i).toLowerCase() && (m.selected = !0), d.appendChild(m);
       });
       const h = document.createElement("input");
       return h.type = "color", h.className = "ui-prop__cor-picker-oculto", h.addEventListener("input", () => {
         const p = h.value;
         n.style.backgroundColor = p, this.registrarAlteracao(t, e.id, p);
-      }), u.addEventListener("change", () => {
-        u.value === "custom" ? h.click() : (n.style.backgroundColor = c(u.value), this.registrarAlteracao(t, e.id, u.value));
-      }), u.addEventListener("keydown", (p) => {
-        p.key === "Enter" && this.focarProximoEditor(u);
-      }), s.appendChild(n), s.appendChild(u), s.appendChild(h), s;
+      }), d.addEventListener("change", () => {
+        d.value === "custom" ? h.click() : (n.style.backgroundColor = c(d.value), this.registrarAlteracao(t, e.id, d.value));
+      }), d.addEventListener("keydown", (p) => {
+        p.key === "Enter" && this.focarProximoEditor(d);
+      }), s.appendChild(n), s.appendChild(d), s.appendChild(h), s;
     }
     if (e.tipo === "selecao") {
       const s = document.createElement("select");
@@ -6269,13 +6457,13 @@ class ht extends HTMLElement {
       n.className = "ui-prop__cor-amostra", n.style.backgroundColor = i || "#ffffff";
       const c = document.createElement("span");
       c.className = "ui-prop__cor-texto", c.textContent = e.textoAmostra || String(i || "ByLayer");
-      const u = document.createElement("input");
-      return u.type = "color", u.className = "ui-prop__cor-picker-oculto", u.value = typeof i == "string" && i.startsWith("#") ? i : "#ffffff", u.addEventListener("input", () => {
-        const d = u.value;
-        n.style.backgroundColor = d, c.textContent = d, this.registrarAlteracao(t, e.id, d);
+      const d = document.createElement("input");
+      return d.type = "color", d.className = "ui-prop__cor-picker-oculto", d.value = typeof i == "string" && i.startsWith("#") ? i : "#ffffff", d.addEventListener("input", () => {
+        const u = d.value;
+        n.style.backgroundColor = u, c.textContent = u, this.registrarAlteracao(t, e.id, u);
       }), s.addEventListener("click", () => {
-        u.click();
-      }), s.appendChild(n), s.appendChild(c), s.appendChild(u), s;
+        d.click();
+      }), s.appendChild(n), s.appendChild(c), s.appendChild(d), s;
     }
     if (e.tipo === "acao") {
       const s = document.createElement("button");
@@ -6294,42 +6482,42 @@ class ht extends HTMLElement {
     if (e.tipo === "numero") {
       const s = document.createElement("input");
       s.type = "text", s.inputMode = "decimal", s.autocomplete = "off", s.spellcheck = !1, s.className = "ui-prop__editor-input ui-prop__editor-input--numero", e.placeholder && (s.placeholder = e.placeholder);
-      const n = (u) => {
-        if (u == null || u === "") return "";
-        const d = Number(u);
-        return isNaN(d) ? String(u) : e.casasDecimais !== void 0 ? d.toFixed(e.casasDecimais) : String(d);
+      const n = (d) => {
+        if (d == null || d === "") return "";
+        const u = Number(d);
+        return isNaN(u) ? String(d) : e.casasDecimais !== void 0 ? u.toFixed(e.casasDecimais) : String(u);
       };
       s.value = n(i), s.addEventListener("focus", () => {
         s.select();
       }), s.addEventListener("input", () => {
-        const u = s.value, d = /[\+\-\*\/\^\%\(\)]/.test(u) && !/^[+-]?[0-9]*\.?[0-9]*$/.test(u.trim());
-        s.classList.toggle("ui-prop__editor-input--calculando", d);
+        const d = s.value, u = /[\+\-\*\/\^\%\(\)]/.test(d) && !/^[+-]?[0-9]*\.?[0-9]*$/.test(d.trim());
+        s.classList.toggle("ui-prop__editor-input--calculando", u);
       });
       const c = () => {
         s.classList.remove("ui-prop__editor-input--calculando");
-        const u = s.value.trim();
-        if (u === "") {
+        const d = s.value.trim();
+        if (d === "") {
           this.registrarAlteracao(t, e.id, null);
           return;
         }
-        const d = Ie(u);
-        if (d !== null && !isNaN(d)) {
-          let h = d;
-          e.casasDecimais !== void 0 && (h = Number(d.toFixed(e.casasDecimais))), s.value = n(h), h !== this._valoresAtuais[e.id] && this.registrarAlteracao(t, e.id, h);
+        const u = Ie(d);
+        if (u !== null && !isNaN(u)) {
+          let h = u;
+          e.casasDecimais !== void 0 && (h = Number(u.toFixed(e.casasDecimais))), s.value = n(h), h !== this._valoresAtuais[e.id] && this.registrarAlteracao(t, e.id, h);
         } else
           s.value = n(this._valoresAtuais[e.id]);
       };
-      return s.addEventListener("change", c), s.addEventListener("blur", c), s.addEventListener("keydown", (u) => {
-        if (u.key === "Enter")
+      return s.addEventListener("change", c), s.addEventListener("blur", c), s.addEventListener("keydown", (d) => {
+        if (d.key === "Enter")
           c(), this.focarProximoEditor(s);
-        else if (u.key === "Escape")
+        else if (d.key === "Escape")
           s.classList.remove("ui-prop__editor-input--calculando"), s.value = n(this._valoresAtuais[e.id]), s.blur();
-        else if (u.key === "ArrowUp" || u.key === "ArrowDown") {
-          u.preventDefault();
-          const d = parseFloat(s.value) || 0;
+        else if (d.key === "ArrowUp" || d.key === "ArrowDown") {
+          d.preventDefault();
+          const u = parseFloat(s.value) || 0;
           let h = e.casasDecimais !== void 0 ? Math.pow(10, -e.casasDecimais) : 1;
-          u.shiftKey ? h *= 10 : u.altKey && (h *= 0.1);
-          let p = u.key === "ArrowUp" ? d + h : d - h;
+          d.shiftKey ? h *= 10 : d.altKey && (h *= 0.1);
+          let p = d.key === "ArrowUp" ? u + h : u - h;
           e.casasDecimais !== void 0 ? p = Number(p.toFixed(e.casasDecimais)) : p = Math.round(p * 100) / 100, s.value = n(p), this.registrarAlteracao(t, e.id, p);
         }
       }), s;
@@ -6389,18 +6577,18 @@ class ht extends HTMLElement {
     r && (r.value = String(e ?? ""));
     const s = i.querySelector(".ui-prop__linha-amostra-svg line");
     if (s) {
-      const d = String(e || "").toLowerCase();
-      d.includes("dash") || d.includes("tracej") || d.includes("hidden") ? s.setAttribute("stroke-dasharray", "6,3") : d.includes("dot") || d.includes("ponto") || d.includes("pontilh") ? s.setAttribute("stroke-dasharray", "2,3") : d.includes("center") || d.includes("eixo") ? s.setAttribute("stroke-dasharray", "8,3,2,3") : s.setAttribute("stroke-dasharray", "none");
+      const u = String(e || "").toLowerCase();
+      u.includes("dash") || u.includes("tracej") || u.includes("hidden") ? s.setAttribute("stroke-dasharray", "6,3") : u.includes("dot") || u.includes("ponto") || u.includes("pontilh") ? s.setAttribute("stroke-dasharray", "2,3") : u.includes("center") || u.includes("eixo") ? s.setAttribute("stroke-dasharray", "8,3,2,3") : s.setAttribute("stroke-dasharray", "none");
     }
     const n = i.querySelector(".ui-prop__espessura-amostra-svg line");
     if (n) {
-      const d = parseFloat(String(e).replace(/[^0-9.]/g, "")), h = isNaN(d) || d <= 0 ? 1.5 : Math.min(8, Math.max(1, d * 8));
+      const u = parseFloat(String(e).replace(/[^0-9.]/g, "")), h = isNaN(u) || u <= 0 ? 1.5 : Math.min(8, Math.max(1, u * 8));
       n.setAttribute("stroke-width", String(h));
     }
     const c = i.querySelector(".ui-prop__cor-amostra");
     c && typeof e == "string" && (c.style.backgroundColor = e);
-    const u = i.querySelector(".ui-prop__valor-readonly");
-    u && (u.textContent = e != null ? String(e) : "—");
+    const d = i.querySelector(".ui-prop__valor-readonly");
+    d && (d.textContent = e != null ? String(e) : "—");
   }
 }
 customElements.get("ui-tabela-propriedades") || customElements.define("ui-tabela-propriedades", ht);
@@ -6422,10 +6610,10 @@ class Re {
     this.core.map && o.forEach((e) => {
       const i = t.find((r) => String(r.id) === String(e.ponto_inicio_id)), a = t.find((r) => String(r.id) === String(e.ponto_fim_id));
       if (i && a && i.lat && i.lon && a.lat && a.lon) {
-        const r = e.tipo_limite_sigef || e.tipo_limite || "", s = e.metodo_posicionamento_sigef || e.metodo_posicionamento || "", n = this.bancoPontosAtivo ? "#94a3b8" : r === "LA1" ? "#10b981" : "#3b82f6", c = this.core.config.perimetroWeight, u = this.bancoPontosAtivo ? 0.4 : 1, d = x.polyline([[i.lat, i.lon], [a.lat, a.lon]], {
+        const r = e.tipo_limite_sigef || e.tipo_limite || "", s = e.metodo_posicionamento_sigef || e.metodo_posicionamento || "", n = this.bancoPontosAtivo ? "#94a3b8" : r === "LA1" ? "#10b981" : "#3b82f6", c = this.core.config.perimetroWeight, d = this.bancoPontosAtivo ? 0.4 : 1, u = y.polyline([[i.lat, i.lon], [a.lat, a.lon]], {
           color: n,
           weight: c,
-          opacity: u,
+          opacity: d,
           dashArray: r === "LN1" ? "6, 6" : void 0,
           pane: "perimetroPane"
         }).bindPopup(`
@@ -6437,23 +6625,23 @@ class Re {
           className: "compact-popup",
           maxWidth: 220
         }).addTo(this.core.map);
-        this.polylines.push(d);
+        this.polylines.push(u);
       }
     });
   }
   plotPolilinhaTemporaria(o) {
-    var n, c, u;
+    var n, c, d;
     if (!this.core.map) return;
     const t = o.filter(
-      (d) => d.lat && d.lon && d.lat !== 0 && d.lon !== 0 && d.tipo_ponto !== "B" && d.tipo !== "B" && d.ignorar_poligono !== 1
+      (u) => u.lat && u.lon && u.lat !== 0 && u.lon !== 0 && u.tipo_ponto !== "B" && u.tipo !== "B" && u.ignorar_poligono !== 1
     );
     if (t.length < 2) return;
-    const e = ((n = this.core.controller) == null ? void 0 : n.chaveGrupo) || ((u = (c = this.core.controller) == null ? void 0 : c.context) == null ? void 0 : u.chaveGrupo), i = it(t, e), a = this.bancoPontosAtivo ? "#94a3b8" : "#10b981", r = this.core.config.fechamentoWeight || 2, s = this.bancoPontosAtivo ? 0.4 : 1;
-    Object.values(i).forEach((d) => {
-      const h = ot(d);
+    const e = ((n = this.core.controller) == null ? void 0 : n.chaveGrupo) || ((d = (c = this.core.controller) == null ? void 0 : c.context) == null ? void 0 : d.chaveGrupo), i = it(t, e), a = this.bancoPontosAtivo ? "#94a3b8" : "#10b981", r = this.core.config.fechamentoWeight || 2, s = this.bancoPontosAtivo ? 0.4 : 1;
+    Object.values(i).forEach((u) => {
+      const h = ot(u);
       if (h.length < 2) return;
-      for (let v = 0; v < h.length - 1; v++) {
-        const y = h[v], w = h[v + 1], S = x.polyline([[y.lat, y.lon], [w.lat, w.lon]], {
+      for (let x = 0; x < h.length - 1; x++) {
+        const v = h[x], w = h[x + 1], S = y.polyline([[v.lat, v.lon], [w.lat, w.lon]], {
           color: a,
           weight: r,
           opacity: s,
@@ -6461,7 +6649,7 @@ class Re {
         }).addTo(this.core.map);
         this.polylines.push(S);
       }
-      const p = h[h.length - 1], m = h[0], f = x.polyline([[p.lat, p.lon], [m.lat, m.lon]], {
+      const p = h[h.length - 1], m = h[0], f = y.polyline([[p.lat, p.lon], [m.lat, m.lon]], {
         color: a,
         weight: r,
         opacity: s,
@@ -6482,11 +6670,11 @@ class Re {
         <div class="w-4.5 h-4.5 bg-amber-500 text-slate-950 border-2 border-slate-900 rounded-full flex items-center justify-center text-[7px] font-black font-mono shadow-md hover:scale-125 transition-transform" id="banco-marker-${n.id}">
           H
         </div>
-      `, u = x.divIcon({
+      `, d = y.divIcon({
         html: c,
         className: "banco-leaflet-marker",
         iconSize: [18, 18]
-      }), d = `
+      }), u = `
         <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.35; min-width:180px;">
           <div style="font-weight:800; font-size:11px; color:#fbbf24; text-transform:uppercase; letter-spacing:0.5px; border-bottom:1px solid rgba(255, 255, 255, 0.1); padding-bottom:3px; margin-bottom:5px;">Vértice Homologado SIGEF</div>
           <div style="font-weight:700; font-size:13px; margin-bottom:3px; color:#ffffff;">${E(n.codigo_completo || n.nome_vertice)}</div>
@@ -6497,17 +6685,17 @@ class Re {
           ${n.confrontante_descritivo ? `<div style="font-size:10px; color:rgba(255, 255, 255, 0.65); border-top:1px solid rgba(255, 255, 255, 0.1); padding-top:4px; margin-top:4px; word-break:break-word;"><strong>Conf:</strong> ${E(n.confrontante_descritivo)}</div>` : ""}
         </div>
       `;
-      x.marker([n.lat, n.lon], {
-        icon: u,
+      y.marker([n.lat, n.lon], {
+        icon: d,
         pane: "verticesPane"
-      }).bindPopup(d, { className: "compact-popup", maxWidth: 220 }).addTo(this.core.bancoPontosGroup);
+      }).bindPopup(u, { className: "compact-popup", maxWidth: 220 }).addTo(this.core.bancoPontosGroup);
     });
     const e = ((a = this.core.controller) == null ? void 0 : a.chaveGrupo) || ((s = (r = this.core.controller) == null ? void 0 : r.context) == null ? void 0 : s.chaveGrupo), i = it(t, e);
     for (const n in i) {
       const c = ot(i[n]);
       if (c.length >= 2) {
-        const u = c.map((d) => x.latLng(d.lat, d.lon));
-        u.push(x.latLng(c[0].lat, c[0].lon)), x.polyline(u, {
+        const d = c.map((u) => y.latLng(u.lat, u.lon));
+        d.push(y.latLng(c[0].lat, c[0].lon)), y.polyline(d, {
           color: "#f59e0b",
           // Cor âmbar contrastante premium
           weight: this.core.config.bancoWeight,
@@ -6521,7 +6709,7 @@ class Re {
     this.core.map && this.polylines.forEach((o) => this.core.map.removeLayer(o)), this.core.bancoPontosGroup && this.core.bancoPontosGroup.clearLayers(), this.polylines = [];
   }
 }
-class Oe {
+class He {
   constructor(o, t) {
     l(this, "markers", []);
     l(this, "vizinhosMarkers", []);
@@ -6535,28 +6723,28 @@ class Oe {
       var i, a, r;
       if (e.lat && e.lon && e.lat !== 0 && e.lon !== 0) {
         const s = e.tipo_ponto === "B" || e.tipo === "B", n = e.tipo_ponto === "M" || e.tipo === "M";
-        let c = "bg-mint-vibrant", u = "x", d = 7;
-        n ? (c = "bg-indigo-500", d = 9) : s && (c = "bg-rose-500", d = 9);
-        const h = this.core.config.enableAnimations ? "transition-all duration-150" : "", p = (a = (i = this.controller) == null ? void 0 : i.linhas) != null && a.bancoPontosAtivo ? "opacity-40 hover:opacity-100" : "", m = at(u, d, c, `${h} ${p}`, `map-marker-${e.id}`), f = x.divIcon({
+        let c = "bg-mint-vibrant", d = "x", u = 7;
+        n ? (c = "bg-indigo-500", u = 9) : s && (c = "bg-rose-500", u = 9);
+        const h = this.core.config.enableAnimations ? "transition-all duration-150" : "", p = (a = (i = this.controller) == null ? void 0 : i.linhas) != null && a.bancoPontosAtivo ? "opacity-40 hover:opacity-100" : "", m = at(d, u, c, `${h} ${p}`, `map-marker-${e.id}`), f = y.divIcon({
           html: m,
           className: "custom-leaflet-marker flex items-center justify-center",
-          iconSize: [d + 6, d + 6]
-        }), v = n ? "Base Homologada PPP" : s ? "Base de Campo (Translação)" : "Vértice de Perímetro", y = x.marker([e.lat, e.lon], {
+          iconSize: [u + 6, u + 6]
+        }), x = n ? "Base Homologada PPP" : s ? "Base de Campo (Translação)" : "Vértice de Perímetro", v = y.marker([e.lat, e.lon], {
           icon: f,
           pane: "verticesPane"
         });
-        y.pontoId = e.id, (r = this.controller) != null && r.modoCliqueSequencialAtivo || y.bindPopup(`
+        v.pontoId = e.id, (r = this.controller) != null && r.modoCliqueSequencialAtivo || v.bindPopup(`
             <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.3;">
               <div style="font-weight:700; font-size:13px; margin-bottom:4px; color:#ffffff;">${E(e.nome_vertice)}</div>
-              <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">${E(v)} · ${E(e.tipo_ponto || e.tipo)}</div>
+              <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">${E(x)} · ${E(e.tipo_ponto || e.tipo)}</div>
               <div style="font-size:11px; color:rgba(255, 255, 255, 0.45); font-family:monospace; margin-top:4px;">Lat ${e.lat.toFixed(6)} &nbsp; Lon ${e.lon.toFixed(6)}</div>
             </div>
           `, {
           className: "compact-popup",
           maxWidth: 220
-        }), y.addTo(this.core.map), y.setZIndexOffset(1e3), y.on("click", () => {
+        }), v.addTo(this.core.map), v.setZIndexOffset(1e3), v.on("click", () => {
           t(e.id);
-        }), this.markers.push(y);
+        }), this.markers.push(v);
       }
     });
   }
@@ -6576,8 +6764,8 @@ class Oe {
     }), t.forEach((e) => {
       if (e.length >= 2) {
         e.sort((a, r) => Number(a.id) - Number(r.id));
-        const i = e.map((a) => x.latLng(a.lat, a.lon));
-        e.length > 2 && i.push(x.latLng(e[0].lat, e[0].lon)), x.polyline(i, {
+        const i = e.map((a) => y.latLng(a.lat, a.lon));
+        e.length > 2 && i.push(y.latLng(e[0].lat, e[0].lon)), y.polyline(i, {
           color: "#a855f7",
           weight: this.core.config.vizinhoWeight,
           dashArray: "4, 6",
@@ -6609,15 +6797,15 @@ class Oe {
         });
         let r = this.core.config.markerStyleV || "cross", s = this.core.config.markerSizeV || 8;
         i.tipo_ponto === "M" || i.tipo === "M" || i.tipo === "B" ? (r = this.core.config.markerStyleM || "circle-dot", s = this.core.config.markerSizeM || 14) : (i.tipo_ponto === "P" || i.tipo === "P" || i.tipo === "O") && (r = this.core.config.markerStyleP || "circle", s = this.core.config.markerSizeP || 10);
-        const n = this.core.config.enableAnimations ? "transition-all duration-150" : "", c = at(r, s, "bg-[#a855f7]", n, `map-marker-vizinho-${i.id}`), u = x.divIcon({
+        const n = this.core.config.enableAnimations ? "transition-all duration-150" : "", c = at(r, s, "bg-[#a855f7]", n, `map-marker-vizinho-${i.id}`), d = y.divIcon({
           html: c,
           className: "custom-leaflet-marker flex items-center justify-center",
           iconSize: [s + 4, s + 4]
-        }), d = x.marker([i.lat, i.lon], {
-          icon: u,
+        }), u = y.marker([i.lat, i.lon], {
+          icon: d,
           pane: "overlayPane"
         }).bindPopup(a, { className: "custom-leaflet-popup" });
-        d.pontoId = i.id, d.isVizinho = !0, d.addTo(this.core.pontosVizinhosGroup), this.vizinhosMarkers.push(d);
+        u.pontoId = i.id, u.isVizinho = !0, u.addTo(this.core.pontosVizinhosGroup), this.vizinhosMarkers.push(u);
       });
     });
   }
@@ -6630,11 +6818,11 @@ class Oe {
       const e = /POLYGON\s*\(\s*\(\s*(.*?)\s*\)\s*\)/i.exec(t.poligono_wkt);
       if (!e) return;
       const i = e[1].split(",").map((n) => {
-        const c = n.trim().split(/\s+/), u = parseFloat(c[0]), d = parseFloat(c[1]);
-        return !isNaN(d) && !isNaN(u) ? [d, u] : null;
+        const c = n.trim().split(/\s+/), d = parseFloat(c[0]), u = parseFloat(c[1]);
+        return !isNaN(u) && !isNaN(d) ? [u, d] : null;
       }).filter((n) => n !== null);
       if (i.length < 3) return;
-      const a = E(t.nome_propriedade || "Propriedade Vizinha"), r = E(t.nome || "Desconhecido"), s = x.polygon(i, {
+      const a = E(t.nome_propriedade || "Propriedade Vizinha"), r = E(t.nome || "Desconhecido"), s = y.polygon(i, {
         color: "#a855f7",
         weight: this.core.config.vizinhoWeight,
         dashArray: "4, 6",
@@ -6741,7 +6929,7 @@ class Te {
    * Dispara uma notificação toast flutuante inteligente.
    */
   notificar(o) {
-    typeof o == "string" ? Q.notificar({ mensagem: o, tipo: "info" }) : Q.notificar(o);
+    typeof o == "string" ? J.notificar({ mensagem: o, tipo: "info" }) : J.notificar(o);
   }
   /**
    * Copia um texto para a área de transferência do usuário e exibe feedback opcional.
@@ -6827,12 +7015,12 @@ function qe() {
     n && j.notificar({ tipo: "alerta", mensagem: n });
     const c = e.getAttribute("toast-info");
     c && j.notificar({ tipo: "info", mensagem: c });
-    const u = e.getAttribute("copiar-texto");
-    if (u !== null) {
-      let p = u;
-      if (u.startsWith("#") || u.startsWith("."))
+    const d = e.getAttribute("copiar-texto");
+    if (d !== null) {
+      let p = d;
+      if (d.startsWith("#") || d.startsWith("."))
         try {
-          const f = document.querySelector(u);
+          const f = document.querySelector(d);
           f && (p = f.value !== void 0 ? f.value : f.textContent || "");
         } catch {
         }
@@ -6840,8 +7028,8 @@ function qe() {
       j.copiar(p, m);
     }
     e.hasAttribute("alternar-tema") && j.definirTema();
-    const d = e.getAttribute("definir-densidade");
-    d && j.definirDensidade(d);
+    const u = e.getAttribute("definir-densidade");
+    u && j.definirDensidade(u);
     const h = e.getAttribute("limpar-form");
     if (h) {
       const p = document.getElementById(h);
@@ -6865,7 +7053,7 @@ export {
   st as MapaConfigManager,
   ve as MapaCore,
   Re as MapaLinhas,
-  Oe as MapaMarcadores,
+  He as MapaMarcadores,
   _e as TileLayerRenderer,
   _t as UIAlerta,
   Wt as UIAvatar,
@@ -6878,7 +7066,7 @@ export {
   Kt as UICard,
   yt as UICheckbox,
   jt as UIChip,
-  Qt as UIDialog,
+  Jt as UIDialog,
   K as UIDrawer,
   be as UIEsqueleto,
   ie as UIGaveta,
@@ -6904,7 +7092,7 @@ export {
   ht as UITabelaPropriedades,
   Vt as UITag,
   qt as UITexto,
-  Q as UIToast,
+  J as UIToast,
   Ft as UIToggle,
   wt as UITooltip,
   Ee as VectorLinesLayerRenderer,
@@ -6921,5 +7109,5 @@ export {
   qe as initZeroJSTriggers,
   ot as ordenarPontosPorSequencia,
   R as parseCoordenada,
-  J as renderPopupAcoesHtml
+  Q as renderPopupAcoesHtml
 };

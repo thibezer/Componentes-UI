@@ -17,6 +17,9 @@ import type {
 import { GerenciGeoMapaController } from '../../gerencigeo-canvas/mapa_controller';
 import type { CanvasLayerManager } from '../../gerencigeo-canvas/layer_manager';
 import { ListenerBag } from '../../core/listener-bag';
+import { renderizarPainelCamadas } from './cad-painel-camadas';
+import { processarCliqueLivreCanvas, processarAcaoPopup } from './cad-eventos-canvas';
+import { criarControladorTamanho, ControladorTamanhoCanvas } from './cad-tamanho-observer';
 
 export class UICanvasCAD extends HTMLElement {
   static get observedAttributes() {
@@ -36,6 +39,7 @@ export class UICanvasCAD extends HTMLElement {
   private mapContainer: HTMLDivElement | null = null;
   private layersPanel: HTMLDivElement | null = null;
   private controller: GerenciGeoMapaController;
+  private controladorTamanho: ControladorTamanhoCanvas;
   private isLayersPanelOpen: boolean = false;
   private initTimeout?: number;
   private uiListeners = new ListenerBag();
@@ -58,6 +62,7 @@ export class UICanvasCAD extends HTMLElement {
     super();
     this.shadow = this.attachShadow({ mode: 'open' });
     this.controller = new GerenciGeoMapaController();
+    this.controladorTamanho = criarControladorTamanho(this, this.controller);
 
     this.shadow.innerHTML = `
       <style>
@@ -68,14 +73,14 @@ export class UICanvasCAD extends HTMLElement {
         <!-- Mapa Leaflet Canvas -->
         <div class="cad-map-container" id="cad-map-container"></div>
 
-        <!-- Painel de Camadas estilo QGIS -->
+        <!-- Painel de Camadas -->
         <div class="qgis-layer-panel collapsed" id="qgis-layer-panel">
           <div class="layer-panel-header">
             <div class="layer-panel-title">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
-              Camadas (QGIS)
+              Camadas
             </div>
-            <button class="layer-panel-close" id="btn-close-layers" type="button" title="Fechar Painel">
+            <button class="layer-panel-close" id="btn-close-layers" type="button" title="Fechar">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
           </div>
@@ -86,13 +91,13 @@ export class UICanvasCAD extends HTMLElement {
 
         <!-- Toolbar Rápida do Canvas -->
         <div class="cad-quick-toolbar">
-          <button class="cad-btn-tool" id="btn-toggle-layers" type="button" title="Gerenciador de Camadas (QGIS)">
+          <button class="cad-btn-tool" id="btn-toggle-layers" type="button" title="Camadas">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
           </button>
-          <button class="cad-btn-tool" id="btn-zoom-extents" type="button" title="Enquadrar Levantamento (Zoom Extents)">
+          <button class="cad-btn-tool" id="btn-zoom-extents" type="button" title="Enquadrar">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>
           </button>
-          <button class="cad-btn-tool" id="btn-clear-selection" type="button" title="Limpar Seleção (ESC)">
+          <button class="cad-btn-tool" id="btn-clear-selection" type="button" title="Limpar seleção">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" stroke-dasharray="3 3"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>
           </button>
         </div>
@@ -102,11 +107,6 @@ export class UICanvasCAD extends HTMLElement {
     this.mapContainer = this.shadow.getElementById('cad-map-container') as HTMLDivElement;
     this.layersPanel = this.shadow.getElementById('qgis-layer-panel') as HTMLDivElement;
   }
-
-  private resizeObserver: ResizeObserver | null = null;
-  private resizeDebounceTimer: number | null = null;
-  private lastHostWidth: number = 0;
-  private lastHostHeight: number = 0;
 
   connectedCallback() {
     const attrZona = this.getAttribute('zona-projecao') || this.getAttribute('fuso');
@@ -119,7 +119,7 @@ export class UICanvasCAD extends HTMLElement {
       }
     }
 
-    this.setupResizeObserver();
+    this.controladorTamanho.observe();
     this.setupConfigBroadcastChannel();
 
     this.initTimeout = window.setTimeout(() => {
@@ -127,19 +127,12 @@ export class UICanvasCAD extends HTMLElement {
     }, 0);
   }
 
-  disconnectedCallback() {
+  public destroy(): void {
     if (this.initTimeout) {
       window.clearTimeout(this.initTimeout);
       this.initTimeout = undefined;
     }
-    if (this.resizeObserver) {
-      this.resizeObserver.disconnect();
-      this.resizeObserver = null;
-    }
-    if (this.resizeDebounceTimer !== null) {
-      window.clearTimeout(this.resizeDebounceTimer);
-      this.resizeDebounceTimer = null;
-    }
+    this.controladorTamanho.disconnect();
     if (this.configBroadcastChannel) {
       try {
         this.configBroadcastChannel.close();
@@ -150,6 +143,19 @@ export class UICanvasCAD extends HTMLElement {
     this.uiListeners.cleanup();
     this.layerItemListeners.cleanup();
     this.controller.destroy();
+
+    // Limpa a propriedade interna do Leaflet no elemento container, se existir
+    if (this.mapContainer && (this.mapContainer as any)._leaflet_id) {
+      try {
+        delete (this.mapContainer as any)._leaflet_id;
+      } catch (e) {
+        (this.mapContainer as any)._leaflet_id = undefined;
+      }
+    }
+  }
+
+  disconnectedCallback() {
+    this.destroy();
   }
 
   /**
@@ -237,79 +243,11 @@ export class UICanvasCAD extends HTMLElement {
   }
 
   /**
-   * Instancia um ResizeObserver monitorando o elemento host (this).
-   * Ao detectar variação de largura ou altura > 0, aciona a invalidação de dimensões com debounce de 25ms.
-   */
-  private setupResizeObserver(): void {
-    if (this.resizeObserver) {
-      this.resizeObserver.disconnect();
-      this.resizeObserver = null;
-    }
-
-    if (typeof ResizeObserver === 'undefined') return;
-
-    this.resizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        let w = 0;
-        let h = 0;
-
-        if (entry.contentRect) {
-          w = entry.contentRect.width;
-          h = entry.contentRect.height;
-        } else if (entry.borderBoxSize && entry.borderBoxSize.length > 0) {
-          w = entry.borderBoxSize[0].inlineSize;
-          h = entry.borderBoxSize[0].blockSize;
-        } else {
-          w = this.clientWidth || this.offsetWidth;
-          h = this.clientHeight || this.offsetHeight;
-        }
-
-        // Ao detectar variação de largura ou altura > 0
-        if (w > 0 && h > 0) {
-          if (Math.abs(w - this.lastHostWidth) >= 0.5 || Math.abs(h - this.lastHostHeight) >= 0.5) {
-            this.lastHostWidth = w;
-            this.lastHostHeight = h;
-            this.triggerDebouncedResize(25);
-          }
-        }
-      }
-    });
-
-    this.resizeObserver.observe(this);
-  }
-
-  /**
-   * Aciona a invalidação de dimensões do mapa com debounce (ex: 20ms a 30ms).
-   */
-  private triggerDebouncedResize(delayMs: number = 25): void {
-    if (this.resizeDebounceTimer !== null) {
-      window.clearTimeout(this.resizeDebounceTimer);
-      this.resizeDebounceTimer = null;
-    }
-
-    this.resizeDebounceTimer = window.setTimeout(() => {
-      this.resizeDebounceTimer = null;
-      this.invalidateSizeSafely();
-    }, delayMs);
-  }
-
-  /**
    * Executa a invalidação dimensional do mapa com salvaguardas de estabilidade
    * absorvendo tentativas de leitura com panes desanexados (undefined._leaflet_pos).
    */
   public invalidateSizeSafely(): void {
-    try {
-      if (!this.isConnected) return;
-      const map = this.controller.getMap();
-      if (!map) return;
-
-      const container = map.getContainer?.();
-      if (!container || !container.parentNode) return;
-
-      this.controller.invalidateSize();
-    } catch {
-      // Absorve tentativas de leitura com panes desanexados, eliminando exceções do tipo undefined._leaflet_pos
-    }
+    this.controladorTamanho.invalidateSizeSafely();
   }
 
   attributeChangedCallback(name: string, oldVal: string, newVal: string) {
@@ -356,6 +294,15 @@ export class UICanvasCAD extends HTMLElement {
 
   private initCAD() {
     if (!this.mapContainer) return;
+
+    // Limpa preventivamente _leaflet_id caso o container tenha sido reciclado pelo SPA
+    if ((this.mapContainer as any)._leaflet_id && !this.controller.getMap()) {
+      try {
+        delete (this.mapContainer as any)._leaflet_id;
+      } catch (e) {
+        (this.mapContainer as any)._leaflet_id = undefined;
+      }
+    }
 
     this.controller.init(this.mapContainer, this.shadow);
     this.setupUIEvents();
@@ -492,8 +439,7 @@ export class UICanvasCAD extends HTMLElement {
     if (map) {
       map.on('click', (e: any) => {
         if (this.mouseMovedSinceDown) return;
-        const origEvt = e.originalEvent || new MouseEvent('click', { clientX: e.containerPoint?.x || 0, clientY: e.containerPoint?.y || 0 });
-        this.tratarCliqueLivreCanvas(origEvt, e.latlng, e.containerPoint);
+        this.tratarCliqueLivreCanvas(e, e.latlng, e.containerPoint);
       });
     }
 
@@ -570,75 +516,28 @@ export class UICanvasCAD extends HTMLElement {
    * Assegura que o evento não dispare indevidamente durante operações de arraste ou janelas de seleção CAD.
    */
   public tratarCliqueLivreCanvas(
-    e: MouseEvent,
+    e: MouseEvent | any,
     latLngParam?: { lat: number; lng?: number; lon?: number },
     containerPointParam?: { x: number; y: number }
   ): void {
-    // 1. Evita disparos duplicados para o mesmo clique físico
     const agora = Date.now();
     if (agora - this.lastCanvasClickTime < 50) return;
     this.lastCanvasClickTime = agora;
 
-    // 2. Condição: O modo-sequencial deve estar desligado
-    if (this.modoSequencial) return;
-
-    // 3. Condição: Nenhuma caixa de seleção retangular CAD ocorreu (selectionHappened === false)
-    if (this.controller.canvasInteracao.selectionHappened) return;
-
-    // 4. Critério de Aceite: Arrastar para selecionar nós ou dar Pan na tela nunca deve emitir o evento
-    if (this.controller.canvasInteracao.panHappened || this.mouseMovedSinceDown) return;
-
-    // 5. Captura cliques fora de marcadores e vetores
-    const path = typeof e.composedPath === 'function' ? e.composedPath() : [];
-    const target = (path.length > 0 ? path[0] : e.target) as HTMLElement | null;
-    if (target) {
-      const interactiveSelector = '.custom-leaflet-marker, .leaflet-marker-icon, .leaflet-interactive, .compact-popup, .leaflet-popup, .ui-popup-btn, .cad-btn-tool, .qgis-layer-panel, [class*="leaflet-marker"], [class*="leaflet-popup"]';
-      const isInteractive = target.matches?.(interactiveSelector) || target.closest?.(interactiveSelector);
-      if (isInteractive) return;
-    }
-
-    const map = this.controller.getMap();
-    if (!map || !this.mapContainer) return;
-
-    // Calcula ponto pixel relativo ao container
-    let pontoPixel = containerPointParam;
-    if (!pontoPixel) {
-      const rect = this.mapContainer.getBoundingClientRect();
-      pontoPixel = {
-        x: Math.round(e.clientX - rect.left),
-        y: Math.round(e.clientY - rect.top)
-      };
-    }
-
-    // Calcula coordenadas geográficas
-    let lat: number;
-    let lon: number;
-    if (latLngParam) {
-      lat = latLngParam.lat;
-      lon = (latLngParam as any).lng ?? (latLngParam as any).lon;
-    } else {
-      const latlng = map.containerPointToLatLng(L.point(pontoPixel.x, pontoPixel.y));
-      lat = latlng.lat;
-      lon = latlng.lng;
-    }
-
-    // Lista de camadas ativas (visíveis)
-    const camadasAtivas = this.controller.layerManager.getLayers()
-      .filter(l => l.visivel)
-      .map(l => l.id);
-
-    // Dispara evento customizado
-    this.dispatchEvent(new CustomEvent('ui-canvas-clique', {
-      detail: {
-        lat,
-        lon,
-        pontoPixel,
-        camadasAtivas,
-        eventoOriginal: e
+    processarCliqueLivreCanvas(
+      {
+        host: this,
+        controller: this.controller,
+        mapContainer: this.mapContainer,
+        modoSequencial: this.modoSequencial,
+        mouseMovedSinceDown: this.mouseMovedSinceDown,
+        obterElementoPorId: (id) => this.obterElementoPorId(id),
+        fecharPopup: () => { this.controller.getMap()?.closePopup(); }
       },
-      bubbles: true,
-      composed: true
-    }));
+      e,
+      latLngParam,
+      containerPointParam
+    );
   }
 
   /**
@@ -656,23 +555,26 @@ export class UICanvasCAD extends HTMLElement {
     }
     this.lastPopupActionEmit = { acaoId, elementoId, time: now };
 
-    let safeElemento = elemento;
-    if (!safeElemento) {
-      safeElemento = this._pontos.find(p => String(p.id) === String(elementoId))
-        || this._bancoPontos.find(p => String(p.id) === String(elementoId))
-        || this._confrontantes.find(c => String(c.id) === String(elementoId));
-    }
-
-    this.dispatchEvent(new CustomEvent('ui-acao-popup', {
-      detail: {
-        acaoId,
-        elementoId,
-        elemento: safeElemento ?? { id: elementoId }
+    processarAcaoPopup(
+      {
+        host: this,
+        controller: this.controller,
+        mapContainer: this.mapContainer,
+        modoSequencial: this.modoSequencial,
+        mouseMovedSinceDown: this.mouseMovedSinceDown,
+        obterElementoPorId: (id) => this.obterElementoPorId(id),
+        fecharPopup: () => { this.controller.getMap()?.closePopup(); }
       },
-      bubbles: true,
-      composed: true
-    }));
-    this.controller.getMap()?.closePopup();
+      acaoId,
+      elementoId,
+      elemento
+    );
+  }
+
+  private obterElementoPorId(id: string | number): any {
+    return this._pontos.find(p => String(p.id) === String(id))
+      || this._bancoPontos.find(p => String(p.id) === String(id))
+      || this._confrontantes.find(c => String(c.id) === String(id));
   }
 
   public toggleLayersPanel() {
@@ -697,118 +599,12 @@ export class UICanvasCAD extends HTMLElement {
 
   private renderLayersUI() {
     const container = this.shadow.getElementById('layers-list-container');
-    if (!container) return;
-
     const layers = this.controller.layerManager.getLayers();
-
-    // Se já existem itens renderizados para as mesmas camadas, apenas sincroniza os valores
-    const existingItems = container.querySelectorAll('.layer-item');
-    if (existingItems.length === layers.length) {
-      layers.forEach(layer => {
-        const item = container.querySelector(`.layer-item[data-layer-id="${layer.id}"]`);
-        if (item) {
-          const chk = item.querySelector('.layer-chk-visibility') as HTMLInputElement | null;
-          if (chk && chk.checked !== layer.visivel) chk.checked = layer.visivel;
-
-          const slider = item.querySelector('.layer-opacity-slider') as HTMLInputElement | null;
-          const percentLabel = item.querySelector('.opacity-percent-label') as HTMLSpanElement | null;
-          const currentPct = Math.round(layer.opacidade * 100);
-          if (slider && parseInt(slider.value, 10) !== currentPct) slider.value = String(currentPct);
-          if (percentLabel) percentLabel.textContent = `${currentPct}%`;
-
-          const lockBtn = item.querySelector('.btn-lock-layer') as HTMLButtonElement | null;
-          if (lockBtn) {
-            lockBtn.classList.toggle('active', !!layer.bloqueada);
-            lockBtn.title = layer.bloqueada ? 'Desbloquear Camada' : 'Bloquear Camada';
-          }
-
-          const scalePill = item.querySelector('.btn-toggle-scale-mode') as HTMLSpanElement | null;
-          if (scalePill && layer.estilo.scaleMode) {
-            scalePill.textContent = layer.estilo.scaleMode === 'world' ? 'Métrico (m)' : 'Tela (px)';
-          }
-        }
-      });
-      return;
-    }
-
-    container.innerHTML = `
-      <div class="layer-section-title">Camadas Ativas</div>
-      ${layers.map(layer => `
-        <div class="layer-item" data-layer-id="${layer.id}">
-          <div class="layer-item-row">
-            <label class="layer-item-label">
-              <input type="checkbox" class="layer-chk-visibility" data-layer-id="${layer.id}" ${layer.visivel ? 'checked' : ''} />
-              <span>${layer.nome}</span>
-            </label>
-            <div class="layer-item-actions">
-              <button class="btn-layer-action btn-lock-layer ${layer.bloqueada ? 'active' : ''}" data-layer-id="${layer.id}" type="button" title="${layer.bloqueada ? 'Desbloquear Camada' : 'Bloquear Camada'}">
-                ${layer.bloqueada 
-                  ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`
-                  : `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>`}
-              </button>
-              ${layer.estilo.scaleMode ? `
-                <span class="scale-mode-pill btn-toggle-scale-mode" data-layer-id="${layer.id}" title="Alternar Tela (px) / Métrico (m)">
-                  ${layer.estilo.scaleMode === 'world' ? 'Métrico (m)' : 'Tela (px)'}
-                </span>
-              ` : ''}
-            </div>
-          </div>
-          <div class="layer-controls-row">
-            <span>Opacidade</span>
-            <input type="range" min="0" max="100" value="${Math.round(layer.opacidade * 100)}" class="layer-opacity-slider" data-layer-id="${layer.id}" />
-            <span class="opacity-percent-label" style="font-family:monospace; font-size:9px; width:28px; text-align:right;">${Math.round(layer.opacidade * 100)}%</span>
-          </div>
-        </div>
-      `).join('')}
-    `;
-
-    this.layerItemListeners.cleanup();
-
-    // Eventos de checkboxes de visibilidade
-    container.querySelectorAll('.layer-chk-visibility').forEach(chk => {
-      this.layerItemListeners.add(chk, 'change', (e: Event) => {
-        const id = (e.target as HTMLElement).getAttribute('data-layer-id');
-        const checked = (e.target as HTMLInputElement).checked;
-        if (id) this.setLayerVisibility(id, checked);
-      });
-    });
-
-    // Eventos de slider de opacidade em tempo real
-    container.querySelectorAll('.layer-opacity-slider').forEach(slider => {
-      this.layerItemListeners.add(slider, 'input', (e: Event) => {
-        const id = (e.target as HTMLElement).getAttribute('data-layer-id');
-        const pct = parseInt((e.target as HTMLInputElement).value, 10);
-        const val = pct / 100;
-        const row = (e.target as HTMLElement).closest('.layer-item');
-        const label = row?.querySelector('.opacity-percent-label');
-        if (label) label.textContent = `${pct}%`;
-        if (id) this.setLayerOpacity(id, val);
-      });
-    });
-
-    // Eventos de bloqueio de camada
-    container.querySelectorAll('.btn-lock-layer').forEach(btn => {
-      this.layerItemListeners.add(btn, 'click', (e: Event) => {
-        const id = (e.currentTarget as HTMLElement).getAttribute('data-layer-id');
-        if (id) {
-          const l = this.controller.layerManager.getLayers().find(item => item.id === id);
-          if (l) this.controller.layerManager.setLayerBlocked(id, !l.bloqueada);
-        }
-      });
-    });
-
-    // Eventos de alternância de modo de escala
-    container.querySelectorAll('.btn-toggle-scale-mode').forEach(pill => {
-      this.layerItemListeners.add(pill, 'click', (e: Event) => {
-        const id = (e.currentTarget as HTMLElement).getAttribute('data-layer-id');
-        if (id) {
-          const l = this.controller.layerManager.getLayers().find(item => item.id === id);
-          if (l) {
-            const nextMode = l.estilo.scaleMode === 'world' ? 'screen' : 'world';
-            this.setLayerScaleMode(id, nextMode);
-          }
-        }
-      });
+    renderizarPainelCamadas(container, layers, this.layerItemListeners, {
+      setLayerVisibility: (id, visivel) => this.setLayerVisibility(id, visivel),
+      setLayerOpacity: (id, opacidade) => this.setLayerOpacity(id, opacidade),
+      setLayerBlocked: (id, bloqueada) => this.controller.layerManager.setLayerBlocked(id, bloqueada),
+      setLayerScaleMode: (id, mode) => this.setLayerScaleMode(id, mode)
     });
   }
 

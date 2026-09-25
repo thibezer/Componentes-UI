@@ -27,8 +27,14 @@ export class MapaCore {
 
   public init(containerIdOrElement: string | HTMLElement): L.Map | null {
     if (this.map) {
-      this.map.remove();
-      this.map = null;
+      try {
+        this.map.off();
+        this.map.remove();
+      } catch (err) {
+        // Silencia exceções caso o container já tenha sido reciclado ou desanexado pelo SPA
+      } finally {
+        this.map = null;
+      }
     }
 
     const container = typeof containerIdOrElement === 'string'
@@ -37,6 +43,15 @@ export class MapaCore {
 
     if (!container) return null;
     this.containerElement = container;
+
+    // Limpa a propriedade interna do Leaflet no elemento container, se existir, para evitar erro de container reutilizado
+    if ((container as any)._leaflet_id) {
+      try {
+        delete (container as any)._leaflet_id;
+      } catch (e) {
+        (container as any)._leaflet_id = undefined;
+      }
+    }
 
     // Instância Leaflet com preferCanvas e aceleração de renderização
     this.map = L.map(container, {
@@ -144,7 +159,33 @@ export class MapaCore {
       this.currentSigefAbortController = undefined;
     }
     if (this.bc) {
-      this.bc.close();
+      try {
+        this.bc.close();
+      } catch {}
+      this.bc = undefined;
+    }
+
+    if (this.map) {
+      try {
+        // Desregistra todos os listeners do mapa
+        this.map.off();
+        
+        // Limpa o mapa defensivamente
+        this.map.remove();
+      } catch (err) {
+        // Silencia exceções caso o container já tenha sido reciclado ou desanexado pelo SPA
+      } finally {
+        this.map = null;
+      }
+    }
+
+    // Limpa a propriedade interna do Leaflet no elemento container, se existir
+    if (this.containerElement && (this.containerElement as any)._leaflet_id) {
+      try {
+        delete (this.containerElement as any)._leaflet_id;
+      } catch (e) {
+        (this.containerElement as any)._leaflet_id = undefined;
+      }
     }
   }
 
@@ -230,12 +271,12 @@ export class MapaCore {
     })
       .setLatLng(e.latlng)
       .setContent(`
-        <div style="font-family:sans-serif; display:flex; align-items:center; gap:8px; color:#555; font-size:12px;">
+        <div style="font-family:sans-serif; display:flex; align-items:center; gap:8px; color:rgba(255,255,255,0.9); font-size:12px;">
           <svg style="animation:spin 1s linear infinite; width:14px; height:14px; flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="10" stroke="#ccc" stroke-width="4" fill="none"></circle>
-            <path fill="#10b981" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            <circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.2)" stroke-width="4" fill="none"></circle>
+            <path fill="#00f5a0" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
-          Consultando SIGEF...
+          Consultando...
         </div>
       `)
       .openOn(this.map);

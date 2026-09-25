@@ -30,6 +30,7 @@ export declare class UICanvasCAD extends HTMLElement {
     private lastHostWidth;
     private lastHostHeight;
     connectedCallback(): void;
+    destroy(): void;
     disconnectedCallback(): void;
     /**
      * Conecta ao canal de BroadcastChannel especificado no atributo 'canal-configuracao'.
@@ -62,7 +63,7 @@ export declare class UICanvasCAD extends HTMLElement {
      * Monitora e processa cliques em áreas livres do mapa para emissão do evento 'ui-canvas-clique'.
      * Assegura que o evento não dispare indevidamente durante operações de arraste ou janelas de seleção CAD.
      */
-    tratarCliqueLivreCanvas(e: MouseEvent, latLngParam?: {
+    tratarCliqueLivreCanvas(e: MouseEvent | any, latLngParam?: {
         lat: number;
         lng?: number;
         lon?: number;

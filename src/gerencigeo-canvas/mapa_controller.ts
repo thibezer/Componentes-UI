@@ -813,8 +813,14 @@ export class GerenciGeoMapaController {
     this.layerManager.destroy();
     this.core.destroy();
     if (this.core.map) {
-      this.core.map.remove();
-      this.core.map = null;
+      try {
+        this.core.map.off();
+        this.core.map.remove();
+      } catch {
+        // Silencia exceções caso o container já tenha sido reciclado ou desanexado pelo SPA
+      } finally {
+        this.core.map = null;
+      }
     }
   }
 

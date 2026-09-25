@@ -213,6 +213,18 @@
   background-color: var(--ui-cor-hover-menu, rgba(255, 255, 255, 0.08));
 }
 
+/* Linha Selecionada */
+.ui-tabela tbody tr.ui-tabela__tr--selecionada,
+.ui-tabela tbody tr[data-selecionada="true"] {
+  background-color: rgba(0, 224, 138, 0.14) !important;
+  box-shadow: inset 3px 0 0 var(--ui-cor-primaria, #00E08A);
+}
+
+.ui-tabela tbody tr.ui-tabela__tr--selecionada:hover,
+.ui-tabela tbody tr[data-selecionada="true"]:hover {
+  background-color: rgba(0, 224, 138, 0.22) !important;
+}
+
 /* Linhas Espaçadoras da Virtualização (Windowing) */
 .ui-tabela__virtual-spacer td {
   padding: 0 !important;

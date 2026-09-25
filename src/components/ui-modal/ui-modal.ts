@@ -31,7 +31,7 @@ export class UIModal extends HTMLElement {
         <div class="ui-modal__handle"></div>
         <div class="ui-modal__header">
           <h3 class="ui-modal__titulo"></h3>
-          <button class="ui-modal__close" type="button" aria-label="Fechar modal" title="Fechar (Esc)">✕</button>
+          <button class="ui-modal__close" type="button" aria-label="Fechar modal" title="Fechar">✕</button>
         </div>
         <div class="ui-modal__body">
           <slot></slot>

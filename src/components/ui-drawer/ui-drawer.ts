@@ -1,5 +1,11 @@
 import estilos from './ui-drawer.css?inline';
 import { ListenerBag } from '../../core/listener-bag';
+import {
+  obterElementosFocaveis,
+  isTopMostDrawer,
+  gerenciarTabTrap,
+  atualizarScrollLockDrawer
+} from './drawer-acessibilidade';
 
 export type PosicaoDrawer = 'direita' | 'esquerda' | 'baixo' | 'cima';
 
@@ -86,7 +92,7 @@ export class UIDrawer extends HTMLElement {
         this._elementoGatilho = document.activeElement as HTMLElement;
       }
       setTimeout(() => {
-        this._atualizarFocables();
+        this._focables = obterElementosFocaveis(this.shadowRoot!, this);
         if (this._focables.length > 0) {
           this._focables[0].focus();
         } else {
@@ -140,7 +146,7 @@ export class UIDrawer extends HTMLElement {
         })
       );
       setTimeout(() => {
-        this._atualizarFocables();
+        this._focables = obterElementosFocaveis(this.shadowRoot!, this);
         if (this._focables.length > 0) {
           this._focables[0].focus();
         } else {
@@ -218,16 +224,8 @@ export class UIDrawer extends HTMLElement {
     UIDrawer.atualizarScrollLock();
   }
 
-  private static atualizarScrollLock() {
-    if (typeof document === 'undefined') return;
-    const abertos = document.querySelectorAll(
-      'ui-modal[aberto], ui-modal[open], ui-dialog[aberto], ui-dialog[open], ui-drawer[aberto], ui-drawer[open], ui-sheet[aberto], ui-sheet[open]'
-    );
-    if (abertos.length > 0) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
+  public static atualizarScrollLock() {
+    atualizarScrollLockDrawer();
   }
 
   private handleBackdropClick = (e: MouseEvent) => {
@@ -243,41 +241,9 @@ export class UIDrawer extends HTMLElement {
     this.fechar();
   };
 
-  private _atualizarFocables() {
-    const focusableSelectors = 'a[href], button, input, textarea, select, details, [tabindex]:not([tabindex="-1"]), ui-campo-texto, ui-botao, ui-botao-primario, ui-checkbox, ui-switch, ui-lista-flutuante, ui-radio, ui-select, ui-segmented';
-
-    let shadowFocables = Array.from(this.shadowRoot!.querySelectorAll(focusableSelectors)) as HTMLElement[];
-    shadowFocables = shadowFocables.filter(el => window.getComputedStyle(el).display !== 'none');
-
-    const slotElements = this.shadowRoot!.querySelectorAll('slot');
-    let lightFocables: HTMLElement[] = [];
-    slotElements.forEach(slot => {
-      const assigned = slot.assignedElements({ flatten: true });
-      assigned.forEach(node => {
-        if (node instanceof HTMLElement) {
-          if (node.matches(focusableSelectors)) {
-            lightFocables.push(node);
-          }
-          lightFocables.push(...Array.from(node.querySelectorAll(focusableSelectors)) as HTMLElement[]);
-        }
-      });
-    });
-
-    this._focables = [...shadowFocables, ...lightFocables].filter(el => {
-      return !el.hasAttribute('disabled') && el.getAttribute('aria-hidden') !== 'true';
-    });
-  }
-
-  private _isTopMostDrawer(): boolean {
-    const drawersAbertos = Array.from(
-      document.querySelectorAll('ui-drawer[aberto], ui-drawer[open], ui-sheet[aberto], ui-sheet[open]')
-    );
-    return drawersAbertos[drawersAbertos.length - 1] === this;
-  }
-
   private handleKeyDown = (e: KeyboardEvent) => {
     if (!this.aberto) return;
-    if (!this._isTopMostDrawer()) return;
+    if (!isTopMostDrawer(this)) return;
 
     if (e.key === 'Escape') {
       const isEstatico = this.hasAttribute('estatico') || this.hasAttribute('static');
@@ -286,27 +252,8 @@ export class UIDrawer extends HTMLElement {
         e.stopImmediatePropagation();
       }
     } else if (e.key === 'Tab') {
-      this._atualizarFocables();
-      if (this._focables.length === 0) {
-        e.preventDefault();
-        return;
-      }
-
-      const firstFocable = this._focables[0];
-      const lastFocable = this._focables[this._focables.length - 1];
-      const activeEl = (this.getRootNode() as Document | ShadowRoot).activeElement;
-
-      if (e.shiftKey) {
-        if (activeEl === firstFocable || !this.contains(activeEl as Node) && !this.shadowRoot?.contains(activeEl as Node)) {
-          e.preventDefault();
-          lastFocable.focus();
-        }
-      } else {
-        if (activeEl === lastFocable || !this.contains(activeEl as Node) && !this.shadowRoot?.contains(activeEl as Node)) {
-          e.preventDefault();
-          firstFocable.focus();
-        }
-      }
+      this._focables = obterElementosFocaveis(this.shadowRoot!, this);
+      gerenciarTabTrap(e, this._focables, this, this.shadowRoot!);
     }
   };
 }
@@ -331,3 +278,5 @@ if (!customElements.get('ui-painel-lateral')) {
 if (!customElements.get('ui-gaveta')) {
   customElements.define('ui-gaveta', UIGaveta);
 }
+
+export * from './drawer-acessibilidade';

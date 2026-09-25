@@ -1,5 +1,11 @@
-import estilos from './ui-segmented.css?inline';
 import { ListenerBag } from '../../core/listener-bag';
+import { SegmentedIndicadorController } from './segmented-indicador';
+import { tratarTecladoSegmented } from './segmented-teclado';
+import {
+  criarTemplateSegmented,
+  criarBotaoOpcao,
+  ATRIBUTOS_OBSERVADOS_SEGMENTED
+} from './segmented-template';
 
 export interface UISegmentedOpcao {
   valor: string;
@@ -12,16 +18,7 @@ export class UISegmented extends HTMLElement {
   static formAssociated = true;
 
   static get observedAttributes() {
-    return [
-      'valor',
-      'value',
-      'name',
-      'disabled',
-      'tamanho',
-      'size',
-      'largura-total',
-      'full-width'
-    ];
+    return ATRIBUTOS_OBSERVADOS_SEGMENTED;
   }
 
   private internals?: ReturnType<HTMLElement['attachInternals']>;
@@ -32,8 +29,7 @@ export class UISegmented extends HTMLElement {
   private _opcoes: UISegmentedOpcao[] = [];
   private _defaultValue: string = '';
   private listeners = new ListenerBag();
-  private resizeObserver?: ResizeObserver;
-  private _rafId: number | null = null;
+  private indicadorController: SegmentedIndicadorController;
 
   constructor() {
     super();
@@ -42,19 +38,17 @@ export class UISegmented extends HTMLElement {
     }
 
     const shadow = this.attachShadow({ mode: 'open' });
-    shadow.innerHTML = `
-      <style>${estilos}</style>
-      <div class="ui-segmented ui-segmented--md" role="radiogroup">
-        <div class="ui-segmented__indicador"></div>
-        <div class="ui-segmented__track" style="display: contents;"></div>
-        <slot style="display: none;"></slot>
-      </div>
-    `;
+    shadow.innerHTML = criarTemplateSegmented();
 
     this.rootElement = shadow.querySelector('.ui-segmented')!;
     this.indicadorElement = shadow.querySelector('.ui-segmented__indicador')!;
     this.trackElement = shadow.querySelector('.ui-segmented__track')!;
     this.slotElement = shadow.querySelector('slot')!;
+
+    this.indicadorController = new SegmentedIndicadorController(
+      this.trackElement,
+      this.indicadorElement
+    );
   }
 
   connectedCallback() {
@@ -62,33 +56,18 @@ export class UISegmented extends HTMLElement {
     this.listeners.add(this.rootElement, 'keydown', this.handleKeyDown);
     this.listeners.add(this.slotElement, 'slotchange', this.handleSlotChange);
 
-    // Capturar valor inicial padrão para formResetCallback confiável
     if (!this._defaultValue) {
       this._defaultValue = this.getAttribute('valor') || this.getAttribute('value') || '';
     }
 
-    // Inicializar observador de resize para atualizar o indicador de pastilha
-    if (typeof ResizeObserver !== 'undefined') {
-      this.resizeObserver = new ResizeObserver(() => {
-        this.atualizarPosicaoIndicador();
-      });
-      this.resizeObserver.observe(this.rootElement);
-    }
-
+    this.indicadorController.iniciarObserver(this.rootElement);
     this.carregarOpcoes();
     this.syncState();
   }
 
   disconnectedCallback() {
     this.listeners.cleanup();
-    if (this.resizeObserver) {
-      this.resizeObserver.disconnect();
-      this.resizeObserver = undefined;
-    }
-    if (this._rafId !== null) {
-      cancelAnimationFrame(this._rafId);
-      this._rafId = null;
-    }
+    this.indicadorController.destruir();
   }
 
   attributeChangedCallback(name: string, old: string | null, value: string | null) {
@@ -148,14 +127,12 @@ export class UISegmented extends HTMLElement {
   }
 
   private handleSlotChange = () => {
-    // Se não foram passadas opções via JS, extrai das tags filhas
     if (this._opcoes.length === 0) {
       this.carregarOpcoes();
     }
   };
 
   private carregarOpcoes() {
-    // Opções declarativas via HTML (ex.: <button data-value="mapa">Mapa</button> ou <ui-opcao>)
     const slottedNodes = this.slotElement.assignedElements();
     if (slottedNodes.length > 0) {
       const extraidas: UISegmentedOpcao[] = [];
@@ -179,55 +156,20 @@ export class UISegmented extends HTMLElement {
     const isDesabilitadoGeral = this.disabled;
 
     this._opcoes.forEach((opcao, indice) => {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.role = 'radio';
-      btn.className = 'ui-segmented__item';
-      btn.dataset.valor = opcao.valor;
-      btn.dataset.indice = String(indice);
-
-      const isAtivo = opcao.valor === valorAtual;
-      btn.setAttribute('aria-checked', String(isAtivo));
-      btn.tabIndex = isAtivo ? 0 : -1;
-
-      if (isAtivo) {
-        btn.classList.add('ui-segmented__item--ativo');
-      }
-
-      if (isDesabilitadoGeral || opcao.disabled) {
-        btn.disabled = true;
-      }
-
-      // Ícone opcional
-      if (opcao.icone) {
-        const spanIcone = document.createElement('span');
-        spanIcone.className = 'ui-segmented__icone';
-        const iconeEl = document.createElement('ui-icone');
-        iconeEl.setAttribute('nome', opcao.icone);
-        iconeEl.setAttribute('tamanho', '14');
-        spanIcone.appendChild(iconeEl);
-        btn.appendChild(spanIcone);
-      }
-
-      // Rótulo seguro com textContent
-      const spanTexto = document.createElement('span');
-      spanTexto.className = 'ui-segmented__texto';
-      spanTexto.textContent = opcao.rotulo;
-      btn.appendChild(spanTexto);
-
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        this.selecionarIndice(indice);
-      });
-
+      const btn = criarBotaoOpcao(
+        opcao,
+        indice,
+        valorAtual,
+        isDesabilitadoGeral,
+        () => this.selecionarIndice(indice)
+      );
       this.trackElement.appendChild(btn);
     });
 
-    // Se nenhuma estiver ativa e houver opções, seleciona a primeira por padrão
     if (!valorAtual && this._opcoes.length > 0) {
       this.selecionarIndice(0, false);
     } else {
-      this.atualizarPosicaoIndicador();
+      this.indicadorController.atualizar();
     }
   }
 
@@ -279,63 +221,13 @@ export class UISegmented extends HTMLElement {
       this.internals.setFormValue(novoValor);
     }
 
-    this.atualizarPosicaoIndicador();
-  }
-
-  private atualizarPosicaoIndicador() {
-    if (this._rafId !== null) {
-      cancelAnimationFrame(this._rafId);
-    }
-
-    this._rafId = requestAnimationFrame(() => {
-      this._rafId = null;
-      const btnAtivo = this.trackElement.querySelector('.ui-segmented__item--ativo') as HTMLElement | null;
-      if (!btnAtivo) {
-        this.indicadorElement.style.opacity = '0';
-        return;
-      }
-
-      const offsetLeft = Math.round(btnAtivo.offsetLeft);
-      const offsetWidth = Math.round(btnAtivo.offsetWidth);
-
-      this.indicadorElement.style.transform = `translateX(${offsetLeft}px)`;
-      this.indicadorElement.style.width = `${offsetWidth}px`;
-      this.indicadorElement.style.opacity = '1';
-    });
+    this.indicadorController.atualizar();
   }
 
   private handleKeyDown = (e: KeyboardEvent) => {
-    if (this.disabled) return;
-    const botoesHabilitados = Array.from(
-      this.trackElement.querySelectorAll('.ui-segmented__item:not(:disabled)')
-    ) as HTMLButtonElement[];
-
-    if (botoesHabilitados.length === 0) return;
-
-    const ativoIndex = botoesHabilitados.findIndex(b => b.classList.contains('ui-segmented__item--ativo'));
-    let proximoIndex = ativoIndex;
-
-    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-      e.preventDefault();
-      proximoIndex = (ativoIndex + 1) % botoesHabilitados.length;
-    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-      e.preventDefault();
-      proximoIndex = (ativoIndex - 1 + botoesHabilitados.length) % botoesHabilitados.length;
-    } else if (e.key === 'Home') {
-      e.preventDefault();
-      proximoIndex = 0;
-    } else if (e.key === 'End') {
-      e.preventDefault();
-      proximoIndex = botoesHabilitados.length - 1;
-    } else {
-      return;
-    }
-
-    const proximoBtn = botoesHabilitados[proximoIndex];
-    if (proximoBtn && proximoBtn.dataset.indice) {
-      const realIndice = parseInt(proximoBtn.dataset.indice, 10);
-      this.selecionarIndice(realIndice);
-    }
+    tratarTecladoSegmented(e, this.trackElement, this.disabled, (indice) => {
+      this.selecionarIndice(indice);
+    });
   };
 
   private syncState() {
@@ -355,7 +247,7 @@ export class UISegmented extends HTMLElement {
       b.disabled = isDisabled;
     });
 
-    this.atualizarPosicaoIndicador();
+    this.indicadorController.atualizar();
   }
 }
 
@@ -368,3 +260,7 @@ if (!customElements.get('ui-segmented')) {
 if (!customElements.get('ui-segmento')) {
   customElements.define('ui-segmento', UISegmento);
 }
+
+export * from './segmented-indicador';
+export * from './segmented-teclado';
+export * from './segmented-template';

@@ -858,6 +858,9 @@ describe('Canvas CAD Engine & <ui-canvas-cad>', () => {
       expect(ev.type).toBe('ui-canvas-clique');
       expect(ev.bubbles).toBe(true);
       expect(ev.composed).toBe(true);
+      expect(ev.detail.coordenadas).toBeDefined();
+      expect(ev.detail.coordenadas.lat).toBeCloseTo(-23.765432, 5);
+      expect(ev.detail.coordenadas.lng).toBeCloseTo(-53.321098, 5);
       expect(ev.detail.lat).toBeCloseTo(-23.765432, 5);
       expect(ev.detail.lon).toBeCloseTo(-53.321098, 5);
       expect(ev.detail.pontoPixel).toEqual({ x: 150, y: 200 });
@@ -1748,6 +1751,80 @@ describe('Canvas CAD Engine & <ui-canvas-cad>', () => {
       expect(configSpy).not.toHaveBeenCalled();
 
       ext.close();
+    });
+  });
+
+  describe('Proteções Defensivas no Ciclo de Vida do Mapa (SPA e Desmontagem)', () => {
+    it('deve desregistrar eventos, remover o mapa com try/catch e limpar _leaflet_id no destroy e disconnectedCallback', async () => {
+      const el = document.createElement('ui-canvas-cad') as UICanvasCAD;
+      document.body.appendChild(el);
+      await new Promise(r => setTimeout(r, 20));
+
+      const map = el.getMap();
+      expect(map).not.toBeNull();
+
+      const container = (el as any).mapContainer as HTMLElement;
+      expect((container as any)._leaflet_id).toBeDefined();
+
+      // Espiona map.off e map.remove
+      const spyOff = vi.spyOn(map!, 'off');
+      const spyRemove = vi.spyOn(map!, 'remove');
+
+      // Executa destroy diretamente
+      el.destroy();
+
+      expect(spyOff).toHaveBeenCalled();
+      expect(spyRemove).toHaveBeenCalled();
+      expect(el.getMap()).toBeNull();
+      expect((container as any)._leaflet_id).toBeUndefined();
+
+      // Executa disconnectedCallback (não deve lançar erro mesmo após destroy anterior)
+      expect(() => {
+        document.body.removeChild(el);
+      }).not.toThrow();
+    });
+
+    it('deve absorver silenciosamente exceções lançadas durante map.remove() na desmontagem', async () => {
+      const el = document.createElement('ui-canvas-cad') as UICanvasCAD;
+      document.body.appendChild(el);
+      await new Promise(r => setTimeout(r, 20));
+
+      const map = el.getMap();
+      expect(map).not.toBeNull();
+
+      // Simula erro de desanexação do DOM no Leaflet
+      vi.spyOn(map!, 'remove').mockImplementationOnce(() => {
+        throw new Error('Uncaught Error: Map container is being reused by another instance');
+      });
+
+      // Não deve vazar a exceção
+      expect(() => {
+        el.destroy();
+      }).not.toThrow();
+
+      expect(el.getMap()).toBeNull();
+      document.body.removeChild(el);
+    });
+
+    it('deve limpar _leaflet_id preventivamente se o container for reutilizado por navegação SPA', async () => {
+      const el = document.createElement('ui-canvas-cad') as UICanvasCAD;
+      document.body.appendChild(el);
+      await new Promise(r => setTimeout(r, 20));
+
+      // Desmonta
+      el.destroy();
+
+      // Simula que o framework SPA reutilizou o mesmo container e manteve _leaflet_id
+      const container = (el as any).mapContainer as HTMLElement;
+      (container as any)._leaflet_id = 9999;
+
+      // Chama initCAD novamente (simulando montagem da nova rota)
+      expect(() => {
+        (el as any).initCAD();
+      }).not.toThrow();
+
+      expect(el.getMap()).not.toBeNull();
+      document.body.removeChild(el);
     });
   });
 });
