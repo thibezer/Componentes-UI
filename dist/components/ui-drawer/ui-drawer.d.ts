@@ -22,11 +22,9 @@ export declare class UIDrawer extends HTMLElement {
     fechar(): void;
     alternar(): void;
     private syncState;
-    private static atualizarScrollLock;
+    static atualizarScrollLock(): void;
     private handleBackdropClick;
     private handleCloseClick;
-    private _atualizarFocables;
-    private _isTopMostDrawer;
     private handleKeyDown;
 }
 export declare class UISheet extends UIDrawer {
@@ -35,3 +33,4 @@ export declare class UIPainelLateral extends UIDrawer {
 }
 export declare class UIGaveta extends UIDrawer {
 }
+export * from './drawer-acessibilidade';

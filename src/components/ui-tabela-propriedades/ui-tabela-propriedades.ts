@@ -61,6 +61,10 @@ export class UITabelaPropriedades extends HTMLElement {
   private _termoBusca: string = '';
   private _larguraRotuloPorcentagem: number = 45;
 
+  public get larguraRotuloPorcentagem(): number {
+    return this._larguraRotuloPorcentagem;
+  }
+
   private tipoContainerElement!: HTMLDivElement;
   private corpoElement!: HTMLDivElement;
   private btnAplicarElement!: HTMLButtonElement;

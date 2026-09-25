@@ -219,6 +219,7 @@ export class UICampoTexto extends HTMLElement {
   };
 
   private handleInput = (e: Event) => {
+    e.stopPropagation();
     const val = (e.target as HTMLInputElement).value;
     this.internals.setFormValue(val);
     this.syncState();
@@ -226,6 +227,13 @@ export class UICampoTexto extends HTMLElement {
     this.dispatchEvent(
       new CustomEvent('ui-input', {
         detail: { value: val },
+        bubbles: true,
+        composed: true,
+      })
+    );
+
+    this.dispatchEvent(
+      new Event('input', {
         bubbles: true,
         composed: true,
       })
@@ -238,11 +246,19 @@ export class UICampoTexto extends HTMLElement {
   }
 
   private handleChange = (e: Event) => {
+    e.stopPropagation();
     const val = (e.target as HTMLInputElement).value;
     this.internals.setFormValue(val);
     this.dispatchEvent(
       new CustomEvent('ui-change', {
         detail: { value: val },
+        bubbles: true,
+        composed: true,
+      })
+    );
+
+    this.dispatchEvent(
+      new Event('change', {
         bubbles: true,
         composed: true,
       })

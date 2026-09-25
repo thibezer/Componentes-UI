@@ -3,7 +3,7 @@ const SELETORES_FOCAVEIS = 'a[href], button, input, textarea, select, details, [
 /**
  * Localiza todos os elementos focáveis dentro do Shadow DOM e nos slots associados.
  */
-export function obterElementosFocaveis(shadowRoot: ShadowRoot, hostElement: HTMLElement): HTMLElement[] {
+export function obterElementosFocaveis(shadowRoot: ShadowRoot, _hostElement?: HTMLElement): HTMLElement[] {
   let shadowFocables = Array.from(shadowRoot.querySelectorAll(SELETORES_FOCAVEIS)) as HTMLElement[];
   shadowFocables = shadowFocables.filter(el => {
     try {

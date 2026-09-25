@@ -112,15 +112,23 @@ export function initZeroJSTriggers(): void {
     const copiarTexto = elementoGatilho.getAttribute('copiar-texto');
     if (copiarTexto !== null) {
       let textoParaCopiar = copiarTexto;
-      // Se começa com # ou ., tenta buscar o valor ou textContent do elemento referenciado
-      if (copiarTexto.startsWith('#') || copiarTexto.startsWith('.')) {
+      // Tenta buscar por seletor se começar com id (#) ou classe (.), ou buscar por ID direto
+      if (copiarTexto.startsWith('#') || copiarTexto.startsWith('.') || copiarTexto.match(/^[a-zA-Z0-9_-]+$/)) {
         try {
-          const elementoOrigem = document.querySelector(copiarTexto) as any;
-          if (elementoOrigem) {
-            textoParaCopiar = elementoOrigem.value !== undefined ? elementoOrigem.value : (elementoOrigem.textContent || '');
+          let elementoOrigem: any = null;
+          if (copiarTexto.startsWith('#') || copiarTexto.startsWith('.')) {
+            elementoOrigem = document.querySelector(copiarTexto);
+          } else {
+            elementoOrigem = document.getElementById(copiarTexto) || document.querySelector(`#${copiarTexto}`);
           }
-        } catch {
-          // Seletor CSS inválido - mantém o texto original do atributo
+
+          if (elementoOrigem) {
+            textoParaCopiar = elementoOrigem.value !== undefined && elementoOrigem.value !== null
+              ? elementoOrigem.value
+              : (elementoOrigem.textContent || '');
+          }
+        } catch (_err) {
+          // Seletor CSS inválido - se falhar no querySelector, mantém o texto literal original
         }
       }
       const msgFeedback = elementoGatilho.getAttribute('copiar-mensagem') || 'Copiado com sucesso!';

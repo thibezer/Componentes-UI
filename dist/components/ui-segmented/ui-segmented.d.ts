@@ -15,8 +15,7 @@ export declare class UISegmented extends HTMLElement {
     private _opcoes;
     private _defaultValue;
     private listeners;
-    private resizeObserver?;
-    private _rafId;
+    private indicadorController;
     constructor();
     connectedCallback(): void;
     disconnectedCallback(): void;
@@ -37,9 +36,11 @@ export declare class UISegmented extends HTMLElement {
     private renderizarOpcoes;
     selecionarIndice(indice: number, dispararEventos?: boolean): void;
     private atualizarSelecao;
-    private atualizarPosicaoIndicador;
     private handleKeyDown;
     private syncState;
 }
 export declare class UISegmento extends UISegmented {
 }
+export * from './segmented-indicador';
+export * from './segmented-teclado';
+export * from './segmented-template';

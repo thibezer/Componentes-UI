@@ -282,6 +282,13 @@ export class UIListaFlutuante extends HTMLElement {
         composed: true
       })
     );
+
+    this.dispatchEvent(
+      new Event('input', {
+        bubbles: true,
+        composed: true
+      })
+    );
   }
 }
 

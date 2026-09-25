@@ -4,7 +4,7 @@
  * opacidade, bloqueio e modo de escala métrico/tela.
  */
 
-import type { CanvasLayerState, ScaleMode } from '../../gerencigeo-canvas/types';
+import type { CanvasLayerDef, ScaleMode } from '../../gerencigeo-canvas/types';
 import { ListenerBag } from '../../core/listener-bag';
 
 export interface PainelCamadasCallbacks {
@@ -16,7 +16,7 @@ export interface PainelCamadasCallbacks {
 
 export function renderizarPainelCamadas(
   container: HTMLElement | null,
-  layers: CanvasLayerState[],
+  layers: CanvasLayerDef[],
   layerItemListeners: ListenerBag,
   callbacks: PainelCamadasCallbacks
 ): void {
@@ -44,8 +44,8 @@ export function renderizarPainelCamadas(
         }
 
         const scalePill = item.querySelector('.btn-toggle-scale-mode') as HTMLSpanElement | null;
-        if (scalePill && layer.estilo.scaleMode) {
-          scalePill.textContent = layer.estilo.scaleMode === 'world' ? 'Métrico' : 'Tela';
+        if (scalePill && layer.estilo?.scaleMode) {
+          scalePill.textContent = layer.estilo?.scaleMode === 'world' ? 'Métrico' : 'Tela';
         }
       }
     });
@@ -66,9 +66,9 @@ export function renderizarPainelCamadas(
                 ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`
                 : `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>`}
             </button>
-            ${layer.estilo.scaleMode ? `
+            ${layer.estilo?.scaleMode ? `
               <span class="scale-mode-pill btn-toggle-scale-mode" data-layer-id="${layer.id}" title="Alternar modo de escala">
-                ${layer.estilo.scaleMode === 'world' ? 'Métrico' : 'Tela'}
+                ${layer.estilo?.scaleMode === 'world' ? 'Métrico' : 'Tela'}
               </span>
             ` : ''}
           </div>
@@ -124,7 +124,7 @@ export function renderizarPainelCamadas(
       if (id) {
         const l = layers.find(item => item.id === id);
         if (l) {
-          const nextMode = l.estilo.scaleMode === 'world' ? 'screen' : 'world';
+          const nextMode = l.estilo?.scaleMode === 'world' ? 'screen' : 'world';
           callbacks.setLayerScaleMode(id, nextMode);
         }
       }

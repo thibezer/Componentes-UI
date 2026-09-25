@@ -8,6 +8,7 @@ export declare class UICanvasCAD extends HTMLElement {
     private mapContainer;
     private layersPanel;
     private controller;
+    private controladorTamanho;
     private isLayersPanelOpen;
     private initTimeout?;
     private uiListeners;
@@ -25,10 +26,6 @@ export declare class UICanvasCAD extends HTMLElement {
     private _bancoPontos;
     private _confrontantes;
     constructor();
-    private resizeObserver;
-    private resizeDebounceTimer;
-    private lastHostWidth;
-    private lastHostHeight;
     connectedCallback(): void;
     destroy(): void;
     disconnectedCallback(): void;
@@ -42,15 +39,6 @@ export declare class UICanvasCAD extends HTMLElement {
      * Atualiza cursor, opacidades de camadas e emite evento 'ui-config-aplicada'.
      */
     private processarMensagemConfiguracao;
-    /**
-     * Instancia um ResizeObserver monitorando o elemento host (this).
-     * Ao detectar variação de largura ou altura > 0, aciona a invalidação de dimensões com debounce de 25ms.
-     */
-    private setupResizeObserver;
-    /**
-     * Aciona a invalidação de dimensões do mapa com debounce (ex: 20ms a 30ms).
-     */
-    private triggerDebouncedResize;
     /**
      * Executa a invalidação dimensional do mapa com salvaguardas de estabilidade
      * absorvendo tentativas de leitura com panes desanexados (undefined._leaflet_pos).
@@ -75,6 +63,7 @@ export declare class UICanvasCAD extends HTMLElement {
      * Dispara o evento customizado 'ui-acao-popup' com as informações da ação acionada e fecha o popup.
      */
     dispararAcaoPopup(acaoId: string, elementoId: string | number, elemento?: any): void;
+    private obterElementoPorId;
     toggleLayersPanel(): void;
     closeLayersPanel(): void;
     private renderLayersUI;

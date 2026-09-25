@@ -32,3 +32,5 @@ export declare class UICampoTexto extends HTMLElement {
     formResetCallback(): void;
     private handleChange;
 }
+export * from './campo-texto-estados';
+export * from './campo-texto-template';

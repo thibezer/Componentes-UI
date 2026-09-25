@@ -22,7 +22,7 @@ import {
 
 export * from './editores-basicos';
 export * from './editores-cad';
-export { ContextoEditorPropriedade } from './tipos';
+export type { ContextoEditorPropriedade } from './tipos';
 
 export function criarEditorValor(
   categoriaId: string,

@@ -1,4 +1,4 @@
-import type { TabelaColuna, UIColumnResizeDetail } from './tipos';
+import type { TabelaColuna } from './tipos';
 
 export interface IniciarRedimensionamentoContexto {
   evento: MouseEvent;

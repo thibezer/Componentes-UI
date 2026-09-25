@@ -1,7 +1,9 @@
-export interface ItemLista {
-    id: string;
-    label: string;
-}
+import { ItemLista } from './tipos';
+export * from './tipos';
+export * from './lista-flutuante-posicionamento';
+export * from './lista-flutuante-teclado';
+export * from './lista-flutuante-template';
+export * from './lista-flutuante-render';
 export declare class UIListaFlutuante extends HTMLElement {
     static formAssociated: boolean;
     private internals;
@@ -19,7 +21,8 @@ export declare class UIListaFlutuante extends HTMLElement {
     private _value;
     private _defaultValue;
     private observer;
-    private focusedIndex;
+    private posicionamento;
+    private teclado;
     constructor();
     connectedCallback(): void;
     carregarItensFilhos(): void;
@@ -35,16 +38,10 @@ export declare class UIListaFlutuante extends HTMLElement {
     private toggleLista;
     private handleKeyDown;
     private handleListKeyDown;
-    private focarPrimeiroItem;
-    private moverFoco;
     abrir(): void;
     fechar: () => void;
-    private isMobileOrBottomSheet;
-    private posicionarConteudo;
     private handleClickFora;
     private syncLabel;
-    private updateSelectedState;
-    private renderItens;
     private handleListClick;
     private syncState;
     private selecionarItem;
