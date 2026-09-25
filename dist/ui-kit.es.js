@@ -348,6 +348,11 @@ class nt extends HTMLElement {
         bubbles: !0,
         composed: !0
       })
+    ), this.dispatchEvent(
+      new Event("input", {
+        bubbles: !0,
+        composed: !0
+      })
     );
   }
 }
@@ -462,6 +467,7 @@ class xt extends HTMLElement {
       this._focado = !1, this.wrapperElement.classList.remove("ui-campo-texto__wrapper--foco"), this.syncState();
     });
     l(this, "handleInput", (t) => {
+      t.stopPropagation();
       const e = t.target.value;
       this.internals.setFormValue(e), this.syncState(), this.dispatchEvent(
         new CustomEvent("ui-input", {
@@ -469,13 +475,24 @@ class xt extends HTMLElement {
           bubbles: !0,
           composed: !0
         })
+      ), this.dispatchEvent(
+        new Event("input", {
+          bubbles: !0,
+          composed: !0
+        })
       );
     });
     l(this, "handleChange", (t) => {
+      t.stopPropagation();
       const e = t.target.value;
       this.internals.setFormValue(e), this.dispatchEvent(
         new CustomEvent("ui-change", {
           detail: { value: e },
+          bubbles: !0,
+          composed: !0
+        })
+      ), this.dispatchEvent(
+        new Event("change", {
           bubbles: !0,
           composed: !0
         })
@@ -572,10 +589,10 @@ class xt extends HTMLElement {
     i ? (this.labelElement.textContent = i, this.labelElement.style.display = "flex", a ? s || r || n ? this.labelElement.classList.add("ui-campo-texto__label--ativa") : this.labelElement.classList.remove("ui-campo-texto__label--ativa") : this.labelElement.classList.remove("ui-campo-texto__label--ativa")) : this.labelElement.style.display = "none";
     const c = this.getAttribute("placeholder") || "";
     a && !s && !r && !n ? this.inputElement.placeholder = "" : this.inputElement.placeholder = c;
-    const u = this.getAttribute("tipo") || "text";
-    this._senhaVisivel || (this.inputElement.type = u), this.internals.setFormValue(this.inputElement.value);
-    const d = this.hasAttribute("disabled"), h = this.hasAttribute("readonly");
-    this.inputElement.disabled = d, this.inputElement.readOnly = h, d ? this.wrapperElement.classList.add("ui-campo-texto__wrapper--disabled") : this.wrapperElement.classList.remove("ui-campo-texto__wrapper--disabled"), u === "password" || this.hasAttribute("alternar-senha") ? (this.rightIconContainer.classList.add("ui-campo-texto__icone--clicavel"), this.rightIconContainer.setAttribute("role", "button"), this.rightIconContainer.setAttribute("tabindex", "0"), this.rightIconContainer.setAttribute("aria-label", this._senhaVisivel ? "Ocultar senha" : "Exibir senha")) : (this.rightIconContainer.classList.remove("ui-campo-texto__icone--clicavel"), this.rightIconContainer.removeAttribute("role"), this.rightIconContainer.removeAttribute("tabindex"), this.rightIconContainer.removeAttribute("aria-label"));
+    const d = this.getAttribute("tipo") || "text";
+    this._senhaVisivel || (this.inputElement.type = d), this.internals.setFormValue(this.inputElement.value);
+    const u = this.hasAttribute("disabled"), h = this.hasAttribute("readonly");
+    this.inputElement.disabled = u, this.inputElement.readOnly = h, u ? this.wrapperElement.classList.add("ui-campo-texto__wrapper--disabled") : this.wrapperElement.classList.remove("ui-campo-texto__wrapper--disabled"), d === "password" || this.hasAttribute("alternar-senha") ? (this.rightIconContainer.classList.add("ui-campo-texto__icone--clicavel"), this.rightIconContainer.setAttribute("role", "button"), this.rightIconContainer.setAttribute("tabindex", "0"), this.rightIconContainer.setAttribute("aria-label", this._senhaVisivel ? "Ocultar senha" : "Exibir senha")) : (this.rightIconContainer.classList.remove("ui-campo-texto__icone--clicavel"), this.rightIconContainer.removeAttribute("role"), this.rightIconContainer.removeAttribute("tabindex"), this.rightIconContainer.removeAttribute("aria-label"));
     const p = this.hasAttribute("erro") || this.hasAttribute("mensagem-erro"), m = this.getAttribute("mensagem-erro"), f = this.getAttribute("helper-text");
     p ? (this.wrapperElement.classList.add("ui-campo-texto__wrapper--erro"), this.inputElement.setAttribute("aria-invalid", "true")) : (this.wrapperElement.classList.remove("ui-campo-texto__wrapper--erro"), this.inputElement.removeAttribute("aria-invalid")), p && m ? (this.helperElement.textContent = `⚠️ ${m}`, this.helperElement.className = "ui-campo-texto__helper ui-campo-texto__helper--erro", this.helperElement.style.display = "block") : f ? (this.helperElement.textContent = f, this.helperElement.className = "ui-campo-texto__helper", this.helperElement.style.display = "block") : this.helperElement.style.display = "none";
   }
@@ -756,6 +773,11 @@ class yt extends HTMLElement {
         bubbles: !0,
         composed: !0
       })
+    ), this.dispatchEvent(
+      new Event("change", {
+        bubbles: !0,
+        composed: !0
+      })
     ));
   }
   syncState() {
@@ -903,6 +925,11 @@ const Ot = ':host{display:inline-flex;align-items:center;box-sizing:border-box;f
         bubbles: !0,
         composed: !0
       })
+    ), this.dispatchEvent(
+      new Event("change", {
+        bubbles: !0,
+        composed: !0
+      })
     );
   }
   syncState() {
@@ -1016,6 +1043,11 @@ class lt extends HTMLElement {
           ativo: this.ativo,
           value: this.getAttribute("value") || ""
         },
+        bubbles: !0,
+        composed: !0
+      })
+    ), this.dispatchEvent(
+      new Event("change", {
         bubbles: !0,
         composed: !0
       })
@@ -1290,8 +1322,8 @@ class dt extends HTMLElement {
       t.forEach((i) => {
         var a, r;
         if (i instanceof HTMLElement) {
-          const s = i.getAttribute("valor") || i.getAttribute("value") || i.getAttribute("data-value") || ((a = i.textContent) == null ? void 0 : a.trim()) || "", n = i.getAttribute("label") || i.getAttribute("rotulo") || ((r = i.textContent) == null ? void 0 : r.trim()) || s, c = i.getAttribute("icone") || i.getAttribute("icon") || void 0, u = i.hasAttribute("disabled");
-          e.push({ valor: s, rotulo: n, icone: c, disabled: u });
+          const s = i.getAttribute("valor") || i.getAttribute("value") || i.getAttribute("data-value") || ((a = i.textContent) == null ? void 0 : a.trim()) || "", n = i.getAttribute("label") || i.getAttribute("rotulo") || ((r = i.textContent) == null ? void 0 : r.trim()) || s, c = i.getAttribute("icone") || i.getAttribute("icon") || void 0, d = i.hasAttribute("disabled");
+          e.push({ valor: s, rotulo: n, icone: c, disabled: d });
         }
       }), this._opcoes = e, this.renderizarOpcoes();
     }
@@ -1306,8 +1338,8 @@ class dt extends HTMLElement {
       if (r.setAttribute("aria-checked", String(s)), r.tabIndex = s ? 0 : -1, s && r.classList.add("ui-segmented__item--ativo"), (e || i.disabled) && (r.disabled = !0), i.icone) {
         const c = document.createElement("span");
         c.className = "ui-segmented__icone";
-        const u = document.createElement("ui-icone");
-        u.setAttribute("nome", i.icone), u.setAttribute("tamanho", "14"), c.appendChild(u), r.appendChild(c);
+        const d = document.createElement("ui-icone");
+        d.setAttribute("nome", i.icone), d.setAttribute("tamanho", "14"), c.appendChild(d), r.appendChild(c);
       }
       const n = document.createElement("span");
       n.className = "ui-segmented__texto", n.textContent = i.rotulo, r.appendChild(n), r.addEventListener("click", (c) => {
@@ -1455,15 +1487,15 @@ class Kt extends HTMLElement {
     t ? this.setAttribute("disabled", "") : this.removeAttribute("disabled"), this.syncState();
   }
   syncState() {
-    var d, h, p;
+    var u, h, p;
     const t = this.getAttribute("elevacao") || this.getAttribute("elevation") || "plano", e = this.getAttribute("variante") || this.getAttribute("variant"), i = this.clicavel, a = this.hasAttribute("compacto") || this.hasAttribute("compact"), r = this.disabled;
     this.cardElement.className = "ui-card", this.cardElement.classList.add(`ui-card--${t}`), e && this.cardElement.classList.add(`ui-card--${e}`), i ? (this.cardElement.classList.add("ui-card--clicavel"), this.cardElement.setAttribute("tabindex", "0")) : this.cardElement.removeAttribute("tabindex"), a && this.cardElement.classList.add("ui-card--compacto"), r && this.cardElement.classList.add("ui-card--disabled");
-    const s = (d = this.shadowRoot) == null ? void 0 : d.querySelector(".ui-card__header"), n = (h = this.shadowRoot) == null ? void 0 : h.querySelector(".ui-card__footer"), c = (p = this.shadowRoot) == null ? void 0 : p.querySelector(".ui-card__media"), u = (m) => {
+    const s = (u = this.shadowRoot) == null ? void 0 : u.querySelector(".ui-card__header"), n = (h = this.shadowRoot) == null ? void 0 : h.querySelector(".ui-card__footer"), c = (p = this.shadowRoot) == null ? void 0 : p.querySelector(".ui-card__media"), d = (m) => {
       var y;
       const f = m.map((w) => `slot[name="${w}"]`).join(", ");
       return Array.from(((y = this.shadowRoot) == null ? void 0 : y.querySelectorAll(f)) || []).some((w) => w.assignedNodes({ flatten: !0 }).some((P) => P.nodeType === Node.ELEMENT_NODE || P.textContent && P.textContent.trim() !== "")) || m.some((w) => this.querySelector(`[slot="${w}"]`) !== null);
     };
-    c && (c.style.display = u(["midia", "media"]) ? "block" : "none"), s && (s.style.display = u(["cabecalho", "header"]) ? "flex" : "none"), n && (n.style.display = u(["rodape", "footer"]) ? "flex" : "none");
+    c && (c.style.display = d(["midia", "media"]) ? "block" : "none"), s && (s.style.display = d(["cabecalho", "header"]) ? "flex" : "none"), n && (n.style.display = d(["rodape", "footer"]) ? "flex" : "none");
   }
 }
 customElements.get("ui-card") || customElements.define("ui-card", Kt);
@@ -1573,7 +1605,7 @@ const Zt = ':host{display:block;box-sizing:border-box;font-family:var(--ui-fonte
     var a, r;
     const t = this.aberto, e = this.getAttribute("titulo") || this.getAttribute("title") || "", i = (a = this.shadowRoot) == null ? void 0 : a.querySelector(".ui-modal__footer");
     if (this.dialogElement.setAttribute("aria-hidden", String(!t)), e ? (this.tituloElement.textContent = e, this.tituloElement.style.display = "block") : this.tituloElement.style.display = "none", i) {
-      const n = Array.from(((r = this.shadowRoot) == null ? void 0 : r.querySelectorAll('slot[name="rodape"], slot[name="footer"]')) || []).some((c) => c.assignedNodes({ flatten: !0 }).some((d) => d.nodeType === Node.ELEMENT_NODE || d.textContent && d.textContent.trim() !== "")) || this.querySelector('[slot="rodape"], [slot="footer"]') !== null;
+      const n = Array.from(((r = this.shadowRoot) == null ? void 0 : r.querySelectorAll('slot[name="rodape"], slot[name="footer"]')) || []).some((c) => c.assignedNodes({ flatten: !0 }).some((u) => u.nodeType === Node.ELEMENT_NODE || u.textContent && u.textContent.trim() !== "")) || this.querySelector('[slot="rodape"], [slot="footer"]') !== null;
       i.style.display = n ? "flex" : "none";
     }
     t ? this.hasAttribute("data-scroll-locked") || (this.setAttribute("data-scroll-locked", "true"), V._openCount++, V._openCount === 1 && (document.body.style.overflow = "hidden")) : this.hasAttribute("data-scroll-locked") && (this.removeAttribute("data-scroll-locked"), V._openCount = Math.max(0, V._openCount - 1), V._openCount === 0 && (document.body.style.overflow = ""));
@@ -1726,8 +1758,8 @@ class K extends HTMLElement {
     var s, n;
     const t = this.aberto, e = this.getAttribute("titulo") || this.getAttribute("title") || "", i = this.getAttribute("descricao") || this.getAttribute("description") || "", a = this.getAttribute("largura") || this.getAttribute("width"), r = (s = this.shadowRoot) == null ? void 0 : s.querySelector(".ui-drawer__footer");
     if (this.painelElement.setAttribute("aria-hidden", String(!t)), e ? (this.tituloElement.textContent = e, this.tituloElement.style.display = "block") : this.tituloElement.style.display = "none", i ? (this.descricaoElement.textContent = i, this.descricaoElement.style.display = "block") : this.descricaoElement.style.display = "none", a ? this.style.setProperty("--ui-drawer-largura", isNaN(Number(a)) ? a : `${a}px`) : this.style.removeProperty("--ui-drawer-largura"), r) {
-      const u = Array.from(((n = this.shadowRoot) == null ? void 0 : n.querySelectorAll('slot[name="rodape"], slot[name="footer"]')) || []).some((d) => d.assignedNodes({ flatten: !0 }).some((p) => p.nodeType === Node.ELEMENT_NODE || p.textContent && p.textContent.trim() !== "")) || this.querySelector('[slot="rodape"], [slot="footer"]') !== null;
-      r.style.display = u ? "flex" : "none";
+      const d = Array.from(((n = this.shadowRoot) == null ? void 0 : n.querySelectorAll('slot[name="rodape"], slot[name="footer"]')) || []).some((u) => u.assignedNodes({ flatten: !0 }).some((p) => p.nodeType === Node.ELEMENT_NODE || p.textContent && p.textContent.trim() !== "")) || this.querySelector('[slot="rodape"], [slot="footer"]') !== null;
+      r.style.display = d ? "flex" : "none";
     }
     K.atualizarScrollLock();
   }
@@ -2248,7 +2280,7 @@ class ne extends HTMLElement {
   initColumnResize(t, e, i, a, r) {
     var p;
     t.stopPropagation(), t.preventDefault(), this._isResizing = !0, r.classList.add("ui-tabela__resizer--ativo");
-    const s = t.pageX, n = a.offsetWidth, c = (p = this._colgroupElement) == null ? void 0 : p.children[i], u = (m) => {
+    const s = t.pageX, n = a.offsetWidth, c = (p = this._colgroupElement) == null ? void 0 : p.children[i], d = (m) => {
       const f = m.pageX - s;
       let v = n + f;
       if (e.larguraMinima !== void 0) {
@@ -2261,12 +2293,12 @@ class ne extends HTMLElement {
         isNaN(y) || (v = Math.min(y, v));
       }
       e.largura = `${v}px`, a.style.width = `${v}px`, c && (c.style.width = `${v}px`);
-    }, d = () => {
-      r.classList.remove("ui-tabela__resizer--ativo"), window.removeEventListener("mousemove", u), window.removeEventListener("mouseup", h), this._activeResizeCleanup = null, setTimeout(() => {
+    }, u = () => {
+      r.classList.remove("ui-tabela__resizer--ativo"), window.removeEventListener("mousemove", d), window.removeEventListener("mouseup", h), this._activeResizeCleanup = null, setTimeout(() => {
         this._isResizing = !1;
       }, 50);
     }, h = () => {
-      d(), this.dispatchEvent(
+      u(), this.dispatchEvent(
         new CustomEvent("ui-column-resize", {
           detail: {
             idColuna: e.id,
@@ -2277,7 +2309,7 @@ class ne extends HTMLElement {
         })
       );
     };
-    this._activeResizeCleanup = d, window.addEventListener("mousemove", u), window.addEventListener("mouseup", h);
+    this._activeResizeCleanup = u, window.addEventListener("mousemove", d), window.addEventListener("mouseup", h);
   }
   // Mini-Popover de Redimensionamento Exato
   showPromptPopover(t, e, i, a) {
@@ -2289,12 +2321,12 @@ class ne extends HTMLElement {
     n.type = "text";
     const c = e.largura ? String(e.largura).replace("px", "") : "auto";
     n.value = c;
-    const u = document.createElement("div");
-    u.className = "ui-tabela__prompt-actions";
-    const d = document.createElement("button");
-    d.textContent = "Aplicar";
+    const d = document.createElement("div");
+    d.className = "ui-tabela__prompt-actions";
+    const u = document.createElement("button");
+    u.textContent = "Aplicar";
     const h = document.createElement("button");
-    h.textContent = "Cancelar", u.appendChild(h), u.appendChild(d), r.appendChild(s), r.appendChild(n), r.appendChild(u), this.shadow.appendChild(r), r.showModal();
+    h.textContent = "Cancelar", d.appendChild(h), d.appendChild(u), r.appendChild(s), r.appendChild(n), r.appendChild(d), this.shadow.appendChild(r), r.showModal();
     const p = () => {
       var v, y;
       const f = n.value.trim().toLowerCase();
@@ -2315,7 +2347,7 @@ class ne extends HTMLElement {
         })
       );
     };
-    d.addEventListener("click", p), h.addEventListener("click", () => {
+    u.addEventListener("click", p), h.addEventListener("click", () => {
       r.close(), r.remove();
     }), n.addEventListener("keydown", (m) => {
       m.key === "Enter" && p(), m.key === "Escape" && (r.close(), r.remove());
@@ -2394,18 +2426,18 @@ class ne extends HTMLElement {
       this.addHeaderListener(r, "contextmenu", n);
       const c = document.createElement("div");
       c.className = "ui-tabela__header-content";
-      const u = document.createElement("span");
-      u.className = "ui-tabela__header-text", u.textContent = e.rotulo, c.appendChild(u);
       const d = document.createElement("span");
-      if (d.className = "ui-tabela__sort-icon", e.ordenavel) {
+      d.className = "ui-tabela__header-text", d.textContent = e.rotulo, c.appendChild(d);
+      const u = document.createElement("span");
+      if (u.className = "ui-tabela__sort-icon", e.ordenavel) {
         const f = this._colunaOrdenada === e.id && this._direcaoOrdenacao !== "original", v = f && this._direcaoOrdenacao === "desc", y = f ? "" : "ui-tabela__sort-arrow--inativo", w = v ? "ui-tabela__sort-arrow--desc" : "";
-        d.innerHTML = `
+        u.innerHTML = `
           <svg class="ui-tabela__sort-arrow ${y} ${w}" viewBox="0 0 24 24">
             <path d="M7 14l5-5 5 5H7z"/>
           </svg>
         `;
       }
-      c.appendChild(d), r.appendChild(c);
+      c.appendChild(u), r.appendChild(c);
       const h = document.createElement("div");
       h.className = "ui-tabela__resizer", h.title = "Arrastar para redimensionar largura (duplo-clique para auto-ajuste)";
       const p = (f) => this.initColumnResize(f, e, i, r, h);
@@ -2427,8 +2459,8 @@ class ne extends HTMLElement {
     const t = this._dadosExibicao.length, e = this.getRowHeight(), i = this._virtualizar && t > 30;
     let a = 0, r = t;
     if (i) {
-      const n = this._containerElement.scrollTop, c = this._containerElement.clientHeight || 400, u = 5;
-      a = Math.max(0, Math.floor(n / e) - u), r = Math.min(t, Math.ceil((n + c) / e) + u);
+      const n = this._containerElement.scrollTop, c = this._containerElement.clientHeight || 400, d = 5;
+      a = Math.max(0, Math.floor(n / e) - d), r = Math.min(t, Math.ceil((n + c) / e) + d);
     }
     this._tbodyElement.innerHTML = "";
     const s = document.createDocumentFragment();
@@ -2439,27 +2471,27 @@ class ne extends HTMLElement {
       c.colSpan = this._colunas.length || 1, n.appendChild(c), s.appendChild(n);
     }
     for (let n = a; n < r; n++) {
-      const c = this._dadosExibicao[n], u = document.createElement("tr");
-      this._colunas.forEach((d) => {
-        const h = document.createElement("td"), p = this.getAlignmentClass(d.alinhamento);
-        if (h.className = p, h.style.textAlign = this.getTextAlign(d.alinhamento), d.larguraMaxima !== void 0) {
-          const v = this.formatWidth(d.larguraMaxima);
+      const c = this._dadosExibicao[n], d = document.createElement("tr");
+      this._colunas.forEach((u) => {
+        const h = document.createElement("td"), p = this.getAlignmentClass(u.alinhamento);
+        if (h.className = p, h.style.textAlign = this.getTextAlign(u.alinhamento), u.larguraMaxima !== void 0) {
+          const v = this.formatWidth(u.larguraMaxima);
           h.style.maxWidth = v, h.style.overflow = "hidden", h.style.textOverflow = "ellipsis", h.style.whiteSpace = "nowrap";
         }
         const m = document.createElement("div");
-        m.className = "ui-tabela__cell-content", d.larguraMaxima !== void 0 && m.classList.add("ui-tabela__cell-truncate");
-        const f = c[d.id];
-        if (typeof d.render == "function") {
-          const v = d.render(f, c, n);
+        m.className = "ui-tabela__cell-content", u.larguraMaxima !== void 0 && m.classList.add("ui-tabela__cell-truncate");
+        const f = c[u.id];
+        if (typeof u.render == "function") {
+          const v = u.render(f, c, n);
           v instanceof Node ? m.appendChild(v) : m.textContent = String(v ?? "");
         } else if (f instanceof Node)
           m.appendChild(f);
         else {
           const v = f != null ? String(f) : "";
-          m.textContent = v, d.larguraMaxima !== void 0 && !d.tooltip && (h.title = v);
+          m.textContent = v, u.larguraMaxima !== void 0 && !u.tooltip && (h.title = v);
         }
-        h.appendChild(m), u.appendChild(h);
-      }), s.appendChild(u);
+        h.appendChild(m), d.appendChild(h);
+      }), s.appendChild(d);
     }
     if (i && r < t) {
       const n = document.createElement("tr");
@@ -2643,8 +2675,8 @@ class he extends HTMLElement {
       const n = {};
       n[Z[r[0]].nome] = s;
       for (let c = 1; c < r.length; c++) {
-        const u = r[c];
-        n[Z[u].nome] = Z[u].layer();
+        const d = r[c];
+        n[Z[d].nome] = Z[d].layer();
       }
       x.control.layers(n, void 0, { position: "topright" }).addTo(this.mapInstance);
     }
@@ -2895,10 +2927,10 @@ class kt extends HTMLElement {
     this.rootElement.innerHTML = "";
     const n = e === "pulso" ? "ui-skeleton--pulso" : e === "nenhum" ? "ui-skeleton--estatico" : "";
     if (t === "card") {
-      const u = document.createElement("div");
-      u.className = "ui-skeleton ui-skeleton--card";
       const d = document.createElement("div");
-      d.className = `ui-skeleton ui-skeleton__card-media ${n}`;
+      d.className = "ui-skeleton ui-skeleton--card";
+      const u = document.createElement("div");
+      u.className = `ui-skeleton ui-skeleton__card-media ${n}`;
       const h = document.createElement("div");
       h.className = "ui-skeleton__card-header";
       const p = document.createElement("div");
@@ -2911,17 +2943,17 @@ class kt extends HTMLElement {
         const y = document.createElement("div");
         y.className = `ui-skeleton ui-skeleton--texto ${n}`, f.appendChild(y);
       }
-      u.appendChild(d), u.appendChild(h), u.appendChild(f), this.rootElement.appendChild(u);
+      d.appendChild(u), d.appendChild(h), d.appendChild(f), this.rootElement.appendChild(d);
       return;
     }
     if (s > 1 && t === "texto") {
-      const u = document.createElement("div");
-      u.className = "ui-skeleton__linhas";
-      for (let d = 0; d < s; d++) {
+      const d = document.createElement("div");
+      d.className = "ui-skeleton__linhas";
+      for (let u = 0; u < s; u++) {
         const h = document.createElement("div");
-        h.className = `ui-skeleton ui-skeleton--texto ${n}`, a && (h.style.height = isNaN(Number(a)) ? a : `${a}px`), r && (h.style.borderRadius = isNaN(Number(r)) ? r : `${r}px`), u.appendChild(h);
+        h.className = `ui-skeleton ui-skeleton--texto ${n}`, a && (h.style.height = isNaN(Number(a)) ? a : `${a}px`), r && (h.style.borderRadius = isNaN(Number(r)) ? r : `${r}px`), d.appendChild(h);
       }
-      i && (u.style.width = isNaN(Number(i)) ? i : `${i}px`), this.rootElement.appendChild(u);
+      i && (d.style.width = isNaN(Number(i)) ? i : `${i}px`), this.rootElement.appendChild(d);
       return;
     }
     const c = document.createElement("div");
@@ -3060,7 +3092,7 @@ class ve {
     let s = 0;
     const n = 32;
     for (let c = e; c <= i && s < n; c++) {
-      const u = a.getNorthWest(), d = a.getSouthEast(), h = this.lonToTileX(u.lng, c), p = this.lonToTileX(d.lng, c), m = this.latToTileY(u.lat, c), f = this.latToTileY(d.lat, c);
+      const d = a.getNorthWest(), u = a.getSouthEast(), h = this.lonToTileX(d.lng, c), p = this.lonToTileX(u.lng, c), m = this.latToTileY(d.lat, c), f = this.latToTileY(u.lat, c);
       for (let v = h; v <= p && s < n; v++)
         for (let y = m; y <= f && s < n; y++) {
           const S = `https://${r[(v + y) % r.length]}.google.com/vt/lyrs=s,h&x=${v}&y=${y}&z=${c}`, P = new Image();
@@ -3091,9 +3123,9 @@ class ve {
     } catch {
       s = 0, n = 0;
     }
-    const c = `https://acervofundiario.incra.gov.br/i3geo/ogc.php?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetFeatureInfo&FORMAT=image/png&TRANSPARENT=true&QUERY_LAYERS=certificada_sigef_particular_pr&LAYERS=certificada_sigef_particular_pr&INFO_FORMAT=application/json&X=${s}&Y=${n}&WIDTH=${t.x}&HEIGHT=${t.y}&SRS=EPSG:4326&BBOX=${r}`, u = this.map.getContainer();
-    u.style.cursor = "wait";
-    const d = x.popup({
+    const c = `https://acervofundiario.incra.gov.br/i3geo/ogc.php?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetFeatureInfo&FORMAT=image/png&TRANSPARENT=true&QUERY_LAYERS=certificada_sigef_particular_pr&LAYERS=certificada_sigef_particular_pr&INFO_FORMAT=application/json&X=${s}&Y=${n}&WIDTH=${t.x}&HEIGHT=${t.y}&SRS=EPSG:4326&BBOX=${r}`, d = this.map.getContainer();
+    d.style.cursor = "wait";
+    const u = x.popup({
       className: "compact-sigef-popup",
       maxWidth: 250
     }).setLatLng(o.latlng).setContent(`
@@ -3158,31 +3190,31 @@ class ve {
                 detail: { uuid: P, nome: _ }
               })
             );
-          }), d.setContent(L);
+          }), u.setContent(L);
         } else
-          d.setContent(`
+          u.setContent(`
             <div style="font-family:sans-serif; font-size:12px; color:#b45309; padding:2px 0;">
               Lote identificado, mas código da parcela indisponível.
             </div>
           `);
       } else
-        d.setContent(`
+        u.setContent(`
           <div style="font-family:sans-serif; font-size:12px; color:rgba(255, 255, 255, 0.7); padding:2px 0;">
             Nenhum imóvel SIGEF certificado neste ponto.
           </div>
         `);
     } catch (m) {
-      m.name === "AbortError" ? d.setContent(`
+      m.name === "AbortError" ? u.setContent(`
           <div style="font-family:sans-serif; font-size:12px; color:#f59e0b; padding:2px 0;">
             Consulta cancelada ou tempo limite de resposta esgotado.
           </div>
-        `) : (console.warn("Erro ao consultar SIGEF:", m), d.setContent(`
+        `) : (console.warn("Erro ao consultar SIGEF:", m), u.setContent(`
           <div style="font-family:sans-serif; font-size:12px; color:#f59e0b; padding:2px 0;">
             Serviço de consulta SIGEF indisponível nesta área.
           </div>
         `));
     } finally {
-      u.style.cursor = "";
+      d.style.cursor = "";
     }
   }
 }
@@ -3297,7 +3329,7 @@ class ye {
           } catch {
           }
         }, 80);
-        const n = this.mapContainer.getBoundingClientRect(), c = o.clientX - n.left, u = o.clientY - n.top, d = this.map.mouseEventToContainerPoint(o), h = Math.abs(c - this.selectStartPos.x), p = Math.abs(u - this.selectStartPos.y);
+        const n = this.mapContainer.getBoundingClientRect(), c = o.clientX - n.left, d = o.clientY - n.top, u = this.map.mouseEventToContainerPoint(o), h = Math.abs(c - this.selectStartPos.x), p = Math.abs(d - this.selectStartPos.y);
         if (h < 4 && p < 4) {
           this.selectionHappened = !1;
           const _ = o.target;
@@ -3310,10 +3342,10 @@ class ye {
           this.selectionHappened = !1;
         }, 120);
         const m = {
-          x1: Math.min(this.selectStartPoint.x, d.x),
-          y1: Math.min(this.selectStartPoint.y, d.y),
-          x2: Math.max(this.selectStartPoint.x, d.x),
-          y2: Math.max(this.selectStartPoint.y, d.y)
+          x1: Math.min(this.selectStartPoint.x, u.x),
+          y1: Math.min(this.selectStartPoint.y, u.y),
+          x2: Math.max(this.selectStartPoint.x, u.x),
+          y2: Math.max(this.selectStartPoint.y, u.y)
         }, f = ((r = this.ctx.mapaController) == null ? void 0 : r.getMarkers()) || [], v = ((s = this.ctx.mapaController) == null ? void 0 : s.getVizinhosMarkers()) || [], y = [], w = [], S = !this.ctx.layerManager || this.ctx.layerManager.isLayerActiveAndSelectable("vertices"), P = !this.ctx.layerManager || this.ctx.layerManager.isLayerActiveAndSelectable("vizinhos");
         S && f.forEach((_) => {
           const I = _.pontoId;
@@ -3406,8 +3438,8 @@ class F {
 l(F, "renderers", /* @__PURE__ */ new Map());
 class _e {
   render(o, t, e) {
-    var n, c, u;
-    const i = ((n = o.dados) == null ? void 0 : n.url) || "https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}", a = ((c = o.dados) == null ? void 0 : c.subdomains) || ["mt0", "mt1", "mt2", "mt3"], r = ((u = o.dados) == null ? void 0 : u.attribution) || "Google Satélite";
+    var n, c, d;
+    const i = ((n = o.dados) == null ? void 0 : n.url) || "https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}", a = ((c = o.dados) == null ? void 0 : c.subdomains) || ["mt0", "mt1", "mt2", "mt3"], r = ((d = o.dados) == null ? void 0 : d.attribution) || "Google Satélite";
     return x.tileLayer(i, {
       maxZoom: 24,
       maxNativeZoom: 20,
@@ -3430,8 +3462,8 @@ class _e {
 }
 class we {
   render(o, t, e) {
-    var c, u, d, h;
-    const i = ((c = o.dados) == null ? void 0 : c.url) || "https://acervofundiario.incra.gov.br/i3geo/ogc.php", a = ((u = o.dados) == null ? void 0 : u.layers) || "certificada_sigef_particular_pr", r = ((d = o.dados) == null ? void 0 : d.format) || "image/png", s = ((h = o.dados) == null ? void 0 : h.attribution) || "INCRA/SIGEF";
+    var c, d, u, h;
+    const i = ((c = o.dados) == null ? void 0 : c.url) || "https://acervofundiario.incra.gov.br/i3geo/ogc.php", a = ((d = o.dados) == null ? void 0 : d.layers) || "certificada_sigef_particular_pr", r = ((u = o.dados) == null ? void 0 : u.format) || "image/png", s = ((h = o.dados) == null ? void 0 : h.attribution) || "INCRA/SIGEF";
     return x.tileLayer.wms(i, {
       layers: a,
       format: r,
@@ -3473,14 +3505,14 @@ class Ee {
   calculateWeight(o, t, e) {
     const i = o.estilo.espessuraLinha || e.config.perimetroWeight || 2, a = e.graphicScale.lineScaleMultiplier || 1;
     if (o.estilo.scaleMode === "world") {
-      const r = o.estilo.dimensaoMetros || 0.3, s = t.getCenter(), n = t.getZoom(), c = 40075016686e-3 * Math.abs(Math.cos(s.lat * Math.PI / 180)) / Math.pow(2, n + 8), u = r / (c > 0 ? c : 1);
-      return Math.max(1, Math.round(u * a));
+      const r = o.estilo.dimensaoMetros || 0.3, s = t.getCenter(), n = t.getZoom(), c = 40075016686e-3 * Math.abs(Math.cos(s.lat * Math.PI / 180)) / Math.pow(2, n + 8), d = r / (c > 0 ? c : 1);
+      return Math.max(1, Math.round(d * a));
     }
     return Math.max(1, Math.round(i * a));
   }
   rebuildLines(o, t, e, i, a) {
     var f, v, y, w, S, P, _, I;
-    const r = o.id === "homologados", s = ((f = o.dados) == null ? void 0 : f.conexoes) ?? (Array.isArray(o.dados) && o.dados.length > 0 && "origemId" in o.dados[0] ? o.dados : null), n = ((v = o.dados) == null ? void 0 : v.segmentos) || i.segmentos || [], c = ((y = o.dados) == null ? void 0 : y.pontos) || (r ? i.bancoPontos || [] : i.pontos) || [], u = this.calculateWeight(o, e, i), d = o.opacidade !== void 0 ? o.opacidade : 1, h = o.interativo && !o.bloqueada, p = [];
+    const r = o.id === "homologados", s = ((f = o.dados) == null ? void 0 : f.conexoes) ?? (Array.isArray(o.dados) && o.dados.length > 0 && "origemId" in o.dados[0] ? o.dados : null), n = ((v = o.dados) == null ? void 0 : v.segmentos) || i.segmentos || [], c = ((y = o.dados) == null ? void 0 : y.pontos) || (r ? i.bancoPontos || [] : i.pontos) || [], d = this.calculateWeight(o, e, i), u = o.opacidade !== void 0 ? o.opacidade : 1, h = o.interativo && !o.bloqueada, p = [];
     c.forEach((g) => {
       const C = R(g.lat ?? g.latitude ?? g.y, g.lon ?? g.lng ?? g.longitude ?? g.x);
       C && p.push({ ...g, lat: C.lat, lon: C.lon });
@@ -3502,10 +3534,10 @@ class Ee {
         var N, O, z, H, $, A, k;
         const C = m(g.origemId), L = m(g.destinoId);
         if (C && L && C.lat && C.lon && L.lat && L.lon) {
-          const M = g.tipoLinha === "tracejada" || ((N = g.estilo) == null ? void 0 : N.tipoLinha) === "tracejada", T = ((O = g.estilo) == null ? void 0 : O.cor) || ((z = g.estilo) == null ? void 0 : z.color) || o.estilo.corPrimaria || "#00f5a0", q = ((H = g.estilo) == null ? void 0 : H.espessura) || (($ = g.estilo) == null ? void 0 : $.weight) || u, B = x.polyline([[C.lat, C.lon], [L.lat, L.lon]], {
+          const M = g.tipoLinha === "tracejada" || ((N = g.estilo) == null ? void 0 : N.tipoLinha) === "tracejada", T = ((O = g.estilo) == null ? void 0 : O.cor) || ((z = g.estilo) == null ? void 0 : z.color) || o.estilo.corPrimaria || "#00f5a0", q = ((H = g.estilo) == null ? void 0 : H.espessura) || (($ = g.estilo) == null ? void 0 : $.weight) || d, B = x.polyline([[C.lat, C.lon], [L.lat, L.lon]], {
             color: T,
             weight: q,
-            opacity: ((A = g.estilo) == null ? void 0 : A.opacidade) ?? d,
+            opacity: ((A = g.estilo) == null ? void 0 : A.opacidade) ?? u,
             dashArray: M ? "6, 6" : o.estilo.dashArray,
             pane: a,
             interactive: h
@@ -3538,8 +3570,8 @@ class Ee {
         if (H.length < 2) return;
         const $ = H.map((k) => [k.lat, k.lon]), A = x.polyline($, {
           color: N,
-          weight: u,
-          opacity: d,
+          weight: d,
+          opacity: u,
           dashArray: o.estilo.dashArray,
           pane: a,
           interactive: h
@@ -3553,8 +3585,8 @@ class Ee {
           const k = $[$.length - 1], M = $[0];
           x.polyline([k, M], {
             color: N,
-            weight: u,
-            opacity: d,
+            weight: d,
+            opacity: u,
             dashArray: "4, 4",
             pane: a,
             interactive: h
@@ -3570,8 +3602,8 @@ class Ee {
         if (C && L && C.lat && C.lon && L.lat && L.lon) {
           const O = g.tipo_limite_sigef || g.tipo_limite || "", z = g.metodo_posicionamento_sigef || g.metodo_posicionamento || "", H = O === "LA1" ? "#10b981" : O === "LN1" ? "#3b82f6" : "#00f5a0", $ = o.estilo.corPrimaria || H, A = x.polyline([[C.lat, C.lon], [L.lat, L.lon]], {
             color: $,
-            weight: u,
-            opacity: d,
+            weight: d,
+            opacity: u,
             dashArray: O === "LN1" ? "6, 6" : o.estilo.dashArray,
             pane: a,
             interactive: h
@@ -3608,8 +3640,8 @@ class Ee {
         const $ = H.map((k) => [k.lat, k.lon]);
         if (x.polyline($, {
           color: N,
-          weight: u,
-          opacity: d,
+          weight: d,
+          opacity: u,
           dashArray: O,
           pane: a,
           interactive: h
@@ -3617,8 +3649,8 @@ class Ee {
           const k = $[$.length - 1], M = $[0];
           x.polyline([k, M], {
             color: N,
-            weight: u,
-            opacity: d,
+            weight: d,
+            opacity: u,
             dashArray: r ? "6, 8" : "4, 4",
             pane: a,
             interactive: h
@@ -3676,12 +3708,12 @@ class ke {
     const r = () => {
       o.estilo.scaleMode === "world" && i.eachLayer((s) => {
         if (s.setIcon && s.baseSize && s.shapeStyle && s.markerBg && s.pontoId) {
-          const n = this.calculateSize(o, t, e, s.baseSize), c = e.config.enableAnimations ? "transition-all duration-150" : "", u = at(s.shapeStyle, n, s.markerBg, c, `map-marker-${o.id}-${s.pontoId}`), d = x.divIcon({
-            html: u,
+          const n = this.calculateSize(o, t, e, s.baseSize), c = e.config.enableAnimations ? "transition-all duration-150" : "", d = at(s.shapeStyle, n, s.markerBg, c, `map-marker-${o.id}-${s.pontoId}`), u = x.divIcon({
+            html: d,
             className: "custom-leaflet-marker flex items-center justify-center",
             iconSize: [n + 6, n + 6]
           });
-          s.setIcon(d);
+          s.setIcon(u);
         }
       });
     };
@@ -3690,14 +3722,14 @@ class ke {
   calculateSize(o, t, e, i) {
     const a = e.graphicScale.markerScaleMultiplier || 1;
     if (o.estilo.scaleMode === "world") {
-      const r = o.estilo.dimensaoMetros || 0.25, s = t.getCenter(), n = t.getZoom(), c = 40075016686e-3 * Math.abs(Math.cos(s.lat * Math.PI / 180)) / Math.pow(2, n + 8), u = r / (c > 0 ? c : 1);
-      return Math.max(i, Math.round(u * a));
+      const r = o.estilo.dimensaoMetros || 0.25, s = t.getCenter(), n = t.getZoom(), c = 40075016686e-3 * Math.abs(Math.cos(s.lat * Math.PI / 180)) / Math.pow(2, n + 8), d = r / (c > 0 ? c : 1);
+      return Math.max(i, Math.round(d * a));
     }
     return Math.max(4, Math.round(i * a));
   }
   rebuildPoints(o, t, e, i, a) {
-    var d;
-    const r = o.id === "homologados" || o.id === "homologados-pontos", s = o.id === "vizinhos", c = (((d = o.dados) == null ? void 0 : d.pontos) ?? (Array.isArray(o.dados) ? o.dados : null)) || (r ? i.bancoPontos || [] : i.pontos) || [], u = o.interativo && !o.bloqueada;
+    var u;
+    const r = o.id === "homologados" || o.id === "homologados-pontos", s = o.id === "vizinhos", c = (((u = o.dados) == null ? void 0 : u.pontos) ?? (Array.isArray(o.dados) ? o.dados : null)) || (r ? i.bancoPontos || [] : i.pontos) || [], d = o.interativo && !o.bloqueada;
     c.forEach((h) => {
       var v;
       const p = h.lat ?? h.latitude ?? h.y, m = h.lon ?? h.lng ?? h.longitude ?? h.x, f = R(p, m);
@@ -3712,9 +3744,9 @@ class ke {
         }), z = x.marker([y, w], {
           icon: O,
           pane: a,
-          interactive: u
+          interactive: d
         });
-        if (z.pontoId = h.id, z.layerId = o.id, z.isVizinho = s, z.baseSize = g, z.shapeStyle = _, z.markerBg = I, u) {
+        if (z.pontoId = h.id, z.layerId = o.id, z.isVizinho = s, z.baseSize = g, z.shapeStyle = _, z.markerBg = I, d) {
           let H = "";
           const $ = h.acoes || o.acoes || ((v = o.dados) == null ? void 0 : v.acoes) || [], A = J($, h.id);
           if (h.metadados && Object.keys(h.metadados).length > 0) {
@@ -3778,12 +3810,12 @@ class Ae {
     return this.rebuildPolygons(o, i, e, a), i;
   }
   rebuildPolygons(o, t, e, i) {
-    var d, h;
-    const r = (((d = o.dados) == null ? void 0 : d.poligonos) ?? (Array.isArray(o.dados) ? o.dados : null)) || ((h = o.dados) == null ? void 0 : h.confrontantes) || e.confrontantes || [], s = o.interativo && !o.bloqueada, n = o.estilo.corPrimaria || "#a855f7", c = o.estilo.espessuraLinha || 1.5, u = o.opacidade !== void 0 ? o.opacidade : 0.8;
+    var u, h;
+    const r = (((u = o.dados) == null ? void 0 : u.poligonos) ?? (Array.isArray(o.dados) ? o.dados : null)) || ((h = o.dados) == null ? void 0 : h.confrontantes) || e.confrontantes || [], s = o.interativo && !o.bloqueada, n = o.estilo.corPrimaria || "#a855f7", c = o.estilo.espessuraLinha || 1.5, d = o.opacidade !== void 0 ? o.opacidade : 0.8;
     r.forEach((p) => {
       var _, I, g, C, L, N, O, z, H, $;
       if (!p) return;
-      const m = ((_ = p.estilo) == null ? void 0 : _.cor) || ((I = p.estilo) == null ? void 0 : I.color) || n, f = ((g = p.estilo) == null ? void 0 : g.espessura) || ((C = p.estilo) == null ? void 0 : C.weight) || c, v = ((L = p.estilo) == null ? void 0 : L.opacidade) ?? u, y = ((N = p.estilo) == null ? void 0 : N.fillColor) || m, w = ((O = p.estilo) == null ? void 0 : O.fillOpacity) ?? Math.min(0.2, v * 0.15), S = ((z = p.estilo) == null ? void 0 : z.dashArray) || o.estilo.dashArray || "4, 6";
+      const m = ((_ = p.estilo) == null ? void 0 : _.cor) || ((I = p.estilo) == null ? void 0 : I.color) || n, f = ((g = p.estilo) == null ? void 0 : g.espessura) || ((C = p.estilo) == null ? void 0 : C.weight) || c, v = ((L = p.estilo) == null ? void 0 : L.opacidade) ?? d, y = ((N = p.estilo) == null ? void 0 : N.fillColor) || m, w = ((O = p.estilo) == null ? void 0 : O.fillOpacity) ?? Math.min(0.2, v * 0.15), S = ((z = p.estilo) == null ? void 0 : z.dashArray) || o.estilo.dashArray || "4, 6";
       if (p.coordenadas && Array.isArray(p.coordenadas) && p.coordenadas.length >= 3) {
         const A = Array.isArray(p.coordenadas[0]) && Array.isArray(p.coordenadas[0][0]);
         let k;
@@ -3918,19 +3950,19 @@ class Ce {
     const i = x.layerGroup(), a = `pane-${o.id}`, r = () => {
       if (i.clearLayers(), !o.visivel) return;
       if (t.getZoom() > 20) {
-        const n = t.getBounds(), c = n.getSouth(), u = n.getNorth(), d = n.getWest(), h = n.getEast(), p = t.getCenter(), m = 8999e-9, f = Math.cos(p.lat * Math.PI / 180), v = m / (f > 0.1 ? f : 1), y = Math.floor((u - c) / m), w = Math.floor((h - d) / v);
+        const n = t.getBounds(), c = n.getSouth(), d = n.getNorth(), u = n.getWest(), h = n.getEast(), p = t.getCenter(), m = 8999e-9, f = Math.cos(p.lat * Math.PI / 180), v = m / (f > 0.1 ? f : 1), y = Math.floor((d - c) / m), w = Math.floor((h - u) / v);
         if (y < 200 && w < 200) {
           const S = Math.ceil(c / m) * m;
-          for (let _ = S; _ <= u; _ += m)
-            x.polyline([[_, d], [_, h]], {
+          for (let _ = S; _ <= d; _ += m)
+            x.polyline([[_, u], [_, h]], {
               color: o.estilo.corPrimaria || "rgba(0, 245, 160, 0.18)",
               weight: o.estilo.espessuraLinha || 0.6,
               interactive: !1,
               pane: a
             }).addTo(i);
-          const P = Math.ceil(d / v) * v;
+          const P = Math.ceil(u / v) * v;
           for (let _ = P; _ <= h; _ += v)
-            x.polyline([[c, _], [u, _]], {
+            x.polyline([[c, _], [d, _]], {
               color: o.estilo.corPrimaria || "rgba(0, 245, 160, 0.18)",
               weight: o.estilo.espessuraLinha || 0.6,
               interactive: !1,
@@ -4492,8 +4524,8 @@ class ze {
     t.forEach((r) => {
       const s = r.lat ?? r.latitude ?? r.y, n = r.lon ?? r.lng ?? r.longitude ?? r.x, c = R(s, n);
       c && (r.lat = c.lat, r.lon = c.lon);
-      const u = r.confrontante_id ?? r.id_confrontante ?? 0;
-      e.has(u) || e.set(u, []), e.get(u).push(r);
+      const d = r.confrontante_id ?? r.id_confrontante ?? 0;
+      e.has(d) || e.set(d, []), e.get(d).push(r);
     });
     const i = /* @__PURE__ */ new Map();
     (this.context.confrontantes || []).forEach((r) => {
@@ -4502,8 +4534,8 @@ class ze {
     }), e.forEach((r, s) => {
       var n, c;
       if (i.has(s)) {
-        const u = i.get(s);
-        u.pontos = r;
+        const d = i.get(s);
+        d.pontos = r;
       } else
         i.set(s, {
           id: s,
@@ -4565,8 +4597,8 @@ class ze {
       s.pontos && a.push(...s.pontos);
     });
     const r = a.map((s) => {
-      const n = s.lat ?? s.latitude ?? s.y, c = s.lon ?? s.lng ?? s.longitude ?? s.x, u = R(n, c);
-      return u ? x.latLng(u.lat, u.lon) : null;
+      const n = s.lat ?? s.latitude ?? s.y, c = s.lon ?? s.lng ?? s.longitude ?? s.x, d = R(n, c);
+      return d ? x.latLng(d.lat, d.lon) : null;
     }).filter((s) => s !== null);
     if (r.length === 1)
       this.core.map.setView(r[0], 18);
@@ -4606,29 +4638,29 @@ class ze {
     if (o == null) return null;
     const t = String(o).trim(), e = (n) => n ? (n.lon = n.lng, n) : null, a = this.getMarkers().find((n) => {
       var p, m, f, v;
-      const c = n.pontoId, u = n.elementoId ?? n.id ?? ((p = n.options) == null ? void 0 : p.pontoId) ?? ((m = n.options) == null ? void 0 : m.id), d = (f = n.elemento) == null ? void 0 : f.nome_vertice, h = (v = n.elemento) == null ? void 0 : v.codigo_completo;
-      return String(c) === t || String(u) === t || d && String(d).toLowerCase() === t.toLowerCase() || h && String(h).toLowerCase() === t.toLowerCase();
+      const c = n.pontoId, d = n.elementoId ?? n.id ?? ((p = n.options) == null ? void 0 : p.pontoId) ?? ((m = n.options) == null ? void 0 : m.id), u = (f = n.elemento) == null ? void 0 : f.nome_vertice, h = (v = n.elemento) == null ? void 0 : v.codigo_completo;
+      return String(c) === t || String(d) === t || u && String(u).toLowerCase() === t.toLowerCase() || h && String(h).toLowerCase() === t.toLowerCase();
     });
     if (a && typeof a.getLatLng == "function")
       return e(a.getLatLng());
     if (this.layerManager)
       for (const n of this.layerManager.getAllLayerInstances()) {
         let c = null;
-        const u = (d) => {
+        const d = (u) => {
           var m, f, v, y, w;
           if (c) return;
-          const h = d.pontoId ?? d.elementoId ?? d.id ?? ((m = d.options) == null ? void 0 : m.id) ?? ((f = d.options) == null ? void 0 : f.pontoId), p = ((v = d.elemento) == null ? void 0 : v.nome) ?? ((y = d.elemento) == null ? void 0 : y.nome_vertice) ?? ((w = d.options) == null ? void 0 : w.nome);
-          (String(h) === t || p && String(p).toLowerCase() === t.toLowerCase()) && (typeof d.getLatLng == "function" ? c = d.getLatLng() : typeof d.getBounds == "function" && (c = d.getBounds().getCenter()));
+          const h = u.pontoId ?? u.elementoId ?? u.id ?? ((m = u.options) == null ? void 0 : m.id) ?? ((f = u.options) == null ? void 0 : f.pontoId), p = ((v = u.elemento) == null ? void 0 : v.nome) ?? ((y = u.elemento) == null ? void 0 : y.nome_vertice) ?? ((w = u.options) == null ? void 0 : w.nome);
+          (String(h) === t || p && String(p).toLowerCase() === t.toLowerCase()) && (typeof u.getLatLng == "function" ? c = u.getLatLng() : typeof u.getBounds == "function" && (c = u.getBounds().getCenter()));
         };
-        if (u(n), typeof n.eachLayer == "function" && n.eachLayer(u), c) return e(c);
+        if (d(n), typeof n.eachLayer == "function" && n.eachLayer(d), c) return e(c);
       }
     if (this.context.pontos && this.context.pontos.length > 0) {
       const n = this.context.pontos.find(
         (c) => String(c.id) === t || c.nome_vertice && String(c.nome_vertice).toLowerCase() === t.toLowerCase()
       );
       if (n) {
-        const c = n.lat ?? n.latitude ?? n.y, u = n.lon ?? n.lng ?? n.longitude ?? n.x, d = R(c, u);
-        if (d) return e(x.latLng(d.lat, d.lon));
+        const c = n.lat ?? n.latitude ?? n.y, d = n.lon ?? n.lng ?? n.longitude ?? n.x, u = R(c, d);
+        if (u) return e(x.latLng(u.lat, u.lon));
       }
     }
     if (this.context.bancoPontos && this.context.bancoPontos.length > 0) {
@@ -4636,8 +4668,8 @@ class ze {
         (c) => String(c.id) === t || c.codigo_completo && String(c.codigo_completo).toLowerCase() === t.toLowerCase() || c.nome_vertice && String(c.nome_vertice).toLowerCase() === t.toLowerCase()
       );
       if (n) {
-        const c = n.lat ?? n.latitude ?? n.y, u = n.lon ?? n.lng ?? n.longitude ?? n.x, d = R(c, u);
-        if (d) return e(x.latLng(d.lat, d.lon));
+        const c = n.lat ?? n.latitude ?? n.y, d = n.lon ?? n.lng ?? n.longitude ?? n.x, u = R(c, d);
+        if (u) return e(x.latLng(u.lat, u.lon));
       }
     }
     if (this.context.confrontantes && this.context.confrontantes.length > 0) {
@@ -4646,13 +4678,13 @@ class ze {
       );
       if (n) {
         if (n.pontos && n.pontos.length > 0) {
-          let c = 0, u = 0, d = 0;
+          let c = 0, d = 0, u = 0;
           for (const h of n.pontos) {
             const p = h.lat ?? h.latitude ?? h.y, m = h.lon ?? h.lng ?? h.longitude ?? h.x, f = R(p, m);
-            f && (c += f.lat, u += f.lon, d++);
+            f && (c += f.lat, d += f.lon, u++);
           }
-          if (d > 0)
-            return e(x.latLng(c / d, u / d));
+          if (u > 0)
+            return e(x.latLng(c / u, d / u));
         }
         if (n.poligono_wkt) {
           const c = ft(n.poligono_wkt);
@@ -4665,11 +4697,11 @@ class ze {
         (c) => String(c.id) === t || `${c.ponto_inicio_id}-${c.ponto_fim_id}` === t
       );
       if (n) {
-        const c = (r = this.context.pontos) == null ? void 0 : r.find((d) => String(d.id) === String(n.ponto_inicio_id)), u = (s = this.context.pontos) == null ? void 0 : s.find((d) => String(d.id) === String(n.ponto_fim_id));
-        if (c && u) {
-          const d = R(c.lat ?? c.latitude, c.lon ?? c.longitude), h = R(u.lat ?? u.latitude, u.lon ?? u.longitude);
-          if (d && h)
-            return e(x.latLng((d.lat + h.lat) / 2, (d.lon + h.lon) / 2));
+        const c = (r = this.context.pontos) == null ? void 0 : r.find((u) => String(u.id) === String(n.ponto_inicio_id)), d = (s = this.context.pontos) == null ? void 0 : s.find((u) => String(u.id) === String(n.ponto_fim_id));
+        if (c && d) {
+          const u = R(c.lat ?? c.latitude, c.lon ?? c.longitude), h = R(d.lat ?? d.latitude, d.lon ?? d.longitude);
+          if (u && h)
+            return e(x.latLng((u.lat + h.lat) / 2, (u.lon + h.lon) / 2));
         }
       }
     }
@@ -4677,26 +4709,26 @@ class ze {
       for (const n of this.layerManager.getLayers())
         if (n.dados) {
           if (Array.isArray(n.dados.pontos)) {
-            const c = n.dados.pontos.find((u) => String(u.id) === t || u.nome_vertice && String(u.nome_vertice) === t);
+            const c = n.dados.pontos.find((d) => String(d.id) === t || d.nome_vertice && String(d.nome_vertice) === t);
             if (c) {
-              const u = R(c.lat, c.lon);
-              if (u) return e(x.latLng(u.lat, u.lon));
+              const d = R(c.lat, c.lon);
+              if (d) return e(x.latLng(d.lat, d.lon));
             }
           }
           if (Array.isArray(n.dados.poligonos)) {
-            const c = n.dados.poligonos.find((u) => String(u.id) === t);
+            const c = n.dados.poligonos.find((d) => String(d.id) === t);
             if (c) {
               if (c.wkt) {
-                const u = ft(c.wkt);
-                if (u) return e(x.latLng(u.lat, u.lon));
+                const d = ft(c.wkt);
+                if (d) return e(x.latLng(d.lat, d.lon));
               }
               if (Array.isArray(c.coordenadas) && c.coordenadas.length > 0) {
-                let u = 0, d = 0, h = 0;
+                let d = 0, u = 0, h = 0;
                 for (const p of c.coordenadas) {
                   const m = R(p[0], p[1]) || R(p[1], p[0]);
-                  m && (u += m.lat, d += m.lon, h++);
+                  m && (d += m.lat, u += m.lon, h++);
                 }
-                if (h > 0) return e(x.latLng(u / h, d / h));
+                if (h > 0) return e(x.latLng(d / h, u / h));
               }
             }
           }
@@ -4726,7 +4758,7 @@ class ze {
     const s = (t == null ? void 0 : t.cor) || "#00f5a0", n = "pane-destaque";
     let c = e.getPane(n);
     c || (c = e.createPane(n)), c && (c.style.zIndex = "850", c.style.pointerEvents = "none");
-    const u = x.divIcon({
+    const d = x.divIcon({
       className: "cad-destaque-marker-container",
       html: `
         <div class="cad-pulse-highlight" style="--cad-pulse-cor: ${E(s)};">
@@ -4739,13 +4771,13 @@ class ze {
       iconAnchor: [26, 26]
     });
     this.destaqueMarker = x.marker(i, {
-      icon: u,
+      icon: d,
       pane: n,
       interactive: !1,
       keyboard: !1
     }), this.destaqueMarker.addTo(e);
-    const d = (p = (h = this.destaqueMarker).getElement) == null ? void 0 : p.call(h);
-    d && (d.style.pointerEvents = "none"), t != null && t.duracaoMs && t.duracaoMs > 0 && (this.destaqueTimeoutId = window.setTimeout(() => {
+    const u = (p = (h = this.destaqueMarker).getElement) == null ? void 0 : p.call(h);
+    u && (u.style.pointerEvents = "none"), t != null && t.duracaoMs && t.duracaoMs > 0 && (this.destaqueTimeoutId = window.setTimeout(() => {
       this.limparDestaque();
     }, t.duracaoMs));
   }
@@ -5011,16 +5043,16 @@ class Me extends HTMLElement {
     });
     const t = this.controller.context.onMarkerClick;
     this.controller.context.onMarkerClick = (i, a, r, s) => {
-      var u;
+      var d;
       let n = r;
-      n || (n = this._pontos.find((d) => String(d.id) === String(i)) || this._bancoPontos.find((d) => String(d.id) === String(i)) || this._confrontantes.find((d) => String(d.id) === String(i)));
+      n || (n = this._pontos.find((u) => String(u.id) === String(i)) || this._bancoPontos.find((u) => String(u.id) === String(i)) || this._confrontantes.find((u) => String(u.id) === String(i)));
       let c = s;
       if (!c && n) {
-        const d = n.lat ?? n.latitude ?? 0, h = n.lon ?? n.lng ?? n.longitude ?? 0;
-        c = { lat: Number(d), lon: Number(h) };
+        const u = n.lat ?? n.latitude ?? 0, h = n.lon ?? n.lng ?? n.longitude ?? 0;
+        c = { lat: Number(u), lon: Number(h) };
       }
       if (c || (c = { lat: 0, lon: 0 }), this.modoSequencial) {
-        (u = this.controller.getMap()) == null || u.closePopup(), this.dispatchEvent(new CustomEvent("ui-clique-sequencial", {
+        (d = this.controller.getMap()) == null || d.closePopup(), this.dispatchEvent(new CustomEvent("ui-clique-sequencial", {
           detail: {
             id: i,
             elemento: n ?? { id: i, lat: c.lat, lon: c.lon },
@@ -5034,14 +5066,14 @@ class Me extends HTMLElement {
       if (this.customMarkerClickHandler)
         try {
           this.customMarkerClickHandler(Number(i), a);
-        } catch (d) {
-          console.error("Erro no callback de clique de marcador:", d);
+        } catch (u) {
+          console.error("Erro no callback de clique de marcador:", u);
         }
       if (t)
         try {
           t(i, a, n, c);
-        } catch (d) {
-          console.error("Erro no handler anterior de marker click:", d);
+        } catch (u) {
+          console.error("Erro no handler anterior de marker click:", u);
         }
       this.dispatchEvent(new CustomEvent("ui-ponto-selecionado", {
         detail: { selectedIds: [i], lastSelectedId: i, isVizinho: a },
@@ -5087,8 +5119,8 @@ class Me extends HTMLElement {
       const s = r.composedPath ? r.composedPath()[0] : r.target, n = (c = s == null ? void 0 : s.closest) == null ? void 0 : c.call(s, ".ui-popup-btn");
       if (n) {
         r.preventDefault(), r.stopPropagation();
-        const u = n.getAttribute("data-acao-id"), d = n.getAttribute("data-elemento-id");
-        u && d !== null && this.dispararAcaoPopup(u, d);
+        const d = n.getAttribute("data-acao-id"), u = n.getAttribute("data-elemento-id");
+        d && u !== null && this.dispararAcaoPopup(d, u);
       }
     });
   }
@@ -5115,18 +5147,18 @@ class Me extends HTMLElement {
         y: Math.round(t.clientY - f.top)
       };
     }
-    let u, d;
+    let d, u;
     if (e)
-      u = e.lat, d = e.lng ?? e.lon;
+      d = e.lat, u = e.lng ?? e.lon;
     else {
       const f = n.containerPointToLatLng(x.point(c.x, c.y));
-      u = f.lat, d = f.lng;
+      d = f.lat, u = f.lng;
     }
     const h = this.controller.layerManager.getLayers().filter((f) => f.visivel).map((f) => f.id);
     this.dispatchEvent(new CustomEvent("ui-canvas-clique", {
       detail: {
-        lat: u,
-        lon: d,
+        lat: d,
+        lon: u,
         pontoPixel: c,
         camadasAtivas: h,
         eventoOriginal: t
@@ -5176,10 +5208,10 @@ class Me extends HTMLElement {
         if (r) {
           const s = r.querySelector(".layer-chk-visibility");
           s && s.checked !== a.visivel && (s.checked = a.visivel);
-          const n = r.querySelector(".layer-opacity-slider"), c = r.querySelector(".opacity-percent-label"), u = Math.round(a.opacidade * 100);
-          n && parseInt(n.value, 10) !== u && (n.value = String(u)), c && (c.textContent = `${u}%`);
-          const d = r.querySelector(".btn-lock-layer");
-          d && (d.classList.toggle("active", !!a.bloqueada), d.title = a.bloqueada ? "Desbloquear Camada" : "Bloquear Camada");
+          const n = r.querySelector(".layer-opacity-slider"), c = r.querySelector(".opacity-percent-label"), d = Math.round(a.opacidade * 100);
+          n && parseInt(n.value, 10) !== d && (n.value = String(d)), c && (c.textContent = `${d}%`);
+          const u = r.querySelector(".btn-lock-layer");
+          u && (u.classList.toggle("active", !!a.bloqueada), u.title = a.bloqueada ? "Desbloquear Camada" : "Bloquear Camada");
           const h = r.querySelector(".btn-toggle-scale-mode");
           h && a.estilo.scaleMode && (h.textContent = a.estilo.scaleMode === "world" ? "Métrico (m)" : "Tela (px)");
         }
@@ -5220,8 +5252,8 @@ class Me extends HTMLElement {
       });
     }), t.querySelectorAll(".layer-opacity-slider").forEach((a) => {
       this.layerItemListeners.add(a, "input", (r) => {
-        const s = r.target.getAttribute("data-layer-id"), n = parseInt(r.target.value, 10), c = n / 100, u = r.target.closest(".layer-item"), d = u == null ? void 0 : u.querySelector(".opacity-percent-label");
-        d && (d.textContent = `${n}%`), s && this.setLayerOpacity(s, c);
+        const s = r.target.getAttribute("data-layer-id"), n = parseInt(r.target.value, 10), c = n / 100, d = r.target.closest(".layer-item"), u = d == null ? void 0 : d.querySelector(".opacity-percent-label");
+        u && (u.textContent = `${n}%`), s && this.setLayerOpacity(s, c);
       });
     }), t.querySelectorAll(".btn-lock-layer").forEach((a) => {
       this.layerItemListeners.add(a, "click", (r) => {
@@ -5520,65 +5552,65 @@ function Ie(b) {
   }
   function r() {
     a();
-    let u = s();
+    let d = s();
     for (a(); t < o.length; ) {
-      const d = e();
-      if (d === "+" || d === "-") {
+      const u = e();
+      if (u === "+" || u === "-") {
         i(), a();
         const h = t, p = s();
-        a(), o.slice(h, t).includes("%") ? u = d === "+" ? u + u * p : u - u * p : u = d === "+" ? u + p : u - p;
+        a(), o.slice(h, t).includes("%") ? d = u === "+" ? d + d * p : d - d * p : d = u === "+" ? d + p : d - p;
       } else
         break;
     }
-    return u;
+    return d;
   }
   function s() {
     a();
-    let u = n();
+    let d = n();
     for (a(); t < o.length; ) {
-      const d = e();
-      if (d === "*" || d === "/" || d === "x" || d === "X") {
+      const u = e();
+      if (u === "*" || u === "/" || u === "x" || u === "X") {
         i(), a();
         const h = n();
-        if (d === "/" && h === 0)
+        if (u === "/" && h === 0)
           throw new Error("Divisão por zero");
-        u = d === "/" ? u / h : u * h, a();
+        d = u === "/" ? d / h : d * h, a();
       } else
         break;
     }
-    return u;
+    return d;
   }
   function n() {
     a();
-    let u = c();
+    let d = c();
     if (a(), e() === "^") {
       i();
-      const d = n();
-      u = Math.pow(u, d);
+      const u = n();
+      d = Math.pow(d, u);
     } else if (o.slice(t, t + 2) === "**") {
       t += 2;
-      const d = n();
-      u = Math.pow(u, d);
+      const u = n();
+      d = Math.pow(d, u);
     }
-    return u;
+    return d;
   }
   function c() {
     a();
-    const u = e();
-    if (u === "+" || u === "-") {
+    const d = e();
+    if (d === "+" || d === "-") {
       i();
       const p = c();
-      return u === "-" ? -p : p;
+      return d === "-" ? -p : p;
     }
-    if (u === "(") {
+    if (d === "(") {
       i();
       const p = r();
       return a(), e() === ")" && i(), a(), e() === "%" ? (i(), p / 100) : p;
     }
-    const d = o.slice(t).match(/^([a-zA-Z_]\w*)\s*\(/);
-    if (d) {
-      const p = d[1].toLowerCase();
-      t += d[0].length;
+    const u = o.slice(t).match(/^([a-zA-Z_]\w*)\s*\(/);
+    if (u) {
+      const p = u[1].toLowerCase();
+      t += u[0].length;
       const m = r();
       a(), e() === ")" && i();
       let f = m;
@@ -5616,11 +5648,11 @@ function Ie(b) {
       let p = parseFloat(h[0]);
       return a(), e() === "%" && (i(), p = p / 100), p;
     }
-    throw new Error("Caractere inválido: " + u);
+    throw new Error("Caractere inválido: " + d);
   }
   try {
-    const u = r();
-    return a(), t < o.length ? null : isFinite(u) ? u : null;
+    const d = r();
+    return a(), t < o.length ? null : isFinite(d) ? d : null;
   } catch {
     return null;
   }
@@ -5876,8 +5908,8 @@ class ht extends HTMLElement {
         if (!t) return;
         const c = a.width;
         if (c <= 0) return;
-        const u = n.clientX - a.left;
-        let m = Math.max(80, Math.min(c - 130, u)) / c * 100;
+        const d = n.clientX - a.left;
+        let m = Math.max(80, Math.min(c - 130, d)) / c * 100;
         m = Math.max(20, Math.min(65, m)), this.definirLarguraRotulo(m);
       }, s = (n) => {
         if (t) {
@@ -5939,34 +5971,34 @@ class ht extends HTMLElement {
       n.className = "ui-prop__tipo-subtexto", n.textContent = e.subtipo || "Tipo de Família", r.appendChild(s), r.appendChild(n), i.appendChild(a), i.appendChild(r);
       const c = document.createElement("div");
       c.className = "ui-prop__tipo-revit-subbarra";
-      const u = document.createElement("select");
-      u.className = "ui-prop__tipo-select", this._tipos.forEach((h) => {
+      const d = document.createElement("select");
+      d.className = "ui-prop__tipo-select", this._tipos.forEach((h) => {
         const p = document.createElement("option");
-        p.value = h.id, p.textContent = `${h.rotulo}${h.subtipo ? ` : ${h.subtipo}` : ""}`, String(h.id) === String(this._tipoSelecionadoId) && (p.selected = !0), u.appendChild(p);
-      }), u.addEventListener("change", () => {
-        this.selecionarTipo(u.value);
+        p.value = h.id, p.textContent = `${h.rotulo}${h.subtipo ? ` : ${h.subtipo}` : ""}`, String(h.id) === String(this._tipoSelecionadoId) && (p.selected = !0), d.appendChild(p);
+      }), d.addEventListener("change", () => {
+        this.selecionarTipo(d.value);
       });
-      const d = document.createElement("button");
-      d.type = "button", d.className = "ui-prop__btn-editar-tipo", d.innerHTML = `
+      const u = document.createElement("button");
+      u.type = "button", u.className = "ui-prop__btn-editar-tipo", u.innerHTML = `
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px; vertical-align: -1px;">
           <rect x="3" y="3" width="12" height="12" rx="1"></rect>
           <rect x="9" y="9" width="12" height="12" rx="1"></rect>
         </svg>
         <span>Editar tipo</span>
-      `, d.addEventListener("click", () => {
+      `, u.addEventListener("click", () => {
         this.dispatchEvent(new CustomEvent("ui-editar-tipo-clique", {
           bubbles: !0,
           composed: !0,
           detail: { tipo: e }
         }));
-      }), c.appendChild(u), c.appendChild(d), this.tipoContainerElement.appendChild(i), this.tipoContainerElement.appendChild(c);
+      }), c.appendChild(d), c.appendChild(u), this.tipoContainerElement.appendChild(i), this.tipoContainerElement.appendChild(c);
     } else {
       const i = document.createElement("div");
       i.className = "ui-prop__tipo-autocad-bar";
       const a = document.createElement("select");
-      a.className = "ui-prop__tipo-select", this._tipos.forEach((u) => {
-        const d = document.createElement("option");
-        d.value = u.id, d.textContent = u.rotulo, String(u.id) === String(this._tipoSelecionadoId) && (d.selected = !0), a.appendChild(d);
+      a.className = "ui-prop__tipo-select", this._tipos.forEach((d) => {
+        const u = document.createElement("option");
+        u.value = d.id, u.textContent = d.rotulo, String(d.id) === String(this._tipoSelecionadoId) && (u.selected = !0), a.appendChild(u);
       }), a.addEventListener("change", () => {
         this.selecionarTipo(a.value);
       });
@@ -6054,10 +6086,10 @@ class ht extends HTMLElement {
       n.className = "ui-prop__categoria-header";
       const c = document.createElement("div");
       c.className = "ui-prop__categoria-titulo-bloco";
-      const u = document.createElement("span");
-      u.className = "ui-prop__categoria-seta", u.textContent = "▶";
       const d = document.createElement("span");
-      d.textContent = i.titulo, c.appendChild(u), c.appendChild(d);
+      d.className = "ui-prop__categoria-seta", d.textContent = "▶";
+      const u = document.createElement("span");
+      u.textContent = i.titulo, c.appendChild(d), c.appendChild(u);
       const h = document.createElement("span");
       h.className = "ui-prop__categoria-contador", h.textContent = String(a.length), n.appendChild(c), n.appendChild(h), n.addEventListener("click", () => {
         this.toggleCategoria(i.id);
@@ -6076,20 +6108,20 @@ class ht extends HTMLElement {
     i.className = "ui-prop__linha", i.setAttribute("data-prop-id", e.id);
     const a = this._valoresAtuais[e.id] !== void 0 ? this._valoresAtuais[e.id] : e.valor, r = this._valoresOriginais[e.id];
     this._dirty && a !== r && i.classList.add("ui-prop__linha--modificada"), i.addEventListener("dblclick", () => {
-      const d = i.querySelector(
+      const u = i.querySelector(
         'input:not([type="color"]):not(.ui-prop__cor-picker-oculto), select, .ui-prop__btn-acao-inline'
       );
-      d && (d.focus(), d instanceof HTMLInputElement && d.select());
+      u && (u.focus(), u instanceof HTMLInputElement && u.select());
     });
     const s = document.createElement("div");
     s.className = "ui-prop__col-rotulo", s.title = e.rotulo;
     const n = document.createElement("span");
     if (n.textContent = e.rotulo, s.appendChild(n), e.tipo === "numero" && !e.somenteLeitura) {
       s.classList.add("ui-prop__col-rotulo--scrub"), s.title = `${e.rotulo} (Arraste para ajustar, duplo-clique para editar)`;
-      let d = 0, h = 0, p = !1;
+      let u = 0, h = 0, p = !1;
       s.addEventListener("pointerdown", (m) => {
         if (m.button !== 0) return;
-        d = m.clientX;
+        u = m.clientX;
         const f = this._valoresAtuais[e.id];
         h = typeof f == "number" ? f : parseFloat(String(f || 0)) || 0, p = !1;
         try {
@@ -6098,7 +6130,7 @@ class ht extends HTMLElement {
         }
         s.classList.add("ui-prop__col-rotulo--arrastando");
         const v = (w) => {
-          const S = w.clientX - d;
+          const S = w.clientX - u;
           if (Math.abs(S) > 2 && (p = !0), p) {
             let P = 1;
             w.shiftKey ? P = 0.1 : (w.ctrlKey || w.metaKey) && (P = 10);
@@ -6119,10 +6151,10 @@ class ht extends HTMLElement {
     }
     const c = document.createElement("div");
     c.className = "ui-prop__col-valor";
-    const u = this.criarEditorValor(t, e, a);
-    if (c.appendChild(u), e.unidade) {
-      const d = document.createElement("span");
-      d.className = "ui-prop__unidade-sufixo", d.textContent = e.unidade, c.appendChild(d);
+    const d = this.criarEditorValor(t, e, a);
+    if (c.appendChild(d), e.unidade) {
+      const u = document.createElement("span");
+      u.className = "ui-prop__unidade-sufixo", u.textContent = e.unidade, c.appendChild(u);
     }
     return i.appendChild(s), i.appendChild(c), i;
   }
@@ -6136,11 +6168,11 @@ class ht extends HTMLElement {
       s.className = "ui-prop__editor-booleano";
       const n = !!i, c = document.createElement("div");
       c.className = `ui-prop__checkbox-custom ${n ? "ui-prop__checkbox-custom--marcado" : ""}`, c.textContent = n ? "✓" : "";
-      const u = document.createElement("span");
-      return u.className = "ui-prop__booleano-rotulo", u.textContent = n ? "Sim" : "Não", s.appendChild(c), s.appendChild(u), s.addEventListener("click", (d) => {
-        d.preventDefault();
+      const d = document.createElement("span");
+      return d.className = "ui-prop__booleano-rotulo", d.textContent = n ? "Sim" : "Não", s.appendChild(c), s.appendChild(d), s.addEventListener("click", (u) => {
+        u.preventDefault();
         const h = !this._valoresAtuais[e.id];
-        this.registrarAlteracao(t, e.id, h), c.classList.toggle("ui-prop__checkbox-custom--marcado", h), c.textContent = h ? "✓" : "", u.textContent = h ? "Sim" : "Não";
+        this.registrarAlteracao(t, e.id, h), c.classList.toggle("ui-prop__checkbox-custom--marcado", h), c.textContent = h ? "✓" : "", d.textContent = h ? "Sim" : "Não";
       }), s;
     }
     if (e.tipo === "linha" || e.tipo === "linetype") {
@@ -6150,13 +6182,13 @@ class ht extends HTMLElement {
       n.setAttribute("class", "ui-prop__linha-amostra-svg"), n.setAttribute("viewBox", "0 0 44 12");
       const c = document.createElementNS("http://www.w3.org/2000/svg", "line");
       c.setAttribute("x1", "0"), c.setAttribute("y1", "6"), c.setAttribute("x2", "44"), c.setAttribute("y2", "6");
-      const u = (p) => {
+      const d = (p) => {
         const m = String(p || "").toLowerCase();
         m.includes("dash") || m.includes("tracej") || m.includes("hidden") ? c.setAttribute("stroke-dasharray", "6,3") : m.includes("dot") || m.includes("ponto") || m.includes("pontilh") ? c.setAttribute("stroke-dasharray", "2,3") : m.includes("center") || m.includes("eixo") ? c.setAttribute("stroke-dasharray", "8,3,2,3") : c.setAttribute("stroke-dasharray", "none");
       };
-      u(i), n.appendChild(c);
-      const d = document.createElement("select");
-      return d.className = "ui-prop__linha-select", (e.opcoes && e.opcoes.length > 0 ? e.opcoes : [
+      d(i), n.appendChild(c);
+      const u = document.createElement("select");
+      return u.className = "ui-prop__linha-select", (e.opcoes && e.opcoes.length > 0 ? e.opcoes : [
         { id: "ByLayer", rotulo: "ByLayer" },
         { id: "ByBlock", rotulo: "ByBlock" },
         { id: "Continuous", rotulo: "Continuous" },
@@ -6166,12 +6198,12 @@ class ht extends HTMLElement {
         { id: "Dotted", rotulo: "Dotted" }
       ]).forEach((p) => {
         const m = document.createElement("option");
-        m.value = String(p.id), m.textContent = p.rotulo, String(p.id).toLowerCase() === String(i).toLowerCase() && (m.selected = !0), d.appendChild(m);
-      }), d.addEventListener("change", () => {
-        u(d.value), this.registrarAlteracao(t, e.id, d.value);
-      }), d.addEventListener("keydown", (p) => {
-        p.key === "Enter" && this.focarProximoEditor(d);
-      }), s.appendChild(n), s.appendChild(d), s;
+        m.value = String(p.id), m.textContent = p.rotulo, String(p.id).toLowerCase() === String(i).toLowerCase() && (m.selected = !0), u.appendChild(m);
+      }), u.addEventListener("change", () => {
+        d(u.value), this.registrarAlteracao(t, e.id, u.value);
+      }), u.addEventListener("keydown", (p) => {
+        p.key === "Enter" && this.focarProximoEditor(u);
+      }), s.appendChild(n), s.appendChild(u), s;
     }
     if (e.tipo === "espessura" || e.tipo === "lineweight") {
       const s = document.createElement("div");
@@ -6180,13 +6212,13 @@ class ht extends HTMLElement {
       n.setAttribute("class", "ui-prop__espessura-amostra-svg"), n.setAttribute("viewBox", "0 0 38 12");
       const c = document.createElementNS("http://www.w3.org/2000/svg", "line");
       c.setAttribute("x1", "0"), c.setAttribute("y1", "6"), c.setAttribute("x2", "38"), c.setAttribute("y2", "6");
-      const u = (p) => {
+      const d = (p) => {
         const m = parseFloat(String(p).replace(/[^0-9.]/g, ""));
         return isNaN(m) || m <= 0 ? 1.5 : Math.min(8, Math.max(1, m * 8));
       };
-      c.setAttribute("stroke-width", String(u(i))), n.appendChild(c);
-      const d = document.createElement("select");
-      return d.className = "ui-prop__espessura-select", (e.opcoes && e.opcoes.length > 0 ? e.opcoes : [
+      c.setAttribute("stroke-width", String(d(i))), n.appendChild(c);
+      const u = document.createElement("select");
+      return u.className = "ui-prop__espessura-select", (e.opcoes && e.opcoes.length > 0 ? e.opcoes : [
         { id: "ByLayer", rotulo: "ByLayer" },
         { id: "ByBlock", rotulo: "ByBlock" },
         { id: "0.00 mm", rotulo: "0.00 mm" },
@@ -6208,12 +6240,12 @@ class ht extends HTMLElement {
         { id: "2.00 mm", rotulo: "2.00 mm" }
       ]).forEach((p) => {
         const m = document.createElement("option");
-        m.value = String(p.id), m.textContent = p.rotulo, String(p.id).toLowerCase() === String(i).toLowerCase() && (m.selected = !0), d.appendChild(m);
-      }), d.addEventListener("change", () => {
-        c.setAttribute("stroke-width", String(u(d.value))), this.registrarAlteracao(t, e.id, d.value);
-      }), d.addEventListener("keydown", (p) => {
-        p.key === "Enter" && this.focarProximoEditor(d);
-      }), s.appendChild(n), s.appendChild(d), s;
+        m.value = String(p.id), m.textContent = p.rotulo, String(p.id).toLowerCase() === String(i).toLowerCase() && (m.selected = !0), u.appendChild(m);
+      }), u.addEventListener("change", () => {
+        c.setAttribute("stroke-width", String(d(u.value))), this.registrarAlteracao(t, e.id, u.value);
+      }), u.addEventListener("keydown", (p) => {
+        p.key === "Enter" && this.focarProximoEditor(u);
+      }), s.appendChild(n), s.appendChild(u), s;
     }
     if (e.tipo === "cor-cad") {
       const s = document.createElement("div");
@@ -6225,8 +6257,8 @@ class ht extends HTMLElement {
         return m === "red" || m === "1" ? "#ff0000" : m === "yellow" || m === "2" ? "#ffff00" : m === "green" || m === "3" ? "#00ff00" : m === "cyan" || m === "4" ? "#00ffff" : m === "blue" || m === "5" ? "#0000ff" : m === "magenta" || m === "6" ? "#ff00ff" : m === "white" || m === "7" || m === "bylayer" || m === "byblock" ? "#ffffff" : m.startsWith("#") ? m : "#ffffff";
       };
       n.style.backgroundColor = c(i);
-      const u = document.createElement("select");
-      u.className = "ui-prop__cor-cad-select", [
+      const d = document.createElement("select");
+      d.className = "ui-prop__cor-cad-select", [
         { id: "ByLayer", rotulo: "ByLayer" },
         { id: "ByBlock", rotulo: "ByBlock" },
         { id: "Red", rotulo: "Red (1)" },
@@ -6239,17 +6271,17 @@ class ht extends HTMLElement {
         { id: "custom", rotulo: "Selecionar cor..." }
       ].forEach((p) => {
         const m = document.createElement("option");
-        m.value = p.id, m.textContent = p.rotulo, String(p.id).toLowerCase() === String(i).toLowerCase() && (m.selected = !0), u.appendChild(m);
+        m.value = p.id, m.textContent = p.rotulo, String(p.id).toLowerCase() === String(i).toLowerCase() && (m.selected = !0), d.appendChild(m);
       });
       const h = document.createElement("input");
       return h.type = "color", h.className = "ui-prop__cor-picker-oculto", h.addEventListener("input", () => {
         const p = h.value;
         n.style.backgroundColor = p, this.registrarAlteracao(t, e.id, p);
-      }), u.addEventListener("change", () => {
-        u.value === "custom" ? h.click() : (n.style.backgroundColor = c(u.value), this.registrarAlteracao(t, e.id, u.value));
-      }), u.addEventListener("keydown", (p) => {
-        p.key === "Enter" && this.focarProximoEditor(u);
-      }), s.appendChild(n), s.appendChild(u), s.appendChild(h), s;
+      }), d.addEventListener("change", () => {
+        d.value === "custom" ? h.click() : (n.style.backgroundColor = c(d.value), this.registrarAlteracao(t, e.id, d.value));
+      }), d.addEventListener("keydown", (p) => {
+        p.key === "Enter" && this.focarProximoEditor(d);
+      }), s.appendChild(n), s.appendChild(d), s.appendChild(h), s;
     }
     if (e.tipo === "selecao") {
       const s = document.createElement("select");
@@ -6269,13 +6301,13 @@ class ht extends HTMLElement {
       n.className = "ui-prop__cor-amostra", n.style.backgroundColor = i || "#ffffff";
       const c = document.createElement("span");
       c.className = "ui-prop__cor-texto", c.textContent = e.textoAmostra || String(i || "ByLayer");
-      const u = document.createElement("input");
-      return u.type = "color", u.className = "ui-prop__cor-picker-oculto", u.value = typeof i == "string" && i.startsWith("#") ? i : "#ffffff", u.addEventListener("input", () => {
-        const d = u.value;
-        n.style.backgroundColor = d, c.textContent = d, this.registrarAlteracao(t, e.id, d);
+      const d = document.createElement("input");
+      return d.type = "color", d.className = "ui-prop__cor-picker-oculto", d.value = typeof i == "string" && i.startsWith("#") ? i : "#ffffff", d.addEventListener("input", () => {
+        const u = d.value;
+        n.style.backgroundColor = u, c.textContent = u, this.registrarAlteracao(t, e.id, u);
       }), s.addEventListener("click", () => {
-        u.click();
-      }), s.appendChild(n), s.appendChild(c), s.appendChild(u), s;
+        d.click();
+      }), s.appendChild(n), s.appendChild(c), s.appendChild(d), s;
     }
     if (e.tipo === "acao") {
       const s = document.createElement("button");
@@ -6294,42 +6326,42 @@ class ht extends HTMLElement {
     if (e.tipo === "numero") {
       const s = document.createElement("input");
       s.type = "text", s.inputMode = "decimal", s.autocomplete = "off", s.spellcheck = !1, s.className = "ui-prop__editor-input ui-prop__editor-input--numero", e.placeholder && (s.placeholder = e.placeholder);
-      const n = (u) => {
-        if (u == null || u === "") return "";
-        const d = Number(u);
-        return isNaN(d) ? String(u) : e.casasDecimais !== void 0 ? d.toFixed(e.casasDecimais) : String(d);
+      const n = (d) => {
+        if (d == null || d === "") return "";
+        const u = Number(d);
+        return isNaN(u) ? String(d) : e.casasDecimais !== void 0 ? u.toFixed(e.casasDecimais) : String(u);
       };
       s.value = n(i), s.addEventListener("focus", () => {
         s.select();
       }), s.addEventListener("input", () => {
-        const u = s.value, d = /[\+\-\*\/\^\%\(\)]/.test(u) && !/^[+-]?[0-9]*\.?[0-9]*$/.test(u.trim());
-        s.classList.toggle("ui-prop__editor-input--calculando", d);
+        const d = s.value, u = /[\+\-\*\/\^\%\(\)]/.test(d) && !/^[+-]?[0-9]*\.?[0-9]*$/.test(d.trim());
+        s.classList.toggle("ui-prop__editor-input--calculando", u);
       });
       const c = () => {
         s.classList.remove("ui-prop__editor-input--calculando");
-        const u = s.value.trim();
-        if (u === "") {
+        const d = s.value.trim();
+        if (d === "") {
           this.registrarAlteracao(t, e.id, null);
           return;
         }
-        const d = Ie(u);
-        if (d !== null && !isNaN(d)) {
-          let h = d;
-          e.casasDecimais !== void 0 && (h = Number(d.toFixed(e.casasDecimais))), s.value = n(h), h !== this._valoresAtuais[e.id] && this.registrarAlteracao(t, e.id, h);
+        const u = Ie(d);
+        if (u !== null && !isNaN(u)) {
+          let h = u;
+          e.casasDecimais !== void 0 && (h = Number(u.toFixed(e.casasDecimais))), s.value = n(h), h !== this._valoresAtuais[e.id] && this.registrarAlteracao(t, e.id, h);
         } else
           s.value = n(this._valoresAtuais[e.id]);
       };
-      return s.addEventListener("change", c), s.addEventListener("blur", c), s.addEventListener("keydown", (u) => {
-        if (u.key === "Enter")
+      return s.addEventListener("change", c), s.addEventListener("blur", c), s.addEventListener("keydown", (d) => {
+        if (d.key === "Enter")
           c(), this.focarProximoEditor(s);
-        else if (u.key === "Escape")
+        else if (d.key === "Escape")
           s.classList.remove("ui-prop__editor-input--calculando"), s.value = n(this._valoresAtuais[e.id]), s.blur();
-        else if (u.key === "ArrowUp" || u.key === "ArrowDown") {
-          u.preventDefault();
-          const d = parseFloat(s.value) || 0;
+        else if (d.key === "ArrowUp" || d.key === "ArrowDown") {
+          d.preventDefault();
+          const u = parseFloat(s.value) || 0;
           let h = e.casasDecimais !== void 0 ? Math.pow(10, -e.casasDecimais) : 1;
-          u.shiftKey ? h *= 10 : u.altKey && (h *= 0.1);
-          let p = u.key === "ArrowUp" ? d + h : d - h;
+          d.shiftKey ? h *= 10 : d.altKey && (h *= 0.1);
+          let p = d.key === "ArrowUp" ? u + h : u - h;
           e.casasDecimais !== void 0 ? p = Number(p.toFixed(e.casasDecimais)) : p = Math.round(p * 100) / 100, s.value = n(p), this.registrarAlteracao(t, e.id, p);
         }
       }), s;
@@ -6389,18 +6421,18 @@ class ht extends HTMLElement {
     r && (r.value = String(e ?? ""));
     const s = i.querySelector(".ui-prop__linha-amostra-svg line");
     if (s) {
-      const d = String(e || "").toLowerCase();
-      d.includes("dash") || d.includes("tracej") || d.includes("hidden") ? s.setAttribute("stroke-dasharray", "6,3") : d.includes("dot") || d.includes("ponto") || d.includes("pontilh") ? s.setAttribute("stroke-dasharray", "2,3") : d.includes("center") || d.includes("eixo") ? s.setAttribute("stroke-dasharray", "8,3,2,3") : s.setAttribute("stroke-dasharray", "none");
+      const u = String(e || "").toLowerCase();
+      u.includes("dash") || u.includes("tracej") || u.includes("hidden") ? s.setAttribute("stroke-dasharray", "6,3") : u.includes("dot") || u.includes("ponto") || u.includes("pontilh") ? s.setAttribute("stroke-dasharray", "2,3") : u.includes("center") || u.includes("eixo") ? s.setAttribute("stroke-dasharray", "8,3,2,3") : s.setAttribute("stroke-dasharray", "none");
     }
     const n = i.querySelector(".ui-prop__espessura-amostra-svg line");
     if (n) {
-      const d = parseFloat(String(e).replace(/[^0-9.]/g, "")), h = isNaN(d) || d <= 0 ? 1.5 : Math.min(8, Math.max(1, d * 8));
+      const u = parseFloat(String(e).replace(/[^0-9.]/g, "")), h = isNaN(u) || u <= 0 ? 1.5 : Math.min(8, Math.max(1, u * 8));
       n.setAttribute("stroke-width", String(h));
     }
     const c = i.querySelector(".ui-prop__cor-amostra");
     c && typeof e == "string" && (c.style.backgroundColor = e);
-    const u = i.querySelector(".ui-prop__valor-readonly");
-    u && (u.textContent = e != null ? String(e) : "—");
+    const d = i.querySelector(".ui-prop__valor-readonly");
+    d && (d.textContent = e != null ? String(e) : "—");
   }
 }
 customElements.get("ui-tabela-propriedades") || customElements.define("ui-tabela-propriedades", ht);
@@ -6422,10 +6454,10 @@ class Re {
     this.core.map && o.forEach((e) => {
       const i = t.find((r) => String(r.id) === String(e.ponto_inicio_id)), a = t.find((r) => String(r.id) === String(e.ponto_fim_id));
       if (i && a && i.lat && i.lon && a.lat && a.lon) {
-        const r = e.tipo_limite_sigef || e.tipo_limite || "", s = e.metodo_posicionamento_sigef || e.metodo_posicionamento || "", n = this.bancoPontosAtivo ? "#94a3b8" : r === "LA1" ? "#10b981" : "#3b82f6", c = this.core.config.perimetroWeight, u = this.bancoPontosAtivo ? 0.4 : 1, d = x.polyline([[i.lat, i.lon], [a.lat, a.lon]], {
+        const r = e.tipo_limite_sigef || e.tipo_limite || "", s = e.metodo_posicionamento_sigef || e.metodo_posicionamento || "", n = this.bancoPontosAtivo ? "#94a3b8" : r === "LA1" ? "#10b981" : "#3b82f6", c = this.core.config.perimetroWeight, d = this.bancoPontosAtivo ? 0.4 : 1, u = x.polyline([[i.lat, i.lon], [a.lat, a.lon]], {
           color: n,
           weight: c,
-          opacity: u,
+          opacity: d,
           dashArray: r === "LN1" ? "6, 6" : void 0,
           pane: "perimetroPane"
         }).bindPopup(`
@@ -6437,20 +6469,20 @@ class Re {
           className: "compact-popup",
           maxWidth: 220
         }).addTo(this.core.map);
-        this.polylines.push(d);
+        this.polylines.push(u);
       }
     });
   }
   plotPolilinhaTemporaria(o) {
-    var n, c, u;
+    var n, c, d;
     if (!this.core.map) return;
     const t = o.filter(
-      (d) => d.lat && d.lon && d.lat !== 0 && d.lon !== 0 && d.tipo_ponto !== "B" && d.tipo !== "B" && d.ignorar_poligono !== 1
+      (u) => u.lat && u.lon && u.lat !== 0 && u.lon !== 0 && u.tipo_ponto !== "B" && u.tipo !== "B" && u.ignorar_poligono !== 1
     );
     if (t.length < 2) return;
-    const e = ((n = this.core.controller) == null ? void 0 : n.chaveGrupo) || ((u = (c = this.core.controller) == null ? void 0 : c.context) == null ? void 0 : u.chaveGrupo), i = it(t, e), a = this.bancoPontosAtivo ? "#94a3b8" : "#10b981", r = this.core.config.fechamentoWeight || 2, s = this.bancoPontosAtivo ? 0.4 : 1;
-    Object.values(i).forEach((d) => {
-      const h = ot(d);
+    const e = ((n = this.core.controller) == null ? void 0 : n.chaveGrupo) || ((d = (c = this.core.controller) == null ? void 0 : c.context) == null ? void 0 : d.chaveGrupo), i = it(t, e), a = this.bancoPontosAtivo ? "#94a3b8" : "#10b981", r = this.core.config.fechamentoWeight || 2, s = this.bancoPontosAtivo ? 0.4 : 1;
+    Object.values(i).forEach((u) => {
+      const h = ot(u);
       if (h.length < 2) return;
       for (let v = 0; v < h.length - 1; v++) {
         const y = h[v], w = h[v + 1], S = x.polyline([[y.lat, y.lon], [w.lat, w.lon]], {
@@ -6482,11 +6514,11 @@ class Re {
         <div class="w-4.5 h-4.5 bg-amber-500 text-slate-950 border-2 border-slate-900 rounded-full flex items-center justify-center text-[7px] font-black font-mono shadow-md hover:scale-125 transition-transform" id="banco-marker-${n.id}">
           H
         </div>
-      `, u = x.divIcon({
+      `, d = x.divIcon({
         html: c,
         className: "banco-leaflet-marker",
         iconSize: [18, 18]
-      }), d = `
+      }), u = `
         <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.35; min-width:180px;">
           <div style="font-weight:800; font-size:11px; color:#fbbf24; text-transform:uppercase; letter-spacing:0.5px; border-bottom:1px solid rgba(255, 255, 255, 0.1); padding-bottom:3px; margin-bottom:5px;">Vértice Homologado SIGEF</div>
           <div style="font-weight:700; font-size:13px; margin-bottom:3px; color:#ffffff;">${E(n.codigo_completo || n.nome_vertice)}</div>
@@ -6498,16 +6530,16 @@ class Re {
         </div>
       `;
       x.marker([n.lat, n.lon], {
-        icon: u,
+        icon: d,
         pane: "verticesPane"
-      }).bindPopup(d, { className: "compact-popup", maxWidth: 220 }).addTo(this.core.bancoPontosGroup);
+      }).bindPopup(u, { className: "compact-popup", maxWidth: 220 }).addTo(this.core.bancoPontosGroup);
     });
     const e = ((a = this.core.controller) == null ? void 0 : a.chaveGrupo) || ((s = (r = this.core.controller) == null ? void 0 : r.context) == null ? void 0 : s.chaveGrupo), i = it(t, e);
     for (const n in i) {
       const c = ot(i[n]);
       if (c.length >= 2) {
-        const u = c.map((d) => x.latLng(d.lat, d.lon));
-        u.push(x.latLng(c[0].lat, c[0].lon)), x.polyline(u, {
+        const d = c.map((u) => x.latLng(u.lat, u.lon));
+        d.push(x.latLng(c[0].lat, c[0].lon)), x.polyline(d, {
           color: "#f59e0b",
           // Cor âmbar contrastante premium
           weight: this.core.config.bancoWeight,
@@ -6535,12 +6567,12 @@ class Oe {
       var i, a, r;
       if (e.lat && e.lon && e.lat !== 0 && e.lon !== 0) {
         const s = e.tipo_ponto === "B" || e.tipo === "B", n = e.tipo_ponto === "M" || e.tipo === "M";
-        let c = "bg-mint-vibrant", u = "x", d = 7;
-        n ? (c = "bg-indigo-500", d = 9) : s && (c = "bg-rose-500", d = 9);
-        const h = this.core.config.enableAnimations ? "transition-all duration-150" : "", p = (a = (i = this.controller) == null ? void 0 : i.linhas) != null && a.bancoPontosAtivo ? "opacity-40 hover:opacity-100" : "", m = at(u, d, c, `${h} ${p}`, `map-marker-${e.id}`), f = x.divIcon({
+        let c = "bg-mint-vibrant", d = "x", u = 7;
+        n ? (c = "bg-indigo-500", u = 9) : s && (c = "bg-rose-500", u = 9);
+        const h = this.core.config.enableAnimations ? "transition-all duration-150" : "", p = (a = (i = this.controller) == null ? void 0 : i.linhas) != null && a.bancoPontosAtivo ? "opacity-40 hover:opacity-100" : "", m = at(d, u, c, `${h} ${p}`, `map-marker-${e.id}`), f = x.divIcon({
           html: m,
           className: "custom-leaflet-marker flex items-center justify-center",
-          iconSize: [d + 6, d + 6]
+          iconSize: [u + 6, u + 6]
         }), v = n ? "Base Homologada PPP" : s ? "Base de Campo (Translação)" : "Vértice de Perímetro", y = x.marker([e.lat, e.lon], {
           icon: f,
           pane: "verticesPane"
@@ -6609,15 +6641,15 @@ class Oe {
         });
         let r = this.core.config.markerStyleV || "cross", s = this.core.config.markerSizeV || 8;
         i.tipo_ponto === "M" || i.tipo === "M" || i.tipo === "B" ? (r = this.core.config.markerStyleM || "circle-dot", s = this.core.config.markerSizeM || 14) : (i.tipo_ponto === "P" || i.tipo === "P" || i.tipo === "O") && (r = this.core.config.markerStyleP || "circle", s = this.core.config.markerSizeP || 10);
-        const n = this.core.config.enableAnimations ? "transition-all duration-150" : "", c = at(r, s, "bg-[#a855f7]", n, `map-marker-vizinho-${i.id}`), u = x.divIcon({
+        const n = this.core.config.enableAnimations ? "transition-all duration-150" : "", c = at(r, s, "bg-[#a855f7]", n, `map-marker-vizinho-${i.id}`), d = x.divIcon({
           html: c,
           className: "custom-leaflet-marker flex items-center justify-center",
           iconSize: [s + 4, s + 4]
-        }), d = x.marker([i.lat, i.lon], {
-          icon: u,
+        }), u = x.marker([i.lat, i.lon], {
+          icon: d,
           pane: "overlayPane"
         }).bindPopup(a, { className: "custom-leaflet-popup" });
-        d.pontoId = i.id, d.isVizinho = !0, d.addTo(this.core.pontosVizinhosGroup), this.vizinhosMarkers.push(d);
+        u.pontoId = i.id, u.isVizinho = !0, u.addTo(this.core.pontosVizinhosGroup), this.vizinhosMarkers.push(u);
       });
     });
   }
@@ -6630,8 +6662,8 @@ class Oe {
       const e = /POLYGON\s*\(\s*\(\s*(.*?)\s*\)\s*\)/i.exec(t.poligono_wkt);
       if (!e) return;
       const i = e[1].split(",").map((n) => {
-        const c = n.trim().split(/\s+/), u = parseFloat(c[0]), d = parseFloat(c[1]);
-        return !isNaN(d) && !isNaN(u) ? [d, u] : null;
+        const c = n.trim().split(/\s+/), d = parseFloat(c[0]), u = parseFloat(c[1]);
+        return !isNaN(u) && !isNaN(d) ? [u, d] : null;
       }).filter((n) => n !== null);
       if (i.length < 3) return;
       const a = E(t.nome_propriedade || "Propriedade Vizinha"), r = E(t.nome || "Desconhecido"), s = x.polygon(i, {
@@ -6763,8 +6795,8 @@ class Te {
    * Altera a densidade visual global do kit (compacta, normal ou relaxada).
    */
   definirDensidade(o) {
-    let t = 20;
-    typeof o == "number" ? t = Math.max(15, o) : o === "compacta" ? t = 15 : o === "relaxada" ? t = 32 : t = 20, document.documentElement.style.setProperty("--ui-altura-minima", `${t}px`), document.documentElement.style.setProperty("--ui-campo-altura", `${t}px`), document.documentElement.setAttribute("data-ui-densidade", typeof o == "string" ? o : "custom"), this.emit("densidade:alterada", { densidade: o, alturaPx: t });
+    let t = 34;
+    typeof o == "number" ? t = Math.max(15, o) : o === "compacta" ? t = 26 : o === "relaxada" ? t = 42 : t = 34, document.documentElement.style.setProperty("--ui-altura-minima", `${t}px`), document.documentElement.style.setProperty("--ui-campo-altura", `${t}px`), document.documentElement.setAttribute("data-ui-densidade", typeof o == "string" ? o : "custom"), this.emit("densidade:alterada", { densidade: o, alturaPx: t });
   }
   /**
    * Alterna ou define o tema visual global.
@@ -6827,21 +6859,21 @@ function qe() {
     n && j.notificar({ tipo: "alerta", mensagem: n });
     const c = e.getAttribute("toast-info");
     c && j.notificar({ tipo: "info", mensagem: c });
-    const u = e.getAttribute("copiar-texto");
-    if (u !== null) {
-      let p = u;
-      if (u.startsWith("#") || u.startsWith("."))
+    const d = e.getAttribute("copiar-texto");
+    if (d !== null) {
+      let p = d;
+      if (d.startsWith("#") || d.startsWith(".") || d.match(/^[a-zA-Z0-9_-]+$/))
         try {
-          const f = document.querySelector(u);
-          f && (p = f.value !== void 0 ? f.value : f.textContent || "");
+          let f = null;
+          d.startsWith("#") || d.startsWith(".") ? f = document.querySelector(d) : f = document.getElementById(d) || document.querySelector(`#${d}`), f && (p = f.value !== void 0 && f.value !== null ? f.value : f.textContent || "");
         } catch {
         }
       const m = e.getAttribute("copiar-mensagem") || "Copiado com sucesso!";
       j.copiar(p, m);
     }
     e.hasAttribute("alternar-tema") && j.definirTema();
-    const d = e.getAttribute("definir-densidade");
-    d && j.definirDensidade(d);
+    const u = e.getAttribute("definir-densidade");
+    u && j.definirDensidade(u);
     const h = e.getAttribute("limpar-form");
     if (h) {
       const p = document.getElementById(h);
