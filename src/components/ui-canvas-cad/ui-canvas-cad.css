@@ -338,3 +338,176 @@
   background: rgba(10, 18, 14, 0.95) !important;
   border: 1px solid rgba(255, 255, 255, 0.15) !important;
 }
+
+/* Rodapé e Botões de Ação Customizados no Popup */
+.ui-popup-actions-footer {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  justify-content: flex-end;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.ui-popup-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 9px;
+  border-radius: var(--ui-raio-borda, var(--ui-radius-sm, 6px));
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: 1px solid transparent;
+  outline: none;
+  line-height: 1.25;
+  user-select: none;
+}
+
+.ui-popup-btn-primary {
+  background: var(--ui-cor-primaria, #00f5a0);
+  color: #080d0a;
+  font-weight: 600;
+  border-color: var(--ui-cor-primaria, #00f5a0);
+}
+
+.ui-popup-btn-primary:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 0 10px rgba(0, 245, 160, 0.35);
+}
+
+.ui-popup-btn-secondary {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.ui-popup-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.ui-popup-btn-destrutivo {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.35);
+}
+
+.ui-popup-btn-destrutivo:hover {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: rgba(239, 68, 68, 0.6);
+  color: #ffffff;
+}
+
+/* ==========================================
+   Refinamento Mobile & Touch Ergonomics
+   ========================================== */
+@media (max-width: 520px) {
+  .qgis-layer-panel {
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    width: auto;
+    max-height: calc(100% - 16px);
+  }
+
+  .qgis-layer-panel.collapsed {
+    transform: translateY(-115%);
+  }
+
+  .layer-panel-close {
+    min-width: 36px;
+    min-height: 36px;
+    font-size: 16px;
+  }
+
+  .layer-action-btn {
+    min-width: 32px;
+    min-height: 32px;
+  }
+}
+
+/* ==========================================
+   Anel de Destaque Pulsante CAD (destacarElemento)
+   Keyframes: Ping Expansivo & Glow Central
+   ========================================== */
+.cad-destaque-marker-container {
+  pointer-events: none !important;
+  background: transparent !important;
+  border: none !important;
+  overflow: visible !important;
+}
+
+.cad-destaque-marker-container * {
+  pointer-events: none !important;
+}
+
+.cad-pulse-highlight {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none !important;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.cad-pulse-core {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background-color: var(--cad-pulse-cor, #00f5a0);
+  box-shadow: 0 0 10px var(--cad-pulse-cor, #00f5a0), 0 0 20px var(--cad-pulse-cor, #00f5a0);
+  pointer-events: none !important;
+  animation: cad-pulse-glow 1.4s ease-in-out infinite alternate;
+}
+
+.cad-pulse-ring {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 2.5px solid var(--cad-pulse-cor, #00f5a0);
+  box-shadow: 0 0 10px var(--cad-pulse-cor, #00f5a0);
+  pointer-events: none !important;
+  opacity: 0;
+  animation: cad-pulse-ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.cad-pulse-ring.ring-2 {
+  animation-delay: 0.6s;
+}
+
+@keyframes cad-pulse-ping {
+  0% {
+    transform: scale(0.35);
+    opacity: 0.95;
+  }
+  60% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(2.5);
+    opacity: 0;
+  }
+}
+
+@keyframes cad-pulse-glow {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.15);
+    opacity: 1;
+    box-shadow: 0 0 14px var(--cad-pulse-cor, #00f5a0), 0 0 26px var(--cad-pulse-cor, #00f5a0);
+  }
+}
+

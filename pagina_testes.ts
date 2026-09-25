@@ -557,6 +557,37 @@ document.addEventListener('DOMContentLoaded', () => {
     registrarLog(`[UIBus / Zero-JS] -> Modal "${e.detail?.id}" aberto automaticamente!`);
   });
 
+  window.addEventListener('uibus:modal:fechado', (e: any) => {
+    registrarLog(`[UIBus / Zero-JS] -> Modal "${e.detail?.id}" fechado.`);
+  });
+
+  window.addEventListener('uibus:modal:fechado-todos', () => {
+    registrarLog('[UIBus / Zero-JS] -> Todos os modais abertos foram fechados.');
+  });
+
+  window.addEventListener('uibus:tema:alterado', (e: any) => {
+    const tema = e.detail?.tema;
+    const iconeTema = tema === 'claro' ? '☀️' : '🌙';
+    registrarLog(`[UIBus / Tema] -> Tema visual alternado para: "${tema?.toUpperCase()}" ${iconeTema}`);
+
+    // Atualizar texto e título do botão de alternar tema no cabeçalho
+    const btnTema = document.getElementById('btn-alternar-tema');
+    if (btnTema) {
+      btnTema.innerHTML = tema === 'claro' ? '🌙 Modo Escuro' : '☀️ Modo Claro';
+      btnTema.setAttribute('title', tema === 'claro' ? 'Alternar para Modo Escuro' : 'Alternar para Modo Claro');
+    }
+
+    UIToast.notificar({
+      tipo: 'info',
+      titulo: 'Tema Visual Alterado',
+      mensagem: tema === 'claro' ? '☀️ Modo Claro ativado com sucesso!' : '🌙 Modo Escuro ativado com sucesso!'
+    });
+  });
+
+  window.addEventListener('uibus:densidade:alterada', (e: any) => {
+    registrarLog(`[UIBus / Zero-JS] -> Densidade global atualizada: "${e.detail?.densidade}" (${e.detail?.alturaPx}px)`);
+  });
+
   // ----------------------------------------------------
   // 19. Tabela de Propriedades (AutoCAD & Revit)
   // ----------------------------------------------------

@@ -45,6 +45,8 @@
   line-height: 1;
   cursor: pointer;
   box-sizing: border-box;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
   transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
@@ -167,6 +169,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
   transition: color 0.15s, background-color 0.15s;
 }
 
@@ -187,6 +191,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
   transition: background-color 0.12s ease, color 0.12s ease;
   user-select: none;
 }
@@ -212,6 +218,11 @@
    Sem blur agressivo para manter a leitura dos campos ao redor!
    ==================================================== */
 @media (max-width: 640px) {
+  .ui-lista-flutuante__gatilho {
+    min-height: max(var(--ui-campo-altura, 38px), 38px);
+    font-size: 15px;
+  }
+
   :host([aberta]) .ui-lista-flutuante__backdrop {
     background-color: rgba(0, 0, 0, 0.35);
     backdrop-filter: none;
@@ -225,17 +236,26 @@
     width: 100vw !important;
     max-width: 100vw !important;
     min-width: 100vw !important;
-    max-height: 65vh !important;
+    max-height: 70vh !important;
+    max-height: 70dvh !important;
     border-radius: 16px 16px 0 0 !important;
     border-bottom: none !important;
-    padding: 10px 16px 28px 16px !important;
+    padding: 10px 16px calc(24px + env(safe-area-inset-bottom, 0px)) 16px !important;
     box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.7) !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
     animation: ui-bottom-sheet-slide 0.22s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .ui-lista-flutuante__sheet-header {
     display: flex !important;
     flex-direction: column !important;
+  }
+
+  .ui-lista-flutuante__sheet-close {
+    min-width: 44px;
+    min-height: 44px;
+    font-size: 18px;
   }
 
   .ui-lista-flutuante__item {
@@ -260,11 +280,14 @@
   width: 100vw !important;
   max-width: 100vw !important;
   min-width: 100vw !important;
-  max-height: 65vh !important;
+  max-height: 70vh !important;
+  max-height: 70dvh !important;
   border-radius: 16px 16px 0 0 !important;
   border-bottom: none !important;
-  padding: 10px 16px 28px 16px !important;
+  padding: 10px 16px calc(24px + env(safe-area-inset-bottom, 0px)) 16px !important;
   box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.7) !important;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
   animation: ui-bottom-sheet-slide 0.22s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -272,6 +295,13 @@
 :host([modo-mobile]) .ui-lista-flutuante__sheet-header {
   display: flex !important;
   flex-direction: column !important;
+}
+
+:host([bottom-sheet]) .ui-lista-flutuante__sheet-close,
+:host([modo-mobile]) .ui-lista-flutuante__sheet-close {
+  min-width: 44px;
+  min-height: 44px;
+  font-size: 18px;
 }
 
 :host([bottom-sheet]) .ui-lista-flutuante__item,

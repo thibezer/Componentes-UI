@@ -14,6 +14,8 @@
   user-select: none;
   line-height: 1;
   outline: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .ui-checkbox--disabled {
@@ -90,3 +92,30 @@
 .ui-checkbox--label-esquerda {
   flex-direction: row-reverse;
 }
+
+/* ==========================================
+   Refinamento Mobile & Touch Ergonomics
+   ========================================== */
+@media (max-width: 640px) {
+  .ui-checkbox {
+    min-height: 40px;
+    padding: 4px 0;
+  }
+
+  .ui-checkbox__box {
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    min-height: 20px;
+  }
+
+  .ui-checkbox__mark {
+    width: 14px;
+    height: 14px;
+  }
+
+  .ui-checkbox__label {
+    font-size: 14px;
+  }
+}
+

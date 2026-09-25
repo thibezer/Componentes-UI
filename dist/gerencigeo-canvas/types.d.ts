@@ -12,6 +12,17 @@ export interface LayerStyleDef {
     /** Dimensão métrica no terreno em metros quando scaleMode === 'world' */
     dimensaoMetros?: number;
 }
+export interface PopupAcaoCAD {
+    id: string;
+    rotulo: string;
+    variante?: 'primary' | 'secondary' | 'destrutivo';
+}
+export interface DestacarElementoOpcoes {
+    pan?: boolean;
+    zoom?: number;
+    duracaoMs?: number;
+    cor?: string;
+}
 export interface CanvasLayerDef {
     id: string;
     nome: string;
@@ -25,6 +36,7 @@ export interface CanvasLayerDef {
     minZoom?: number;
     maxZoom?: number;
     estilo: LayerStyleDef;
+    acoes?: PopupAcaoCAD[];
     /** Dados ou URL associados à camada */
     dados?: any;
 }
@@ -41,8 +53,40 @@ export interface CanvasGraphicScale {
     lineScaleMultiplier: number;
     scaleModeGlobal?: ScaleMode;
 }
+/** Entidade pontual geométrica primitiva (agnóstica a domínio) */
+export interface PontoCAD {
+    id: string | number;
+    lat: number;
+    lon: number;
+    estilo?: string;
+    grupoId?: string | number;
+    grupoKey?: string | number;
+    ordem?: number;
+    indice?: number;
+    metadados?: Record<string, any>;
+    acoes?: PopupAcaoCAD[];
+    [key: string]: any;
+}
+/** Entidade de conexão linear entre nós primitivos (agnóstica a domínio) */
+export interface ConexaoCAD {
+    origemId: string | number;
+    destinoId: string | number;
+    tipoLinha?: 'continua' | 'tracejada';
+    estilo?: Record<string, any>;
+    acoes?: PopupAcaoCAD[];
+    [key: string]: any;
+}
+/** Entidade de área/polígono geométrica (agnóstica a domínio) */
+export interface PoligonoCAD {
+    id: string | number;
+    coordenadas?: number[][] | [number, number][];
+    wkt?: string;
+    estilo?: Record<string, any>;
+    acoes?: PopupAcaoCAD[];
+    [key: string]: any;
+}
 export interface Ponto {
-    id: number;
+    id: number | string;
     lat?: number;
     lon?: number;
     tipo_ponto?: string;
@@ -58,6 +102,7 @@ export interface Ponto {
     este?: number;
     norte?: number;
     altitude?: number;
+    acoes?: PopupAcaoCAD[];
 }
 export interface Segmento {
     ponto_inicio_id: number;
@@ -112,6 +157,12 @@ export interface CanvasRenderContext {
     config: MapaConfiguracoes;
     graphicScale: CanvasGraphicScale;
     apiBaseUrl?: string;
-    onMarkerClick?: (pontoId: number, isVizinho?: boolean) => void;
+    modoSequencial?: boolean;
+    chaveGrupo?: string;
+    onMarkerClick?: (pontoId: string | number, isVizinho?: boolean, elemento?: any, coords?: {
+        lat: number;
+        lon: number;
+    }) => void;
     onLayerAction?: (action: string, detail: any) => void;
+    onPopupAcao?: (acaoId: string, elementoId: string | number, elemento: any) => void;
 }

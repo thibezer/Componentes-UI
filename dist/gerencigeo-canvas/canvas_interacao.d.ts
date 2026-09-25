@@ -42,6 +42,7 @@ export declare class CanvasInteracao {
     private touchStartDist;
     private isTouchPanning;
     selectionHappened: boolean;
+    panHappened: boolean;
     constructor(ctx?: Partial<CanvasInteracaoContext>);
     ativar(mapaController: any, containerHost?: HTMLElement | ShadowRoot): void;
     desativar(): void;

@@ -77,7 +77,6 @@ export class MapaCore {
       }
 
       if (this.controller.canvasInteracao && this.controller.canvasInteracao.selectionHappened) {
-        this.controller.canvasInteracao.selectionHappened = false;
         return;
       }
 
@@ -97,13 +96,18 @@ export class MapaCore {
     return this.map;
   }
 
-  public invalidateSize(): void {
-    if (this.map) {
-      try {
-        this.map.invalidateSize();
-      } catch {
-        // Ignora erros caso o container DOM tenha sido desmontado
-      }
+  /**
+   * Recalcula com segurança as dimensões do viewport Leaflet.
+   * Absorve silenciosamente exceções de desmontagem e panes desanexados (undefined._leaflet_pos).
+   */
+  public invalidateSize(animate: boolean = false): void {
+    if (!this.map) return;
+    try {
+      const container = this.map.getContainer?.();
+      if (!container || !container.parentNode) return;
+      this.map.invalidateSize({ animate, pan: false });
+    } catch {
+      // Absorve tentativas de leitura com panes desanexados, eliminando exceções do tipo undefined._leaflet_pos
     }
   }
 
@@ -199,8 +203,21 @@ export class MapaCore {
     const ne = bounds.getNorthEast();
 
     const bbox = `${sw.lng},${sw.lat},${ne.lng},${ne.lat}`;
-    const x = Math.round(this.map.layerPointToContainerPoint(e.layerPoint).x);
-    const y = Math.round(this.map.layerPointToContainerPoint(e.layerPoint).y);
+    let x = 0;
+    let y = 0;
+    try {
+      if (e.containerPoint) {
+        x = Math.round(e.containerPoint.x);
+        y = Math.round(e.containerPoint.y);
+      } else if (e.layerPoint) {
+        const cp = this.map.layerPointToContainerPoint(e.layerPoint);
+        x = Math.round(cp.x);
+        y = Math.round(cp.y);
+      }
+    } catch {
+      x = 0;
+      y = 0;
+    }
 
     const targetUrl = `https://acervofundiario.incra.gov.br/i3geo/ogc.php?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetFeatureInfo&FORMAT=image/png&TRANSPARENT=true&QUERY_LAYERS=certificada_sigef_particular_pr&LAYERS=certificada_sigef_particular_pr&INFO_FORMAT=application/json&X=${x}&Y=${y}&WIDTH=${size.x}&HEIGHT=${size.y}&SRS=EPSG:4326&BBOX=${bbox}`;
 

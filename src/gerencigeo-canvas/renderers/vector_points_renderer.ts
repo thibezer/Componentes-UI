@@ -1,7 +1,7 @@
 import L from 'leaflet';
 import type { ILayerRenderer } from '../layer_renderer_factory';
-import type { CanvasLayerDef, CanvasRenderContext, Ponto } from '../types';
-import { escapeHtml, parseCoordenada } from '../utils';
+import type { CanvasLayerDef, CanvasRenderContext } from '../types';
+import { escapeHtml, parseCoordenada, renderPopupAcoesHtml, bindPopupAcoesEvents } from '../utils';
 import { getPointShapeHtml } from '../mapa_pontos_shapes';
 
 export class VectorPointsLayerRenderer implements ILayerRenderer {
@@ -63,7 +63,8 @@ export class VectorPointsLayerRenderer implements ILayerRenderer {
   ): void {
     const isHomologadoLayer = layerDef.id === 'homologados' || layerDef.id === 'homologados-pontos';
     const isVizinhoLayer = layerDef.id === 'vizinhos';
-    const pontos = (layerDef.dados?.pontos || (isHomologadoLayer && context.bancoPontos && context.bancoPontos.length > 0 ? context.bancoPontos : context.pontos) || []) as Ponto[];
+    const pontosRaw = layerDef.dados?.pontos ?? (Array.isArray(layerDef.dados) ? layerDef.dados : null);
+    const pontos = (pontosRaw || (isHomologadoLayer ? (context.bancoPontos || []) : context.pontos) || []) as any[];
     const isInteractive = layerDef.interativo && !layerDef.bloqueada;
 
     pontos.forEach(p => {
@@ -76,7 +77,7 @@ export class VectorPointsLayerRenderer implements ILayerRenderer {
         const isBaseFisica = p.tipo_ponto === 'B' || p.tipo === 'B';
         const isBasePPP = p.tipo_ponto === 'M' || p.tipo === 'M';
 
-        let shapeStyle = layerDef.estilo.estiloMarcador || 'x';
+        let shapeStyle = p.estilo || layerDef.estilo.estiloMarcador || 'circle';
         let markerBg = 'bg-mint-vibrant';
         let baseSize = layerDef.estilo.tamanhoMarcador || 7;
 
@@ -122,38 +123,77 @@ export class VectorPointsLayerRenderer implements ILayerRenderer {
         (marker as any).markerBg = markerBg;
 
         if (isInteractive) {
-          const popupRole = isHomologadoLayer
-            ? 'Vértice Homologado SIGEF'
-            : isVizinhoLayer
-            ? 'Confrontante (Importado)'
-            : isBasePPP
-            ? 'Base Homologada PPP'
-            : isBaseFisica
-            ? 'Base de Campo (Translação)'
-            : 'Vértice de Perímetro';
+          let popupContent = '';
+          const acoes = p.acoes || layerDef.acoes || layerDef.dados?.acoes || [];
+          const acoesHtml = renderPopupAcoesHtml(acoes, p.id);
 
-          const title = escapeHtml((p as any).codigo_completo || p.nome_vertice || String(p.id));
-          const este = typeof (p as any).este === 'number' ? `Este (E): ${(p as any).este.toFixed(2)} m` : '';
-          const norte = typeof (p as any).norte === 'number' ? `Norte (N): ${(p as any).norte.toFixed(2)} m` : '';
-          const alt = typeof (p as any).altitude === 'number' ? `Alt (h): ${(p as any).altitude.toFixed(2)} m` : '';
+          if (p.metadados && Object.keys(p.metadados).length > 0) {
+            const metas = Object.entries(p.metadados)
+              .map(([k, v]) => `<div style="font-size:11px; margin-bottom:2px;"><strong>${escapeHtml(k)}:</strong> ${escapeHtml(String(v))}</div>`)
+              .join('');
+            popupContent = `
+              <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.35; min-width:160px;">
+                <div style="font-weight:700; font-size:12px; margin-bottom:4px; color:#ffffff;">Ponto ${escapeHtml(String(p.id))}</div>
+                ${metas}
+                <div style="font-size:10px; color:rgba(255, 255, 255, 0.45); font-family:monospace; margin-top:3px;">Lat ${lat.toFixed(6)} &nbsp; Lon ${lon.toFixed(6)}</div>
+                ${acoesHtml}
+              </div>
+            `;
+          } else {
+            const popupRole = isHomologadoLayer
+              ? 'Vértice Homologado SIGEF'
+              : isVizinhoLayer
+              ? 'Confrontante (Importado)'
+              : isBasePPP
+              ? 'Base Homologada PPP'
+              : isBaseFisica
+              ? 'Base de Campo (Translação)'
+              : 'Nó / Vértice';
 
-          marker.bindPopup(`
-            <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.35; min-width:170px;">
-              <div style="font-weight:700; font-size:13px; margin-bottom:4px; color:${isHomologadoLayer ? '#fbbf24' : '#ffffff'};">${title}</div>
-              <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">${escapeHtml(popupRole)} · ${escapeHtml(p.tipo_ponto || p.tipo || 'Vértice')}</div>
-              ${este || norte ? `<div style="font-size:10px; color:rgba(255, 255, 255, 0.7); font-family:monospace; margin-top:3px;">${este} ${norte}</div>` : ''}
-              ${alt ? `<div style="font-size:10px; color:rgba(255, 255, 255, 0.7); font-family:monospace;">${alt}</div>` : ''}
-              <div style="font-size:10px; color:rgba(255, 255, 255, 0.45); font-family:monospace; margin-top:3px;">Lat ${lat.toFixed(6)} &nbsp; Lon ${lon.toFixed(6)}</div>
-            </div>
-          `, {
+            const title = escapeHtml((p as any).codigo_completo || p.nome_vertice || `Ponto ${String(p.id)}`);
+            const este = typeof (p as any).este === 'number' ? `Este (E): ${(p as any).este.toFixed(2)} m` : '';
+            const norte = typeof (p as any).norte === 'number' ? `Norte (N): ${(p as any).norte.toFixed(2)} m` : '';
+            const alt = typeof (p as any).altitude === 'number' ? `Alt (h): ${(p as any).altitude.toFixed(2)} m` : '';
+
+            popupContent = `
+              <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.35; min-width:170px;">
+                <div style="font-weight:700; font-size:13px; margin-bottom:4px; color:${isHomologadoLayer ? '#fbbf24' : '#ffffff'};">${title}</div>
+                <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">${escapeHtml(popupRole)} · ${escapeHtml(p.tipo_ponto || p.tipo || 'Ponto')}</div>
+                ${este || norte ? `<div style="font-size:10px; color:rgba(255, 255, 255, 0.7); font-family:monospace; margin-top:3px;">${este} ${norte}</div>` : ''}
+                ${alt ? `<div style="font-size:10px; color:rgba(255, 255, 255, 0.7); font-family:monospace;">${alt}</div>` : ''}
+                <div style="font-size:10px; color:rgba(255, 255, 255, 0.45); font-family:monospace; margin-top:3px;">Lat ${lat.toFixed(6)} &nbsp; Lon ${lon.toFixed(6)}</div>
+                ${acoesHtml}
+              </div>
+            `;
+          }
+
+          marker.bindPopup(popupContent, {
             className: 'compact-popup',
             maxWidth: 240
           });
 
           marker.on('click', () => {
-            if (context.onMarkerClick) {
-              context.onMarkerClick(p.id, isVizinhoLayer);
+            if (context.modoSequencial) {
+              marker.closePopup();
             }
+            if (layerDef.dados?.onClique) {
+              try {
+                layerDef.dados.onClique(p);
+              } catch (err) {
+                console.error('Erro no callback onClique do ponto:', err);
+              }
+            }
+            if (context.onMarkerClick) {
+              context.onMarkerClick(p.id, isVizinhoLayer, p, { lat, lon });
+            }
+          });
+
+          marker.on('popupopen', (e: any) => {
+            if (context.modoSequencial) {
+              marker.closePopup();
+              return;
+            }
+            bindPopupAcoesEvents(e.popup, p, context, marker);
           });
         }
 

@@ -266,14 +266,19 @@ class UIBusManager {
    */
   public definirTema(tema?: 'claro' | 'escuro'): string {
     const html = document.documentElement;
-    const temaAtual = html.getAttribute('data-tema') || (html.classList.contains('dark') ? 'escuro' : 'claro');
+    let temaAtual = html.getAttribute('data-tema');
+    if (!temaAtual) {
+      temaAtual = html.classList.contains('dark') ? 'escuro' : (html.classList.contains('light') ? 'claro' : 'escuro');
+    }
     const novoTema = tema || (temaAtual === 'escuro' ? 'claro' : 'escuro');
 
     html.setAttribute('data-tema', novoTema);
     if (novoTema === 'escuro') {
       html.classList.add('dark');
+      html.classList.remove('light');
     } else {
       html.classList.remove('dark');
+      html.classList.add('light');
     }
 
     this.emit('tema:alterado', { tema: novoTema });

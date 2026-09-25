@@ -188,3 +188,37 @@
   align-items: center;
   gap: 4px;
 }
+
+/* ==========================================
+   Refinamento Mobile & Touch Ergonomics
+   ========================================== */
+.ui-campo-texto__wrapper {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ui-campo-texto__input {
+  touch-action: manipulation;
+}
+
+@media (max-width: 640px), (pointer: coarse) and (max-width: 1024px) {
+  /* Evita o auto-zoom abrupto do iOS Safari ao focar o campo */
+  .ui-campo-texto__input {
+    font-size: 16px !important;
+  }
+
+  /* Altura de toque ergonômica mínima no mobile quando não for inline ultra-compacto */
+  :host(:not([inline])) .ui-campo-texto__wrapper {
+    min-height: max(var(--ui-campo-altura, 38px), 38px);
+    padding: 0 10px;
+  }
+
+  .ui-campo-texto__label {
+    font-size: 13px;
+  }
+
+  .ui-campo-texto__icone--clicavel {
+    min-width: 32px;
+    min-height: 32px;
+  }
+}

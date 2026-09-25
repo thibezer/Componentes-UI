@@ -66,6 +66,8 @@ export class CanvasInteracao {
 
   // Sinaliza que uma caixa de seleção foi arrastada
   public selectionHappened: boolean = false;
+  // Sinaliza que uma operação de pan ocorreu
+  public panHappened: boolean = false;
 
   constructor(ctx?: Partial<CanvasInteracaoContext>) {
     this.ctx = {
@@ -163,12 +165,14 @@ export class CanvasInteracao {
     if (!this.map || !this.mapContainer) return;
     if (e.touches.length === 1 && this.isTouchPanning) {
       e.preventDefault();
+      this.panHappened = true;
       const dx = this.touchStartPos.x - e.touches[0].clientX;
       const dy = this.touchStartPos.y - e.touches[0].clientY;
       this.map.panBy([dx, dy], { animate: false });
       this.touchStartPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
     } else if (e.touches.length === 2 && this.touchStartDist > 0) {
       e.preventDefault();
+      this.panHappened = true;
       const dx = e.touches[0].clientX - e.touches[1].clientX;
       const dy = e.touches[0].clientY - e.touches[1].clientY;
       const dist = Math.hypot(dx, dy);
@@ -186,6 +190,9 @@ export class CanvasInteracao {
   private handleTouchEnd = (): void => {
     this.isTouchPanning = false;
     this.touchStartDist = 0;
+    setTimeout(() => {
+      this.panHappened = false;
+    }, 120);
   };
 
   private handleContextMenu = (e: MouseEvent): void => {
@@ -217,6 +224,7 @@ export class CanvasInteracao {
       this.lastMiddleClickTime = agora;
 
       this.isPanning = true;
+      this.panHappened = false;
       this.lastMousePos = { x: e.clientX, y: e.clientY };
       this.mapContainer.style.cursor = 'grabbing';
       return;
@@ -224,6 +232,7 @@ export class CanvasInteracao {
 
     // 2. Botão Esquerdo -> Janela de Seleção CAD
     if (e.button === 0) {
+      this.selectionHappened = false;
       if (this.ctx.mapaController && this.ctx.mapaController.modoCliqueSequencialAtivo) {
         return;
       }
@@ -256,6 +265,9 @@ export class CanvasInteracao {
     if (this.isPanning) {
       const dx = this.lastMousePos.x - e.clientX;
       const dy = this.lastMousePos.y - e.clientY;
+      if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
+        this.panHappened = true;
+      }
       this.map.panBy([dx, dy], { animate: false });
       this.lastMousePos = { x: e.clientX, y: e.clientY };
       return;
@@ -296,6 +308,9 @@ export class CanvasInteracao {
       if (this.mapContainer) {
         this.mapContainer.style.cursor = 'grab';
       }
+      setTimeout(() => {
+        this.panHappened = false;
+      }, 120);
     }
 
     if (this.isSelecting) {
@@ -326,6 +341,7 @@ export class CanvasInteracao {
 
       // Clique curto no vazio -> limpa seleção
       if (width < 4 && height < 4) {
+        this.selectionHappened = false;
         const target = e.target as HTMLElement;
         if (target && (target.classList?.contains('leaflet-container') || target.id === 'mapa-triagem' || target.closest?.('.leaflet-pane'))) {
           const clicouNoMarcador = target.closest?.('.custom-leaflet-marker') || target.closest?.('.custom-div-icon');
@@ -341,6 +357,9 @@ export class CanvasInteracao {
       }
 
       this.selectionHappened = true;
+      setTimeout(() => {
+        this.selectionHappened = false;
+      }, 120);
 
       const rect = {
         x1: Math.min(this.selectStartPoint.x, endPoint.x),

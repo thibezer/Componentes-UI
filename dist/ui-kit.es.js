@@ -1,27 +1,27 @@
-var he = Object.defineProperty;
-var pe = (b, o, e) => o in b ? he(b, o, { enumerable: !0, configurable: !0, writable: !0, value: e }) : b[o] = e;
-var n = (b, o, e) => pe(b, typeof o != "symbol" ? o + "" : o, e);
-import _ from "leaflet";
-const me = ':host{display:inline-block;width:100%;box-sizing:border-box}:host([inline]){width:auto;height:auto}.ui-botao-primario{display:inline-flex;align-items:center;justify-content:center;gap:var(--ui-espaco-sm, 6px);width:100%;height:var(--ui-campo-altura, 100%);min-height:var(--ui-campo-altura, var(--ui-altura-minima, 15px));box-sizing:border-box;padding:0 12px;border:1px solid transparent;border-radius:var(--ui-raio-borda, 6px);font-family:var(--ui-fonte-base, "Inter", sans-serif);font-size:clamp(11px,.85rem,13px);font-weight:600;line-height:1;transition:background-color .15s cubic-bezier(.16,1,.3,1),border-color .15s cubic-bezier(.16,1,.3,1),color .15s cubic-bezier(.16,1,.3,1),filter .15s cubic-bezier(.16,1,.3,1),transform .12s cubic-bezier(.34,1.56,.64,1),box-shadow .15s ease;text-align:center;-webkit-user-select:none;user-select:none}.ui-botao-primario:focus-visible{outline:none;box-shadow:0 0 0 2px var(--ui-cor-fundo, #0b0b0d),0 0 0 4px var(--ui-cor-primaria, #00E08A)}.ui-botao-primario--has-icon-start{padding-left:8px!important;padding-right:12px!important}.ui-botao-primario--has-icon-end{padding-left:12px!important;padding-right:8px!important}::slotted(svg),::slotted(ui-icone){display:inline-flex!important;align-items:center!important;justify-content:center!important;vertical-align:middle!important;flex-shrink:0!important;line-height:1!important;width:14px!important;height:14px!important;box-sizing:content-box;shape-rendering:geometricPrecision}::slotted(span),::slotted(label),::slotted(p){display:inline-flex;align-items:center;line-height:1}::slotted(div){display:inline-flex;align-items:center;justify-content:center;line-height:1;height:100%}.ui-botao-primario,.ui-botao-primario--primary,.ui-botao-primario--primario{background:var(--ui-cor-primaria, #00E08A);color:var(--ui-cor-texto-sobre-primaria, #000000);border-color:transparent}.ui-botao-primario--primary:hover:not(:disabled),.ui-botao-primario--primario:hover:not(:disabled),.ui-botao-primario:hover:not(:disabled){filter:brightness(1.1)}.ui-botao-primario--destaque{background:var(--ui-cor-destaque, var(--ui-cor-primaria, #00E08A));color:var(--ui-cor-texto-sobre-primaria, #000000)}.ui-botao-primario--secondary,.ui-botao-primario--secundario{background:var(--ui-cor-botao-secundario-fundo, #1e1e24);color:var(--ui-cor-texto, #e1e1e6);border-color:var(--ui-cor-borda, rgba(255, 255, 255, .12))}.ui-botao-primario--secondary:hover:not(:disabled),.ui-botao-primario--secundario:hover:not(:disabled){background:var(--ui-cor-botao-secundario-hover, #2a2a34);border-color:#ffffff3d}.ui-botao-primario--ghost,.ui-botao-primario--terciario{background:transparent;color:var(--ui-cor-texto, #e1e1e6);border-color:transparent}.ui-botao-primario--ghost:hover:not(:disabled),.ui-botao-primario--terciario:hover:not(:disabled){background:var(--ui-cor-hover-menu, rgba(255, 255, 255, .08))}.ui-botao-primario--destructive,.ui-botao-primario--destrutivo,.ui-botao-primario--erro{background:var(--ui-cor-botao-destrutivo-fundo, #ff4444);color:var(--ui-cor-botao-destrutivo-texto, #ffffff);border-color:transparent}.ui-botao-primario--destructive:hover:not(:disabled),.ui-botao-primario--destrutivo:hover:not(:disabled),.ui-botao-primario--erro:hover:not(:disabled){background:var(--ui-cor-botao-destrutivo-hover, #e03333)}.ui-botao-primario--outline,.ui-botao-primario--borda{background:transparent;color:var(--ui-cor-primaria, #00E08A);border-color:var(--ui-cor-primaria, #00E08A)}.ui-botao-primario--outline:hover:not(:disabled),.ui-botao-primario--borda:hover:not(:disabled){background:#00e08a1f;border-color:var(--ui-cor-primaria, #00E08A);filter:brightness(1.08)}.ui-botao-primario--icon-only,.ui-botao-primario--icone{padding:0;width:var(--ui-campo-altura, var(--ui-altura-minima, 15px));min-width:var(--ui-campo-altura, var(--ui-altura-minima, 15px));height:var(--ui-campo-altura, var(--ui-altura-minima, 15px));aspect-ratio:1;border-radius:var(--ui-raio-borda, 6px)}.ui-botao-primario--hover{filter:brightness(1.15)!important}.ui-botao-primario:active:not(:disabled),.ui-botao-primario--active{transform:scale(.97)!important;filter:brightness(.9)!important}.ui-botao-primario:disabled,.ui-botao-primario--disabled{opacity:.45;cursor:not-allowed;transform:none!important;filter:none!important}.ui-botao-primario--carregando,.ui-botao-primario--loading{cursor:wait;opacity:.85;pointer-events:none}.ui-botao-primario__spinner{width:14px;height:14px;animation:ui-spin .75s linear infinite;flex-shrink:0;shape-rendering:geometricPrecision}@keyframes ui-spin{0%{transform:rotate(0)}to{transform:rotate(360deg)}}';
-class z {
+var Ct = Object.defineProperty;
+var St = (b, o, t) => o in b ? Ct(b, o, { enumerable: !0, configurable: !0, writable: !0, value: t }) : b[o] = t;
+var l = (b, o, t) => St(b, typeof o != "symbol" ? o + "" : o, t);
+import x from "leaflet";
+const Lt = ':host{display:inline-block;width:100%;box-sizing:border-box}:host([inline]){width:auto;height:auto}.ui-botao-primario{display:inline-flex;align-items:center;justify-content:center;gap:var(--ui-espaco-sm, 6px);width:100%;height:var(--ui-campo-altura, 100%);min-height:var(--ui-campo-altura, var(--ui-altura-minima, 15px));box-sizing:border-box;padding:0 12px;border:1px solid transparent;border-radius:var(--ui-raio-borda, 6px);font-family:var(--ui-fonte-base, "Inter", sans-serif);font-size:clamp(11px,.85rem,13px);font-weight:600;line-height:1;transition:background-color .15s cubic-bezier(.16,1,.3,1),border-color .15s cubic-bezier(.16,1,.3,1),color .15s cubic-bezier(.16,1,.3,1),filter .15s cubic-bezier(.16,1,.3,1),transform .12s cubic-bezier(.34,1.56,.64,1),box-shadow .15s ease;text-align:center;-webkit-user-select:none;user-select:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent}.ui-botao-primario:focus-visible{outline:none;box-shadow:0 0 0 2px var(--ui-cor-fundo, #0b0b0d),0 0 0 4px var(--ui-cor-primaria, #00E08A)}.ui-botao-primario--has-icon-start{padding-left:8px!important;padding-right:12px!important}.ui-botao-primario--has-icon-end{padding-left:12px!important;padding-right:8px!important}::slotted(svg),::slotted(ui-icone){display:inline-flex!important;align-items:center!important;justify-content:center!important;vertical-align:middle!important;flex-shrink:0!important;line-height:1!important;width:14px!important;height:14px!important;box-sizing:content-box;shape-rendering:geometricPrecision}::slotted(span),::slotted(label),::slotted(p){display:inline-flex;align-items:center;line-height:1}::slotted(div){display:inline-flex;align-items:center;justify-content:center;line-height:1;height:100%}.ui-botao-primario,.ui-botao-primario--primary,.ui-botao-primario--primario{background:var(--ui-cor-primaria, #00E08A);color:var(--ui-cor-texto-sobre-primaria, #000000);border-color:transparent}.ui-botao-primario--primary:hover:not(:disabled),.ui-botao-primario--primario:hover:not(:disabled),.ui-botao-primario:hover:not(:disabled){filter:brightness(1.1)}.ui-botao-primario--destaque{background:var(--ui-cor-destaque, var(--ui-cor-primaria, #00E08A));color:var(--ui-cor-texto-sobre-primaria, #000000)}.ui-botao-primario--secondary,.ui-botao-primario--secundario{background:var(--ui-cor-botao-secundario-fundo, #1e1e24);color:var(--ui-cor-texto, #e1e1e6);border-color:var(--ui-cor-borda, rgba(255, 255, 255, .12))}.ui-botao-primario--secondary:hover:not(:disabled),.ui-botao-primario--secundario:hover:not(:disabled){background:var(--ui-cor-botao-secundario-hover, #2a2a34);border-color:#ffffff3d}.ui-botao-primario--ghost,.ui-botao-primario--terciario{background:transparent;color:var(--ui-cor-texto, #e1e1e6);border-color:transparent}.ui-botao-primario--ghost:hover:not(:disabled),.ui-botao-primario--terciario:hover:not(:disabled){background:var(--ui-cor-hover-menu, rgba(255, 255, 255, .08))}.ui-botao-primario--destructive,.ui-botao-primario--destrutivo,.ui-botao-primario--erro{background:var(--ui-cor-botao-destrutivo-fundo, #ff4444);color:var(--ui-cor-botao-destrutivo-texto, #ffffff);border-color:transparent}.ui-botao-primario--destructive:hover:not(:disabled),.ui-botao-primario--destrutivo:hover:not(:disabled),.ui-botao-primario--erro:hover:not(:disabled){background:var(--ui-cor-botao-destrutivo-hover, #e03333)}.ui-botao-primario--outline,.ui-botao-primario--borda{background:transparent;color:var(--ui-cor-primaria, #00E08A);border-color:var(--ui-cor-primaria, #00E08A)}.ui-botao-primario--outline:hover:not(:disabled),.ui-botao-primario--borda:hover:not(:disabled){background:#00e08a1f;border-color:var(--ui-cor-primaria, #00E08A);filter:brightness(1.08)}.ui-botao-primario--icon-only,.ui-botao-primario--icone{padding:0;width:var(--ui-campo-altura, var(--ui-altura-minima, 15px));min-width:var(--ui-campo-altura, var(--ui-altura-minima, 15px));height:var(--ui-campo-altura, var(--ui-altura-minima, 15px));aspect-ratio:1;border-radius:var(--ui-raio-borda, 6px)}.ui-botao-primario--hover{filter:brightness(1.15)!important}.ui-botao-primario:active:not(:disabled),.ui-botao-primario--active{transform:scale(.97)!important;filter:brightness(.9)!important}.ui-botao-primario:disabled,.ui-botao-primario--disabled{opacity:.45;cursor:not-allowed;transform:none!important;filter:none!important}.ui-botao-primario--carregando,.ui-botao-primario--loading{cursor:wait;opacity:.85;pointer-events:none}.ui-botao-primario__spinner{width:14px;height:14px;animation:ui-spin .75s linear infinite;flex-shrink:0;shape-rendering:geometricPrecision}@keyframes ui-spin{0%{transform:rotate(0)}to{transform:rotate(360deg)}}@media (max-width: 640px){:host(:not([inline])) .ui-botao-primario{min-height:max(var(--ui-campo-altura, 38px),38px);font-size:14px;padding:0 14px}}';
+class D {
   constructor() {
-    n(this, "entries", []);
+    l(this, "entries", []);
   }
   /**
    * Adiciona um ouvinte de evento e rastreia sua referência para limpeza futura.
    * Suporta handlers tipados (MouseEvent, KeyboardEvent, CustomEvent, etc.).
    */
-  add(o, e, t, i) {
+  add(o, t, e, i) {
     if (!o) return;
-    const a = t;
-    o.addEventListener(e, a, i), this.entries.push({ target: o, type: e, listener: a, options: i });
+    const a = e;
+    o.addEventListener(t, a, i), this.entries.push({ target: o, type: t, listener: a, options: i });
   }
   /**
    * Remove todos os ouvintes de eventos atualmente registrados e esvazia a coleção.
    */
   cleanup() {
-    this.entries.forEach(({ target: o, type: e, listener: t, options: i }) => {
-      o.removeEventListener(e, t, i);
+    this.entries.forEach(({ target: o, type: t, listener: e, options: i }) => {
+      o.removeEventListener(t, e, i);
     }), this.entries = [];
   }
   /**
@@ -31,38 +31,38 @@ class z {
     return this.entries.length;
   }
 }
-class oe extends HTMLElement {
+class vt extends HTMLElement {
   constructor() {
     super();
-    n(this, "button");
-    n(this, "spinnerContainer");
-    n(this, "slotElement");
-    n(this, "opticalState", null);
-    n(this, "listeners", new z());
-    n(this, "handleSlotChange", () => {
+    l(this, "button");
+    l(this, "spinnerContainer");
+    l(this, "slotElement");
+    l(this, "opticalState", null);
+    l(this, "listeners", new D());
+    l(this, "handleSlotChange", () => {
       this.sanitizeAndBalanceContent(), this.syncState();
     });
-    n(this, "handleClick", (e) => {
+    l(this, "handleClick", (t) => {
       if (this.hasAttribute("disabled") || this.carregando) {
-        e.preventDefault(), e.stopPropagation();
+        t.preventDefault(), t.stopPropagation();
         return;
       }
-      this.dispatchEvent(new CustomEvent("ui-click", { detail: { originalEvent: e }, bubbles: !0, composed: !0 }));
-      const t = this.closest("form");
-      if (t) {
+      this.dispatchEvent(new CustomEvent("ui-click", { detail: { originalEvent: t }, bubbles: !0, composed: !0 }));
+      const e = this.closest("form");
+      if (e) {
         if (this.hasAttribute("tipo-reset") || this.getAttribute("type") === "reset")
-          t.reset();
+          e.reset();
         else if (this.hasAttribute("tipo-submit") || this.getAttribute("type") === "submit")
           try {
-            t.requestSubmit(this.button);
+            e.requestSubmit(this.button);
           } catch {
-            t.requestSubmit();
+            e.requestSubmit();
           }
       }
     });
-    const e = this.attachShadow({ mode: "open" });
-    e.innerHTML = `
-      <style>${me}</style>
+    const t = this.attachShadow({ mode: "open" });
+    t.innerHTML = `
+      <style>${Lt}</style>
       <button class="ui-botao-primario" type="button">
         <span class="ui-botao-primario__spinner-container" style="display: none;">
           <svg class="ui-botao-primario__spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -72,7 +72,7 @@ class oe extends HTMLElement {
         </span>
         <slot></slot>
       </button>
-    `, this.button = e.querySelector("button"), this.spinnerContainer = e.querySelector(".ui-botao-primario__spinner-container"), this.slotElement = e.querySelector("slot");
+    `, this.button = t.querySelector("button"), this.spinnerContainer = t.querySelector(".ui-botao-primario__spinner-container"), this.slotElement = t.querySelector("slot");
   }
   static get observedAttributes() {
     return ["disabled", "variante", "carregando", "loading", "estado", "tamanho", "size", "altura", "height", "densidade"];
@@ -83,128 +83,128 @@ class oe extends HTMLElement {
   disconnectedCallback() {
     this.listeners.cleanup();
   }
-  attributeChangedCallback(e, t, i) {
+  attributeChangedCallback(t, e, i) {
     this.syncState();
   }
   get carregando() {
     return this.hasAttribute("carregando") || this.hasAttribute("loading");
   }
-  set carregando(e) {
-    e ? this.setAttribute("carregando", "") : (this.removeAttribute("carregando"), this.removeAttribute("loading"));
+  set carregando(t) {
+    t ? this.setAttribute("carregando", "") : (this.removeAttribute("carregando"), this.removeAttribute("loading"));
   }
   /**
    * Remove espaços e quebras de linha fantasmas no slot e identifica
    * se há ícone no início ou fim para aplicar compensação óptica de padding.
    */
   sanitizeAndBalanceContent() {
-    const e = (a) => {
+    const t = (a) => {
       if (a.nodeType !== Node.ELEMENT_NODE) return !1;
-      const s = a, r = s.tagName.toLowerCase();
-      if (r === "ui-icone" || r === "svg" || r === "i" || s.hasAttribute("data-icon") || s.classList.contains("icon") || s.classList.contains("icone")) return !0;
-      const l = typeof s.className == "string" ? s.className : "";
-      return !!/\b(fa[srlb]?|fa-[\w-]+|lucide|tabler)\b/i.test(l);
-    }, t = this.slotElement ? this.slotElement.assignedNodes() : Array.from(this.childNodes), i = [];
-    for (let a = 0; a < t.length; a++) {
-      const s = t[a];
-      if (s.nodeType === Node.TEXT_NODE) {
-        const r = s.textContent || "";
-        if (!r.trim())
-          t.length > 1 && (s.textContent = "");
+      const r = a, s = r.tagName.toLowerCase();
+      if (s === "ui-icone" || s === "svg" || s === "i" || r.hasAttribute("data-icon") || r.classList.contains("icon") || r.classList.contains("icone")) return !0;
+      const n = typeof r.className == "string" ? r.className : "";
+      return !!/\b(fa[srlb]?|fa-[\w-]+|lucide|tabler)\b/i.test(n);
+    }, e = this.slotElement ? this.slotElement.assignedNodes() : Array.from(this.childNodes), i = [];
+    for (let a = 0; a < e.length; a++) {
+      const r = e[a];
+      if (r.nodeType === Node.TEXT_NODE) {
+        const s = r.textContent || "";
+        if (!s.trim())
+          e.length > 1 && (r.textContent = "");
         else {
-          const l = t[a - 1];
-          l && e(l) && (s.textContent = r.replace(/^\s+/, ""));
-          const u = t[a + 1];
-          u && e(u) && (s.textContent = (s.textContent || "").replace(/\s+$/, "")), (s.textContent || "").trim().length > 0 && i.push(s);
+          const n = e[a - 1];
+          n && t(n) && (r.textContent = s.replace(/^\s+/, ""));
+          const c = e[a + 1];
+          c && t(c) && (r.textContent = (r.textContent || "").replace(/\s+$/, "")), (r.textContent || "").trim().length > 0 && i.push(r);
         }
-      } else s.nodeType === Node.ELEMENT_NODE && i.push(s);
+      } else r.nodeType === Node.ELEMENT_NODE && i.push(r);
     }
     if (i.length >= 2)
-      e(i[0]) ? this.opticalState = "icon-start" : e(i[i.length - 1]) ? this.opticalState = "icon-end" : this.opticalState = null;
+      t(i[0]) ? this.opticalState = "icon-start" : t(i[i.length - 1]) ? this.opticalState = "icon-end" : this.opticalState = null;
     else if (i.length === 1) {
       const a = i[0];
-      if (e(a))
+      if (t(a))
         this.opticalState = "icon-only";
       else if (a.nodeType === Node.ELEMENT_NODE) {
-        const s = a;
-        s.children.length >= 2 ? e(s.firstElementChild) ? this.opticalState = "icon-start" : e(s.lastElementChild) ? this.opticalState = "icon-end" : this.opticalState = null : s.children.length === 1 && e(s.firstElementChild) ? this.opticalState = "icon-only" : this.opticalState = null;
+        const r = a;
+        r.children.length >= 2 ? t(r.firstElementChild) ? this.opticalState = "icon-start" : t(r.lastElementChild) ? this.opticalState = "icon-end" : this.opticalState = null : r.children.length === 1 && t(r.firstElementChild) ? this.opticalState = "icon-only" : this.opticalState = null;
       } else
         this.opticalState = null;
     } else
       this.opticalState = null;
   }
   syncState() {
-    const e = this.getAttribute("altura") || this.getAttribute("height");
-    e ? this.style.setProperty("--ui-campo-altura", isNaN(Number(e)) ? e : `${e}px`) : this.style.removeProperty("--ui-campo-altura");
-    const t = this.carregando, i = this.hasAttribute("disabled") || t, a = this.getAttribute("variante") || "primario", s = this.getAttribute("estado");
-    this.button.disabled = i, this.spinnerContainer.style.display = t ? "inline-flex" : "none";
-    const r = ["ui-botao-primario", `ui-botao-primario--${a}`];
-    i && !t && r.push("ui-botao-primario--disabled"), t && r.push("ui-botao-primario--carregando"), s && r.push(`ui-botao-primario--${s}`), this.opticalState === "icon-start" ? r.push("ui-botao-primario--has-icon-start") : this.opticalState === "icon-end" && r.push("ui-botao-primario--has-icon-end"), (this.opticalState === "icon-only" || a === "icon-only" || a === "icone") && r.push("ui-botao-primario--icon-only"), this.button.className = r.join(" ");
+    const t = this.getAttribute("altura") || this.getAttribute("height");
+    t ? this.style.setProperty("--ui-campo-altura", isNaN(Number(t)) ? t : `${t}px`) : this.style.removeProperty("--ui-campo-altura");
+    const e = this.carregando, i = this.hasAttribute("disabled") || e, a = this.getAttribute("variante") || "primario", r = this.getAttribute("estado");
+    this.button.disabled = i, this.spinnerContainer.style.display = e ? "inline-flex" : "none";
+    const s = ["ui-botao-primario", `ui-botao-primario--${a}`];
+    i && !e && s.push("ui-botao-primario--disabled"), e && s.push("ui-botao-primario--carregando"), r && s.push(`ui-botao-primario--${r}`), this.opticalState === "icon-start" ? s.push("ui-botao-primario--has-icon-start") : this.opticalState === "icon-end" && s.push("ui-botao-primario--has-icon-end"), (this.opticalState === "icon-only" || a === "icon-only" || a === "icone") && s.push("ui-botao-primario--icon-only"), this.button.className = s.join(" ");
   }
 }
-class fe extends oe {
+class zt extends vt {
 }
-customElements.get("ui-botao") || customElements.define("ui-botao", oe);
-customElements.get("ui-botao-primario") || customElements.define("ui-botao-primario", fe);
-const be = ':host{display:inline-block;position:relative;width:100%;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif)}:host([inline]){width:auto}.ui-lista-flutuante__container{display:flex;flex-direction:column;width:100%;position:relative}.ui-lista-flutuante__label{font-family:var(--ui-fonte-base, "Inter", sans-serif);font-size:var(--ui-tamanho-corpo-sm, 13px);font-weight:var(--ui-peso-medio, 500);color:var(--ui-cor-texto, #e1e1e6);margin-bottom:4px;-webkit-user-select:none;user-select:none;flex-shrink:0}.ui-lista-flutuante__gatilho{display:flex;align-items:center;justify-content:space-between;gap:6px;width:100%;height:var(--ui-campo-altura, 100%);min-height:var(--ui-campo-altura, var(--ui-altura-minima, 15px));padding:0 8px;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);color:var(--ui-cor-texto, #e1e1e6);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));border-radius:var(--ui-raio-borda, 6px);font-family:var(--ui-fonte-base, "Inter", sans-serif);font-size:clamp(11px,.85rem,13px);line-height:1;cursor:pointer;box-sizing:border-box;transition:border-color .15s ease,background-color .15s ease}.ui-lista-flutuante__gatilho:hover:not(:disabled){border-color:var(--ui-cor-primaria, #00E08A)}.ui-lista-flutuante__gatilho:disabled{opacity:.5;cursor:not-allowed}.ui-lista-flutuante__texto{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;text-align:left}.ui-lista-flutuante__seta{font-size:10px;line-height:1;display:inline-flex;align-items:center;justify-content:center;transition:transform .2s ease;color:var(--ui-cor-texto-secundario, #888899);flex-shrink:0;shape-rendering:geometricPrecision}:host([aberta]) .ui-lista-flutuante__seta{transform:rotate(180deg)}.ui-lista-flutuante__backdrop{display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;z-index:9998}:host([aberta]) .ui-lista-flutuante__backdrop{display:block}:host(:not([aberta])) .ui-lista-flutuante__conteudo{display:none!important}:host([aberta]) .ui-lista-flutuante__conteudo{display:block}.ui-lista-flutuante__conteudo{position:fixed;margin:0;padding:4px;list-style:none;background-color:var(--ui-cor-fundo-menu, #18181c);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .14));border-radius:var(--ui-raio-borda, 6px);box-shadow:0 8px 28px #0000008c;max-height:220px;overflow-y:auto;z-index:9999;box-sizing:border-box;inset:auto}.ui-lista-flutuante__sheet-header{display:none;width:100%;margin-bottom:8px}.ui-lista-flutuante__handle{width:36px;height:4px;border-radius:2px;background-color:#ffffff40;margin:2px auto 8px}.ui-lista-flutuante__sheet-title-bar{display:flex;align-items:center;justify-content:space-between;width:100%;padding:4px 6px 8px;border-bottom:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .08));margin-bottom:6px}.ui-lista-flutuante__sheet-titulo{font-size:13px;font-weight:600;color:var(--ui-cor-primaria, #00E08A);letter-spacing:.3px;text-transform:uppercase}.ui-lista-flutuante__sheet-close{background:transparent;border:none;color:var(--ui-cor-texto-secundario, #888899);font-size:14px;cursor:pointer;padding:4px 8px;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:color .15s,background-color .15s}.ui-lista-flutuante__sheet-close:hover{color:#fff;background-color:#ffffff14}.ui-lista-flutuante__item{padding:6px 10px;font-family:var(--ui-fonte-base, "Inter", sans-serif);font-size:12px;line-height:1.2;color:var(--ui-cor-texto, #e1e1e6);border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:8px;transition:background-color .12s ease,color .12s ease;-webkit-user-select:none;user-select:none}.ui-lista-flutuante__item:hover{background-color:var(--ui-cor-hover-menu, rgba(255, 255, 255, .08))}.ui-lista-flutuante__item--selecionado{background-color:#00e08a26;color:var(--ui-cor-primaria, #00E08A);font-weight:600}.ui-lista-flutuante__item--selecionado:after{content:"✓";font-size:11px;color:var(--ui-cor-primaria, #00E08A)}@media (max-width: 640px){:host([aberta]) .ui-lista-flutuante__backdrop{background-color:#00000059;-webkit-backdrop-filter:none;backdrop-filter:none}.ui-lista-flutuante__conteudo{position:fixed!important;bottom:0!important;top:auto!important;left:0!important;width:100vw!important;max-width:100vw!important;min-width:100vw!important;max-height:65vh!important;border-radius:16px 16px 0 0!important;border-bottom:none!important;padding:10px 16px 28px!important;box-shadow:0 -8px 32px #000000b3!important;animation:ui-bottom-sheet-slide .22s cubic-bezier(.4,0,.2,1)}.ui-lista-flutuante__sheet-header{display:flex!important;flex-direction:column!important}.ui-lista-flutuante__item{padding:12px 14px!important;font-size:15px!important;margin-bottom:3px}}:host([bottom-sheet][aberta]) .ui-lista-flutuante__backdrop,:host([modo-mobile][aberta]) .ui-lista-flutuante__backdrop{background-color:#00000059;-webkit-backdrop-filter:none;backdrop-filter:none}:host([bottom-sheet]) .ui-lista-flutuante__conteudo,:host([modo-mobile]) .ui-lista-flutuante__conteudo{position:fixed!important;bottom:0!important;top:auto!important;left:0!important;width:100vw!important;max-width:100vw!important;min-width:100vw!important;max-height:65vh!important;border-radius:16px 16px 0 0!important;border-bottom:none!important;padding:10px 16px 28px!important;box-shadow:0 -8px 32px #000000b3!important;animation:ui-bottom-sheet-slide .22s cubic-bezier(.4,0,.2,1)}:host([bottom-sheet]) .ui-lista-flutuante__sheet-header,:host([modo-mobile]) .ui-lista-flutuante__sheet-header{display:flex!important;flex-direction:column!important}:host([bottom-sheet]) .ui-lista-flutuante__item,:host([modo-mobile]) .ui-lista-flutuante__item{padding:12px 14px!important;font-size:15px!important;margin-bottom:3px}@keyframes ui-bottom-sheet-slide{0%{transform:translateY(100%)}to{transform:translateY(0)}}';
-class V extends HTMLElement {
+customElements.get("ui-botao") || customElements.define("ui-botao", vt);
+customElements.get("ui-botao-primario") || customElements.define("ui-botao-primario", zt);
+const Mt = ':host{display:inline-block;position:relative;width:100%;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif)}:host([inline]){width:auto}.ui-lista-flutuante__container{display:flex;flex-direction:column;width:100%;position:relative}.ui-lista-flutuante__label{font-family:var(--ui-fonte-base, "Inter", sans-serif);font-size:var(--ui-tamanho-corpo-sm, 13px);font-weight:var(--ui-peso-medio, 500);color:var(--ui-cor-texto, #e1e1e6);margin-bottom:4px;-webkit-user-select:none;user-select:none;flex-shrink:0}.ui-lista-flutuante__gatilho{display:flex;align-items:center;justify-content:space-between;gap:6px;width:100%;height:var(--ui-campo-altura, 100%);min-height:var(--ui-campo-altura, var(--ui-altura-minima, 15px));padding:0 8px;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);color:var(--ui-cor-texto, #e1e1e6);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));border-radius:var(--ui-raio-borda, 6px);font-family:var(--ui-fonte-base, "Inter", sans-serif);font-size:clamp(11px,.85rem,13px);line-height:1;cursor:pointer;box-sizing:border-box;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:border-color .15s ease,background-color .15s ease}.ui-lista-flutuante__gatilho:hover:not(:disabled){border-color:var(--ui-cor-primaria, #00E08A)}.ui-lista-flutuante__gatilho:disabled{opacity:.5;cursor:not-allowed}.ui-lista-flutuante__texto{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;text-align:left}.ui-lista-flutuante__seta{font-size:10px;line-height:1;display:inline-flex;align-items:center;justify-content:center;transition:transform .2s ease;color:var(--ui-cor-texto-secundario, #888899);flex-shrink:0;shape-rendering:geometricPrecision}:host([aberta]) .ui-lista-flutuante__seta{transform:rotate(180deg)}.ui-lista-flutuante__backdrop{display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;z-index:9998}:host([aberta]) .ui-lista-flutuante__backdrop{display:block}:host(:not([aberta])) .ui-lista-flutuante__conteudo{display:none!important}:host([aberta]) .ui-lista-flutuante__conteudo{display:block}.ui-lista-flutuante__conteudo{position:fixed;margin:0;padding:4px;list-style:none;background-color:var(--ui-cor-fundo-menu, #18181c);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .14));border-radius:var(--ui-raio-borda, 6px);box-shadow:0 8px 28px #0000008c;max-height:220px;overflow-y:auto;z-index:9999;box-sizing:border-box;inset:auto}.ui-lista-flutuante__sheet-header{display:none;width:100%;margin-bottom:8px}.ui-lista-flutuante__handle{width:36px;height:4px;border-radius:2px;background-color:#ffffff40;margin:2px auto 8px}.ui-lista-flutuante__sheet-title-bar{display:flex;align-items:center;justify-content:space-between;width:100%;padding:4px 6px 8px;border-bottom:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .08));margin-bottom:6px}.ui-lista-flutuante__sheet-titulo{font-size:13px;font-weight:600;color:var(--ui-cor-primaria, #00E08A);letter-spacing:.3px;text-transform:uppercase}.ui-lista-flutuante__sheet-close{background:transparent;border:none;color:var(--ui-cor-texto-secundario, #888899);font-size:14px;cursor:pointer;padding:4px 8px;border-radius:4px;display:flex;align-items:center;justify-content:center;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:color .15s,background-color .15s}.ui-lista-flutuante__sheet-close:hover{color:#fff;background-color:#ffffff14}.ui-lista-flutuante__item{padding:6px 10px;font-family:var(--ui-fonte-base, "Inter", sans-serif);font-size:12px;line-height:1.2;color:var(--ui-cor-texto, #e1e1e6);border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:8px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:background-color .12s ease,color .12s ease;-webkit-user-select:none;user-select:none}.ui-lista-flutuante__item:hover{background-color:var(--ui-cor-hover-menu, rgba(255, 255, 255, .08))}.ui-lista-flutuante__item--selecionado{background-color:#00e08a26;color:var(--ui-cor-primaria, #00E08A);font-weight:600}.ui-lista-flutuante__item--selecionado:after{content:"✓";font-size:11px;color:var(--ui-cor-primaria, #00E08A)}@media (max-width: 640px){.ui-lista-flutuante__gatilho{min-height:max(var(--ui-campo-altura, 38px),38px);font-size:15px}:host([aberta]) .ui-lista-flutuante__backdrop{background-color:#00000059;-webkit-backdrop-filter:none;backdrop-filter:none}.ui-lista-flutuante__conteudo{position:fixed!important;bottom:0!important;top:auto!important;left:0!important;width:100vw!important;max-width:100vw!important;min-width:100vw!important;max-height:70vh!important;max-height:70dvh!important;border-radius:16px 16px 0 0!important;border-bottom:none!important;padding:10px 16px calc(24px + env(safe-area-inset-bottom,0px)) 16px!important;box-shadow:0 -8px 32px #000000b3!important;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;animation:ui-bottom-sheet-slide .22s cubic-bezier(.4,0,.2,1)}.ui-lista-flutuante__sheet-header{display:flex!important;flex-direction:column!important}.ui-lista-flutuante__sheet-close{min-width:44px;min-height:44px;font-size:18px}.ui-lista-flutuante__item{padding:12px 14px!important;font-size:15px!important;margin-bottom:3px}}:host([bottom-sheet][aberta]) .ui-lista-flutuante__backdrop,:host([modo-mobile][aberta]) .ui-lista-flutuante__backdrop{background-color:#00000059;-webkit-backdrop-filter:none;backdrop-filter:none}:host([bottom-sheet]) .ui-lista-flutuante__conteudo,:host([modo-mobile]) .ui-lista-flutuante__conteudo{position:fixed!important;bottom:0!important;top:auto!important;left:0!important;width:100vw!important;max-width:100vw!important;min-width:100vw!important;max-height:70vh!important;max-height:70dvh!important;border-radius:16px 16px 0 0!important;border-bottom:none!important;padding:10px 16px calc(24px + env(safe-area-inset-bottom,0px)) 16px!important;box-shadow:0 -8px 32px #000000b3!important;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;animation:ui-bottom-sheet-slide .22s cubic-bezier(.4,0,.2,1)}:host([bottom-sheet]) .ui-lista-flutuante__sheet-header,:host([modo-mobile]) .ui-lista-flutuante__sheet-header{display:flex!important;flex-direction:column!important}:host([bottom-sheet]) .ui-lista-flutuante__sheet-close,:host([modo-mobile]) .ui-lista-flutuante__sheet-close{min-width:44px;min-height:44px;font-size:18px}:host([bottom-sheet]) .ui-lista-flutuante__item,:host([modo-mobile]) .ui-lista-flutuante__item{padding:12px 14px!important;font-size:15px!important;margin-bottom:3px}@keyframes ui-bottom-sheet-slide{0%{transform:translateY(100%)}to{transform:translateY(0)}}';
+class nt extends HTMLElement {
   constructor() {
     super();
-    n(this, "internals");
-    n(this, "labelElement");
-    n(this, "button");
-    n(this, "content");
-    n(this, "listElement");
-    n(this, "textoElement");
-    n(this, "backdropElement");
-    n(this, "sheetTituloElement");
-    n(this, "sheetCloseButton");
-    n(this, "listeners", new z());
-    n(this, "_itens", []);
-    n(this, "_value", "");
-    n(this, "_defaultValue", "");
-    n(this, "observer");
-    n(this, "focusedIndex", -1);
-    n(this, "toggleLista", (e) => {
-      e.stopPropagation(), !this.hasAttribute("disabled") && (this.hasAttribute("aberta") ? this.fechar() : this.abrir());
+    l(this, "internals");
+    l(this, "labelElement");
+    l(this, "button");
+    l(this, "content");
+    l(this, "listElement");
+    l(this, "textoElement");
+    l(this, "backdropElement");
+    l(this, "sheetTituloElement");
+    l(this, "sheetCloseButton");
+    l(this, "listeners", new D());
+    l(this, "_itens", []);
+    l(this, "_value", "");
+    l(this, "_defaultValue", "");
+    l(this, "observer");
+    l(this, "focusedIndex", -1);
+    l(this, "toggleLista", (t) => {
+      t.stopPropagation(), !this.hasAttribute("disabled") && (this.hasAttribute("aberta") ? this.fechar() : this.abrir());
     });
-    n(this, "handleKeyDown", (e) => {
-      this.hasAttribute("disabled") || (e.key === "Enter" || e.key === " " || e.key === "ArrowDown") && (e.preventDefault(), this.hasAttribute("aberta") ? this.focarPrimeiroItem() : this.abrir());
+    l(this, "handleKeyDown", (t) => {
+      this.hasAttribute("disabled") || (t.key === "Enter" || t.key === " " || t.key === "ArrowDown") && (t.preventDefault(), this.hasAttribute("aberta") ? this.focarPrimeiroItem() : this.abrir());
     });
-    n(this, "handleListKeyDown", (e) => {
-      this.hasAttribute("aberta") && (e.key === "ArrowDown" ? (e.preventDefault(), this.moverFoco(1)) : e.key === "ArrowUp" ? (e.preventDefault(), this.moverFoco(-1)) : e.key === "Enter" || e.key === " " ? (e.preventDefault(), this.focusedIndex >= 0 && this.focusedIndex < this._itens.length && this.selecionarItem(this._itens[this.focusedIndex])) : e.key === "Escape" && (e.preventDefault(), this.fechar(), this.button.focus()));
+    l(this, "handleListKeyDown", (t) => {
+      this.hasAttribute("aberta") && (t.key === "ArrowDown" ? (t.preventDefault(), this.moverFoco(1)) : t.key === "ArrowUp" ? (t.preventDefault(), this.moverFoco(-1)) : t.key === "Enter" || t.key === " " ? (t.preventDefault(), this.focusedIndex >= 0 && this.focusedIndex < this._itens.length && this.selecionarItem(this._itens[this.focusedIndex])) : t.key === "Escape" && (t.preventDefault(), this.fechar(), this.button.focus()));
     });
-    n(this, "fechar", () => {
+    l(this, "fechar", () => {
       if (this.hasAttribute("aberta") && (this.removeAttribute("aberta"), window.removeEventListener("scroll", this.fechar, { capture: !0 }), window.removeEventListener("resize", this.posicionarConteudo), typeof this.content.hidePopover == "function"))
         try {
           this.content.hidePopover();
         } catch {
         }
     });
-    n(this, "posicionarConteudo", () => {
+    l(this, "posicionarConteudo", () => {
       if (this.isMobileOrBottomSheet()) {
         this.content.style.top = "", this.content.style.left = "", this.content.style.minWidth = "";
         return;
       }
-      const e = this.button.getBoundingClientRect();
-      this.content.style.top = `${Math.round(e.bottom + 2)}px`, this.content.style.left = `${Math.round(e.left)}px`, this.content.style.minWidth = `${Math.round(Math.max(e.width, 120))}px`;
+      const t = this.button.getBoundingClientRect();
+      this.content.style.top = `${Math.round(t.bottom + 2)}px`, this.content.style.left = `${Math.round(t.left)}px`, this.content.style.minWidth = `${Math.round(Math.max(t.width, 120))}px`;
     });
-    n(this, "handleClickFora", (e) => {
+    l(this, "handleClickFora", (t) => {
       if (!this.hasAttribute("aberta")) return;
-      const t = e.composedPath();
-      !t.includes(this) && !t.includes(this.content) && this.fechar();
+      const e = t.composedPath();
+      !e.includes(this) && !e.includes(this.content) && this.fechar();
     });
-    n(this, "handleListClick", (e) => {
-      var s;
-      e.stopPropagation();
-      const t = (s = e.target) == null ? void 0 : s.closest("li[data-id]");
-      if (!t) return;
-      const i = t.getAttribute("data-id"), a = this._itens.find((r) => String(r.id) === String(i));
+    l(this, "handleListClick", (t) => {
+      var r;
+      t.stopPropagation();
+      const e = (r = t.target) == null ? void 0 : r.closest("li[data-id]");
+      if (!e) return;
+      const i = e.getAttribute("data-id"), a = this._itens.find((s) => String(s.id) === String(i));
       a && this.selecionarItem(a);
     });
     this.internals = this.attachInternals();
-    const e = this.attachShadow({ mode: "open" });
-    e.innerHTML = `
-      <style>${be}</style>
+    const t = this.attachShadow({ mode: "open" });
+    t.innerHTML = `
+      <style>${Mt}</style>
       <div class="ui-lista-flutuante__container">
         <label class="ui-lista-flutuante__label" style="display: none;"></label>
         <div class="ui-lista-flutuante__backdrop"></div>
@@ -223,7 +223,7 @@ class V extends HTMLElement {
           <ul class="ui-lista-flutuante__lista" style="margin: 0; padding: 0; list-style: none;"></ul>
         </div>
       </div>
-    `, this.labelElement = e.querySelector(".ui-lista-flutuante__label"), this.button = e.querySelector(".ui-lista-flutuante__gatilho"), this.content = e.querySelector(".ui-lista-flutuante__conteudo"), this.listElement = e.querySelector(".ui-lista-flutuante__lista"), this.textoElement = e.querySelector(".ui-lista-flutuante__texto"), this.backdropElement = e.querySelector(".ui-lista-flutuante__backdrop"), this.sheetTituloElement = e.querySelector(".ui-lista-flutuante__sheet-titulo"), this.sheetCloseButton = e.querySelector(".ui-lista-flutuante__sheet-close");
+    `, this.labelElement = t.querySelector(".ui-lista-flutuante__label"), this.button = t.querySelector(".ui-lista-flutuante__gatilho"), this.content = t.querySelector(".ui-lista-flutuante__conteudo"), this.listElement = t.querySelector(".ui-lista-flutuante__lista"), this.textoElement = t.querySelector(".ui-lista-flutuante__texto"), this.backdropElement = t.querySelector(".ui-lista-flutuante__backdrop"), this.sheetTituloElement = t.querySelector(".ui-lista-flutuante__sheet-titulo"), this.sheetCloseButton = t.querySelector(".ui-lista-flutuante__sheet-close");
   }
   static get observedAttributes() {
     return [
@@ -244,38 +244,38 @@ class V extends HTMLElement {
     ];
   }
   connectedCallback() {
-    this.listeners.cleanup(), this.listeners.add(this.button, "click", this.toggleLista), this.listeners.add(this.button, "keydown", this.handleKeyDown), this.listeners.add(this.content, "keydown", this.handleListKeyDown), this.listeners.add(this.backdropElement, "click", this.fechar), this.listeners.add(this.listElement, "click", this.handleListClick), this.listeners.add(this.sheetCloseButton, "click", (e) => {
-      e.stopPropagation(), this.fechar();
+    this.listeners.cleanup(), this.listeners.add(this.button, "click", this.toggleLista), this.listeners.add(this.button, "keydown", this.handleKeyDown), this.listeners.add(this.content, "keydown", this.handleListKeyDown), this.listeners.add(this.backdropElement, "click", this.fechar), this.listeners.add(this.listElement, "click", this.handleListClick), this.listeners.add(this.sheetCloseButton, "click", (t) => {
+      t.stopPropagation(), this.fechar();
     }), this.listeners.add(document, "click", this.handleClickFora), this._defaultValue = this.getAttribute("value") || "", this.carregarItensFilhos(), this.syncState(), this.observer = new MutationObserver(() => this.carregarItensFilhos()), this.observer.observe(this, { childList: !0, subtree: !0 });
   }
   carregarItensFilhos() {
-    const e = Array.from(this.querySelectorAll('option, ui-opcao, [role="option"], [data-opcao], [data-value]:not(input):not(select)'));
-    e.length > 0 && (this._itens = e.map((t, i) => {
-      var s;
-      const a = t.getAttribute("value") || t.getAttribute("data-value") || String(i + 1);
+    const t = Array.from(this.querySelectorAll('option, ui-opcao, [role="option"], [data-opcao], [data-value]:not(input):not(select)'));
+    t.length > 0 && (this._itens = t.map((e, i) => {
+      var r;
+      const a = e.getAttribute("value") || e.getAttribute("data-value") || String(i + 1);
       return {
         id: a,
-        label: ((s = t.textContent) == null ? void 0 : s.trim()) || a || `Opção ${i + 1}`
+        label: ((r = e.textContent) == null ? void 0 : r.trim()) || a || `Opção ${i + 1}`
       };
     }), this.renderItens(), this.syncLabel());
   }
   disconnectedCallback() {
     this.listeners.cleanup(), this.observer && this.observer.disconnect(), this.fechar();
   }
-  attributeChangedCallback(e, t, i) {
-    e === "aberta" && this.button.setAttribute("aria-expanded", String(i !== null)), (e === "texto-padrao" || e === "placeholder" || e === "label" || e === "rotulo") && this.syncLabel(), e === "value" && i !== this._value && (this.value = i || ""), e === "disabled" && (this.button.disabled = i !== null), (e === "altura" || e === "height") && (i ? this.style.setProperty("--ui-campo-altura", isNaN(Number(i)) ? i : `${i}px`) : this.style.removeProperty("--ui-campo-altura"));
+  attributeChangedCallback(t, e, i) {
+    t === "aberta" && this.button.setAttribute("aria-expanded", String(i !== null)), (t === "texto-padrao" || t === "placeholder" || t === "label" || t === "rotulo") && this.syncLabel(), t === "value" && i !== this._value && (this.value = i || ""), t === "disabled" && (this.button.disabled = i !== null), (t === "altura" || t === "height") && (i ? this.style.setProperty("--ui-campo-altura", isNaN(Number(i)) ? i : `${i}px`) : this.style.removeProperty("--ui-campo-altura"));
   }
   get value() {
     return this._value;
   }
-  set value(e) {
-    this._value = e, this.setAttribute("value", e), this.internals.setFormValue(e), this.syncLabel(), this.updateSelectedState();
+  set value(t) {
+    this._value = t, this.setAttribute("value", t), this.internals.setFormValue(t), this.syncLabel(), this.updateSelectedState();
   }
   get label() {
     return this.getAttribute("label") || this.getAttribute("rotulo") || "";
   }
-  set label(e) {
-    e ? this.setAttribute("label", e) : (this.removeAttribute("label"), this.removeAttribute("rotulo")), this.syncLabel();
+  set label(t) {
+    t ? this.setAttribute("label", t) : (this.removeAttribute("label"), this.removeAttribute("rotulo")), this.syncLabel();
   }
   formResetCallback() {
     this.value = this._defaultValue;
@@ -283,16 +283,16 @@ class V extends HTMLElement {
   get itens() {
     return this._itens;
   }
-  set itens(e) {
-    this._itens = e || [], this.renderItens(), this.syncLabel();
+  set itens(t) {
+    this._itens = t || [], this.renderItens(), this.syncLabel();
   }
   focarPrimeiroItem() {
-    const e = Array.from(this.listElement.querySelectorAll(".ui-lista-flutuante__item"));
-    e.length > 0 && (this.focusedIndex = 0, e[0].focus());
-  }
-  moverFoco(e) {
     const t = Array.from(this.listElement.querySelectorAll(".ui-lista-flutuante__item"));
-    t.length !== 0 && (this.focusedIndex += e, this.focusedIndex < 0 && (this.focusedIndex = t.length - 1), this.focusedIndex >= t.length && (this.focusedIndex = 0), t[this.focusedIndex].focus());
+    t.length > 0 && (this.focusedIndex = 0, t[0].focus());
+  }
+  moverFoco(t) {
+    const e = Array.from(this.listElement.querySelectorAll(".ui-lista-flutuante__item"));
+    e.length !== 0 && (this.focusedIndex += t, this.focusedIndex < 0 && (this.focusedIndex = e.length - 1), this.focusedIndex >= e.length && (this.focusedIndex = 0), e[this.focusedIndex].focus());
   }
   abrir() {
     if (!this.hasAttribute("aberta") && (this.setAttribute("aberta", ""), this.posicionarConteudo(), window.addEventListener("scroll", this.fechar, { capture: !0, passive: !0 }), window.addEventListener("resize", this.posicionarConteudo, { passive: !0 }), typeof this.content.showPopover == "function"))
@@ -305,41 +305,41 @@ class V extends HTMLElement {
     return window.innerWidth <= 640 || this.hasAttribute("bottom-sheet") || this.hasAttribute("modo-mobile");
   }
   syncLabel() {
-    const e = this.getAttribute("label") || this.getAttribute("rotulo");
-    if (e)
-      this.labelElement.textContent = e, this.labelElement.style.display = "block", this.sheetTituloElement.textContent = e;
+    const t = this.getAttribute("label") || this.getAttribute("rotulo");
+    if (t)
+      this.labelElement.textContent = t, this.labelElement.style.display = "block", this.sheetTituloElement.textContent = t;
     else {
       this.labelElement.style.display = "none";
       const i = this.getAttribute("texto-padrao") || this.getAttribute("placeholder") || "Opções";
       this.sheetTituloElement.textContent = i;
     }
-    const t = this._itens.find((i) => String(i.id) === String(this._value));
-    if (t)
-      this.textoElement.textContent = t.label;
+    const e = this._itens.find((i) => String(i.id) === String(this._value));
+    if (e)
+      this.textoElement.textContent = e.label;
     else {
       const i = this.getAttribute("texto-padrao") || this.getAttribute("placeholder") || "Opções";
       this.textoElement.textContent = i;
     }
   }
   updateSelectedState() {
-    this.listElement.querySelectorAll(".ui-lista-flutuante__item").forEach((t) => {
-      t.getAttribute("data-id") === String(this._value) ? (t.classList.add("ui-lista-flutuante__item--selecionado"), t.setAttribute("aria-selected", "true")) : (t.classList.remove("ui-lista-flutuante__item--selecionado"), t.removeAttribute("aria-selected"));
+    this.listElement.querySelectorAll(".ui-lista-flutuante__item").forEach((e) => {
+      e.getAttribute("data-id") === String(this._value) ? (e.classList.add("ui-lista-flutuante__item--selecionado"), e.setAttribute("aria-selected", "true")) : (e.classList.remove("ui-lista-flutuante__item--selecionado"), e.removeAttribute("aria-selected"));
     });
   }
   renderItens() {
-    this.listElement.innerHTML = "", this._itens.forEach((e) => {
-      const t = document.createElement("li"), i = String(e.id) === String(this._value);
-      t.className = `ui-lista-flutuante__item ${i ? "ui-lista-flutuante__item--selecionado" : ""}`, t.setAttribute("data-id", e.id), t.textContent = e.label, t.role = "option", t.tabIndex = -1, i && t.setAttribute("aria-selected", "true"), this.listElement.appendChild(t);
+    this.listElement.innerHTML = "", this._itens.forEach((t) => {
+      const e = document.createElement("li"), i = String(t.id) === String(this._value);
+      e.className = `ui-lista-flutuante__item ${i ? "ui-lista-flutuante__item--selecionado" : ""}`, e.setAttribute("data-id", t.id), e.textContent = t.label, e.role = "option", e.tabIndex = -1, i && e.setAttribute("aria-selected", "true"), this.listElement.appendChild(e);
     });
   }
   syncState() {
-    const e = this.getAttribute("altura") || this.getAttribute("height");
-    e && this.style.setProperty("--ui-campo-altura", isNaN(Number(e)) ? e : `${e}px`), this.hasAttribute("value") && (this._value = this.getAttribute("value") || "", this.internals.setFormValue(this._value)), this.syncLabel();
+    const t = this.getAttribute("altura") || this.getAttribute("height");
+    t && this.style.setProperty("--ui-campo-altura", isNaN(Number(t)) ? t : `${t}px`), this.hasAttribute("value") && (this._value = this.getAttribute("value") || "", this.internals.setFormValue(this._value)), this.syncLabel();
   }
-  selecionarItem(e) {
-    this.value = e.id, this.fechar(), this.dispatchEvent(
+  selecionarItem(t) {
+    this.value = t.id, this.fechar(), this.dispatchEvent(
       new CustomEvent("ui-selecionar", {
-        detail: e,
+        detail: t,
         bubbles: !0,
         composed: !0
       })
@@ -351,12 +351,12 @@ class V extends HTMLElement {
     );
   }
 }
-n(V, "formAssociated", !0);
-class ge extends V {
+l(nt, "formAssociated", !0);
+class Pt extends nt {
 }
-customElements.get("ui-lista-flutuante") || customElements.define("ui-lista-flutuante", V);
-customElements.get("ui-select") || customElements.define("ui-select", ge);
-const ve = ':host{display:block;box-sizing:border-box;margin:0;padding:0;color:var(--ui-cor-texto, #e1e1e6);font-family:var(--ui-fonte-base, "Inter", sans-serif)}:host([inline]){display:inline-block}.ui-texto{margin:0;padding:0;box-sizing:border-box;font-family:inherit;color:inherit;font-size:inherit;font-weight:inherit;line-height:inherit}.ui-texto--h1{font-size:var(--ui-tamanho-h1, clamp(24px, 4vw, 36px));font-weight:var(--ui-peso-negrito, 700);line-height:var(--ui-altura-linha-titulo, 1.25);letter-spacing:-.5px}.ui-texto--h2{font-size:var(--ui-tamanho-h2, clamp(20px, 3vw, 28px));font-weight:var(--ui-peso-seminegrito, 600);line-height:var(--ui-altura-linha-titulo, 1.25);letter-spacing:-.3px}.ui-texto--h3{font-size:var(--ui-tamanho-h3, clamp(18px, 2.4vw, 24px));font-weight:var(--ui-peso-seminegrito, 600);line-height:var(--ui-altura-linha-titulo, 1.25)}.ui-texto--h4{font-size:var(--ui-tamanho-h4, clamp(16px, 2vw, 20px));font-weight:var(--ui-peso-medio, 500);line-height:var(--ui-altura-linha-titulo, 1.25)}.ui-texto--h5{font-size:var(--ui-tamanho-h5, clamp(14px, 1.6vw, 18px));font-weight:var(--ui-peso-medio, 500);line-height:var(--ui-altura-linha-titulo, 1.25)}.ui-texto--h6{font-size:var(--ui-tamanho-h6, clamp(13px, 1.2vw, 16px));font-weight:var(--ui-peso-seminegrito, 600);line-height:var(--ui-altura-linha-titulo, 1.25);text-transform:uppercase;letter-spacing:.5px}.ui-texto--corpo{font-size:var(--ui-tamanho-corpo, 14px);font-weight:var(--ui-peso-normal, 400);line-height:var(--ui-altura-linha-corpo, 1.5)}.ui-texto--corpo-sm{font-size:var(--ui-tamanho-corpo-sm, 13px);font-weight:var(--ui-peso-normal, 400);line-height:var(--ui-altura-linha-corpo, 1.5)}.ui-texto--caption{font-size:var(--ui-tamanho-caption, 11px);font-weight:var(--ui-peso-normal, 400);line-height:var(--ui-altura-linha-compacta, 1.2);color:var(--ui-cor-texto-secundario, #888899)}.ui-texto--codigo{font-family:var(--ui-fonte-codigo, monospace);font-size:var(--ui-tamanho-codigo, 12px);font-weight:var(--ui-peso-normal, 400);line-height:var(--ui-altura-linha-corpo, 1.5);background:var(--ui-cor-fundo-elevado, #1a1a1e);padding:2px 6px;border-radius:4px;border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12))}.ui-texto--cor-primaria{color:var(--ui-cor-primaria, #00E08A)}.ui-texto--cor-secundaria{color:var(--ui-cor-texto-secundario, #888899)}.ui-texto--cor-destaque{color:var(--ui-cor-destaque, #00E08A)}.ui-texto--cor-erro{color:var(--ui-cor-texto-erro, #ff5555)}.ui-texto--cor-sucesso{color:var(--ui-cor-texto-sucesso, #00E08A)}.ui-texto--cor-alerta{color:var(--ui-cor-texto-alerta, #ffb86c)}.ui-texto--peso-normal{font-weight:var(--ui-peso-normal, 400)!important}.ui-texto--peso-medio{font-weight:var(--ui-peso-medio, 500)!important}.ui-texto--peso-seminegrito{font-weight:var(--ui-peso-seminegrito, 600)!important}.ui-texto--peso-negrito{font-weight:var(--ui-peso-negrito, 700)!important}.ui-texto--alinhamento-esquerda{text-align:left}.ui-texto--alinhamento-centro{text-align:center}.ui-texto--alinhamento-direita{text-align:right}.ui-texto--alinhamento-justificado{text-align:justify}.ui-texto--truncar{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}', xe = /* @__PURE__ */ new Set([
+customElements.get("ui-lista-flutuante") || customElements.define("ui-lista-flutuante", nt);
+customElements.get("ui-select") || customElements.define("ui-select", Pt);
+const It = ':host{display:block;box-sizing:border-box;margin:0;padding:0;color:var(--ui-cor-texto, #e1e1e6);font-family:var(--ui-fonte-base, "Inter", sans-serif)}:host([inline]){display:inline-block}.ui-texto{margin:0;padding:0;box-sizing:border-box;font-family:inherit;color:inherit;font-size:inherit;font-weight:inherit;line-height:inherit}.ui-texto--h1{font-size:var(--ui-tamanho-h1, clamp(24px, 4vw, 36px));font-weight:var(--ui-peso-negrito, 700);line-height:var(--ui-altura-linha-titulo, 1.25);letter-spacing:-.5px}.ui-texto--h2{font-size:var(--ui-tamanho-h2, clamp(20px, 3vw, 28px));font-weight:var(--ui-peso-seminegrito, 600);line-height:var(--ui-altura-linha-titulo, 1.25);letter-spacing:-.3px}.ui-texto--h3{font-size:var(--ui-tamanho-h3, clamp(18px, 2.4vw, 24px));font-weight:var(--ui-peso-seminegrito, 600);line-height:var(--ui-altura-linha-titulo, 1.25)}.ui-texto--h4{font-size:var(--ui-tamanho-h4, clamp(16px, 2vw, 20px));font-weight:var(--ui-peso-medio, 500);line-height:var(--ui-altura-linha-titulo, 1.25)}.ui-texto--h5{font-size:var(--ui-tamanho-h5, clamp(14px, 1.6vw, 18px));font-weight:var(--ui-peso-medio, 500);line-height:var(--ui-altura-linha-titulo, 1.25)}.ui-texto--h6{font-size:var(--ui-tamanho-h6, clamp(13px, 1.2vw, 16px));font-weight:var(--ui-peso-seminegrito, 600);line-height:var(--ui-altura-linha-titulo, 1.25);text-transform:uppercase;letter-spacing:.5px}.ui-texto--corpo{font-size:var(--ui-tamanho-corpo, 14px);font-weight:var(--ui-peso-normal, 400);line-height:var(--ui-altura-linha-corpo, 1.5)}.ui-texto--corpo-sm{font-size:var(--ui-tamanho-corpo-sm, 13px);font-weight:var(--ui-peso-normal, 400);line-height:var(--ui-altura-linha-corpo, 1.5)}.ui-texto--caption{font-size:var(--ui-tamanho-caption, 11px);font-weight:var(--ui-peso-normal, 400);line-height:var(--ui-altura-linha-compacta, 1.2);color:var(--ui-cor-texto-secundario, #888899)}.ui-texto--codigo{font-family:var(--ui-fonte-codigo, monospace);font-size:var(--ui-tamanho-codigo, 12px);font-weight:var(--ui-peso-normal, 400);line-height:var(--ui-altura-linha-corpo, 1.5);background:var(--ui-cor-fundo-elevado, #1a1a1e);padding:2px 6px;border-radius:4px;border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12))}.ui-texto--cor-primaria{color:var(--ui-cor-primaria, #00E08A)}.ui-texto--cor-secundaria{color:var(--ui-cor-texto-secundario, #888899)}.ui-texto--cor-destaque{color:var(--ui-cor-destaque, #00E08A)}.ui-texto--cor-erro{color:var(--ui-cor-texto-erro, #ff5555)}.ui-texto--cor-sucesso{color:var(--ui-cor-texto-sucesso, #00E08A)}.ui-texto--cor-alerta{color:var(--ui-cor-texto-alerta, #ffb86c)}.ui-texto--peso-normal{font-weight:var(--ui-peso-normal, 400)!important}.ui-texto--peso-medio{font-weight:var(--ui-peso-medio, 500)!important}.ui-texto--peso-seminegrito{font-weight:var(--ui-peso-seminegrito, 600)!important}.ui-texto--peso-negrito{font-weight:var(--ui-peso-negrito, 700)!important}.ui-texto--alinhamento-esquerda{text-align:left}.ui-texto--alinhamento-centro{text-align:center}.ui-texto--alinhamento-direita{text-align:right}.ui-texto--alinhamento-justificado{text-align:justify}.ui-texto--truncar{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}', Tt = /* @__PURE__ */ new Set([
   "p",
   "span",
   "div",
@@ -376,12 +376,12 @@ const ve = ':host{display:block;box-sizing:border-box;margin:0;padding:0;color:v
   "b",
   "i"
 ]);
-class ye extends HTMLElement {
+class qt extends HTMLElement {
   constructor() {
     super();
-    n(this, "container");
-    n(this, "shadow");
-    this.shadow = this.attachShadow({ mode: "open" }), this.container = document.createElement("p"), this.container.className = "ui-texto ui-texto--corpo", this.container.appendChild(document.createElement("slot")), this.shadow.innerHTML = `<style>${ve}</style>`, this.shadow.appendChild(this.container);
+    l(this, "container");
+    l(this, "shadow");
+    this.shadow = this.attachShadow({ mode: "open" }), this.container = document.createElement("p"), this.container.className = "ui-texto ui-texto--corpo", this.container.appendChild(document.createElement("slot")), this.shadow.innerHTML = `<style>${It}</style>`, this.shadow.appendChild(this.container);
   }
   static get observedAttributes() {
     return ["variante", "tag", "cor", "peso", "alinhamento", "truncar"];
@@ -389,26 +389,26 @@ class ye extends HTMLElement {
   connectedCallback() {
     this.render();
   }
-  attributeChangedCallback(e, t, i) {
+  attributeChangedCallback(t, e, i) {
     this.render();
   }
   resolveTag() {
-    const e = this.getAttribute("tag");
-    if (e) {
-      const i = e.toLowerCase().trim();
-      if (xe.has(i))
+    const t = this.getAttribute("tag");
+    if (t) {
+      const i = t.toLowerCase().trim();
+      if (Tt.has(i))
         return i;
-      console.warn(`[ui-texto] Tag "${e}" não permitida ou inválida. Utilizando fallback semântico.`);
+      console.warn(`[ui-texto] Tag "${t}" não permitida ou inválida. Utilizando fallback semântico.`);
     }
-    const t = (this.getAttribute("variante") || "corpo").toLowerCase();
-    switch (t) {
+    const e = (this.getAttribute("variante") || "corpo").toLowerCase();
+    switch (e) {
       case "h1":
       case "h2":
       case "h3":
       case "h4":
       case "h5":
       case "h6":
-        return t;
+        return e;
       case "caption":
         return "small";
       case "codigo":
@@ -420,71 +420,71 @@ class ye extends HTMLElement {
     }
   }
   render() {
-    const e = this.resolveTag(), t = this.getAttribute("variante") || "corpo", i = this.getAttribute("cor"), a = this.getAttribute("peso"), s = this.getAttribute("alinhamento"), r = this.hasAttribute("truncar");
-    if (this.container.tagName.toLowerCase() !== e) {
-      const u = document.createElement(e);
-      u.appendChild(document.createElement("slot")), this.shadow.replaceChild(u, this.container), this.container = u;
+    const t = this.resolveTag(), e = this.getAttribute("variante") || "corpo", i = this.getAttribute("cor"), a = this.getAttribute("peso"), r = this.getAttribute("alinhamento"), s = this.hasAttribute("truncar");
+    if (this.container.tagName.toLowerCase() !== t) {
+      const c = document.createElement(t);
+      c.appendChild(document.createElement("slot")), this.shadow.replaceChild(c, this.container), this.container = c;
     }
-    const l = ["ui-texto", `ui-texto--${t}`];
-    i && l.push(`ui-texto--cor-${i}`), a && l.push(`ui-texto--peso-${a}`), s && l.push(`ui-texto--alinhamento-${s}`), r && l.push("ui-texto--truncar"), this.container.className = l.join(" ");
+    const n = ["ui-texto", `ui-texto--${e}`];
+    i && n.push(`ui-texto--cor-${i}`), a && n.push(`ui-texto--peso-${a}`), r && n.push(`ui-texto--alinhamento-${r}`), s && n.push("ui-texto--truncar"), this.container.className = n.join(" ");
   }
 }
-customElements.get("ui-texto") || customElements.define("ui-texto", ye);
-const _e = ':host{display:flex;flex-direction:column;gap:4px;width:100%;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif)}:host([inline]){width:auto;display:inline-flex}.ui-campo-texto__container{position:relative;width:100%;display:flex;flex-direction:column;justify-content:center}:host([label-flutuante]) .ui-campo-texto__container{margin-top:6px}.ui-campo-texto__label{display:flex;align-items:center;justify-content:space-between;font-size:var(--ui-tamanho-corpo-sm, 13px);font-weight:var(--ui-peso-medio, 500);color:var(--ui-cor-texto, #e1e1e6);-webkit-user-select:none;user-select:none;margin-bottom:4px;flex-shrink:0}.ui-campo-texto__wrapper{position:relative;display:flex;align-items:center;width:100%;height:var(--ui-campo-altura, 100%);min-height:var(--ui-campo-altura, var(--ui-altura-minima, 15px));background-color:var(--ui-cor-fundo-elevado, #1a1a1e);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));border-radius:var(--ui-raio-borda, 6px);padding:0 8px;gap:6px;box-sizing:border-box;transition:border-color .15s ease,box-shadow .15s ease,background-color .15s ease}.ui-campo-texto__wrapper--foco{border-color:var(--ui-cor-primaria, #00E08A);box-shadow:0 0 0 2px #00e08a2e;background-color:var(--ui-cor-fundo-menu, #18181c)}.ui-campo-texto__wrapper--erro{border-color:var(--ui-cor-texto-erro, #ff5555)!important;box-shadow:0 0 0 2px #ff55552e!important}.ui-campo-texto__wrapper--disabled{opacity:.5;cursor:not-allowed;background-color:#ffffff08}.ui-campo-texto__input{flex:1;width:100%;height:100%;min-height:0;background:transparent;border:none;outline:none;color:var(--ui-cor-texto, #e1e1e6);font-family:inherit;font-size:clamp(11px,.85rem,13px);line-height:1.2;padding:0;margin:0;box-sizing:border-box}.ui-campo-texto__input::placeholder{color:var(--ui-cor-texto-secundario, #888899);opacity:.65}.ui-campo-texto__input:disabled{cursor:not-allowed}.ui-campo-texto__icone{display:inline-flex;align-items:center;justify-content:center;color:var(--ui-cor-texto-secundario, #888899);flex-shrink:0;font-size:14px;line-height:1;max-height:100%}.ui-campo-texto__icone svg,.ui-campo-texto__icone ::slotted(svg),.ui-campo-texto__icone ::slotted(ui-icone){shape-rendering:geometricPrecision;display:inline-flex;vertical-align:middle}.ui-campo-texto__icone--clicavel{cursor:pointer;-webkit-user-select:none;user-select:none;transition:opacity .15s ease,transform .15s ease}.ui-campo-texto__icone--clicavel:hover{opacity:.85;transform:scale(1.1)}:host([label-flutuante]) .ui-campo-texto__label{position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--ui-cor-texto-secundario, #888899);pointer-events:none;z-index:3;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);padding:0 4px;border-radius:3px;margin-bottom:0;white-space:nowrap;max-width:calc(100% - 16px);overflow:hidden;text-overflow:ellipsis;transition:top .15s cubic-bezier(.4,0,.2,1),transform .15s cubic-bezier(.4,0,.2,1),color .15s ease,font-size .15s ease}:host([label-flutuante][tem-icone-esquerda]) .ui-campo-texto__label{left:28px}:host([label-flutuante]) .ui-campo-texto__label--ativa{top:-8px;left:8px!important;transform:translateY(0) scale(.85);transform-origin:left top;font-weight:600;color:var(--ui-cor-primaria, #00E08A);background-color:var(--ui-cor-fundo-elevado, #1a1a1e)}:host([label-flutuante][erro]) .ui-campo-texto__label--ativa,:host([label-flutuante][mensagem-erro]) .ui-campo-texto__label--ativa{color:var(--ui-cor-texto-erro, #ff5555)}.ui-campo-texto__helper{font-size:var(--ui-tamanho-caption, 11px);color:var(--ui-cor-texto-secundario, #888899);line-height:var(--ui-altura-linha-compacta, 1.2);margin-top:2px}.ui-campo-texto__helper--erro{color:var(--ui-cor-texto-erro, #ff5555);font-weight:500;display:flex;align-items:center;gap:4px}';
-class ae extends HTMLElement {
+customElements.get("ui-texto") || customElements.define("ui-texto", qt);
+const Nt = ':host{display:flex;flex-direction:column;gap:4px;width:100%;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif)}:host([inline]){width:auto;display:inline-flex}.ui-campo-texto__container{position:relative;width:100%;display:flex;flex-direction:column;justify-content:center}:host([label-flutuante]) .ui-campo-texto__container{margin-top:6px}.ui-campo-texto__label{display:flex;align-items:center;justify-content:space-between;font-size:var(--ui-tamanho-corpo-sm, 13px);font-weight:var(--ui-peso-medio, 500);color:var(--ui-cor-texto, #e1e1e6);-webkit-user-select:none;user-select:none;margin-bottom:4px;flex-shrink:0}.ui-campo-texto__wrapper{position:relative;display:flex;align-items:center;width:100%;height:var(--ui-campo-altura, 100%);min-height:var(--ui-campo-altura, var(--ui-altura-minima, 15px));background-color:var(--ui-cor-fundo-elevado, #1a1a1e);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));border-radius:var(--ui-raio-borda, 6px);padding:0 8px;gap:6px;box-sizing:border-box;transition:border-color .15s ease,box-shadow .15s ease,background-color .15s ease}.ui-campo-texto__wrapper--foco{border-color:var(--ui-cor-primaria, #00E08A);box-shadow:0 0 0 2px #00e08a2e;background-color:var(--ui-cor-fundo-menu, #18181c)}.ui-campo-texto__wrapper--erro{border-color:var(--ui-cor-texto-erro, #ff5555)!important;box-shadow:0 0 0 2px #ff55552e!important}.ui-campo-texto__wrapper--disabled{opacity:.5;cursor:not-allowed;background-color:#ffffff08}.ui-campo-texto__input{flex:1;width:100%;height:100%;min-height:0;background:transparent;border:none;outline:none;color:var(--ui-cor-texto, #e1e1e6);font-family:inherit;font-size:clamp(11px,.85rem,13px);line-height:1.2;padding:0;margin:0;box-sizing:border-box}.ui-campo-texto__input::placeholder{color:var(--ui-cor-texto-secundario, #888899);opacity:.65}.ui-campo-texto__input:disabled{cursor:not-allowed}.ui-campo-texto__icone{display:inline-flex;align-items:center;justify-content:center;color:var(--ui-cor-texto-secundario, #888899);flex-shrink:0;font-size:14px;line-height:1;max-height:100%}.ui-campo-texto__icone svg,.ui-campo-texto__icone ::slotted(svg),.ui-campo-texto__icone ::slotted(ui-icone){shape-rendering:geometricPrecision;display:inline-flex;vertical-align:middle}.ui-campo-texto__icone--clicavel{cursor:pointer;-webkit-user-select:none;user-select:none;transition:opacity .15s ease,transform .15s ease}.ui-campo-texto__icone--clicavel:hover{opacity:.85;transform:scale(1.1)}:host([label-flutuante]) .ui-campo-texto__label{position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--ui-cor-texto-secundario, #888899);pointer-events:none;z-index:3;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);padding:0 4px;border-radius:3px;margin-bottom:0;white-space:nowrap;max-width:calc(100% - 16px);overflow:hidden;text-overflow:ellipsis;transition:top .15s cubic-bezier(.4,0,.2,1),transform .15s cubic-bezier(.4,0,.2,1),color .15s ease,font-size .15s ease}:host([label-flutuante][tem-icone-esquerda]) .ui-campo-texto__label{left:28px}:host([label-flutuante]) .ui-campo-texto__label--ativa{top:-8px;left:8px!important;transform:translateY(0) scale(.85);transform-origin:left top;font-weight:600;color:var(--ui-cor-primaria, #00E08A);background-color:var(--ui-cor-fundo-elevado, #1a1a1e)}:host([label-flutuante][erro]) .ui-campo-texto__label--ativa,:host([label-flutuante][mensagem-erro]) .ui-campo-texto__label--ativa{color:var(--ui-cor-texto-erro, #ff5555)}.ui-campo-texto__helper{font-size:var(--ui-tamanho-caption, 11px);color:var(--ui-cor-texto-secundario, #888899);line-height:var(--ui-altura-linha-compacta, 1.2);margin-top:2px}.ui-campo-texto__helper--erro{color:var(--ui-cor-texto-erro, #ff5555);font-weight:500;display:flex;align-items:center;gap:4px}.ui-campo-texto__wrapper{touch-action:manipulation;-webkit-tap-highlight-color:transparent}.ui-campo-texto__input{touch-action:manipulation}@media (max-width: 640px),(pointer: coarse) and (max-width: 1024px){.ui-campo-texto__input{font-size:16px!important}:host(:not([inline])) .ui-campo-texto__wrapper{min-height:max(var(--ui-campo-altura, 38px),38px);padding:0 10px}.ui-campo-texto__label{font-size:13px}.ui-campo-texto__icone--clicavel{min-width:32px;min-height:32px}}';
+class xt extends HTMLElement {
   constructor() {
     super();
-    n(this, "internals");
-    n(this, "labelElement");
-    n(this, "wrapperElement");
-    n(this, "inputElement");
-    n(this, "helperElement");
-    n(this, "rightIconContainer");
-    n(this, "leftSlotElement");
-    n(this, "_senhaVisivel", !1);
-    n(this, "_checkTimer", null);
-    n(this, "_focado", !1);
-    n(this, "_inputId");
-    n(this, "_defaultValue", "");
-    n(this, "handleSlotChange", () => {
+    l(this, "internals");
+    l(this, "labelElement");
+    l(this, "wrapperElement");
+    l(this, "inputElement");
+    l(this, "helperElement");
+    l(this, "rightIconContainer");
+    l(this, "leftSlotElement");
+    l(this, "_senhaVisivel", !1);
+    l(this, "_checkTimer", null);
+    l(this, "_focado", !1);
+    l(this, "_inputId");
+    l(this, "_defaultValue", "");
+    l(this, "handleSlotChange", () => {
       this.syncState();
     });
-    n(this, "handleRightIconClick", (e) => {
-      (this.getAttribute("tipo") === "password" || this.hasAttribute("alternar-senha")) && (e.stopPropagation(), this.alternarVisibilidadeSenha());
+    l(this, "handleRightIconClick", (t) => {
+      (this.getAttribute("tipo") === "password" || this.hasAttribute("alternar-senha")) && (t.stopPropagation(), this.alternarVisibilidadeSenha());
     });
-    n(this, "handleRightIconKeyDown", (e) => {
-      (this.getAttribute("tipo") === "password" || this.hasAttribute("alternar-senha")) && (e.key === "Enter" || e.key === " ") && (e.preventDefault(), e.stopPropagation(), this.alternarVisibilidadeSenha());
+    l(this, "handleRightIconKeyDown", (t) => {
+      (this.getAttribute("tipo") === "password" || this.hasAttribute("alternar-senha")) && (t.key === "Enter" || t.key === " ") && (t.preventDefault(), t.stopPropagation(), this.alternarVisibilidadeSenha());
     });
-    n(this, "handleFocus", () => {
+    l(this, "handleFocus", () => {
       this._focado = !0, this.wrapperElement.classList.add("ui-campo-texto__wrapper--foco"), this.syncState();
     });
-    n(this, "handleBlur", () => {
+    l(this, "handleBlur", () => {
       this._focado = !1, this.wrapperElement.classList.remove("ui-campo-texto__wrapper--foco"), this.syncState();
     });
-    n(this, "handleInput", (e) => {
-      const t = e.target.value;
-      this.internals.setFormValue(t), this.syncState(), this.dispatchEvent(
+    l(this, "handleInput", (t) => {
+      const e = t.target.value;
+      this.internals.setFormValue(e), this.syncState(), this.dispatchEvent(
         new CustomEvent("ui-input", {
-          detail: { value: t },
+          detail: { value: e },
           bubbles: !0,
           composed: !0
         })
       );
     });
-    n(this, "handleChange", (e) => {
-      const t = e.target.value;
-      this.internals.setFormValue(t), this.dispatchEvent(
+    l(this, "handleChange", (t) => {
+      const e = t.target.value;
+      this.internals.setFormValue(e), this.dispatchEvent(
         new CustomEvent("ui-change", {
-          detail: { value: t },
+          detail: { value: e },
           bubbles: !0,
           composed: !0
         })
       );
     });
     this.internals = this.attachInternals();
-    const e = this.attachShadow({ mode: "open", delegatesFocus: !0 });
-    e.innerHTML = `
-      <style>${_e}</style>
+    const t = this.attachShadow({ mode: "open", delegatesFocus: !0 });
+    t.innerHTML = `
+      <style>${Nt}</style>
       <div class="ui-campo-texto__container">
         <label class="ui-campo-texto__label" style="display: none;"></label>
         <div class="ui-campo-texto__wrapper">
@@ -498,7 +498,7 @@ class ae extends HTMLElement {
         </div>
       </div>
       <div class="ui-campo-texto__helper" style="display: none;"></div>
-    `, this.labelElement = e.querySelector(".ui-campo-texto__label"), this.wrapperElement = e.querySelector(".ui-campo-texto__wrapper"), this.inputElement = e.querySelector(".ui-campo-texto__input"), this.helperElement = e.querySelector(".ui-campo-texto__helper"), this.rightIconContainer = e.querySelector(".ui-campo-texto__icone--direita"), this.leftSlotElement = e.querySelector('slot[name="icone-esquerda"]'), this._inputId = `ui-input-${Math.random().toString(36).substring(2, 9)}`, this.inputElement.id = this._inputId, this.labelElement.htmlFor = this._inputId, this.helperElement.id = `${this._inputId}-helper`, this.inputElement.setAttribute("aria-describedby", `${this._inputId}-helper`);
+    `, this.labelElement = t.querySelector(".ui-campo-texto__label"), this.wrapperElement = t.querySelector(".ui-campo-texto__wrapper"), this.inputElement = t.querySelector(".ui-campo-texto__input"), this.helperElement = t.querySelector(".ui-campo-texto__helper"), this.rightIconContainer = t.querySelector(".ui-campo-texto__icone--direita"), this.leftSlotElement = t.querySelector('slot[name="icone-esquerda"]'), this._inputId = `ui-input-${Math.random().toString(36).substring(2, 9)}`, this.inputElement.id = this._inputId, this.labelElement.htmlFor = this._inputId, this.helperElement.id = `${this._inputId}-helper`, this.inputElement.setAttribute("aria-describedby", `${this._inputId}-helper`);
   }
   static get observedAttributes() {
     return [
@@ -520,8 +520,8 @@ class ae extends HTMLElement {
       "densidade"
     ];
   }
-  focus(e) {
-    this.inputElement.focus(e);
+  focus(t) {
+    this.inputElement.focus(t);
   }
   blur() {
     this.inputElement.blur();
@@ -532,24 +532,24 @@ class ae extends HTMLElement {
   disconnectedCallback() {
     this.inputElement.removeEventListener("input", this.handleInput), this.inputElement.removeEventListener("change", this.handleChange), this.inputElement.removeEventListener("focus", this.handleFocus), this.inputElement.removeEventListener("blur", this.handleBlur), this.rightIconContainer.removeEventListener("click", this.handleRightIconClick), this.rightIconContainer.removeEventListener("keydown", this.handleRightIconKeyDown), this.leftSlotElement.removeEventListener("slotchange", this.handleSlotChange), this._checkTimer && clearTimeout(this._checkTimer);
   }
-  attributeChangedCallback(e, t, i) {
+  attributeChangedCallback(t, e, i) {
     const a = this._focado;
-    e === "value" && i !== this.inputElement.value && !a && (this.inputElement.value = i || ""), this.syncState();
+    t === "value" && i !== this.inputElement.value && !a && (this.inputElement.value = i || ""), this.syncState();
   }
   get value() {
     return this.inputElement.value;
   }
-  set value(e) {
-    this.inputElement.value = e, this.setAttribute("value", e), this.syncState();
+  set value(t) {
+    this.inputElement.value = t, this.setAttribute("value", t), this.syncState();
   }
   alternarVisibilidadeSenha() {
     var i;
     if (!(this.getAttribute("tipo") === "password" || this._senhaVisivel)) return;
     this._senhaVisivel = !this._senhaVisivel, this.inputElement.type = this._senhaVisivel ? "text" : "password";
-    const t = (i = this.shadowRoot) == null ? void 0 : i.querySelector('slot[name="icone-direita"]');
-    t && t.assignedElements().forEach((s) => {
-      var r, l;
-      (((r = s.textContent) == null ? void 0 : r.trim()) === "👁️" || ((l = s.textContent) == null ? void 0 : l.trim()) === "🙈") && (s.textContent = this._senhaVisivel ? "🙈" : "👁️");
+    const e = (i = this.shadowRoot) == null ? void 0 : i.querySelector('slot[name="icone-direita"]');
+    e && e.assignedElements().forEach((r) => {
+      var s, n;
+      (((s = r.textContent) == null ? void 0 : s.trim()) === "👁️" || ((n = r.textContent) == null ? void 0 : n.trim()) === "🙈") && (r.textContent = this._senhaVisivel ? "🙈" : "👁️");
     }), this.dispatchEvent(
       new CustomEvent("ui-toggle-senha", {
         detail: { visivel: this._senhaVisivel },
@@ -560,32 +560,32 @@ class ae extends HTMLElement {
   }
   syncState() {
     this.leftSlotElement.assignedNodes().length > 0 || this.querySelector('[slot="icone-esquerda"]') !== null ? this.setAttribute("tem-icone-esquerda", "") : this.removeAttribute("tem-icone-esquerda");
-    const t = this.getAttribute("altura") || this.getAttribute("height");
-    t ? this.style.setProperty("--ui-campo-altura", isNaN(Number(t)) ? t : `${t}px`) : this.style.removeProperty("--ui-campo-altura");
-    const i = this.getAttribute("label"), a = this.hasAttribute("label-flutuante"), s = this.inputElement.value.trim() !== "", r = this._focado, l = (() => {
+    const e = this.getAttribute("altura") || this.getAttribute("height");
+    e ? this.style.setProperty("--ui-campo-altura", isNaN(Number(e)) ? e : `${e}px`) : this.style.removeProperty("--ui-campo-altura");
+    const i = this.getAttribute("label"), a = this.hasAttribute("label-flutuante"), r = this.inputElement.value.trim() !== "", s = this._focado, n = (() => {
       try {
         return this.inputElement.matches(":-webkit-autofill");
       } catch {
         return !1;
       }
     })();
-    i ? (this.labelElement.textContent = i, this.labelElement.style.display = "flex", a ? r || s || l ? this.labelElement.classList.add("ui-campo-texto__label--ativa") : this.labelElement.classList.remove("ui-campo-texto__label--ativa") : this.labelElement.classList.remove("ui-campo-texto__label--ativa")) : this.labelElement.style.display = "none";
-    const u = this.getAttribute("placeholder") || "";
-    a && !r && !s && !l ? this.inputElement.placeholder = "" : this.inputElement.placeholder = u;
-    const d = this.getAttribute("tipo") || "text";
-    this._senhaVisivel || (this.inputElement.type = d), this.internals.setFormValue(this.inputElement.value);
-    const c = this.hasAttribute("disabled"), p = this.hasAttribute("readonly");
-    this.inputElement.disabled = c, this.inputElement.readOnly = p, c ? this.wrapperElement.classList.add("ui-campo-texto__wrapper--disabled") : this.wrapperElement.classList.remove("ui-campo-texto__wrapper--disabled"), d === "password" || this.hasAttribute("alternar-senha") ? (this.rightIconContainer.classList.add("ui-campo-texto__icone--clicavel"), this.rightIconContainer.setAttribute("role", "button"), this.rightIconContainer.setAttribute("tabindex", "0"), this.rightIconContainer.setAttribute("aria-label", this._senhaVisivel ? "Ocultar senha" : "Exibir senha")) : (this.rightIconContainer.classList.remove("ui-campo-texto__icone--clicavel"), this.rightIconContainer.removeAttribute("role"), this.rightIconContainer.removeAttribute("tabindex"), this.rightIconContainer.removeAttribute("aria-label"));
-    const m = this.hasAttribute("erro") || this.hasAttribute("mensagem-erro"), h = this.getAttribute("mensagem-erro"), f = this.getAttribute("helper-text");
-    m ? (this.wrapperElement.classList.add("ui-campo-texto__wrapper--erro"), this.inputElement.setAttribute("aria-invalid", "true")) : (this.wrapperElement.classList.remove("ui-campo-texto__wrapper--erro"), this.inputElement.removeAttribute("aria-invalid")), m && h ? (this.helperElement.textContent = `⚠️ ${h}`, this.helperElement.className = "ui-campo-texto__helper ui-campo-texto__helper--erro", this.helperElement.style.display = "block") : f ? (this.helperElement.textContent = f, this.helperElement.className = "ui-campo-texto__helper", this.helperElement.style.display = "block") : this.helperElement.style.display = "none";
+    i ? (this.labelElement.textContent = i, this.labelElement.style.display = "flex", a ? s || r || n ? this.labelElement.classList.add("ui-campo-texto__label--ativa") : this.labelElement.classList.remove("ui-campo-texto__label--ativa") : this.labelElement.classList.remove("ui-campo-texto__label--ativa")) : this.labelElement.style.display = "none";
+    const c = this.getAttribute("placeholder") || "";
+    a && !s && !r && !n ? this.inputElement.placeholder = "" : this.inputElement.placeholder = c;
+    const u = this.getAttribute("tipo") || "text";
+    this._senhaVisivel || (this.inputElement.type = u), this.internals.setFormValue(this.inputElement.value);
+    const d = this.hasAttribute("disabled"), h = this.hasAttribute("readonly");
+    this.inputElement.disabled = d, this.inputElement.readOnly = h, d ? this.wrapperElement.classList.add("ui-campo-texto__wrapper--disabled") : this.wrapperElement.classList.remove("ui-campo-texto__wrapper--disabled"), u === "password" || this.hasAttribute("alternar-senha") ? (this.rightIconContainer.classList.add("ui-campo-texto__icone--clicavel"), this.rightIconContainer.setAttribute("role", "button"), this.rightIconContainer.setAttribute("tabindex", "0"), this.rightIconContainer.setAttribute("aria-label", this._senhaVisivel ? "Ocultar senha" : "Exibir senha")) : (this.rightIconContainer.classList.remove("ui-campo-texto__icone--clicavel"), this.rightIconContainer.removeAttribute("role"), this.rightIconContainer.removeAttribute("tabindex"), this.rightIconContainer.removeAttribute("aria-label"));
+    const p = this.hasAttribute("erro") || this.hasAttribute("mensagem-erro"), m = this.getAttribute("mensagem-erro"), f = this.getAttribute("helper-text");
+    p ? (this.wrapperElement.classList.add("ui-campo-texto__wrapper--erro"), this.inputElement.setAttribute("aria-invalid", "true")) : (this.wrapperElement.classList.remove("ui-campo-texto__wrapper--erro"), this.inputElement.removeAttribute("aria-invalid")), p && m ? (this.helperElement.textContent = `⚠️ ${m}`, this.helperElement.className = "ui-campo-texto__helper ui-campo-texto__helper--erro", this.helperElement.style.display = "block") : f ? (this.helperElement.textContent = f, this.helperElement.className = "ui-campo-texto__helper", this.helperElement.style.display = "block") : this.helperElement.style.display = "none";
   }
   formResetCallback() {
     this.inputElement.value = this._defaultValue, this.syncState();
   }
 }
-n(ae, "formAssociated", !0);
-customElements.get("ui-campo-texto") || customElements.define("ui-campo-texto", ae);
-const we = ':host{display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;line-height:1;color:inherit;flex-shrink:0;width:var(--ui-tamanho-icone, 20px);height:var(--ui-tamanho-icone, 20px);box-sizing:border-box}.ui-icone{display:inline-flex;align-items:center;justify-content:center;width:100%;height:100%;color:inherit;font-size:var(--ui-tamanho-icone, 20px)}::slotted(svg),.ui-icone svg{width:100%!important;height:100%!important;display:block;shape-rendering:geometricPrecision}:host([cor="primaria"]),:host([color="primaria"]){color:var(--ui-cor-primaria, #00E08A)}:host([cor="secundaria"]),:host([color="secundaria"]){color:var(--ui-cor-texto-secundario, #888899)}:host([cor="erro"]),:host([color="erro"]){color:var(--ui-cor-texto-erro, #ff5555)}:host([cor="sucesso"]),:host([color="sucesso"]){color:var(--ui-cor-texto-sucesso, #00E08A)}:host([cor="alerta"]),:host([color="alerta"]){color:var(--ui-cor-texto-alerta, #ffb86c)}', J = {
+l(xt, "formAssociated", !0);
+customElements.get("ui-campo-texto") || customElements.define("ui-campo-texto", xt);
+const Bt = ':host{display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;line-height:1;color:inherit;flex-shrink:0;width:var(--ui-tamanho-icone, 20px);height:var(--ui-tamanho-icone, 20px);box-sizing:border-box}.ui-icone{display:inline-flex;align-items:center;justify-content:center;width:100%;height:100%;color:inherit;font-size:var(--ui-tamanho-icone, 20px)}::slotted(svg),.ui-icone svg{width:100%!important;height:100%!important;display:block;shape-rendering:geometricPrecision}:host([cor="primaria"]),:host([color="primaria"]){color:var(--ui-cor-primaria, #00E08A)}:host([cor="secundaria"]),:host([color="secundaria"]){color:var(--ui-cor-texto-secundario, #888899)}:host([cor="erro"]),:host([color="erro"]){color:var(--ui-cor-texto-erro, #ff5555)}:host([cor="sucesso"]),:host([color="sucesso"]){color:var(--ui-cor-texto-sucesso, #00E08A)}:host([cor="alerta"]),:host([color="alerta"]){color:var(--ui-cor-texto-alerta, #ffb86c)}', pt = {
   search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>',
   check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>',
   eye: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>',
@@ -597,23 +597,23 @@ const we = ':host{display:inline-flex;align-items:center;justify-content:center;
   alert: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>',
   close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>'
 };
-class Ee extends HTMLElement {
+class $t extends HTMLElement {
   constructor() {
     super();
-    n(this, "iconContainer");
-    n(this, "svgContainer");
-    n(this, "slotElement");
-    n(this, "handleSlotChange", () => {
+    l(this, "iconContainer");
+    l(this, "svgContainer");
+    l(this, "slotElement");
+    l(this, "handleSlotChange", () => {
       this.syncState();
     });
-    const e = this.attachShadow({ mode: "open" });
-    e.innerHTML = `
-      <style>${we}</style>
+    const t = this.attachShadow({ mode: "open" });
+    t.innerHTML = `
+      <style>${Bt}</style>
       <span class="ui-icone" aria-hidden="true">
         <span class="ui-icone__svg" style="display: none;"></span>
         <slot></slot>
       </span>
-    `, this.iconContainer = e.querySelector(".ui-icone"), this.svgContainer = e.querySelector(".ui-icone__svg"), this.slotElement = e.querySelector("slot");
+    `, this.iconContainer = t.querySelector(".ui-icone"), this.svgContainer = t.querySelector(".ui-icone__svg"), this.slotElement = t.querySelector("slot");
   }
   static get observedAttributes() {
     return ["tamanho", "size", "cor", "color", "nome", "name"];
@@ -624,12 +624,12 @@ class Ee extends HTMLElement {
   disconnectedCallback() {
     this.slotElement.removeEventListener("slotchange", this.handleSlotChange);
   }
-  attributeChangedCallback(e, t, i) {
+  attributeChangedCallback(t, e, i) {
     this.syncState();
   }
   resolveTamanhoPx() {
-    const e = this.getAttribute("tamanho") || this.getAttribute("size") || "md";
-    switch (e.toLowerCase()) {
+    const t = this.getAttribute("tamanho") || this.getAttribute("size") || "md";
+    switch (t.toLowerCase()) {
       case "sm":
         return "16px";
       case "md":
@@ -639,53 +639,53 @@ class Ee extends HTMLElement {
       case "xl":
         return "32px";
       default:
-        return isNaN(Number(e)) ? e : `${e}px`;
+        return isNaN(Number(t)) ? t : `${t}px`;
     }
   }
   syncState() {
-    const e = this.resolveTamanhoPx();
-    this.style.setProperty("--ui-tamanho-icone", e);
-    const t = this.getAttribute("cor") || this.getAttribute("color");
-    t ? (this.style.setProperty("--ui-cor-icone", t), this.iconContainer.style.color = t) : (this.style.removeProperty("--ui-cor-icone"), this.iconContainer.style.color = ""), this.hasAttribute("aria-label") || this.hasAttribute("label") ? this.iconContainer.removeAttribute("aria-hidden") : this.iconContainer.setAttribute("aria-hidden", "true");
-    const a = this.getAttribute("nome") || this.getAttribute("name"), s = this.slotElement.assignedNodes().length > 0;
-    a && J[a] && !s ? (this.svgContainer.innerHTML = J[a], this.svgContainer.style.display = "inline-flex") : (this.svgContainer.innerHTML = "", this.svgContainer.style.display = "none");
+    const t = this.resolveTamanhoPx();
+    this.style.setProperty("--ui-tamanho-icone", t);
+    const e = this.getAttribute("cor") || this.getAttribute("color");
+    e ? (this.style.setProperty("--ui-cor-icone", e), this.iconContainer.style.color = e) : (this.style.removeProperty("--ui-cor-icone"), this.iconContainer.style.color = ""), this.hasAttribute("aria-label") || this.hasAttribute("label") ? this.iconContainer.removeAttribute("aria-hidden") : this.iconContainer.setAttribute("aria-hidden", "true");
+    const a = this.getAttribute("nome") || this.getAttribute("name"), r = this.slotElement.assignedNodes().length > 0;
+    a && pt[a] && !r ? (this.svgContainer.innerHTML = pt[a], this.svgContainer.style.display = "inline-flex") : (this.svgContainer.innerHTML = "", this.svgContainer.style.display = "none");
   }
 }
-customElements.get("ui-icone") || customElements.define("ui-icone", Ee);
-const ke = ':host{display:inline-flex;align-items:center;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif);vertical-align:middle}.ui-checkbox{display:inline-flex;align-items:center;gap:8px;cursor:pointer;-webkit-user-select:none;user-select:none;line-height:1;outline:none}.ui-checkbox--disabled{opacity:.5;cursor:not-allowed!important;pointer-events:none}.ui-checkbox__box{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;min-width:16px;min-height:16px;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16));border-radius:4px;box-sizing:border-box;transition:background-color .15s ease,border-color .15s ease,box-shadow .15s ease;flex-shrink:0}.ui-checkbox:focus-visible .ui-checkbox__box,.ui-checkbox--foco .ui-checkbox__box{border-color:var(--ui-cor-primaria, #00E08A);box-shadow:0 0 0 2px #00e08a40}.ui-checkbox--checked .ui-checkbox__box,.ui-checkbox--indeterminate .ui-checkbox__box{background-color:var(--ui-cor-primaria, #00E08A);border-color:var(--ui-cor-primaria, #00E08A);color:var(--ui-cor-texto-sobre-primaria, #000000)}.ui-checkbox__mark{width:12px;height:12px;display:flex;align-items:center;justify-content:center;transition:transform .15s cubic-bezier(.4,0,.2,1),opacity .15s ease;transform:scale(0);opacity:0}.ui-checkbox--checked .ui-checkbox__mark,.ui-checkbox--indeterminate .ui-checkbox__mark{transform:scale(1);opacity:1}.ui-checkbox__mark svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;shape-rendering:geometricPrecision}.ui-checkbox__label{display:inline-flex;align-items:center;font-size:clamp(11px,.85rem,14px);color:var(--ui-cor-texto, #e1e1e6);line-height:1}.ui-checkbox--label-esquerda{flex-direction:row-reverse}';
-class re extends HTMLElement {
+customElements.get("ui-icone") || customElements.define("ui-icone", $t);
+const Rt = ':host{display:inline-flex;align-items:center;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif);vertical-align:middle}.ui-checkbox{display:inline-flex;align-items:center;gap:8px;cursor:pointer;-webkit-user-select:none;user-select:none;line-height:1;outline:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent}.ui-checkbox--disabled{opacity:.5;cursor:not-allowed!important;pointer-events:none}.ui-checkbox__box{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;min-width:16px;min-height:16px;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16));border-radius:4px;box-sizing:border-box;transition:background-color .15s ease,border-color .15s ease,box-shadow .15s ease;flex-shrink:0}.ui-checkbox:focus-visible .ui-checkbox__box,.ui-checkbox--foco .ui-checkbox__box{border-color:var(--ui-cor-primaria, #00E08A);box-shadow:0 0 0 2px #00e08a40}.ui-checkbox--checked .ui-checkbox__box,.ui-checkbox--indeterminate .ui-checkbox__box{background-color:var(--ui-cor-primaria, #00E08A);border-color:var(--ui-cor-primaria, #00E08A);color:var(--ui-cor-texto-sobre-primaria, #000000)}.ui-checkbox__mark{width:12px;height:12px;display:flex;align-items:center;justify-content:center;transition:transform .15s cubic-bezier(.4,0,.2,1),opacity .15s ease;transform:scale(0);opacity:0}.ui-checkbox--checked .ui-checkbox__mark,.ui-checkbox--indeterminate .ui-checkbox__mark{transform:scale(1);opacity:1}.ui-checkbox__mark svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;shape-rendering:geometricPrecision}.ui-checkbox__label{display:inline-flex;align-items:center;font-size:clamp(11px,.85rem,14px);color:var(--ui-cor-texto, #e1e1e6);line-height:1}.ui-checkbox--label-esquerda{flex-direction:row-reverse}@media (max-width: 640px){.ui-checkbox{min-height:40px;padding:4px 0}.ui-checkbox__box{width:20px;height:20px;min-width:20px;min-height:20px}.ui-checkbox__mark{width:14px;height:14px}.ui-checkbox__label{font-size:14px}}';
+class yt extends HTMLElement {
   constructor() {
     super();
-    n(this, "internals");
-    n(this, "containerElement");
-    n(this, "markElement");
-    n(this, "labelElement");
-    n(this, "listeners", new z());
-    n(this, "_defaultChecked", !1);
-    n(this, "_defaultIndeterminate", !1);
-    n(this, "handleClick", (e) => {
-      e.preventDefault(), this.alternar();
+    l(this, "internals");
+    l(this, "containerElement");
+    l(this, "markElement");
+    l(this, "labelElement");
+    l(this, "listeners", new D());
+    l(this, "_defaultChecked", !1);
+    l(this, "_defaultIndeterminate", !1);
+    l(this, "handleClick", (t) => {
+      t.preventDefault(), this.alternar();
     });
-    n(this, "handleKeyDown", (e) => {
-      (e.key === " " || e.key === "Enter") && (e.preventDefault(), this.alternar());
+    l(this, "handleKeyDown", (t) => {
+      (t.key === " " || t.key === "Enter") && (t.preventDefault(), this.alternar());
     });
-    n(this, "handleFocus", () => {
+    l(this, "handleFocus", () => {
       this.containerElement.classList.add("ui-checkbox--foco");
     });
-    n(this, "handleBlur", () => {
+    l(this, "handleBlur", () => {
       this.containerElement.classList.remove("ui-checkbox--foco");
     });
     this.internals = this.attachInternals();
-    const e = this.attachShadow({ mode: "open" });
-    e.innerHTML = `
-      <style>${ke}</style>
+    const t = this.attachShadow({ mode: "open" });
+    t.innerHTML = `
+      <style>${Rt}</style>
       <div class="ui-checkbox" tabindex="0" role="checkbox" aria-checked="false">
         <span class="ui-checkbox__box">
           <span class="ui-checkbox__mark"></span>
         </span>
         <span class="ui-checkbox__label" style="display: none;"></span>
       </div>
-    `, this.containerElement = e.querySelector(".ui-checkbox"), this.markElement = e.querySelector(".ui-checkbox__mark"), this.labelElement = e.querySelector(".ui-checkbox__label");
+    `, this.containerElement = t.querySelector(".ui-checkbox"), this.markElement = t.querySelector(".ui-checkbox__mark"), this.labelElement = t.querySelector(".ui-checkbox__label");
   }
   static get observedAttributes() {
     return [
@@ -706,44 +706,44 @@ class re extends HTMLElement {
   disconnectedCallback() {
     this.listeners.cleanup();
   }
-  attributeChangedCallback(e, t, i) {
+  attributeChangedCallback(t, e, i) {
     this.syncState();
   }
   get marcado() {
     return this.hasAttribute("marcado") || this.hasAttribute("checked");
   }
-  set marcado(e) {
-    e ? this.setAttribute("marcado", "") : (this.removeAttribute("marcado"), this.removeAttribute("checked")), this.syncState();
+  set marcado(t) {
+    t ? this.setAttribute("marcado", "") : (this.removeAttribute("marcado"), this.removeAttribute("checked")), this.syncState();
   }
   get checked() {
     return this.marcado;
   }
-  set checked(e) {
-    this.marcado = e;
+  set checked(t) {
+    this.marcado = t;
   }
   get value() {
     return this.getAttribute("value") || "on";
   }
-  set value(e) {
-    this.setAttribute("value", e), this.syncState();
+  set value(t) {
+    this.setAttribute("value", t), this.syncState();
   }
   get name() {
     return this.getAttribute("name") || "";
   }
-  set name(e) {
-    this.setAttribute("name", e), this.syncState();
+  set name(t) {
+    this.setAttribute("name", t), this.syncState();
   }
   get indeterminado() {
     return this.hasAttribute("indeterminado") || this.hasAttribute("indeterminate");
   }
-  set indeterminado(e) {
-    e ? this.setAttribute("indeterminado", "") : (this.removeAttribute("indeterminado"), this.removeAttribute("indeterminate")), this.syncState();
+  set indeterminado(t) {
+    t ? this.setAttribute("indeterminado", "") : (this.removeAttribute("indeterminado"), this.removeAttribute("indeterminate")), this.syncState();
   }
   get disabled() {
     return this.hasAttribute("disabled");
   }
-  set disabled(e) {
-    e ? this.setAttribute("disabled", "") : this.removeAttribute("disabled"), this.syncState();
+  set disabled(t) {
+    t ? this.setAttribute("disabled", "") : this.removeAttribute("disabled"), this.syncState();
   }
   alternar() {
     this.disabled || (this.indeterminado ? (this.indeterminado = !1, this.marcado = !0) : this.marcado = !this.marcado, this.dispatchEvent(
@@ -759,68 +759,68 @@ class re extends HTMLElement {
     ));
   }
   syncState() {
-    const e = this.marcado, t = this.indeterminado, i = this.disabled, a = this.getAttribute("label"), s = this.getAttribute("posicao-label") || "direita";
+    const t = this.marcado, e = this.indeterminado, i = this.disabled, a = this.getAttribute("label"), r = this.getAttribute("posicao-label") || "direita";
     this.containerElement.setAttribute(
       "aria-checked",
-      t ? "mixed" : String(e)
-    ), i ? (this.containerElement.classList.add("ui-checkbox--disabled"), this.containerElement.setAttribute("tabindex", "-1"), this.containerElement.setAttribute("aria-disabled", "true")) : (this.containerElement.classList.remove("ui-checkbox--disabled"), this.containerElement.setAttribute("tabindex", "0"), this.containerElement.removeAttribute("aria-disabled")), e ? this.containerElement.classList.add("ui-checkbox--checked") : this.containerElement.classList.remove("ui-checkbox--checked"), t ? this.containerElement.classList.add("ui-checkbox--indeterminate") : this.containerElement.classList.remove("ui-checkbox--indeterminate"), s === "esquerda" ? this.containerElement.classList.add("ui-checkbox--label-esquerda") : this.containerElement.classList.remove("ui-checkbox--label-esquerda"), t ? this.markElement.innerHTML = `
+      e ? "mixed" : String(t)
+    ), i ? (this.containerElement.classList.add("ui-checkbox--disabled"), this.containerElement.setAttribute("tabindex", "-1"), this.containerElement.setAttribute("aria-disabled", "true")) : (this.containerElement.classList.remove("ui-checkbox--disabled"), this.containerElement.setAttribute("tabindex", "0"), this.containerElement.removeAttribute("aria-disabled")), t ? this.containerElement.classList.add("ui-checkbox--checked") : this.containerElement.classList.remove("ui-checkbox--checked"), e ? this.containerElement.classList.add("ui-checkbox--indeterminate") : this.containerElement.classList.remove("ui-checkbox--indeterminate"), r === "esquerda" ? this.containerElement.classList.add("ui-checkbox--label-esquerda") : this.containerElement.classList.remove("ui-checkbox--label-esquerda"), e ? this.markElement.innerHTML = `
         <svg viewBox="0 0 24 24">
           <line x1="5" y1="12" x2="19" y2="12"></line>
         </svg>
-      ` : e ? this.markElement.innerHTML = `
+      ` : t ? this.markElement.innerHTML = `
         <svg viewBox="0 0 24 24">
           <polyline points="20 6 9 17 4 12"></polyline>
         </svg>
-      ` : this.markElement.innerHTML = "", a ? (this.labelElement.textContent = a, this.labelElement.style.display = "inline") : this.labelElement.style.display = "none", e ? this.internals.setFormValue(this.getAttribute("value") || "on") : this.internals.setFormValue(null);
+      ` : this.markElement.innerHTML = "", a ? (this.labelElement.textContent = a, this.labelElement.style.display = "inline") : this.labelElement.style.display = "none", t ? this.internals.setFormValue(this.getAttribute("value") || "on") : this.internals.setFormValue(null);
   }
   formResetCallback() {
     this.marcado = this._defaultChecked, this.indeterminado = this._defaultIndeterminate;
   }
 }
-n(re, "formAssociated", !0);
-customElements.get("ui-checkbox") || customElements.define("ui-checkbox", re);
-const Ae = ':host{display:inline-flex;align-items:center;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif);vertical-align:middle}.ui-radio{display:inline-flex;align-items:center;gap:8px;cursor:pointer;-webkit-user-select:none;user-select:none;line-height:1;outline:none}.ui-radio--disabled{opacity:.5;cursor:not-allowed!important;pointer-events:none}.ui-radio__circle{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;min-width:16px;min-height:16px;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16));border-radius:50%;box-sizing:border-box;transition:background-color .15s ease,border-color .15s ease,box-shadow .15s ease;flex-shrink:0}.ui-radio:focus-visible .ui-radio__circle,.ui-radio--foco .ui-radio__circle{border-color:var(--ui-cor-primaria, #00E08A);box-shadow:0 0 0 2px #00e08a40}.ui-radio--checked .ui-radio__circle{border-color:var(--ui-cor-primaria, #00E08A)}.ui-radio__dot{width:8px;height:8px;border-radius:50%;background-color:var(--ui-cor-primaria, #00E08A);transition:transform .15s cubic-bezier(.4,0,.2,1),opacity .15s ease;transform:scale(0);opacity:0}.ui-radio--checked .ui-radio__dot{transform:scale(1);opacity:1}.ui-radio__label{display:inline-flex;align-items:center;font-size:clamp(11px,.85rem,14px);color:var(--ui-cor-texto, #e1e1e6);line-height:1}.ui-radio--label-esquerda{flex-direction:row-reverse}', P = class P extends HTMLElement {
+l(yt, "formAssociated", !0);
+customElements.get("ui-checkbox") || customElements.define("ui-checkbox", yt);
+const Ht = ':host{display:inline-flex;align-items:center;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif);vertical-align:middle}.ui-radio{display:inline-flex;align-items:center;gap:8px;cursor:pointer;-webkit-user-select:none;user-select:none;line-height:1;outline:none}.ui-radio--disabled{opacity:.5;cursor:not-allowed!important;pointer-events:none}.ui-radio__circle{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;min-width:16px;min-height:16px;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16));border-radius:50%;box-sizing:border-box;transition:background-color .15s ease,border-color .15s ease,box-shadow .15s ease;flex-shrink:0}.ui-radio:focus-visible .ui-radio__circle,.ui-radio--foco .ui-radio__circle{border-color:var(--ui-cor-primaria, #00E08A);box-shadow:0 0 0 2px #00e08a40}.ui-radio--checked .ui-radio__circle{border-color:var(--ui-cor-primaria, #00E08A)}.ui-radio__dot{width:8px;height:8px;border-radius:50%;background-color:var(--ui-cor-primaria, #00E08A);transition:transform .15s cubic-bezier(.4,0,.2,1),opacity .15s ease;transform:scale(0);opacity:0}.ui-radio--checked .ui-radio__dot{transform:scale(1);opacity:1}.ui-radio__label{display:inline-flex;align-items:center;font-size:clamp(11px,.85rem,14px);color:var(--ui-cor-texto, #e1e1e6);line-height:1}.ui-radio--label-esquerda{flex-direction:row-reverse}', G = class G extends HTMLElement {
   constructor() {
     super();
-    n(this, "internals");
-    n(this, "containerElement");
-    n(this, "labelElement");
-    n(this, "_defaultChecked", !1);
-    n(this, "handleClick", (e) => {
-      e.preventDefault(), this.selecionar(), this.containerElement.focus();
+    l(this, "internals");
+    l(this, "containerElement");
+    l(this, "labelElement");
+    l(this, "_defaultChecked", !1);
+    l(this, "handleClick", (t) => {
+      t.preventDefault(), this.selecionar(), this.containerElement.focus();
     });
-    n(this, "handleKeyDown", (e) => {
-      if (e.key === " " || e.key === "Enter")
-        e.preventDefault(), this.selecionar();
-      else if (["ArrowDown", "ArrowRight", "ArrowUp", "ArrowLeft"].includes(e.key)) {
-        e.preventDefault();
-        const i = this.getGroupRadios().filter((r) => !r.disabled);
+    l(this, "handleKeyDown", (t) => {
+      if (t.key === " " || t.key === "Enter")
+        t.preventDefault(), this.selecionar();
+      else if (["ArrowDown", "ArrowRight", "ArrowUp", "ArrowLeft"].includes(t.key)) {
+        t.preventDefault();
+        const i = this.getGroupRadios().filter((s) => !s.disabled);
         if (i.length <= 1) return;
         const a = i.indexOf(this);
-        let s = a;
-        if (e.key === "ArrowDown" || e.key === "ArrowRight" ? s = (a + 1) % i.length : (e.key === "ArrowUp" || e.key === "ArrowLeft") && (s = (a - 1 + i.length) % i.length), s !== a && s >= 0 && s < i.length) {
-          const r = i[s];
-          r.selecionar(), r.containerElement.focus();
+        let r = a;
+        if (t.key === "ArrowDown" || t.key === "ArrowRight" ? r = (a + 1) % i.length : (t.key === "ArrowUp" || t.key === "ArrowLeft") && (r = (a - 1 + i.length) % i.length), r !== a && r >= 0 && r < i.length) {
+          const s = i[r];
+          s.selecionar(), s.containerElement.focus();
         }
       }
     });
-    n(this, "handleFocus", () => {
+    l(this, "handleFocus", () => {
       this.containerElement.classList.add("ui-radio--foco");
     });
-    n(this, "handleBlur", () => {
+    l(this, "handleBlur", () => {
       this.containerElement.classList.remove("ui-radio--foco");
     });
     this.internals = this.attachInternals();
-    const e = this.attachShadow({ mode: "open" });
-    e.innerHTML = `
-      <style>${Ae}</style>
+    const t = this.attachShadow({ mode: "open" });
+    t.innerHTML = `
+      <style>${Ht}</style>
       <div class="ui-radio" tabindex="0" role="radio" aria-checked="false">
         <span class="ui-radio__circle">
           <span class="ui-radio__dot"></span>
         </span>
         <span class="ui-radio__label" style="display: none;"></span>
       </div>
-    `, this.containerElement = e.querySelector(".ui-radio"), this.labelElement = e.querySelector(".ui-radio__label");
+    `, this.containerElement = t.querySelector(".ui-radio"), this.labelElement = t.querySelector(".ui-radio__label");
   }
   static get observedAttributes() {
     return [
@@ -844,55 +844,55 @@ const Ae = ':host{display:inline-flex;align-items:center;box-sizing:border-box;f
     return this.closest("form") || this.getRootNode() || document;
   }
   register() {
-    const e = this.name;
-    if (e) {
-      const t = this.getScopeNode();
-      P._registry.has(t) || P._registry.set(t, /* @__PURE__ */ new Map());
-      const i = P._registry.get(t);
-      i.has(e) || i.set(e, /* @__PURE__ */ new Set()), i.get(e).add(this);
+    const t = this.name;
+    if (t) {
+      const e = this.getScopeNode();
+      G._registry.has(e) || G._registry.set(e, /* @__PURE__ */ new Map());
+      const i = G._registry.get(e);
+      i.has(t) || i.set(t, /* @__PURE__ */ new Set()), i.get(t).add(this);
     }
   }
   unregister() {
-    const e = this.name;
-    if (e) {
-      const t = this.getScopeNode(), i = P._registry.get(t);
-      if (i && i.has(e)) {
-        const a = i.get(e);
-        a.delete(this), a.size === 0 && i.delete(e), i.size === 0 && P._registry.delete(t);
+    const t = this.name;
+    if (t) {
+      const e = this.getScopeNode(), i = G._registry.get(e);
+      if (i && i.has(t)) {
+        const a = i.get(t);
+        a.delete(this), a.size === 0 && i.delete(t), i.size === 0 && G._registry.delete(e);
       }
     }
   }
   getGroupRadios() {
-    const e = this.name;
-    if (!e) return [];
-    const t = this.getScopeNode(), i = P._registry.get(t);
-    return !i || !i.has(e) ? [] : Array.from(i.get(e));
+    const t = this.name;
+    if (!t) return [];
+    const e = this.getScopeNode(), i = G._registry.get(e);
+    return !i || !i.has(t) ? [] : Array.from(i.get(t));
   }
-  attributeChangedCallback(e, t, i) {
+  attributeChangedCallback(t, e, i) {
     this.syncState();
   }
   get marcado() {
     return this.hasAttribute("marcado") || this.hasAttribute("checked");
   }
-  set marcado(e) {
-    e ? this.setAttribute("marcado", "") : (this.removeAttribute("marcado"), this.removeAttribute("checked"));
+  set marcado(t) {
+    t ? this.setAttribute("marcado", "") : (this.removeAttribute("marcado"), this.removeAttribute("checked"));
   }
   get name() {
     return this.getAttribute("name") || this.getAttribute("nome") || "";
   }
-  set name(e) {
-    this.unregister(), this.setAttribute("name", e), this.register(), this.syncState();
+  set name(t) {
+    this.unregister(), this.setAttribute("name", t), this.register(), this.syncState();
   }
   get disabled() {
     return this.hasAttribute("disabled");
   }
-  set disabled(e) {
-    e ? this.setAttribute("disabled", "") : this.removeAttribute("disabled"), this.syncState();
+  set disabled(t) {
+    t ? this.setAttribute("disabled", "") : this.removeAttribute("disabled"), this.syncState();
   }
   selecionar() {
     if (this.disabled || this.marcado) return;
-    this.getGroupRadios().forEach((t) => {
-      t !== this && (t.removeAttribute("marcado"), t.removeAttribute("checked"), t.syncState());
+    this.getGroupRadios().forEach((e) => {
+      e !== this && (e.removeAttribute("marcado"), e.removeAttribute("checked"), e.syncState());
     }), this.marcado = !0, this.dispatchEvent(
       new CustomEvent("ui-change", {
         detail: {
@@ -906,56 +906,56 @@ const Ae = ':host{display:inline-flex;align-items:center;box-sizing:border-box;f
     );
   }
   syncState() {
-    const e = this.marcado, t = this.disabled, i = this.getAttribute("label"), a = this.getAttribute("posicao-label") || "direita";
-    if (this.containerElement.setAttribute("aria-checked", String(e)), t)
+    const t = this.marcado, e = this.disabled, i = this.getAttribute("label"), a = this.getAttribute("posicao-label") || "direita";
+    if (this.containerElement.setAttribute("aria-checked", String(t)), e)
       this.containerElement.classList.add("ui-radio--disabled"), this.containerElement.setAttribute("tabindex", "-1"), this.containerElement.setAttribute("aria-disabled", "true");
     else {
       this.containerElement.classList.remove("ui-radio--disabled"), this.containerElement.removeAttribute("aria-disabled");
-      const s = this.getGroupRadios();
-      s.length > 0 ? s.some((l) => l.marcado) ? this.containerElement.setAttribute("tabindex", e ? "0" : "-1") : this.containerElement.setAttribute("tabindex", s[0] === this ? "0" : "-1") : this.containerElement.setAttribute("tabindex", "0");
+      const r = this.getGroupRadios();
+      r.length > 0 ? r.some((n) => n.marcado) ? this.containerElement.setAttribute("tabindex", t ? "0" : "-1") : this.containerElement.setAttribute("tabindex", r[0] === this ? "0" : "-1") : this.containerElement.setAttribute("tabindex", "0");
     }
-    e ? this.containerElement.classList.add("ui-radio--checked") : this.containerElement.classList.remove("ui-radio--checked"), a === "esquerda" ? this.containerElement.classList.add("ui-radio--label-esquerda") : this.containerElement.classList.remove("ui-radio--label-esquerda"), i ? (this.labelElement.textContent = i, this.labelElement.style.display = "inline") : this.labelElement.style.display = "none", e ? this.internals.setFormValue(this.getAttribute("value") || "on") : this.internals.setFormValue(null);
+    t ? this.containerElement.classList.add("ui-radio--checked") : this.containerElement.classList.remove("ui-radio--checked"), a === "esquerda" ? this.containerElement.classList.add("ui-radio--label-esquerda") : this.containerElement.classList.remove("ui-radio--label-esquerda"), i ? (this.labelElement.textContent = i, this.labelElement.style.display = "inline") : this.labelElement.style.display = "none", t ? this.internals.setFormValue(this.getAttribute("value") || "on") : this.internals.setFormValue(null);
   }
   formResetCallback() {
     this.marcado = this._defaultChecked, this._defaultChecked ? this.internals.setFormValue(this.getAttribute("value") || "on") : this.internals.setFormValue(null), this.syncState();
   }
 };
-n(P, "formAssociated", !0), // Registro estruturado com WeakMap para prevenir vazamentos de memória (Memory Leaks)
-n(P, "_registry", /* @__PURE__ */ new WeakMap());
-let H = P;
-customElements.get("ui-radio") || customElements.define("ui-radio", H);
-const Ce = ':host{display:inline-flex;align-items:center;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif);vertical-align:middle}.ui-switch{display:inline-flex;align-items:center;gap:8px;cursor:pointer;-webkit-user-select:none;user-select:none;line-height:1;outline:none}.ui-switch--disabled{opacity:.5;cursor:not-allowed!important;pointer-events:none}.ui-switch__track{display:inline-flex;align-items:center;position:relative;width:36px;height:20px;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16));border-radius:999px;box-sizing:border-box;padding:1px;transition:background-color .2s ease,border-color .2s ease,box-shadow .2s ease;flex-shrink:0}.ui-switch:focus-visible .ui-switch__track,.ui-switch--foco .ui-switch__track{border-color:var(--ui-cor-primaria, #00E08A);box-shadow:0 0 0 2px #00e08a40}.ui-switch--checked .ui-switch__track{background-color:var(--ui-cor-primaria, #00E08A);border-color:var(--ui-cor-primaria, #00E08A)}.ui-switch__thumb{display:block;width:16px;height:16px;background-color:#fff;border-radius:50%;box-shadow:0 1px 3px #0000004d;transition:transform .2s cubic-bezier(.4,0,.2,1),background-color .2s ease;transform:translate(0)}.ui-switch--checked .ui-switch__thumb{transform:translate(16px);background-color:var(--ui-cor-texto-sobre-primaria, #000000)}.ui-switch--sm .ui-switch__track{width:28px;height:16px;padding:1px}.ui-switch--sm .ui-switch__thumb{width:12px;height:12px}.ui-switch--sm.ui-switch--checked .ui-switch__thumb{transform:translate(12px)}.ui-switch--lg .ui-switch__track{width:44px;height:24px;padding:1px}.ui-switch--lg .ui-switch__thumb{width:20px;height:20px}.ui-switch--lg.ui-switch--checked .ui-switch__thumb{transform:translate(20px)}.ui-switch__label{display:inline-flex;align-items:center;font-size:clamp(11px,.85rem,14px);color:var(--ui-cor-texto, #e1e1e6);line-height:1}.ui-switch--label-esquerda{flex-direction:row-reverse}';
-class W extends HTMLElement {
+l(G, "formAssociated", !0), // Registro estruturado com WeakMap para prevenir vazamentos de memória (Memory Leaks)
+l(G, "_registry", /* @__PURE__ */ new WeakMap());
+let rt = G;
+customElements.get("ui-radio") || customElements.define("ui-radio", rt);
+const Ot = ':host{display:inline-flex;align-items:center;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif);vertical-align:middle}.ui-switch{display:inline-flex;align-items:center;gap:8px;cursor:pointer;-webkit-user-select:none;user-select:none;line-height:1;outline:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent}.ui-switch--disabled{opacity:.5;cursor:not-allowed!important;pointer-events:none}.ui-switch__track{display:inline-flex;align-items:center;position:relative;width:36px;height:20px;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16));border-radius:999px;box-sizing:border-box;padding:1px;transition:background-color .2s ease,border-color .2s ease,box-shadow .2s ease;flex-shrink:0}.ui-switch:focus-visible .ui-switch__track,.ui-switch--foco .ui-switch__track{border-color:var(--ui-cor-primaria, #00E08A);box-shadow:0 0 0 2px #00e08a40}.ui-switch--checked .ui-switch__track{background-color:var(--ui-cor-primaria, #00E08A);border-color:var(--ui-cor-primaria, #00E08A)}.ui-switch__thumb{display:block;width:16px;height:16px;background-color:#fff;border-radius:50%;box-shadow:0 1px 3px #0000004d;transition:transform .2s cubic-bezier(.4,0,.2,1),background-color .2s ease;transform:translate(0)}.ui-switch--checked .ui-switch__thumb{transform:translate(16px);background-color:var(--ui-cor-texto-sobre-primaria, #000000)}.ui-switch--sm .ui-switch__track{width:28px;height:16px;padding:1px}.ui-switch--sm .ui-switch__thumb{width:12px;height:12px}.ui-switch--sm.ui-switch--checked .ui-switch__thumb{transform:translate(12px)}.ui-switch--lg .ui-switch__track{width:44px;height:24px;padding:1px}.ui-switch--lg .ui-switch__thumb{width:20px;height:20px}.ui-switch--lg.ui-switch--checked .ui-switch__thumb{transform:translate(20px)}.ui-switch__label{display:inline-flex;align-items:center;font-size:clamp(11px,.85rem,14px);color:var(--ui-cor-texto, #e1e1e6);line-height:1}.ui-switch--label-esquerda{flex-direction:row-reverse}@media (max-width: 640px){.ui-switch{min-height:40px;padding:4px 0}.ui-switch__label{font-size:14px}}';
+class lt extends HTMLElement {
   constructor() {
     super();
-    n(this, "internals");
-    n(this, "containerElement");
-    n(this, "labelElement");
-    n(this, "listeners", new z());
-    n(this, "_defaultChecked", !1);
-    n(this, "handleClick", (e) => {
-      e.preventDefault(), this.alternar();
+    l(this, "internals");
+    l(this, "containerElement");
+    l(this, "labelElement");
+    l(this, "listeners", new D());
+    l(this, "_defaultChecked", !1);
+    l(this, "handleClick", (t) => {
+      t.preventDefault(), this.alternar();
     });
-    n(this, "handleKeyDown", (e) => {
-      (e.key === " " || e.key === "Enter") && (e.preventDefault(), this.alternar());
+    l(this, "handleKeyDown", (t) => {
+      (t.key === " " || t.key === "Enter") && (t.preventDefault(), this.alternar());
     });
-    n(this, "handleFocus", () => {
+    l(this, "handleFocus", () => {
       this.containerElement.classList.add("ui-switch--foco");
     });
-    n(this, "handleBlur", () => {
+    l(this, "handleBlur", () => {
       this.containerElement.classList.remove("ui-switch--foco");
     });
     this.internals = this.attachInternals();
-    const e = this.attachShadow({ mode: "open" });
-    e.innerHTML = `
-      <style>${Ce}</style>
+    const t = this.attachShadow({ mode: "open" });
+    t.innerHTML = `
+      <style>${Ot}</style>
       <div class="ui-switch" tabindex="0" role="switch" aria-checked="false">
         <span class="ui-switch__track">
           <span class="ui-switch__thumb"></span>
         </span>
         <span class="ui-switch__label" style="display: none;"></span>
       </div>
-    `, this.containerElement = e.querySelector(".ui-switch"), this.labelElement = e.querySelector(".ui-switch__label");
+    `, this.containerElement = t.querySelector(".ui-switch"), this.labelElement = t.querySelector(".ui-switch__label");
   }
   static get observedAttributes() {
     return [
@@ -976,38 +976,38 @@ class W extends HTMLElement {
   disconnectedCallback() {
     this.listeners.cleanup();
   }
-  attributeChangedCallback(e, t, i) {
+  attributeChangedCallback(t, e, i) {
     this.syncState();
   }
   get ativo() {
     return this.hasAttribute("ativo") || this.hasAttribute("ligado") || this.hasAttribute("checked");
   }
-  set ativo(e) {
-    e ? this.setAttribute("ativo", "") : (this.removeAttribute("ativo"), this.removeAttribute("ligado"), this.removeAttribute("checked")), this.syncState();
+  set ativo(t) {
+    t ? this.setAttribute("ativo", "") : (this.removeAttribute("ativo"), this.removeAttribute("ligado"), this.removeAttribute("checked")), this.syncState();
   }
   get checked() {
     return this.ativo;
   }
-  set checked(e) {
-    this.ativo = e;
+  set checked(t) {
+    this.ativo = t;
   }
   get value() {
     return this.getAttribute("value") || "on";
   }
-  set value(e) {
-    this.setAttribute("value", e), this.syncState();
+  set value(t) {
+    this.setAttribute("value", t), this.syncState();
   }
   get name() {
     return this.getAttribute("name") || "";
   }
-  set name(e) {
-    this.setAttribute("name", e), this.syncState();
+  set name(t) {
+    this.setAttribute("name", t), this.syncState();
   }
   get disabled() {
     return this.hasAttribute("disabled");
   }
-  set disabled(e) {
-    e ? this.setAttribute("disabled", "") : this.removeAttribute("disabled"), this.syncState();
+  set disabled(t) {
+    t ? this.setAttribute("disabled", "") : this.removeAttribute("disabled"), this.syncState();
   }
   alternar() {
     this.disabled || (this.ativo = !this.ativo, this.dispatchEvent(
@@ -1022,47 +1022,47 @@ class W extends HTMLElement {
     ));
   }
   syncState() {
-    const e = this.ativo, t = this.disabled, i = this.getAttribute("tamanho") || this.getAttribute("size") || "md", a = this.getAttribute("label"), s = this.getAttribute("posicao-label") || "direita";
-    this.containerElement.setAttribute("aria-checked", String(e)), t ? (this.containerElement.classList.add("ui-switch--disabled"), this.containerElement.setAttribute("tabindex", "-1"), this.containerElement.setAttribute("aria-disabled", "true")) : (this.containerElement.classList.remove("ui-switch--disabled"), this.containerElement.setAttribute("tabindex", "0"), this.containerElement.removeAttribute("aria-disabled")), e ? this.containerElement.classList.add("ui-switch--checked") : this.containerElement.classList.remove("ui-switch--checked"), this.containerElement.classList.remove("ui-switch--sm", "ui-switch--md", "ui-switch--lg"), ["sm", "md", "lg"].includes(i) ? this.containerElement.classList.add(`ui-switch--${i}`) : this.containerElement.classList.add("ui-switch--md"), s === "esquerda" ? this.containerElement.classList.add("ui-switch--label-esquerda") : this.containerElement.classList.remove("ui-switch--label-esquerda"), a ? (this.labelElement.textContent = a, this.labelElement.style.display = "inline") : this.labelElement.style.display = "none", e ? this.internals.setFormValue(this.getAttribute("value") || "on") : this.internals.setFormValue(null);
+    const t = this.ativo, e = this.disabled, i = this.getAttribute("tamanho") || this.getAttribute("size") || "md", a = this.getAttribute("label"), r = this.getAttribute("posicao-label") || "direita";
+    this.containerElement.setAttribute("aria-checked", String(t)), e ? (this.containerElement.classList.add("ui-switch--disabled"), this.containerElement.setAttribute("tabindex", "-1"), this.containerElement.setAttribute("aria-disabled", "true")) : (this.containerElement.classList.remove("ui-switch--disabled"), this.containerElement.setAttribute("tabindex", "0"), this.containerElement.removeAttribute("aria-disabled")), t ? this.containerElement.classList.add("ui-switch--checked") : this.containerElement.classList.remove("ui-switch--checked"), this.containerElement.classList.remove("ui-switch--sm", "ui-switch--md", "ui-switch--lg"), ["sm", "md", "lg"].includes(i) ? this.containerElement.classList.add(`ui-switch--${i}`) : this.containerElement.classList.add("ui-switch--md"), r === "esquerda" ? this.containerElement.classList.add("ui-switch--label-esquerda") : this.containerElement.classList.remove("ui-switch--label-esquerda"), a ? (this.labelElement.textContent = a, this.labelElement.style.display = "inline") : this.labelElement.style.display = "none", t ? this.internals.setFormValue(this.getAttribute("value") || "on") : this.internals.setFormValue(null);
   }
   formResetCallback() {
     this.ativo = this._defaultChecked;
   }
 }
-n(W, "formAssociated", !0);
-class Se extends W {
+l(lt, "formAssociated", !0);
+class Ft extends lt {
 }
-customElements.get("ui-switch") || customElements.define("ui-switch", W);
-customElements.get("ui-toggle") || customElements.define("ui-toggle", Se);
-const ze = ':host{display:inline-flex;align-items:center;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif);vertical-align:middle}.ui-badge{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:600;line-height:1;-webkit-user-select:none;user-select:none;box-sizing:border-box;transition:background-color .15s ease,color .15s ease,border-color .15s ease;white-space:nowrap}::slotted(svg),::slotted(ui-icone){width:12px!important;height:12px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;line-height:1!important;vertical-align:middle!important;shape-rendering:geometricPrecision;flex-shrink:0}::slotted(span){display:inline-flex;align-items:center;line-height:1}.ui-badge--suave{background-color:var(--ui-cor-badge-fundo, rgba(255, 255, 255, .08));color:var(--ui-cor-badge-texto, #e1e1e6);border:1px solid transparent}.ui-badge--solido{background-color:var(--ui-cor-badge-solido, #888899);color:#000;border:1px solid transparent}.ui-badge--contornado{background-color:transparent;color:var(--ui-cor-badge-texto, #e1e1e6);border:1px solid var(--ui-cor-badge-borda, rgba(255, 255, 255, .2))}.ui-badge--sucesso.ui-badge--suave{background-color:#00e08a26;color:var(--ui-cor-primaria, #00E08A)}.ui-badge--sucesso.ui-badge--solido{background-color:var(--ui-cor-primaria, #00E08A);color:#000}.ui-badge--sucesso.ui-badge--contornado{color:var(--ui-cor-primaria, #00E08A);border-color:#00e08a66}.ui-badge--erro.ui-badge--suave{background-color:#ff555526;color:var(--ui-cor-texto-erro, #ff5555)}.ui-badge--erro.ui-badge--solido{background-color:var(--ui-cor-texto-erro, #ff5555);color:#fff}.ui-badge--erro.ui-badge--contornado{color:var(--ui-cor-texto-erro, #ff5555);border-color:#f556}.ui-badge--alerta.ui-badge--suave{background-color:#ffb86c26;color:var(--ui-cor-texto-alerta, #ffb86c)}.ui-badge--alerta.ui-badge--solido{background-color:var(--ui-cor-texto-alerta, #ffb86c);color:#000}.ui-badge--alerta.ui-badge--contornado{color:var(--ui-cor-texto-alerta, #ffb86c);border-color:#ffb86c66}.ui-badge--info.ui-badge--suave,.ui-badge--primaria.ui-badge--suave{background-color:#00aaff26;color:#0af}.ui-badge--info.ui-badge--solido,.ui-badge--primaria.ui-badge--solido{background-color:#0af;color:#fff}.ui-badge--info.ui-badge--contornado,.ui-badge--primaria.ui-badge--contornado{color:#0af;border-color:#0af6}.ui-badge--neutro.ui-badge--suave{background-color:#ffffff14;color:var(--ui-cor-texto-secundario, #888899)}.ui-badge__close{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;cursor:pointer;opacity:.7;transition:opacity .15s ease,background-color .15s ease;font-size:10px;line-height:1;margin-left:2px}.ui-badge__close:hover{opacity:1;background-color:#fff3}';
-class G extends HTMLElement {
+customElements.get("ui-switch") || customElements.define("ui-switch", lt);
+customElements.get("ui-toggle") || customElements.define("ui-toggle", Ft);
+const Dt = ':host{display:inline-flex;align-items:center;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif);vertical-align:middle}.ui-badge{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:600;line-height:1;-webkit-user-select:none;user-select:none;box-sizing:border-box;transition:background-color .15s ease,color .15s ease,border-color .15s ease;white-space:nowrap}::slotted(svg),::slotted(ui-icone){width:12px!important;height:12px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;line-height:1!important;vertical-align:middle!important;shape-rendering:geometricPrecision;flex-shrink:0}::slotted(span){display:inline-flex;align-items:center;line-height:1}.ui-badge--suave{background-color:var(--ui-cor-badge-fundo, rgba(255, 255, 255, .08));color:var(--ui-cor-badge-texto, #e1e1e6);border:1px solid transparent}.ui-badge--solido{background-color:var(--ui-cor-badge-solido, #888899);color:#000;border:1px solid transparent}.ui-badge--contornado{background-color:transparent;color:var(--ui-cor-badge-texto, #e1e1e6);border:1px solid var(--ui-cor-badge-borda, rgba(255, 255, 255, .2))}.ui-badge--sucesso.ui-badge--suave{background-color:#00e08a26;color:var(--ui-cor-primaria, #00E08A)}.ui-badge--sucesso.ui-badge--solido{background-color:var(--ui-cor-primaria, #00E08A);color:#000}.ui-badge--sucesso.ui-badge--contornado{color:var(--ui-cor-primaria, #00E08A);border-color:#00e08a66}.ui-badge--erro.ui-badge--suave{background-color:#ff555526;color:var(--ui-cor-texto-erro, #ff5555)}.ui-badge--erro.ui-badge--solido{background-color:var(--ui-cor-texto-erro, #ff5555);color:#fff}.ui-badge--erro.ui-badge--contornado{color:var(--ui-cor-texto-erro, #ff5555);border-color:#f556}.ui-badge--alerta.ui-badge--suave{background-color:#ffb86c26;color:var(--ui-cor-texto-alerta, #ffb86c)}.ui-badge--alerta.ui-badge--solido{background-color:var(--ui-cor-texto-alerta, #ffb86c);color:#000}.ui-badge--alerta.ui-badge--contornado{color:var(--ui-cor-texto-alerta, #ffb86c);border-color:#ffb86c66}.ui-badge--info.ui-badge--suave,.ui-badge--primaria.ui-badge--suave{background-color:#00aaff26;color:#0af}.ui-badge--info.ui-badge--solido,.ui-badge--primaria.ui-badge--solido{background-color:#0af;color:#fff}.ui-badge--info.ui-badge--contornado,.ui-badge--primaria.ui-badge--contornado{color:#0af;border-color:#0af6}.ui-badge--neutro.ui-badge--suave{background-color:#ffffff14;color:var(--ui-cor-texto-secundario, #888899)}.ui-badge__close{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;cursor:pointer;opacity:.7;transition:opacity .15s ease,background-color .15s ease;font-size:10px;line-height:1;margin-left:2px}.ui-badge__close:hover{opacity:1;background-color:#fff3}';
+class ct extends HTMLElement {
   constructor() {
     super();
-    n(this, "badgeElement");
-    n(this, "labelElement");
-    n(this, "closeElement");
-    n(this, "listeners", new z());
-    n(this, "handleRemove", (e) => {
-      var t;
-      e.stopPropagation(), this.dispatchEvent(
+    l(this, "badgeElement");
+    l(this, "labelElement");
+    l(this, "closeElement");
+    l(this, "listeners", new D());
+    l(this, "handleRemove", (t) => {
+      var e;
+      t.stopPropagation(), this.dispatchEvent(
         new CustomEvent("ui-remove", {
           detail: {
-            value: this.getAttribute("value") || ((t = this.textContent) == null ? void 0 : t.trim()) || ""
+            value: this.getAttribute("value") || ((e = this.textContent) == null ? void 0 : e.trim()) || ""
           },
           bubbles: !0,
           composed: !0
         })
       );
     });
-    const e = this.attachShadow({ mode: "open" });
-    e.innerHTML = `
-      <style>${ze}</style>
+    const t = this.attachShadow({ mode: "open" });
+    t.innerHTML = `
+      <style>${Dt}</style>
       <span class="ui-badge">
         <slot></slot>
         <span class="ui-badge__label" style="display: none;"></span>
         <span class="ui-badge__close" role="button" tabindex="0" aria-label="Remover" style="display: none;" title="Remover">✕</span>
       </span>
-    `, this.badgeElement = e.querySelector(".ui-badge"), this.labelElement = e.querySelector(".ui-badge__label"), this.closeElement = e.querySelector(".ui-badge__close");
+    `, this.badgeElement = t.querySelector(".ui-badge"), this.labelElement = t.querySelector(".ui-badge__label"), this.closeElement = t.querySelector(".ui-badge__close");
   }
   static get observedAttributes() {
     return [
@@ -1077,48 +1077,48 @@ class G extends HTMLElement {
     ];
   }
   connectedCallback() {
-    this.listeners.cleanup(), this.listeners.add(this.closeElement, "click", this.handleRemove), this.listeners.add(this.closeElement, "keydown", (e) => {
-      (e.key === "Enter" || e.key === " ") && (e.preventDefault(), this.handleRemove(e));
+    this.listeners.cleanup(), this.listeners.add(this.closeElement, "click", this.handleRemove), this.listeners.add(this.closeElement, "keydown", (t) => {
+      (t.key === "Enter" || t.key === " ") && (t.preventDefault(), this.handleRemove(t));
     }), this.syncState();
   }
   disconnectedCallback() {
     this.listeners.cleanup();
   }
-  attributeChangedCallback(e, t, i) {
+  attributeChangedCallback(t, e, i) {
     this.syncState();
   }
   get removivel() {
     return this.hasAttribute("removivel") || this.hasAttribute("removable");
   }
-  set removivel(e) {
-    e ? this.setAttribute("removivel", "") : (this.removeAttribute("removivel"), this.removeAttribute("removable"));
+  set removivel(t) {
+    t ? this.setAttribute("removivel", "") : (this.removeAttribute("removivel"), this.removeAttribute("removable"));
   }
   syncState() {
-    const e = this.getAttribute("variante") || this.getAttribute("variant") || "neutro", t = this.getAttribute("estilo") || "suave", i = this.getAttribute("label"), a = this.removivel;
-    this.badgeElement.className = "ui-badge", this.badgeElement.classList.add(`ui-badge--${e}`), this.badgeElement.classList.add(`ui-badge--${t}`), i ? (this.labelElement.textContent = i, this.labelElement.style.display = "inline") : this.labelElement.style.display = "none", a ? this.closeElement.style.display = "inline-flex" : this.closeElement.style.display = "none";
+    const t = this.getAttribute("variante") || this.getAttribute("variant") || "neutro", e = this.getAttribute("estilo") || "suave", i = this.getAttribute("label"), a = this.removivel;
+    this.badgeElement.className = "ui-badge", this.badgeElement.classList.add(`ui-badge--${t}`), this.badgeElement.classList.add(`ui-badge--${e}`), i ? (this.labelElement.textContent = i, this.labelElement.style.display = "inline") : this.labelElement.style.display = "none", a ? this.closeElement.style.display = "inline-flex" : this.closeElement.style.display = "none";
   }
 }
-class Le extends G {
+class jt extends ct {
 }
-class Me extends G {
+class Vt extends ct {
 }
-customElements.get("ui-badge") || customElements.define("ui-badge", G);
-customElements.get("ui-chip") || customElements.define("ui-chip", Le);
-customElements.get("ui-tag") || customElements.define("ui-tag", Me);
-const Ie = ':host{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif);vertical-align:middle;position:relative}.ui-avatar{position:relative;display:inline-flex;align-items:center;justify-content:center;width:var(--ui-tamanho-avatar, 36px);height:var(--ui-tamanho-avatar, 36px);min-width:var(--ui-tamanho-avatar, 36px);min-height:var(--ui-tamanho-avatar, 36px);border-radius:50%;background-color:var(--ui-cor-fundo-elevado, #22222a);color:var(--ui-cor-primaria, #00E08A);font-weight:600;font-size:var(--ui-avatar-font-size, 14px);-webkit-user-select:none;user-select:none;box-sizing:border-box;overflow:hidden;border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));line-height:1}.ui-avatar__img{width:100%;height:100%;object-fit:cover;display:block}.ui-avatar--quadrado{border-radius:8px}.ui-avatar__status{position:absolute;bottom:0;right:0;width:25%;height:25%;min-width:8px;min-height:8px;max-width:14px;max-height:14px;border-radius:50%;border:2px solid var(--ui-cor-fundo-card, #121214);box-sizing:border-box}.ui-avatar__status--online{background-color:var(--ui-cor-primaria, #00E08A)}.ui-avatar__status--offline{background-color:#889}.ui-avatar__status--ausente{background-color:#ffb86c}.ui-avatar__status--ocupado{background-color:#f55}.ui-avatar--xs{--ui-tamanho-avatar: 20px;--ui-avatar-font-size: 10px}.ui-avatar--sm{--ui-tamanho-avatar: 28px;--ui-avatar-font-size: 11px}.ui-avatar--md{--ui-tamanho-avatar: 36px;--ui-avatar-font-size: 14px}.ui-avatar--lg{--ui-tamanho-avatar: 48px;--ui-avatar-font-size: 18px}.ui-avatar--xl{--ui-tamanho-avatar: 64px;--ui-avatar-font-size: 24px}';
-class Pe extends HTMLElement {
+customElements.get("ui-badge") || customElements.define("ui-badge", ct);
+customElements.get("ui-chip") || customElements.define("ui-chip", jt);
+customElements.get("ui-tag") || customElements.define("ui-tag", Vt);
+const Gt = ':host{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif);vertical-align:middle;position:relative}.ui-avatar{position:relative;display:inline-flex;align-items:center;justify-content:center;width:var(--ui-tamanho-avatar, 36px);height:var(--ui-tamanho-avatar, 36px);min-width:var(--ui-tamanho-avatar, 36px);min-height:var(--ui-tamanho-avatar, 36px);border-radius:50%;background-color:var(--ui-cor-fundo-elevado, #22222a);color:var(--ui-cor-primaria, #00E08A);font-weight:600;font-size:var(--ui-avatar-font-size, 14px);-webkit-user-select:none;user-select:none;box-sizing:border-box;overflow:hidden;border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));line-height:1}.ui-avatar__img{width:100%;height:100%;object-fit:cover;display:block}.ui-avatar--quadrado{border-radius:8px}.ui-avatar__status{position:absolute;bottom:0;right:0;width:25%;height:25%;min-width:8px;min-height:8px;max-width:14px;max-height:14px;border-radius:50%;border:2px solid var(--ui-cor-fundo-card, #121214);box-sizing:border-box}.ui-avatar__status--online{background-color:var(--ui-cor-primaria, #00E08A)}.ui-avatar__status--offline{background-color:#889}.ui-avatar__status--ausente{background-color:#ffb86c}.ui-avatar__status--ocupado{background-color:#f55}.ui-avatar--xs{--ui-tamanho-avatar: 20px;--ui-avatar-font-size: 10px}.ui-avatar--sm{--ui-tamanho-avatar: 28px;--ui-avatar-font-size: 11px}.ui-avatar--md{--ui-tamanho-avatar: 36px;--ui-avatar-font-size: 14px}.ui-avatar--lg{--ui-tamanho-avatar: 48px;--ui-avatar-font-size: 18px}.ui-avatar--xl{--ui-tamanho-avatar: 64px;--ui-avatar-font-size: 24px}';
+class Wt extends HTMLElement {
   constructor() {
     super();
-    n(this, "avatarElement");
-    n(this, "statusElement");
-    const e = this.attachShadow({ mode: "open" });
-    e.innerHTML = `
-      <style>${Ie}</style>
+    l(this, "avatarElement");
+    l(this, "statusElement");
+    const t = this.attachShadow({ mode: "open" });
+    t.innerHTML = `
+      <style>${Gt}</style>
       <div class="ui-avatar">
         <span class="ui-avatar__content"></span>
       </div>
       <span class="ui-avatar__status" style="display: none;"></span>
-    `, this.avatarElement = e.querySelector(".ui-avatar"), this.statusElement = e.querySelector(".ui-avatar__status");
+    `, this.avatarElement = t.querySelector(".ui-avatar"), this.statusElement = t.querySelector(".ui-avatar__status");
   }
   static get observedAttributes() {
     return [
@@ -1134,39 +1134,39 @@ class Pe extends HTMLElement {
   connectedCallback() {
     this.syncState();
   }
-  attributeChangedCallback(e, t, i) {
+  attributeChangedCallback(t, e, i) {
     this.syncState();
   }
-  extrairIniciais(e) {
-    const t = e.trim().split(/\s+/).filter(Boolean);
-    if (t.length === 0) return "?";
-    if (t.length === 1)
-      return t[0].substring(0, 2).toUpperCase();
-    const i = t[0][0], a = t[t.length - 1][0];
+  extrairIniciais(t) {
+    const e = t.trim().split(/\s+/).filter(Boolean);
+    if (e.length === 0) return "?";
+    if (e.length === 1)
+      return e[0].substring(0, 2).toUpperCase();
+    const i = e[0][0], a = e[e.length - 1][0];
     return (i + a).toUpperCase();
   }
   syncState() {
-    const e = this.getAttribute("src"), t = this.getAttribute("nome") || this.getAttribute("name") || "", i = this.getAttribute("tamanho") || this.getAttribute("size") || "md", a = this.getAttribute("formato") || "circulo", s = this.getAttribute("status");
+    const t = this.getAttribute("src"), e = this.getAttribute("nome") || this.getAttribute("name") || "", i = this.getAttribute("tamanho") || this.getAttribute("size") || "md", a = this.getAttribute("formato") || "circulo", r = this.getAttribute("status");
     this.avatarElement.className = "ui-avatar", ["xs", "sm", "md", "lg", "xl"].includes(i) ? (this.avatarElement.classList.add(`ui-avatar--${i}`), this.avatarElement.style.removeProperty("--ui-tamanho-avatar")) : isNaN(parseInt(i, 10)) ? this.avatarElement.style.removeProperty("--ui-tamanho-avatar") : this.avatarElement.style.setProperty("--ui-tamanho-avatar", `${parseInt(i, 10)}px`), a === "quadrado" && this.avatarElement.classList.add("ui-avatar--quadrado");
-    const r = this.avatarElement.querySelector(".ui-avatar__content");
-    if (r)
-      if (e) {
-        const l = r.querySelector("img");
-        if (l && l.getAttribute("src") === e)
-          l.alt = t || "Avatar";
+    const s = this.avatarElement.querySelector(".ui-avatar__content");
+    if (s)
+      if (t) {
+        const n = s.querySelector("img");
+        if (n && n.getAttribute("src") === t)
+          n.alt = e || "Avatar";
         else {
-          r.textContent = "";
-          const u = document.createElement("img");
-          u.className = "ui-avatar__img", u.src = e, u.alt = t || "Avatar", u.onerror = () => {
-            this.renderFallback(r, t);
-          }, r.appendChild(u);
+          s.textContent = "";
+          const c = document.createElement("img");
+          c.className = "ui-avatar__img", c.src = t, c.alt = e || "Avatar", c.onerror = () => {
+            this.renderFallback(s, e);
+          }, s.appendChild(c);
         }
       } else
-        r.textContent = "", this.renderFallback(r, t);
-    s && ["online", "offline", "ausente", "ocupado"].includes(s) ? (this.statusElement.className = `ui-avatar__status ui-avatar__status--${s}`, this.statusElement.style.display = "block") : this.statusElement.style.display = "none";
+        s.textContent = "", this.renderFallback(s, e);
+    r && ["online", "offline", "ausente", "ocupado"].includes(r) ? (this.statusElement.className = `ui-avatar__status ui-avatar__status--${r}`, this.statusElement.style.display = "block") : this.statusElement.style.display = "none";
   }
-  renderFallback(e, t) {
-    t ? e.textContent = this.extrairIniciais(t) : e.innerHTML = `
+  renderFallback(t, e) {
+    e ? t.textContent = this.extrairIniciais(e) : t.innerHTML = `
         <svg viewBox="0 0 24 24" width="60%" height="60%" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
           <circle cx="12" cy="7" r="4"></circle>
@@ -1174,58 +1174,58 @@ class Pe extends HTMLElement {
       `;
   }
 }
-customElements.get("ui-avatar") || customElements.define("ui-avatar", Pe);
-const Te = ':host{display:inline-block;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif)}:host([largura-total]),:host([full-width]){display:block;width:100%}.ui-segmented{display:inline-flex;position:relative;background-color:var(--ui-cor-fundo, #0b0b0d);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));border-radius:var(--ui-raio-borda, 8px);padding:3px;box-sizing:border-box;-webkit-user-select:none;user-select:none;gap:2px;align-items:center}:root[data-tema=claro] .ui-segmented,[data-tema=claro] .ui-segmented{background-color:var(--ui-cor-fundo-elevado, #f1f3f5);border-color:#00000014}.ui-segmented--full{display:flex;width:100%}.ui-segmented--full .ui-segmented__item{flex:1}.ui-segmented--sm{padding:2px;height:28px}.ui-segmented--sm .ui-segmented__item{font-size:12px;padding:0 8px;height:22px}.ui-segmented--md{padding:3px;height:36px}.ui-segmented--md .ui-segmented__item{font-size:13px;padding:0 14px;height:28px}.ui-segmented--lg{padding:4px;height:42px}.ui-segmented--lg .ui-segmented__item{font-size:14px;padding:0 18px;height:32px}.ui-segmented__indicador{position:absolute;top:3px;bottom:3px;left:0;background-color:var(--ui-cor-fundo-elevado, #1e1e24);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16));border-radius:calc(var(--ui-raio-borda, 8px) - 2px);box-shadow:0 2px 8px #0006;pointer-events:none;transition:transform .22s cubic-bezier(.16,1,.3,1),width .22s cubic-bezier(.16,1,.3,1),opacity .15s ease;z-index:1;opacity:0}:root[data-tema=claro] .ui-segmented__indicador,[data-tema=claro] .ui-segmented__indicador{background-color:#fff;border-color:#0000001a;box-shadow:0 2px 6px #00000014}.ui-segmented--sm .ui-segmented__indicador{top:2px;bottom:2px}.ui-segmented--lg .ui-segmented__indicador{top:4px;bottom:4px}.ui-segmented__item{position:relative;z-index:2;display:inline-flex;align-items:center;justify-content:center;gap:6px;background:transparent;border:none;color:var(--ui-cor-texto-secundario, #888899);font-family:inherit;font-weight:500;cursor:pointer;border-radius:calc(var(--ui-raio-borda, 8px) - 2px);line-height:1;white-space:nowrap;transition:color .15s ease;box-sizing:border-box}:root[data-tema=claro] .ui-segmented__item,[data-tema=claro] .ui-segmented__item{color:#6c757d}.ui-segmented__item:hover:not(:disabled){color:var(--ui-cor-texto, #e1e1e6)}:root[data-tema=claro] .ui-segmented__item:hover:not(:disabled){color:#1a1a1e}.ui-segmented__item--ativo{color:var(--ui-cor-texto, #ffffff)!important;font-weight:600}:root[data-tema=claro] .ui-segmented__item--ativo{color:#1a1a1e!important}.ui-segmented__item:focus-visible{outline:none;box-shadow:0 0 0 2px var(--ui-cor-primaria, #00E08A)}.ui-segmented__item:disabled{opacity:.35;cursor:not-allowed}.ui-segmented__icone{display:inline-flex;align-items:center;justify-content:center;line-height:1}.ui-segmented__icone ui-icone,.ui-segmented__icone svg{shape-rendering:geometricPrecision;display:inline-flex;align-items:center;justify-content:center}';
-class U extends HTMLElement {
+customElements.get("ui-avatar") || customElements.define("ui-avatar", Wt);
+const Ut = ':host{display:inline-block;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif)}:host([largura-total]),:host([full-width]){display:block;width:100%}.ui-segmented{display:inline-flex;position:relative;background-color:var(--ui-cor-fundo, #0b0b0d);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));border-radius:var(--ui-raio-borda, 8px);padding:3px;box-sizing:border-box;-webkit-user-select:none;user-select:none;gap:2px;align-items:center}:root[data-tema=claro] .ui-segmented,[data-tema=claro] .ui-segmented{background-color:var(--ui-cor-fundo-elevado, #f1f3f5);border-color:#00000014}.ui-segmented--full{display:flex;width:100%}.ui-segmented--full .ui-segmented__item{flex:1}.ui-segmented--sm{padding:2px;height:28px}.ui-segmented--sm .ui-segmented__item{font-size:12px;padding:0 8px;height:22px}.ui-segmented--md{padding:3px;height:36px}.ui-segmented--md .ui-segmented__item{font-size:13px;padding:0 14px;height:28px}.ui-segmented--lg{padding:4px;height:42px}.ui-segmented--lg .ui-segmented__item{font-size:14px;padding:0 18px;height:32px}.ui-segmented__indicador{position:absolute;top:3px;bottom:3px;left:0;background-color:var(--ui-cor-fundo-elevado, #1e1e24);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16));border-radius:calc(var(--ui-raio-borda, 8px) - 2px);box-shadow:0 2px 8px #0006;pointer-events:none;transition:transform .22s cubic-bezier(.16,1,.3,1),width .22s cubic-bezier(.16,1,.3,1),opacity .15s ease;z-index:1;opacity:0}:root[data-tema=claro] .ui-segmented__indicador,[data-tema=claro] .ui-segmented__indicador{background-color:#fff;border-color:#0000001a;box-shadow:0 2px 6px #00000014}.ui-segmented--sm .ui-segmented__indicador{top:2px;bottom:2px}.ui-segmented--lg .ui-segmented__indicador{top:4px;bottom:4px}.ui-segmented__item{position:relative;z-index:2;display:inline-flex;align-items:center;justify-content:center;gap:6px;background:transparent;border:none;color:var(--ui-cor-texto-secundario, #888899);font-family:inherit;font-weight:500;cursor:pointer;border-radius:calc(var(--ui-raio-borda, 8px) - 2px);line-height:1;white-space:nowrap;transition:color .15s ease;box-sizing:border-box}:root[data-tema=claro] .ui-segmented__item,[data-tema=claro] .ui-segmented__item{color:#6c757d}.ui-segmented__item:hover:not(:disabled){color:var(--ui-cor-texto, #e1e1e6)}:root[data-tema=claro] .ui-segmented__item:hover:not(:disabled){color:#1a1a1e}.ui-segmented__item--ativo{color:var(--ui-cor-texto, #ffffff)!important;font-weight:600}:root[data-tema=claro] .ui-segmented__item--ativo{color:#1a1a1e!important}.ui-segmented__item:focus-visible{outline:none;box-shadow:0 0 0 2px var(--ui-cor-primaria, #00E08A)}.ui-segmented__item:disabled{opacity:.35;cursor:not-allowed}.ui-segmented__icone{display:inline-flex;align-items:center;justify-content:center;line-height:1}.ui-segmented__icone ui-icone,.ui-segmented__icone svg{shape-rendering:geometricPrecision;display:inline-flex;align-items:center;justify-content:center}';
+class dt extends HTMLElement {
   constructor() {
     super();
-    n(this, "internals");
-    n(this, "rootElement");
-    n(this, "trackElement");
-    n(this, "indicadorElement");
-    n(this, "slotElement");
-    n(this, "_opcoes", []);
-    n(this, "_defaultValue", "");
-    n(this, "listeners", new z());
-    n(this, "resizeObserver");
-    n(this, "_rafId", null);
-    n(this, "handleSlotChange", () => {
+    l(this, "internals");
+    l(this, "rootElement");
+    l(this, "trackElement");
+    l(this, "indicadorElement");
+    l(this, "slotElement");
+    l(this, "_opcoes", []);
+    l(this, "_defaultValue", "");
+    l(this, "listeners", new D());
+    l(this, "resizeObserver");
+    l(this, "_rafId", null);
+    l(this, "handleSlotChange", () => {
       this._opcoes.length === 0 && this.carregarOpcoes();
     });
-    n(this, "handleKeyDown", (e) => {
+    l(this, "handleKeyDown", (t) => {
       if (this.disabled) return;
-      const t = Array.from(
+      const e = Array.from(
         this.trackElement.querySelectorAll(".ui-segmented__item:not(:disabled)")
       );
-      if (t.length === 0) return;
-      const i = t.findIndex((r) => r.classList.contains("ui-segmented__item--ativo"));
+      if (e.length === 0) return;
+      const i = e.findIndex((s) => s.classList.contains("ui-segmented__item--ativo"));
       let a = i;
-      if (e.key === "ArrowRight" || e.key === "ArrowDown")
-        e.preventDefault(), a = (i + 1) % t.length;
-      else if (e.key === "ArrowLeft" || e.key === "ArrowUp")
-        e.preventDefault(), a = (i - 1 + t.length) % t.length;
-      else if (e.key === "Home")
-        e.preventDefault(), a = 0;
-      else if (e.key === "End")
-        e.preventDefault(), a = t.length - 1;
+      if (t.key === "ArrowRight" || t.key === "ArrowDown")
+        t.preventDefault(), a = (i + 1) % e.length;
+      else if (t.key === "ArrowLeft" || t.key === "ArrowUp")
+        t.preventDefault(), a = (i - 1 + e.length) % e.length;
+      else if (t.key === "Home")
+        t.preventDefault(), a = 0;
+      else if (t.key === "End")
+        t.preventDefault(), a = e.length - 1;
       else
         return;
-      const s = t[a];
-      if (s && s.dataset.indice) {
-        const r = parseInt(s.dataset.indice, 10);
-        this.selecionarIndice(r);
+      const r = e[a];
+      if (r && r.dataset.indice) {
+        const s = parseInt(r.dataset.indice, 10);
+        this.selecionarIndice(s);
       }
     });
     this.attachInternals && (this.internals = this.attachInternals());
-    const e = this.attachShadow({ mode: "open" });
-    e.innerHTML = `
-      <style>${Te}</style>
+    const t = this.attachShadow({ mode: "open" });
+    t.innerHTML = `
+      <style>${Ut}</style>
       <div class="ui-segmented ui-segmented--md" role="radiogroup">
         <div class="ui-segmented__indicador"></div>
         <div class="ui-segmented__track" style="display: contents;"></div>
         <slot style="display: none;"></slot>
       </div>
-    `, this.rootElement = e.querySelector(".ui-segmented"), this.indicadorElement = e.querySelector(".ui-segmented__indicador"), this.trackElement = e.querySelector(".ui-segmented__track"), this.slotElement = e.querySelector("slot");
+    `, this.rootElement = t.querySelector(".ui-segmented"), this.indicadorElement = t.querySelector(".ui-segmented__indicador"), this.trackElement = t.querySelector(".ui-segmented__track"), this.slotElement = t.querySelector("slot");
   }
   static get observedAttributes() {
     return [
@@ -1247,8 +1247,8 @@ class U extends HTMLElement {
   disconnectedCallback() {
     this.listeners.cleanup(), this.resizeObserver && (this.resizeObserver.disconnect(), this.resizeObserver = void 0), this._rafId !== null && (cancelAnimationFrame(this._rafId), this._rafId = null);
   }
-  attributeChangedCallback(e, t, i) {
-    t !== i && (e === "valor" || e === "value" ? this.atualizarSelecao(i || "") : this.syncState());
+  attributeChangedCallback(t, e, i) {
+    e !== i && (t === "valor" || t === "value" ? this.atualizarSelecao(i || "") : this.syncState());
   }
   formResetCallback() {
     this.valor = this._defaultValue;
@@ -1256,125 +1256,125 @@ class U extends HTMLElement {
   get valor() {
     return this.getAttribute("valor") || this.getAttribute("value") || "";
   }
-  set valor(e) {
-    this.setAttribute("valor", e), this.atualizarSelecao(e);
+  set valor(t) {
+    this.setAttribute("valor", t), this.atualizarSelecao(t);
   }
   get value() {
     return this.valor;
   }
-  set value(e) {
-    this.valor = e;
+  set value(t) {
+    this.valor = t;
   }
   get name() {
     return this.getAttribute("name") || "";
   }
-  set name(e) {
-    this.setAttribute("name", e);
+  set name(t) {
+    this.setAttribute("name", t);
   }
   get disabled() {
     return this.hasAttribute("disabled");
   }
-  set disabled(e) {
-    e ? this.setAttribute("disabled", "") : this.removeAttribute("disabled");
+  set disabled(t) {
+    t ? this.setAttribute("disabled", "") : this.removeAttribute("disabled");
   }
   get opcoes() {
     return this._opcoes;
   }
-  set opcoes(e) {
-    this._opcoes = Array.isArray(e) ? e : [], this.renderizarOpcoes();
+  set opcoes(t) {
+    this._opcoes = Array.isArray(t) ? t : [], this.renderizarOpcoes();
   }
   carregarOpcoes() {
-    const e = this.slotElement.assignedElements();
-    if (e.length > 0) {
-      const t = [];
-      e.forEach((i) => {
-        var a, s;
+    const t = this.slotElement.assignedElements();
+    if (t.length > 0) {
+      const e = [];
+      t.forEach((i) => {
+        var a, r;
         if (i instanceof HTMLElement) {
-          const r = i.getAttribute("valor") || i.getAttribute("value") || i.getAttribute("data-value") || ((a = i.textContent) == null ? void 0 : a.trim()) || "", l = i.getAttribute("label") || i.getAttribute("rotulo") || ((s = i.textContent) == null ? void 0 : s.trim()) || r, u = i.getAttribute("icone") || i.getAttribute("icon") || void 0, d = i.hasAttribute("disabled");
-          t.push({ valor: r, rotulo: l, icone: u, disabled: d });
+          const s = i.getAttribute("valor") || i.getAttribute("value") || i.getAttribute("data-value") || ((a = i.textContent) == null ? void 0 : a.trim()) || "", n = i.getAttribute("label") || i.getAttribute("rotulo") || ((r = i.textContent) == null ? void 0 : r.trim()) || s, c = i.getAttribute("icone") || i.getAttribute("icon") || void 0, u = i.hasAttribute("disabled");
+          e.push({ valor: s, rotulo: n, icone: c, disabled: u });
         }
-      }), this._opcoes = t, this.renderizarOpcoes();
+      }), this._opcoes = e, this.renderizarOpcoes();
     }
   }
   renderizarOpcoes() {
     this.trackElement.innerHTML = "";
-    const e = this.valor, t = this.disabled;
+    const t = this.valor, e = this.disabled;
     this._opcoes.forEach((i, a) => {
-      const s = document.createElement("button");
-      s.type = "button", s.role = "radio", s.className = "ui-segmented__item", s.dataset.valor = i.valor, s.dataset.indice = String(a);
-      const r = i.valor === e;
-      if (s.setAttribute("aria-checked", String(r)), s.tabIndex = r ? 0 : -1, r && s.classList.add("ui-segmented__item--ativo"), (t || i.disabled) && (s.disabled = !0), i.icone) {
-        const u = document.createElement("span");
-        u.className = "ui-segmented__icone";
-        const d = document.createElement("ui-icone");
-        d.setAttribute("nome", i.icone), d.setAttribute("tamanho", "14"), u.appendChild(d), s.appendChild(u);
+      const r = document.createElement("button");
+      r.type = "button", r.role = "radio", r.className = "ui-segmented__item", r.dataset.valor = i.valor, r.dataset.indice = String(a);
+      const s = i.valor === t;
+      if (r.setAttribute("aria-checked", String(s)), r.tabIndex = s ? 0 : -1, s && r.classList.add("ui-segmented__item--ativo"), (e || i.disabled) && (r.disabled = !0), i.icone) {
+        const c = document.createElement("span");
+        c.className = "ui-segmented__icone";
+        const u = document.createElement("ui-icone");
+        u.setAttribute("nome", i.icone), u.setAttribute("tamanho", "14"), c.appendChild(u), r.appendChild(c);
       }
-      const l = document.createElement("span");
-      l.className = "ui-segmented__texto", l.textContent = i.rotulo, s.appendChild(l), s.addEventListener("click", (u) => {
-        u.stopPropagation(), this.selecionarIndice(a);
-      }), this.trackElement.appendChild(s);
-    }), !e && this._opcoes.length > 0 ? this.selecionarIndice(0, !1) : this.atualizarPosicaoIndicador();
+      const n = document.createElement("span");
+      n.className = "ui-segmented__texto", n.textContent = i.rotulo, r.appendChild(n), r.addEventListener("click", (c) => {
+        c.stopPropagation(), this.selecionarIndice(a);
+      }), this.trackElement.appendChild(r);
+    }), !t && this._opcoes.length > 0 ? this.selecionarIndice(0, !1) : this.atualizarPosicaoIndicador();
   }
-  selecionarIndice(e, t = !0) {
+  selecionarIndice(t, e = !0) {
     if (this.disabled) return;
-    const i = this._opcoes[e];
+    const i = this._opcoes[t];
     if (!i || i.disabled) return;
     const a = this.valor;
-    this.setAttribute("valor", i.valor), this.internals && this.internals.setFormValue(i.valor), this.atualizarSelecao(i.valor), t && a !== i.valor && (this.dispatchEvent(
+    this.setAttribute("valor", i.valor), this.internals && this.internals.setFormValue(i.valor), this.atualizarSelecao(i.valor), e && a !== i.valor && (this.dispatchEvent(
       new CustomEvent("ui-change", {
-        detail: { valor: i.valor, rotulo: i.rotulo, indice: e },
+        detail: { valor: i.valor, rotulo: i.rotulo, indice: t },
         bubbles: !0,
         composed: !0
       })
     ), this.dispatchEvent(
       new CustomEvent("ui-selecionar", {
-        detail: { valor: i.valor, rotulo: i.rotulo, indice: e },
+        detail: { valor: i.valor, rotulo: i.rotulo, indice: t },
         bubbles: !0,
         composed: !0
       })
     ));
   }
-  atualizarSelecao(e) {
+  atualizarSelecao(t) {
     Array.from(this.trackElement.querySelectorAll(".ui-segmented__item")).forEach((i) => {
-      const a = i.dataset.valor === e;
+      const a = i.dataset.valor === t;
       i.classList.toggle("ui-segmented__item--ativo", a), i.setAttribute("aria-checked", String(a)), i.tabIndex = a ? 0 : -1, a && i.focus();
-    }), this.internals && this.internals.setFormValue(e), this.atualizarPosicaoIndicador();
+    }), this.internals && this.internals.setFormValue(t), this.atualizarPosicaoIndicador();
   }
   atualizarPosicaoIndicador() {
     this._rafId !== null && cancelAnimationFrame(this._rafId), this._rafId = requestAnimationFrame(() => {
       this._rafId = null;
-      const e = this.trackElement.querySelector(".ui-segmented__item--ativo");
-      if (!e) {
+      const t = this.trackElement.querySelector(".ui-segmented__item--ativo");
+      if (!t) {
         this.indicadorElement.style.opacity = "0";
         return;
       }
-      const t = Math.round(e.offsetLeft), i = Math.round(e.offsetWidth);
-      this.indicadorElement.style.transform = `translateX(${t}px)`, this.indicadorElement.style.width = `${i}px`, this.indicadorElement.style.opacity = "1";
+      const e = Math.round(t.offsetLeft), i = Math.round(t.offsetWidth);
+      this.indicadorElement.style.transform = `translateX(${e}px)`, this.indicadorElement.style.width = `${i}px`, this.indicadorElement.style.opacity = "1";
     });
   }
   syncState() {
-    const e = this.getAttribute("tamanho") || this.getAttribute("size") || "md", t = this.hasAttribute("largura-total") || this.hasAttribute("full-width"), i = this.disabled;
-    this.rootElement.className = `ui-segmented ui-segmented--${e}`, t && this.rootElement.classList.add("ui-segmented--full"), this.rootElement.setAttribute("aria-disabled", String(i)), Array.from(this.trackElement.querySelectorAll(".ui-segmented__item")).forEach((s) => {
-      s.disabled = i;
+    const t = this.getAttribute("tamanho") || this.getAttribute("size") || "md", e = this.hasAttribute("largura-total") || this.hasAttribute("full-width"), i = this.disabled;
+    this.rootElement.className = `ui-segmented ui-segmented--${t}`, e && this.rootElement.classList.add("ui-segmented--full"), this.rootElement.setAttribute("aria-disabled", String(i)), Array.from(this.trackElement.querySelectorAll(".ui-segmented__item")).forEach((r) => {
+      r.disabled = i;
     }), this.atualizarPosicaoIndicador();
   }
 }
-n(U, "formAssociated", !0);
-class Ne extends U {
+l(dt, "formAssociated", !0);
+class Yt extends dt {
 }
-customElements.get("ui-segmented") || customElements.define("ui-segmented", U);
-customElements.get("ui-segmento") || customElements.define("ui-segmento", Ne);
-const qe = ':host{display:block;width:100%;box-sizing:border-box}:host(.h-full),:host([style*="height: 100%"]){height:100%}.ui-card{display:flex;flex-direction:column;width:100%;height:100%;box-sizing:border-box;background-color:var(--ui-cor-fundo-card, #18181c);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));border-radius:var(--ui-raio-borda, 8px);overflow:hidden;transition:transform .2s cubic-bezier(.4,0,.2,1),box-shadow .2s cubic-bezier(.4,0,.2,1),border-color .2s ease;color:var(--ui-cor-texto, #e1e1e6);font-family:var(--ui-fonte-base, "Inter", sans-serif)}.ui-card--plano{background-color:var(--ui-cor-fundo-card, #18181c);box-shadow:none}.ui-card--elevado{background-color:var(--ui-cor-fundo-elevado, #1e1e24);box-shadow:0 8px 24px #0006;border-color:#ffffff14}.ui-card--destaque{border-color:var(--ui-cor-primaria, #00E08A);background-color:var(--ui-cor-fundo-card, #18181c);box-shadow:0 0 0 1px #00e08a40}.ui-card--clicavel{cursor:pointer;-webkit-user-select:none;user-select:none}.ui-card--clicavel:hover{transform:translateY(-3px);border-color:var(--ui-cor-primaria, #00E08A);box-shadow:0 10px 30px #00000080,0 0 15px #00e08a26}.ui-card--clicavel:active{transform:translateY(-1px)}.ui-card--disabled{opacity:.5;cursor:not-allowed!important;pointer-events:none}.ui-card__media{width:100%;overflow:hidden;display:block;line-height:0}::slotted([slot="midia"]),::slotted([slot="media"]){width:100%;height:auto;display:block;object-fit:cover}.ui-card__header{padding:14px 16px 8px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-sizing:border-box}.ui-card__body{padding:12px 16px;flex:1;box-sizing:border-box}.ui-card__footer{padding:10px 16px 14px;border-top:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between;gap:12px;box-sizing:border-box}.ui-card--compacto .ui-card__header{padding:10px 12px 6px}.ui-card--compacto .ui-card__body{padding:8px 12px}.ui-card--compacto .ui-card__footer{padding:8px 12px 10px}';
-class Be extends HTMLElement {
+customElements.get("ui-segmented") || customElements.define("ui-segmented", dt);
+customElements.get("ui-segmento") || customElements.define("ui-segmento", Yt);
+const Xt = ':host{display:block;width:100%;box-sizing:border-box}:host(.h-full),:host([style*="height: 100%"]){height:100%}.ui-card{display:flex;flex-direction:column;width:100%;height:100%;box-sizing:border-box;background-color:var(--ui-cor-fundo-card, #18181c);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));border-radius:var(--ui-raio-borda, 8px);overflow:hidden;transition:transform .2s cubic-bezier(.4,0,.2,1),box-shadow .2s cubic-bezier(.4,0,.2,1),border-color .2s ease;color:var(--ui-cor-texto, #e1e1e6);font-family:var(--ui-fonte-base, "Inter", sans-serif)}.ui-card--plano{background-color:var(--ui-cor-fundo-card, #18181c);box-shadow:none}.ui-card--elevado{background-color:var(--ui-cor-fundo-elevado, #1e1e24);box-shadow:0 8px 24px #0006;border-color:#ffffff14}.ui-card--destaque{border-color:var(--ui-cor-primaria, #00E08A);background-color:var(--ui-cor-fundo-card, #18181c);box-shadow:0 0 0 1px #00e08a40}.ui-card--clicavel{cursor:pointer;-webkit-user-select:none;user-select:none}.ui-card--clicavel:hover{transform:translateY(-3px);border-color:var(--ui-cor-primaria, #00E08A);box-shadow:0 10px 30px #00000080,0 0 15px #00e08a26}.ui-card--clicavel:active{transform:translateY(-1px)}.ui-card--disabled{opacity:.5;cursor:not-allowed!important;pointer-events:none}.ui-card__media{width:100%;overflow:hidden;display:block;line-height:0}::slotted([slot="midia"]),::slotted([slot="media"]){width:100%;height:auto;display:block;object-fit:cover}.ui-card__header{padding:14px 16px 8px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-sizing:border-box}.ui-card__body{padding:12px 16px;flex:1;box-sizing:border-box}.ui-card__footer{padding:10px 16px 14px;border-top:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between;gap:12px;box-sizing:border-box}.ui-card--compacto .ui-card__header{padding:10px 12px 6px}.ui-card--compacto .ui-card__body{padding:8px 12px}.ui-card--compacto .ui-card__footer{padding:8px 12px 10px}';
+class Kt extends HTMLElement {
   constructor() {
     super();
-    n(this, "cardElement");
-    n(this, "listeners", new z());
-    n(this, "handleSlotChange", () => {
+    l(this, "cardElement");
+    l(this, "listeners", new D());
+    l(this, "handleSlotChange", () => {
       this.syncState();
     });
-    n(this, "handleClick", (e) => {
-      this.disabled || e && e.target && e.target instanceof HTMLElement && e.target.closest('button, a, input, select, textarea, ui-botao, ui-switch, ui-checkbox, ui-radio, [role="button"]') || this.clicavel && (this.dispatchEvent(
+    l(this, "handleClick", (t) => {
+      this.disabled || t && t.target && t.target instanceof HTMLElement && t.target.closest('button, a, input, select, textarea, ui-botao, ui-switch, ui-checkbox, ui-radio, [role="button"]') || this.clicavel && (this.dispatchEvent(
         new CustomEvent("ui-click", {
           detail: {
             id: this.id || "sem-id"
@@ -1392,12 +1392,12 @@ class Be extends HTMLElement {
         })
       ));
     });
-    n(this, "handleKeyDown", (e) => {
-      !this.clicavel || this.disabled || (e.key === "Enter" || e.key === " ") && (e.preventDefault(), this.handleClick());
+    l(this, "handleKeyDown", (t) => {
+      !this.clicavel || this.disabled || (t.key === "Enter" || t.key === " ") && (t.preventDefault(), this.handleClick());
     });
-    const e = this.attachShadow({ mode: "open" });
-    e.innerHTML = `
-      <style>${qe}</style>
+    const t = this.attachShadow({ mode: "open" });
+    t.innerHTML = `
+      <style>${Xt}</style>
       <div class="ui-card">
         <div class="ui-card__media">
           <slot name="midia"></slot>
@@ -1415,7 +1415,7 @@ class Be extends HTMLElement {
           <slot name="footer"></slot>
         </div>
       </div>
-    `, this.cardElement = e.querySelector(".ui-card");
+    `, this.cardElement = t.querySelector(".ui-card");
   }
   static get observedAttributes() {
     return [
@@ -1431,78 +1431,78 @@ class Be extends HTMLElement {
     ];
   }
   connectedCallback() {
-    var t;
+    var e;
     this.listeners.cleanup(), this.listeners.add(this.cardElement, "click", this.handleClick), this.listeners.add(this.cardElement, "keydown", this.handleKeyDown);
-    const e = (t = this.shadowRoot) == null ? void 0 : t.querySelectorAll("slot");
-    e == null || e.forEach((i) => this.listeners.add(i, "slotchange", this.handleSlotChange)), this.syncState();
+    const t = (e = this.shadowRoot) == null ? void 0 : e.querySelectorAll("slot");
+    t == null || t.forEach((i) => this.listeners.add(i, "slotchange", this.handleSlotChange)), this.syncState();
   }
   disconnectedCallback() {
     this.listeners.cleanup();
   }
-  attributeChangedCallback(e, t, i) {
+  attributeChangedCallback(t, e, i) {
     this.syncState();
   }
   get clicavel() {
     return this.hasAttribute("clicavel") || this.hasAttribute("clickable");
   }
-  set clicavel(e) {
-    e ? this.setAttribute("clicavel", "") : (this.removeAttribute("clicavel"), this.removeAttribute("clickable")), this.syncState();
+  set clicavel(t) {
+    t ? this.setAttribute("clicavel", "") : (this.removeAttribute("clicavel"), this.removeAttribute("clickable")), this.syncState();
   }
   get disabled() {
     return this.hasAttribute("disabled");
   }
-  set disabled(e) {
-    e ? this.setAttribute("disabled", "") : this.removeAttribute("disabled"), this.syncState();
+  set disabled(t) {
+    t ? this.setAttribute("disabled", "") : this.removeAttribute("disabled"), this.syncState();
   }
   syncState() {
-    var c, p, m;
-    const e = this.getAttribute("elevacao") || this.getAttribute("elevation") || "plano", t = this.getAttribute("variante") || this.getAttribute("variant"), i = this.clicavel, a = this.hasAttribute("compacto") || this.hasAttribute("compact"), s = this.disabled;
-    this.cardElement.className = "ui-card", this.cardElement.classList.add(`ui-card--${e}`), t && this.cardElement.classList.add(`ui-card--${t}`), i ? (this.cardElement.classList.add("ui-card--clicavel"), this.cardElement.setAttribute("tabindex", "0")) : this.cardElement.removeAttribute("tabindex"), a && this.cardElement.classList.add("ui-card--compacto"), s && this.cardElement.classList.add("ui-card--disabled");
-    const r = (c = this.shadowRoot) == null ? void 0 : c.querySelector(".ui-card__header"), l = (p = this.shadowRoot) == null ? void 0 : p.querySelector(".ui-card__footer"), u = (m = this.shadowRoot) == null ? void 0 : m.querySelector(".ui-card__media"), d = (h) => {
-      var v;
-      const f = h.map((x) => `slot[name="${x}"]`).join(", ");
-      return Array.from(((v = this.shadowRoot) == null ? void 0 : v.querySelectorAll(f)) || []).some((x) => x.assignedNodes({ flatten: !0 }).some((E) => E.nodeType === Node.ELEMENT_NODE || E.textContent && E.textContent.trim() !== "")) || h.some((x) => this.querySelector(`[slot="${x}"]`) !== null);
+    var d, h, p;
+    const t = this.getAttribute("elevacao") || this.getAttribute("elevation") || "plano", e = this.getAttribute("variante") || this.getAttribute("variant"), i = this.clicavel, a = this.hasAttribute("compacto") || this.hasAttribute("compact"), r = this.disabled;
+    this.cardElement.className = "ui-card", this.cardElement.classList.add(`ui-card--${t}`), e && this.cardElement.classList.add(`ui-card--${e}`), i ? (this.cardElement.classList.add("ui-card--clicavel"), this.cardElement.setAttribute("tabindex", "0")) : this.cardElement.removeAttribute("tabindex"), a && this.cardElement.classList.add("ui-card--compacto"), r && this.cardElement.classList.add("ui-card--disabled");
+    const s = (d = this.shadowRoot) == null ? void 0 : d.querySelector(".ui-card__header"), n = (h = this.shadowRoot) == null ? void 0 : h.querySelector(".ui-card__footer"), c = (p = this.shadowRoot) == null ? void 0 : p.querySelector(".ui-card__media"), u = (m) => {
+      var y;
+      const f = m.map((w) => `slot[name="${w}"]`).join(", ");
+      return Array.from(((y = this.shadowRoot) == null ? void 0 : y.querySelectorAll(f)) || []).some((w) => w.assignedNodes({ flatten: !0 }).some((P) => P.nodeType === Node.ELEMENT_NODE || P.textContent && P.textContent.trim() !== "")) || m.some((w) => this.querySelector(`[slot="${w}"]`) !== null);
     };
-    u && (u.style.display = d(["midia", "media"]) ? "block" : "none"), r && (r.style.display = d(["cabecalho", "header"]) ? "flex" : "none"), l && (l.style.display = d(["rodape", "footer"]) ? "flex" : "none");
+    c && (c.style.display = u(["midia", "media"]) ? "block" : "none"), s && (s.style.display = u(["cabecalho", "header"]) ? "flex" : "none"), n && (n.style.display = u(["rodape", "footer"]) ? "flex" : "none");
   }
 }
-customElements.get("ui-card") || customElements.define("ui-card", Be);
-const $e = ':host{display:block;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif)}.ui-modal__backdrop{display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background-color:#000000b3;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);z-index:9998;opacity:0;pointer-events:none;transition:opacity .25s ease}:host([aberto]) .ui-modal__backdrop,:host([open]) .ui-modal__backdrop{display:block;opacity:1;pointer-events:auto}.ui-modal__dialog{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.95);max-width:560px;width:90%;max-height:85vh;background-color:var(--ui-cor-fundo-card, #18181c);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16));border-radius:var(--ui-raio-borda, 12px);box-shadow:0 12px 36px #0009;z-index:9999;display:flex;flex-direction:column;opacity:0;visibility:hidden;pointer-events:none;overflow:hidden;transition:transform .25s cubic-bezier(.16,1,.3,1),opacity .2s ease,visibility .2s ease;box-sizing:border-box;color:var(--ui-cor-texto, #e1e1e6)}:host([aberto]) .ui-modal__dialog,:host([open]) .ui-modal__dialog{opacity:1;visibility:visible;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}@starting-style{:host([aberto]) .ui-modal__dialog,:host([open]) .ui-modal__dialog{opacity:0;transform:translate(-50%,-50%) scale(.94)}:host([aberto]) .ui-modal__backdrop,:host([open]) .ui-modal__backdrop{opacity:0}}.ui-modal__handle{display:none;width:36px;height:4px;border-radius:2px;background-color:#ffffff40;margin:6px auto 12px;flex-shrink:0}.ui-modal__header{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.08);gap:12px}.ui-modal__titulo{font-size:18px;font-weight:600;margin:0;color:var(--ui-cor-texto, #e1e1e6)}.ui-modal__close{background:transparent;border:none;color:var(--ui-cor-texto-secundario, #888899);font-size:16px;cursor:pointer;padding:4px 8px;border-radius:4px;line-height:1;display:inline-flex;align-items:center;justify-content:center;transition:color .15s ease,background-color .15s ease}.ui-modal__close svg,.ui-modal__close ::slotted(svg){shape-rendering:geometricPrecision}.ui-modal__close:hover{color:#fff;background-color:#ffffff1a}.ui-modal__body{padding:20px;overflow-y:auto;flex:1;box-sizing:border-box}.ui-modal__footer{padding:14px 20px;display:flex;align-items:center;justify-content:flex-end;gap:12px;border-top:1px solid rgba(255,255,255,.08);background-color:#00000026}@media (max-width: 640px){.ui-modal__dialog{top:auto!important;bottom:0!important;left:0!important;transform:translateY(100%)!important;width:100vw!important;max-width:100vw!important;border-radius:16px 16px 0 0!important;max-height:80vh!important;border-bottom:none!important;box-shadow:0 -8px 32px #000000b3!important}:host([aberto]) .ui-modal__dialog,:host([open]) .ui-modal__dialog{transform:translateY(0)!important}.ui-modal__handle{display:block!important}}:host([bottom-sheet]) .ui-modal__dialog{top:auto!important;bottom:0!important;left:0!important;transform:translateY(100%)!important;width:100vw!important;max-width:100vw!important;border-radius:16px 16px 0 0!important;max-height:80vh!important;border-bottom:none!important;box-shadow:0 -8px 32px #000000b3!important}:host([bottom-sheet][aberto]) .ui-modal__dialog,:host([bottom-sheet][open]) .ui-modal__dialog{transform:translateY(0)!important}:host([bottom-sheet]) .ui-modal__handle{display:block!important}', I = class I extends HTMLElement {
+customElements.get("ui-card") || customElements.define("ui-card", Kt);
+const Zt = ':host{display:block;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif)}.ui-modal__backdrop{display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background-color:#000000b3;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);z-index:9998;opacity:0;pointer-events:none;transition:opacity .25s ease}:host([aberto]) .ui-modal__backdrop,:host([open]) .ui-modal__backdrop{display:block;opacity:1;pointer-events:auto}.ui-modal__dialog{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.95);max-width:560px;width:90%;max-height:85vh;background-color:var(--ui-cor-fundo-card, #18181c);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16));border-radius:var(--ui-raio-borda, 12px);box-shadow:0 12px 36px #0009;z-index:9999;display:flex;flex-direction:column;opacity:0;visibility:hidden;pointer-events:none;overflow:hidden;transition:transform .25s cubic-bezier(.16,1,.3,1),opacity .2s ease,visibility .2s ease;box-sizing:border-box;color:var(--ui-cor-texto, #e1e1e6)}:host([aberto]) .ui-modal__dialog,:host([open]) .ui-modal__dialog{opacity:1;visibility:visible;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}@starting-style{:host([aberto]) .ui-modal__dialog,:host([open]) .ui-modal__dialog{opacity:0;transform:translate(-50%,-50%) scale(.94)}:host([aberto]) .ui-modal__backdrop,:host([open]) .ui-modal__backdrop{opacity:0}}.ui-modal__handle{display:none;width:36px;height:4px;border-radius:2px;background-color:#ffffff40;margin:6px auto 12px;flex-shrink:0}.ui-modal__header{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.08);gap:12px}.ui-modal__titulo{font-size:18px;font-weight:600;margin:0;color:var(--ui-cor-texto, #e1e1e6)}.ui-modal__close{background:transparent;border:none;color:var(--ui-cor-texto-secundario, #888899);font-size:16px;cursor:pointer;padding:4px 8px;border-radius:4px;line-height:1;display:inline-flex;align-items:center;justify-content:center;transition:color .15s ease,background-color .15s ease;touch-action:manipulation;-webkit-tap-highlight-color:transparent}.ui-modal__close svg,.ui-modal__close ::slotted(svg){shape-rendering:geometricPrecision}.ui-modal__close:hover{color:#fff;background-color:#ffffff1a}.ui-modal__body{padding:20px;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;flex:1;box-sizing:border-box}.ui-modal__footer{padding:14px 20px;display:flex;align-items:center;justify-content:flex-end;gap:12px;border-top:1px solid rgba(255,255,255,.08);background-color:#00000026}@media (max-width: 640px){.ui-modal__dialog{top:auto!important;bottom:0!important;left:0!important;transform:translateY(100%)!important;width:100vw!important;max-width:100vw!important;border-radius:16px 16px 0 0!important;max-height:85vh!important;max-height:85dvh!important;border-bottom:none!important;box-shadow:0 -8px 32px #000000b3!important}.ui-modal__close{min-width:44px;min-height:44px;font-size:18px}.ui-modal__footer{padding-bottom:calc(14px + env(safe-area-inset-bottom,0px))!important}:host([aberto]) .ui-modal__dialog,:host([open]) .ui-modal__dialog{transform:translateY(0)!important}.ui-modal__handle{display:block!important}}:host([bottom-sheet]) .ui-modal__dialog{top:auto!important;bottom:0!important;left:0!important;transform:translateY(100%)!important;width:100vw!important;max-width:100vw!important;border-radius:16px 16px 0 0!important;max-height:85vh!important;max-height:85dvh!important;border-bottom:none!important;box-shadow:0 -8px 32px #000000b3!important}:host([bottom-sheet]) .ui-modal__close{min-width:44px;min-height:44px;font-size:18px}:host([bottom-sheet]) .ui-modal__footer{padding-bottom:calc(14px + env(safe-area-inset-bottom,0px))!important}:host([bottom-sheet][aberto]) .ui-modal__dialog,:host([bottom-sheet][open]) .ui-modal__dialog{transform:translateY(0)!important}:host([bottom-sheet]) .ui-modal__handle{display:block!important}', V = class V extends HTMLElement {
   constructor() {
     super();
-    n(this, "backdropElement");
-    n(this, "dialogElement");
-    n(this, "tituloElement");
-    n(this, "closeElement");
-    n(this, "_elementoGatilho", null);
-    n(this, "_focables", []);
-    n(this, "handleSlotChange", () => {
+    l(this, "backdropElement");
+    l(this, "dialogElement");
+    l(this, "tituloElement");
+    l(this, "closeElement");
+    l(this, "_elementoGatilho", null);
+    l(this, "_focables", []);
+    l(this, "handleSlotChange", () => {
       this.syncState();
     });
-    n(this, "handleBackdropClick", (e) => {
-      e.stopPropagation(), this.fechar();
+    l(this, "handleBackdropClick", (t) => {
+      t.stopPropagation(), this.fechar();
     });
-    n(this, "handleCloseClick", (e) => {
-      e.stopPropagation(), this.fechar();
+    l(this, "handleCloseClick", (t) => {
+      t.stopPropagation(), this.fechar();
     });
-    n(this, "handleKeyDown", (e) => {
-      var t, i;
+    l(this, "handleKeyDown", (t) => {
+      var e, i;
       if (this.aberto && this._isTopMostModal()) {
-        if (e.key === "Escape")
-          this.fechar(), e.stopImmediatePropagation();
-        else if (e.key === "Tab") {
+        if (t.key === "Escape")
+          this.fechar(), t.stopImmediatePropagation();
+        else if (t.key === "Tab") {
           if (this._atualizarFocables(), this._focables.length === 0) {
-            e.preventDefault();
+            t.preventDefault();
             return;
           }
-          const a = this._focables[0], s = this._focables[this._focables.length - 1], r = this.getRootNode().activeElement;
-          e.shiftKey ? (r === a || !this.contains(r) && !((t = this.shadowRoot) != null && t.contains(r))) && (e.preventDefault(), s.focus()) : (r === s || !this.contains(r) && !((i = this.shadowRoot) != null && i.contains(r))) && (e.preventDefault(), a.focus());
+          const a = this._focables[0], r = this._focables[this._focables.length - 1], s = this.getRootNode().activeElement;
+          t.shiftKey ? (s === a || !this.contains(s) && !((e = this.shadowRoot) != null && e.contains(s))) && (t.preventDefault(), r.focus()) : (s === r || !this.contains(s) && !((i = this.shadowRoot) != null && i.contains(s))) && (t.preventDefault(), a.focus());
         }
       }
     });
-    const e = this.attachShadow({ mode: "open" });
-    e.innerHTML = `
-      <style>${$e}</style>
+    const t = this.attachShadow({ mode: "open" });
+    t.innerHTML = `
+      <style>${Zt}</style>
       <div class="ui-modal__backdrop"></div>
       <div class="ui-modal__dialog" role="dialog" aria-modal="true" tabindex="-1">
         <div class="ui-modal__handle"></div>
@@ -1518,7 +1518,7 @@ const $e = ':host{display:block;box-sizing:border-box;font-family:var(--ui-fonte
           <slot name="footer"></slot>
         </div>
       </div>
-    `, this.backdropElement = e.querySelector(".ui-modal__backdrop"), this.dialogElement = e.querySelector(".ui-modal__dialog"), this.tituloElement = e.querySelector(".ui-modal__titulo"), this.closeElement = e.querySelector(".ui-modal__close");
+    `, this.backdropElement = t.querySelector(".ui-modal__backdrop"), this.dialogElement = t.querySelector(".ui-modal__dialog"), this.tituloElement = t.querySelector(".ui-modal__titulo"), this.closeElement = t.querySelector(".ui-modal__close");
   }
   static get observedAttributes() {
     return [
@@ -1531,25 +1531,25 @@ const $e = ':host{display:block;box-sizing:border-box;font-family:var(--ui-fonte
     ];
   }
   connectedCallback() {
-    this.backdropElement.addEventListener("click", this.handleBackdropClick), this.closeElement.addEventListener("click", this.handleCloseClick), window.addEventListener("keydown", this.handleKeyDown), this.shadowRoot.querySelectorAll("slot").forEach((t) => {
-      t.addEventListener("slotchange", this.handleSlotChange);
+    this.backdropElement.addEventListener("click", this.handleBackdropClick), this.closeElement.addEventListener("click", this.handleCloseClick), window.addEventListener("keydown", this.handleKeyDown), this.shadowRoot.querySelectorAll("slot").forEach((e) => {
+      e.addEventListener("slotchange", this.handleSlotChange);
     }), this.syncState();
   }
   disconnectedCallback() {
-    this.backdropElement.removeEventListener("click", this.handleBackdropClick), this.closeElement.removeEventListener("click", this.handleCloseClick), window.removeEventListener("keydown", this.handleKeyDown), this.shadowRoot.querySelectorAll("slot").forEach((t) => {
-      t.removeEventListener("slotchange", this.handleSlotChange);
-    }), this.hasAttribute("data-scroll-locked") && (this.removeAttribute("data-scroll-locked"), I._openCount = Math.max(0, I._openCount - 1), I._openCount === 0 && (document.body.style.overflow = ""));
+    this.backdropElement.removeEventListener("click", this.handleBackdropClick), this.closeElement.removeEventListener("click", this.handleCloseClick), window.removeEventListener("keydown", this.handleKeyDown), this.shadowRoot.querySelectorAll("slot").forEach((e) => {
+      e.removeEventListener("slotchange", this.handleSlotChange);
+    }), this.hasAttribute("data-scroll-locked") && (this.removeAttribute("data-scroll-locked"), V._openCount = Math.max(0, V._openCount - 1), V._openCount === 0 && (document.body.style.overflow = ""));
   }
-  attributeChangedCallback(e, t, i) {
-    (e === "aberto" || e === "open") && i !== null && (document.activeElement && document.activeElement !== document.body && (this._elementoGatilho = document.activeElement), setTimeout(() => {
+  attributeChangedCallback(t, e, i) {
+    (t === "aberto" || t === "open") && i !== null && (document.activeElement && document.activeElement !== document.body && (this._elementoGatilho = document.activeElement), setTimeout(() => {
       this._atualizarFocables(), this._focables.length > 0 ? this._focables[0].focus() : this.dialogElement.focus();
     }, 0)), this.syncState();
   }
   get aberto() {
     return this.hasAttribute("aberto") || this.hasAttribute("open");
   }
-  set aberto(e) {
-    e ? this.setAttribute("aberto", "") : (this.removeAttribute("aberto"), this.removeAttribute("open")), this.syncState();
+  set aberto(t) {
+    t ? this.setAttribute("aberto", "") : (this.removeAttribute("aberto"), this.removeAttribute("open")), this.syncState();
   }
   abrir() {
     this.aberto || (document.activeElement && document.activeElement !== document.body && (this._elementoGatilho = document.activeElement), this.aberto = !0, this.dispatchEvent(
@@ -1570,76 +1570,76 @@ const $e = ':host{display:block;box-sizing:border-box;font-family:var(--ui-fonte
     ), this._elementoGatilho && (this._elementoGatilho.focus(), this._elementoGatilho = null));
   }
   syncState() {
-    var a, s;
-    const e = this.aberto, t = this.getAttribute("titulo") || this.getAttribute("title") || "", i = (a = this.shadowRoot) == null ? void 0 : a.querySelector(".ui-modal__footer");
-    if (this.dialogElement.setAttribute("aria-hidden", String(!e)), t ? (this.tituloElement.textContent = t, this.tituloElement.style.display = "block") : this.tituloElement.style.display = "none", i) {
-      const l = Array.from(((s = this.shadowRoot) == null ? void 0 : s.querySelectorAll('slot[name="rodape"], slot[name="footer"]')) || []).some((u) => u.assignedNodes({ flatten: !0 }).some((c) => c.nodeType === Node.ELEMENT_NODE || c.textContent && c.textContent.trim() !== "")) || this.querySelector('[slot="rodape"], [slot="footer"]') !== null;
-      i.style.display = l ? "flex" : "none";
+    var a, r;
+    const t = this.aberto, e = this.getAttribute("titulo") || this.getAttribute("title") || "", i = (a = this.shadowRoot) == null ? void 0 : a.querySelector(".ui-modal__footer");
+    if (this.dialogElement.setAttribute("aria-hidden", String(!t)), e ? (this.tituloElement.textContent = e, this.tituloElement.style.display = "block") : this.tituloElement.style.display = "none", i) {
+      const n = Array.from(((r = this.shadowRoot) == null ? void 0 : r.querySelectorAll('slot[name="rodape"], slot[name="footer"]')) || []).some((c) => c.assignedNodes({ flatten: !0 }).some((d) => d.nodeType === Node.ELEMENT_NODE || d.textContent && d.textContent.trim() !== "")) || this.querySelector('[slot="rodape"], [slot="footer"]') !== null;
+      i.style.display = n ? "flex" : "none";
     }
-    e ? this.hasAttribute("data-scroll-locked") || (this.setAttribute("data-scroll-locked", "true"), I._openCount++, I._openCount === 1 && (document.body.style.overflow = "hidden")) : this.hasAttribute("data-scroll-locked") && (this.removeAttribute("data-scroll-locked"), I._openCount = Math.max(0, I._openCount - 1), I._openCount === 0 && (document.body.style.overflow = ""));
+    t ? this.hasAttribute("data-scroll-locked") || (this.setAttribute("data-scroll-locked", "true"), V._openCount++, V._openCount === 1 && (document.body.style.overflow = "hidden")) : this.hasAttribute("data-scroll-locked") && (this.removeAttribute("data-scroll-locked"), V._openCount = Math.max(0, V._openCount - 1), V._openCount === 0 && (document.body.style.overflow = ""));
   }
   _atualizarFocables() {
-    const e = 'a[href], button, input, textarea, select, details, [tabindex]:not([tabindex="-1"]), ui-campo-texto, ui-botao, ui-botao-primario, ui-checkbox, ui-switch, ui-lista-flutuante, ui-radio, ui-select';
-    let t = Array.from(this.shadowRoot.querySelectorAll(e));
-    t = t.filter((s) => window.getComputedStyle(s).display !== "none");
+    const t = 'a[href], button, input, textarea, select, details, [tabindex]:not([tabindex="-1"]), ui-campo-texto, ui-botao, ui-botao-primario, ui-checkbox, ui-switch, ui-lista-flutuante, ui-radio, ui-select';
+    let e = Array.from(this.shadowRoot.querySelectorAll(t));
+    e = e.filter((r) => window.getComputedStyle(r).display !== "none");
     const i = this.shadowRoot.querySelectorAll("slot");
     let a = [];
-    i.forEach((s) => {
-      s.assignedElements({ flatten: !0 }).forEach((l) => {
-        l instanceof HTMLElement && (l.matches(e) && a.push(l), a.push(...Array.from(l.querySelectorAll(e))));
+    i.forEach((r) => {
+      r.assignedElements({ flatten: !0 }).forEach((n) => {
+        n instanceof HTMLElement && (n.matches(t) && a.push(n), a.push(...Array.from(n.querySelectorAll(t))));
       });
-    }), this._focables = [...t, ...a].filter((s) => !s.hasAttribute("disabled") && s.getAttribute("aria-hidden") !== "true");
+    }), this._focables = [...e, ...a].filter((r) => !r.hasAttribute("disabled") && r.getAttribute("aria-hidden") !== "true");
   }
   _isTopMostModal() {
-    const e = Array.from(document.querySelectorAll("ui-modal[aberto], ui-modal[open], ui-dialog[aberto], ui-dialog[open]"));
-    return e[e.length - 1] === this;
+    const t = Array.from(document.querySelectorAll("ui-modal[aberto], ui-modal[open], ui-dialog[aberto], ui-dialog[open]"));
+    return t[t.length - 1] === this;
   }
 };
-n(I, "_openCount", 0);
-let O = I;
-class Re extends O {
+l(V, "_openCount", 0);
+let et = V;
+class Qt extends et {
 }
-customElements.get("ui-modal") || customElements.define("ui-modal", O);
-customElements.get("ui-dialog") || customElements.define("ui-dialog", Re);
-const Fe = ':host{display:block;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif)}.ui-drawer__backdrop{position:fixed;top:0;left:0;width:100vw;height:100vh;background-color:#000000a6;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);z-index:9998;opacity:0;pointer-events:none;transition:opacity .25s ease}:host([aberto]) .ui-drawer__backdrop,:host([open]) .ui-drawer__backdrop{opacity:1;pointer-events:auto}.ui-drawer__painel{position:fixed;z-index:9999;background-color:var(--ui-cor-fundo-card, #18181c);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));box-shadow:0 16px 40px #000000b3;display:flex;flex-direction:column;opacity:0;visibility:hidden;pointer-events:none;transition:transform .25s cubic-bezier(.16,1,.3,1),opacity .2s ease,visibility .2s ease;box-sizing:border-box;color:var(--ui-cor-texto, #e1e1e6)}:root[data-tema=claro] .ui-drawer__painel,[data-tema=claro] .ui-drawer__painel{background-color:#fff;border-color:#0000001f;box-shadow:0 12px 32px #00000026;color:#1a1a1e}:host(:not([posicao])) .ui-drawer__painel,:host([posicao="direita"]) .ui-drawer__painel,:host([position="right"]) .ui-drawer__painel{top:0;right:0;bottom:0;width:var(--ui-drawer-largura, 480px);max-width:92vw;height:100vh;transform:translate(100%);border-left:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16))}:host([aberto]:not([posicao])) .ui-drawer__painel,:host([open]:not([posicao])) .ui-drawer__painel,:host([aberto][posicao="direita"]) .ui-drawer__painel,:host([open][posicao="direita"]) .ui-drawer__painel,:host([aberto][position="right"]) .ui-drawer__painel,:host([open][position="right"]) .ui-drawer__painel{transform:translate(0);opacity:1;visibility:visible;pointer-events:auto}:host([posicao="esquerda"]) .ui-drawer__painel,:host([position="left"]) .ui-drawer__painel{top:0;left:0;bottom:0;width:var(--ui-drawer-largura, 480px);max-width:92vw;height:100vh;transform:translate(-100%);border-right:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16))}:host([aberto][posicao="esquerda"]) .ui-drawer__painel,:host([open][posicao="esquerda"]) .ui-drawer__painel,:host([aberto][position="left"]) .ui-drawer__painel,:host([open][position="left"]) .ui-drawer__painel{transform:translate(0);opacity:1;visibility:visible;pointer-events:auto}:host([posicao="baixo"]) .ui-drawer__painel,:host([position="bottom"]) .ui-drawer__painel{bottom:0;left:0;right:0;width:100vw;max-height:85vh;transform:translateY(100%);border-top:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16));border-top-left-radius:14px;border-top-right-radius:14px}:host([aberto][posicao="baixo"]) .ui-drawer__painel,:host([open][posicao="baixo"]) .ui-drawer__painel,:host([aberto][position="bottom"]) .ui-drawer__painel,:host([open][position="bottom"]) .ui-drawer__painel{transform:translateY(0);opacity:1;visibility:visible;pointer-events:auto}:host([posicao="cima"]) .ui-drawer__painel,:host([position="top"]) .ui-drawer__painel{top:0;left:0;right:0;width:100vw;max-height:85vh;transform:translateY(-100%);border-bottom:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16));border-bottom-left-radius:14px;border-bottom-right-radius:14px}:host([aberto][posicao="cima"]) .ui-drawer__painel,:host([open][posicao="cima"]) .ui-drawer__painel,:host([aberto][position="top"]) .ui-drawer__painel,:host([open][position="top"]) .ui-drawer__painel{transform:translateY(0);opacity:1;visibility:visible;pointer-events:auto}.ui-drawer__header{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .08));flex-shrink:0}:root[data-tema=claro] .ui-drawer__header,[data-tema=claro] .ui-drawer__header{border-bottom-color:#00000014}.ui-drawer__titulo-container{display:flex;flex-direction:column;gap:2px}.ui-drawer__titulo{margin:0;font-size:16px;font-weight:600;color:var(--ui-cor-texto, #ffffff)}:root[data-tema=claro] .ui-drawer__titulo,[data-tema=claro] .ui-drawer__titulo{color:#1a1a1e}.ui-drawer__descricao{margin:0;font-size:13px;color:var(--ui-cor-texto-secundario, #888899)}.ui-drawer__close{background:transparent;border:none;color:var(--ui-cor-texto-secundario, #888899);font-size:16px;cursor:pointer;padding:6px;border-radius:6px;line-height:1;display:flex;align-items:center;justify-content:center;transition:color .15s ease,background-color .15s ease}.ui-drawer__close svg,.ui-drawer__close ::slotted(svg){shape-rendering:geometricPrecision}.ui-drawer__close:hover{color:var(--ui-cor-texto, #ffffff);background-color:var(--ui-cor-hover-menu, rgba(255, 255, 255, .08))}.ui-drawer__close:focus-visible{outline:none;box-shadow:0 0 0 2px var(--ui-cor-primaria, #00E08A)}.ui-drawer__body{padding:20px;overflow-y:auto;flex:1;box-sizing:border-box}.ui-drawer__footer{padding:14px 20px;border-top:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .08));display:flex;align-items:center;justify-content:flex-end;gap:10px;background-color:#00000026;flex-shrink:0}:root[data-tema=claro] .ui-drawer__footer,[data-tema=claro] .ui-drawer__footer{border-top-color:#00000014;background-color:#00000008}@starting-style{:host([aberto]:not([posicao])) .ui-drawer__painel,:host([open]:not([posicao])) .ui-drawer__painel,:host([aberto][posicao="direita"]) .ui-drawer__painel,:host([open][posicao="direita"]) .ui-drawer__painel{transform:translate(100%);opacity:0}:host([aberto][posicao="esquerda"]) .ui-drawer__painel,:host([open][posicao="esquerda"]) .ui-drawer__painel{transform:translate(-100%);opacity:0}:host([aberto][posicao="baixo"]) .ui-drawer__painel,:host([open][posicao="baixo"]) .ui-drawer__painel{transform:translateY(100%);opacity:0}:host([aberto]) .ui-drawer__backdrop,:host([open]) .ui-drawer__backdrop{opacity:0}}';
-class N extends HTMLElement {
+customElements.get("ui-modal") || customElements.define("ui-modal", et);
+customElements.get("ui-dialog") || customElements.define("ui-dialog", Qt);
+const Jt = ':host{display:block;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif)}.ui-drawer__backdrop{position:fixed;top:0;left:0;width:100vw;height:100vh;background-color:#000000a6;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);z-index:9998;opacity:0;pointer-events:none;transition:opacity .25s ease}:host([aberto]) .ui-drawer__backdrop,:host([open]) .ui-drawer__backdrop{opacity:1;pointer-events:auto}.ui-drawer__painel{position:fixed;z-index:9999;background-color:var(--ui-cor-fundo-card, #18181c);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));box-shadow:0 16px 40px #000000b3;display:flex;flex-direction:column;opacity:0;visibility:hidden;pointer-events:none;transition:transform .25s cubic-bezier(.16,1,.3,1),opacity .2s ease,visibility .2s ease;box-sizing:border-box;color:var(--ui-cor-texto, #e1e1e6)}:root[data-tema=claro] .ui-drawer__painel,[data-tema=claro] .ui-drawer__painel{background-color:#fff;border-color:#0000001f;box-shadow:0 12px 32px #00000026;color:#1a1a1e}:host(:not([posicao])) .ui-drawer__painel,:host([posicao="direita"]) .ui-drawer__painel,:host([position="right"]) .ui-drawer__painel{top:0;right:0;bottom:0;width:var(--ui-drawer-largura, 480px);max-width:92vw;height:100vh;transform:translate(100%);border-left:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16))}:host([aberto]:not([posicao])) .ui-drawer__painel,:host([open]:not([posicao])) .ui-drawer__painel,:host([aberto][posicao="direita"]) .ui-drawer__painel,:host([open][posicao="direita"]) .ui-drawer__painel,:host([aberto][position="right"]) .ui-drawer__painel,:host([open][position="right"]) .ui-drawer__painel{transform:translate(0);opacity:1;visibility:visible;pointer-events:auto}:host([posicao="esquerda"]) .ui-drawer__painel,:host([position="left"]) .ui-drawer__painel{top:0;left:0;bottom:0;width:var(--ui-drawer-largura, 480px);max-width:92vw;height:100vh;transform:translate(-100%);border-right:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16))}:host([aberto][posicao="esquerda"]) .ui-drawer__painel,:host([open][posicao="esquerda"]) .ui-drawer__painel,:host([aberto][position="left"]) .ui-drawer__painel,:host([open][position="left"]) .ui-drawer__painel{transform:translate(0);opacity:1;visibility:visible;pointer-events:auto}:host([posicao="baixo"]) .ui-drawer__painel,:host([position="bottom"]) .ui-drawer__painel{bottom:0;left:0;right:0;width:100vw;max-height:85vh;transform:translateY(100%);border-top:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16));border-top-left-radius:14px;border-top-right-radius:14px}:host([aberto][posicao="baixo"]) .ui-drawer__painel,:host([open][posicao="baixo"]) .ui-drawer__painel,:host([aberto][position="bottom"]) .ui-drawer__painel,:host([open][position="bottom"]) .ui-drawer__painel{transform:translateY(0);opacity:1;visibility:visible;pointer-events:auto}:host([posicao="cima"]) .ui-drawer__painel,:host([position="top"]) .ui-drawer__painel{top:0;left:0;right:0;width:100vw;max-height:85vh;transform:translateY(-100%);border-bottom:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16));border-bottom-left-radius:14px;border-bottom-right-radius:14px}:host([aberto][posicao="cima"]) .ui-drawer__painel,:host([open][posicao="cima"]) .ui-drawer__painel,:host([aberto][position="top"]) .ui-drawer__painel,:host([open][position="top"]) .ui-drawer__painel{transform:translateY(0);opacity:1;visibility:visible;pointer-events:auto}.ui-drawer__header{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .08));flex-shrink:0}:root[data-tema=claro] .ui-drawer__header,[data-tema=claro] .ui-drawer__header{border-bottom-color:#00000014}.ui-drawer__titulo-container{display:flex;flex-direction:column;gap:2px}.ui-drawer__titulo{margin:0;font-size:16px;font-weight:600;color:var(--ui-cor-texto, #ffffff)}:root[data-tema=claro] .ui-drawer__titulo,[data-tema=claro] .ui-drawer__titulo{color:#1a1a1e}.ui-drawer__descricao{margin:0;font-size:13px;color:var(--ui-cor-texto-secundario, #888899)}.ui-drawer__close{background:transparent;border:none;color:var(--ui-cor-texto-secundario, #888899);font-size:16px;cursor:pointer;padding:6px;border-radius:6px;line-height:1;display:flex;align-items:center;justify-content:center;transition:color .15s ease,background-color .15s ease}.ui-drawer__close svg,.ui-drawer__close ::slotted(svg){shape-rendering:geometricPrecision}.ui-drawer__close:hover{color:var(--ui-cor-texto, #ffffff);background-color:var(--ui-cor-hover-menu, rgba(255, 255, 255, .08))}.ui-drawer__close:focus-visible{outline:none;box-shadow:0 0 0 2px var(--ui-cor-primaria, #00E08A)}.ui-drawer__body{padding:20px;overflow-y:auto;flex:1;box-sizing:border-box}.ui-drawer__footer{padding:14px 20px;border-top:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .08));display:flex;align-items:center;justify-content:flex-end;gap:10px;background-color:#00000026;flex-shrink:0}:root[data-tema=claro] .ui-drawer__footer,[data-tema=claro] .ui-drawer__footer{border-top-color:#00000014;background-color:#00000008}@starting-style{:host([aberto]:not([posicao])) .ui-drawer__painel,:host([open]:not([posicao])) .ui-drawer__painel,:host([aberto][posicao="direita"]) .ui-drawer__painel,:host([open][posicao="direita"]) .ui-drawer__painel{transform:translate(100%);opacity:0}:host([aberto][posicao="esquerda"]) .ui-drawer__painel,:host([open][posicao="esquerda"]) .ui-drawer__painel{transform:translate(-100%);opacity:0}:host([aberto][posicao="baixo"]) .ui-drawer__painel,:host([open][posicao="baixo"]) .ui-drawer__painel{transform:translateY(100%);opacity:0}:host([aberto]) .ui-drawer__backdrop,:host([open]) .ui-drawer__backdrop{opacity:0}}';
+class K extends HTMLElement {
   constructor() {
     super();
-    n(this, "backdropElement");
-    n(this, "painelElement");
-    n(this, "tituloElement");
-    n(this, "descricaoElement");
-    n(this, "closeElement");
-    n(this, "listeners", new z());
-    n(this, "_elementoGatilho", null);
-    n(this, "_focables", []);
-    n(this, "handleSlotChange", () => {
+    l(this, "backdropElement");
+    l(this, "painelElement");
+    l(this, "tituloElement");
+    l(this, "descricaoElement");
+    l(this, "closeElement");
+    l(this, "listeners", new D());
+    l(this, "_elementoGatilho", null);
+    l(this, "_focables", []);
+    l(this, "handleSlotChange", () => {
       this.syncState();
     });
-    n(this, "handleBackdropClick", (e) => {
-      e.stopPropagation(), this.hasAttribute("estatico") || this.hasAttribute("static") || this.fechar();
+    l(this, "handleBackdropClick", (t) => {
+      t.stopPropagation(), this.hasAttribute("estatico") || this.hasAttribute("static") || this.fechar();
     });
-    n(this, "handleCloseClick", (e) => {
-      e.stopPropagation(), this.fechar();
+    l(this, "handleCloseClick", (t) => {
+      t.stopPropagation(), this.fechar();
     });
-    n(this, "handleKeyDown", (e) => {
-      var t, i;
+    l(this, "handleKeyDown", (t) => {
+      var e, i;
       if (this.aberto && this._isTopMostDrawer()) {
-        if (e.key === "Escape")
-          this.hasAttribute("estatico") || this.hasAttribute("static") || (this.fechar(), e.stopImmediatePropagation());
-        else if (e.key === "Tab") {
+        if (t.key === "Escape")
+          this.hasAttribute("estatico") || this.hasAttribute("static") || (this.fechar(), t.stopImmediatePropagation());
+        else if (t.key === "Tab") {
           if (this._atualizarFocables(), this._focables.length === 0) {
-            e.preventDefault();
+            t.preventDefault();
             return;
           }
-          const a = this._focables[0], s = this._focables[this._focables.length - 1], r = this.getRootNode().activeElement;
-          e.shiftKey ? (r === a || !this.contains(r) && !((t = this.shadowRoot) != null && t.contains(r))) && (e.preventDefault(), s.focus()) : (r === s || !this.contains(r) && !((i = this.shadowRoot) != null && i.contains(r))) && (e.preventDefault(), a.focus());
+          const a = this._focables[0], r = this._focables[this._focables.length - 1], s = this.getRootNode().activeElement;
+          t.shiftKey ? (s === a || !this.contains(s) && !((e = this.shadowRoot) != null && e.contains(s))) && (t.preventDefault(), r.focus()) : (s === r || !this.contains(s) && !((i = this.shadowRoot) != null && i.contains(s))) && (t.preventDefault(), a.focus());
         }
       }
     });
-    const e = this.attachShadow({ mode: "open" });
-    e.innerHTML = `
-      <style>${Fe}</style>
+    const t = this.attachShadow({ mode: "open" });
+    t.innerHTML = `
+      <style>${Jt}</style>
       <div class="ui-drawer__backdrop"></div>
       <aside class="ui-drawer__painel" role="dialog" aria-modal="true" tabindex="-1">
         <div class="ui-drawer__header">
@@ -1657,7 +1657,7 @@ class N extends HTMLElement {
           <slot name="footer"></slot>
         </div>
       </aside>
-    `, this.backdropElement = e.querySelector(".ui-drawer__backdrop"), this.painelElement = e.querySelector(".ui-drawer__painel"), this.tituloElement = e.querySelector(".ui-drawer__titulo"), this.descricaoElement = e.querySelector(".ui-drawer__descricao"), this.closeElement = e.querySelector(".ui-drawer__close");
+    `, this.backdropElement = t.querySelector(".ui-drawer__backdrop"), this.painelElement = t.querySelector(".ui-drawer__painel"), this.tituloElement = t.querySelector(".ui-drawer__titulo"), this.descricaoElement = t.querySelector(".ui-drawer__descricao"), this.closeElement = t.querySelector(".ui-drawer__close");
   }
   static get observedAttributes() {
     return [
@@ -1676,30 +1676,30 @@ class N extends HTMLElement {
     ];
   }
   connectedCallback() {
-    this.listeners.cleanup(), this.listeners.add(this.backdropElement, "click", this.handleBackdropClick), this.listeners.add(this.closeElement, "click", this.handleCloseClick), this.listeners.add(window, "keydown", this.handleKeyDown), this.shadowRoot.querySelectorAll("slot").forEach((t) => {
-      this.listeners.add(t, "slotchange", this.handleSlotChange);
+    this.listeners.cleanup(), this.listeners.add(this.backdropElement, "click", this.handleBackdropClick), this.listeners.add(this.closeElement, "click", this.handleCloseClick), this.listeners.add(window, "keydown", this.handleKeyDown), this.shadowRoot.querySelectorAll("slot").forEach((e) => {
+      this.listeners.add(e, "slotchange", this.handleSlotChange);
     }), this.syncState();
   }
   disconnectedCallback() {
-    this.listeners.cleanup(), N.atualizarScrollLock();
+    this.listeners.cleanup(), K.atualizarScrollLock();
   }
-  attributeChangedCallback(e, t, i) {
-    (e === "aberto" || e === "open") && i !== null && (document.activeElement && document.activeElement !== document.body && (this._elementoGatilho = document.activeElement), setTimeout(() => {
+  attributeChangedCallback(t, e, i) {
+    (t === "aberto" || t === "open") && i !== null && (document.activeElement && document.activeElement !== document.body && (this._elementoGatilho = document.activeElement), setTimeout(() => {
       this._atualizarFocables(), this._focables.length > 0 ? this._focables[0].focus() : this.painelElement.focus();
     }, 0)), this.syncState();
   }
   get aberto() {
     return this.hasAttribute("aberto") || this.hasAttribute("open");
   }
-  set aberto(e) {
-    e ? this.setAttribute("aberto", "") : (this.removeAttribute("aberto"), this.removeAttribute("open")), this.syncState();
+  set aberto(t) {
+    t ? this.setAttribute("aberto", "") : (this.removeAttribute("aberto"), this.removeAttribute("open")), this.syncState();
   }
   get posicao() {
-    const e = (this.getAttribute("posicao") || this.getAttribute("position") || "direita").toLowerCase();
-    return e === "esquerda" || e === "left" ? "esquerda" : e === "baixo" || e === "bottom" ? "baixo" : e === "cima" || e === "top" ? "cima" : "direita";
+    const t = (this.getAttribute("posicao") || this.getAttribute("position") || "direita").toLowerCase();
+    return t === "esquerda" || t === "left" ? "esquerda" : t === "baixo" || t === "bottom" ? "baixo" : t === "cima" || t === "top" ? "cima" : "direita";
   }
-  set posicao(e) {
-    this.setAttribute("posicao", e);
+  set posicao(t) {
+    this.setAttribute("posicao", t);
   }
   abrir() {
     this.aberto || (document.activeElement && document.activeElement !== document.body && (this._elementoGatilho = document.activeElement), this.aberto = !0, this.dispatchEvent(
@@ -1723,13 +1723,13 @@ class N extends HTMLElement {
     this.aberto ? this.fechar() : this.abrir();
   }
   syncState() {
-    var r, l;
-    const e = this.aberto, t = this.getAttribute("titulo") || this.getAttribute("title") || "", i = this.getAttribute("descricao") || this.getAttribute("description") || "", a = this.getAttribute("largura") || this.getAttribute("width"), s = (r = this.shadowRoot) == null ? void 0 : r.querySelector(".ui-drawer__footer");
-    if (this.painelElement.setAttribute("aria-hidden", String(!e)), t ? (this.tituloElement.textContent = t, this.tituloElement.style.display = "block") : this.tituloElement.style.display = "none", i ? (this.descricaoElement.textContent = i, this.descricaoElement.style.display = "block") : this.descricaoElement.style.display = "none", a ? this.style.setProperty("--ui-drawer-largura", isNaN(Number(a)) ? a : `${a}px`) : this.style.removeProperty("--ui-drawer-largura"), s) {
-      const d = Array.from(((l = this.shadowRoot) == null ? void 0 : l.querySelectorAll('slot[name="rodape"], slot[name="footer"]')) || []).some((c) => c.assignedNodes({ flatten: !0 }).some((m) => m.nodeType === Node.ELEMENT_NODE || m.textContent && m.textContent.trim() !== "")) || this.querySelector('[slot="rodape"], [slot="footer"]') !== null;
-      s.style.display = d ? "flex" : "none";
+    var s, n;
+    const t = this.aberto, e = this.getAttribute("titulo") || this.getAttribute("title") || "", i = this.getAttribute("descricao") || this.getAttribute("description") || "", a = this.getAttribute("largura") || this.getAttribute("width"), r = (s = this.shadowRoot) == null ? void 0 : s.querySelector(".ui-drawer__footer");
+    if (this.painelElement.setAttribute("aria-hidden", String(!t)), e ? (this.tituloElement.textContent = e, this.tituloElement.style.display = "block") : this.tituloElement.style.display = "none", i ? (this.descricaoElement.textContent = i, this.descricaoElement.style.display = "block") : this.descricaoElement.style.display = "none", a ? this.style.setProperty("--ui-drawer-largura", isNaN(Number(a)) ? a : `${a}px`) : this.style.removeProperty("--ui-drawer-largura"), r) {
+      const u = Array.from(((n = this.shadowRoot) == null ? void 0 : n.querySelectorAll('slot[name="rodape"], slot[name="footer"]')) || []).some((d) => d.assignedNodes({ flatten: !0 }).some((p) => p.nodeType === Node.ELEMENT_NODE || p.textContent && p.textContent.trim() !== "")) || this.querySelector('[slot="rodape"], [slot="footer"]') !== null;
+      r.style.display = u ? "flex" : "none";
     }
-    N.atualizarScrollLock();
+    K.atualizarScrollLock();
   }
   static atualizarScrollLock() {
     if (typeof document > "u") return;
@@ -1738,57 +1738,57 @@ class N extends HTMLElement {
     ).length > 0 ? document.body.style.overflow = "hidden" : document.body.style.overflow = "";
   }
   _atualizarFocables() {
-    const e = 'a[href], button, input, textarea, select, details, [tabindex]:not([tabindex="-1"]), ui-campo-texto, ui-botao, ui-botao-primario, ui-checkbox, ui-switch, ui-lista-flutuante, ui-radio, ui-select, ui-segmented';
-    let t = Array.from(this.shadowRoot.querySelectorAll(e));
-    t = t.filter((s) => window.getComputedStyle(s).display !== "none");
+    const t = 'a[href], button, input, textarea, select, details, [tabindex]:not([tabindex="-1"]), ui-campo-texto, ui-botao, ui-botao-primario, ui-checkbox, ui-switch, ui-lista-flutuante, ui-radio, ui-select, ui-segmented';
+    let e = Array.from(this.shadowRoot.querySelectorAll(t));
+    e = e.filter((r) => window.getComputedStyle(r).display !== "none");
     const i = this.shadowRoot.querySelectorAll("slot");
     let a = [];
-    i.forEach((s) => {
-      s.assignedElements({ flatten: !0 }).forEach((l) => {
-        l instanceof HTMLElement && (l.matches(e) && a.push(l), a.push(...Array.from(l.querySelectorAll(e))));
+    i.forEach((r) => {
+      r.assignedElements({ flatten: !0 }).forEach((n) => {
+        n instanceof HTMLElement && (n.matches(t) && a.push(n), a.push(...Array.from(n.querySelectorAll(t))));
       });
-    }), this._focables = [...t, ...a].filter((s) => !s.hasAttribute("disabled") && s.getAttribute("aria-hidden") !== "true");
+    }), this._focables = [...e, ...a].filter((r) => !r.hasAttribute("disabled") && r.getAttribute("aria-hidden") !== "true");
   }
   _isTopMostDrawer() {
-    const e = Array.from(
+    const t = Array.from(
       document.querySelectorAll("ui-drawer[aberto], ui-drawer[open], ui-sheet[aberto], ui-sheet[open]")
     );
-    return e[e.length - 1] === this;
+    return t[t.length - 1] === this;
   }
 }
-class Oe extends N {
+class te extends K {
 }
-class De extends N {
+class ee extends K {
 }
-class He extends N {
+class ie extends K {
 }
-customElements.get("ui-drawer") || customElements.define("ui-drawer", N);
-customElements.get("ui-sheet") || customElements.define("ui-sheet", Oe);
-customElements.get("ui-painel-lateral") || customElements.define("ui-painel-lateral", De);
-customElements.get("ui-gaveta") || customElements.define("ui-gaveta", He);
-const je = ':host{display:block;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif)}.ui-alerta{display:flex;align-items:flex-start;gap:12px;padding:12px 16px;border-radius:var(--ui-raio-borda, 8px);border:1px solid transparent;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);color:var(--ui-cor-texto, #e1e1e6);box-sizing:border-box;position:relative;transition:opacity .2s ease,transform .2s ease;line-height:1.4}.ui-alerta__icone{display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;line-height:1}.ui-alerta__icone svg,.ui-alerta__icone ::slotted(svg),.ui-alerta__icone ::slotted(ui-icone){shape-rendering:geometricPrecision}.ui-alerta__conteudo{flex:1}.ui-alerta__titulo{font-size:14px;font-weight:600;margin:0 0 2px;line-height:1.2}.ui-alerta__mensagem{font-size:13px;margin:0;opacity:.9}.ui-alerta__close{background:transparent;border:none;color:currentColor;opacity:.7;font-size:14px;cursor:pointer;padding:2px 6px;border-radius:4px;line-height:1;flex-shrink:0;margin-top:-2px;margin-right:-4px;transition:opacity .15s ease,background-color .15s ease}.ui-alerta__close:hover{opacity:1;background-color:#ffffff26}.ui-alerta--sucesso{background-color:#00e08a1f;border-color:#00e08a4d;color:var(--ui-cor-texto-sucesso, #00E08A)}.ui-alerta--sucesso .ui-alerta__mensagem{color:var(--ui-cor-texto, #e1e1e6)}.ui-alerta--erro{background-color:#ff55551f;border-color:#ff55554d;color:var(--ui-cor-texto-erro, #ff5555)}.ui-alerta--erro .ui-alerta__mensagem{color:var(--ui-cor-texto, #e1e1e6)}.ui-alerta--alerta{background-color:#ffb86c1f;border-color:#ffb86c4d;color:var(--ui-cor-texto-alerta, #ffb86c)}.ui-alerta--alerta .ui-alerta__mensagem{color:var(--ui-cor-texto, #e1e1e6)}.ui-alerta--info{background-color:#00aaff1f;border-color:#00aaff4d;color:#0af}.ui-alerta--info .ui-alerta__mensagem{color:var(--ui-cor-texto, #e1e1e6)}.ui-alerta__acoes{display:flex;align-items:center;flex-shrink:0;margin-left:4px}.ui-alerta__botao-acao{background:#ffffff14;border:1px solid rgba(255,255,255,.16);color:inherit;font-family:inherit;font-size:12px;font-weight:600;padding:4px 10px;border-radius:5px;cursor:pointer;line-height:1;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;transition:background-color .15s ease,border-color .15s ease,transform .1s ease}.ui-alerta__botao-acao:hover{background:#ffffff2e;border-color:#ffffff4d}.ui-alerta__botao-acao:active{transform:scale(.96)}.ui-alerta__botao-acao:focus-visible{outline:none;box-shadow:0 0 0 2px var(--ui-cor-fundo, #0b0b0d),0 0 0 4px var(--ui-cor-primaria, #00E08A)}.ui-alerta__botao-acao--primario{background:#00e08a26;border-color:#00e08a59;color:var(--ui-cor-primaria, #00E08A)}.ui-alerta__botao-acao--primario:hover{background:#00e08a40;border-color:#00e08a80}.ui-alerta__botao-acao--destrutivo{background:#ff444426;border-color:#ff444459;color:var(--ui-cor-texto-erro, #ff5555)}.ui-alerta__botao-acao--destrutivo:hover{background:#ff444440;border-color:#ff444480}:host(ui-toast){display:block;width:100%;box-sizing:border-box;pointer-events:auto;transition:transform .25s cubic-bezier(.16,1,.3,1),opacity .25s ease}.ui-toast__banner{box-shadow:0 10px 32px #000000a6,0 0 0 1px #ffffff14;animation:ui-toast-slide .3s cubic-bezier(.16,1,.3,1);position:relative;overflow:hidden}.ui-toast__progresso{position:absolute;bottom:0;left:0;right:0;height:2px;background:#ffffff14;overflow:hidden}.ui-toast__progresso-barra{width:100%;height:100%;background:currentColor;opacity:.7;transform-origin:left;animation:ui-toast-timer linear forwards}:host(ui-toast:hover) .ui-toast__progresso-barra,:host(ui-toast:focus-within) .ui-toast__progresso-barra{animation-play-state:paused}@keyframes ui-toast-timer{0%{transform:scaleX(1)}to{transform:scaleX(0)}}@keyframes ui-toast-slide{0%{transform:translate(100%);opacity:0}to{transform:translate(0);opacity:1}}@starting-style{:host(ui-toast){opacity:0;transform:translateY(12px) scale(.96)}}', ee = {
+customElements.get("ui-drawer") || customElements.define("ui-drawer", K);
+customElements.get("ui-sheet") || customElements.define("ui-sheet", te);
+customElements.get("ui-painel-lateral") || customElements.define("ui-painel-lateral", ee);
+customElements.get("ui-gaveta") || customElements.define("ui-gaveta", ie);
+const oe = ':host{display:block;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif)}.ui-alerta{display:flex;align-items:flex-start;gap:12px;padding:12px 16px;border-radius:var(--ui-raio-borda, 8px);border:1px solid transparent;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);color:var(--ui-cor-texto, #e1e1e6);box-sizing:border-box;position:relative;transition:opacity .2s ease,transform .2s ease;line-height:1.4}.ui-alerta__icone{display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;line-height:1}.ui-alerta__icone svg,.ui-alerta__icone ::slotted(svg),.ui-alerta__icone ::slotted(ui-icone){shape-rendering:geometricPrecision}.ui-alerta__conteudo{flex:1}.ui-alerta__titulo{font-size:14px;font-weight:600;margin:0 0 2px;line-height:1.2}.ui-alerta__mensagem{font-size:13px;margin:0;opacity:.9}.ui-alerta__close{background:transparent;border:none;color:currentColor;opacity:.7;font-size:14px;cursor:pointer;padding:2px 6px;border-radius:4px;line-height:1;flex-shrink:0;margin-top:-2px;margin-right:-4px;transition:opacity .15s ease,background-color .15s ease}.ui-alerta__close:hover{opacity:1;background-color:#ffffff26}.ui-alerta--sucesso{background-color:#00e08a1f;border-color:#00e08a4d;color:var(--ui-cor-texto-sucesso, #00E08A)}.ui-alerta--sucesso .ui-alerta__mensagem{color:var(--ui-cor-texto, #e1e1e6)}.ui-alerta--erro{background-color:#ff55551f;border-color:#ff55554d;color:var(--ui-cor-texto-erro, #ff5555)}.ui-alerta--erro .ui-alerta__mensagem{color:var(--ui-cor-texto, #e1e1e6)}.ui-alerta--alerta{background-color:#ffb86c1f;border-color:#ffb86c4d;color:var(--ui-cor-texto-alerta, #ffb86c)}.ui-alerta--alerta .ui-alerta__mensagem{color:var(--ui-cor-texto, #e1e1e6)}.ui-alerta--info{background-color:#00aaff1f;border-color:#00aaff4d;color:#0af}.ui-alerta--info .ui-alerta__mensagem{color:var(--ui-cor-texto, #e1e1e6)}.ui-alerta__acoes{display:flex;align-items:center;flex-shrink:0;margin-left:4px}.ui-alerta__botao-acao{background:#ffffff14;border:1px solid rgba(255,255,255,.16);color:inherit;font-family:inherit;font-size:12px;font-weight:600;padding:4px 10px;border-radius:5px;cursor:pointer;line-height:1;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;transition:background-color .15s ease,border-color .15s ease,transform .1s ease}.ui-alerta__botao-acao:hover{background:#ffffff2e;border-color:#ffffff4d}.ui-alerta__botao-acao:active{transform:scale(.96)}.ui-alerta__botao-acao:focus-visible{outline:none;box-shadow:0 0 0 2px var(--ui-cor-fundo, #0b0b0d),0 0 0 4px var(--ui-cor-primaria, #00E08A)}.ui-alerta__botao-acao--primario{background:#00e08a26;border-color:#00e08a59;color:var(--ui-cor-primaria, #00E08A)}.ui-alerta__botao-acao--primario:hover{background:#00e08a40;border-color:#00e08a80}.ui-alerta__botao-acao--destrutivo{background:#ff444426;border-color:#ff444459;color:var(--ui-cor-texto-erro, #ff5555)}.ui-alerta__botao-acao--destrutivo:hover{background:#ff444440;border-color:#ff444480}:host(ui-toast){display:block;width:100%;box-sizing:border-box;pointer-events:auto;transition:transform .25s cubic-bezier(.16,1,.3,1),opacity .25s ease}.ui-toast__banner{box-shadow:0 10px 32px #000000a6,0 0 0 1px #ffffff14;animation:ui-toast-slide .3s cubic-bezier(.16,1,.3,1);position:relative;overflow:hidden}.ui-toast__progresso{position:absolute;bottom:0;left:0;right:0;height:2px;background:#ffffff14;overflow:hidden}.ui-toast__progresso-barra{width:100%;height:100%;background:currentColor;opacity:.7;transform-origin:left;animation:ui-toast-timer linear forwards}:host(ui-toast:hover) .ui-toast__progresso-barra,:host(ui-toast:focus-within) .ui-toast__progresso-barra{animation-play-state:paused}@keyframes ui-toast-timer{0%{transform:scaleX(1)}to{transform:scaleX(0)}}@keyframes ui-toast-slide{0%{transform:translate(100%);opacity:0}to{transform:translate(0);opacity:1}}@starting-style{:host(ui-toast){opacity:0;transform:translateY(12px) scale(.96)}}', mt = {
   sucesso: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>',
   erro: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>',
   alerta: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>',
   info: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>'
 };
-class se extends HTMLElement {
+class _t extends HTMLElement {
   constructor() {
     super();
-    n(this, "alertaElement");
-    n(this, "iconeElement");
-    n(this, "tituloElement");
-    n(this, "mensagemElement");
-    n(this, "mensagemTextoElement");
-    n(this, "closeElement");
-    n(this, "acoesElement");
-    n(this, "botaoAcaoElement");
-    n(this, "progressoContainer");
-    n(this, "progressoBarra");
-    n(this, "listeners", new z());
-    const e = this.attachShadow({ mode: "open" });
-    e.innerHTML = `
-      <style>${je}</style>
+    l(this, "alertaElement");
+    l(this, "iconeElement");
+    l(this, "tituloElement");
+    l(this, "mensagemElement");
+    l(this, "mensagemTextoElement");
+    l(this, "closeElement");
+    l(this, "acoesElement");
+    l(this, "botaoAcaoElement");
+    l(this, "progressoContainer");
+    l(this, "progressoBarra");
+    l(this, "listeners", new D());
+    const t = this.attachShadow({ mode: "open" });
+    t.innerHTML = `
+      <style>${oe}</style>
       <div class="ui-alerta" role="alert">
         <span class="ui-alerta__icone"></span>
         <div class="ui-alerta__conteudo">
@@ -1806,7 +1806,7 @@ class se extends HTMLElement {
           <div class="ui-toast__progresso-barra"></div>
         </div>
       </div>
-    `, this.alertaElement = e.querySelector(".ui-alerta"), this.iconeElement = e.querySelector(".ui-alerta__icone"), this.tituloElement = e.querySelector(".ui-alerta__titulo"), this.mensagemElement = e.querySelector(".ui-alerta__mensagem"), this.mensagemTextoElement = e.querySelector(".ui-alerta__mensagem-texto"), this.closeElement = e.querySelector(".ui-alerta__close"), this.acoesElement = e.querySelector(".ui-alerta__acoes"), this.botaoAcaoElement = e.querySelector(".ui-alerta__botao-acao"), this.progressoContainer = e.querySelector(".ui-toast__progresso"), this.progressoBarra = e.querySelector(".ui-toast__progresso-barra");
+    `, this.alertaElement = t.querySelector(".ui-alerta"), this.iconeElement = t.querySelector(".ui-alerta__icone"), this.tituloElement = t.querySelector(".ui-alerta__titulo"), this.mensagemElement = t.querySelector(".ui-alerta__mensagem"), this.mensagemTextoElement = t.querySelector(".ui-alerta__mensagem-texto"), this.closeElement = t.querySelector(".ui-alerta__close"), this.acoesElement = t.querySelector(".ui-alerta__acoes"), this.botaoAcaoElement = t.querySelector(".ui-alerta__botao-acao"), this.progressoContainer = t.querySelector(".ui-toast__progresso"), this.progressoBarra = t.querySelector(".ui-toast__progresso-barra");
   }
   static get observedAttributes() {
     return [
@@ -1826,7 +1826,7 @@ class se extends HTMLElement {
   disconnectedCallback() {
     this.listeners.cleanup();
   }
-  attributeChangedCallback(e, t, i) {
+  attributeChangedCallback(t, e, i) {
     this.syncState();
   }
   fechar() {
@@ -1838,22 +1838,22 @@ class se extends HTMLElement {
     ), this.remove();
   }
   syncState() {
-    const e = this.getAttribute("tipo") || this.getAttribute("variante") || this.getAttribute("variant") || "info", t = this.getAttribute("titulo") || this.getAttribute("title"), i = this.getAttribute("mensagem"), a = this.hasAttribute("fechavel") || this.hasAttribute("dismissible");
-    this.alertaElement.className = "ui-alerta", this.alertaElement.classList.add(`ui-alerta--${e}`), e === "erro" || e === "alerta" ? (this.alertaElement.setAttribute("role", "alert"), this.alertaElement.setAttribute("aria-live", "assertive")) : (this.alertaElement.setAttribute("role", "status"), this.alertaElement.setAttribute("aria-live", "polite")), this.iconeElement.innerHTML = ee[e] || ee.info, t ? (this.tituloElement.textContent = t, this.tituloElement.style.display = "block") : this.tituloElement.style.display = "none", i ? (this.mensagemTextoElement.textContent = i, this.mensagemTextoElement.style.display = "inline") : (this.mensagemTextoElement.textContent = "", this.mensagemTextoElement.style.display = "none"), a ? this.closeElement.style.display = "block" : this.closeElement.style.display = "none";
+    const t = this.getAttribute("tipo") || this.getAttribute("variante") || this.getAttribute("variant") || "info", e = this.getAttribute("titulo") || this.getAttribute("title"), i = this.getAttribute("mensagem"), a = this.hasAttribute("fechavel") || this.hasAttribute("dismissible");
+    this.alertaElement.className = "ui-alerta", this.alertaElement.classList.add(`ui-alerta--${t}`), t === "erro" || t === "alerta" ? (this.alertaElement.setAttribute("role", "alert"), this.alertaElement.setAttribute("aria-live", "assertive")) : (this.alertaElement.setAttribute("role", "status"), this.alertaElement.setAttribute("aria-live", "polite")), this.iconeElement.innerHTML = mt[t] || mt.info, e ? (this.tituloElement.textContent = e, this.tituloElement.style.display = "block") : this.tituloElement.style.display = "none", i ? (this.mensagemTextoElement.textContent = i, this.mensagemTextoElement.style.display = "inline") : (this.mensagemTextoElement.textContent = "", this.mensagemTextoElement.style.display = "none"), a ? this.closeElement.style.display = "block" : this.closeElement.style.display = "none";
   }
 }
-class F extends se {
+class Q extends _t {
   constructor() {
     super(...arguments);
-    n(this, "timerId", null);
-    n(this, "tempoRestante", 4e3);
-    n(this, "inicioTimestamp", 0);
-    n(this, "isPausado", !1);
-    n(this, "acaoConfig");
-    n(this, "containerRef", null);
-    n(this, "handleAcaoClick", (e) => {
-      var t, i, a;
-      e.stopPropagation(), (t = this.acaoConfig) != null && t.onClick && this.acaoConfig.onClick(e), this.dispatchEvent(
+    l(this, "timerId", null);
+    l(this, "tempoRestante", 4e3);
+    l(this, "inicioTimestamp", 0);
+    l(this, "isPausado", !1);
+    l(this, "acaoConfig");
+    l(this, "containerRef", null);
+    l(this, "handleAcaoClick", (t) => {
+      var e, i, a;
+      t.stopPropagation(), (e = this.acaoConfig) != null && e.onClick && this.acaoConfig.onClick(t), this.dispatchEvent(
         new CustomEvent("ui-toast-acao", {
           detail: {
             rotulo: (i = this.acaoConfig) == null ? void 0 : i.rotulo,
@@ -1864,85 +1864,85 @@ class F extends se {
         })
       ), this.fechar();
     });
-    n(this, "pausarTimer", () => {
+    l(this, "pausarTimer", () => {
       if (this.isPausado || this.tempoRestante <= 0) return;
       this.isPausado = !0, this.timerId && (clearTimeout(this.timerId), this.timerId = null);
-      const e = Date.now() - this.inicioTimestamp;
-      this.tempoRestante = Math.max(0, this.tempoRestante - e), this.progressoBarra.style.animationPlayState = "paused";
+      const t = Date.now() - this.inicioTimestamp;
+      this.tempoRestante = Math.max(0, this.tempoRestante - t), this.progressoBarra.style.animationPlayState = "paused";
     });
-    n(this, "retomarTimer", () => {
+    l(this, "retomarTimer", () => {
       !this.isPausado || this.tempoRestante <= 0 || (this.isPausado = !1, this.progressoBarra.style.animationPlayState = "running", this.iniciarTimer(Math.max(this.tempoRestante, 300)));
     });
   }
-  configurarAcao(e) {
-    this.acaoConfig = e, this.botaoAcaoElement.textContent = e.rotulo, this.acoesElement.style.display = "flex";
-    const t = e.tipo || "primario";
-    this.botaoAcaoElement.className = `ui-alerta__botao-acao ui-alerta__botao-acao--${t}`;
+  configurarAcao(t) {
+    this.acaoConfig = t, this.botaoAcaoElement.textContent = t.rotulo, this.acoesElement.style.display = "flex";
+    const e = t.tipo || "primario";
+    this.botaoAcaoElement.className = `ui-alerta__botao-acao ui-alerta__botao-acao--${e}`;
   }
   connectedCallback() {
     super.connectedCallback(), this.containerRef = this.parentElement, this.alertaElement.classList.add("ui-toast__banner"), this.acaoConfig && this.listeners.add(this.botaoAcaoElement, "click", this.handleAcaoClick);
-    const e = this.getAttribute("duracao") || this.getAttribute("duration") || "4000", t = parseInt(e, 10);
-    this.tempoRestante = isNaN(t) ? 4e3 : t, this.tempoRestante > 0 ? (this.progressoContainer.style.display = "block", this.progressoBarra.style.animationDuration = `${this.tempoRestante}ms`, this.getAttribute("pausar-no-hover") !== "false" && (this.listeners.add(this, "mouseenter", this.pausarTimer), this.listeners.add(this, "mouseleave", this.retomarTimer), this.listeners.add(this, "focusin", this.pausarTimer), this.listeners.add(this, "focusout", this.retomarTimer)), this.iniciarTimer(this.tempoRestante)) : this.progressoContainer.style.display = "none";
+    const t = this.getAttribute("duracao") || this.getAttribute("duration") || "4000", e = parseInt(t, 10);
+    this.tempoRestante = isNaN(e) ? 4e3 : e, this.tempoRestante > 0 ? (this.progressoContainer.style.display = "block", this.progressoBarra.style.animationDuration = `${this.tempoRestante}ms`, this.getAttribute("pausar-no-hover") !== "false" && (this.listeners.add(this, "mouseenter", this.pausarTimer), this.listeners.add(this, "mouseleave", this.retomarTimer), this.listeners.add(this, "focusin", this.pausarTimer), this.listeners.add(this, "focusout", this.retomarTimer)), this.iniciarTimer(this.tempoRestante)) : this.progressoContainer.style.display = "none";
   }
   fechar() {
-    const e = this.parentElement || this.containerRef;
-    super.fechar(), e && e.id.startsWith("ui-toast-container-") && e.children.length === 0 && e.remove();
+    const t = this.parentElement || this.containerRef;
+    super.fechar(), t && t.id.startsWith("ui-toast-container-") && t.children.length === 0 && t.remove();
   }
   disconnectedCallback() {
     super.disconnectedCallback(), this.timerId && (clearTimeout(this.timerId), this.timerId = null), this.containerRef && this.containerRef.id.startsWith("ui-toast-container-") && this.containerRef.children.length === 0 && (this.containerRef.remove(), this.containerRef = null);
   }
-  iniciarTimer(e) {
+  iniciarTimer(t) {
     this.timerId && clearTimeout(this.timerId), this.inicioTimestamp = Date.now(), this.timerId = setTimeout(() => {
       this.fechar();
-    }, e);
+    }, t);
   }
-  static obterContainer(e) {
-    const t = `ui-toast-container-${e}`;
-    let i = document.getElementById(t);
-    return i || (i = document.createElement("div"), i.id = t, i.style.position = "fixed", i.style.zIndex = "10000", i.style.display = "flex", i.style.gap = "10px", i.style.maxWidth = "400px", i.style.width = "calc(100vw - 32px)", i.style.pointerEvents = "none", i.style.boxSizing = "border-box", i.style.transition = "all 0.2s ease", e === "top-right" ? (i.style.top = "20px", i.style.right = "20px", i.style.flexDirection = "column") : e === "top-left" ? (i.style.top = "20px", i.style.left = "20px", i.style.flexDirection = "column") : e === "bottom-left" ? (i.style.bottom = "20px", i.style.left = "20px", i.style.flexDirection = "column-reverse") : e === "top-center" ? (i.style.top = "20px", i.style.left = "50%", i.style.transform = "translateX(-50%)", i.style.flexDirection = "column") : e === "bottom-center" ? (i.style.bottom = "20px", i.style.left = "50%", i.style.transform = "translateX(-50%)", i.style.flexDirection = "column-reverse") : (i.style.bottom = "20px", i.style.right = "20px", i.style.flexDirection = "column-reverse"), document.body.appendChild(i)), i;
+  static obterContainer(t) {
+    const e = `ui-toast-container-${t}`;
+    let i = document.getElementById(e);
+    return i || (i = document.createElement("div"), i.id = e, i.style.position = "fixed", i.style.zIndex = "10000", i.style.display = "flex", i.style.gap = "10px", i.style.maxWidth = "400px", i.style.width = "calc(100vw - 32px)", i.style.pointerEvents = "none", i.style.boxSizing = "border-box", i.style.transition = "all 0.2s ease", t === "top-right" ? (i.style.top = "20px", i.style.right = "20px", i.style.flexDirection = "column") : t === "top-left" ? (i.style.top = "20px", i.style.left = "20px", i.style.flexDirection = "column") : t === "bottom-left" ? (i.style.bottom = "20px", i.style.left = "20px", i.style.flexDirection = "column-reverse") : t === "top-center" ? (i.style.top = "20px", i.style.left = "50%", i.style.transform = "translateX(-50%)", i.style.flexDirection = "column") : t === "bottom-center" ? (i.style.bottom = "20px", i.style.left = "50%", i.style.transform = "translateX(-50%)", i.style.flexDirection = "column-reverse") : (i.style.bottom = "20px", i.style.right = "20px", i.style.flexDirection = "column-reverse"), document.body.appendChild(i)), i;
   }
   // Utilitário estático para disparo imperativo de Toasts de qualquer lugar no código
-  static notificar(e) {
-    const t = e.posicao || "bottom-right", i = document.createElement("ui-toast");
-    return e.tipo && i.setAttribute("tipo", e.tipo), e.titulo && i.setAttribute("titulo", e.titulo), e.mensagem && i.setAttribute("mensagem", e.mensagem), e.duracao !== void 0 && i.setAttribute("duracao", String(e.duracao)), e.pausarNoHover === !1 && i.setAttribute("pausar-no-hover", "false"), i.setAttribute("posicao", t), e.fechavel !== !1 && i.setAttribute("fechavel", ""), e.acao && i.configurarAcao(e.acao), F.obterContainer(t).appendChild(i), i;
+  static notificar(t) {
+    const e = t.posicao || "bottom-right", i = document.createElement("ui-toast");
+    return t.tipo && i.setAttribute("tipo", t.tipo), t.titulo && i.setAttribute("titulo", t.titulo), t.mensagem && i.setAttribute("mensagem", t.mensagem), t.duracao !== void 0 && i.setAttribute("duracao", String(t.duracao)), t.pausarNoHover === !1 && i.setAttribute("pausar-no-hover", "false"), i.setAttribute("posicao", e), t.fechavel !== !1 && i.setAttribute("fechavel", ""), t.acao && i.configurarAcao(t.acao), Q.obterContainer(e).appendChild(i), i;
   }
 }
-customElements.get("ui-alerta") || customElements.define("ui-alerta", se);
-customElements.get("ui-toast") || customElements.define("ui-toast", F);
-const Ve = ":host{display:inline-flex;position:relative;align-items:center;justify-content:center;vertical-align:middle;box-sizing:border-box;--ui-tooltip-texto-distancia: 260px;--ui-tooltip-seta-espaco: 70px}.ui-tooltip__bubble{position:fixed;z-index:10001;padding:6px 10px;border-radius:6px;font-size:11px;font-weight:500;background-color:var(--ui-cor-fundo-elevado, #1e1e24);color:var(--ui-cor-texto, #e1e1e6);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16));box-shadow:0 4px 16px #00000080;white-space:normal;max-width:var(--ui-tooltip-texto-distancia, 260px);width:max-content;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .15s ease,visibility .15s ease;line-height:1.35;box-sizing:border-box;-webkit-user-select:none;user-select:none;margin:0}.ui-tooltip__bubble[popover]{margin:0;border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16));background-color:var(--ui-cor-fundo-elevado, #1e1e24);color:var(--ui-cor-texto, #e1e1e6);padding:6px 10px;overflow:visible;max-width:var(--ui-tooltip-texto-distancia, 260px);width:max-content;white-space:normal}.ui-tooltip__texto{display:inline-block;max-width:100%}.ui-tooltip__arrow{position:absolute;width:0;height:0;border-style:solid}.ui-tooltip--topo .ui-tooltip__arrow{bottom:-5px;left:50%;transform:translate(-50%);border-width:5px 5px 0 5px;border-color:var(--ui-cor-fundo-elevado, #1e1e24) transparent transparent transparent}.ui-tooltip--baixo .ui-tooltip__arrow{top:-5px;left:50%;transform:translate(-50%);border-width:0 5px 5px 5px;border-color:transparent transparent var(--ui-cor-fundo-elevado, #1e1e24) transparent}.ui-tooltip--esquerda .ui-tooltip__arrow{right:-5px;top:50%;transform:translateY(-50%);border-width:5px 0 5px 5px;border-color:transparent transparent transparent var(--ui-cor-fundo-elevado, #1e1e24)}.ui-tooltip--direita .ui-tooltip__arrow{left:-5px;top:50%;transform:translateY(-50%);border-width:5px 5px 5px 0;border-color:transparent var(--ui-cor-fundo-elevado, #1e1e24) transparent transparent}.ui-tooltip--visivel .ui-tooltip__bubble{opacity:1;visibility:visible;pointer-events:auto;transform:scale(1)}@starting-style{.ui-tooltip--visivel .ui-tooltip__bubble,.ui-tooltip__bubble:popover-open{opacity:0;transform:scale(.94)}}";
-class ne extends HTMLElement {
+customElements.get("ui-alerta") || customElements.define("ui-alerta", _t);
+customElements.get("ui-toast") || customElements.define("ui-toast", Q);
+const ae = ":host{display:inline-flex;position:relative;align-items:center;justify-content:center;vertical-align:middle;box-sizing:border-box;--ui-tooltip-texto-distancia: 260px;--ui-tooltip-seta-espaco: 70px}.ui-tooltip__bubble{position:fixed;z-index:10001;padding:6px 10px;border-radius:6px;font-size:11px;font-weight:500;background-color:var(--ui-cor-fundo-elevado, #1e1e24);color:var(--ui-cor-texto, #e1e1e6);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16));box-shadow:0 4px 16px #00000080;white-space:normal;max-width:var(--ui-tooltip-texto-distancia, 260px);width:max-content;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .15s ease,visibility .15s ease;line-height:1.35;box-sizing:border-box;-webkit-user-select:none;user-select:none;margin:0}.ui-tooltip__bubble[popover]{margin:0;border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .16));background-color:var(--ui-cor-fundo-elevado, #1e1e24);color:var(--ui-cor-texto, #e1e1e6);padding:6px 10px;overflow:visible;max-width:var(--ui-tooltip-texto-distancia, 260px);width:max-content;white-space:normal}.ui-tooltip__texto{display:inline-block;max-width:100%}.ui-tooltip__arrow{position:absolute;width:0;height:0;border-style:solid}.ui-tooltip--topo .ui-tooltip__arrow{bottom:-5px;left:50%;transform:translate(-50%);border-width:5px 5px 0 5px;border-color:var(--ui-cor-fundo-elevado, #1e1e24) transparent transparent transparent}.ui-tooltip--baixo .ui-tooltip__arrow{top:-5px;left:50%;transform:translate(-50%);border-width:0 5px 5px 5px;border-color:transparent transparent var(--ui-cor-fundo-elevado, #1e1e24) transparent}.ui-tooltip--esquerda .ui-tooltip__arrow{right:-5px;top:50%;transform:translateY(-50%);border-width:5px 0 5px 5px;border-color:transparent transparent transparent var(--ui-cor-fundo-elevado, #1e1e24)}.ui-tooltip--direita .ui-tooltip__arrow{left:-5px;top:50%;transform:translateY(-50%);border-width:5px 5px 5px 0;border-color:transparent var(--ui-cor-fundo-elevado, #1e1e24) transparent transparent}.ui-tooltip--visivel .ui-tooltip__bubble{opacity:1;visibility:visible;pointer-events:auto;transform:scale(1)}@starting-style{.ui-tooltip--visivel .ui-tooltip__bubble,.ui-tooltip__bubble:popover-open{opacity:0;transform:scale(.94)}}";
+class wt extends HTMLElement {
   constructor() {
     super();
-    n(this, "containerElement");
-    n(this, "bubbleElement");
-    n(this, "_posicionamentoAtivo", !1);
-    n(this, "posicionarBubble", () => {
+    l(this, "containerElement");
+    l(this, "bubbleElement");
+    l(this, "_posicionamentoAtivo", !1);
+    l(this, "posicionarBubble", () => {
       if (!this.aberto) return;
-      const e = this.getBoundingClientRect(), t = this.bubbleElement.getBoundingClientRect(), i = this.getAttribute("posicao") || this.getAttribute("position") || "topo";
+      const t = this.getBoundingClientRect(), e = this.bubbleElement.getBoundingClientRect(), i = this.getAttribute("posicao") || this.getAttribute("position") || "topo";
       let a = "topo";
       ["topo", "top"].includes(i) ? a = "topo" : ["baixo", "bottom"].includes(i) ? a = "baixo" : ["esquerda", "left"].includes(i) ? a = "esquerda" : ["direita", "right"].includes(i) && (a = "direita");
-      let s = 0, r = 0;
-      const l = 8;
-      a === "topo" ? (s = e.top - t.height - l, r = e.left + e.width / 2 - t.width / 2) : a === "baixo" ? (s = e.bottom + l, r = e.left + e.width / 2 - t.width / 2) : a === "esquerda" ? (s = e.top + e.height / 2 - t.height / 2, r = e.left - t.width - l) : a === "direita" && (s = e.top + e.height / 2 - t.height / 2, r = e.right + l), r = Math.max(8, Math.min(r, window.innerWidth - t.width - 8)), s = Math.max(8, Math.min(s, window.innerHeight - t.height - 8)), this.bubbleElement.style.top = `${Math.round(s)}px`, this.bubbleElement.style.left = `${Math.round(r)}px`;
+      let r = 0, s = 0;
+      const n = 8;
+      a === "topo" ? (r = t.top - e.height - n, s = t.left + t.width / 2 - e.width / 2) : a === "baixo" ? (r = t.bottom + n, s = t.left + t.width / 2 - e.width / 2) : a === "esquerda" ? (r = t.top + t.height / 2 - e.height / 2, s = t.left - e.width - n) : a === "direita" && (r = t.top + t.height / 2 - e.height / 2, s = t.right + n), s = Math.max(8, Math.min(s, window.innerWidth - e.width - 8)), r = Math.max(8, Math.min(r, window.innerHeight - e.height - 8)), this.bubbleElement.style.top = `${Math.round(r)}px`, this.bubbleElement.style.left = `${Math.round(s)}px`;
     });
-    n(this, "handleMouseEnter", () => {
-      const e = this.getAttribute("gatilho") || this.getAttribute("trigger") || "hover";
-      (e === "hover" || e === "passar-mouse") && this.mostrar();
+    l(this, "handleMouseEnter", () => {
+      const t = this.getAttribute("gatilho") || this.getAttribute("trigger") || "hover";
+      (t === "hover" || t === "passar-mouse") && this.mostrar();
     });
-    n(this, "handleMouseLeave", () => {
-      const e = this.getAttribute("gatilho") || this.getAttribute("trigger") || "hover";
-      (e === "hover" || e === "passar-mouse") && this.ocultar();
+    l(this, "handleMouseLeave", () => {
+      const t = this.getAttribute("gatilho") || this.getAttribute("trigger") || "hover";
+      (t === "hover" || t === "passar-mouse") && this.ocultar();
     });
-    n(this, "handleClick", (e) => {
-      const t = this.getAttribute("gatilho") || this.getAttribute("trigger") || "hover", i = window.matchMedia("(pointer: coarse)").matches;
-      (t === "clique" || t === "click" || i) && (e.stopPropagation(), this.aberto = !this.aberto);
+    l(this, "handleClick", (t) => {
+      const e = this.getAttribute("gatilho") || this.getAttribute("trigger") || "hover", i = window.matchMedia("(pointer: coarse)").matches;
+      (e === "clique" || e === "click" || i) && (t.stopPropagation(), this.aberto = !this.aberto);
     });
-    n(this, "handleClickOutside", (e) => {
-      e.composedPath().includes(this) || this.ocultar();
+    l(this, "handleClickOutside", (t) => {
+      t.composedPath().includes(this) || this.ocultar();
     });
-    const e = this.attachShadow({ mode: "open" });
-    e.innerHTML = `
-      <style>${Ve}</style>
+    const t = this.attachShadow({ mode: "open" });
+    t.innerHTML = `
+      <style>${ae}</style>
       <div class="ui-tooltip ui-tooltip--topo">
         <slot></slot>
         <div class="ui-tooltip__bubble" role="tooltip" popover="manual">
@@ -1951,7 +1951,7 @@ class ne extends HTMLElement {
           <span class="ui-tooltip__arrow"></span>
         </div>
       </div>
-    `, this.containerElement = e.querySelector(".ui-tooltip"), this.bubbleElement = e.querySelector(".ui-tooltip__bubble");
+    `, this.containerElement = t.querySelector(".ui-tooltip"), this.bubbleElement = t.querySelector(".ui-tooltip__bubble");
   }
   static get observedAttributes() {
     return [
@@ -1972,20 +1972,20 @@ class ne extends HTMLElement {
   disconnectedCallback() {
     this.removeEventListener("mouseenter", this.handleMouseEnter), this.removeEventListener("mouseleave", this.handleMouseLeave), this.removeEventListener("focusin", this.handleMouseEnter), this.removeEventListener("focusout", this.handleMouseLeave), this.removeEventListener("click", this.handleClick), document.removeEventListener("click", this.handleClickOutside), this._posicionamentoAtivo && (this._posicionamentoAtivo = !1, window.removeEventListener("scroll", this.posicionarBubble, { capture: !0 }), window.removeEventListener("resize", this.posicionarBubble)), this.ocultar();
   }
-  attributeChangedCallback(e, t, i) {
+  attributeChangedCallback(t, e, i) {
     this.syncState();
   }
   get aberto() {
     return this.hasAttribute("aberto") || this.hasAttribute("open");
   }
-  set aberto(e) {
-    e ? this.setAttribute("aberto", "") : (this.removeAttribute("aberto"), this.removeAttribute("open")), this.syncState();
+  set aberto(t) {
+    t ? this.setAttribute("aberto", "") : (this.removeAttribute("aberto"), this.removeAttribute("open")), this.syncState();
   }
   get disabled() {
     return this.hasAttribute("disabled");
   }
-  set disabled(e) {
-    e ? this.setAttribute("disabled", "") : this.removeAttribute("disabled"), this.syncState();
+  set disabled(t) {
+    t ? this.setAttribute("disabled", "") : this.removeAttribute("disabled"), this.syncState();
   }
   mostrar() {
     this.disabled || (this.aberto = !0);
@@ -1994,10 +1994,10 @@ class ne extends HTMLElement {
     this.aberto = !1;
   }
   syncState() {
-    var r;
-    const e = this.aberto, t = this.getAttribute("posicao") || this.getAttribute("position") || "topo", i = this.getAttribute("texto") || this.getAttribute("text") || "", a = (r = this.shadowRoot) == null ? void 0 : r.querySelector(".ui-tooltip__texto");
-    let s = "topo";
-    if (["topo", "top"].includes(t) ? s = "topo" : ["baixo", "bottom"].includes(t) ? s = "baixo" : ["esquerda", "left"].includes(t) ? s = "esquerda" : ["direita", "right"].includes(t) && (s = "direita"), this.containerElement.className = `ui-tooltip ui-tooltip--${s}`, a && (i ? (a.textContent = i, a.style.display = "inline") : a.style.display = "none"), e) {
+    var s;
+    const t = this.aberto, e = this.getAttribute("posicao") || this.getAttribute("position") || "topo", i = this.getAttribute("texto") || this.getAttribute("text") || "", a = (s = this.shadowRoot) == null ? void 0 : s.querySelector(".ui-tooltip__texto");
+    let r = "topo";
+    if (["topo", "top"].includes(e) ? r = "topo" : ["baixo", "bottom"].includes(e) ? r = "baixo" : ["esquerda", "left"].includes(e) ? r = "esquerda" : ["direita", "right"].includes(e) && (r = "direita"), this.containerElement.className = `ui-tooltip ui-tooltip--${r}`, a && (i ? (a.textContent = i, a.style.display = "inline") : a.style.display = "none"), t) {
       if (document.addEventListener("click", this.handleClickOutside), typeof this.bubbleElement.showPopover == "function")
         try {
           this.bubbleElement.showPopover();
@@ -2016,39 +2016,39 @@ class ne extends HTMLElement {
     }
   }
 }
-class We extends ne {
+class re extends wt {
 }
-customElements.get("ui-tooltip") || customElements.define("ui-tooltip", ne);
-customElements.get("ui-popover") || customElements.define("ui-popover", We);
-const Ge = ':host{display:block;width:100%;box-sizing:border-box;font-family:inherit;color:var(--ui-cor-texto, #e1e1e6);position:relative}.ui-tabela-container{width:100%;max-width:100%;max-height:var(--ui-tabela-max-height, 500px);overflow-x:auto;overflow-y:auto;border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));border-radius:var(--ui-raio-borda, 6px);background-color:var(--ui-cor-superficie, #141417);box-sizing:border-box;position:relative}.ui-tabela{width:100%;border-collapse:separate;border-spacing:0;text-align:left;font-size:14px}.ui-tabela thead{position:sticky;top:0;z-index:10;background-color:var(--ui-cor-fundo-elevado, #1a1a1e)}.ui-tabela th{position:sticky;top:0;z-index:10;padding:10px 16px;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);color:var(--ui-cor-texto, #e1e1e6);font-weight:600;border-bottom:2px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));white-space:nowrap;-webkit-user-select:none;user-select:none;box-sizing:border-box}.ui-tabela__resizer{position:absolute;top:0;right:0;width:6px;height:100%;cursor:col-resize;-webkit-user-select:none;user-select:none;z-index:20;transition:background-color .15s ease}.ui-tabela__resizer:hover,.ui-tabela__resizer--ativo{background-color:var(--ui-cor-primaria, #00E08A)}:host([densidade="compacta"]) th,:host([densidade="compacta"]) td,:host([density="compact"]) th,:host([density="compact"]) td{padding:4px 8px}:host([densidade="normal"]) th,:host([densidade="normal"]) td,:host([density="normal"]) th,:host([density="normal"]) td{padding:10px 16px}:host([densidade="relaxada"]) th,:host([densidade="relaxada"]) td,:host([density="relaxed"]) th,:host([density="relaxed"]) td{padding:16px 20px}.ui-tabela__header-content{display:inline-flex;align-items:center;vertical-align:middle;width:100%;box-sizing:border-box}.ui-tabela__header-text{margin-right:90px;display:inline-flex;align-items:center}.ui-tabela__sort-icon,.ui-tabela__header-icon{width:70px;min-width:70px;max-width:70px;display:inline-flex;justify-content:center;align-items:center;transition:transform .2s ease,opacity .2s ease}.ui-tabela th.ui-tabela__th--ordenavel{cursor:pointer}.ui-tabela th.ui-tabela__th--ordenavel:hover{background-color:var(--ui-cor-hover-menu, rgba(255, 255, 255, .08))}.ui-tabela__sort-arrow{display:inline-block;width:12px;height:12px;vertical-align:middle;shape-rendering:geometricPrecision;transition:transform .2s ease,fill .2s ease;fill:var(--ui-cor-primaria, #00E08A)}.ui-tabela__sort-arrow--desc{transform:rotate(180deg)}.ui-tabela__sort-arrow--inativo{opacity:.3;fill:var(--ui-cor-texto-secundario, #888899)}.ui-tabela td{padding:10px 16px;border-bottom:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .06));white-space:nowrap;vertical-align:middle;color:var(--ui-cor-texto, #e1e1e6);box-sizing:border-box}.ui-tabela__cell-content{display:inline-flex;align-items:center;vertical-align:middle}.ui-tabela__cell-truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}.ui-tabela--alinhar-esquerda{text-align:left}.ui-tabela--alinhar-esquerda .ui-tabela__header-content,.ui-tabela--alinhar-esquerda .ui-tabela__cell-content{justify-content:flex-start}.ui-tabela--alinhar-centro{text-align:center}.ui-tabela--alinhar-centro .ui-tabela__header-content,.ui-tabela--alinhar-centro .ui-tabela__cell-content{justify-content:center}.ui-tabela--alinhar-direita{text-align:right}.ui-tabela--alinhar-direita .ui-tabela__header-content,.ui-tabela--alinhar-direita .ui-tabela__cell-content{justify-content:flex-end}.ui-tabela tbody tr:nth-child(2n){background-color:var(--ui-cor-fundo-card, rgba(255, 255, 255, .02))}.ui-tabela tbody tr:hover{background-color:var(--ui-cor-hover-menu, rgba(255, 255, 255, .08))}.ui-tabela__virtual-spacer td{padding:0!important;border:none!important;height:inherit;background:transparent!important}.ui-tabela__empty{padding:48px 24px;text-align:center;border:2px dashed var(--ui-cor-borda, rgba(255, 255, 255, .2));border-radius:var(--ui-raio-borda, 6px);margin:16px;color:var(--ui-cor-texto-secundario, #888899);background-color:var(--ui-cor-fundo, #0b0b0d);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;box-sizing:border-box}.ui-tabela__empty-icon{width:32px;height:32px;opacity:.5;fill:currentColor}.ui-tabela__empty-text{font-size:14px;font-weight:500;color:var(--ui-cor-texto-secundario, #888899)}.ui-tabela__loading{position:absolute;top:0;left:0;right:0;bottom:0;background-color:#0b0b0db3;-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;z-index:50;color:var(--ui-cor-primaria, #00E08A);font-size:14px}.ui-tabela__spinner{width:32px;height:32px;border:3px solid rgba(255,255,255,.15);border-top-color:var(--ui-cor-primaria, #00E08A);border-radius:50%;animation:ui-tabela-spin .8s linear infinite}@keyframes ui-tabela-spin{to{transform:rotate(360deg)}}.ui-tabela__context-menu{position:absolute;z-index:100;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .2));border-radius:var(--ui-raio-borda, 6px);box-shadow:0 4px 20px #0009;padding:6px;display:flex;flex-direction:column;gap:4px;min-width:200px;font-size:13px;color:var(--ui-cor-texto, #e1e1e6)}.ui-tabela__context-item{padding:8px 12px;border-radius:4px;cursor:pointer;color:var(--ui-cor-texto, #e1e1e6);display:flex;align-items:center;justify-content:space-between;gap:8px;transition:background-color .15s ease}.ui-tabela__context-item:hover{background-color:var(--ui-cor-hover-menu, rgba(255, 255, 255, .08));color:var(--ui-cor-primaria, #00E08A)}.ui-tabela__prompt-dialog{border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .2));border-radius:var(--ui-raio-borda, 6px);background-color:var(--ui-cor-fundo-elevado, #1a1a1e);color:var(--ui-cor-texto, #e1e1e6);padding:12px;box-shadow:0 8px 32px #000c;font-family:inherit;font-size:14px}.ui-tabela__prompt-dialog::backdrop{background:#0000004d}.ui-tabela__prompt-title{margin-bottom:8px;font-weight:500}.ui-tabela__prompt-dialog input{width:100%;padding:6px 8px;border-radius:4px;border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .2));background:var(--ui-cor-superficie, #141417);color:var(--ui-cor-texto, #e1e1e6);margin-bottom:12px;box-sizing:border-box}.ui-tabela__prompt-actions{display:flex;justify-content:flex-end;gap:8px}.ui-tabela__prompt-actions button{background:var(--ui-cor-borda, rgba(255, 255, 255, .12));color:var(--ui-cor-texto, #e1e1e6);border:none;padding:6px 12px;border-radius:4px;cursor:pointer}.ui-tabela__prompt-actions button:last-child{background:var(--ui-cor-primaria, #00E08A);color:#000;font-weight:600}';
-class Ue extends HTMLElement {
+customElements.get("ui-tooltip") || customElements.define("ui-tooltip", wt);
+customElements.get("ui-popover") || customElements.define("ui-popover", re);
+const se = ':host{display:block;width:100%;box-sizing:border-box;font-family:inherit;color:var(--ui-cor-texto, #e1e1e6);position:relative}.ui-tabela-container{width:100%;max-width:100%;max-height:var(--ui-tabela-max-height, 500px);overflow-x:auto;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-x pan-y;border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));border-radius:var(--ui-raio-borda, 6px);background-color:var(--ui-cor-superficie, #141417);box-sizing:border-box;position:relative}.ui-tabela{width:100%;border-collapse:separate;border-spacing:0;text-align:left;font-size:14px}.ui-tabela thead{position:sticky;top:0;z-index:10;background-color:var(--ui-cor-fundo-elevado, #1a1a1e)}.ui-tabela th{position:sticky;top:0;z-index:10;padding:10px 16px;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);color:var(--ui-cor-texto, #e1e1e6);font-weight:600;border-bottom:2px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));white-space:nowrap;-webkit-user-select:none;user-select:none;box-sizing:border-box}.ui-tabela__resizer{position:absolute;top:0;right:0;width:6px;height:100%;cursor:col-resize;-webkit-user-select:none;user-select:none;z-index:20;transition:background-color .15s ease}.ui-tabela__resizer:hover,.ui-tabela__resizer--ativo{background-color:var(--ui-cor-primaria, #00E08A)}:host([densidade="compacta"]) th,:host([densidade="compacta"]) td,:host([density="compact"]) th,:host([density="compact"]) td{padding:4px 8px}:host([densidade="normal"]) th,:host([densidade="normal"]) td,:host([density="normal"]) th,:host([density="normal"]) td{padding:10px 16px}:host([densidade="relaxada"]) th,:host([densidade="relaxada"]) td,:host([density="relaxed"]) th,:host([density="relaxed"]) td{padding:16px 20px}.ui-tabela__header-content{display:inline-flex;align-items:center;vertical-align:middle;width:100%;box-sizing:border-box}.ui-tabela__header-text{margin-right:90px;display:inline-flex;align-items:center}.ui-tabela__sort-icon,.ui-tabela__header-icon{width:70px;min-width:70px;max-width:70px;display:inline-flex;justify-content:center;align-items:center;transition:transform .2s ease,opacity .2s ease}.ui-tabela th.ui-tabela__th--ordenavel{cursor:pointer}.ui-tabela th.ui-tabela__th--ordenavel:hover{background-color:var(--ui-cor-hover-menu, rgba(255, 255, 255, .08))}.ui-tabela__sort-arrow{display:inline-block;width:12px;height:12px;vertical-align:middle;shape-rendering:geometricPrecision;transition:transform .2s ease,fill .2s ease;fill:var(--ui-cor-primaria, #00E08A)}.ui-tabela__sort-arrow--desc{transform:rotate(180deg)}.ui-tabela__sort-arrow--inativo{opacity:.3;fill:var(--ui-cor-texto-secundario, #888899)}.ui-tabela td{padding:10px 16px;border-bottom:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .06));white-space:nowrap;vertical-align:middle;color:var(--ui-cor-texto, #e1e1e6);box-sizing:border-box}.ui-tabela__cell-content{display:inline-flex;align-items:center;vertical-align:middle}.ui-tabela__cell-truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}.ui-tabela--alinhar-esquerda{text-align:left}.ui-tabela--alinhar-esquerda .ui-tabela__header-content,.ui-tabela--alinhar-esquerda .ui-tabela__cell-content{justify-content:flex-start}.ui-tabela--alinhar-centro{text-align:center}.ui-tabela--alinhar-centro .ui-tabela__header-content,.ui-tabela--alinhar-centro .ui-tabela__cell-content{justify-content:center}.ui-tabela--alinhar-direita{text-align:right}.ui-tabela--alinhar-direita .ui-tabela__header-content,.ui-tabela--alinhar-direita .ui-tabela__cell-content{justify-content:flex-end}.ui-tabela tbody tr:nth-child(2n){background-color:var(--ui-cor-fundo-card, rgba(255, 255, 255, .02))}.ui-tabela tbody tr:hover{background-color:var(--ui-cor-hover-menu, rgba(255, 255, 255, .08))}.ui-tabela__virtual-spacer td{padding:0!important;border:none!important;height:inherit;background:transparent!important}.ui-tabela__empty{padding:48px 24px;text-align:center;border:2px dashed var(--ui-cor-borda, rgba(255, 255, 255, .2));border-radius:var(--ui-raio-borda, 6px);margin:16px;color:var(--ui-cor-texto-secundario, #888899);background-color:var(--ui-cor-fundo, #0b0b0d);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;box-sizing:border-box}.ui-tabela__empty-icon{width:32px;height:32px;opacity:.5;fill:currentColor}.ui-tabela__empty-text{font-size:14px;font-weight:500;color:var(--ui-cor-texto-secundario, #888899)}.ui-tabela__loading{position:absolute;top:0;left:0;right:0;bottom:0;background-color:#0b0b0db3;-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;z-index:50;color:var(--ui-cor-primaria, #00E08A);font-size:14px}.ui-tabela__spinner{width:32px;height:32px;border:3px solid rgba(255,255,255,.15);border-top-color:var(--ui-cor-primaria, #00E08A);border-radius:50%;animation:ui-tabela-spin .8s linear infinite}@keyframes ui-tabela-spin{to{transform:rotate(360deg)}}.ui-tabela__context-menu{position:absolute;z-index:100;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .2));border-radius:var(--ui-raio-borda, 6px);box-shadow:0 4px 20px #0009;padding:6px;display:flex;flex-direction:column;gap:4px;min-width:200px;font-size:13px;color:var(--ui-cor-texto, #e1e1e6)}.ui-tabela__context-item{padding:8px 12px;border-radius:4px;cursor:pointer;color:var(--ui-cor-texto, #e1e1e6);display:flex;align-items:center;justify-content:space-between;gap:8px;transition:background-color .15s ease}.ui-tabela__context-item:hover{background-color:var(--ui-cor-hover-menu, rgba(255, 255, 255, .08));color:var(--ui-cor-primaria, #00E08A)}.ui-tabela__prompt-dialog{border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .2));border-radius:var(--ui-raio-borda, 6px);background-color:var(--ui-cor-fundo-elevado, #1a1a1e);color:var(--ui-cor-texto, #e1e1e6);padding:12px;box-shadow:0 8px 32px #000c;font-family:inherit;font-size:14px}.ui-tabela__prompt-dialog::backdrop{background:#0000004d}.ui-tabela__prompt-title{margin-bottom:8px;font-weight:500}.ui-tabela__prompt-dialog input{width:100%;padding:6px 8px;border-radius:4px;border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .2));background:var(--ui-cor-superficie, #141417);color:var(--ui-cor-texto, #e1e1e6);margin-bottom:12px;box-sizing:border-box}.ui-tabela__prompt-actions{display:flex;justify-content:flex-end;gap:8px}.ui-tabela__prompt-actions button{background:var(--ui-cor-borda, rgba(255, 255, 255, .12));color:var(--ui-cor-texto, #e1e1e6);border:none;padding:6px 12px;border-radius:4px;cursor:pointer}.ui-tabela__prompt-actions button:last-child{background:var(--ui-cor-primaria, #00E08A);color:#000;font-weight:600}@media (max-width: 640px){.ui-tabela th{padding:8px 10px;font-size:12px}.ui-tabela td{padding:8px 10px;font-size:13px}.ui-tabela__header-text{margin-right:16px}.ui-tabela__sort-icon,.ui-tabela__header-icon{width:24px;min-width:24px;max-width:24px}.ui-tabela__resizer{width:14px}}';
+class ne extends HTMLElement {
   constructor() {
     super();
-    n(this, "shadow");
-    n(this, "_colunas", []);
-    n(this, "_dadosOriginais", []);
-    n(this, "_dadosExibicao", []);
-    n(this, "_colunaOrdenada", null);
-    n(this, "_direcaoOrdenacao", "original");
-    n(this, "_textoVazio", "Nenhum registro encontrado");
-    n(this, "_virtualizar", !0);
-    n(this, "_isResizing", !1);
-    n(this, "_carregando", !1);
-    n(this, "_src", null);
-    n(this, "_ultimoFiltro", "");
-    n(this, "_autoFetchController", null);
+    l(this, "shadow");
+    l(this, "_colunas", []);
+    l(this, "_dadosOriginais", []);
+    l(this, "_dadosExibicao", []);
+    l(this, "_colunaOrdenada", null);
+    l(this, "_direcaoOrdenacao", "original");
+    l(this, "_textoVazio", "Nenhum registro encontrado");
+    l(this, "_virtualizar", !0);
+    l(this, "_isResizing", !1);
+    l(this, "_carregando", !1);
+    l(this, "_src", null);
+    l(this, "_ultimoFiltro", "");
+    l(this, "_autoFetchController", null);
     // Gerenciamento de Ouvintes e Elementos DOM
-    n(this, "_containerElement", null);
-    n(this, "_tableElement", null);
-    n(this, "_theadElement", null);
-    n(this, "_tbodyElement", null);
-    n(this, "_colgroupElement", null);
-    n(this, "_emptyElement", null);
-    n(this, "_loadingElement", null);
-    n(this, "_scrollHandler", null);
-    n(this, "_activeResizeCleanup", null);
-    n(this, "_headerListeners", new z());
-    n(this, "_ticking", !1);
+    l(this, "_containerElement", null);
+    l(this, "_tableElement", null);
+    l(this, "_theadElement", null);
+    l(this, "_tbodyElement", null);
+    l(this, "_colgroupElement", null);
+    l(this, "_emptyElement", null);
+    l(this, "_loadingElement", null);
+    l(this, "_scrollHandler", null);
+    l(this, "_activeResizeCleanup", null);
+    l(this, "_headerListeners", new D());
+    l(this, "_ticking", !1);
     this.shadow = this.attachShadow({ mode: "open" });
   }
   static get observedAttributes() {
@@ -2071,31 +2071,31 @@ class Ue extends HTMLElement {
   disconnectedCallback() {
     this.cleanupEventListeners();
   }
-  attributeChangedCallback(e, t, i) {
-    if (this.syncAttributes(), e === "max-height" && this._containerElement) {
+  attributeChangedCallback(t, e, i) {
+    if (this.syncAttributes(), t === "max-height" && this._containerElement) {
       this._containerElement.style.maxHeight = this.getAttribute("max-height") || "";
       return;
     }
-    if ((e === "texto-vazio" || e === "empty-text") && this._emptyElement) {
+    if ((t === "texto-vazio" || t === "empty-text") && this._emptyElement) {
       const a = this._emptyElement.querySelector(".ui-tabela__empty-text");
       a && (a.textContent = this._textoVazio), this.renderBody();
       return;
     }
-    if (e === "carregando" || e === "loading") {
+    if (t === "carregando" || t === "loading") {
       this.renderLoading();
       return;
     }
-    if (e === "densidade" || e === "density") {
+    if (t === "densidade" || t === "density") {
       this.renderBody();
       return;
     }
     this.renderTotal();
   }
   syncAttributes() {
-    const e = this.getAttribute("texto-vazio") || this.getAttribute("empty-text");
-    e && (this._textoVazio = e);
-    const t = this.getAttribute("virtualizar") || this.getAttribute("virtualize");
-    t !== null && (this._virtualizar = t !== "false");
+    const t = this.getAttribute("texto-vazio") || this.getAttribute("empty-text");
+    t && (this._textoVazio = t);
+    const e = this.getAttribute("virtualizar") || this.getAttribute("virtualize");
+    e !== null && (this._virtualizar = e !== "false");
     const i = this.getAttribute("src");
     i && i !== this._src && (this._src = i, this.isConnected && this.carregarDoEndpoint(i));
     const a = this.hasAttribute("carregando") || this.hasAttribute("loading");
@@ -2104,34 +2104,34 @@ class Ue extends HTMLElement {
   get src() {
     return this._src;
   }
-  set src(e) {
-    this._src = e, e ? (this.setAttribute("src", e), this.carregarDoEndpoint(e)) : this.removeAttribute("src");
+  set src(t) {
+    this._src = t, t ? (this.setAttribute("src", t), this.carregarDoEndpoint(t)) : this.removeAttribute("src");
   }
   get carregando() {
     return this._carregando;
   }
-  set carregando(e) {
-    this._carregando = !!e, this._carregando ? this.setAttribute("carregando", "") : (this.removeAttribute("carregando"), this.removeAttribute("loading")), this.renderLoading();
+  set carregando(t) {
+    this._carregando = !!t, this._carregando ? this.setAttribute("carregando", "") : (this.removeAttribute("carregando"), this.removeAttribute("loading")), this.renderLoading();
   }
   /**
    * Realiza busca assíncrona automática a partir de um endpoint JSON.
    */
-  async carregarDoEndpoint(e) {
-    const t = e || this._src;
-    if (!t) return;
+  async carregarDoEndpoint(t) {
+    const e = t || this._src;
+    if (!e) return;
     this._autoFetchController && (this._autoFetchController.abort(), this._autoFetchController = null);
     const i = new AbortController();
-    this._autoFetchController = i, this.carregando = !0, this.dispatchEvent(new CustomEvent("ui-fetch-start", { bubbles: !0, composed: !0, detail: { url: t } }));
+    this._autoFetchController = i, this.carregando = !0, this.dispatchEvent(new CustomEvent("ui-fetch-start", { bubbles: !0, composed: !0, detail: { url: e } }));
     try {
-      const a = await fetch(t, { signal: i.signal });
+      const a = await fetch(e, { signal: i.signal });
       if (!a.ok)
         throw new Error(`HTTP ${a.status}: ${a.statusText}`);
-      const s = await a.json(), r = Array.isArray(s) ? s : s.dados || s.items || s.data || s.rows || [];
-      this._autoFetchController === i && (this.dados = r, this.carregando = !1, this._autoFetchController = null, this.dispatchEvent(
+      const r = await a.json(), s = Array.isArray(r) ? r : r.dados || r.items || r.data || r.rows || [];
+      this._autoFetchController === i && (this.dados = s, this.carregando = !1, this._autoFetchController = null, this.dispatchEvent(
         new CustomEvent("ui-fetch-sucesso", {
           bubbles: !0,
           composed: !0,
-          detail: { url: t, total: r.length, dados: r }
+          detail: { url: e, total: s.length, dados: s }
         })
       ));
     } catch (a) {
@@ -2141,7 +2141,7 @@ class Ue extends HTMLElement {
         new CustomEvent("ui-fetch-erro", {
           bubbles: !0,
           composed: !0,
-          detail: { url: t, erro: a.message || String(a) }
+          detail: { url: e, erro: a.message || String(a) }
         })
       ));
     }
@@ -2155,13 +2155,13 @@ class Ue extends HTMLElement {
   /**
    * Filtra os registros exibidos por um termo de busca em todas as colunas.
    */
-  filtrar(e) {
-    if (this._ultimoFiltro = (e || "").trim().toLowerCase(), !this._ultimoFiltro) {
+  filtrar(t) {
+    if (this._ultimoFiltro = (t || "").trim().toLowerCase(), !this._ultimoFiltro) {
       this.aplicarOrdenacao(), this.renderBody();
       return;
     }
-    const t = this._dadosOriginais.filter((i) => Object.values(i).some((a) => a == null ? !1 : String(a).toLowerCase().includes(this._ultimoFiltro)));
-    this._dadosExibicao = t, this.renderBody();
+    const e = this._dadosOriginais.filter((i) => Object.values(i).some((a) => a == null ? !1 : String(a).toLowerCase().includes(this._ultimoFiltro)));
+    this._dadosExibicao = e, this.renderBody();
   }
   renderLoading() {
     this._loadingElement && (this._carregando ? this._loadingElement.style.display = "flex" : this._loadingElement.style.display = "none");
@@ -2169,65 +2169,65 @@ class Ue extends HTMLElement {
   cleanupEventListeners() {
     this._containerElement && this._scrollHandler && (this._containerElement.removeEventListener("scroll", this._scrollHandler), this._scrollHandler = null), this._activeResizeCleanup && (this._activeResizeCleanup(), this._activeResizeCleanup = null), this._autoFetchController && (this._autoFetchController.abort(), this._autoFetchController = null), this._headerListeners.cleanup();
   }
-  addHeaderListener(e, t, i) {
-    this._headerListeners.add(e, t, i);
+  addHeaderListener(t, e, i) {
+    this._headerListeners.add(t, e, i);
   }
   // Getters & Setters Reativos
   get colunas() {
     return this._colunas;
   }
-  set colunas(e) {
-    this._colunas = Array.isArray(e) ? e : [], this.renderTotal();
+  set colunas(t) {
+    this._colunas = Array.isArray(t) ? t : [], this.renderTotal();
   }
   get dados() {
     return this._dadosOriginais;
   }
-  set dados(e) {
-    const t = Array.isArray(e) ? e : [];
-    this._dadosOriginais = [...t], this.aplicarOrdenacao(), this.renderBody();
+  set dados(t) {
+    const e = Array.isArray(t) ? t : [];
+    this._dadosOriginais = [...e], this.aplicarOrdenacao(), this.renderBody();
   }
   get densidade() {
-    const e = this.getAttribute("densidade") || this.getAttribute("density");
-    return e === "compacta" || e === "compact" ? "compacta" : e === "relaxada" || e === "relaxed" ? "relaxada" : "normal";
+    const t = this.getAttribute("densidade") || this.getAttribute("density");
+    return t === "compacta" || t === "compact" ? "compacta" : t === "relaxada" || t === "relaxed" ? "relaxada" : "normal";
   }
-  set densidade(e) {
-    e ? this.setAttribute("densidade", e) : (this.removeAttribute("densidade"), this.removeAttribute("density")), this.renderBody();
+  set densidade(t) {
+    t ? this.setAttribute("densidade", t) : (this.removeAttribute("densidade"), this.removeAttribute("density")), this.renderBody();
   }
   get virtualizar() {
     return this._virtualizar;
   }
-  set virtualizar(e) {
-    this._virtualizar = !!e, this._virtualizar ? this.setAttribute("virtualizar", "true") : this.removeAttribute("virtualizar"), this.renderTotal();
+  set virtualizar(t) {
+    this._virtualizar = !!t, this._virtualizar ? this.setAttribute("virtualizar", "true") : this.removeAttribute("virtualizar"), this.renderTotal();
   }
   get colunaOrdenada() {
     return this._colunaOrdenada;
   }
-  set colunaOrdenada(e) {
-    this._colunaOrdenada = e, e ? this._direcaoOrdenacao === "original" && (this._direcaoOrdenacao = "asc") : this._direcaoOrdenacao = "original", this.aplicarOrdenacao(), this.renderHeader(), this.renderBody();
+  set colunaOrdenada(t) {
+    this._colunaOrdenada = t, t ? this._direcaoOrdenacao === "original" && (this._direcaoOrdenacao = "asc") : this._direcaoOrdenacao = "original", this.aplicarOrdenacao(), this.renderHeader(), this.renderBody();
   }
   get direcaoOrdenacao() {
     return this._direcaoOrdenacao;
   }
-  set direcaoOrdenacao(e) {
-    this._direcaoOrdenacao = e || "original", this._direcaoOrdenacao === "original" && (this._colunaOrdenada = null), this.aplicarOrdenacao(), this.renderHeader(), this.renderBody();
+  set direcaoOrdenacao(t) {
+    this._direcaoOrdenacao = t || "original", this._direcaoOrdenacao === "original" && (this._colunaOrdenada = null), this.aplicarOrdenacao(), this.renderHeader(), this.renderBody();
   }
   get textoVazio() {
     return this._textoVazio;
   }
-  set textoVazio(e) {
-    this._textoVazio = e || "Nenhum registro encontrado", this.renderTotal();
+  set textoVazio(t) {
+    this._textoVazio = t || "Nenhum registro encontrado", this.renderTotal();
   }
   // Ordenação Local Client-Side de 3 Estados
-  handleHeaderClick(e) {
-    if (!e.ordenavel || this._isResizing) return;
-    this._colunaOrdenada !== e.id ? (this._colunaOrdenada = e.id, this._direcaoOrdenacao = "asc") : this._direcaoOrdenacao === "asc" ? this._direcaoOrdenacao = "desc" : this._direcaoOrdenacao === "desc" ? (this._direcaoOrdenacao = "original", this._colunaOrdenada = null) : (this._direcaoOrdenacao = "asc", this._colunaOrdenada = e.id), this.aplicarOrdenacao(), this.renderHeader(), this.renderBody();
-    const t = {
+  handleHeaderClick(t) {
+    if (!t.ordenavel || this._isResizing) return;
+    this._colunaOrdenada !== t.id ? (this._colunaOrdenada = t.id, this._direcaoOrdenacao = "asc") : this._direcaoOrdenacao === "asc" ? this._direcaoOrdenacao = "desc" : this._direcaoOrdenacao === "desc" ? (this._direcaoOrdenacao = "original", this._colunaOrdenada = null) : (this._direcaoOrdenacao = "asc", this._colunaOrdenada = t.id), this.aplicarOrdenacao(), this.renderHeader(), this.renderBody();
+    const e = {
       idColuna: this._colunaOrdenada,
       direcao: this._direcaoOrdenacao
     };
     this.dispatchEvent(
       new CustomEvent("ui-sort", {
-        detail: t,
+        detail: e,
         bubbles: !0,
         composed: !0
       })
@@ -2238,118 +2238,118 @@ class Ue extends HTMLElement {
       this._dadosExibicao = [...this._dadosOriginais];
       return;
     }
-    const e = this._colunaOrdenada, t = this._direcaoOrdenacao === "asc" ? 1 : -1;
+    const t = this._colunaOrdenada, e = this._direcaoOrdenacao === "asc" ? 1 : -1;
     this._dadosExibicao = [...this._dadosOriginais].sort((i, a) => {
-      const s = i[e], r = a[e];
-      return s === r ? 0 : s == null ? 1 * t : r == null ? -1 * t : typeof s == "number" && typeof r == "number" ? (s - r) * t : String(s).localeCompare(String(r), "pt-BR", { numeric: !0, sensitivity: "base" }) * t;
+      const r = i[t], s = a[t];
+      return r === s ? 0 : r == null ? 1 * e : s == null ? -1 * e : typeof r == "number" && typeof s == "number" ? (r - s) * e : String(r).localeCompare(String(s), "pt-BR", { numeric: !0, sensitivity: "base" }) * e;
     });
   }
   // Redimensionamento de Colunas (Drag-to-resize)
-  initColumnResize(e, t, i, a, s) {
-    var m;
-    e.stopPropagation(), e.preventDefault(), this._isResizing = !0, s.classList.add("ui-tabela__resizer--ativo");
-    const r = e.pageX, l = a.offsetWidth, u = (m = this._colgroupElement) == null ? void 0 : m.children[i], d = (h) => {
-      const f = h.pageX - r;
-      let g = l + f;
-      if (t.larguraMinima !== void 0) {
-        const v = typeof t.larguraMinima == "number" ? t.larguraMinima : parseInt(t.larguraMinima, 10);
-        isNaN(v) || (g = Math.max(v, g));
+  initColumnResize(t, e, i, a, r) {
+    var p;
+    t.stopPropagation(), t.preventDefault(), this._isResizing = !0, r.classList.add("ui-tabela__resizer--ativo");
+    const s = t.pageX, n = a.offsetWidth, c = (p = this._colgroupElement) == null ? void 0 : p.children[i], u = (m) => {
+      const f = m.pageX - s;
+      let v = n + f;
+      if (e.larguraMinima !== void 0) {
+        const y = typeof e.larguraMinima == "number" ? e.larguraMinima : parseInt(e.larguraMinima, 10);
+        isNaN(y) || (v = Math.max(y, v));
       } else
-        g = Math.max(60, g);
-      if (t.larguraMaxima !== void 0) {
-        const v = typeof t.larguraMaxima == "number" ? t.larguraMaxima : parseInt(t.larguraMaxima, 10);
-        isNaN(v) || (g = Math.min(v, g));
+        v = Math.max(60, v);
+      if (e.larguraMaxima !== void 0) {
+        const y = typeof e.larguraMaxima == "number" ? e.larguraMaxima : parseInt(e.larguraMaxima, 10);
+        isNaN(y) || (v = Math.min(y, v));
       }
-      t.largura = `${g}px`, a.style.width = `${g}px`, u && (u.style.width = `${g}px`);
-    }, c = () => {
-      s.classList.remove("ui-tabela__resizer--ativo"), window.removeEventListener("mousemove", d), window.removeEventListener("mouseup", p), this._activeResizeCleanup = null, setTimeout(() => {
+      e.largura = `${v}px`, a.style.width = `${v}px`, c && (c.style.width = `${v}px`);
+    }, d = () => {
+      r.classList.remove("ui-tabela__resizer--ativo"), window.removeEventListener("mousemove", u), window.removeEventListener("mouseup", h), this._activeResizeCleanup = null, setTimeout(() => {
         this._isResizing = !1;
       }, 50);
-    }, p = () => {
-      c(), this.dispatchEvent(
+    }, h = () => {
+      d(), this.dispatchEvent(
         new CustomEvent("ui-column-resize", {
           detail: {
-            idColuna: t.id,
-            largura: String(t.largura)
+            idColuna: e.id,
+            largura: String(e.largura)
           },
           bubbles: !0,
           composed: !0
         })
       );
     };
-    this._activeResizeCleanup = c, window.addEventListener("mousemove", d), window.addEventListener("mouseup", p);
+    this._activeResizeCleanup = d, window.addEventListener("mousemove", u), window.addEventListener("mouseup", h);
   }
   // Mini-Popover de Redimensionamento Exato
-  showPromptPopover(e, t, i, a) {
-    const s = document.createElement("dialog");
-    s.className = "ui-tabela__prompt-dialog", s.style.position = "fixed", s.style.left = `${e.clientX}px`, s.style.top = `${e.clientY}px`;
-    const r = document.createElement("div");
-    r.className = "ui-tabela__prompt-title", r.textContent = `Largura para "${t.rotulo}" (px ou auto):`;
-    const l = document.createElement("input");
-    l.type = "text";
-    const u = t.largura ? String(t.largura).replace("px", "") : "auto";
-    l.value = u;
-    const d = document.createElement("div");
-    d.className = "ui-tabela__prompt-actions";
-    const c = document.createElement("button");
-    c.textContent = "Aplicar";
-    const p = document.createElement("button");
-    p.textContent = "Cancelar", d.appendChild(p), d.appendChild(c), s.appendChild(r), s.appendChild(l), s.appendChild(d), this.shadow.appendChild(s), s.showModal();
-    const m = () => {
-      var g, v;
-      const f = l.value.trim().toLowerCase();
+  showPromptPopover(t, e, i, a) {
+    const r = document.createElement("dialog");
+    r.className = "ui-tabela__prompt-dialog", r.style.position = "fixed", r.style.left = `${t.clientX}px`, r.style.top = `${t.clientY}px`;
+    const s = document.createElement("div");
+    s.className = "ui-tabela__prompt-title", s.textContent = `Largura para "${e.rotulo}" (px ou auto):`;
+    const n = document.createElement("input");
+    n.type = "text";
+    const c = e.largura ? String(e.largura).replace("px", "") : "auto";
+    n.value = c;
+    const u = document.createElement("div");
+    u.className = "ui-tabela__prompt-actions";
+    const d = document.createElement("button");
+    d.textContent = "Aplicar";
+    const h = document.createElement("button");
+    h.textContent = "Cancelar", u.appendChild(h), u.appendChild(d), r.appendChild(s), r.appendChild(n), r.appendChild(u), this.shadow.appendChild(r), r.showModal();
+    const p = () => {
+      var v, y;
+      const f = n.value.trim().toLowerCase();
       if (f === "" || f === "auto")
-        t.largura = void 0, a.style.width = "", (g = this._colgroupElement) != null && g.children[i] && (this._colgroupElement.children[i].style.width = "");
+        e.largura = void 0, a.style.width = "", (v = this._colgroupElement) != null && v.children[i] && (this._colgroupElement.children[i].style.width = "");
       else {
-        const x = parseInt(f, 10);
-        !isNaN(x) && x > 20 && (t.largura = `${x}px`, a.style.width = `${x}px`, (v = this._colgroupElement) != null && v.children[i] && (this._colgroupElement.children[i].style.width = `${x}px`));
+        const w = parseInt(f, 10);
+        !isNaN(w) && w > 20 && (e.largura = `${w}px`, a.style.width = `${w}px`, (y = this._colgroupElement) != null && y.children[i] && (this._colgroupElement.children[i].style.width = `${w}px`));
       }
-      s.close(), s.remove(), this.dispatchEvent(
+      r.close(), r.remove(), this.dispatchEvent(
         new CustomEvent("ui-column-resize", {
           detail: {
-            idColuna: t.id,
-            largura: t.largura ? String(t.largura) : "auto"
+            idColuna: e.id,
+            largura: e.largura ? String(e.largura) : "auto"
           },
           bubbles: !0,
           composed: !0
         })
       );
     };
-    c.addEventListener("click", m), p.addEventListener("click", () => {
-      s.close(), s.remove();
-    }), l.addEventListener("keydown", (h) => {
-      h.key === "Enter" && m(), h.key === "Escape" && (s.close(), s.remove());
-    }), l.focus(), l.select();
+    d.addEventListener("click", p), h.addEventListener("click", () => {
+      r.close(), r.remove();
+    }), n.addEventListener("keydown", (m) => {
+      m.key === "Enter" && p(), m.key === "Escape" && (r.close(), r.remove());
+    }), n.focus(), n.select();
   }
-  handleHeaderContextMenu(e, t, i, a) {
-    e.preventDefault(), e.stopPropagation(), this.showPromptPopover(e, t, i, a);
+  handleHeaderContextMenu(t, e, i, a) {
+    t.preventDefault(), t.stopPropagation(), this.showPromptPopover(t, e, i, a);
   }
-  formatWidth(e) {
-    return e == null || e === "" ? "" : typeof e == "number" ? `${e}px` : e;
+  formatWidth(t) {
+    return t == null || t === "" ? "" : typeof t == "number" ? `${t}px` : t;
   }
-  getAlignmentClass(e) {
-    return e === "centro" || e === "center" ? "ui-tabela--alinhar-centro" : e === "direita" || e === "right" ? "ui-tabela--alinhar-direita" : "ui-tabela--alinhar-esquerda";
+  getAlignmentClass(t) {
+    return t === "centro" || t === "center" ? "ui-tabela--alinhar-centro" : t === "direita" || t === "right" ? "ui-tabela--alinhar-direita" : "ui-tabela--alinhar-esquerda";
   }
-  getTextAlign(e) {
-    return e === "centro" || e === "center" ? "center" : e === "direita" || e === "right" ? "right" : "left";
+  getTextAlign(t) {
+    return t === "centro" || t === "center" ? "center" : t === "direita" || t === "right" ? "right" : "left";
   }
   getRowHeight() {
-    const e = this.densidade;
-    return e === "compacta" ? 30 : e === "relaxada" ? 56 : 42;
+    const t = this.densidade;
+    return t === "compacta" ? 30 : t === "relaxada" ? 56 : 42;
   }
   // Renderiza toda a estrutura (Container, Table, Thead)
   renderTotal() {
     if (this.shadow) {
       if (this._containerElement) {
-        const e = this.getAttribute("max-height");
-        if (this._containerElement.style.maxHeight = e || "", this._emptyElement) {
-          const t = this._emptyElement.querySelector(".ui-tabela__empty-text");
-          t && (t.textContent = this._textoVazio);
+        const t = this.getAttribute("max-height");
+        if (this._containerElement.style.maxHeight = t || "", this._emptyElement) {
+          const e = this._emptyElement.querySelector(".ui-tabela__empty-text");
+          e && (e.textContent = this._textoVazio);
         }
       } else {
-        this.cleanupEventListeners(), this.shadow.innerHTML = `<style>${Ge}</style>`;
-        const e = this.getAttribute("max-height"), t = document.createElement("div");
-        t.className = "ui-tabela-container", e && (t.style.maxHeight = e), this._containerElement = t;
+        this.cleanupEventListeners(), this.shadow.innerHTML = `<style>${se}</style>`;
+        const t = this.getAttribute("max-height"), e = document.createElement("div");
+        e.className = "ui-tabela-container", t && (e.style.maxHeight = t), this._containerElement = e;
         const i = document.createElement("div");
         i.className = "ui-tabela__empty", i.style.display = "none";
         const a = document.createElement("div");
@@ -2357,13 +2357,13 @@ class Ue extends HTMLElement {
         <svg class="ui-tabela__empty-icon" viewBox="0 0 24 24">
           <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h2v7H7zm4-3h2v10h-2zm4 6h2v4h-2z"/>
         </svg>`;
-        const s = document.createElement("span");
-        s.className = "ui-tabela__empty-text", s.textContent = this._textoVazio, i.appendChild(a), i.appendChild(s), this._emptyElement = i, this._tableElement = document.createElement("table"), this._tableElement.className = "ui-tabela", this._colgroupElement = document.createElement("colgroup"), this._theadElement = document.createElement("thead"), this._tbodyElement = document.createElement("tbody"), this._tableElement.appendChild(this._colgroupElement), this._tableElement.appendChild(this._theadElement), this._tableElement.appendChild(this._tbodyElement), t.appendChild(this._emptyElement), t.appendChild(this._tableElement);
-        const r = document.createElement("div");
-        r.className = "ui-tabela__loading", r.style.display = this._carregando ? "flex" : "none", r.innerHTML = `
+        const r = document.createElement("span");
+        r.className = "ui-tabela__empty-text", r.textContent = this._textoVazio, i.appendChild(a), i.appendChild(r), this._emptyElement = i, this._tableElement = document.createElement("table"), this._tableElement.className = "ui-tabela", this._colgroupElement = document.createElement("colgroup"), this._theadElement = document.createElement("thead"), this._tbodyElement = document.createElement("tbody"), this._tableElement.appendChild(this._colgroupElement), this._tableElement.appendChild(this._theadElement), this._tableElement.appendChild(this._tbodyElement), e.appendChild(this._emptyElement), e.appendChild(this._tableElement);
+        const s = document.createElement("div");
+        s.className = "ui-tabela__loading", s.style.display = this._carregando ? "flex" : "none", s.innerHTML = `
         <div class="ui-tabela__spinner"></div>
         <span>Carregando dados...</span>
-      `, this._loadingElement = r, t.appendChild(this._loadingElement), this.shadow.appendChild(t);
+      `, this._loadingElement = s, e.appendChild(this._loadingElement), this.shadow.appendChild(e);
       }
       this.renderHeader(), this.renderBody(), this._virtualizar && this._containerElement && !this._scrollHandler && (this._ticking = !1, this._scrollHandler = () => {
         this._ticking || (window.requestAnimationFrame(() => {
@@ -2376,45 +2376,45 @@ class Ue extends HTMLElement {
   renderHeader() {
     if (!this._theadElement || !this._colgroupElement) return;
     this._headerListeners.cleanup(), this._theadElement.innerHTML = "", this._colgroupElement.innerHTML = "";
-    const e = document.createElement("tr");
-    this._colunas.forEach((t, i) => {
+    const t = document.createElement("tr");
+    this._colunas.forEach((e, i) => {
       const a = document.createElement("col");
-      t.largura !== void 0 && (a.style.width = this.formatWidth(t.largura)), this._colgroupElement.appendChild(a);
-      const s = document.createElement("th"), r = this.getAlignmentClass(t.alinhamento);
-      if (s.className = r, s.style.textAlign = this.getTextAlign(t.alinhamento), t.largura !== void 0 && (s.style.width = this.formatWidth(t.largura)), t.larguraMinima !== void 0 && (s.style.minWidth = this.formatWidth(t.larguraMinima)), t.larguraMaxima !== void 0) {
-        const f = this.formatWidth(t.larguraMaxima);
-        s.style.maxWidth = f, s.style.overflow = "hidden", s.style.textOverflow = "ellipsis", s.style.whiteSpace = "nowrap";
+      e.largura !== void 0 && (a.style.width = this.formatWidth(e.largura)), this._colgroupElement.appendChild(a);
+      const r = document.createElement("th"), s = this.getAlignmentClass(e.alinhamento);
+      if (r.className = s, r.style.textAlign = this.getTextAlign(e.alinhamento), e.largura !== void 0 && (r.style.width = this.formatWidth(e.largura)), e.larguraMinima !== void 0 && (r.style.minWidth = this.formatWidth(e.larguraMinima)), e.larguraMaxima !== void 0) {
+        const f = this.formatWidth(e.larguraMaxima);
+        r.style.maxWidth = f, r.style.overflow = "hidden", r.style.textOverflow = "ellipsis", r.style.whiteSpace = "nowrap";
       }
-      if (t.tooltip && (s.title = t.tooltip), t.ordenavel) {
-        s.classList.add("ui-tabela__th--ordenavel");
-        const f = () => this.handleHeaderClick(t);
-        this.addHeaderListener(s, "click", f);
+      if (e.tooltip && (r.title = e.tooltip), e.ordenavel) {
+        r.classList.add("ui-tabela__th--ordenavel");
+        const f = () => this.handleHeaderClick(e);
+        this.addHeaderListener(r, "click", f);
       }
-      const l = (f) => this.handleHeaderContextMenu(f, t, i, s);
-      this.addHeaderListener(s, "contextmenu", l);
-      const u = document.createElement("div");
-      u.className = "ui-tabela__header-content";
+      const n = (f) => this.handleHeaderContextMenu(f, e, i, r);
+      this.addHeaderListener(r, "contextmenu", n);
+      const c = document.createElement("div");
+      c.className = "ui-tabela__header-content";
+      const u = document.createElement("span");
+      u.className = "ui-tabela__header-text", u.textContent = e.rotulo, c.appendChild(u);
       const d = document.createElement("span");
-      d.className = "ui-tabela__header-text", d.textContent = t.rotulo, u.appendChild(d);
-      const c = document.createElement("span");
-      if (c.className = "ui-tabela__sort-icon", t.ordenavel) {
-        const f = this._colunaOrdenada === t.id && this._direcaoOrdenacao !== "original", g = f && this._direcaoOrdenacao === "desc", v = f ? "" : "ui-tabela__sort-arrow--inativo", x = g ? "ui-tabela__sort-arrow--desc" : "";
-        c.innerHTML = `
-          <svg class="ui-tabela__sort-arrow ${v} ${x}" viewBox="0 0 24 24">
+      if (d.className = "ui-tabela__sort-icon", e.ordenavel) {
+        const f = this._colunaOrdenada === e.id && this._direcaoOrdenacao !== "original", v = f && this._direcaoOrdenacao === "desc", y = f ? "" : "ui-tabela__sort-arrow--inativo", w = v ? "ui-tabela__sort-arrow--desc" : "";
+        d.innerHTML = `
+          <svg class="ui-tabela__sort-arrow ${y} ${w}" viewBox="0 0 24 24">
             <path d="M7 14l5-5 5 5H7z"/>
           </svg>
         `;
       }
-      u.appendChild(c), s.appendChild(u);
-      const p = document.createElement("div");
-      p.className = "ui-tabela__resizer", p.title = "Arrastar para redimensionar largura (duplo-clique para auto-ajuste)";
-      const m = (f) => this.initColumnResize(f, t, i, s, p);
-      this.addHeaderListener(p, "mousedown", m);
-      const h = (f) => {
-        f.stopPropagation(), t.largura = void 0, s.style.width = "", a.style.width = "", this.dispatchEvent(new CustomEvent("ui-column-resize", { bubbles: !0, composed: !0, detail: { idColuna: t.id, largura: "auto" } }));
+      c.appendChild(d), r.appendChild(c);
+      const h = document.createElement("div");
+      h.className = "ui-tabela__resizer", h.title = "Arrastar para redimensionar largura (duplo-clique para auto-ajuste)";
+      const p = (f) => this.initColumnResize(f, e, i, r, h);
+      this.addHeaderListener(h, "mousedown", p);
+      const m = (f) => {
+        f.stopPropagation(), e.largura = void 0, r.style.width = "", a.style.width = "", this.dispatchEvent(new CustomEvent("ui-column-resize", { bubbles: !0, composed: !0, detail: { idColuna: e.id, largura: "auto" } }));
       };
-      this.addHeaderListener(p, "dblclick", h), s.appendChild(p), e.appendChild(s);
-    }), this._theadElement.appendChild(e);
+      this.addHeaderListener(h, "dblclick", m), r.appendChild(h), t.appendChild(r);
+    }), this._theadElement.appendChild(t);
   }
   // Renderiza apenas o corpo, preservando o scroll
   renderBody() {
@@ -2424,67 +2424,67 @@ class Ue extends HTMLElement {
       return;
     }
     this._emptyElement.style.display = "none", this._tableElement.style.display = "table";
-    const e = this._dadosExibicao.length, t = this.getRowHeight(), i = this._virtualizar && e > 30;
-    let a = 0, s = e;
+    const t = this._dadosExibicao.length, e = this.getRowHeight(), i = this._virtualizar && t > 30;
+    let a = 0, r = t;
     if (i) {
-      const l = this._containerElement.scrollTop, u = this._containerElement.clientHeight || 400, d = 5;
-      a = Math.max(0, Math.floor(l / t) - d), s = Math.min(e, Math.ceil((l + u) / t) + d);
+      const n = this._containerElement.scrollTop, c = this._containerElement.clientHeight || 400, u = 5;
+      a = Math.max(0, Math.floor(n / e) - u), r = Math.min(t, Math.ceil((n + c) / e) + u);
     }
     this._tbodyElement.innerHTML = "";
-    const r = document.createDocumentFragment();
+    const s = document.createDocumentFragment();
     if (i && a > 0) {
-      const l = document.createElement("tr");
-      l.className = "ui-tabela__virtual-spacer", l.style.height = `${a * t}px`;
-      const u = document.createElement("td");
-      u.colSpan = this._colunas.length || 1, l.appendChild(u), r.appendChild(l);
+      const n = document.createElement("tr");
+      n.className = "ui-tabela__virtual-spacer", n.style.height = `${a * e}px`;
+      const c = document.createElement("td");
+      c.colSpan = this._colunas.length || 1, n.appendChild(c), s.appendChild(n);
     }
-    for (let l = a; l < s; l++) {
-      const u = this._dadosExibicao[l], d = document.createElement("tr");
-      this._colunas.forEach((c) => {
-        const p = document.createElement("td"), m = this.getAlignmentClass(c.alinhamento);
-        if (p.className = m, p.style.textAlign = this.getTextAlign(c.alinhamento), c.larguraMaxima !== void 0) {
-          const g = this.formatWidth(c.larguraMaxima);
-          p.style.maxWidth = g, p.style.overflow = "hidden", p.style.textOverflow = "ellipsis", p.style.whiteSpace = "nowrap";
+    for (let n = a; n < r; n++) {
+      const c = this._dadosExibicao[n], u = document.createElement("tr");
+      this._colunas.forEach((d) => {
+        const h = document.createElement("td"), p = this.getAlignmentClass(d.alinhamento);
+        if (h.className = p, h.style.textAlign = this.getTextAlign(d.alinhamento), d.larguraMaxima !== void 0) {
+          const v = this.formatWidth(d.larguraMaxima);
+          h.style.maxWidth = v, h.style.overflow = "hidden", h.style.textOverflow = "ellipsis", h.style.whiteSpace = "nowrap";
         }
-        const h = document.createElement("div");
-        h.className = "ui-tabela__cell-content", c.larguraMaxima !== void 0 && h.classList.add("ui-tabela__cell-truncate");
-        const f = u[c.id];
-        if (typeof c.render == "function") {
-          const g = c.render(f, u, l);
-          g instanceof Node ? h.appendChild(g) : h.textContent = String(g ?? "");
+        const m = document.createElement("div");
+        m.className = "ui-tabela__cell-content", d.larguraMaxima !== void 0 && m.classList.add("ui-tabela__cell-truncate");
+        const f = c[d.id];
+        if (typeof d.render == "function") {
+          const v = d.render(f, c, n);
+          v instanceof Node ? m.appendChild(v) : m.textContent = String(v ?? "");
         } else if (f instanceof Node)
-          h.appendChild(f);
+          m.appendChild(f);
         else {
-          const g = f != null ? String(f) : "";
-          h.textContent = g, c.larguraMaxima !== void 0 && !c.tooltip && (p.title = g);
+          const v = f != null ? String(f) : "";
+          m.textContent = v, d.larguraMaxima !== void 0 && !d.tooltip && (h.title = v);
         }
-        p.appendChild(h), d.appendChild(p);
-      }), r.appendChild(d);
+        h.appendChild(m), u.appendChild(h);
+      }), s.appendChild(u);
     }
-    if (i && s < e) {
-      const l = document.createElement("tr");
-      l.className = "ui-tabela__virtual-spacer", l.style.height = `${(e - s) * t}px`;
-      const u = document.createElement("td");
-      u.colSpan = this._colunas.length || 1, l.appendChild(u), r.appendChild(l);
+    if (i && r < t) {
+      const n = document.createElement("tr");
+      n.className = "ui-tabela__virtual-spacer", n.style.height = `${(t - r) * e}px`;
+      const c = document.createElement("td");
+      c.colSpan = this._colunas.length || 1, n.appendChild(c), s.appendChild(n);
     }
-    this._tbodyElement.appendChild(r);
+    this._tbodyElement.appendChild(s);
   }
 }
-customElements.get("ui-tabela") || customElements.define("ui-tabela", Ue);
-const Ye = ':host{display:block;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif)}.ui-stat{padding:18px 20px;border-radius:var(--ui-raio-borda, 10px);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));background-color:var(--ui-cor-fundo-card, #18181c);color:var(--ui-cor-texto, #e1e1e6);box-sizing:border-box;display:flex;flex-direction:column;position:relative;transition:border-color .15s ease,box-shadow .15s ease}:root[data-tema=claro] .ui-stat,[data-tema=claro] .ui-stat{background-color:#fff;border-color:#00000017;color:#1a1a1e;box-shadow:0 1px 3px #0000000a}.ui-stat--baixa{box-shadow:0 2px 6px #0000004d}.ui-stat--media{box-shadow:0 4px 14px #0006}.ui-stat--alta{box-shadow:0 8px 24px #00000080}.ui-stat__cabecalho{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:8px}.ui-stat__rotulo{font-size:13px;font-weight:500;color:var(--ui-cor-texto-secundario, #888899);letter-spacing:.01em}:root[data-tema=claro] .ui-stat__rotulo,[data-tema=claro] .ui-stat__rotulo{color:#6c757d}.ui-stat__icone-slot{display:flex;align-items:center;color:var(--ui-cor-texto-secundario, #888899)}.ui-stat__icone-slot svg,.ui-stat__icone-slot ::slotted(svg),.ui-stat__icone-slot ::slotted(ui-icone){shape-rendering:geometricPrecision}.ui-stat__conteudo{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:6px}.ui-stat__valor{font-size:28px;font-weight:700;color:var(--ui-cor-texto, #ffffff);line-height:1.15;letter-spacing:-.025em}:root[data-tema=claro] .ui-stat__valor,[data-tema=claro] .ui-stat__valor{color:#111114}.ui-stat__indicador{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:5px;font-size:12px;font-weight:600;line-height:1}.ui-stat__indicador--positivo,.ui-stat__indicador--alta{background-color:#00e08a24;color:var(--ui-cor-primaria, #00E08A)}.ui-stat__indicador--negativo,.ui-stat__indicador--baixa{background-color:#ff444424;color:var(--ui-cor-texto-erro, #ff5555)}.ui-stat__indicador--neutro{background-color:#ffffff14;color:var(--ui-cor-texto-secundario, #888899)}:root[data-tema=claro] .ui-stat__indicador--neutro,[data-tema=claro] .ui-stat__indicador--neutro{background-color:#f1f3f5;color:#495057}.ui-stat__seta{font-size:.85em;line-height:1}.ui-stat__rodape{display:flex;flex-direction:column;gap:6px}.ui-stat__descricao{font-size:12px;color:var(--ui-cor-texto-secundario, #888899);line-height:1.3}:root[data-tema=claro] .ui-stat__descricao,[data-tema=claro] .ui-stat__descricao{color:#6c757d}';
-class Y extends HTMLElement {
+customElements.get("ui-tabela") || customElements.define("ui-tabela", ne);
+const le = ':host{display:block;box-sizing:border-box;font-family:var(--ui-fonte-base, "Inter", sans-serif)}.ui-stat{padding:18px 20px;border-radius:var(--ui-raio-borda, 10px);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));background-color:var(--ui-cor-fundo-card, #18181c);color:var(--ui-cor-texto, #e1e1e6);box-sizing:border-box;display:flex;flex-direction:column;position:relative;transition:border-color .15s ease,box-shadow .15s ease}:root[data-tema=claro] .ui-stat,[data-tema=claro] .ui-stat{background-color:#fff;border-color:#00000017;color:#1a1a1e;box-shadow:0 1px 3px #0000000a}.ui-stat--baixa{box-shadow:0 2px 6px #0000004d}.ui-stat--media{box-shadow:0 4px 14px #0006}.ui-stat--alta{box-shadow:0 8px 24px #00000080}.ui-stat__cabecalho{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:8px}.ui-stat__rotulo{font-size:13px;font-weight:500;color:var(--ui-cor-texto-secundario, #888899);letter-spacing:.01em}:root[data-tema=claro] .ui-stat__rotulo,[data-tema=claro] .ui-stat__rotulo{color:#6c757d}.ui-stat__icone-slot{display:flex;align-items:center;color:var(--ui-cor-texto-secundario, #888899)}.ui-stat__icone-slot svg,.ui-stat__icone-slot ::slotted(svg),.ui-stat__icone-slot ::slotted(ui-icone){shape-rendering:geometricPrecision}.ui-stat__conteudo{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:6px}.ui-stat__valor{font-size:28px;font-weight:700;color:var(--ui-cor-texto, #ffffff);line-height:1.15;letter-spacing:-.025em}:root[data-tema=claro] .ui-stat__valor,[data-tema=claro] .ui-stat__valor{color:#111114}.ui-stat__indicador{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:5px;font-size:12px;font-weight:600;line-height:1}.ui-stat__indicador--positivo,.ui-stat__indicador--alta{background-color:#00e08a24;color:var(--ui-cor-primaria, #00E08A)}.ui-stat__indicador--negativo,.ui-stat__indicador--baixa{background-color:#ff444424;color:var(--ui-cor-texto-erro, #ff5555)}.ui-stat__indicador--neutro{background-color:#ffffff14;color:var(--ui-cor-texto-secundario, #888899)}:root[data-tema=claro] .ui-stat__indicador--neutro,[data-tema=claro] .ui-stat__indicador--neutro{background-color:#f1f3f5;color:#495057}.ui-stat__seta{font-size:.85em;line-height:1}.ui-stat__rodape{display:flex;flex-direction:column;gap:6px}.ui-stat__descricao{font-size:12px;color:var(--ui-cor-texto-secundario, #888899);line-height:1.3}:root[data-tema=claro] .ui-stat__descricao,[data-tema=claro] .ui-stat__descricao{color:#6c757d}';
+class ut extends HTMLElement {
   constructor() {
     super();
-    n(this, "statElement");
-    n(this, "rotuloElement");
-    n(this, "valorElement");
-    n(this, "indicadorElement");
-    n(this, "setaElement");
-    n(this, "variacaoElement");
-    n(this, "descricaoElement");
-    const e = this.attachShadow({ mode: "open" });
-    e.innerHTML = `
-      <style>${Ye}</style>
+    l(this, "statElement");
+    l(this, "rotuloElement");
+    l(this, "valorElement");
+    l(this, "indicadorElement");
+    l(this, "setaElement");
+    l(this, "variacaoElement");
+    l(this, "descricaoElement");
+    const t = this.attachShadow({ mode: "open" });
+    t.innerHTML = `
+      <style>${le}</style>
       <div class="ui-stat">
         <div class="ui-stat__cabecalho">
           <span class="ui-stat__rotulo"></span>
@@ -2503,7 +2503,7 @@ class Y extends HTMLElement {
           <slot></slot>
         </div>
       </div>
-    `, this.statElement = e.querySelector(".ui-stat"), this.rotuloElement = e.querySelector(".ui-stat__rotulo"), this.valorElement = e.querySelector(".ui-stat__valor"), this.indicadorElement = e.querySelector(".ui-stat__indicador"), this.setaElement = e.querySelector(".ui-stat__seta"), this.variacaoElement = e.querySelector(".ui-stat__variacao"), this.descricaoElement = e.querySelector(".ui-stat__descricao");
+    `, this.statElement = t.querySelector(".ui-stat"), this.rotuloElement = t.querySelector(".ui-stat__rotulo"), this.valorElement = t.querySelector(".ui-stat__valor"), this.indicadorElement = t.querySelector(".ui-stat__indicador"), this.setaElement = t.querySelector(".ui-stat__seta"), this.variacaoElement = t.querySelector(".ui-stat__variacao"), this.descricaoElement = t.querySelector(".ui-stat__descricao");
   }
   static get observedAttributes() {
     return [
@@ -2524,95 +2524,95 @@ class Y extends HTMLElement {
   connectedCallback() {
     this.syncState();
   }
-  attributeChangedCallback(e, t, i) {
+  attributeChangedCallback(t, e, i) {
     this.syncState();
   }
   get rotulo() {
     return this.getAttribute("rotulo") || this.getAttribute("label") || "";
   }
-  set rotulo(e) {
-    this.setAttribute("rotulo", e);
+  set rotulo(t) {
+    this.setAttribute("rotulo", t);
   }
   get valor() {
     return this.getAttribute("valor") || this.getAttribute("value") || "";
   }
-  set valor(e) {
-    this.setAttribute("valor", e);
+  set valor(t) {
+    this.setAttribute("valor", t);
   }
   get variacao() {
     return this.getAttribute("variacao") || this.getAttribute("trend") || "";
   }
-  set variacao(e) {
-    this.setAttribute("variacao", e);
+  set variacao(t) {
+    this.setAttribute("variacao", t);
   }
   get tendencia() {
-    const e = (this.getAttribute("tendencia") || this.getAttribute("direction") || "positivo").toLowerCase();
-    return e === "baixa" || e === "negativo" || e === "down" ? "baixa" : e === "neutro" || e === "neutral" ? "neutro" : "alta";
+    const t = (this.getAttribute("tendencia") || this.getAttribute("direction") || "positivo").toLowerCase();
+    return t === "baixa" || t === "negativo" || t === "down" ? "baixa" : t === "neutro" || t === "neutral" ? "neutro" : "alta";
   }
-  set tendencia(e) {
-    this.setAttribute("tendencia", e);
+  set tendencia(t) {
+    this.setAttribute("tendencia", t);
   }
   get descricao() {
     return this.getAttribute("descricao") || this.getAttribute("description") || "";
   }
-  set descricao(e) {
-    this.setAttribute("descricao", e);
+  set descricao(t) {
+    this.setAttribute("descricao", t);
   }
   syncState() {
-    const e = this.rotulo, t = this.valor, i = this.variacao, a = this.tendencia, s = this.descricao, r = this.getAttribute("elevacao") || this.getAttribute("elevation") || "baixa";
-    this.statElement.className = `ui-stat ui-stat--${r}`, this.rotuloElement.textContent = e, this.valorElement.textContent = t, i ? (this.variacaoElement.textContent = i, this.indicadorElement.style.display = "inline-flex", a === "baixa" ? (this.indicadorElement.className = "ui-stat__indicador ui-stat__indicador--negativo", this.setaElement.textContent = "↓", this.indicadorElement.setAttribute("aria-label", `Queda de ${i}`)) : a === "neutro" ? (this.indicadorElement.className = "ui-stat__indicador ui-stat__indicador--neutro", this.setaElement.textContent = "→", this.indicadorElement.setAttribute("aria-label", `Variação estável de ${i}`)) : (this.indicadorElement.className = "ui-stat__indicador ui-stat__indicador--positivo", this.setaElement.textContent = "↑", this.indicadorElement.setAttribute("aria-label", `Aumento de ${i}`))) : this.indicadorElement.style.display = "none", s ? (this.descricaoElement.textContent = s, this.descricaoElement.style.display = "block") : this.descricaoElement.style.display = "none";
+    const t = this.rotulo, e = this.valor, i = this.variacao, a = this.tendencia, r = this.descricao, s = this.getAttribute("elevacao") || this.getAttribute("elevation") || "baixa";
+    this.statElement.className = `ui-stat ui-stat--${s}`, this.rotuloElement.textContent = t, this.valorElement.textContent = e, i ? (this.variacaoElement.textContent = i, this.indicadorElement.style.display = "inline-flex", a === "baixa" ? (this.indicadorElement.className = "ui-stat__indicador ui-stat__indicador--negativo", this.setaElement.textContent = "↓", this.indicadorElement.setAttribute("aria-label", `Queda de ${i}`)) : a === "neutro" ? (this.indicadorElement.className = "ui-stat__indicador ui-stat__indicador--neutro", this.setaElement.textContent = "→", this.indicadorElement.setAttribute("aria-label", `Variação estável de ${i}`)) : (this.indicadorElement.className = "ui-stat__indicador ui-stat__indicador--positivo", this.setaElement.textContent = "↑", this.indicadorElement.setAttribute("aria-label", `Aumento de ${i}`))) : this.indicadorElement.style.display = "none", r ? (this.descricaoElement.textContent = r, this.descricaoElement.style.display = "block") : this.descricaoElement.style.display = "none";
   }
 }
-class Ke extends Y {
+class ce extends ut {
 }
-class Xe extends Y {
+class de extends ut {
 }
-customElements.get("ui-stat") || customElements.define("ui-stat", Y);
-customElements.get("ui-kpi") || customElements.define("ui-kpi", Ke);
-customElements.get("ui-metrica") || customElements.define("ui-metrica", Xe);
-const le = '.leaflet-pane,.leaflet-tile,.leaflet-marker-icon,.leaflet-marker-shadow,.leaflet-tile-container,.leaflet-pane>svg,.leaflet-pane>canvas,.leaflet-zoom-box,.leaflet-image-layer,.leaflet-layer{position:absolute;left:0;top:0}.leaflet-container{overflow:hidden}.leaflet-tile,.leaflet-marker-icon,.leaflet-marker-shadow{-webkit-user-select:none;-moz-user-select:none;user-select:none;-webkit-user-drag:none}.leaflet-tile::selection{background:transparent}.leaflet-safari .leaflet-tile{image-rendering:-webkit-optimize-contrast}.leaflet-safari .leaflet-tile-container{width:1600px;height:1600px;-webkit-transform-origin:0 0}.leaflet-marker-icon,.leaflet-marker-shadow{display:block}.leaflet-container .leaflet-overlay-pane svg{max-width:none!important;max-height:none!important}.leaflet-container .leaflet-marker-pane img,.leaflet-container .leaflet-shadow-pane img,.leaflet-container .leaflet-tile-pane img,.leaflet-container img.leaflet-image-layer,.leaflet-container .leaflet-tile{max-width:none!important;max-height:none!important;width:auto;padding:0}.leaflet-container img.leaflet-tile{mix-blend-mode:plus-lighter}.leaflet-container.leaflet-touch-zoom{-ms-touch-action:pan-x pan-y;touch-action:pan-x pan-y}.leaflet-container.leaflet-touch-drag{-ms-touch-action:pinch-zoom;touch-action:none;touch-action:pinch-zoom}.leaflet-container.leaflet-touch-drag.leaflet-touch-zoom{-ms-touch-action:none;touch-action:none}.leaflet-container{-webkit-tap-highlight-color:transparent}.leaflet-container a{-webkit-tap-highlight-color:rgba(51,181,229,.4)}.leaflet-tile{filter:inherit;visibility:hidden}.leaflet-tile-loaded{visibility:inherit}.leaflet-zoom-box{width:0;height:0;-moz-box-sizing:border-box;box-sizing:border-box;z-index:800}.leaflet-overlay-pane svg{-moz-user-select:none}.leaflet-pane{z-index:400}.leaflet-tile-pane{z-index:200}.leaflet-overlay-pane{z-index:400}.leaflet-shadow-pane{z-index:500}.leaflet-marker-pane{z-index:600}.leaflet-tooltip-pane{z-index:650}.leaflet-popup-pane{z-index:700}.leaflet-map-pane canvas{z-index:100}.leaflet-map-pane svg{z-index:200}.leaflet-vml-shape{width:1px;height:1px}.lvml{behavior:url(#default#VML);display:inline-block;position:absolute}.leaflet-control{position:relative;z-index:800;pointer-events:visiblePainted;pointer-events:auto}.leaflet-top,.leaflet-bottom{position:absolute;z-index:1000;pointer-events:none}.leaflet-top{top:0}.leaflet-right{right:0}.leaflet-bottom{bottom:0}.leaflet-left{left:0}.leaflet-control{float:left;clear:both}.leaflet-right .leaflet-control{float:right}.leaflet-top .leaflet-control{margin-top:10px}.leaflet-bottom .leaflet-control{margin-bottom:10px}.leaflet-left .leaflet-control{margin-left:10px}.leaflet-right .leaflet-control{margin-right:10px}.leaflet-fade-anim .leaflet-popup{opacity:0;-webkit-transition:opacity .2s linear;-moz-transition:opacity .2s linear;transition:opacity .2s linear}.leaflet-fade-anim .leaflet-map-pane .leaflet-popup{opacity:1}.leaflet-zoom-animated{-webkit-transform-origin:0 0;-ms-transform-origin:0 0;transform-origin:0 0}svg.leaflet-zoom-animated{will-change:transform}.leaflet-zoom-anim .leaflet-zoom-animated{-webkit-transition:-webkit-transform .25s cubic-bezier(0,0,.25,1);-moz-transition:-moz-transform .25s cubic-bezier(0,0,.25,1);transition:transform .25s cubic-bezier(0,0,.25,1)}.leaflet-zoom-anim .leaflet-tile,.leaflet-pan-anim .leaflet-tile{-webkit-transition:none;-moz-transition:none;transition:none}.leaflet-zoom-anim .leaflet-zoom-hide{visibility:hidden}.leaflet-interactive{cursor:pointer}.leaflet-grab{cursor:-webkit-grab;cursor:-moz-grab;cursor:grab}.leaflet-crosshair,.leaflet-crosshair .leaflet-interactive{cursor:crosshair}.leaflet-popup-pane,.leaflet-control{cursor:auto}.leaflet-dragging .leaflet-grab,.leaflet-dragging .leaflet-grab .leaflet-interactive,.leaflet-dragging .leaflet-marker-draggable{cursor:move;cursor:-webkit-grabbing;cursor:-moz-grabbing;cursor:grabbing}.leaflet-marker-icon,.leaflet-marker-shadow,.leaflet-image-layer,.leaflet-pane>svg path,.leaflet-tile-container{pointer-events:none}.leaflet-marker-icon.leaflet-interactive,.leaflet-image-layer.leaflet-interactive,.leaflet-pane>svg path.leaflet-interactive,svg.leaflet-image-layer.leaflet-interactive path{pointer-events:visiblePainted;pointer-events:auto}.leaflet-container{background:#ddd;outline-offset:1px}.leaflet-container a{color:#0078a8}.leaflet-zoom-box{border:2px dotted #38f;background:#ffffff80}.leaflet-container{font-family:Helvetica Neue,Arial,Helvetica,sans-serif;font-size:12px;font-size:.75rem;line-height:1.5}.leaflet-bar{box-shadow:0 1px 5px #000000a6;border-radius:4px}.leaflet-bar a{background-color:#fff;border-bottom:1px solid #ccc;width:26px;height:26px;line-height:26px;display:block;text-align:center;text-decoration:none;color:#000}.leaflet-bar a,.leaflet-control-layers-toggle{background-position:50% 50%;background-repeat:no-repeat;display:block}.leaflet-bar a:hover,.leaflet-bar a:focus{background-color:#f4f4f4}.leaflet-bar a:first-child{border-top-left-radius:4px;border-top-right-radius:4px}.leaflet-bar a:last-child{border-bottom-left-radius:4px;border-bottom-right-radius:4px;border-bottom:none}.leaflet-bar a.leaflet-disabled{cursor:default;background-color:#f4f4f4;color:#bbb}.leaflet-touch .leaflet-bar a{width:30px;height:30px;line-height:30px}.leaflet-touch .leaflet-bar a:first-child{border-top-left-radius:2px;border-top-right-radius:2px}.leaflet-touch .leaflet-bar a:last-child{border-bottom-left-radius:2px;border-bottom-right-radius:2px}.leaflet-control-zoom-in,.leaflet-control-zoom-out{font:700 18px Lucida Console,Monaco,monospace;text-indent:1px}.leaflet-touch .leaflet-control-zoom-in,.leaflet-touch .leaflet-control-zoom-out{font-size:22px}.leaflet-control-layers{box-shadow:0 1px 5px #0006;background:#fff;border-radius:5px}.leaflet-control-layers-toggle{background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABoAAAAaCAQAAAADQ4RFAAACf0lEQVR4AY1UM3gkARTePdvdoTxXKc+qTl3aU5U6b2Kbkz3Gtq3Zw6ziLGNPzrYx7946Tr6/ee/XeCQ4D3ykPtL5tHno4n0d/h3+xfuWHGLX81cn7r0iTNzjr7LrlxCqPtkbTQEHeqOrTy4Yyt3VCi/IOB0v7rVC7q45Q3Gr5K6jt+3Gl5nCoDD4MtO+j96Wu8atmhGqcNGHObuf8OM/x3AMx38+4Z2sPqzCxRFK2aF2e5Jol56XTLyggAMTL56XOMoS1W4pOyjUcGGQdZxU6qRh7B9Zp+PfpOFlqt0zyDZckPi1ttmIp03jX8gyJ8a/PG2yutpS/Vol7peZIbZcKBAEEheEIAgFbDkz5H6Zrkm2hVWGiXKiF4Ycw0RWKdtC16Q7qe3X4iOMxruonzegJzWaXFrU9utOSsLUmrc0YjeWYjCW4PDMADElpJSSQ0vQvA1Tm6/JlKnqFs1EGyZiFCqnRZTEJJJiKRYzVYzJck2Rm6P4iH+cmSY0YzimYa8l0EtTODFWhcMIMVqdsI2uiTvKmTisIDHJ3od5GILVhBCarCfVRmo4uTjkhrhzkiBV7SsaqS+TzrzM1qpGGUFt28pIySQHR6h7F6KSwGWm97ay+Z+ZqMcEjEWebE7wxCSQwpkhJqoZA5ivCdZDjJepuJ9IQjGGUmuXJdBFUygxVqVsxFsLMbDe8ZbDYVCGKxs+W080max1hFCarCfV+C1KATwcnvE9gRRuMP2prdbWGowm1KB1y+zwMMENkM755cJ2yPDtqhTI6ED1M/82yIDtC/4j4BijjeObflpO9I9MwXTCsSX8jWAFeHr05WoLTJ5G8IQVS/7vwR6ohirYM7f6HzYpogfS3R2OAAAAAElFTkSuQmCC);width:36px;height:36px}.leaflet-retina .leaflet-control-layers-toggle{background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADQAAAA0CAQAAABvcdNgAAAEsklEQVR4AWL4TydIhpZK1kpWOlg0w3ZXP6D2soBtG42jeI6ZmQTHzAxiTbSJsYLjO9HhP+WOmcuhciVnmHVQcJnp7DFvScowZorad/+V/fVzMdMT2g9Cv9guXGv/7pYOrXh2U+RRR3dSd9JRx6bIFc/ekqHI29JC6pJ5ZEh1yWkhkbcFeSjxgx3L2m1cb1C7bceyxA+CNjT/Ifff+/kDk2u/w/33/IeCMOSaWZ4glosqT3DNnNZQ7Cs58/3Ce5HL78iZH/vKVIaYlqzfdLu8Vi7dnvUbEza5Idt36tquZFldl6N5Z/POLof0XLK61mZCmJSWjVF9tEjUluu74IUXvgttuVIHE7YxSkaYhJZam7yiM9Pv82JYfl9nptxZaxMJE4YSPty+vF0+Y2up9d3wwijfjZbabqm/3bZ9ecKHsiGmRflnn1MW4pjHf9oLufyn2z3y1D6n8g8TZhxyzipLNPnAUpsOiuWimg52psrTZYnOWYNDTMuWBWa0tJb4rgq1UvmutpaYEbZlwU3CLJm/ayYjHW5/h7xWLn9Hh1vepDkyf7dE7MtT5LR4e7yYpHrkhOUpEfssBLq2pPhAqoSWKUkk7EDqkmK6RrCEzqDjhNDWNE+XSMvkJRDWlZTmCW0l0PHQGRZY5t1L83kT0Y3l2SItk5JAWHl2dCOBm+fPu3fo5/3v61RMCO9Jx2EEYYhb0rmNQMX/vm7gqOEJLcXTGw3CAuRNeyaPWwjR8PRqKQ1PDA/dpv+on9Shox52WFnx0KY8onHayrJzm87i5h9xGw/tfkev0jGsQizqezUKjk12hBMKJ4kbCqGPVNXudyyrShovGw5CgxsRICxF6aRmSjlBnHRzg7Gx8fKqEubI2rahQYdR1YgDIRQO7JvQyD52hoIQx0mxa0ODtW2Iozn1le2iIRdzwWewedyZzewidueOGqlsn1MvcnQpuVwLGG3/IR1hIKxCjelIDZ8ldqWz25jWAsnldEnK0Zxro19TGVb2ffIZEsIO89EIEDvKMPrzmBOQcKQ+rroye6NgRRxqR4U8EAkz0CL6uSGOm6KQCdWjvjRiSP1BPalCRS5iQYiEIvxuBMJEWgzSoHADcVMuN7IuqqTeyUPq22qFimFtxDyBBJEwNyt6TM88blFHao/6tWWhuuOM4SAK4EI4QmFHA+SEyWlp4EQoJ13cYGzMu7yszEIBOm2rVmHUNqwAIQabISNMRstmdhNWcFLsSm+0tjJH1MdRxO5Nx0WDMhCtgD6OKgZeljJqJKc9po8juskR9XN0Y1lZ3mWjLR9JCO1jRDMd0fpYC2VnvjBSEFg7wBENc0R9HFlb0xvF1+TBEpF68d+DHR6IOWVv2BECtxo46hOFUBd/APU57WIoEwJhIi2CdpyZX0m93BZicktMj1AS9dClteUFAUNUIEygRZCtik5zSxI9MubTBH1GOiHsiLJ3OCoSZkILa9PxiN0EbvhsAo8tdAf9Seepd36lGWHmtNANTv5Jd0z4QYyeo/UEJqxKRpg5LZx6btLPsOaEmdMyxYdlc8LMaJnikDlhclqmPiQnTEpLUIZEwkRagjYkEibQErwhkTAKCLQEbUgkzJQWc/0PstHHcfEdQ+UAAAAASUVORK5CYII=);background-size:26px 26px}.leaflet-touch .leaflet-control-layers-toggle{width:44px;height:44px}.leaflet-control-layers .leaflet-control-layers-list,.leaflet-control-layers-expanded .leaflet-control-layers-toggle{display:none}.leaflet-control-layers-expanded .leaflet-control-layers-list{display:block;position:relative}.leaflet-control-layers-expanded{padding:6px 10px 6px 6px;color:#333;background:#fff}.leaflet-control-layers-scrollbar{overflow-y:scroll;overflow-x:hidden;padding-right:5px}.leaflet-control-layers-selector{margin-top:2px;position:relative;top:1px}.leaflet-control-layers label{display:block;font-size:13px;font-size:1.08333em}.leaflet-control-layers-separator{height:0;border-top:1px solid #ddd;margin:5px -10px 5px -6px}.leaflet-default-icon-path{background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABkAAAApCAYAAADAk4LOAAAFgUlEQVR4Aa1XA5BjWRTN2oW17d3YaZtr2962HUzbDNpjszW24mRt28p47v7zq/bXZtrp/lWnXr337j3nPCe85NcypgSFdugCpW5YoDAMRaIMqRi6aKq5E3YqDQO3qAwjVWrD8Ncq/RBpykd8oZUb/kaJutow8r1aP9II0WmLKLIsJyv1w/kqw9Ch2MYdB++12Onxee/QMwvf4/Dk/Lfp/i4nxTXtOoQ4pW5Aj7wpici1A9erdAN2OH64x8OSP9j3Ft3b7aWkTg/Fm91siTra0f9on5sQr9INejH6CUUUpavjFNq1B+Oadhxmnfa8RfEmN8VNAsQhPqF55xHkMzz3jSmChWU6f7/XZKNH+9+hBLOHYozuKQPxyMPUKkrX/K0uWnfFaJGS1QPRtZsOPtr3NsW0uyh6NNCOkU3Yz+bXbT3I8G3xE5EXLXtCXbbqwCO9zPQYPRTZ5vIDXD7U+w7rFDEoUUf7ibHIR4y6bLVPXrz8JVZEql13trxwue/uDivd3fkWRbS6/IA2bID4uk0UpF1N8qLlbBlXs4Ee7HLTfV1j54APvODnSfOWBqtKVvjgLKzF5YdEk5ewRkGlK0i33Eofffc7HT56jD7/6U+qH3Cx7SBLNntH5YIPvODnyfIXZYRVDPqgHtLs5ABHD3YzLuespb7t79FY34DjMwrVrcTuwlT55YMPvOBnRrJ4VXTdNnYug5ucHLBjEpt30701A3Ts+HEa73u6dT3FNWwflY86eMHPk+Yu+i6pzUpRrW7SNDg5JHR4KapmM5Wv2E8Tfcb1HoqqHMHU+uWDD7zg54mz5/2BSnizi9T1Dg4QQXLToGNCkb6tb1NU+QAlGr1++eADrzhn/u8Q2YZhQVlZ5+CAOtqfbhmaUCS1ezNFVm2imDbPmPng5wmz+gwh+oHDce0eUtQ6OGDIyR0uUhUsoO3vfDmmgOezH0mZN59x7MBi++WDL1g/eEiU3avlidO671bkLfwbw5XV2P8Pzo0ydy4t2/0eu33xYSOMOD8hTf4CrBtGMSoXfPLchX+J0ruSePw3LZeK0juPJbYzrhkH0io7B3k164hiGvawhOKMLkrQLyVpZg8rHFW7E2uHOL888IBPlNZ1FPzstSJM694fWr6RwpvcJK60+0HCILTBzZLFNdtAzJaohze60T8qBzyh5ZuOg5e7uwQppofEmf2++DYvmySqGBuKaicF1blQjhuHdvCIMvp8whTTfZzI7RldpwtSzL+F1+wkdZ2TBOW2gIF88PBTzD/gpeREAMEbxnJcaJHNHrpzji0gQCS6hdkEeYt9DF/2qPcEC8RM28Hwmr3sdNyht00byAut2k3gufWNtgtOEOFGUwcXWNDbdNbpgBGxEvKkOQsxivJx33iow0Vw5S6SVTrpVq11ysA2Rp7gTfPfktc6zhtXBBC+adRLshf6sG2RfHPZ5EAc4sVZ83yCN00Fk/4kggu40ZTvIEm5g24qtU4KjBrx/BTTH8ifVASAG7gKrnWxJDcU7x8X6Ecczhm3o6YicvsLXWfh3Ch1W0k8x0nXF+0fFxgt4phz8QvypiwCCFKMqXCnqXExjq10beH+UUA7+nG6mdG/Pu0f3LgFcGrl2s0kNNjpmoJ9o4B29CMO8dMT4Q5ox8uitF6fqsrJOr8qnwNbRzv6hSnG5wP+64C7h9lp30hKNtKdWjtdkbuPA19nJ7Tz3zR/ibgARbhb4AlhavcBebmTHcFl2fvYEnW0ox9xMxKBS8btJ+KiEbq9zA4RthQXDhPa0T9TEe69gWupwc6uBUphquXgf+/FrIjweHQS4/pduMe5ERUMHUd9xv8ZR98CxkS4F2n3EUrUZ10EYNw7BWm9x1GiPssi3GgiGRDKWRYZfXlON+dfNbM+GgIwYdwAAAAASUVORK5CYII=)}.leaflet-container .leaflet-control-attribution{background:#fff;background:#fffc;margin:0}.leaflet-control-attribution,.leaflet-control-scale-line{padding:0 5px;color:#333;line-height:1.4}.leaflet-control-attribution a{text-decoration:none}.leaflet-control-attribution a:hover,.leaflet-control-attribution a:focus{text-decoration:underline}.leaflet-attribution-flag{display:inline!important;vertical-align:baseline!important;width:1em;height:.6669em}.leaflet-left .leaflet-control-scale{margin-left:5px}.leaflet-bottom .leaflet-control-scale{margin-bottom:5px}.leaflet-control-scale-line{border:2px solid #777;border-top:none;line-height:1.1;padding:2px 5px 1px;white-space:nowrap;-moz-box-sizing:border-box;box-sizing:border-box;background:#fffc;text-shadow:1px 1px #fff}.leaflet-control-scale-line:not(:first-child){border-top:2px solid #777;border-bottom:none;margin-top:-2px}.leaflet-control-scale-line:not(:first-child):not(:last-child){border-bottom:2px solid #777}.leaflet-touch .leaflet-control-attribution,.leaflet-touch .leaflet-control-layers,.leaflet-touch .leaflet-bar{box-shadow:none}.leaflet-touch .leaflet-control-layers,.leaflet-touch .leaflet-bar{border:2px solid rgba(0,0,0,.2);background-clip:padding-box}.leaflet-popup{position:absolute;text-align:center;margin-bottom:20px}.leaflet-popup-content-wrapper{padding:1px;text-align:left;border-radius:12px}.leaflet-popup-content{margin:13px 24px 13px 20px;line-height:1.3;font-size:13px;font-size:1.08333em;min-height:1px}.leaflet-popup-content p{margin:1.3em 0}.leaflet-popup-tip-container{width:40px;height:20px;position:absolute;left:50%;margin-top:-1px;margin-left:-20px;overflow:hidden;pointer-events:none}.leaflet-popup-tip{width:17px;height:17px;padding:1px;margin:-10px auto 0;pointer-events:auto;-webkit-transform:rotate(45deg);-moz-transform:rotate(45deg);-ms-transform:rotate(45deg);transform:rotate(45deg)}.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#fff;color:#333;box-shadow:0 3px 14px #0006}.leaflet-container a.leaflet-popup-close-button{position:absolute;top:0;right:0;border:none;text-align:center;width:24px;height:24px;font:16px/24px Tahoma,Verdana,sans-serif;color:#757575;text-decoration:none;background:transparent}.leaflet-container a.leaflet-popup-close-button:hover,.leaflet-container a.leaflet-popup-close-button:focus{color:#585858}.leaflet-popup-scrolled{overflow:auto}.leaflet-oldie .leaflet-popup-content-wrapper{-ms-zoom:1}.leaflet-oldie .leaflet-popup-tip{width:24px;margin:0 auto;-ms-filter:"progid:DXImageTransform.Microsoft.Matrix(M11=0.70710678, M12=0.70710678, M21=-0.70710678, M22=0.70710678)";filter:progid:DXImageTransform.Microsoft.Matrix(M11=.70710678,M12=.70710678,M21=-.70710678,M22=.70710678)}.leaflet-oldie .leaflet-control-zoom,.leaflet-oldie .leaflet-control-layers,.leaflet-oldie .leaflet-popup-content-wrapper,.leaflet-oldie .leaflet-popup-tip{border:1px solid #999}.leaflet-div-icon{background:#fff;border:1px solid #666}.leaflet-tooltip{position:absolute;padding:6px;background-color:#fff;border:1px solid #fff;border-radius:3px;color:#222;white-space:nowrap;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;pointer-events:none;box-shadow:0 1px 3px #0006}.leaflet-tooltip.leaflet-interactive{cursor:pointer;pointer-events:auto}.leaflet-tooltip-top:before,.leaflet-tooltip-bottom:before,.leaflet-tooltip-left:before,.leaflet-tooltip-right:before{position:absolute;pointer-events:none;border:6px solid transparent;background:transparent;content:""}.leaflet-tooltip-bottom{margin-top:6px}.leaflet-tooltip-top{margin-top:-6px}.leaflet-tooltip-bottom:before,.leaflet-tooltip-top:before{left:50%;margin-left:-6px}.leaflet-tooltip-top:before{bottom:0;margin-bottom:-12px;border-top-color:#fff}.leaflet-tooltip-bottom:before{top:0;margin-top:-12px;margin-left:-6px;border-bottom-color:#fff}.leaflet-tooltip-left{margin-left:-6px}.leaflet-tooltip-right{margin-left:6px}.leaflet-tooltip-left:before,.leaflet-tooltip-right:before{top:50%;margin-top:-6px}.leaflet-tooltip-left:before{right:0;margin-right:-12px;border-left-color:#fff}.leaflet-tooltip-right:before{left:0;margin-left:-12px;border-right-color:#fff}@media print{.leaflet-control{-webkit-print-color-adjust:exact;print-color-adjust:exact}}', Ze = ":host{display:block;width:100%;height:400px;position:relative;border-radius:var(--border-radius-md, 8px);overflow:hidden;box-shadow:var(--shadow-sm, 0 1px 3px rgba(0,0,0,.1))}.ui-mapa-container{width:100%;height:100%;z-index:1}.leaflet-top,.leaflet-bottom{z-index:1000}", R = {
+customElements.get("ui-stat") || customElements.define("ui-stat", ut);
+customElements.get("ui-kpi") || customElements.define("ui-kpi", ce);
+customElements.get("ui-metrica") || customElements.define("ui-metrica", de);
+const Et = '.leaflet-pane,.leaflet-tile,.leaflet-marker-icon,.leaflet-marker-shadow,.leaflet-tile-container,.leaflet-pane>svg,.leaflet-pane>canvas,.leaflet-zoom-box,.leaflet-image-layer,.leaflet-layer{position:absolute;left:0;top:0}.leaflet-container{overflow:hidden}.leaflet-tile,.leaflet-marker-icon,.leaflet-marker-shadow{-webkit-user-select:none;-moz-user-select:none;user-select:none;-webkit-user-drag:none}.leaflet-tile::selection{background:transparent}.leaflet-safari .leaflet-tile{image-rendering:-webkit-optimize-contrast}.leaflet-safari .leaflet-tile-container{width:1600px;height:1600px;-webkit-transform-origin:0 0}.leaflet-marker-icon,.leaflet-marker-shadow{display:block}.leaflet-container .leaflet-overlay-pane svg{max-width:none!important;max-height:none!important}.leaflet-container .leaflet-marker-pane img,.leaflet-container .leaflet-shadow-pane img,.leaflet-container .leaflet-tile-pane img,.leaflet-container img.leaflet-image-layer,.leaflet-container .leaflet-tile{max-width:none!important;max-height:none!important;width:auto;padding:0}.leaflet-container img.leaflet-tile{mix-blend-mode:plus-lighter}.leaflet-container.leaflet-touch-zoom{-ms-touch-action:pan-x pan-y;touch-action:pan-x pan-y}.leaflet-container.leaflet-touch-drag{-ms-touch-action:pinch-zoom;touch-action:none;touch-action:pinch-zoom}.leaflet-container.leaflet-touch-drag.leaflet-touch-zoom{-ms-touch-action:none;touch-action:none}.leaflet-container{-webkit-tap-highlight-color:transparent}.leaflet-container a{-webkit-tap-highlight-color:rgba(51,181,229,.4)}.leaflet-tile{filter:inherit;visibility:hidden}.leaflet-tile-loaded{visibility:inherit}.leaflet-zoom-box{width:0;height:0;-moz-box-sizing:border-box;box-sizing:border-box;z-index:800}.leaflet-overlay-pane svg{-moz-user-select:none}.leaflet-pane{z-index:400}.leaflet-tile-pane{z-index:200}.leaflet-overlay-pane{z-index:400}.leaflet-shadow-pane{z-index:500}.leaflet-marker-pane{z-index:600}.leaflet-tooltip-pane{z-index:650}.leaflet-popup-pane{z-index:700}.leaflet-map-pane canvas{z-index:100}.leaflet-map-pane svg{z-index:200}.leaflet-vml-shape{width:1px;height:1px}.lvml{behavior:url(#default#VML);display:inline-block;position:absolute}.leaflet-control{position:relative;z-index:800;pointer-events:visiblePainted;pointer-events:auto}.leaflet-top,.leaflet-bottom{position:absolute;z-index:1000;pointer-events:none}.leaflet-top{top:0}.leaflet-right{right:0}.leaflet-bottom{bottom:0}.leaflet-left{left:0}.leaflet-control{float:left;clear:both}.leaflet-right .leaflet-control{float:right}.leaflet-top .leaflet-control{margin-top:10px}.leaflet-bottom .leaflet-control{margin-bottom:10px}.leaflet-left .leaflet-control{margin-left:10px}.leaflet-right .leaflet-control{margin-right:10px}.leaflet-fade-anim .leaflet-popup{opacity:0;-webkit-transition:opacity .2s linear;-moz-transition:opacity .2s linear;transition:opacity .2s linear}.leaflet-fade-anim .leaflet-map-pane .leaflet-popup{opacity:1}.leaflet-zoom-animated{-webkit-transform-origin:0 0;-ms-transform-origin:0 0;transform-origin:0 0}svg.leaflet-zoom-animated{will-change:transform}.leaflet-zoom-anim .leaflet-zoom-animated{-webkit-transition:-webkit-transform .25s cubic-bezier(0,0,.25,1);-moz-transition:-moz-transform .25s cubic-bezier(0,0,.25,1);transition:transform .25s cubic-bezier(0,0,.25,1)}.leaflet-zoom-anim .leaflet-tile,.leaflet-pan-anim .leaflet-tile{-webkit-transition:none;-moz-transition:none;transition:none}.leaflet-zoom-anim .leaflet-zoom-hide{visibility:hidden}.leaflet-interactive{cursor:pointer}.leaflet-grab{cursor:-webkit-grab;cursor:-moz-grab;cursor:grab}.leaflet-crosshair,.leaflet-crosshair .leaflet-interactive{cursor:crosshair}.leaflet-popup-pane,.leaflet-control{cursor:auto}.leaflet-dragging .leaflet-grab,.leaflet-dragging .leaflet-grab .leaflet-interactive,.leaflet-dragging .leaflet-marker-draggable{cursor:move;cursor:-webkit-grabbing;cursor:-moz-grabbing;cursor:grabbing}.leaflet-marker-icon,.leaflet-marker-shadow,.leaflet-image-layer,.leaflet-pane>svg path,.leaflet-tile-container{pointer-events:none}.leaflet-marker-icon.leaflet-interactive,.leaflet-image-layer.leaflet-interactive,.leaflet-pane>svg path.leaflet-interactive,svg.leaflet-image-layer.leaflet-interactive path{pointer-events:visiblePainted;pointer-events:auto}.leaflet-container{background:#ddd;outline-offset:1px}.leaflet-container a{color:#0078a8}.leaflet-zoom-box{border:2px dotted #38f;background:#ffffff80}.leaflet-container{font-family:Helvetica Neue,Arial,Helvetica,sans-serif;font-size:12px;font-size:.75rem;line-height:1.5}.leaflet-bar{box-shadow:0 1px 5px #000000a6;border-radius:4px}.leaflet-bar a{background-color:#fff;border-bottom:1px solid #ccc;width:26px;height:26px;line-height:26px;display:block;text-align:center;text-decoration:none;color:#000}.leaflet-bar a,.leaflet-control-layers-toggle{background-position:50% 50%;background-repeat:no-repeat;display:block}.leaflet-bar a:hover,.leaflet-bar a:focus{background-color:#f4f4f4}.leaflet-bar a:first-child{border-top-left-radius:4px;border-top-right-radius:4px}.leaflet-bar a:last-child{border-bottom-left-radius:4px;border-bottom-right-radius:4px;border-bottom:none}.leaflet-bar a.leaflet-disabled{cursor:default;background-color:#f4f4f4;color:#bbb}.leaflet-touch .leaflet-bar a{width:30px;height:30px;line-height:30px}.leaflet-touch .leaflet-bar a:first-child{border-top-left-radius:2px;border-top-right-radius:2px}.leaflet-touch .leaflet-bar a:last-child{border-bottom-left-radius:2px;border-bottom-right-radius:2px}.leaflet-control-zoom-in,.leaflet-control-zoom-out{font:700 18px Lucida Console,Monaco,monospace;text-indent:1px}.leaflet-touch .leaflet-control-zoom-in,.leaflet-touch .leaflet-control-zoom-out{font-size:22px}.leaflet-control-layers{box-shadow:0 1px 5px #0006;background:#fff;border-radius:5px}.leaflet-control-layers-toggle{background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABoAAAAaCAQAAAADQ4RFAAACf0lEQVR4AY1UM3gkARTePdvdoTxXKc+qTl3aU5U6b2Kbkz3Gtq3Zw6ziLGNPzrYx7946Tr6/ee/XeCQ4D3ykPtL5tHno4n0d/h3+xfuWHGLX81cn7r0iTNzjr7LrlxCqPtkbTQEHeqOrTy4Yyt3VCi/IOB0v7rVC7q45Q3Gr5K6jt+3Gl5nCoDD4MtO+j96Wu8atmhGqcNGHObuf8OM/x3AMx38+4Z2sPqzCxRFK2aF2e5Jol56XTLyggAMTL56XOMoS1W4pOyjUcGGQdZxU6qRh7B9Zp+PfpOFlqt0zyDZckPi1ttmIp03jX8gyJ8a/PG2yutpS/Vol7peZIbZcKBAEEheEIAgFbDkz5H6Zrkm2hVWGiXKiF4Ycw0RWKdtC16Q7qe3X4iOMxruonzegJzWaXFrU9utOSsLUmrc0YjeWYjCW4PDMADElpJSSQ0vQvA1Tm6/JlKnqFs1EGyZiFCqnRZTEJJJiKRYzVYzJck2Rm6P4iH+cmSY0YzimYa8l0EtTODFWhcMIMVqdsI2uiTvKmTisIDHJ3od5GILVhBCarCfVRmo4uTjkhrhzkiBV7SsaqS+TzrzM1qpGGUFt28pIySQHR6h7F6KSwGWm97ay+Z+ZqMcEjEWebE7wxCSQwpkhJqoZA5ivCdZDjJepuJ9IQjGGUmuXJdBFUygxVqVsxFsLMbDe8ZbDYVCGKxs+W080max1hFCarCfV+C1KATwcnvE9gRRuMP2prdbWGowm1KB1y+zwMMENkM755cJ2yPDtqhTI6ED1M/82yIDtC/4j4BijjeObflpO9I9MwXTCsSX8jWAFeHr05WoLTJ5G8IQVS/7vwR6ohirYM7f6HzYpogfS3R2OAAAAAElFTkSuQmCC);width:36px;height:36px}.leaflet-retina .leaflet-control-layers-toggle{background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADQAAAA0CAQAAABvcdNgAAAEsklEQVR4AWL4TydIhpZK1kpWOlg0w3ZXP6D2soBtG42jeI6ZmQTHzAxiTbSJsYLjO9HhP+WOmcuhciVnmHVQcJnp7DFvScowZorad/+V/fVzMdMT2g9Cv9guXGv/7pYOrXh2U+RRR3dSd9JRx6bIFc/ekqHI29JC6pJ5ZEh1yWkhkbcFeSjxgx3L2m1cb1C7bceyxA+CNjT/Ifff+/kDk2u/w/33/IeCMOSaWZ4glosqT3DNnNZQ7Cs58/3Ce5HL78iZH/vKVIaYlqzfdLu8Vi7dnvUbEza5Idt36tquZFldl6N5Z/POLof0XLK61mZCmJSWjVF9tEjUluu74IUXvgttuVIHE7YxSkaYhJZam7yiM9Pv82JYfl9nptxZaxMJE4YSPty+vF0+Y2up9d3wwijfjZbabqm/3bZ9ecKHsiGmRflnn1MW4pjHf9oLufyn2z3y1D6n8g8TZhxyzipLNPnAUpsOiuWimg52psrTZYnOWYNDTMuWBWa0tJb4rgq1UvmutpaYEbZlwU3CLJm/ayYjHW5/h7xWLn9Hh1vepDkyf7dE7MtT5LR4e7yYpHrkhOUpEfssBLq2pPhAqoSWKUkk7EDqkmK6RrCEzqDjhNDWNE+XSMvkJRDWlZTmCW0l0PHQGRZY5t1L83kT0Y3l2SItk5JAWHl2dCOBm+fPu3fo5/3v61RMCO9Jx2EEYYhb0rmNQMX/vm7gqOEJLcXTGw3CAuRNeyaPWwjR8PRqKQ1PDA/dpv+on9Shox52WFnx0KY8onHayrJzm87i5h9xGw/tfkev0jGsQizqezUKjk12hBMKJ4kbCqGPVNXudyyrShovGw5CgxsRICxF6aRmSjlBnHRzg7Gx8fKqEubI2rahQYdR1YgDIRQO7JvQyD52hoIQx0mxa0ODtW2Iozn1le2iIRdzwWewedyZzewidueOGqlsn1MvcnQpuVwLGG3/IR1hIKxCjelIDZ8ldqWz25jWAsnldEnK0Zxro19TGVb2ffIZEsIO89EIEDvKMPrzmBOQcKQ+rroye6NgRRxqR4U8EAkz0CL6uSGOm6KQCdWjvjRiSP1BPalCRS5iQYiEIvxuBMJEWgzSoHADcVMuN7IuqqTeyUPq22qFimFtxDyBBJEwNyt6TM88blFHao/6tWWhuuOM4SAK4EI4QmFHA+SEyWlp4EQoJ13cYGzMu7yszEIBOm2rVmHUNqwAIQabISNMRstmdhNWcFLsSm+0tjJH1MdRxO5Nx0WDMhCtgD6OKgZeljJqJKc9po8juskR9XN0Y1lZ3mWjLR9JCO1jRDMd0fpYC2VnvjBSEFg7wBENc0R9HFlb0xvF1+TBEpF68d+DHR6IOWVv2BECtxo46hOFUBd/APU57WIoEwJhIi2CdpyZX0m93BZicktMj1AS9dClteUFAUNUIEygRZCtik5zSxI9MubTBH1GOiHsiLJ3OCoSZkILa9PxiN0EbvhsAo8tdAf9Seepd36lGWHmtNANTv5Jd0z4QYyeo/UEJqxKRpg5LZx6btLPsOaEmdMyxYdlc8LMaJnikDlhclqmPiQnTEpLUIZEwkRagjYkEibQErwhkTAKCLQEbUgkzJQWc/0PstHHcfEdQ+UAAAAASUVORK5CYII=);background-size:26px 26px}.leaflet-touch .leaflet-control-layers-toggle{width:44px;height:44px}.leaflet-control-layers .leaflet-control-layers-list,.leaflet-control-layers-expanded .leaflet-control-layers-toggle{display:none}.leaflet-control-layers-expanded .leaflet-control-layers-list{display:block;position:relative}.leaflet-control-layers-expanded{padding:6px 10px 6px 6px;color:#333;background:#fff}.leaflet-control-layers-scrollbar{overflow-y:scroll;overflow-x:hidden;padding-right:5px}.leaflet-control-layers-selector{margin-top:2px;position:relative;top:1px}.leaflet-control-layers label{display:block;font-size:13px;font-size:1.08333em}.leaflet-control-layers-separator{height:0;border-top:1px solid #ddd;margin:5px -10px 5px -6px}.leaflet-default-icon-path{background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABkAAAApCAYAAADAk4LOAAAFgUlEQVR4Aa1XA5BjWRTN2oW17d3YaZtr2962HUzbDNpjszW24mRt28p47v7zq/bXZtrp/lWnXr337j3nPCe85NcypgSFdugCpW5YoDAMRaIMqRi6aKq5E3YqDQO3qAwjVWrD8Ncq/RBpykd8oZUb/kaJutow8r1aP9II0WmLKLIsJyv1w/kqw9Ch2MYdB++12Onxee/QMwvf4/Dk/Lfp/i4nxTXtOoQ4pW5Aj7wpici1A9erdAN2OH64x8OSP9j3Ft3b7aWkTg/Fm91siTra0f9on5sQr9INejH6CUUUpavjFNq1B+Oadhxmnfa8RfEmN8VNAsQhPqF55xHkMzz3jSmChWU6f7/XZKNH+9+hBLOHYozuKQPxyMPUKkrX/K0uWnfFaJGS1QPRtZsOPtr3NsW0uyh6NNCOkU3Yz+bXbT3I8G3xE5EXLXtCXbbqwCO9zPQYPRTZ5vIDXD7U+w7rFDEoUUf7ibHIR4y6bLVPXrz8JVZEql13trxwue/uDivd3fkWRbS6/IA2bID4uk0UpF1N8qLlbBlXs4Ee7HLTfV1j54APvODnSfOWBqtKVvjgLKzF5YdEk5ewRkGlK0i33Eofffc7HT56jD7/6U+qH3Cx7SBLNntH5YIPvODnyfIXZYRVDPqgHtLs5ABHD3YzLuespb7t79FY34DjMwrVrcTuwlT55YMPvOBnRrJ4VXTdNnYug5ucHLBjEpt30701A3Ts+HEa73u6dT3FNWwflY86eMHPk+Yu+i6pzUpRrW7SNDg5JHR4KapmM5Wv2E8Tfcb1HoqqHMHU+uWDD7zg54mz5/2BSnizi9T1Dg4QQXLToGNCkb6tb1NU+QAlGr1++eADrzhn/u8Q2YZhQVlZ5+CAOtqfbhmaUCS1ezNFVm2imDbPmPng5wmz+gwh+oHDce0eUtQ6OGDIyR0uUhUsoO3vfDmmgOezH0mZN59x7MBi++WDL1g/eEiU3avlidO671bkLfwbw5XV2P8Pzo0ydy4t2/0eu33xYSOMOD8hTf4CrBtGMSoXfPLchX+J0ruSePw3LZeK0juPJbYzrhkH0io7B3k164hiGvawhOKMLkrQLyVpZg8rHFW7E2uHOL888IBPlNZ1FPzstSJM694fWr6RwpvcJK60+0HCILTBzZLFNdtAzJaohze60T8qBzyh5ZuOg5e7uwQppofEmf2++DYvmySqGBuKaicF1blQjhuHdvCIMvp8whTTfZzI7RldpwtSzL+F1+wkdZ2TBOW2gIF88PBTzD/gpeREAMEbxnJcaJHNHrpzji0gQCS6hdkEeYt9DF/2qPcEC8RM28Hwmr3sdNyht00byAut2k3gufWNtgtOEOFGUwcXWNDbdNbpgBGxEvKkOQsxivJx33iow0Vw5S6SVTrpVq11ysA2Rp7gTfPfktc6zhtXBBC+adRLshf6sG2RfHPZ5EAc4sVZ83yCN00Fk/4kggu40ZTvIEm5g24qtU4KjBrx/BTTH8ifVASAG7gKrnWxJDcU7x8X6Ecczhm3o6YicvsLXWfh3Ch1W0k8x0nXF+0fFxgt4phz8QvypiwCCFKMqXCnqXExjq10beH+UUA7+nG6mdG/Pu0f3LgFcGrl2s0kNNjpmoJ9o4B29CMO8dMT4Q5ox8uitF6fqsrJOr8qnwNbRzv6hSnG5wP+64C7h9lp30hKNtKdWjtdkbuPA19nJ7Tz3zR/ibgARbhb4AlhavcBebmTHcFl2fvYEnW0ox9xMxKBS8btJ+KiEbq9zA4RthQXDhPa0T9TEe69gWupwc6uBUphquXgf+/FrIjweHQS4/pduMe5ERUMHUd9xv8ZR98CxkS4F2n3EUrUZ10EYNw7BWm9x1GiPssi3GgiGRDKWRYZfXlON+dfNbM+GgIwYdwAAAAASUVORK5CYII=)}.leaflet-container .leaflet-control-attribution{background:#fff;background:#fffc;margin:0}.leaflet-control-attribution,.leaflet-control-scale-line{padding:0 5px;color:#333;line-height:1.4}.leaflet-control-attribution a{text-decoration:none}.leaflet-control-attribution a:hover,.leaflet-control-attribution a:focus{text-decoration:underline}.leaflet-attribution-flag{display:inline!important;vertical-align:baseline!important;width:1em;height:.6669em}.leaflet-left .leaflet-control-scale{margin-left:5px}.leaflet-bottom .leaflet-control-scale{margin-bottom:5px}.leaflet-control-scale-line{border:2px solid #777;border-top:none;line-height:1.1;padding:2px 5px 1px;white-space:nowrap;-moz-box-sizing:border-box;box-sizing:border-box;background:#fffc;text-shadow:1px 1px #fff}.leaflet-control-scale-line:not(:first-child){border-top:2px solid #777;border-bottom:none;margin-top:-2px}.leaflet-control-scale-line:not(:first-child):not(:last-child){border-bottom:2px solid #777}.leaflet-touch .leaflet-control-attribution,.leaflet-touch .leaflet-control-layers,.leaflet-touch .leaflet-bar{box-shadow:none}.leaflet-touch .leaflet-control-layers,.leaflet-touch .leaflet-bar{border:2px solid rgba(0,0,0,.2);background-clip:padding-box}.leaflet-popup{position:absolute;text-align:center;margin-bottom:20px}.leaflet-popup-content-wrapper{padding:1px;text-align:left;border-radius:12px}.leaflet-popup-content{margin:13px 24px 13px 20px;line-height:1.3;font-size:13px;font-size:1.08333em;min-height:1px}.leaflet-popup-content p{margin:1.3em 0}.leaflet-popup-tip-container{width:40px;height:20px;position:absolute;left:50%;margin-top:-1px;margin-left:-20px;overflow:hidden;pointer-events:none}.leaflet-popup-tip{width:17px;height:17px;padding:1px;margin:-10px auto 0;pointer-events:auto;-webkit-transform:rotate(45deg);-moz-transform:rotate(45deg);-ms-transform:rotate(45deg);transform:rotate(45deg)}.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#fff;color:#333;box-shadow:0 3px 14px #0006}.leaflet-container a.leaflet-popup-close-button{position:absolute;top:0;right:0;border:none;text-align:center;width:24px;height:24px;font:16px/24px Tahoma,Verdana,sans-serif;color:#757575;text-decoration:none;background:transparent}.leaflet-container a.leaflet-popup-close-button:hover,.leaflet-container a.leaflet-popup-close-button:focus{color:#585858}.leaflet-popup-scrolled{overflow:auto}.leaflet-oldie .leaflet-popup-content-wrapper{-ms-zoom:1}.leaflet-oldie .leaflet-popup-tip{width:24px;margin:0 auto;-ms-filter:"progid:DXImageTransform.Microsoft.Matrix(M11=0.70710678, M12=0.70710678, M21=-0.70710678, M22=0.70710678)";filter:progid:DXImageTransform.Microsoft.Matrix(M11=.70710678,M12=.70710678,M21=-.70710678,M22=.70710678)}.leaflet-oldie .leaflet-control-zoom,.leaflet-oldie .leaflet-control-layers,.leaflet-oldie .leaflet-popup-content-wrapper,.leaflet-oldie .leaflet-popup-tip{border:1px solid #999}.leaflet-div-icon{background:#fff;border:1px solid #666}.leaflet-tooltip{position:absolute;padding:6px;background-color:#fff;border:1px solid #fff;border-radius:3px;color:#222;white-space:nowrap;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;pointer-events:none;box-shadow:0 1px 3px #0006}.leaflet-tooltip.leaflet-interactive{cursor:pointer;pointer-events:auto}.leaflet-tooltip-top:before,.leaflet-tooltip-bottom:before,.leaflet-tooltip-left:before,.leaflet-tooltip-right:before{position:absolute;pointer-events:none;border:6px solid transparent;background:transparent;content:""}.leaflet-tooltip-bottom{margin-top:6px}.leaflet-tooltip-top{margin-top:-6px}.leaflet-tooltip-bottom:before,.leaflet-tooltip-top:before{left:50%;margin-left:-6px}.leaflet-tooltip-top:before{bottom:0;margin-bottom:-12px;border-top-color:#fff}.leaflet-tooltip-bottom:before{top:0;margin-top:-12px;margin-left:-6px;border-bottom-color:#fff}.leaflet-tooltip-left{margin-left:-6px}.leaflet-tooltip-right{margin-left:6px}.leaflet-tooltip-left:before,.leaflet-tooltip-right:before{top:50%;margin-top:-6px}.leaflet-tooltip-left:before{right:0;margin-right:-12px;border-left-color:#fff}.leaflet-tooltip-right:before{left:0;margin-left:-12px;border-right-color:#fff}@media print{.leaflet-control{-webkit-print-color-adjust:exact;print-color-adjust:exact}}', ue = ":host{display:block;width:100%;height:400px;position:relative;border-radius:var(--border-radius-md, 8px);overflow:hidden;box-shadow:var(--shadow-sm, 0 1px 3px rgba(0,0,0,.1))}.ui-mapa-container{width:100%;height:100%;z-index:1}.leaflet-top,.leaflet-bottom{z-index:1000}", Z = {
   osm: {
     nome: "OpenStreetMap",
-    layer: () => _.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    layer: () => x.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     })
   },
   satelite: {
     nome: "Satélite (Esri)",
-    layer: () => _.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
+    layer: () => x.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
       attribution: "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
     })
   },
   topografia: {
     nome: "Topografia",
-    layer: () => _.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png", {
+    layer: () => x.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png", {
       attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
     })
   },
   ruas: {
     nome: "Ruas (Esri)",
-    layer: () => _.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}", {
+    layer: () => x.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}", {
       attribution: "Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012"
     })
   }
 };
-class Qe extends HTMLElement {
+class he extends HTMLElement {
   constructor() {
     super();
-    n(this, "mapContainer");
-    n(this, "mapInstance", null);
-    n(this, "_initTimer", null);
-    n(this, "_resizeObserver");
-    n(this, "_resizeTimer");
-    const e = this.attachShadow({ mode: "open" });
-    e.innerHTML = `
+    l(this, "mapContainer");
+    l(this, "mapInstance", null);
+    l(this, "_initTimer", null);
+    l(this, "_resizeObserver");
+    l(this, "_resizeTimer");
+    const t = this.attachShadow({ mode: "open" });
+    t.innerHTML = `
       <style>
-        ${le}
-        ${Ze}
+        ${Et}
+        ${ue}
       </style>
       <div class="ui-mapa-container" id="map-container"></div>
       <div style="display: none;"><slot></slot></div>
-    `, this.mapContainer = e.getElementById("map-container");
+    `, this.mapContainer = t.getElementById("map-container");
   }
   static get observedAttributes() {
     return ["lat", "lng", "zoom"];
@@ -2625,30 +2625,30 @@ class Qe extends HTMLElement {
   disconnectedCallback() {
     this._initTimer && (window.clearTimeout(this._initTimer), this._initTimer = null), this._resizeObserver && (this._resizeObserver.disconnect(), this._resizeObserver = void 0), this._resizeTimer && (window.clearTimeout(this._resizeTimer), this._resizeTimer = null), this.mapInstance && (this.mapInstance.remove(), this.mapInstance = null);
   }
-  attributeChangedCallback(e, t, i) {
-    if (t !== i && this.mapInstance) {
-      const a = parseFloat(this.getAttribute("lat") || "-23.550520"), s = parseFloat(this.getAttribute("lng") || "-46.633308"), r = parseInt(this.getAttribute("zoom") || "13", 10);
-      !isNaN(a) && !isNaN(s) && this.mapInstance.setView([a, s], r);
+  attributeChangedCallback(t, e, i) {
+    if (e !== i && this.mapInstance) {
+      const a = parseFloat(this.getAttribute("lat") || "-23.550520"), r = parseFloat(this.getAttribute("lng") || "-46.633308"), s = parseInt(this.getAttribute("zoom") || "13", 10);
+      !isNaN(a) && !isNaN(r) && this.mapInstance.setView([a, r], s);
     }
   }
   initMap() {
     if (this.mapInstance) return;
-    const e = parseFloat(this.getAttribute("lat") || "-23.550520"), t = parseFloat(this.getAttribute("lng") || "-46.633308"), i = parseInt(this.getAttribute("zoom") || "13", 10);
-    this.mapInstance = _.map(this.mapContainer).setView([e, t], i);
+    const t = parseFloat(this.getAttribute("lat") || "-23.550520"), e = parseFloat(this.getAttribute("lng") || "-46.633308"), i = parseInt(this.getAttribute("zoom") || "13", 10);
+    this.mapInstance = x.map(this.mapContainer).setView([t, e], i);
     const a = this.getAttribute("camadas");
-    let s = ["osm"];
-    a && (s = a.split(",").map((l) => l.trim().toLowerCase()).filter((l) => R[l]), s.length === 0 && (s = ["osm"]));
-    const r = R[s[0]].layer();
-    if (r.addTo(this.mapInstance), s.length > 1) {
-      const l = {};
-      l[R[s[0]].nome] = r;
-      for (let u = 1; u < s.length; u++) {
-        const d = s[u];
-        l[R[d].nome] = R[d].layer();
+    let r = ["osm"];
+    a && (r = a.split(",").map((n) => n.trim().toLowerCase()).filter((n) => Z[n]), r.length === 0 && (r = ["osm"]));
+    const s = Z[r[0]].layer();
+    if (s.addTo(this.mapInstance), r.length > 1) {
+      const n = {};
+      n[Z[r[0]].nome] = s;
+      for (let c = 1; c < r.length; c++) {
+        const u = r[c];
+        n[Z[u].nome] = Z[u].layer();
       }
-      _.control.layers(l, void 0, { position: "topright" }).addTo(this.mapInstance);
+      x.control.layers(n, void 0, { position: "topright" }).addTo(this.mapInstance);
     }
-    _.Icon.Default.imagePath = "https://unpkg.com/leaflet@1.9.4/dist/images/", typeof ResizeObserver < "u" && this.mapContainer && (this._resizeObserver = new ResizeObserver(() => {
+    x.Icon.Default.imagePath = "https://unpkg.com/leaflet@1.9.4/dist/images/", typeof ResizeObserver < "u" && this.mapContainer && (this._resizeObserver = new ResizeObserver(() => {
       this._resizeTimer && clearTimeout(this._resizeTimer), this._resizeTimer = setTimeout(() => {
         this.mapInstance && this.mapInstance.invalidateSize();
       }, 60);
@@ -2664,31 +2664,73 @@ class Qe extends HTMLElement {
     return this.mapInstance;
   }
 }
-customElements.get("ui-mapa") || customElements.define("ui-mapa", Qe);
-const k = (b) => b == null ? "" : String(b).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"), Et = (b, o = 3) => b == null || isNaN(b) ? "—" : b.toLocaleString("pt-BR", {
+customElements.get("ui-mapa") || customElements.define("ui-mapa", he);
+const E = (b) => b == null ? "" : String(b).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"), $e = (b, o = 3) => b == null || isNaN(b) ? "—" : b.toLocaleString("pt-BR", {
   minimumFractionDigits: o,
   maximumFractionDigits: o
-}), q = (b, o) => {
+}), R = (b, o) => {
   if (b == null || o === null || o === void 0)
     return null;
-  const e = (a) => {
+  const t = (a) => {
     if (typeof a == "number") return a;
     if (typeof a == "string") {
-      const s = a.trim().replace(",", ".");
-      return parseFloat(s);
+      const r = a.trim().replace(",", ".");
+      return parseFloat(r);
     }
     return NaN;
-  }, t = e(b), i = e(o);
-  return isNaN(t) || isNaN(i) ? null : Math.abs(t) > 90 || Math.abs(i) > 180 ? (console.warn(`[gerencigeo-canvas] Coordenada fora do limite geográfico WGS-84 (Lat: ${t}, Lon: ${i}). Parece ser projeção UTM plana.`), null) : t === 0 && i === 0 ? null : { lat: t, lon: i };
+  }, e = t(b), i = t(o);
+  return isNaN(e) || isNaN(i) ? null : Math.abs(e) > 90 || Math.abs(i) > 180 ? (console.warn(`[gerencigeo-canvas] Coordenada fora do limite geográfico WGS-84 (Lat: ${e}, Lon: ${i}). Parece ser projeção UTM plana.`), null) : e === 0 && i === 0 ? null : { lat: e, lon: i };
+}, J = (b, o) => !b || !Array.isArray(b) || b.length === 0 ? "" : `<div class="ui-popup-actions-footer">${b.map((e) => {
+  const i = e.variante || "secondary";
+  return `<button type="button" class="ui-popup-btn ui-popup-btn-${E(i)}" data-acao-id="${E(e.id)}" data-elemento-id="${E(String(o))}">${E(e.rotulo)}</button>`;
+}).join("")}</div>`, tt = (b, o, t, e) => {
+  const i = b != null && b.getElement ? b.getElement() : null;
+  if (!i) return;
+  i.querySelectorAll(".ui-popup-btn").forEach((r) => {
+    r.onclick = (s) => {
+      s.preventDefault(), s.stopPropagation();
+      const n = r.getAttribute("data-acao-id"), c = r.getAttribute("data-elemento-id") ?? (o == null ? void 0 : o.id);
+      n && c !== void 0 && c !== null && (t.onPopupAcao && t.onPopupAcao(n, c, o), e && typeof e.closePopup == "function" ? e.closePopup() : b._map && typeof b._map.closePopup == "function" && b._map.closePopup());
+    };
+  });
+}, it = (b, o) => {
+  const t = {};
+  return b.forEach((e) => {
+    let i;
+    o && e[o] !== void 0 && e[o] !== null ? i = e[o] : (i = e.grupoId ?? e.grupoKey, i == null && (e.matricula_id !== void 0 && e.matricula_id !== null ? i = `mat_${e.matricula_id}` : e.planilha_origem ? i = e.planilha_origem : i = "padrao"));
+    const a = String(i);
+    t[a] || (t[a] = []), t[a].push(e);
+  }), t;
+}, ot = (b) => [...b].sort((o, t) => {
+  const e = (i) => {
+    const a = i.ordem ?? i.indice ?? i.index ?? i.seq ?? i.ordem_caminhamento ?? i.id, r = Number(a);
+    return isNaN(r) ? 999999 : r;
+  };
+  return e(o) - e(t);
+}), ft = (b) => {
+  if (!b || typeof b != "string") return null;
+  const o = /(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)/g;
+  let t, e = 0, i = 0, a = 0;
+  for (; (t = o.exec(b)) !== null; ) {
+    const r = parseFloat(t[1]), s = parseFloat(t[2]);
+    if (!isNaN(r) && !isNaN(s)) {
+      const n = R(s, r) || R(r, s);
+      n && (e += n.lat, i += n.lon, a++);
+    }
+  }
+  return a > 0 ? {
+    lat: e / a,
+    lon: i / a
+  } : null;
 };
-class Je extends HTMLElement {
+class pe extends HTMLElement {
   constructor() {
     super(...arguments);
-    n(this, "marker", null);
-    n(this, "_initTimer", null);
-    n(this, "_retryCount", 0);
-    n(this, "_parentMap", null);
-    n(this, "handleMapReady", () => {
+    l(this, "marker", null);
+    l(this, "_initTimer", null);
+    l(this, "_retryCount", 0);
+    l(this, "_parentMap", null);
+    l(this, "handleMapReady", () => {
       this.marker && (this.marker.remove(), this.marker = null), this.initMarker();
     });
   }
@@ -2701,27 +2743,27 @@ class Je extends HTMLElement {
   disconnectedCallback() {
     this._initTimer && (clearTimeout(this._initTimer), this._initTimer = null), this._parentMap && (this._parentMap.removeEventListener("ui-mapa-pronto", this.handleMapReady), this._parentMap = null), this.marker && (this.marker.remove(), this.marker = null);
   }
-  attributeChangedCallback(e, t, i) {
-    if (t !== i && this.marker) {
-      if (e === "lat" || e === "lng") {
-        const a = q(this.getAttribute("lat"), this.getAttribute("lng"));
+  attributeChangedCallback(t, e, i) {
+    if (e !== i && this.marker) {
+      if (t === "lat" || t === "lng") {
+        const a = R(this.getAttribute("lat"), this.getAttribute("lng"));
         a && this.marker.setLatLng([a.lat, a.lon]);
       }
-      e === "titulo" && (this.marker.unbindPopup(), i && this.marker.bindPopup(this.createPopupContent(i)));
+      t === "titulo" && (this.marker.unbindPopup(), i && this.marker.bindPopup(this.createPopupContent(i)));
     }
   }
-  createPopupContent(e) {
-    const t = document.createElement("div");
-    return t.className = "ui-mapa-popup", t.textContent = e, t;
+  createPopupContent(t) {
+    const e = document.createElement("div");
+    return e.className = "ui-mapa-popup", e.textContent = t, e;
   }
   initMarker() {
-    const e = this._parentMap || this.closest("ui-mapa");
-    if (!e) {
+    const t = this._parentMap || this.closest("ui-mapa");
+    if (!t) {
       console.warn("<ui-mapa-marcador> deve estar dentro de um elemento <ui-mapa>");
       return;
     }
-    const t = e.getMap();
-    if (!t) {
+    const e = t.getMap();
+    if (!e) {
       if (this._retryCount >= 30) {
         console.warn("<ui-mapa-marcador> Tempo limite esgotado aguardando inicialização do mapa pai.");
         return;
@@ -2730,19 +2772,19 @@ class Je extends HTMLElement {
       return;
     }
     this._retryCount = 0;
-    const i = q(this.getAttribute("lat"), this.getAttribute("lng"));
+    const i = R(this.getAttribute("lat"), this.getAttribute("lng"));
     if (!i) return;
     const a = this.getAttribute("titulo");
-    this.marker = _.marker([i.lat, i.lon]), a && this.marker.bindPopup(this.createPopupContent(a)), this.marker.addTo(t);
+    this.marker = x.marker([i.lat, i.lon]), a && this.marker.bindPopup(this.createPopupContent(a)), this.marker.addTo(e);
   }
 }
-customElements.get("ui-mapa-marcador") || customElements.define("ui-mapa-marcador", Je);
-class et extends HTMLElement {
+customElements.get("ui-mapa-marcador") || customElements.define("ui-mapa-marcador", pe);
+class me extends HTMLElement {
   constructor() {
     super(...arguments);
-    n(this, "polyline", null);
-    n(this, "_initTimer", null);
-    n(this, "_retryCount", 0);
+    l(this, "polyline", null);
+    l(this, "_initTimer", null);
+    l(this, "_retryCount", 0);
   }
   static get observedAttributes() {
     return ["pontos", "cor", "espessura"];
@@ -2753,30 +2795,30 @@ class et extends HTMLElement {
   disconnectedCallback() {
     this._initTimer && (clearTimeout(this._initTimer), this._initTimer = null), this.polyline && (this.polyline.remove(), this.polyline = null);
   }
-  attributeChangedCallback(e, t, i) {
-    t !== i && this.polyline && (e === "pontos" ? this.polyline.setLatLngs(this.getPontos()) : (e === "cor" || e === "espessura") && this.polyline.setStyle({
+  attributeChangedCallback(t, e, i) {
+    e !== i && this.polyline && (t === "pontos" ? this.polyline.setLatLngs(this.getPontos()) : (t === "cor" || t === "espessura") && this.polyline.setStyle({
       color: this.getAttribute("cor") || "#3388ff",
       weight: parseInt(this.getAttribute("espessura") || "3", 10)
     }));
   }
   getPontos() {
     try {
-      const e = this.getAttribute("pontos");
-      if (e)
-        return JSON.parse(e);
-    } catch (e) {
-      console.error('Formato inválido para atributo pontos no <ui-mapa-linha>. Deve ser um JSON array, ex: "[[lat, lng], ...]"', e);
+      const t = this.getAttribute("pontos");
+      if (t)
+        return JSON.parse(t);
+    } catch (t) {
+      console.error('Formato inválido para atributo pontos no <ui-mapa-linha>. Deve ser um JSON array, ex: "[[lat, lng], ...]"', t);
     }
     return [];
   }
   initLinha() {
-    const e = this.closest("ui-mapa");
-    if (!e) {
+    const t = this.closest("ui-mapa");
+    if (!t) {
       console.warn("<ui-mapa-linha> deve estar dentro de um elemento <ui-mapa>");
       return;
     }
-    const t = e.getMap();
-    if (!t) {
+    const e = t.getMap();
+    if (!e) {
       if (this._retryCount >= 30) {
         console.warn("<ui-mapa-linha> Tempo limite esgotado aguardando inicialização do mapa pai.");
         return;
@@ -2786,23 +2828,23 @@ class et extends HTMLElement {
     }
     this._retryCount = 0;
     const i = this.getAttribute("cor") || "#3388ff", a = parseInt(this.getAttribute("espessura") || "3", 10);
-    this.polyline = _.polyline(this.getPontos(), {
+    this.polyline = x.polyline(this.getPontos(), {
       color: i,
       weight: a
-    }), this.polyline.addTo(t);
+    }), this.polyline.addTo(e);
   }
 }
-customElements.get("ui-mapa-linha") || customElements.define("ui-mapa-linha", et);
-const tt = ":host{display:block;box-sizing:border-box}:host([inline]){display:inline-block}.ui-skeleton{background:var(--ui-cor-fundo-elevado, #1e1e24);background-image:linear-gradient(90deg,#fff0,#ffffff12,#fff0);background-size:200% 100%;background-repeat:no-repeat;border-radius:var(--ui-raio-borda, 6px);position:relative;overflow:hidden;box-sizing:border-box;animation:ui-skeleton-shimmer 1.6s ease-in-out infinite}:root[data-tema=claro] .ui-skeleton,[data-tema=claro] .ui-skeleton{background:var(--ui-cor-fundo-elevado, #e9ecef);background-image:linear-gradient(90deg,#0000,#0000000f,#0000)}@keyframes ui-skeleton-shimmer{0%{background-position:-200% 0}to{background-position:200% 0}}.ui-skeleton--pulso{background-image:none;animation:ui-skeleton-pulse 1.8s ease-in-out infinite}@keyframes ui-skeleton-pulse{0%,to{opacity:1}50%{opacity:.45}}.ui-skeleton--estatico{animation:none;background-image:none}.ui-skeleton--texto{height:1.1em;border-radius:4px}.ui-skeleton--circular{border-radius:50%!important;aspect-ratio:1;width:var(--ui-skeleton-largura, 40px);height:var(--ui-skeleton-altura, 40px)}.ui-skeleton--retangular{border-radius:var(--ui-raio-borda, 6px);min-height:20px}.ui-skeleton__linhas{display:flex;flex-direction:column;gap:8px;width:100%}.ui-skeleton__linhas .ui-skeleton{width:100%}.ui-skeleton__linhas .ui-skeleton:last-child:not(:first-child){width:65%}.ui-skeleton--card{display:flex;flex-direction:column;gap:12px;padding:16px;border-radius:var(--ui-raio-borda, 10px);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .08));background:var(--ui-cor-fundo-card, #18181c);animation:none}.ui-skeleton__card-media{width:100%;height:120px;border-radius:6px}.ui-skeleton__card-header{display:flex;align-items:center;gap:10px}.ui-skeleton__card-avatar{width:36px;height:36px;border-radius:50%;flex-shrink:0}.ui-skeleton__card-title{width:50%;height:16px}@media (prefers-reduced-motion: reduce){.ui-skeleton{animation:none!important;background-image:none!important;opacity:.7}}";
-class ce extends HTMLElement {
+customElements.get("ui-mapa-linha") || customElements.define("ui-mapa-linha", me);
+const fe = ":host{display:block;box-sizing:border-box}:host([inline]){display:inline-block}.ui-skeleton{background:var(--ui-cor-fundo-elevado, #1e1e24);background-image:linear-gradient(90deg,#fff0,#ffffff12,#fff0);background-size:200% 100%;background-repeat:no-repeat;border-radius:var(--ui-raio-borda, 6px);position:relative;overflow:hidden;box-sizing:border-box;animation:ui-skeleton-shimmer 1.6s ease-in-out infinite}:root[data-tema=claro] .ui-skeleton,[data-tema=claro] .ui-skeleton{background:var(--ui-cor-fundo-elevado, #e9ecef);background-image:linear-gradient(90deg,#0000,#0000000f,#0000)}@keyframes ui-skeleton-shimmer{0%{background-position:-200% 0}to{background-position:200% 0}}.ui-skeleton--pulso{background-image:none;animation:ui-skeleton-pulse 1.8s ease-in-out infinite}@keyframes ui-skeleton-pulse{0%,to{opacity:1}50%{opacity:.45}}.ui-skeleton--estatico{animation:none;background-image:none}.ui-skeleton--texto{height:1.1em;border-radius:4px}.ui-skeleton--circular{border-radius:50%!important;aspect-ratio:1;width:var(--ui-skeleton-largura, 40px);height:var(--ui-skeleton-altura, 40px)}.ui-skeleton--retangular{border-radius:var(--ui-raio-borda, 6px);min-height:20px}.ui-skeleton__linhas{display:flex;flex-direction:column;gap:8px;width:100%}.ui-skeleton__linhas .ui-skeleton{width:100%}.ui-skeleton__linhas .ui-skeleton:last-child:not(:first-child){width:65%}.ui-skeleton--card{display:flex;flex-direction:column;gap:12px;padding:16px;border-radius:var(--ui-raio-borda, 10px);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .08));background:var(--ui-cor-fundo-card, #18181c);animation:none}.ui-skeleton__card-media{width:100%;height:120px;border-radius:6px}.ui-skeleton__card-header{display:flex;align-items:center;gap:10px}.ui-skeleton__card-avatar{width:36px;height:36px;border-radius:50%;flex-shrink:0}.ui-skeleton__card-title{width:50%;height:16px}@media (prefers-reduced-motion: reduce){.ui-skeleton{animation:none!important;background-image:none!important;opacity:.7}}";
+class kt extends HTMLElement {
   constructor() {
     super();
-    n(this, "rootElement");
-    const e = this.attachShadow({ mode: "open" });
-    e.innerHTML = `
-      <style>${tt}</style>
+    l(this, "rootElement");
+    const t = this.attachShadow({ mode: "open" });
+    t.innerHTML = `
+      <style>${fe}</style>
       <div class="ui-skeleton-container" role="status" aria-label="Carregando..."></div>
-    `, this.rootElement = e.querySelector(".ui-skeleton-container");
+    `, this.rootElement = t.querySelector(".ui-skeleton-container");
   }
   static get observedAttributes() {
     return [
@@ -2824,73 +2866,73 @@ class ce extends HTMLElement {
   connectedCallback() {
     this.hasAttribute("aria-hidden") || this.setAttribute("aria-hidden", "true"), this.syncState();
   }
-  attributeChangedCallback(e, t, i) {
+  attributeChangedCallback(t, e, i) {
     this.syncState();
   }
   get variante() {
-    const e = (this.getAttribute("variante") || this.getAttribute("variant") || "texto").toLowerCase();
-    return e === "circulo" || e === "circular" ? "circular" : e === "retangulo" || e === "retangular" ? "retangular" : e === "card" ? "card" : "texto";
+    const t = (this.getAttribute("variante") || this.getAttribute("variant") || "texto").toLowerCase();
+    return t === "circulo" || t === "circular" ? "circular" : t === "retangulo" || t === "retangular" ? "retangular" : t === "card" ? "card" : "texto";
   }
-  set variante(e) {
-    this.setAttribute("variante", e);
+  set variante(t) {
+    this.setAttribute("variante", t);
   }
   get animado() {
-    const e = (this.getAttribute("animado") || this.getAttribute("animated") || "shimmer").toLowerCase();
-    return e === "pulse" || e === "pulso" ? "pulso" : e === "none" || e === "nenhum" || e === "estatico" ? "nenhum" : "shimmer";
+    const t = (this.getAttribute("animado") || this.getAttribute("animated") || "shimmer").toLowerCase();
+    return t === "pulse" || t === "pulso" ? "pulso" : t === "none" || t === "nenhum" || t === "estatico" ? "nenhum" : "shimmer";
   }
-  set animado(e) {
-    this.setAttribute("animado", e);
+  set animado(t) {
+    this.setAttribute("animado", t);
   }
   get linhas() {
-    const e = parseInt(this.getAttribute("linhas") || this.getAttribute("lines") || this.getAttribute("count") || "1", 10);
-    return isNaN(e) || e < 1 ? 1 : e;
+    const t = parseInt(this.getAttribute("linhas") || this.getAttribute("lines") || this.getAttribute("count") || "1", 10);
+    return isNaN(t) || t < 1 ? 1 : t;
   }
-  set linhas(e) {
-    this.setAttribute("linhas", String(e));
+  set linhas(t) {
+    this.setAttribute("linhas", String(t));
   }
   syncState() {
-    const e = this.variante, t = this.animado, i = this.getAttribute("largura") || this.getAttribute("width"), a = this.getAttribute("altura") || this.getAttribute("height"), s = this.getAttribute("raio") || this.getAttribute("radius"), r = this.linhas;
+    const t = this.variante, e = this.animado, i = this.getAttribute("largura") || this.getAttribute("width"), a = this.getAttribute("altura") || this.getAttribute("height"), r = this.getAttribute("raio") || this.getAttribute("radius"), s = this.linhas;
     this.rootElement.innerHTML = "";
-    const l = t === "pulso" ? "ui-skeleton--pulso" : t === "nenhum" ? "ui-skeleton--estatico" : "";
-    if (e === "card") {
+    const n = e === "pulso" ? "ui-skeleton--pulso" : e === "nenhum" ? "ui-skeleton--estatico" : "";
+    if (t === "card") {
+      const u = document.createElement("div");
+      u.className = "ui-skeleton ui-skeleton--card";
       const d = document.createElement("div");
-      d.className = "ui-skeleton ui-skeleton--card";
-      const c = document.createElement("div");
-      c.className = `ui-skeleton ui-skeleton__card-media ${l}`;
-      const p = document.createElement("div");
-      p.className = "ui-skeleton__card-header";
-      const m = document.createElement("div");
-      m.className = `ui-skeleton ui-skeleton__card-avatar ${l}`;
+      d.className = `ui-skeleton ui-skeleton__card-media ${n}`;
       const h = document.createElement("div");
-      h.className = `ui-skeleton ui-skeleton__card-title ${l}`, p.appendChild(m), p.appendChild(h);
+      h.className = "ui-skeleton__card-header";
+      const p = document.createElement("div");
+      p.className = `ui-skeleton ui-skeleton__card-avatar ${n}`;
+      const m = document.createElement("div");
+      m.className = `ui-skeleton ui-skeleton__card-title ${n}`, h.appendChild(p), h.appendChild(m);
       const f = document.createElement("div");
       f.className = "ui-skeleton__linhas";
-      for (let g = 0; g < 2; g++) {
-        const v = document.createElement("div");
-        v.className = `ui-skeleton ui-skeleton--texto ${l}`, f.appendChild(v);
+      for (let v = 0; v < 2; v++) {
+        const y = document.createElement("div");
+        y.className = `ui-skeleton ui-skeleton--texto ${n}`, f.appendChild(y);
       }
-      d.appendChild(c), d.appendChild(p), d.appendChild(f), this.rootElement.appendChild(d);
+      u.appendChild(d), u.appendChild(h), u.appendChild(f), this.rootElement.appendChild(u);
       return;
     }
-    if (r > 1 && e === "texto") {
-      const d = document.createElement("div");
-      d.className = "ui-skeleton__linhas";
-      for (let c = 0; c < r; c++) {
-        const p = document.createElement("div");
-        p.className = `ui-skeleton ui-skeleton--texto ${l}`, a && (p.style.height = isNaN(Number(a)) ? a : `${a}px`), s && (p.style.borderRadius = isNaN(Number(s)) ? s : `${s}px`), d.appendChild(p);
+    if (s > 1 && t === "texto") {
+      const u = document.createElement("div");
+      u.className = "ui-skeleton__linhas";
+      for (let d = 0; d < s; d++) {
+        const h = document.createElement("div");
+        h.className = `ui-skeleton ui-skeleton--texto ${n}`, a && (h.style.height = isNaN(Number(a)) ? a : `${a}px`), r && (h.style.borderRadius = isNaN(Number(r)) ? r : `${r}px`), u.appendChild(h);
       }
-      i && (d.style.width = isNaN(Number(i)) ? i : `${i}px`), this.rootElement.appendChild(d);
+      i && (u.style.width = isNaN(Number(i)) ? i : `${i}px`), this.rootElement.appendChild(u);
       return;
     }
-    const u = document.createElement("div");
-    u.className = `ui-skeleton ui-skeleton--${e} ${l}`.trim(), i && (u.style.width = isNaN(Number(i)) ? i : `${i}px`), a && (u.style.height = isNaN(Number(a)) ? a : `${a}px`), s && (u.style.borderRadius = isNaN(Number(s)) ? s : `${s}px`), this.rootElement.appendChild(u);
+    const c = document.createElement("div");
+    c.className = `ui-skeleton ui-skeleton--${t} ${n}`.trim(), i && (c.style.width = isNaN(Number(i)) ? i : `${i}px`), a && (c.style.height = isNaN(Number(a)) ? a : `${a}px`), r && (c.style.borderRadius = isNaN(Number(r)) ? r : `${r}px`), this.rootElement.appendChild(c);
   }
 }
-class it extends ce {
+class be extends kt {
 }
-customElements.get("ui-skeleton") || customElements.define("ui-skeleton", ce);
-customElements.get("ui-esqueleto") || customElements.define("ui-esqueleto", it);
-const ot = ':host{display:block;width:100%;height:520px;position:relative;border-radius:var(--ui-radius-lg, 10px);overflow:hidden;box-shadow:0 10px 30px -5px #0009;border:1px solid rgba(255,255,255,.1);background:#080d0a;color:#fff;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Inter,sans-serif;user-select:none;-webkit-user-select:none}*,*:before,*:after{box-sizing:border-box}.cad-root{position:relative;width:100%;height:100%;display:flex;overflow:hidden}.cad-map-container{width:100%;height:100%;background:#080d0a;z-index:1}.qgis-layer-panel{position:absolute;top:12px;left:12px;z-index:1000;width:290px;max-height:calc(100% - 24px);background:#0a120eeb;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.15);border-radius:8px;box-shadow:0 20px 40px #000000b3;display:flex;flex-direction:column;transition:transform .25s cubic-bezier(.16,1,.3,1),opacity .25s ease;overflow:hidden}.qgis-layer-panel.collapsed{transform:translate(-310px);opacity:0;pointer-events:none}.layer-panel-header{padding:10px 14px;background:#ffffff08;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:space-between}.layer-panel-title{font-size:12px;font-weight:700;letter-spacing:.5px;color:#00f5a0;display:flex;align-items:center;gap:6px;text-transform:uppercase}.layer-panel-close{background:transparent;border:none;color:#ffffff80;cursor:pointer;padding:2px;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:all .15s}.layer-panel-close:hover{color:#fff;background:#ffffff1a}.layer-panel-body{padding:10px 14px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;max-height:400px}.layer-section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#ffffff73;margin-bottom:2px;padding:0 4px 4px;border-bottom:1px solid rgba(255,255,255,.12)}.layer-item{background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.08);border-radius:0;padding:10px 4px;display:flex;flex-direction:column;gap:7px;transition:background .15s ease}.layer-item:last-child{border-bottom:none}.layer-item:hover{background:#ffffff08;border-radius:4px}.layer-item-row{display:flex;align-items:center;justify-content:space-between}.layer-item-label{display:flex;align-items:center;gap:10px;font-size:11px;font-weight:600;color:#ffffffe6;cursor:pointer;-webkit-user-select:none;user-select:none}.layer-chk-visibility{-moz-appearance:none;appearance:none;-webkit-appearance:none;width:16px;height:16px;border:1px solid rgba(255,255,255,.4);border-radius:4px;background:#0006;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;position:relative;transition:all .15s ease;flex-shrink:0;margin:0}.layer-chk-visibility:hover{border-color:#00f5a0}.layer-chk-visibility:checked{background:#00f5a0;border-color:#00f5a0}.layer-chk-visibility:checked:after{content:"";width:4px;height:8px;border:solid #04150c;border-width:0 2px 2px 0;transform:rotate(45deg) translateY(-1px);display:block}.layer-item-actions{display:flex;align-items:center;gap:6px}.btn-layer-action{background:transparent;border:none;color:#fff6;cursor:pointer;padding:4px;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:all .15s}.btn-layer-action:hover{color:#00f5a0;background:#ffffff14}.btn-layer-action.active{color:#f43f5e;background:#f43f5e26}.layer-controls-row{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:10px;color:#ffffff80;padding-left:26px}.layer-opacity-slider{flex:1;height:4px;border-radius:2px;background:#ffffff26;accent-color:#00f5a0;cursor:pointer}.scale-mode-pill{font-size:9px;font-weight:600;padding:2px 7px;border-radius:10px;background:#ffffff0f;color:#ffffffb3;cursor:pointer;border:1px solid rgba(255,255,255,.1);transition:all .15s}.scale-mode-pill:hover{border-color:#00f5a0;color:#00f5a0;background:#00f5a01a}.cad-quick-toolbar{position:absolute;top:12px;right:12px;z-index:1000;display:flex;flex-direction:column;gap:6px;background:#0c1510eb;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:5px;box-shadow:0 10px 25px -5px #0009}.cad-btn-tool{background:transparent;border:none;color:#fff9;cursor:pointer;padding:7px;border-radius:5px;display:flex;align-items:center;justify-content:center;transition:all .15s}.cad-btn-tool:hover{background:#ffffff1a;color:#fff}.cad-btn-tool.active{background:#00f5a026;color:#00f5a0;border:1px solid rgba(0,245,160,.3)}.cad-selection-box{pointer-events:none;box-sizing:border-box}.custom-leaflet-marker{cursor:pointer}.custom-leaflet-marker:hover{filter:brightness(1.25);transform:scale(1.15);transition:transform .15s ease}.compact-popup .leaflet-popup-content-wrapper{background:#0a120ef2!important;-webkit-backdrop-filter:blur(16px)!important;backdrop-filter:blur(16px)!important;border:1px solid rgba(255,255,255,.15)!important;border-radius:8px!important;color:#fff!important;padding:0!important}.compact-popup .leaflet-popup-content{margin:10px 12px!important}.compact-popup .leaflet-popup-tip{background:#0a120ef2!important;border:1px solid rgba(255,255,255,.15)!important}', te = {
+customElements.get("ui-skeleton") || customElements.define("ui-skeleton", kt);
+customElements.get("ui-esqueleto") || customElements.define("ui-esqueleto", be);
+const ge = ':host{display:block;width:100%;height:520px;position:relative;border-radius:var(--ui-radius-lg, 10px);overflow:hidden;box-shadow:0 10px 30px -5px #0009;border:1px solid rgba(255,255,255,.1);background:#080d0a;color:#fff;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Inter,sans-serif;user-select:none;-webkit-user-select:none}*,*:before,*:after{box-sizing:border-box}.cad-root{position:relative;width:100%;height:100%;display:flex;overflow:hidden}.cad-map-container{width:100%;height:100%;background:#080d0a;z-index:1}.qgis-layer-panel{position:absolute;top:12px;left:12px;z-index:1000;width:290px;max-height:calc(100% - 24px);background:#0a120eeb;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.15);border-radius:8px;box-shadow:0 20px 40px #000000b3;display:flex;flex-direction:column;transition:transform .25s cubic-bezier(.16,1,.3,1),opacity .25s ease;overflow:hidden}.qgis-layer-panel.collapsed{transform:translate(-310px);opacity:0;pointer-events:none}.layer-panel-header{padding:10px 14px;background:#ffffff08;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:space-between}.layer-panel-title{font-size:12px;font-weight:700;letter-spacing:.5px;color:#00f5a0;display:flex;align-items:center;gap:6px;text-transform:uppercase}.layer-panel-close{background:transparent;border:none;color:#ffffff80;cursor:pointer;padding:2px;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:all .15s}.layer-panel-close:hover{color:#fff;background:#ffffff1a}.layer-panel-body{padding:10px 14px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;max-height:400px}.layer-section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#ffffff73;margin-bottom:2px;padding:0 4px 4px;border-bottom:1px solid rgba(255,255,255,.12)}.layer-item{background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.08);border-radius:0;padding:10px 4px;display:flex;flex-direction:column;gap:7px;transition:background .15s ease}.layer-item:last-child{border-bottom:none}.layer-item:hover{background:#ffffff08;border-radius:4px}.layer-item-row{display:flex;align-items:center;justify-content:space-between}.layer-item-label{display:flex;align-items:center;gap:10px;font-size:11px;font-weight:600;color:#ffffffe6;cursor:pointer;-webkit-user-select:none;user-select:none}.layer-chk-visibility{-moz-appearance:none;appearance:none;-webkit-appearance:none;width:16px;height:16px;border:1px solid rgba(255,255,255,.4);border-radius:4px;background:#0006;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;position:relative;transition:all .15s ease;flex-shrink:0;margin:0}.layer-chk-visibility:hover{border-color:#00f5a0}.layer-chk-visibility:checked{background:#00f5a0;border-color:#00f5a0}.layer-chk-visibility:checked:after{content:"";width:4px;height:8px;border:solid #04150c;border-width:0 2px 2px 0;transform:rotate(45deg) translateY(-1px);display:block}.layer-item-actions{display:flex;align-items:center;gap:6px}.btn-layer-action{background:transparent;border:none;color:#fff6;cursor:pointer;padding:4px;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:all .15s}.btn-layer-action:hover{color:#00f5a0;background:#ffffff14}.btn-layer-action.active{color:#f43f5e;background:#f43f5e26}.layer-controls-row{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:10px;color:#ffffff80;padding-left:26px}.layer-opacity-slider{flex:1;height:4px;border-radius:2px;background:#ffffff26;accent-color:#00f5a0;cursor:pointer}.scale-mode-pill{font-size:9px;font-weight:600;padding:2px 7px;border-radius:10px;background:#ffffff0f;color:#ffffffb3;cursor:pointer;border:1px solid rgba(255,255,255,.1);transition:all .15s}.scale-mode-pill:hover{border-color:#00f5a0;color:#00f5a0;background:#00f5a01a}.cad-quick-toolbar{position:absolute;top:12px;right:12px;z-index:1000;display:flex;flex-direction:column;gap:6px;background:#0c1510eb;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:5px;box-shadow:0 10px 25px -5px #0009}.cad-btn-tool{background:transparent;border:none;color:#fff9;cursor:pointer;padding:7px;border-radius:5px;display:flex;align-items:center;justify-content:center;transition:all .15s}.cad-btn-tool:hover{background:#ffffff1a;color:#fff}.cad-btn-tool.active{background:#00f5a026;color:#00f5a0;border:1px solid rgba(0,245,160,.3)}.cad-selection-box{pointer-events:none;box-sizing:border-box}.custom-leaflet-marker{cursor:pointer}.custom-leaflet-marker:hover{filter:brightness(1.25);transform:scale(1.15);transition:transform .15s ease}.compact-popup .leaflet-popup-content-wrapper{background:#0a120ef2!important;-webkit-backdrop-filter:blur(16px)!important;backdrop-filter:blur(16px)!important;border:1px solid rgba(255,255,255,.15)!important;border-radius:8px!important;color:#fff!important;padding:0!important}.compact-popup .leaflet-popup-content{margin:10px 12px!important}.compact-popup .leaflet-popup-tip{background:#0a120ef2!important;border:1px solid rgba(255,255,255,.15)!important}.ui-popup-actions-footer{display:flex;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.1);justify-content:flex-end;align-items:center;flex-wrap:wrap}.ui-popup-btn{display:inline-flex;align-items:center;justify-content:center;font-family:inherit;font-size:11px;font-weight:500;padding:4px 9px;border-radius:var(--ui-raio-borda, var(--ui-radius-sm, 6px));cursor:pointer;transition:all .15s ease;border:1px solid transparent;outline:none;line-height:1.25;-webkit-user-select:none;user-select:none}.ui-popup-btn-primary{background:var(--ui-cor-primaria, #00f5a0);color:#080d0a;font-weight:600;border-color:var(--ui-cor-primaria, #00f5a0)}.ui-popup-btn-primary:hover{filter:brightness(1.1);box-shadow:0 0 10px #00f5a059}.ui-popup-btn-secondary{background:#ffffff14;color:#fff;border-color:#ffffff2e}.ui-popup-btn-secondary:hover{background:#ffffff29;border-color:#ffffff4d}.ui-popup-btn-destrutivo{background:#ef444426;color:#f87171;border-color:#ef444459}.ui-popup-btn-destrutivo:hover{background:#ef444440;border-color:#ef444499;color:#fff}@media (max-width: 520px){.qgis-layer-panel{top:8px;left:8px;right:8px;width:auto;max-height:calc(100% - 16px)}.qgis-layer-panel.collapsed{transform:translateY(-115%)}.layer-panel-close{min-width:36px;min-height:36px;font-size:16px}.layer-action-btn{min-width:32px;min-height:32px}}.cad-destaque-marker-container{pointer-events:none!important;background:transparent!important;border:none!important;overflow:visible!important}.cad-destaque-marker-container *{pointer-events:none!important}.cad-pulse-highlight{position:relative;width:52px;height:52px;display:flex;align-items:center;justify-content:center;pointer-events:none!important;user-select:none;-webkit-user-select:none}.cad-pulse-core{position:absolute;width:14px;height:14px;border-radius:50%;background-color:var(--cad-pulse-cor, #00f5a0);box-shadow:0 0 10px var(--cad-pulse-cor, #00f5a0),0 0 20px var(--cad-pulse-cor, #00f5a0);pointer-events:none!important;animation:cad-pulse-glow 1.4s ease-in-out infinite alternate}.cad-pulse-ring{position:absolute;width:100%;height:100%;border-radius:50%;border:2.5px solid var(--cad-pulse-cor, #00f5a0);box-shadow:0 0 10px var(--cad-pulse-cor, #00f5a0);pointer-events:none!important;opacity:0;animation:cad-pulse-ping 1.8s cubic-bezier(0,0,.2,1) infinite}.cad-pulse-ring.ring-2{animation-delay:.6s}@keyframes cad-pulse-ping{0%{transform:scale(.35);opacity:.95}60%{opacity:.5}to{transform:scale(2.5);opacity:0}}@keyframes cad-pulse-glow{0%{transform:scale(.85);opacity:.8}to{transform:scale(1.15);opacity:1;box-shadow:0 0 14px var(--cad-pulse-cor, #00f5a0),0 0 26px var(--cad-pulse-cor, #00f5a0)}}', bt = {
   perimetroWeight: 1,
   fechamentoWeight: 1,
   vizinhoWeight: 1,
@@ -2907,23 +2949,23 @@ const ot = ':host{display:block;width:100%;height:520px;position:relative;border
   crosshair: !1,
   satOpacity: 1,
   magnetSnap: !1
-}, T = class T {
+}, X = class X {
   constructor() {
-    n(this, "config");
+    l(this, "config");
     this.config = this.loadConfig();
   }
   static getInstance() {
-    return T.instance || (T.instance = new T()), T.instance;
+    return X.instance || (X.instance = new X()), X.instance;
   }
   loadConfig() {
     try {
       const o = typeof localStorage < "u" ? localStorage.getItem("gerencigeo_mapa_config") : null;
       if (o)
-        return { ...te, ...JSON.parse(o) };
+        return { ...bt, ...JSON.parse(o) };
     } catch (o) {
       console.error("Erro ao carregar configurações do mapa", o);
     }
-    return { ...te };
+    return { ...bt };
   }
   saveConfig(o) {
     this.config = { ...this.config, ...o }, typeof localStorage < "u" && localStorage.setItem("gerencigeo_mapa_config", JSON.stringify(this.config));
@@ -2932,64 +2974,67 @@ const ot = ':host{display:block;width:100%;height:520px;position:relative;border
     return this.config = this.loadConfig(), { ...this.config };
   }
 };
-n(T, "instance");
-let j = T;
-class at {
+l(X, "instance");
+let st = X;
+class ve {
   constructor(o) {
-    n(this, "map", null);
-    n(this, "configManager", j.getInstance());
-    n(this, "config", this.configManager.getConfig());
-    n(this, "apiBaseUrl", "/api");
-    n(this, "bancoPontosGroup", _.layerGroup());
-    n(this, "pontosVizinhosGroup", _.layerGroup());
-    n(this, "controller");
-    n(this, "containerElement", null);
-    n(this, "bc");
-    n(this, "currentSigefAbortController");
+    l(this, "map", null);
+    l(this, "configManager", st.getInstance());
+    l(this, "config", this.configManager.getConfig());
+    l(this, "apiBaseUrl", "/api");
+    l(this, "bancoPontosGroup", x.layerGroup());
+    l(this, "pontosVizinhosGroup", x.layerGroup());
+    l(this, "controller");
+    l(this, "containerElement", null);
+    l(this, "bc");
+    l(this, "currentSigefAbortController");
     this.controller = o;
   }
   init(o) {
     this.map && (this.map.remove(), this.map = null);
-    const e = typeof o == "string" ? document.getElementById(o) : o;
-    if (!e) return null;
-    if (this.containerElement = e, this.map = _.map(e, {
+    const t = typeof o == "string" ? document.getElementById(o) : o;
+    if (!t) return null;
+    if (this.containerElement = t, this.map = x.map(t, {
       maxZoom: 24,
       scrollWheelZoom: !0,
       preferCanvas: this.config.preferCanvas !== void 0 ? this.config.preferCanvas : !0,
       zoomControl: !1
       // O controle de zoom é gerenciado pelo CAD ou scroll
     }).setView([-23.7661, -53.3204], 14), this.listenConfigBroadcast(), this.applyMapStyles(), !this.map.getPane("sigefPane")) {
-      const t = this.map.createPane("sigefPane");
-      t.style.zIndex = "390";
+      const e = this.map.createPane("sigefPane");
+      e.style.zIndex = "390";
     }
     if (!this.map.getPane("perimetroPane")) {
-      const t = this.map.createPane("perimetroPane");
-      t.style.zIndex = "450";
+      const e = this.map.createPane("perimetroPane");
+      e.style.zIndex = "450";
     }
     if (!this.map.getPane("verticesPane")) {
-      const t = this.map.createPane("verticesPane");
-      t.style.zIndex = "650";
+      const e = this.map.createPane("verticesPane");
+      e.style.zIndex = "650";
     }
-    return _.control.scale({
+    return x.control.scale({
       metric: !0,
       imperial: !1,
       position: "bottomleft"
-    }).addTo(this.map), this.map.on("click", (t) => {
-      if (this.controller.modoCliqueSequencialAtivo)
+    }).addTo(this.map), this.map.on("click", (e) => {
+      if (this.controller.modoCliqueSequencialAtivo || this.controller.canvasInteracao && this.controller.canvasInteracao.selectionHappened)
         return;
-      if (this.controller.canvasInteracao && this.controller.canvasInteracao.selectionHappened) {
-        this.controller.canvasInteracao.selectionHappened = !1;
-        return;
-      }
-      (this.controller.layerManager ? this.controller.layerManager.isLayerActiveAndSelectable("sigef") : !1) && this.consultarSigef(t);
+      (this.controller.layerManager ? this.controller.layerManager.isLayerActiveAndSelectable("sigef") : !1) && this.consultarSigef(e);
     }), setTimeout(() => {
       this.invalidateSize();
     }, 250), this.map;
   }
-  invalidateSize() {
+  /**
+   * Recalcula com segurança as dimensões do viewport Leaflet.
+   * Absorve silenciosamente exceções de desmontagem e panes desanexados (undefined._leaflet_pos).
+   */
+  invalidateSize(o = !1) {
+    var t, e;
     if (this.map)
       try {
-        this.map.invalidateSize();
+        const i = (e = (t = this.map).getContainer) == null ? void 0 : e.call(t);
+        if (!i || !i.parentNode) return;
+        this.map.invalidateSize({ animate: o, pan: !1 });
       } catch {
       }
   }
@@ -3011,32 +3056,44 @@ class at {
   }
   preCarregarTilesRegiao(o) {
     if (!this.map) return;
-    const e = Math.floor(this.map.getZoom()), t = Math.max(e, 12), i = Math.min(e + 1, 19), a = o.pad(0.2), s = ["mt0", "mt1", "mt2", "mt3"];
-    let r = 0;
-    const l = 32;
-    for (let u = t; u <= i && r < l; u++) {
-      const d = a.getNorthWest(), c = a.getSouthEast(), p = this.lonToTileX(d.lng, u), m = this.lonToTileX(c.lng, u), h = this.latToTileY(d.lat, u), f = this.latToTileY(c.lat, u);
-      for (let g = p; g <= m && r < l; g++)
-        for (let v = h; v <= f && r < l; v++) {
-          const w = `https://${s[(g + v) % s.length]}.google.com/vt/lyrs=s,h&x=${g}&y=${v}&z=${u}`, E = new Image();
-          E.src = w, r++;
+    const t = Math.floor(this.map.getZoom()), e = Math.max(t, 12), i = Math.min(t + 1, 19), a = o.pad(0.2), r = ["mt0", "mt1", "mt2", "mt3"];
+    let s = 0;
+    const n = 32;
+    for (let c = e; c <= i && s < n; c++) {
+      const u = a.getNorthWest(), d = a.getSouthEast(), h = this.lonToTileX(u.lng, c), p = this.lonToTileX(d.lng, c), m = this.latToTileY(u.lat, c), f = this.latToTileY(d.lat, c);
+      for (let v = h; v <= p && s < n; v++)
+        for (let y = m; y <= f && s < n; y++) {
+          const S = `https://${r[(v + y) % r.length]}.google.com/vt/lyrs=s,h&x=${v}&y=${y}&z=${c}`, P = new Image();
+          P.src = S, s++;
         }
     }
   }
-  lonToTileX(o, e) {
-    return Math.floor((o + 180) / 360 * Math.pow(2, e));
+  lonToTileX(o, t) {
+    return Math.floor((o + 180) / 360 * Math.pow(2, t));
   }
-  latToTileY(o, e) {
-    const t = o * Math.PI / 180;
+  latToTileY(o, t) {
+    const e = o * Math.PI / 180;
     return Math.floor(
-      (1 - Math.log(Math.tan(t) + 1 / Math.cos(t)) / Math.PI) / 2 * Math.pow(2, e)
+      (1 - Math.log(Math.tan(e) + 1 / Math.cos(e)) / Math.PI) / 2 * Math.pow(2, t)
     );
   }
   async consultarSigef(o) {
     if (!this.map) return;
-    const e = this.map.getSize(), t = this.map.getBounds(), i = t.getSouthWest(), a = t.getNorthEast(), s = `${i.lng},${i.lat},${a.lng},${a.lat}`, r = Math.round(this.map.layerPointToContainerPoint(o.layerPoint).x), l = Math.round(this.map.layerPointToContainerPoint(o.layerPoint).y), u = `https://acervofundiario.incra.gov.br/i3geo/ogc.php?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetFeatureInfo&FORMAT=image/png&TRANSPARENT=true&QUERY_LAYERS=certificada_sigef_particular_pr&LAYERS=certificada_sigef_particular_pr&INFO_FORMAT=application/json&X=${r}&Y=${l}&WIDTH=${e.x}&HEIGHT=${e.y}&SRS=EPSG:4326&BBOX=${s}`, d = this.map.getContainer();
-    d.style.cursor = "wait";
-    const c = _.popup({
+    const t = this.map.getSize(), e = this.map.getBounds(), i = e.getSouthWest(), a = e.getNorthEast(), r = `${i.lng},${i.lat},${a.lng},${a.lat}`;
+    let s = 0, n = 0;
+    try {
+      if (o.containerPoint)
+        s = Math.round(o.containerPoint.x), n = Math.round(o.containerPoint.y);
+      else if (o.layerPoint) {
+        const m = this.map.layerPointToContainerPoint(o.layerPoint);
+        s = Math.round(m.x), n = Math.round(m.y);
+      }
+    } catch {
+      s = 0, n = 0;
+    }
+    const c = `https://acervofundiario.incra.gov.br/i3geo/ogc.php?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetFeatureInfo&FORMAT=image/png&TRANSPARENT=true&QUERY_LAYERS=certificada_sigef_particular_pr&LAYERS=certificada_sigef_particular_pr&INFO_FORMAT=application/json&X=${s}&Y=${n}&WIDTH=${t.x}&HEIGHT=${t.y}&SRS=EPSG:4326&BBOX=${r}`, u = this.map.getContainer();
+    u.style.cursor = "wait";
+    const d = x.popup({
       className: "compact-sigef-popup",
       maxWidth: 250
     }).setLatLng(o.latlng).setContent(`
@@ -3049,38 +3106,38 @@ class at {
         </div>
       `).openOn(this.map);
     this.currentSigefAbortController && this.currentSigefAbortController.abort(), this.currentSigefAbortController = new AbortController();
-    const p = this.currentSigefAbortController.signal, m = setTimeout(() => {
+    const h = this.currentSigefAbortController.signal, p = setTimeout(() => {
       this.currentSigefAbortController && this.currentSigefAbortController.abort();
     }, 8e3);
     try {
-      const f = typeof window < "u" && (window.location.origin.includes("localhost") || window.location.origin.includes("127.0.0.1") || window.location.origin.includes("[::1]")) ? `${this.apiBaseUrl}/proxy/sigef?url=${encodeURIComponent(u)}` : `${window.location.origin}/api.php?action=proxy_sigef&url=${encodeURIComponent(u)}`, g = await fetch(f, { signal: p });
-      clearTimeout(m);
-      let v = null;
-      if (g.ok) {
-        const x = await g.text();
+      const f = typeof window < "u" && (window.location.origin.includes("localhost") || window.location.origin.includes("127.0.0.1") || window.location.origin.includes("[::1]")) ? `${this.apiBaseUrl}/proxy/sigef?url=${encodeURIComponent(c)}` : `${window.location.origin}/api.php?action=proxy_sigef&url=${encodeURIComponent(c)}`, v = await fetch(f, { signal: h });
+      clearTimeout(p);
+      let y = null;
+      if (v.ok) {
+        const w = await v.text();
         try {
-          v = JSON.parse(x);
+          y = JSON.parse(w);
         } catch {
-          v = null;
+          y = null;
         }
       }
-      if (v && v.features && v.features.length > 0) {
-        const x = v.features[0], w = x.properties || {}, E = String(x.id || w.parcela_codigo || w.co_parcela || w.id_parcela || ""), y = String(w.nome_area || w.nome_imovel || "Imóvel Sem Nome");
-        if (E) {
-          const A = encodeURIComponent(E), C = `https://sigef.incra.gov.br/geo/exportar/parcela/shp/${A}/`, B = `https://sigef.incra.gov.br/geo/parcela/detalhe/${A}/`, $ = document.createElement("div");
-          $.style.cssText = "font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.4; min-width:180px;", $.innerHTML = `
+      if (y && y.features && y.features.length > 0) {
+        const w = y.features[0], S = w.properties || {}, P = String(w.id || S.parcela_codigo || S.co_parcela || S.id_parcela || ""), _ = String(S.nome_area || S.nome_imovel || "Imóvel Sem Nome");
+        if (P) {
+          const I = encodeURIComponent(P), g = `https://sigef.incra.gov.br/geo/exportar/parcela/shp/${I}/`, C = `https://sigef.incra.gov.br/geo/parcela/detalhe/${I}/`, L = document.createElement("div");
+          L.style.cssText = "font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.4; min-width:180px;", L.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; padding-bottom:5px; border-bottom:1px solid rgba(255, 255, 255, 0.1);">
               <span style="font-weight:700; font-size:11px; color:#10b981; text-transform:uppercase; letter-spacing:0.5px;">SIGEF</span>
-              <span style="font-size:10px; color:rgba(255, 255, 255, 0.5);">${k(w.situacao_informada || w.status || "Certificada")}</span>
+              <span style="font-size:10px; color:rgba(255, 255, 255, 0.5);">${E(S.situacao_informada || S.status || "Certificada")}</span>
             </div>
-            <div style="font-weight:700; font-size:12px; margin-bottom:4px; color:#ffffff; word-break:break-word;">${k(y)}</div>
-            <div style="font-size:11px; color:rgba(255, 255, 255, 0.7); margin-bottom:2px;">Cód: <span style="font-family:monospace;">${k(w.codigo_imovel || "N/A")}</span></div>
+            <div style="font-weight:700; font-size:12px; margin-bottom:4px; color:#ffffff; word-break:break-word;">${E(_)}</div>
+            <div style="font-size:11px; color:rgba(255, 255, 255, 0.7); margin-bottom:2px;">Cód: <span style="font-family:monospace;">${E(S.codigo_imovel || "N/A")}</span></div>
             <div style="display:flex; gap:12px; font-size:11px; color:rgba(255, 255, 255, 0.7); margin-bottom:6px;">
-              <span>Mat: <strong style="color:#ffffff;">${k(w.registro_matricula || w.matricula || "N/A")}</strong></span>
-              <span>${k(w.data_submissao || "")}</span>
+              <span>Mat: <strong style="color:#ffffff;">${E(S.registro_matricula || S.matricula || "N/A")}</strong></span>
+              <span>${E(S.data_submissao || "")}</span>
             </div>
             <div style="display:flex; flex-direction:column; gap:5px; padding-top:6px; border-top:1px solid rgba(255, 255, 255, 0.1);">
-              <a href="${C}" target="_blank" rel="noopener noreferrer" style="display:flex; align-items:center; justify-content:center; gap:5px; padding:5px 8px; background:rgba(16, 185, 129, 0.15); border:1px solid rgba(16, 185, 129, 0.3); color:#34d399; font-size:11px; font-weight:700; border-radius:5px; text-decoration:none; cursor:pointer;">
+              <a href="${g}" target="_blank" rel="noopener noreferrer" style="display:flex; align-items:center; justify-content:center; gap:5px; padding:5px 8px; background:rgba(16, 185, 129, 0.15); border:1px solid rgba(16, 185, 129, 0.3); color:#34d399; font-size:11px; font-weight:700; border-radius:5px; text-decoration:none; cursor:pointer;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 Baixar Shapefile
               </a>
@@ -3088,48 +3145,48 @@ class at {
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 Importar Confrontante (CSV)
               </button>
-              <a href="${B}" target="_blank" rel="noopener noreferrer" style="display:flex; align-items:center; justify-content:center; gap:4px; padding:4px 6px; background:rgba(255, 255, 255, 0.05); border:1px solid rgba(255, 255, 255, 0.1); color:rgba(255, 255, 255, 0.7); font-size:10px; font-weight:600; border-radius:5px; text-decoration:none; cursor:pointer;">
+              <a href="${C}" target="_blank" rel="noopener noreferrer" style="display:flex; align-items:center; justify-content:center; gap:4px; padding:4px 6px; background:rgba(255, 255, 255, 0.05); border:1px solid rgba(255, 255, 255, 0.1); color:rgba(255, 255, 255, 0.7); font-size:10px; font-weight:600; border-radius:5px; text-decoration:none; cursor:pointer;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                 Abrir no SIGEF
               </a>
             </div>
           `;
-          const L = $.querySelector(".btn-importar-confrontante-sigef");
-          L && L.addEventListener("click", () => {
+          const N = L.querySelector(".btn-importar-confrontante-sigef");
+          N && N.addEventListener("click", () => {
             window.dispatchEvent(
               new CustomEvent("gerencigeo:importar_vizinho_sigef", {
-                detail: { uuid: E, nome: y }
+                detail: { uuid: P, nome: _ }
               })
             );
-          }), c.setContent($);
+          }), d.setContent(L);
         } else
-          c.setContent(`
+          d.setContent(`
             <div style="font-family:sans-serif; font-size:12px; color:#b45309; padding:2px 0;">
               Lote identificado, mas código da parcela indisponível.
             </div>
           `);
       } else
-        c.setContent(`
+        d.setContent(`
           <div style="font-family:sans-serif; font-size:12px; color:rgba(255, 255, 255, 0.7); padding:2px 0;">
             Nenhum imóvel SIGEF certificado neste ponto.
           </div>
         `);
-    } catch (h) {
-      h.name === "AbortError" ? c.setContent(`
+    } catch (m) {
+      m.name === "AbortError" ? d.setContent(`
           <div style="font-family:sans-serif; font-size:12px; color:#f59e0b; padding:2px 0;">
             Consulta cancelada ou tempo limite de resposta esgotado.
           </div>
-        `) : (console.warn("Erro ao consultar SIGEF:", h), c.setContent(`
+        `) : (console.warn("Erro ao consultar SIGEF:", m), d.setContent(`
           <div style="font-family:sans-serif; font-size:12px; color:#f59e0b; padding:2px 0;">
             Serviço de consulta SIGEF indisponível nesta área.
           </div>
         `));
     } finally {
-      d.style.cursor = "";
+      u.style.cursor = "";
     }
   }
 }
-const rt = [
+const xe = [
   "verticesPane",
   "perimetroPane",
   "overlayPane",
@@ -3140,93 +3197,99 @@ const rt = [
   "pane-homologados",
   "pane-homologados-pontos"
 ];
-class st {
+class ye {
   constructor(o) {
-    n(this, "ctx");
-    n(this, "map", null);
-    n(this, "mapContainer", null);
+    l(this, "ctx");
+    l(this, "map", null);
+    l(this, "mapContainer", null);
     // Estados de Pan (Rodinha)
-    n(this, "isPanning", !1);
-    n(this, "lastMousePos", { x: 0, y: 0 });
+    l(this, "isPanning", !1);
+    l(this, "lastMousePos", { x: 0, y: 0 });
     // Estados de Seleção (Clique Esquerdo)
-    n(this, "isSelecting", !1);
-    n(this, "selectStartPos", { x: 0, y: 0 });
-    n(this, "selectStartPoint", null);
-    n(this, "selectionDiv", null);
+    l(this, "isSelecting", !1);
+    l(this, "selectStartPos", { x: 0, y: 0 });
+    l(this, "selectStartPoint", null);
+    l(this, "selectionDiv", null);
     // Tempo do último clique do botão do meio
-    n(this, "lastMiddleClickTime", 0);
+    l(this, "lastMiddleClickTime", 0);
     // Estados de Toque (Mobile/Tablet)
-    n(this, "touchStartPos", { x: 0, y: 0 });
-    n(this, "touchStartDist", 0);
-    n(this, "isTouchPanning", !1);
+    l(this, "touchStartPos", { x: 0, y: 0 });
+    l(this, "touchStartDist", 0);
+    l(this, "isTouchPanning", !1);
     // Sinaliza que uma caixa de seleção foi arrastada
-    n(this, "selectionHappened", !1);
-    n(this, "handleTouchStart", (o) => {
+    l(this, "selectionHappened", !1);
+    // Sinaliza que uma operação de pan ocorreu
+    l(this, "panHappened", !1);
+    l(this, "handleTouchStart", (o) => {
       if (!(!this.map || !this.mapContainer)) {
         if (o.touches.length === 1)
           this.isTouchPanning = !0, this.touchStartPos = { x: o.touches[0].clientX, y: o.touches[0].clientY };
         else if (o.touches.length === 2) {
           this.isTouchPanning = !1;
-          const e = o.touches[0].clientX - o.touches[1].clientX, t = o.touches[0].clientY - o.touches[1].clientY;
-          this.touchStartDist = Math.hypot(e, t);
+          const t = o.touches[0].clientX - o.touches[1].clientX, e = o.touches[0].clientY - o.touches[1].clientY;
+          this.touchStartDist = Math.hypot(t, e);
         }
       }
     });
-    n(this, "handleTouchMove", (o) => {
+    l(this, "handleTouchMove", (o) => {
       if (!(!this.map || !this.mapContainer)) {
         if (o.touches.length === 1 && this.isTouchPanning) {
-          o.preventDefault();
-          const e = this.touchStartPos.x - o.touches[0].clientX, t = this.touchStartPos.y - o.touches[0].clientY;
-          this.map.panBy([e, t], { animate: !1 }), this.touchStartPos = { x: o.touches[0].clientX, y: o.touches[0].clientY };
+          o.preventDefault(), this.panHappened = !0;
+          const t = this.touchStartPos.x - o.touches[0].clientX, e = this.touchStartPos.y - o.touches[0].clientY;
+          this.map.panBy([t, e], { animate: !1 }), this.touchStartPos = { x: o.touches[0].clientX, y: o.touches[0].clientY };
         } else if (o.touches.length === 2 && this.touchStartDist > 0) {
-          o.preventDefault();
-          const e = o.touches[0].clientX - o.touches[1].clientX, t = o.touches[0].clientY - o.touches[1].clientY, i = Math.hypot(e, t);
+          o.preventDefault(), this.panHappened = !0;
+          const t = o.touches[0].clientX - o.touches[1].clientX, e = o.touches[0].clientY - o.touches[1].clientY, i = Math.hypot(t, e);
           Math.abs(i - this.touchStartDist) > 25 && (i > this.touchStartDist ? this.map.zoomIn(1) : this.map.zoomOut(1), this.touchStartDist = i);
         }
       }
     });
-    n(this, "handleTouchEnd", () => {
-      this.isTouchPanning = !1, this.touchStartDist = 0;
+    l(this, "handleTouchEnd", () => {
+      this.isTouchPanning = !1, this.touchStartDist = 0, setTimeout(() => {
+        this.panHappened = !1;
+      }, 120);
     });
-    n(this, "handleContextMenu", (o) => {
+    l(this, "handleContextMenu", (o) => {
       o.preventDefault();
     });
-    n(this, "handleMouseDown", (o) => {
+    l(this, "handleMouseDown", (o) => {
       if (!(!this.map || !this.mapContainer)) {
         if (o.button === 1) {
           o.preventDefault();
-          const e = Date.now();
-          if (e - this.lastMiddleClickTime < 300) {
+          const t = Date.now();
+          if (t - this.lastMiddleClickTime < 300) {
             this.zoomExtents();
             return;
           }
-          this.lastMiddleClickTime = e, this.isPanning = !0, this.lastMousePos = { x: o.clientX, y: o.clientY }, this.mapContainer.style.cursor = "grabbing";
+          this.lastMiddleClickTime = t, this.isPanning = !0, this.panHappened = !1, this.lastMousePos = { x: o.clientX, y: o.clientY }, this.mapContainer.style.cursor = "grabbing";
           return;
         }
         if (o.button === 0) {
-          if (this.ctx.mapaController && this.ctx.mapaController.modoCliqueSequencialAtivo)
+          if (this.selectionHappened = !1, this.ctx.mapaController && this.ctx.mapaController.modoCliqueSequencialAtivo)
             return;
-          const e = this.mapContainer.getBoundingClientRect(), t = o.clientX - e.left, i = o.clientY - e.top;
-          this.isSelecting = !0, this.selectStartPos = { x: t, y: i }, this.selectStartPoint = this.map.mouseEventToContainerPoint(o), this.selectionDiv && (this.selectionDiv.style.left = `${t}px`, this.selectionDiv.style.top = `${i}px`, this.selectionDiv.style.width = "0px", this.selectionDiv.style.height = "0px", this.selectionDiv.style.display = "block"), this.setPanesPointerEvents("none");
+          const t = this.mapContainer.getBoundingClientRect(), e = o.clientX - t.left, i = o.clientY - t.top;
+          this.isSelecting = !0, this.selectStartPos = { x: e, y: i }, this.selectStartPoint = this.map.mouseEventToContainerPoint(o), this.selectionDiv && (this.selectionDiv.style.left = `${e}px`, this.selectionDiv.style.top = `${i}px`, this.selectionDiv.style.width = "0px", this.selectionDiv.style.height = "0px", this.selectionDiv.style.display = "block"), this.setPanesPointerEvents("none");
         }
       }
     });
-    n(this, "handleMouseMove", (o) => {
+    l(this, "handleMouseMove", (o) => {
       if (!(!this.map || !this.mapContainer)) {
         if (this.isPanning) {
-          const e = this.lastMousePos.x - o.clientX, t = this.lastMousePos.y - o.clientY;
-          this.map.panBy([e, t], { animate: !1 }), this.lastMousePos = { x: o.clientX, y: o.clientY };
+          const t = this.lastMousePos.x - o.clientX, e = this.lastMousePos.y - o.clientY;
+          (Math.abs(t) > 1 || Math.abs(e) > 1) && (this.panHappened = !0), this.map.panBy([t, e], { animate: !1 }), this.lastMousePos = { x: o.clientX, y: o.clientY };
           return;
         }
         if (this.isSelecting && this.selectionDiv) {
-          const e = this.mapContainer.getBoundingClientRect(), t = o.clientX - e.left, i = o.clientY - e.top, a = Math.abs(t - this.selectStartPos.x), s = Math.abs(i - this.selectStartPos.y), r = Math.min(t, this.selectStartPos.x), l = Math.min(i, this.selectStartPos.y);
-          this.selectionDiv.style.left = `${Math.round(r)}px`, this.selectionDiv.style.top = `${Math.round(l)}px`, this.selectionDiv.style.width = `${Math.round(a)}px`, this.selectionDiv.style.height = `${Math.round(s)}px`, t >= this.selectStartPos.x ? (this.selectionDiv.style.background = "rgba(14, 116, 144, 0.22)", this.selectionDiv.style.border = "1px solid #06b6d4") : (this.selectionDiv.style.background = "rgba(16, 185, 129, 0.22)", this.selectionDiv.style.border = "1px dashed #10b981");
+          const t = this.mapContainer.getBoundingClientRect(), e = o.clientX - t.left, i = o.clientY - t.top, a = Math.abs(e - this.selectStartPos.x), r = Math.abs(i - this.selectStartPos.y), s = Math.min(e, this.selectStartPos.x), n = Math.min(i, this.selectStartPos.y);
+          this.selectionDiv.style.left = `${Math.round(s)}px`, this.selectionDiv.style.top = `${Math.round(n)}px`, this.selectionDiv.style.width = `${Math.round(a)}px`, this.selectionDiv.style.height = `${Math.round(r)}px`, e >= this.selectStartPos.x ? (this.selectionDiv.style.background = "rgba(14, 116, 144, 0.22)", this.selectionDiv.style.border = "1px solid #06b6d4") : (this.selectionDiv.style.background = "rgba(16, 185, 129, 0.22)", this.selectionDiv.style.border = "1px dashed #10b981");
         }
       }
     });
-    n(this, "handleMouseUp", (o) => {
-      var e, t, i, a, s, r;
-      if (this.isPanning && (this.isPanning = !1, this.mapContainer && (this.mapContainer.style.cursor = "grab")), this.isSelecting) {
+    l(this, "handleMouseUp", (o) => {
+      var t, e, i, a, r, s;
+      if (this.isPanning && (this.isPanning = !1, this.mapContainer && (this.mapContainer.style.cursor = "grab"), setTimeout(() => {
+        this.panHappened = !1;
+      }, 120)), this.isSelecting) {
         if (this.isSelecting = !1, this.selectionDiv && (this.selectionDiv.style.display = "none"), !this.map || !this.mapContainer) return;
         this.map.closePopup(), setTimeout(() => {
           try {
@@ -3234,42 +3297,45 @@ class st {
           } catch {
           }
         }, 80);
-        const l = this.mapContainer.getBoundingClientRect(), u = o.clientX - l.left, d = o.clientY - l.top, c = this.map.mouseEventToContainerPoint(o), p = Math.abs(u - this.selectStartPos.x), m = Math.abs(d - this.selectStartPos.y);
-        if (p < 4 && m < 4) {
-          const y = o.target;
-          y && ((e = y.classList) != null && e.contains("leaflet-container") || y.id === "mapa-triagem" || (t = y.closest) != null && t.call(y, ".leaflet-pane")) && ((i = y.closest) != null && i.call(y, ".custom-leaflet-marker") || (a = y.closest) != null && a.call(y, ".custom-div-icon") || this.limparSelecao());
+        const n = this.mapContainer.getBoundingClientRect(), c = o.clientX - n.left, u = o.clientY - n.top, d = this.map.mouseEventToContainerPoint(o), h = Math.abs(c - this.selectStartPos.x), p = Math.abs(u - this.selectStartPos.y);
+        if (h < 4 && p < 4) {
+          this.selectionHappened = !1;
+          const _ = o.target;
+          _ && ((t = _.classList) != null && t.contains("leaflet-container") || _.id === "mapa-triagem" || (e = _.closest) != null && e.call(_, ".leaflet-pane")) && ((i = _.closest) != null && i.call(_, ".custom-leaflet-marker") || (a = _.closest) != null && a.call(_, ".custom-div-icon") || this.limparSelecao());
           return;
         }
         if (!this.selectStartPoint)
           return;
-        this.selectionHappened = !0;
-        const h = {
-          x1: Math.min(this.selectStartPoint.x, c.x),
-          y1: Math.min(this.selectStartPoint.y, c.y),
-          x2: Math.max(this.selectStartPoint.x, c.x),
-          y2: Math.max(this.selectStartPoint.y, c.y)
-        }, f = ((s = this.ctx.mapaController) == null ? void 0 : s.getMarkers()) || [], g = ((r = this.ctx.mapaController) == null ? void 0 : r.getVizinhosMarkers()) || [], v = [], x = [], w = !this.ctx.layerManager || this.ctx.layerManager.isLayerActiveAndSelectable("vertices"), E = !this.ctx.layerManager || this.ctx.layerManager.isLayerActiveAndSelectable("vizinhos");
-        w && f.forEach((y) => {
-          const A = y.pontoId;
-          if (!A) return;
-          const C = this.map.latLngToContainerPoint(y.getLatLng());
-          C.x >= h.x1 && C.x <= h.x2 && C.y >= h.y1 && C.y <= h.y2 && v.push(A);
-        }), E && g.forEach((y) => {
-          const A = y.pontoId;
-          if (!A) return;
-          const C = this.map.latLngToContainerPoint(y.getLatLng());
-          C.x >= h.x1 && C.x <= h.x2 && C.y >= h.y1 && C.y <= h.y2 && x.push(A);
-        }), o.ctrlKey || o.metaKey ? (v.forEach((y) => {
-          this.ctx.selectedPontoIds.includes(y) ? this.ctx.selectedPontoIds = this.ctx.selectedPontoIds.filter((A) => A !== y) : this.ctx.selectedPontoIds.push(y);
-        }), x.forEach((y) => {
-          this.ctx.selectedVizinhoPontoIds.includes(y) ? this.ctx.selectedVizinhoPontoIds = this.ctx.selectedVizinhoPontoIds.filter((A) => A !== y) : this.ctx.selectedVizinhoPontoIds.push(y);
-        })) : (this.ctx.selectedPontoIds = v, this.ctx.selectedVizinhoPontoIds = x), this.ctx.selectedPontoIds.length > 0 && (this.ctx.lastSelectedPontoId = this.ctx.selectedPontoIds[this.ctx.selectedPontoIds.length - 1]), this.notificarSelecao();
+        this.selectionHappened = !0, setTimeout(() => {
+          this.selectionHappened = !1;
+        }, 120);
+        const m = {
+          x1: Math.min(this.selectStartPoint.x, d.x),
+          y1: Math.min(this.selectStartPoint.y, d.y),
+          x2: Math.max(this.selectStartPoint.x, d.x),
+          y2: Math.max(this.selectStartPoint.y, d.y)
+        }, f = ((r = this.ctx.mapaController) == null ? void 0 : r.getMarkers()) || [], v = ((s = this.ctx.mapaController) == null ? void 0 : s.getVizinhosMarkers()) || [], y = [], w = [], S = !this.ctx.layerManager || this.ctx.layerManager.isLayerActiveAndSelectable("vertices"), P = !this.ctx.layerManager || this.ctx.layerManager.isLayerActiveAndSelectable("vizinhos");
+        S && f.forEach((_) => {
+          const I = _.pontoId;
+          if (!I) return;
+          const g = this.map.latLngToContainerPoint(_.getLatLng());
+          g.x >= m.x1 && g.x <= m.x2 && g.y >= m.y1 && g.y <= m.y2 && y.push(I);
+        }), P && v.forEach((_) => {
+          const I = _.pontoId;
+          if (!I) return;
+          const g = this.map.latLngToContainerPoint(_.getLatLng());
+          g.x >= m.x1 && g.x <= m.x2 && g.y >= m.y1 && g.y <= m.y2 && w.push(I);
+        }), o.ctrlKey || o.metaKey ? (y.forEach((_) => {
+          this.ctx.selectedPontoIds.includes(_) ? this.ctx.selectedPontoIds = this.ctx.selectedPontoIds.filter((I) => I !== _) : this.ctx.selectedPontoIds.push(_);
+        }), w.forEach((_) => {
+          this.ctx.selectedVizinhoPontoIds.includes(_) ? this.ctx.selectedVizinhoPontoIds = this.ctx.selectedVizinhoPontoIds.filter((I) => I !== _) : this.ctx.selectedVizinhoPontoIds.push(_);
+        })) : (this.ctx.selectedPontoIds = y, this.ctx.selectedVizinhoPontoIds = w), this.ctx.selectedPontoIds.length > 0 && (this.ctx.lastSelectedPontoId = this.ctx.selectedPontoIds[this.ctx.selectedPontoIds.length - 1]), this.notificarSelecao();
       }
     });
-    n(this, "handleKeyDown", (o) => {
+    l(this, "handleKeyDown", (o) => {
       if (o.key === "Escape") {
-        const e = document.activeElement;
-        if (e && (e.tagName === "INPUT" || e.tagName === "TEXTAREA" || e.tagName === "SELECT" || e.isContentEditable))
+        const t = document.activeElement;
+        if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable))
           return;
         this.isSelecting && (this.isSelecting = !1, this.selectionDiv && (this.selectionDiv.style.display = "none"), this.setPanesPointerEvents("auto"), this.ctx.layerManager && this.ctx.layerManager.ensurePanes()), this.limparSelecao();
       }
@@ -3282,12 +3348,12 @@ class st {
       ...o
     };
   }
-  ativar(o, e) {
-    if (this.ctx.mapaController = o, e && (this.ctx.containerHost = e), this.map = o.getMap(), !!this.map && (this.mapContainer = this.map.getContainer(), !!this.mapContainer)) {
+  ativar(o, t) {
+    if (this.ctx.mapaController = o, t && (this.ctx.containerHost = t), this.map = o.getMap(), !!this.map && (this.mapContainer = this.map.getContainer(), !!this.mapContainer)) {
       if (this.map.dragging.disable(), this.map.doubleClickZoom.disable(), !this.selectionDiv) {
         this.selectionDiv = document.createElement("div"), this.selectionDiv.className = "cad-selection-box", this.selectionDiv.style.position = "absolute", this.selectionDiv.style.zIndex = "9999", this.selectionDiv.style.pointerEvents = "none", this.selectionDiv.style.display = "none", this.selectionDiv.style.borderRadius = "2px";
-        const t = this.mapContainer;
-        t.style.position = "relative", t.appendChild(this.selectionDiv);
+        const e = this.mapContainer;
+        e.style.position = "relative", e.appendChild(this.selectionDiv);
       }
       this.mapContainer.addEventListener("mousedown", this.handleMouseDown), this.mapContainer.addEventListener("mousemove", this.handleMouseMove), window.addEventListener("mouseup", this.handleMouseUp), this.mapContainer.addEventListener("contextmenu", this.handleContextMenu), window.addEventListener("keydown", this.handleKeyDown), this.mapContainer.addEventListener("touchstart", this.handleTouchStart, { passive: !1 }), this.mapContainer.addEventListener("touchmove", this.handleTouchMove, { passive: !1 }), this.mapContainer.addEventListener("touchend", this.handleTouchEnd), this.mapContainer.addEventListener("touchcancel", this.handleTouchEnd);
     }
@@ -3296,10 +3362,10 @@ class st {
     this.mapContainer && (this.mapContainer.removeEventListener("mousedown", this.handleMouseDown), this.mapContainer.removeEventListener("mousemove", this.handleMouseMove), this.mapContainer.removeEventListener("contextmenu", this.handleContextMenu), this.mapContainer.removeEventListener("touchstart", this.handleTouchStart), this.mapContainer.removeEventListener("touchmove", this.handleTouchMove), this.mapContainer.removeEventListener("touchend", this.handleTouchEnd), this.mapContainer.removeEventListener("touchcancel", this.handleTouchEnd)), window.removeEventListener("mouseup", this.handleMouseUp), window.removeEventListener("keydown", this.handleKeyDown), this.selectionDiv && this.selectionDiv.parentNode && (this.selectionDiv.parentNode.removeChild(this.selectionDiv), this.selectionDiv = null), this.map && (this.map.dragging.enable(), this.map.doubleClickZoom.enable()), this.setPanesPointerEvents("auto");
   }
   setPanesPointerEvents(o) {
-    this.map && rt.forEach((e) => {
+    this.map && xe.forEach((t) => {
       var i;
-      const t = (i = this.map) == null ? void 0 : i.getPane(e);
-      t && (t.style.pointerEvents = o);
+      const e = (i = this.map) == null ? void 0 : i.getPane(t);
+      e && (e.style.pointerEvents = o);
     });
   }
   limparSelecao() {
@@ -3316,16 +3382,16 @@ class st {
   }
   zoomExtents() {
     if (!this.ctx.pontosList || this.ctx.pontosList.length === 0) return;
-    const o = this.ctx.pontosList.filter((e) => e.tipo_ponto !== "B" && e.tipo !== "B");
+    const o = this.ctx.pontosList.filter((t) => t.tipo_ponto !== "B" && t.tipo !== "B");
     o.length > 0 && this.ctx.mapaController && this.ctx.mapaController.fitBounds(o);
   }
   destroy() {
     this.desativar();
   }
 }
-class S {
-  static register(o, e) {
-    this.renderers.set(o.toLowerCase(), e);
+class F {
+  static register(o, t) {
+    this.renderers.set(o.toLowerCase(), t);
   }
   static get(o) {
     return this.renderers.get(o.toLowerCase());
@@ -3337,16 +3403,16 @@ class S {
     return Array.from(this.renderers.keys());
   }
 }
-n(S, "renderers", /* @__PURE__ */ new Map());
-class nt {
-  render(o, e, t) {
-    var l, u, d;
-    const i = ((l = o.dados) == null ? void 0 : l.url) || "https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}", a = ((u = o.dados) == null ? void 0 : u.subdomains) || ["mt0", "mt1", "mt2", "mt3"], s = ((d = o.dados) == null ? void 0 : d.attribution) || "Google Satélite";
-    return _.tileLayer(i, {
+l(F, "renderers", /* @__PURE__ */ new Map());
+class _e {
+  render(o, t, e) {
+    var n, c, u;
+    const i = ((n = o.dados) == null ? void 0 : n.url) || "https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}", a = ((c = o.dados) == null ? void 0 : c.subdomains) || ["mt0", "mt1", "mt2", "mt3"], r = ((u = o.dados) == null ? void 0 : u.attribution) || "Google Satélite";
+    return x.tileLayer(i, {
       maxZoom: 24,
       maxNativeZoom: 20,
       subdomains: a,
-      attribution: s,
+      attribution: r,
       keepBuffer: 16,
       updateWhenZooming: !1,
       updateWhenIdle: !0,
@@ -3355,24 +3421,24 @@ class nt {
       pane: `pane-${o.id}`
     });
   }
-  update(o, e, t) {
-    e instanceof _.TileLayer && t.opacidade !== void 0 && e.setOpacity(t.opacidade);
+  update(o, t, e) {
+    t instanceof x.TileLayer && e.opacidade !== void 0 && t.setOpacity(e.opacidade);
   }
-  destroy(o, e) {
-    e.hasLayer(o) && e.removeLayer(o);
+  destroy(o, t) {
+    t.hasLayer(o) && t.removeLayer(o);
   }
 }
-class lt {
-  render(o, e, t) {
-    var u, d, c, p;
-    const i = ((u = o.dados) == null ? void 0 : u.url) || "https://acervofundiario.incra.gov.br/i3geo/ogc.php", a = ((d = o.dados) == null ? void 0 : d.layers) || "certificada_sigef_particular_pr", s = ((c = o.dados) == null ? void 0 : c.format) || "image/png", r = ((p = o.dados) == null ? void 0 : p.attribution) || "INCRA/SIGEF";
-    return _.tileLayer.wms(i, {
+class we {
+  render(o, t, e) {
+    var c, u, d, h;
+    const i = ((c = o.dados) == null ? void 0 : c.url) || "https://acervofundiario.incra.gov.br/i3geo/ogc.php", a = ((u = o.dados) == null ? void 0 : u.layers) || "certificada_sigef_particular_pr", r = ((d = o.dados) == null ? void 0 : d.format) || "image/png", s = ((h = o.dados) == null ? void 0 : h.attribution) || "INCRA/SIGEF";
+    return x.tileLayer.wms(i, {
       layers: a,
-      format: s,
+      format: r,
       transparent: !0,
       version: "1.1.1",
       pane: `pane-${o.id}`,
-      attribution: r,
+      attribution: s,
       className: "sigef-wms-layer",
       keepBuffer: 8,
       updateWhenZooming: !1,
@@ -3380,124 +3446,211 @@ class lt {
       opacity: o.opacidade !== void 0 ? o.opacidade : 0.85
     });
   }
-  update(o, e, t) {
-    e instanceof _.TileLayer.WMS && t.opacidade !== void 0 && e.setOpacity(t.opacidade);
+  update(o, t, e) {
+    t instanceof x.TileLayer.WMS && e.opacidade !== void 0 && t.setOpacity(e.opacidade);
   }
-  destroy(o, e) {
-    e.hasLayer(o) && e.removeLayer(o);
+  destroy(o, t) {
+    t.hasLayer(o) && t.removeLayer(o);
   }
 }
-class ct {
+class Ee {
   constructor() {
-    n(this, "zoomListenerMap", /* @__PURE__ */ new WeakMap());
+    l(this, "zoomListenerMap", /* @__PURE__ */ new WeakMap());
   }
-  render(o, e, t) {
-    const i = _.layerGroup(), a = `pane-${o.id}`;
-    this.rebuildLines(o, i, e, t, a);
-    const s = () => {
+  render(o, t, e) {
+    const i = x.layerGroup(), a = `pane-${o.id}`;
+    this.rebuildLines(o, i, t, e, a);
+    const r = () => {
       if (o.estilo.scaleMode === "world") {
-        const r = this.calculateWeight(o, e, t);
-        i.eachLayer((l) => {
-          l.setStyle && l.setStyle({ weight: r });
+        const s = this.calculateWeight(o, t, e);
+        i.eachLayer((n) => {
+          n.setStyle && n.setStyle({ weight: s });
         });
       }
     };
-    return e.on("zoomend", s), this.zoomListenerMap.set(i, s), i;
+    return t.on("zoomend", r), this.zoomListenerMap.set(i, r), i;
   }
-  calculateWeight(o, e, t) {
-    const i = o.estilo.espessuraLinha || t.config.perimetroWeight || 2, a = t.graphicScale.lineScaleMultiplier || 1;
+  calculateWeight(o, t, e) {
+    const i = o.estilo.espessuraLinha || e.config.perimetroWeight || 2, a = e.graphicScale.lineScaleMultiplier || 1;
     if (o.estilo.scaleMode === "world") {
-      const s = o.estilo.dimensaoMetros || 0.3, r = e.getCenter(), l = e.getZoom(), u = 40075016686e-3 * Math.abs(Math.cos(r.lat * Math.PI / 180)) / Math.pow(2, l + 8), d = s / (u > 0 ? u : 1);
-      return Math.max(1, Math.round(d * a));
+      const r = o.estilo.dimensaoMetros || 0.3, s = t.getCenter(), n = t.getZoom(), c = 40075016686e-3 * Math.abs(Math.cos(s.lat * Math.PI / 180)) / Math.pow(2, n + 8), u = r / (c > 0 ? c : 1);
+      return Math.max(1, Math.round(u * a));
     }
     return Math.max(1, Math.round(i * a));
   }
-  rebuildLines(o, e, t, i, a) {
-    var m, h;
-    const s = o.id === "homologados", r = ((m = o.dados) == null ? void 0 : m.segmentos) || i.segmentos || [], l = ((h = o.dados) == null ? void 0 : h.pontos) || (s && i.bancoPontos && i.bancoPontos.length > 0 ? i.bancoPontos : i.pontos) || [], u = this.calculateWeight(o, t, i), d = o.opacidade !== void 0 ? o.opacidade : 1, c = o.interativo && !o.bloqueada, p = [];
-    if (l.forEach((f) => {
-      const g = q(f.lat ?? f.latitude ?? f.y, f.lon ?? f.lng ?? f.longitude ?? f.x);
-      g && p.push({ ...f, lat: g.lat, lon: g.lon });
-    }), !s && r && r.length > 0)
-      r.forEach((f) => {
-        const g = p.find((x) => String(x.id) === String(f.ponto_inicio_id)), v = p.find((x) => String(x.id) === String(f.ponto_fim_id));
-        if (g && v && g.lat && g.lon && v.lat && v.lon) {
-          const x = f.tipo_limite_sigef || f.tipo_limite || "", w = f.metodo_posicionamento_sigef || f.metodo_posicionamento || "", E = x === "LA1" ? "#10b981" : x === "LN1" ? "#3b82f6" : "#00f5a0", y = o.estilo.corPrimaria || E, A = _.polyline([[g.lat, g.lon], [v.lat, v.lon]], {
-            color: y,
+  rebuildLines(o, t, e, i, a) {
+    var f, v, y, w, S, P, _, I;
+    const r = o.id === "homologados", s = ((f = o.dados) == null ? void 0 : f.conexoes) ?? (Array.isArray(o.dados) && o.dados.length > 0 && "origemId" in o.dados[0] ? o.dados : null), n = ((v = o.dados) == null ? void 0 : v.segmentos) || i.segmentos || [], c = ((y = o.dados) == null ? void 0 : y.pontos) || (r ? i.bancoPontos || [] : i.pontos) || [], u = this.calculateWeight(o, e, i), d = o.opacidade !== void 0 ? o.opacidade : 1, h = o.interativo && !o.bloqueada, p = [];
+    c.forEach((g) => {
+      const C = R(g.lat ?? g.latitude ?? g.y, g.lon ?? g.lng ?? g.longitude ?? g.x);
+      C && p.push({ ...g, lat: C.lat, lon: C.lon });
+    });
+    const m = (g) => {
+      const C = p.find((L) => String(L.id) === String(g));
+      if (C) return C;
+      if (i.pontos) {
+        const L = i.pontos.find((N) => String(N.id) === String(g));
+        if (L) {
+          const N = R(L.lat, L.lon);
+          if (N) return { ...L, lat: N.lat, lon: N.lon };
+        }
+      }
+      return null;
+    };
+    if (s && Array.isArray(s)) {
+      s.forEach((g) => {
+        var N, H, z, O, $, A, k;
+        const C = m(g.origemId), L = m(g.destinoId);
+        if (C && L && C.lat && C.lon && L.lat && L.lon) {
+          const M = g.tipoLinha === "tracejada" || ((N = g.estilo) == null ? void 0 : N.tipoLinha) === "tracejada", T = ((H = g.estilo) == null ? void 0 : H.cor) || ((z = g.estilo) == null ? void 0 : z.color) || o.estilo.corPrimaria || "#00f5a0", q = ((O = g.estilo) == null ? void 0 : O.espessura) || (($ = g.estilo) == null ? void 0 : $.weight) || u, B = x.polyline([[C.lat, C.lon], [L.lat, L.lon]], {
+            color: T,
+            weight: q,
+            opacity: ((A = g.estilo) == null ? void 0 : A.opacidade) ?? d,
+            dashArray: M ? "6, 6" : o.estilo.dashArray,
+            pane: a,
+            interactive: h
+          });
+          if (h) {
+            const W = g.acoes || o.acoes || ((k = o.dados) == null ? void 0 : k.acoes) || [], U = `${g.origemId}-${g.destinoId}`, Y = J(W, U);
+            B.bindPopup(`
+              <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.3;">
+                <div style="font-weight:700; font-size:12px; margin-bottom:3px; color:#ffffff;">Conexão ${E(String(g.origemId))} ↔ ${E(String(g.destinoId))}</div>
+                <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">Tipo: ${E(g.tipoLinha || "contínua")}</div>
+                ${Y}
+              </div>
+            `, { className: "compact-popup", maxWidth: 220 }), B.on("popupopen", (At) => {
+              if (i.modoSequencial) {
+                B.closePopup();
+                return;
+              }
+              tt(At.popup, g, i, B);
+            });
+          }
+          B.addTo(t);
+        }
+      });
+      return;
+    }
+    if ((w = o.dados) != null && w.polilinhaSequencial || ((S = o.dados) == null ? void 0 : S.fechar) !== void 0 && p.length >= 2) {
+      const g = ((P = o.dados) == null ? void 0 : P.chaveGrupo) || i.chaveGrupo, C = it(p, g), L = ((_ = o.dados) == null ? void 0 : _.fechar) !== !1, N = o.estilo.corPrimaria || "#00f5a0";
+      Object.entries(C).forEach(([H, z]) => {
+        const O = ot(z);
+        if (O.length < 2) return;
+        const $ = O.map((k) => [k.lat, k.lon]), A = x.polyline($, {
+          color: N,
+          weight: u,
+          opacity: d,
+          dashArray: o.estilo.dashArray,
+          pane: a,
+          interactive: h
+        });
+        if (h && A.bindPopup(`
+            <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.3;">
+              <div style="font-weight:700; font-size:12px; margin-bottom:3px; color:#ffffff;">Polilinha: Grupo ${E(H)}</div>
+              <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">Vértices: ${O.length}</div>
+            </div>
+          `, { className: "compact-popup", maxWidth: 220 }), A.addTo(t), L && $.length >= 3) {
+          const k = $[$.length - 1], M = $[0];
+          x.polyline([k, M], {
+            color: N,
             weight: u,
             opacity: d,
-            dashArray: x === "LN1" ? "6, 6" : o.estilo.dashArray,
+            dashArray: "4, 4",
             pane: a,
-            interactive: c
+            interactive: h
+          }).addTo(t);
+        }
+      });
+      return;
+    }
+    if (!r && n && n.length > 0)
+      n.forEach((g) => {
+        var N;
+        const C = p.find((H) => String(H.id) === String(g.ponto_inicio_id)), L = p.find((H) => String(H.id) === String(g.ponto_fim_id));
+        if (C && L && C.lat && C.lon && L.lat && L.lon) {
+          const H = g.tipo_limite_sigef || g.tipo_limite || "", z = g.metodo_posicionamento_sigef || g.metodo_posicionamento || "", O = H === "LA1" ? "#10b981" : H === "LN1" ? "#3b82f6" : "#00f5a0", $ = o.estilo.corPrimaria || O, A = x.polyline([[C.lat, C.lon], [L.lat, L.lon]], {
+            color: $,
+            weight: u,
+            opacity: d,
+            dashArray: H === "LN1" ? "6, 6" : o.estilo.dashArray,
+            pane: a,
+            interactive: h
           });
-          c && A.bindPopup(`
+          if (h) {
+            const k = g.acoes || o.acoes || ((N = o.dados) == null ? void 0 : N.acoes) || [], M = `${g.ponto_inicio_id}-${g.ponto_fim_id}`, T = J(k, M);
+            A.bindPopup(`
               <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.3;">
-                <div style="font-weight:700; font-size:12px; margin-bottom:3px; color:#ffffff;">${k(g.nome_vertice)} ↔ ${k(v.nome_vertice)}</div>
-                <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">Limite: ${k(x || "N/A")} · ${k(w || "N/A")}</div>
+                <div style="font-weight:700; font-size:12px; margin-bottom:3px; color:#ffffff;">${E(C.nome_vertice)} ↔ ${E(L.nome_vertice)}</div>
+                <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">Limite: ${E(H || "N/A")} · ${E(z || "N/A")}</div>
+                ${T}
               </div>
             `, {
-            className: "compact-popup",
-            maxWidth: 220
-          }), A.addTo(e);
+              className: "compact-popup",
+              maxWidth: 220
+            }), A.on("popupopen", (q) => {
+              if (i.modoSequencial) {
+                A.closePopup();
+                return;
+              }
+              tt(q.popup, g, i, A);
+            });
+          }
+          A.addTo(t);
         }
       });
     else if (p && p.length >= 2) {
-      const f = p.filter(
-        (w) => w.lat && w.lon && w.tipo_ponto !== "B" && w.tipo !== "B" && w.ignorar_poligono !== 1
-      ), g = {};
-      f.forEach((w) => {
-        const E = w.matricula_id != null ? `mat_${w.matricula_id}` : w.planilha_origem || "default";
-        g[E] || (g[E] = []), g[E].push(w);
-      });
-      const v = o.estilo.corPrimaria || (s ? "#f59e0b" : "#10b981"), x = o.estilo.dashArray || (s ? "6, 8" : void 0);
-      Object.values(g).forEach((w) => {
-        if (w.sort((A, C) => Number(A.ordem_caminhamento ?? A.id ?? 999999) - Number(C.ordem_caminhamento ?? C.id ?? 999999)), w.length < 2) return;
-        const E = w.map((A) => [A.lat, A.lon]);
-        if (_.polyline(E, {
-          color: v,
+      const g = p.filter(
+        (z) => z.lat && z.lon && z.tipo_ponto !== "B" && z.tipo !== "B" && z.ignorar_poligono !== 1
+      ), C = ((I = o.dados) == null ? void 0 : I.chaveGrupo) || i.chaveGrupo, L = it(g, C), N = o.estilo.corPrimaria || (r ? "#f59e0b" : "#10b981"), H = o.estilo.dashArray || (r ? "6, 8" : void 0);
+      Object.values(L).forEach((z) => {
+        const O = ot(z);
+        if (O.length < 2) return;
+        const $ = O.map((k) => [k.lat, k.lon]);
+        if (x.polyline($, {
+          color: N,
           weight: u,
           opacity: d,
-          dashArray: x,
+          dashArray: H,
           pane: a,
-          interactive: c
-        }).addTo(e), E.length >= 3) {
-          const A = E[E.length - 1], C = E[0];
-          _.polyline([A, C], {
-            color: v,
+          interactive: h
+        }).addTo(t), $.length >= 3) {
+          const k = $[$.length - 1], M = $[0];
+          x.polyline([k, M], {
+            color: N,
             weight: u,
             opacity: d,
-            dashArray: s ? "6, 8" : "4, 4",
+            dashArray: r ? "6, 8" : "4, 4",
             pane: a,
-            interactive: c
-          }).addTo(e);
+            interactive: h
+          }).addTo(t);
         }
       });
     }
   }
-  update(o, e, t, i, a) {
-    t.opacidade !== void 0 && t.estilo === void 0 && t.dados === void 0 || (t.opacidade !== void 0 || t.estilo !== void 0 || t.dados !== void 0) && (e.clearLayers(), this.rebuildLines(o, e, a, i, `pane-${o.id}`));
+  update(o, t, e, i, a) {
+    e.opacidade !== void 0 && e.estilo === void 0 && e.dados === void 0 || (e.opacidade !== void 0 || e.estilo !== void 0 || e.dados !== void 0) && (t.clearLayers(), this.rebuildLines(o, t, a, i, `pane-${o.id}`));
   }
-  destroy(o, e) {
-    const t = this.zoomListenerMap.get(o);
-    t && (e.off("zoomend", t), this.zoomListenerMap.delete(o)), o.clearLayers(), e.hasLayer(o) && e.removeLayer(o);
+  destroy(o, t) {
+    const e = this.zoomListenerMap.get(o);
+    e && (t.off("zoomend", e), this.zoomListenerMap.delete(o)), o.clearLayers(), t.hasLayer(o) && t.removeLayer(o);
   }
 }
-function D(b, o, e, t = "", i = "") {
-  const a = `width: ${o + 4}px; height: ${o + 4}px;`, s = o;
+function at(b, o, t, e = "", i = "") {
+  const a = `width: ${o + 4}px; height: ${o + 4}px;`, r = o;
   switch (b) {
     case "square":
-      return `<div id="${i}" class="${e} ${t} rounded-sm shadow-md" style="width:${s}px; height:${s}px;"></div>`;
+      return `<div id="${i}" class="${t} ${e} rounded-sm shadow-md" style="width:${r}px; height:${r}px;"></div>`;
     case "circle-dot":
       return `
-        <div id="${i}" class="relative flex items-center justify-center ${t}" style="${a}">
-          <div class="${e} rounded-full shadow-md" style="width:${s}px; height:${s}px;"></div>
-          <div class="absolute bg-white rounded-full" style="width:${Math.max(3, Math.floor(s / 3))}px; height:${Math.max(3, Math.floor(s / 3))}px;"></div>
+        <div id="${i}" class="relative flex items-center justify-center ${e}" style="${a}">
+          <div class="${t} rounded-full shadow-md" style="width:${r}px; height:${r}px;"></div>
+          <div class="absolute bg-white rounded-full" style="width:${Math.max(3, Math.floor(r / 3))}px; height:${Math.max(3, Math.floor(r / 3))}px;"></div>
         </div>
       `;
     case "x":
     case "cross":
       return `
-        <div id="${i}" class="relative flex items-center justify-center ${t}" style="${a}">
+        <div id="${i}" class="relative flex items-center justify-center ${e}" style="${a}">
           <svg width="${o + 2}" height="${o + 2}" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg" style="overflow:visible;">
             <path d="M 2,2 L 8,8 M 8,2 L 2,8" stroke="#000000" stroke-width="2.5" stroke-linecap="round" />
             <path d="M 2,2 L 8,8 M 8,2 L 2,8" stroke="#ffffff" stroke-width="1.2" stroke-linecap="round" />
@@ -3506,186 +3659,278 @@ function D(b, o, e, t = "", i = "") {
       `;
     case "triangle":
       return `
-        <div id="${i}" class="${t}" style="width:0; height:0; border-left:${s / 2}px solid transparent; border-right:${s / 2}px solid transparent; border-bottom:${s}px solid currentColor;"></div>
+        <div id="${i}" class="${e}" style="width:0; height:0; border-left:${r / 2}px solid transparent; border-right:${r / 2}px solid transparent; border-bottom:${r}px solid currentColor;"></div>
       `;
     case "circle":
     default:
-      return `<div id="${i}" class="${e} ${t} rounded-full shadow-md" style="width:${s}px; height:${s}px;"></div>`;
+      return `<div id="${i}" class="${t} ${e} rounded-full shadow-md" style="width:${r}px; height:${r}px;"></div>`;
   }
 }
-class dt {
+class ke {
   constructor() {
-    n(this, "zoomListenerMap", /* @__PURE__ */ new WeakMap());
+    l(this, "zoomListenerMap", /* @__PURE__ */ new WeakMap());
   }
-  render(o, e, t) {
-    const i = _.layerGroup(), a = `pane-${o.id}`;
-    this.rebuildPoints(o, i, e, t, a);
-    const s = () => {
-      o.estilo.scaleMode === "world" && i.eachLayer((r) => {
-        if (r.setIcon && r.baseSize && r.shapeStyle && r.markerBg && r.pontoId) {
-          const l = this.calculateSize(o, e, t, r.baseSize), u = t.config.enableAnimations ? "transition-all duration-150" : "", d = D(r.shapeStyle, l, r.markerBg, u, `map-marker-${o.id}-${r.pontoId}`), c = _.divIcon({
-            html: d,
+  render(o, t, e) {
+    const i = x.layerGroup(), a = `pane-${o.id}`;
+    this.rebuildPoints(o, i, t, e, a);
+    const r = () => {
+      o.estilo.scaleMode === "world" && i.eachLayer((s) => {
+        if (s.setIcon && s.baseSize && s.shapeStyle && s.markerBg && s.pontoId) {
+          const n = this.calculateSize(o, t, e, s.baseSize), c = e.config.enableAnimations ? "transition-all duration-150" : "", u = at(s.shapeStyle, n, s.markerBg, c, `map-marker-${o.id}-${s.pontoId}`), d = x.divIcon({
+            html: u,
             className: "custom-leaflet-marker flex items-center justify-center",
-            iconSize: [l + 6, l + 6]
+            iconSize: [n + 6, n + 6]
           });
-          r.setIcon(c);
+          s.setIcon(d);
         }
       });
     };
-    return e.on("zoomend", s), this.zoomListenerMap.set(i, s), i;
+    return t.on("zoomend", r), this.zoomListenerMap.set(i, r), i;
   }
-  calculateSize(o, e, t, i) {
-    const a = t.graphicScale.markerScaleMultiplier || 1;
+  calculateSize(o, t, e, i) {
+    const a = e.graphicScale.markerScaleMultiplier || 1;
     if (o.estilo.scaleMode === "world") {
-      const s = o.estilo.dimensaoMetros || 0.25, r = e.getCenter(), l = e.getZoom(), u = 40075016686e-3 * Math.abs(Math.cos(r.lat * Math.PI / 180)) / Math.pow(2, l + 8), d = s / (u > 0 ? u : 1);
-      return Math.max(i, Math.round(d * a));
+      const r = o.estilo.dimensaoMetros || 0.25, s = t.getCenter(), n = t.getZoom(), c = 40075016686e-3 * Math.abs(Math.cos(s.lat * Math.PI / 180)) / Math.pow(2, n + 8), u = r / (c > 0 ? c : 1);
+      return Math.max(i, Math.round(u * a));
     }
     return Math.max(4, Math.round(i * a));
   }
-  rebuildPoints(o, e, t, i, a) {
+  rebuildPoints(o, t, e, i, a) {
     var d;
-    const s = o.id === "homologados" || o.id === "homologados-pontos", r = o.id === "vizinhos", l = ((d = o.dados) == null ? void 0 : d.pontos) || (s && i.bancoPontos && i.bancoPontos.length > 0 ? i.bancoPontos : i.pontos) || [], u = o.interativo && !o.bloqueada;
-    l.forEach((c) => {
-      const p = c.lat ?? c.latitude ?? c.y, m = c.lon ?? c.lng ?? c.longitude ?? c.x, h = q(p, m);
-      if (h) {
-        const { lat: f, lon: g } = h, v = c.tipo_ponto === "B" || c.tipo === "B", x = c.tipo_ponto === "M" || c.tipo === "M";
-        let w = o.estilo.estiloMarcador || "x", E = "bg-mint-vibrant", y = o.estilo.tamanhoMarcador || 7;
-        s ? (w = "circle", E = "bg-amber-500", y = 8) : r ? (w = x ? "circle-dot" : "cross", E = "bg-[#a855f7]", y = x ? 10 : 8) : x ? (E = "bg-indigo-500", w = "circle-dot", y = 10) : v && (E = "bg-rose-500", w = "square", y = 9);
-        const A = this.calculateSize(o, t, i, y), C = i.config.enableAnimations ? "transition-all duration-150" : "", B = D(w, A, E, C, `map-marker-${o.id}-${c.id}`), $ = _.divIcon({
-          html: B,
+    const r = o.id === "homologados" || o.id === "homologados-pontos", s = o.id === "vizinhos", c = (((d = o.dados) == null ? void 0 : d.pontos) ?? (Array.isArray(o.dados) ? o.dados : null)) || (r ? i.bancoPontos || [] : i.pontos) || [], u = o.interativo && !o.bloqueada;
+    c.forEach((h) => {
+      var v;
+      const p = h.lat ?? h.latitude ?? h.y, m = h.lon ?? h.lng ?? h.longitude ?? h.x, f = R(p, m);
+      if (f) {
+        const { lat: y, lon: w } = f, S = h.tipo_ponto === "B" || h.tipo === "B", P = h.tipo_ponto === "M" || h.tipo === "M";
+        let _ = h.estilo || o.estilo.estiloMarcador || "circle", I = "bg-mint-vibrant", g = o.estilo.tamanhoMarcador || 7;
+        r ? (_ = "circle", I = "bg-amber-500", g = 8) : s ? (_ = P ? "circle-dot" : "cross", I = "bg-[#a855f7]", g = P ? 10 : 8) : P ? (I = "bg-indigo-500", _ = "circle-dot", g = 10) : S && (I = "bg-rose-500", _ = "square", g = 9);
+        const C = this.calculateSize(o, e, i, g), L = i.config.enableAnimations ? "transition-all duration-150" : "", N = at(_, C, I, L, `map-marker-${o.id}-${h.id}`), H = x.divIcon({
+          html: N,
           className: "custom-leaflet-marker flex items-center justify-center",
-          iconSize: [A + 6, A + 6]
-        }), L = _.marker([f, g], {
-          icon: $,
+          iconSize: [C + 6, C + 6]
+        }), z = x.marker([y, w], {
+          icon: H,
           pane: a,
           interactive: u
         });
-        if (L.pontoId = c.id, L.layerId = o.id, L.isVizinho = r, L.baseSize = y, L.shapeStyle = w, L.markerBg = E, u) {
-          const de = s ? "Vértice Homologado SIGEF" : r ? "Confrontante (Importado)" : x ? "Base Homologada PPP" : v ? "Base de Campo (Translação)" : "Vértice de Perímetro", ue = k(c.codigo_completo || c.nome_vertice || String(c.id)), X = typeof c.este == "number" ? `Este (E): ${c.este.toFixed(2)} m` : "", Z = typeof c.norte == "number" ? `Norte (N): ${c.norte.toFixed(2)} m` : "", Q = typeof c.altitude == "number" ? `Alt (h): ${c.altitude.toFixed(2)} m` : "";
-          L.bindPopup(`
-            <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.35; min-width:170px;">
-              <div style="font-weight:700; font-size:13px; margin-bottom:4px; color:${s ? "#fbbf24" : "#ffffff"};">${ue}</div>
-              <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">${k(de)} · ${k(c.tipo_ponto || c.tipo || "Vértice")}</div>
-              ${X || Z ? `<div style="font-size:10px; color:rgba(255, 255, 255, 0.7); font-family:monospace; margin-top:3px;">${X} ${Z}</div>` : ""}
-              ${Q ? `<div style="font-size:10px; color:rgba(255, 255, 255, 0.7); font-family:monospace;">${Q}</div>` : ""}
-              <div style="font-size:10px; color:rgba(255, 255, 255, 0.45); font-family:monospace; margin-top:3px;">Lat ${f.toFixed(6)} &nbsp; Lon ${g.toFixed(6)}</div>
-            </div>
-          `, {
+        if (z.pontoId = h.id, z.layerId = o.id, z.isVizinho = s, z.baseSize = g, z.shapeStyle = _, z.markerBg = I, u) {
+          let O = "";
+          const $ = h.acoes || o.acoes || ((v = o.dados) == null ? void 0 : v.acoes) || [], A = J($, h.id);
+          if (h.metadados && Object.keys(h.metadados).length > 0) {
+            const k = Object.entries(h.metadados).map(([M, T]) => `<div style="font-size:11px; margin-bottom:2px;"><strong>${E(M)}:</strong> ${E(String(T))}</div>`).join("");
+            O = `
+              <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.35; min-width:160px;">
+                <div style="font-weight:700; font-size:12px; margin-bottom:4px; color:#ffffff;">Ponto ${E(String(h.id))}</div>
+                ${k}
+                <div style="font-size:10px; color:rgba(255, 255, 255, 0.45); font-family:monospace; margin-top:3px;">Lat ${y.toFixed(6)} &nbsp; Lon ${w.toFixed(6)}</div>
+                ${A}
+              </div>
+            `;
+          } else {
+            const k = r ? "Vértice Homologado SIGEF" : s ? "Confrontante (Importado)" : P ? "Base Homologada PPP" : S ? "Base de Campo (Translação)" : "Nó / Vértice", M = E(h.codigo_completo || h.nome_vertice || `Ponto ${String(h.id)}`), T = typeof h.este == "number" ? `Este (E): ${h.este.toFixed(2)} m` : "", q = typeof h.norte == "number" ? `Norte (N): ${h.norte.toFixed(2)} m` : "", B = typeof h.altitude == "number" ? `Alt (h): ${h.altitude.toFixed(2)} m` : "";
+            O = `
+              <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.35; min-width:170px;">
+                <div style="font-weight:700; font-size:13px; margin-bottom:4px; color:${r ? "#fbbf24" : "#ffffff"};">${M}</div>
+                <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">${E(k)} · ${E(h.tipo_ponto || h.tipo || "Ponto")}</div>
+                ${T || q ? `<div style="font-size:10px; color:rgba(255, 255, 255, 0.7); font-family:monospace; margin-top:3px;">${T} ${q}</div>` : ""}
+                ${B ? `<div style="font-size:10px; color:rgba(255, 255, 255, 0.7); font-family:monospace;">${B}</div>` : ""}
+                <div style="font-size:10px; color:rgba(255, 255, 255, 0.45); font-family:monospace; margin-top:3px;">Lat ${y.toFixed(6)} &nbsp; Lon ${w.toFixed(6)}</div>
+                ${A}
+              </div>
+            `;
+          }
+          z.bindPopup(O, {
             className: "compact-popup",
             maxWidth: 240
-          }), L.on("click", () => {
-            i.onMarkerClick && i.onMarkerClick(c.id, r);
+          }), z.on("click", () => {
+            var k;
+            if (i.modoSequencial && z.closePopup(), (k = o.dados) != null && k.onClique)
+              try {
+                o.dados.onClique(h);
+              } catch (M) {
+                console.error("Erro no callback onClique do ponto:", M);
+              }
+            i.onMarkerClick && i.onMarkerClick(h.id, s, h, { lat: y, lon: w });
+          }), z.on("popupopen", (k) => {
+            if (i.modoSequencial) {
+              z.closePopup();
+              return;
+            }
+            tt(k.popup, h, i, z);
           });
         }
-        L.addTo(e);
+        z.addTo(t);
       }
     });
   }
-  update(o, e, t, i, a) {
-    t.opacidade !== void 0 && t.estilo === void 0 && t.dados === void 0 && t.interativo === void 0 && t.bloqueada === void 0 || (t.estilo !== void 0 || t.dados !== void 0 || t.interativo !== void 0 || t.bloqueada !== void 0 || t.opacidade !== void 0) && (e.clearLayers(), this.rebuildPoints(o, e, a, i, `pane-${o.id}`));
+  update(o, t, e, i, a) {
+    e.opacidade !== void 0 && e.estilo === void 0 && e.dados === void 0 && e.interativo === void 0 && e.bloqueada === void 0 || (e.estilo !== void 0 || e.dados !== void 0 || e.interativo !== void 0 || e.bloqueada !== void 0 || e.opacidade !== void 0) && (t.clearLayers(), this.rebuildPoints(o, t, a, i, `pane-${o.id}`));
   }
-  destroy(o, e) {
-    const t = this.zoomListenerMap.get(o);
-    t && (e.off("zoomend", t), this.zoomListenerMap.delete(o)), o.clearLayers(), e.hasLayer(o) && e.removeLayer(o);
+  destroy(o, t) {
+    const e = this.zoomListenerMap.get(o);
+    e && (t.off("zoomend", e), this.zoomListenerMap.delete(o)), o.clearLayers(), t.hasLayer(o) && t.removeLayer(o);
   }
 }
-class ut {
-  render(o, e, t) {
-    const i = _.layerGroup(), a = `pane-${o.id}`;
-    return this.rebuildPolygons(o, i, t, a), i;
+class Ae {
+  render(o, t, e) {
+    const i = x.layerGroup(), a = `pane-${o.id}`;
+    return this.rebuildPolygons(o, i, e, a), i;
   }
-  rebuildPolygons(o, e, t, i) {
-    var d;
-    const a = ((d = o.dados) == null ? void 0 : d.confrontantes) || t.confrontantes || [], s = o.interativo && !o.bloqueada, r = o.estilo.corPrimaria || "#a855f7", l = o.estilo.espessuraLinha || 1.5, u = o.opacidade !== void 0 ? o.opacidade : 0.8;
-    a.forEach((c) => {
-      if (c) {
-        if (c.poligono_wkt) {
-          const p = [...c.poligono_wkt.matchAll(/\(([^()]+)\)/g)];
-          if (p.length > 0) {
-            const m = k(c.nome_propriedade || "Propriedade Vizinha"), h = k(c.nome || "Desconhecido"), f = [];
-            if (p.forEach((g) => {
-              const v = g[1].split(",").map((x) => {
-                const w = x.trim().split(/\s+/);
-                if (w.length < 2) return null;
-                const E = q(w[1], w[0]);
-                return E ? [E.lat, E.lon] : null;
-              }).filter((x) => x !== null);
-              v.length >= 3 && f.push(v);
-            }), f.length > 0) {
-              const g = f.length === 1 ? f[0] : f, v = _.polygon(g, {
-                color: r,
-                weight: l,
-                opacity: u,
-                dashArray: o.estilo.dashArray || "4, 6",
-                fillColor: r,
-                fillOpacity: Math.min(0.2, u * 0.15),
-                pane: i,
-                interactive: s
-              });
-              s && v.bindPopup(`
-                <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.3; min-width:180px;">
-                  <div style="font-weight:700; font-size:12px; color:#c084fc; margin-bottom:3px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:3px;">Limite de Confrontante</div>
-                  <div style="font-size:11px; margin-bottom:2px;"><strong>Propriedade:</strong> ${m}</div>
-                  <div style="font-size:11px;"><strong>Proprietário:</strong> ${h}</div>
-                </div>
-              `, { className: "compact-popup", maxWidth: 220 }), v.addTo(e);
-            }
+  rebuildPolygons(o, t, e, i) {
+    var d, h;
+    const r = (((d = o.dados) == null ? void 0 : d.poligonos) ?? (Array.isArray(o.dados) ? o.dados : null)) || ((h = o.dados) == null ? void 0 : h.confrontantes) || e.confrontantes || [], s = o.interativo && !o.bloqueada, n = o.estilo.corPrimaria || "#a855f7", c = o.estilo.espessuraLinha || 1.5, u = o.opacidade !== void 0 ? o.opacidade : 0.8;
+    r.forEach((p) => {
+      var _, I, g, C, L, N, H, z, O, $;
+      if (!p) return;
+      const m = ((_ = p.estilo) == null ? void 0 : _.cor) || ((I = p.estilo) == null ? void 0 : I.color) || n, f = ((g = p.estilo) == null ? void 0 : g.espessura) || ((C = p.estilo) == null ? void 0 : C.weight) || c, v = ((L = p.estilo) == null ? void 0 : L.opacidade) ?? u, y = ((N = p.estilo) == null ? void 0 : N.fillColor) || m, w = ((H = p.estilo) == null ? void 0 : H.fillOpacity) ?? Math.min(0.2, v * 0.15), S = ((z = p.estilo) == null ? void 0 : z.dashArray) || o.estilo.dashArray || "4, 6";
+      if (p.coordenadas && Array.isArray(p.coordenadas) && p.coordenadas.length >= 3) {
+        const A = Array.isArray(p.coordenadas[0]) && Array.isArray(p.coordenadas[0][0]);
+        let k;
+        if (A ? k = p.coordenadas.map(
+          (M) => M.map((T) => {
+            const q = R(T[0], T[1]);
+            return q ? [q.lat, q.lon] : null;
+          }).filter(Boolean)
+        ) : k = p.coordenadas.map((M) => {
+          const T = R(M[0], M[1]);
+          return T ? [T.lat, T.lon] : null;
+        }).filter(Boolean), k && (A ? ((O = k[0]) == null ? void 0 : O.length) >= 3 : k.length >= 3)) {
+          const M = x.polygon(k, {
+            color: m,
+            weight: f,
+            opacity: v,
+            dashArray: S,
+            fillColor: y,
+            fillOpacity: w,
+            pane: i,
+            interactive: s
+          });
+          if (M.poligonoId = p.id, M.layerId = o.id, s) {
+            let T = "";
+            p.metadados && Object.keys(p.metadados).length > 0 && (T = Object.entries(p.metadados).map(([q, B]) => `<div style="font-size:11px;"><strong>${E(q)}:</strong> ${E(String(B))}</div>`).join("")), M.bindPopup(`
+              <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.3; min-width:180px;">
+                <div style="font-weight:700; font-size:12px; color:#c084fc; margin-bottom:3px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:3px;">Polígono ${E(String(p.id ?? ""))}</div>
+                ${T || `<div style="font-size:11px;">Área vetorial definida por ${p.coordenadas.length} vértices</div>`}
+              </div>
+            `, { className: "compact-popup", maxWidth: 220 }), M.on("popupopen", () => {
+              e.modoSequencial && M.closePopup();
+            });
           }
+          M.addTo(t);
+          return;
         }
-        c.pontos && c.pontos.length > 0 && c.pontos.forEach((p) => {
-          const m = q(p.lat ?? p.latitude ?? p.y, p.lon ?? p.lng ?? p.longitude ?? p.x);
-          if (m) {
-            const h = _.divIcon({
-              html: '<div style="width:8px; height:8px; background:#a855f7; border-radius:50%; border:1px solid #ffffff; box-shadow:0 0 4px rgba(168,85,247,0.8);"></div>',
-              className: "custom-leaflet-marker flex items-center justify-center",
-              iconSize: [12, 12]
-            }), f = _.marker([m.lat, m.lon], {
-              icon: h,
+      }
+      const P = p.wkt || p.poligono_wkt;
+      if (P) {
+        const A = [...P.matchAll(/\(([^()]+)\)/g)];
+        if (A.length > 0) {
+          const k = E(p.nome_propriedade || `Polígono ${String(p.id || "")}`), M = E(p.nome || "Proprietário"), T = [];
+          if (A.forEach((q) => {
+            const B = q[1].split(",").map((W) => {
+              const U = W.trim().split(/\s+/);
+              if (U.length < 2) return null;
+              const Y = R(U[1], U[0]);
+              return Y ? [Y.lat, Y.lon] : null;
+            }).filter((W) => W !== null);
+            B.length >= 3 && T.push(B);
+          }), T.length > 0) {
+            const q = T.length === 1 ? T[0] : T, B = x.polygon(q, {
+              color: m,
+              weight: f,
+              opacity: v,
+              dashArray: S,
+              fillColor: y,
+              fillOpacity: w,
               pane: i,
               interactive: s
             });
-            f.pontoId = p.id, f.isVizinho = !0, f.layerId = o.id, s && (f.bindPopup(`
-                <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.3; min-width:170px;">
-                  <div style="font-weight:700; font-size:12px; color:#c084fc; margin-bottom:3px;">${k(p.nome_vertice || String(p.id))}</div>
-                  <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">Confrontante: ${k(c.nome || "Desconhecido")}</div>
-                  <div style="font-size:10px; color:rgba(255, 255, 255, 0.45); font-family:monospace; margin-top:3px;">Lat ${m.lat.toFixed(6)} &nbsp; Lon ${m.lon.toFixed(6)}</div>
+            if (B.poligonoId = p.id, B.layerId = o.id, s) {
+              const W = p.acoes || o.acoes || (($ = o.dados) == null ? void 0 : $.acoes) || [], U = J(W, p.id);
+              B.bindPopup(`
+                <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.3; min-width:180px;">
+                  <div style="font-weight:700; font-size:12px; color:#c084fc; margin-bottom:3px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:3px;">${k}</div>
+                  <div style="font-size:11px; margin-bottom:2px;"><strong>Identificador:</strong> ${E(String(p.id ?? ""))}</div>
+                  ${p.nome ? `<div style="font-size:11px;"><strong>Proprietário:</strong> ${M}</div>` : ""}
+                  ${U}
                 </div>
-              `, { className: "compact-popup", maxWidth: 220 }), f.on("click", () => {
-              t.onMarkerClick && t.onMarkerClick(p.id, !0);
-            })), f.addTo(e);
+              `, { className: "compact-popup", maxWidth: 220 }), B.on("popupopen", (Y) => {
+                if (e.modoSequencial) {
+                  B.closePopup();
+                  return;
+                }
+                tt(Y.popup, p, e, B);
+              });
+            }
+            B.addTo(t);
           }
-        });
+        }
       }
+      p.pontos && p.pontos.length > 0 && p.pontos.forEach((A) => {
+        var M;
+        const k = R(A.lat ?? A.latitude ?? A.y, A.lon ?? A.lng ?? A.longitude ?? A.x);
+        if (k) {
+          const T = x.divIcon({
+            html: '<div style="width:8px; height:8px; background:#a855f7; border-radius:50%; border:1px solid #ffffff; box-shadow:0 0 4px rgba(168,85,247,0.8);"></div>',
+            className: "custom-leaflet-marker flex items-center justify-center",
+            iconSize: [12, 12]
+          }), q = x.marker([k.lat, k.lon], {
+            icon: T,
+            pane: i,
+            interactive: s
+          });
+          if (q.pontoId = A.id, q.isVizinho = !0, q.layerId = o.id, s) {
+            const B = A.acoes || p.acoes || o.acoes || ((M = o.dados) == null ? void 0 : M.acoes) || [], W = J(B, A.id);
+            q.bindPopup(`
+                <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.3; min-width:170px;">
+                  <div style="font-weight:700; font-size:12px; color:#c084fc; margin-bottom:3px;">${E(A.nome_vertice || String(A.id))}</div>
+                  <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">Confrontante: ${E(p.nome || "Desconhecido")}</div>
+                  <div style="font-size:10px; color:rgba(255, 255, 255, 0.45); font-family:monospace; margin-top:3px;">Lat ${k.lat.toFixed(6)} &nbsp; Lon ${k.lon.toFixed(6)}</div>
+                  ${W}
+                </div>
+              `, { className: "compact-popup", maxWidth: 220 }), q.on("click", () => {
+              e.modoSequencial && q.closePopup(), e.onMarkerClick && e.onMarkerClick(A.id, !0, A, { lat: k.lat, lon: k.lon });
+            }), q.on("popupopen", (U) => {
+              if (e.modoSequencial) {
+                q.closePopup();
+                return;
+              }
+              tt(U.popup, A, e, q);
+            });
+          }
+          q.addTo(t);
+        }
+      });
     });
   }
-  update(o, e, t, i) {
-    t.opacidade !== void 0 && t.estilo === void 0 && t.dados === void 0 && t.interativo === void 0 && t.bloqueada === void 0 || (t.opacidade !== void 0 || t.estilo !== void 0 || t.dados !== void 0 || t.interativo !== void 0 || t.bloqueada !== void 0) && (e.clearLayers(), this.rebuildPolygons(o, e, i, `pane-${o.id}`));
+  update(o, t, e, i) {
+    e.opacidade !== void 0 && e.estilo === void 0 && e.dados === void 0 && e.interativo === void 0 && e.bloqueada === void 0 || (e.opacidade !== void 0 || e.estilo !== void 0 || e.dados !== void 0 || e.interativo !== void 0 || e.bloqueada !== void 0) && (t.clearLayers(), this.rebuildPolygons(o, t, i, `pane-${o.id}`));
   }
-  destroy(o, e) {
-    o.clearLayers(), e.hasLayer(o) && e.removeLayer(o);
+  destroy(o, t) {
+    o.clearLayers(), t.hasLayer(o) && t.removeLayer(o);
   }
 }
-class ht {
+class Ce {
   constructor() {
-    n(this, "moveListenerMap", /* @__PURE__ */ new WeakMap());
+    l(this, "moveListenerMap", /* @__PURE__ */ new WeakMap());
   }
-  render(o, e, t) {
-    const i = _.layerGroup(), a = `pane-${o.id}`, s = () => {
+  render(o, t, e) {
+    const i = x.layerGroup(), a = `pane-${o.id}`, r = () => {
       if (i.clearLayers(), !o.visivel) return;
-      if (e.getZoom() > 20) {
-        const l = e.getBounds(), u = l.getSouth(), d = l.getNorth(), c = l.getWest(), p = l.getEast(), m = e.getCenter(), h = 8999e-9, f = Math.cos(m.lat * Math.PI / 180), g = h / (f > 0.1 ? f : 1), v = Math.floor((d - u) / h), x = Math.floor((p - c) / g);
-        if (v < 200 && x < 200) {
-          const w = Math.ceil(u / h) * h;
-          for (let y = w; y <= d; y += h)
-            _.polyline([[y, c], [y, p]], {
+      if (t.getZoom() > 20) {
+        const n = t.getBounds(), c = n.getSouth(), u = n.getNorth(), d = n.getWest(), h = n.getEast(), p = t.getCenter(), m = 8999e-9, f = Math.cos(p.lat * Math.PI / 180), v = m / (f > 0.1 ? f : 1), y = Math.floor((u - c) / m), w = Math.floor((h - d) / v);
+        if (y < 200 && w < 200) {
+          const S = Math.ceil(c / m) * m;
+          for (let _ = S; _ <= u; _ += m)
+            x.polyline([[_, d], [_, h]], {
               color: o.estilo.corPrimaria || "rgba(0, 245, 160, 0.18)",
               weight: o.estilo.espessuraLinha || 0.6,
               interactive: !1,
               pane: a
             }).addTo(i);
-          const E = Math.ceil(c / g) * g;
-          for (let y = E; y <= p; y += g)
-            _.polyline([[u, y], [d, y]], {
+          const P = Math.ceil(d / v) * v;
+          for (let _ = P; _ <= h; _ += v)
+            x.polyline([[c, _], [u, _]], {
               color: o.estilo.corPrimaria || "rgba(0, 245, 160, 0.18)",
               weight: o.estilo.espessuraLinha || 0.6,
               interactive: !1,
@@ -3694,23 +3939,23 @@ class ht {
         }
       }
     };
-    return s(), e.on("zoomend moveend", s), this.moveListenerMap.set(i, s), i;
+    return r(), t.on("zoomend moveend", r), this.moveListenerMap.set(i, r), i;
   }
-  update(o, e) {
-    o.visivel || e.clearLayers();
+  update(o, t) {
+    o.visivel || t.clearLayers();
   }
-  destroy(o, e) {
-    const t = this.moveListenerMap.get(o);
-    t && (e.off("zoomend moveend", t), this.moveListenerMap.delete(o)), o.clearLayers(), e.hasLayer(o) && e.removeLayer(o);
+  destroy(o, t) {
+    const e = this.moveListenerMap.get(o);
+    e && (t.off("zoomend moveend", e), this.moveListenerMap.delete(o)), o.clearLayers(), t.hasLayer(o) && t.removeLayer(o);
   }
 }
-S.register("tile", new nt());
-S.register("wms", new lt());
-S.register("vetorial-linhas", new ct());
-S.register("vetorial-pontos", new dt());
-S.register("vetorial-poligonos", new ut());
-S.register("grid", new ht());
-const pt = [
+F.register("tile", new _e());
+F.register("wms", new we());
+F.register("vetorial-linhas", new Ee());
+F.register("vetorial-pontos", new ke());
+F.register("vetorial-poligonos", new Ae());
+F.register("grid", new Ce());
+const Se = [
   {
     id: "satelite",
     nome: "Satélite Google Híbrido",
@@ -3836,103 +4081,106 @@ const pt = [
     }
   }
 ];
-class mt {
+class Le {
   constructor(o) {
-    n(this, "layers", []);
-    n(this, "layerInstances", /* @__PURE__ */ new Map());
-    n(this, "map", null);
-    n(this, "context", null);
-    n(this, "listeners", []);
-    this.layers = (o || pt).map((e) => ({ ...e, estilo: { ...e.estilo } }));
+    l(this, "layers", []);
+    l(this, "layerInstances", /* @__PURE__ */ new Map());
+    l(this, "map", null);
+    l(this, "context", null);
+    l(this, "listeners", []);
+    this.layers = (o || Se).map((t) => ({ ...t, estilo: { ...t.estilo } }));
   }
-  attachMap(o, e) {
-    this.map = o, this.context = e, this.ensurePanes(), this.renderAllLayers();
+  attachMap(o, t) {
+    this.map = o, this.context = t, this.ensurePanes(), this.renderAllLayers();
   }
   ensurePanes() {
-    this.map && (this.layers.forEach((o) => {
-      const e = `pane-${o.id}`;
-      let t = this.map.getPane(e);
-      t || (t = this.map.createPane(e)), t && (t.style.zIndex = String(o.zIndex), t.style.pointerEvents = o.interativo && !o.bloqueada && o.visivel ? "auto" : "none");
-    }), ["verticesPane", "perimetroPane", "overlayPane"].forEach((o) => {
-      const e = this.map.getPane(o);
+    if (!this.map) return;
+    this.layers.forEach((t) => {
+      const e = `pane-${t.id}`;
+      let i = this.map.getPane(e);
+      i || (i = this.map.createPane(e)), i && (i.style.zIndex = String(t.zIndex), i.style.pointerEvents = t.interativo && !t.bloqueada && t.visivel ? "auto" : "none");
+    }), ["verticesPane", "perimetroPane", "overlayPane"].forEach((t) => {
+      const e = this.map.getPane(t);
       e && (e.style.pointerEvents = "auto");
-    }));
+    });
+    let o = this.map.getPane("pane-destaque");
+    o || (o = this.map.createPane("pane-destaque")), o && (o.style.zIndex = "850", o.style.pointerEvents = "none");
   }
   renderAllLayers() {
     !this.map || !this.context || (this.layers.forEach((o) => {
       if (this.layerInstances.has(o.id)) {
-        const e = this.layerInstances.get(o.id), t = S.get(o.tipo);
-        t && t.destroy(e, this.map), this.layerInstances.delete(o.id);
+        const t = this.layerInstances.get(o.id), e = F.get(o.tipo);
+        e && e.destroy(t, this.map), this.layerInstances.delete(o.id);
       }
       if (o.visivel) {
-        const e = S.get(o.tipo);
-        if (e) {
-          const t = e.render(o, this.map, this.context);
-          t && (t.addTo(this.map), this.layerInstances.set(o.id, t));
+        const t = F.get(o.tipo);
+        if (t) {
+          const e = t.render(o, this.map, this.context);
+          e && (e.addTo(this.map), this.layerInstances.set(o.id, e));
         }
       }
     }), this.notifyChange());
   }
-  setLayerVisibility(o, e) {
-    const t = this.layers.find((s) => s.id === o);
-    if (!t || t.visivel === e || (t.visivel = e, !this.map || !this.context)) return;
-    const i = `pane-${t.id}`, a = this.map.getPane(i);
-    if (a && (a.style.display = e ? "" : "none", a.style.pointerEvents = t.visivel && t.interativo && !t.bloqueada ? "auto" : "none"), e) {
+  setLayerVisibility(o, t) {
+    const e = this.layers.find((r) => r.id === o);
+    if (!e || e.visivel === t || (e.visivel = t, !this.map || !this.context)) return;
+    const i = `pane-${e.id}`, a = this.map.getPane(i);
+    if (a && (a.style.display = t ? "" : "none", a.style.pointerEvents = e.visivel && e.interativo && !e.bloqueada ? "auto" : "none"), t) {
       if (!this.layerInstances.has(o)) {
-        const s = S.get(t.tipo);
-        if (s) {
-          const r = s.render(t, this.map, this.context);
-          r && (r.addTo(this.map), this.layerInstances.set(o, r));
+        const r = F.get(e.tipo);
+        if (r) {
+          const s = r.render(e, this.map, this.context);
+          s && (s.addTo(this.map), this.layerInstances.set(o, s));
         }
       }
     } else if (this.layerInstances.has(o)) {
-      const s = this.layerInstances.get(o), r = S.get(t.tipo);
-      r && r.destroy(s, this.map), this.layerInstances.delete(o);
+      const r = this.layerInstances.get(o), s = F.get(e.tipo);
+      s && s.destroy(r, this.map), this.layerInstances.delete(o);
     }
     this.notifyChange();
   }
-  setLayerOpacity(o, e) {
-    const t = this.layers.find((a) => a.id === o);
-    if (!t) return;
-    if (t.opacidade = Math.max(0, Math.min(1, e)), this.map) {
+  setLayerOpacity(o, t) {
+    const e = this.layers.find((a) => a.id === o);
+    if (!e) return;
+    if (e.opacidade = Math.max(0, Math.min(1, t)), this.map) {
       const a = this.map.getPane(`pane-${o}`);
-      a && (a.style.opacity = String(t.opacidade));
+      a && (a.style.opacity = String(e.opacidade));
     }
     const i = this.layerInstances.get(o);
     if (i && this.map && this.context) {
-      const a = S.get(t.tipo);
-      a && a.update(t, i, { opacidade: t.opacidade }, this.context, this.map);
+      const a = F.get(e.tipo);
+      a && a.update(e, i, { opacidade: e.opacidade }, this.context, this.map);
     }
     this.notifyChange();
   }
-  setLayerZIndex(o, e) {
-    const t = this.layers.find((i) => i.id === o);
-    if (t) {
-      if (t.zIndex = e, this.map) {
+  setLayerZIndex(o, t) {
+    const e = this.layers.find((i) => i.id === o);
+    if (e) {
+      if (e.zIndex = t, this.map) {
         const i = this.map.getPane(`pane-${o}`);
-        i && (i.style.zIndex = String(e));
+        i && (i.style.zIndex = String(t));
       }
       this.notifyChange();
     }
   }
-  setLayerBlocked(o, e) {
-    const t = this.layers.find((i) => i.id === o);
-    if (t) {
-      if (t.bloqueada = e, this.map) {
+  setLayerBlocked(o, t) {
+    const e = this.layers.find((i) => i.id === o);
+    if (e) {
+      if (e.bloqueada = t, this.map) {
         const i = this.map.getPane(`pane-${o}`);
-        i && (i.style.pointerEvents = t.visivel && t.interativo && !e ? "auto" : "none");
+        i && (i.style.pointerEvents = e.visivel && e.interativo && !t ? "auto" : "none");
       }
       this.notifyChange();
     }
   }
-  setLayerScaleMode(o, e) {
-    const t = this.layers.find((a) => a.id === o);
-    if (!t) return;
-    t.estilo.scaleMode = e;
+  setLayerScaleMode(o, t) {
+    const e = this.layers.find((a) => a.id === o);
+    if (!e) return;
+    e.estilo.scaleMode = t;
     const i = this.layerInstances.get(o);
     if (i && this.map && this.context) {
-      const a = S.get(t.tipo);
-      a && a.update(t, i, { estilo: t.estilo }, this.context, this.map);
+      const a = F.get(e.tipo);
+      a && a.update(e, i, { estilo: e.estilo }, this.context, this.map);
     }
     this.notifyChange();
   }
@@ -3949,8 +4197,70 @@ class mt {
     return this.layers.filter((o) => o.visivel && o.interativo && !o.bloqueada);
   }
   isLayerActiveAndSelectable(o) {
-    const e = this.layers.find((t) => t.id === o);
-    return !!(e && e.visivel && e.interativo && !e.bloqueada);
+    const t = this.layers.find((e) => e.id === o);
+    return !!(t && t.visivel && t.interativo && !t.bloqueada);
+  }
+  getLayerInstance(o) {
+    return this.layerInstances.get(o);
+  }
+  getAllLayerInstances() {
+    return Array.from(this.layerInstances.values());
+  }
+  /**
+   * Obtém uma camada existente ou a cria dinamicamente de forma agnóstica.
+   */
+  getOrCreateLayer(o, t = "vetorial-pontos", e, i = "custom") {
+    let a = this.layers.find((r) => r.id === o);
+    if (!a) {
+      if (a = {
+        id: o,
+        nome: e || o,
+        categoria: i,
+        tipo: t,
+        visivel: !0,
+        opacidade: 1,
+        zIndex: t === "vetorial-pontos" ? 650 : t === "vetorial-linhas" ? 450 : 500,
+        interativo: !0,
+        bloqueada: !1,
+        estilo: { scaleMode: "screen" }
+      }, this.layers.push(a), this.map) {
+        const r = `pane-${a.id}`;
+        let s = this.map.getPane(r);
+        s || (s = this.map.createPane(r)), s && (s.style.zIndex = String(a.zIndex), s.style.pointerEvents = "auto");
+      }
+      this.notifyChange();
+    }
+    return a;
+  }
+  /**
+   * Define os dados de uma camada e solicita re-renderização ao renderizador correspondente.
+   */
+  setLayerData(o, t) {
+    const e = this.layers.find((a) => a.id === o);
+    if (!e) return;
+    e.dados = t;
+    const i = this.layerInstances.get(o);
+    if (i && this.map && this.context) {
+      const a = F.get(e.tipo);
+      a && a.update(e, i, { dados: t }, this.context, this.map);
+    } else if (this.map && this.context && e.visivel) {
+      const a = F.get(e.tipo);
+      if (a) {
+        const r = a.render(e, this.map, this.context);
+        r && (r.addTo(this.map), this.layerInstances.set(o, r));
+      }
+    }
+    this.notifyChange();
+  }
+  /**
+   * Remove entidades das camadas especificadas ou de todas as camadas vetoriais se omitido.
+   */
+  clearLayers(o) {
+    (o && o.length > 0 ? this.layers.filter((e) => o.includes(e.id)) : this.layers.filter((e) => typeof e.tipo == "string" && e.tipo.startsWith("vetorial"))).forEach((e) => {
+      e.dados = null;
+      const i = this.layerInstances.get(e.id);
+      i && i.clearLayers && i.clearLayers();
+    }), !o || o.length === 0 ? this.context && (this.context.pontos = [], this.context.segmentos = [], this.context.confrontantes = []) : this.context && (o.includes("vertices") && (this.context.pontos = []), (o.includes("linhas") || o.includes("perimetro") || o.includes("polilinha")) && (this.context.segmentos = []), (o.includes("poligonos") || o.includes("vizinhos")) && (this.context.confrontantes = [])), this.notifyChange();
   }
   exportState() {
     return this.layers.map((o) => ({
@@ -3963,45 +4273,50 @@ class mt {
     }));
   }
   importState(o) {
-    !o || !Array.isArray(o) || (o.forEach((e) => {
-      const t = this.layers.find((i) => i.id === e.id);
-      t && (e.visivel !== void 0 && (t.visivel = e.visivel), e.opacidade !== void 0 && (t.opacidade = e.opacidade), e.zIndex !== void 0 && (t.zIndex = e.zIndex), e.bloqueada !== void 0 && (t.bloqueada = e.bloqueada), e.estilo && (t.estilo = { ...t.estilo, ...e.estilo }));
+    !o || !Array.isArray(o) || (o.forEach((t) => {
+      const e = this.layers.find((i) => i.id === t.id);
+      e && (t.visivel !== void 0 && (e.visivel = t.visivel), t.opacidade !== void 0 && (e.opacidade = t.opacidade), t.zIndex !== void 0 && (e.zIndex = t.zIndex), t.bloqueada !== void 0 && (e.bloqueada = t.bloqueada), t.estilo && (e.estilo = { ...e.estilo, ...t.estilo }));
     }), this.ensurePanes(), this.renderAllLayers());
   }
   onChange(o) {
     return this.listeners.push(o), () => {
-      this.listeners = this.listeners.filter((e) => e !== o);
+      this.listeners = this.listeners.filter((t) => t !== o);
     };
   }
   notifyChange() {
     const o = this.getLayers();
-    this.listeners.forEach((e) => {
+    this.listeners.forEach((t) => {
       try {
-        e(o);
-      } catch (t) {
-        console.error("Erro no listener de camadas:", t);
+        t(o);
+      } catch (e) {
+        console.error("Erro no listener de camadas:", e);
       }
     });
   }
   destroy() {
-    this.map && (this.layerInstances.forEach((o, e) => {
-      const t = this.layers.find((i) => i.id === e);
-      if (t) {
-        const i = S.get(t.tipo);
+    this.map && (this.layerInstances.forEach((o, t) => {
+      const e = this.layers.find((i) => i.id === t);
+      if (e) {
+        const i = F.get(e.tipo);
         i && i.destroy(o, this.map);
       }
     }), this.layerInstances.clear()), this.listeners = [];
   }
 }
-class ft {
+class ze {
   constructor(o) {
-    n(this, "core");
-    n(this, "layerManager");
-    n(this, "canvasInteracao");
-    n(this, "context");
-    n(this, "modoCliqueSequencialAtivo", !1);
-    n(this, "levantamentoId", null);
-    this.core = new at(this), this.layerManager = new mt(o), this.canvasInteracao = new st({
+    l(this, "core");
+    l(this, "layerManager");
+    l(this, "canvasInteracao");
+    l(this, "context");
+    l(this, "modoCliqueSequencialAtivo", !1);
+    l(this, "chaveGrupo");
+    l(this, "levantamentoId", null);
+    l(this, "customMarkerClickCallback");
+    l(this, "customPopupActionCallback");
+    l(this, "destaqueMarker", null);
+    l(this, "destaqueTimeoutId", null);
+    this.core = new ve(this), this.layerManager = new Le(o), this.canvasInteracao = new ye({
       mapaController: this,
       layerManager: this.layerManager
     }), this.context = {
@@ -4015,35 +4330,214 @@ class ft {
         lineScaleMultiplier: 1,
         scaleModeGlobal: "screen"
       },
-      onMarkerClick: (e, t) => {
-        t ? this.canvasInteracao.ctx.selectedVizinhoPontoIds = [e] : (this.canvasInteracao.ctx.selectedPontoIds = [e], this.canvasInteracao.ctx.lastSelectedPontoId = e), window.dispatchEvent(new CustomEvent("gerencigeo:ponto-selecionado", {
-          detail: { selectedPontoIds: [e], lastSelectedPontoId: e, isVizinho: t }
+      onMarkerClick: (t, e, i, a) => {
+        if (this.modoCliqueSequencialAtivo || this.context.modoSequencial)
+          return;
+        if (this.customMarkerClickCallback)
+          try {
+            this.customMarkerClickCallback(Number(t), e);
+          } catch (s) {
+            console.error("Erro no customMarkerClickCallback:", s);
+          }
+        const r = Number(t);
+        e ? this.canvasInteracao.ctx.selectedVizinhoPontoIds = [r] : (this.canvasInteracao.ctx.selectedPontoIds = [r], this.canvasInteracao.ctx.lastSelectedPontoId = r), window.dispatchEvent(new CustomEvent("gerencigeo:ponto-selecionado", {
+          detail: { selectedPontoIds: [r], lastSelectedPontoId: r, isVizinho: e }
         }));
+      },
+      onPopupAcao: (t, e, i) => {
+        if (this.customPopupActionCallback)
+          try {
+            this.customPopupActionCallback(t, e, i);
+          } catch (a) {
+            console.error("Erro no customPopupActionCallback:", a);
+          }
       }
     };
   }
-  init(o, e) {
-    const t = this.core.init(o);
-    return t && (this.layerManager.attachMap(t, this.context), this.canvasInteracao.ativar(this, e)), t;
+  init(o, t) {
+    const e = this.core.init(o);
+    return e && (this.layerManager.attachMap(e, this.context), this.canvasInteracao.ativar(this, t)), e;
   }
   invalidateSize() {
-    var o;
     try {
-      (o = this.core) == null || o.invalidateSize();
+      this.core && (typeof this.core.invalidateSize == "function" ? this.core.invalidateSize() : this.core.map && typeof this.core.map.invalidateSize == "function" && this.core.map.invalidateSize());
     } catch {
     }
   }
   setPontos(o) {
-    this.context.pontos = o, this.canvasInteracao.ctx.pontosList = o, this.layerManager.updateContext({ pontos: o });
+    const t = o || [];
+    this.context.pontos = t, this.canvasInteracao.ctx.pontosList = t, this.layerManager.updateContext({ pontos: t });
   }
   setSegmentos(o) {
-    this.context.segmentos = o, this.layerManager.updateContext({ segmentos: o });
+    const t = o || [];
+    this.context.segmentos = t, this.layerManager.updateContext({ segmentos: t });
   }
   setBancoPontos(o) {
-    this.context.bancoPontos = o, this.layerManager.updateContext({ bancoPontos: o });
+    const t = o || [];
+    this.context.bancoPontos = t, this.layerManager.updateContext({ bancoPontos: t });
   }
   setConfrontantes(o) {
-    this.context.confrontantes = o, this.layerManager.updateContext({ confrontantes: o });
+    const t = o || [];
+    this.context.confrontantes = t, this.layerManager.updateContext({ confrontantes: t });
+  }
+  // --- API Pública Agnóstica de Entidades Vetoriais e Camadas ---
+  /**
+   * Ingestão de nós pontuais na camada indicada (padrão: 'vertices').
+   */
+  plotarPontos(o, t = "vertices", e) {
+    const i = o || [];
+    this.layerManager.getOrCreateLayer(t, "vetorial-pontos", "Pontos / Vértices"), t === "vertices" && (this.context.pontos = i, this.canvasInteracao.ctx.pontosList = i, e && (this.customMarkerClickCallback = (a) => {
+      const r = i.find((s) => String(s.id) === String(a)) || { id: a, lat: 0, lon: 0 };
+      e(r);
+    })), this.layerManager.setLayerData(t, { pontos: i, onClique: e }), this.layerManager.setLayerVisibility(t, !0);
+  }
+  /**
+   * Plota linhas vinculando pares de IDs (origemId -> destinoId).
+   */
+  plotarConexoes(o, t = "linhas") {
+    const e = o || [];
+    this.layerManager.getOrCreateLayer(t, "vetorial-linhas", "Conexões / Linhas"), (t === "linhas" || t === "perimetro") && (this.context.segmentos = e.map((i) => ({
+      ponto_inicio_id: Number(i.origemId) || 0,
+      ponto_fim_id: Number(i.destinoId) || 0,
+      tipo_limite_sigef: i.tipoLinha === "tracejada" ? "LN1" : "LA1"
+    }))), this.layerManager.setLayerData(t, { conexoes: e }), this.layerManager.setLayerVisibility(t, !0);
+  }
+  /**
+   * Conecta a lista ordenada de pontos em sequência (P1 -> P2 -> ... -> Pn) com fechamento opcional (Pn -> P1).
+   */
+  plotarPolilinhaSequencial(o, t = !0, e = "polilinha", i) {
+    const a = o || [];
+    this.layerManager.getOrCreateLayer(e, "vetorial-linhas", "Polilinhas"), (e === "polilinha" || e === "perimetro") && (this.context.pontos = a, this.context.segmentos = [], this.canvasInteracao.ctx.pontosList = a);
+    const r = i || this.chaveGrupo || this.context.chaveGrupo;
+    this.layerManager.setLayerData(e, {
+      pontos: a,
+      fechar: t !== !1,
+      polilinhaSequencial: !0,
+      chaveGrupo: r
+    }), this.layerManager.setLayerVisibility(e, !0);
+  }
+  /**
+   * Plota áreas a partir de anéis de coordenadas ou strings WKT.
+   */
+  plotarPoligonos(o, t = "poligonos") {
+    const e = o || [];
+    this.layerManager.getOrCreateLayer(t, "vetorial-poligonos", "Polígonos"), this.layerManager.setLayerData(t, { poligonos: e }), this.layerManager.setLayerVisibility(t, !0);
+  }
+  /**
+   * Remove entidades das camadas especificadas ou de todas as camadas vetoriais se omitido.
+   */
+  limparCamadas(o) {
+    this.layerManager.clearLayers(o), (!o || o.length === 0) && this.canvasInteracao.limparSelecao();
+  }
+  /**
+   * Retorna as instâncias gráficas ativas no canvas (de uma camada específica ou de todas).
+   */
+  obterMarcadores(o) {
+    if (o) {
+      const t = [], e = this.layerManager.getLayerInstance(o);
+      if (e) {
+        const i = (a) => {
+          a instanceof x.Marker && t.push(a);
+        };
+        i(e), typeof e.eachLayer == "function" && e.eachLayer(i);
+      }
+      return t;
+    }
+    return this.getMarkers();
+  }
+  /**
+   * Plota os pontos do levantamento e opcionalmente associa callback de clique.
+   */
+  plotPontos(o, t) {
+    t && (this.customMarkerClickCallback = t), this.setPontos(o || []);
+  }
+  /**
+   * Plota os segmentos cadastrados conectando os pontos correspondentes.
+   */
+  plotSegmentos(o, t) {
+    const e = o || [];
+    if (t != null) {
+      const i = t || [];
+      this.context.pontos = i, this.canvasInteracao.ctx.pontosList = i;
+    }
+    this.context.segmentos = e, this.layerManager.updateContext({
+      segmentos: e,
+      ...t != null ? { pontos: this.context.pontos } : {}
+    });
+  }
+  /**
+   * Define os pontos e limpa os segmentos para forçar o fechamento automático da poligonal pelo caminhamento (Pn -> P1).
+   */
+  plotPolilinhaTemporaria(o) {
+    const t = o || [];
+    this.context.pontos = t, this.context.segmentos = [], this.canvasInteracao.ctx.pontosList = t, this.layerManager.updateContext({
+      pontos: t,
+      segmentos: []
+    });
+  }
+  /**
+   * Alimenta a camada de vértices homologados do SIGEF.
+   */
+  plotPoligonalHomologada(o) {
+    const t = o || [];
+    this.setBancoPontos(t), this.layerManager.setLayerVisibility("homologados", !0), this.layerManager.setLayerVisibility("homologados-pontos", !0);
+  }
+  /**
+   * Alimenta a camada de vértices confrontantes com marcadores e polilinhas.
+   */
+  plotPontosVizinhos(o) {
+    const t = o || [], e = /* @__PURE__ */ new Map();
+    t.forEach((r) => {
+      const s = r.lat ?? r.latitude ?? r.y, n = r.lon ?? r.lng ?? r.longitude ?? r.x, c = R(s, n);
+      c && (r.lat = c.lat, r.lon = c.lon);
+      const u = r.confrontante_id ?? r.id_confrontante ?? 0;
+      e.has(u) || e.set(u, []), e.get(u).push(r);
+    });
+    const i = /* @__PURE__ */ new Map();
+    (this.context.confrontantes || []).forEach((r) => {
+      const s = r.id !== void 0 && r.id !== null ? r.id : 0;
+      i.set(s, { ...r, pontos: [] });
+    }), e.forEach((r, s) => {
+      var n, c;
+      if (i.has(s)) {
+        const u = i.get(s);
+        u.pontos = r;
+      } else
+        i.set(s, {
+          id: s,
+          nome: ((n = r[0]) == null ? void 0 : n.nome_confrontante) || "Confrontante",
+          nome_propriedade: ((c = r[0]) == null ? void 0 : c.nome_propriedade) || "",
+          pontos: r
+        });
+    });
+    const a = Array.from(i.values()).filter((r) => r.pontos && r.pontos.length > 0 || !!r.poligono_wkt);
+    this.setConfrontantes(a), this.layerManager.setLayerVisibility("vizinhos", !0);
+  }
+  /**
+   * Alimenta a camada de limites em polígonos WKT.
+   */
+  plotPoligonosVizinhos(o) {
+    const t = o || [], e = /* @__PURE__ */ new Map();
+    (this.context.confrontantes || []).forEach((a) => {
+      a.id !== void 0 && a.id !== null && a.pontos && a.pontos.length > 0 && e.set(a.id, a.pontos);
+    });
+    const i = t.map((a) => {
+      const r = a.id !== void 0 && a.id !== null ? a.id : void 0;
+      return r !== void 0 && (!a.pontos || a.pontos.length === 0) && e.has(r) ? { ...a, pontos: e.get(r) } : { ...a };
+    });
+    this.setConfrontantes(i), this.layerManager.setLayerVisibility("vizinhos", !0);
+  }
+  /**
+   * Reseta as camadas vetoriais de trabalho, permitindo preservar opcionalmente o banco de pontos homologados.
+   */
+  clearOverlays(o = !1) {
+    this.context.pontos = [], this.context.segmentos = [], this.context.confrontantes = [], this.canvasInteracao.ctx.pontosList = [], this.canvasInteracao.limparSelecao();
+    const t = {
+      pontos: [],
+      segmentos: [],
+      confrontantes: []
+    };
+    o || (this.context.bancoPontos = [], t.bancoPontos = []), this.layerManager.updateContext(t);
   }
   setGraphicScale(o) {
     this.layerManager.setGraphicScale(o);
@@ -4054,30 +4548,30 @@ class ft {
   importState(o) {
     this.layerManager.importState(o);
   }
-  selectPonto(o, e) {
+  selectPonto(o, t) {
     if (!this.core.map) return;
     const i = this.getMarkers().find((a) => a.pontoId === o);
     if (i) {
-      const a = e !== void 0 ? e : this.core.map.getZoom();
+      const a = t !== void 0 ? t : this.core.map.getZoom();
       this.core.map.setView(i.getLatLng(), a), i.openPopup();
     }
   }
-  fitBounds(o, e = [40, 40], t = !1) {
+  fitBounds(o, t = [40, 40], e = !1) {
     if (!this.core.map) return;
     let a = [...o || this.context.pontos || []];
-    t && this.context.confrontantes && this.context.confrontantes.forEach((r) => {
-      r.pontos && a.push(...r.pontos);
+    e && this.context.confrontantes && this.context.confrontantes.forEach((s) => {
+      s.pontos && a.push(...s.pontos);
     });
-    const s = a.map((r) => {
-      const l = r.lat ?? r.latitude ?? r.y, u = r.lon ?? r.lng ?? r.longitude ?? r.x, d = q(l, u);
-      return d ? _.latLng(d.lat, d.lon) : null;
-    }).filter((r) => r !== null);
-    if (s.length === 1)
-      this.core.map.setView(s[0], 18);
-    else if (s.length > 1) {
-      const r = _.latLngBounds(s);
-      this.core.map.fitBounds(r, { padding: e }), this.core.map.once("moveend", () => {
-        this.core.preCarregarTilesRegiao(r);
+    const r = a.map((s) => {
+      const n = s.lat ?? s.latitude ?? s.y, c = s.lon ?? s.lng ?? s.longitude ?? s.x, u = R(n, c);
+      return u ? x.latLng(u.lat, u.lon) : null;
+    }).filter((s) => s !== null);
+    if (r.length === 1)
+      this.core.map.setView(r[0], 18);
+    else if (r.length > 1) {
+      const s = x.latLngBounds(r);
+      this.core.map.fitBounds(s, { padding: t }), this.core.map.once("moveend", () => {
+        this.core.preCarregarTilesRegiao(s);
       });
     }
     try {
@@ -4086,42 +4580,218 @@ class ft {
     }
   }
   getMarkers() {
-    const o = [];
-    return this.core.map && this.core.map.eachLayer((e) => {
-      e instanceof _.Marker && e.pontoId && o.push(e);
+    const o = [], t = /* @__PURE__ */ new Set(), e = (i) => {
+      i instanceof x.Marker && i.pontoId !== void 0 && !t.has(i) && (t.add(i), o.push(i));
+    };
+    return this.core.map && this.core.map.eachLayer((i) => {
+      e(i), typeof i.eachLayer == "function" && i.eachLayer(e);
+    }), this.layerManager && this.layerManager.getAllLayerInstances().forEach((i) => {
+      e(i), typeof i.eachLayer == "function" && i.eachLayer(e);
     }), o;
   }
   getVizinhosMarkers() {
-    return this.getMarkers().filter((o) => o.isVizinho);
+    return this.getMarkers().filter((o) => !!o.isVizinho);
+  }
+  get destaqueAtivo() {
+    return this.destaqueMarker !== null;
+  }
+  /**
+   * Localiza a coordenada geográfica central de qualquer elemento geométrico do canvas pelo identificador (ID).
+   * Agnóstico a entidades pontuais, lineares e poligonais.
+   */
+  localizarCoordenadasElemento(o) {
+    var r, s;
+    if (o == null) return null;
+    const t = String(o).trim(), e = (n) => n ? (n.lon = n.lng, n) : null, a = this.getMarkers().find((n) => {
+      var p, m, f, v;
+      const c = n.pontoId, u = n.elementoId ?? n.id ?? ((p = n.options) == null ? void 0 : p.pontoId) ?? ((m = n.options) == null ? void 0 : m.id), d = (f = n.elemento) == null ? void 0 : f.nome_vertice, h = (v = n.elemento) == null ? void 0 : v.codigo_completo;
+      return String(c) === t || String(u) === t || d && String(d).toLowerCase() === t.toLowerCase() || h && String(h).toLowerCase() === t.toLowerCase();
+    });
+    if (a && typeof a.getLatLng == "function")
+      return e(a.getLatLng());
+    if (this.layerManager)
+      for (const n of this.layerManager.getAllLayerInstances()) {
+        let c = null;
+        const u = (d) => {
+          var m, f, v, y, w;
+          if (c) return;
+          const h = d.pontoId ?? d.elementoId ?? d.id ?? ((m = d.options) == null ? void 0 : m.id) ?? ((f = d.options) == null ? void 0 : f.pontoId), p = ((v = d.elemento) == null ? void 0 : v.nome) ?? ((y = d.elemento) == null ? void 0 : y.nome_vertice) ?? ((w = d.options) == null ? void 0 : w.nome);
+          (String(h) === t || p && String(p).toLowerCase() === t.toLowerCase()) && (typeof d.getLatLng == "function" ? c = d.getLatLng() : typeof d.getBounds == "function" && (c = d.getBounds().getCenter()));
+        };
+        if (u(n), typeof n.eachLayer == "function" && n.eachLayer(u), c) return e(c);
+      }
+    if (this.context.pontos && this.context.pontos.length > 0) {
+      const n = this.context.pontos.find(
+        (c) => String(c.id) === t || c.nome_vertice && String(c.nome_vertice).toLowerCase() === t.toLowerCase()
+      );
+      if (n) {
+        const c = n.lat ?? n.latitude ?? n.y, u = n.lon ?? n.lng ?? n.longitude ?? n.x, d = R(c, u);
+        if (d) return e(x.latLng(d.lat, d.lon));
+      }
+    }
+    if (this.context.bancoPontos && this.context.bancoPontos.length > 0) {
+      const n = this.context.bancoPontos.find(
+        (c) => String(c.id) === t || c.codigo_completo && String(c.codigo_completo).toLowerCase() === t.toLowerCase() || c.nome_vertice && String(c.nome_vertice).toLowerCase() === t.toLowerCase()
+      );
+      if (n) {
+        const c = n.lat ?? n.latitude ?? n.y, u = n.lon ?? n.lng ?? n.longitude ?? n.x, d = R(c, u);
+        if (d) return e(x.latLng(d.lat, d.lon));
+      }
+    }
+    if (this.context.confrontantes && this.context.confrontantes.length > 0) {
+      const n = this.context.confrontantes.find(
+        (c) => String(c.id) === t || c.nome && String(c.nome).toLowerCase() === t.toLowerCase() || c.nome_propriedade && String(c.nome_propriedade).toLowerCase() === t.toLowerCase()
+      );
+      if (n) {
+        if (n.pontos && n.pontos.length > 0) {
+          let c = 0, u = 0, d = 0;
+          for (const h of n.pontos) {
+            const p = h.lat ?? h.latitude ?? h.y, m = h.lon ?? h.lng ?? h.longitude ?? h.x, f = R(p, m);
+            f && (c += f.lat, u += f.lon, d++);
+          }
+          if (d > 0)
+            return e(x.latLng(c / d, u / d));
+        }
+        if (n.poligono_wkt) {
+          const c = ft(n.poligono_wkt);
+          if (c) return e(x.latLng(c.lat, c.lon));
+        }
+      }
+    }
+    if (this.context.segmentos && this.context.segmentos.length > 0) {
+      const n = this.context.segmentos.find(
+        (c) => String(c.id) === t || `${c.ponto_inicio_id}-${c.ponto_fim_id}` === t
+      );
+      if (n) {
+        const c = (r = this.context.pontos) == null ? void 0 : r.find((d) => String(d.id) === String(n.ponto_inicio_id)), u = (s = this.context.pontos) == null ? void 0 : s.find((d) => String(d.id) === String(n.ponto_fim_id));
+        if (c && u) {
+          const d = R(c.lat ?? c.latitude, c.lon ?? c.longitude), h = R(u.lat ?? u.latitude, u.lon ?? u.longitude);
+          if (d && h)
+            return e(x.latLng((d.lat + h.lat) / 2, (d.lon + h.lon) / 2));
+        }
+      }
+    }
+    if (this.layerManager) {
+      for (const n of this.layerManager.getLayers())
+        if (n.dados) {
+          if (Array.isArray(n.dados.pontos)) {
+            const c = n.dados.pontos.find((u) => String(u.id) === t || u.nome_vertice && String(u.nome_vertice) === t);
+            if (c) {
+              const u = R(c.lat, c.lon);
+              if (u) return e(x.latLng(u.lat, u.lon));
+            }
+          }
+          if (Array.isArray(n.dados.poligonos)) {
+            const c = n.dados.poligonos.find((u) => String(u.id) === t);
+            if (c) {
+              if (c.wkt) {
+                const u = ft(c.wkt);
+                if (u) return e(x.latLng(u.lat, u.lon));
+              }
+              if (Array.isArray(c.coordenadas) && c.coordenadas.length > 0) {
+                let u = 0, d = 0, h = 0;
+                for (const p of c.coordenadas) {
+                  const m = R(p[0], p[1]) || R(p[1], p[0]);
+                  m && (u += m.lat, d += m.lon, h++);
+                }
+                if (h > 0) return e(x.latLng(u / h, d / h));
+              }
+            }
+          }
+        }
+    }
+    return null;
+  }
+  /**
+   * Localiza, enquadra e pulsa visualmente qualquer elemento geométrico do canvas pelo identificador.
+   * Não interfere no estado dos marcadores originais e limpa instâncias anteriores.
+   *
+   * @param id Identificador do elemento (número ou string)
+   * @param opcoes Configurações de câmera, duração e cor de destaque
+   */
+  destacarElemento(o, t) {
+    var h, p;
+    this.limparDestaque();
+    const e = this.getMap();
+    if (!e) return;
+    const i = this.localizarCoordenadasElemento(o);
+    if (!i) {
+      console.warn(`[ui-canvas-cad] Elemento com identificador "${o}" não encontrado para destaque.`);
+      return;
+    }
+    const a = (t == null ? void 0 : t.pan) === !0, r = t == null ? void 0 : t.zoom;
+    a ? r !== void 0 ? typeof e.flyTo == "function" ? e.flyTo(i, r, { animate: !0 }) : e.setView(i, r, { animate: !0 }) : typeof e.panTo == "function" ? e.panTo(i, { animate: !0 }) : e.setView(i, e.getZoom(), { animate: !0 }) : r !== void 0 && e.setZoom(r, { animate: !0 });
+    const s = (t == null ? void 0 : t.cor) || "#00f5a0", n = "pane-destaque";
+    let c = e.getPane(n);
+    c || (c = e.createPane(n)), c && (c.style.zIndex = "850", c.style.pointerEvents = "none");
+    const u = x.divIcon({
+      className: "cad-destaque-marker-container",
+      html: `
+        <div class="cad-pulse-highlight" style="--cad-pulse-cor: ${E(s)};">
+          <div class="cad-pulse-core"></div>
+          <div class="cad-pulse-ring ring-1"></div>
+          <div class="cad-pulse-ring ring-2"></div>
+        </div>
+      `,
+      iconSize: [52, 52],
+      iconAnchor: [26, 26]
+    });
+    this.destaqueMarker = x.marker(i, {
+      icon: u,
+      pane: n,
+      interactive: !1,
+      keyboard: !1
+    }), this.destaqueMarker.addTo(e);
+    const d = (p = (h = this.destaqueMarker).getElement) == null ? void 0 : p.call(h);
+    d && (d.style.pointerEvents = "none"), t != null && t.duracaoMs && t.duracaoMs > 0 && (this.destaqueTimeoutId = window.setTimeout(() => {
+      this.limparDestaque();
+    }, t.duracaoMs));
+  }
+  /**
+   * Remove o anel de destaque pulsante ativo e cancela temporizadores pendentes.
+   */
+  limparDestaque() {
+    if (this.destaqueTimeoutId !== null && (window.clearTimeout(this.destaqueTimeoutId), this.destaqueTimeoutId = null), this.destaqueMarker) {
+      const o = this.getMap();
+      o && o.hasLayer(this.destaqueMarker) ? o.removeLayer(this.destaqueMarker) : typeof this.destaqueMarker.remove == "function" && this.destaqueMarker.remove(), this.destaqueMarker = null;
+    }
   }
   destroy() {
-    this.canvasInteracao.desativar(), this.layerManager.destroy(), this.core.destroy(), this.core.map && (this.core.map.remove(), this.core.map = null);
+    this.limparDestaque(), this.canvasInteracao.desativar(), this.layerManager.destroy(), this.core.destroy(), this.core.map && (this.core.map.remove(), this.core.map = null);
   }
   getMap() {
     return this.core.map;
   }
 }
-class bt extends HTMLElement {
+class Me extends HTMLElement {
   constructor() {
     super();
-    n(this, "shadow");
-    n(this, "mapContainer", null);
-    n(this, "layersPanel", null);
-    n(this, "controller");
-    n(this, "isLayersPanelOpen", !1);
-    n(this, "initTimeout");
-    n(this, "uiListeners", new z());
-    n(this, "layerItemListeners", new z());
-    n(this, "_pontos", []);
-    n(this, "_segmentos", []);
-    n(this, "_bancoPontos", []);
-    n(this, "_confrontantes", []);
-    n(this, "resizeObserver");
-    n(this, "resizeDebounceTimer");
-    this.shadow = this.attachShadow({ mode: "open" }), this.controller = new ft(), this.shadow.innerHTML = `
+    l(this, "shadow");
+    l(this, "mapContainer", null);
+    l(this, "layersPanel", null);
+    l(this, "controller");
+    l(this, "isLayersPanelOpen", !1);
+    l(this, "initTimeout");
+    l(this, "uiListeners", new D());
+    l(this, "layerItemListeners", new D());
+    l(this, "customMarkerClickHandler");
+    l(this, "lastPopupActionEmit");
+    l(this, "lastCanvasClickTime", 0);
+    l(this, "mouseMovedSinceDown", !1);
+    l(this, "mouseDownPos", { x: 0, y: 0 });
+    l(this, "_chaveGrupo");
+    l(this, "_pontos", []);
+    l(this, "_segmentos", []);
+    l(this, "_bancoPontos", []);
+    l(this, "_confrontantes", []);
+    l(this, "resizeObserver", null);
+    l(this, "resizeDebounceTimer", null);
+    l(this, "lastHostWidth", 0);
+    l(this, "lastHostHeight", 0);
+    this.shadow = this.attachShadow({ mode: "open" }), this.controller = new ze(), this.shadow.innerHTML = `
       <style>
-        ${le}
-        ${ot}
+        ${Et}
+        ${ge}
       </style>
       <div class="cad-root" id="cad-root">
         <!-- Mapa Leaflet Canvas -->
@@ -4159,91 +4829,257 @@ class bt extends HTMLElement {
     `, this.mapContainer = this.shadow.getElementById("cad-map-container"), this.layersPanel = this.shadow.getElementById("qgis-layer-panel");
   }
   static get observedAttributes() {
-    return ["sat-opacity", "scale-mode", "crosshair"];
+    return ["sat-opacity", "scale-mode", "crosshair", "modo-sequencial", "chave-grupo"];
   }
   connectedCallback() {
-    this.initTimeout = window.setTimeout(() => {
+    this.setupResizeObserver(), this.initTimeout = window.setTimeout(() => {
       this.initCAD();
     }, 0);
   }
   disconnectedCallback() {
-    this.initTimeout && window.clearTimeout(this.initTimeout), this.resizeObserver && (this.resizeObserver.disconnect(), this.resizeObserver = void 0), this.resizeDebounceTimer && (clearTimeout(this.resizeDebounceTimer), this.resizeDebounceTimer = void 0), this.uiListeners.cleanup(), this.layerItemListeners.cleanup(), this.controller.destroy();
+    this.initTimeout && (window.clearTimeout(this.initTimeout), this.initTimeout = void 0), this.resizeObserver && (this.resizeObserver.disconnect(), this.resizeObserver = null), this.resizeDebounceTimer !== null && (window.clearTimeout(this.resizeDebounceTimer), this.resizeDebounceTimer = null), this.limparDestaque(), this.uiListeners.cleanup(), this.layerItemListeners.cleanup(), this.controller.destroy();
   }
-  attributeChangedCallback(e, t, i) {
-    if (t !== i)
-      if (e === "sat-opacity") {
+  /**
+   * Instancia um ResizeObserver monitorando o elemento host (this).
+   * Ao detectar variação de largura ou altura > 0, aciona a invalidação de dimensões com debounce de 25ms.
+   */
+  setupResizeObserver() {
+    this.resizeObserver && (this.resizeObserver.disconnect(), this.resizeObserver = null), !(typeof ResizeObserver > "u") && (this.resizeObserver = new ResizeObserver((t) => {
+      for (const e of t) {
+        let i = 0, a = 0;
+        e.contentRect ? (i = e.contentRect.width, a = e.contentRect.height) : e.borderBoxSize && e.borderBoxSize.length > 0 ? (i = e.borderBoxSize[0].inlineSize, a = e.borderBoxSize[0].blockSize) : (i = this.clientWidth || this.offsetWidth, a = this.clientHeight || this.offsetHeight), i > 0 && a > 0 && (Math.abs(i - this.lastHostWidth) >= 0.5 || Math.abs(a - this.lastHostHeight) >= 0.5) && (this.lastHostWidth = i, this.lastHostHeight = a, this.triggerDebouncedResize(25));
+      }
+    }), this.resizeObserver.observe(this));
+  }
+  /**
+   * Aciona a invalidação de dimensões do mapa com debounce (ex: 20ms a 30ms).
+   */
+  triggerDebouncedResize(t = 25) {
+    this.resizeDebounceTimer !== null && (window.clearTimeout(this.resizeDebounceTimer), this.resizeDebounceTimer = null), this.resizeDebounceTimer = window.setTimeout(() => {
+      this.resizeDebounceTimer = null, this.invalidateSizeSafely();
+    }, t);
+  }
+  /**
+   * Executa a invalidação dimensional do mapa com salvaguardas de estabilidade
+   * absorvendo tentativas de leitura com panes desanexados (undefined._leaflet_pos).
+   */
+  invalidateSizeSafely() {
+    var t;
+    try {
+      if (!this.isConnected) return;
+      const e = this.controller.getMap();
+      if (!e) return;
+      const i = (t = e.getContainer) == null ? void 0 : t.call(e);
+      if (!i || !i.parentNode) return;
+      this.controller.invalidateSize();
+    } catch {
+    }
+  }
+  attributeChangedCallback(t, e, i) {
+    if (e !== i)
+      if (t === "sat-opacity") {
         const a = parseFloat(i);
         isNaN(a) || this.setLayerOpacity("satelite", a);
-      } else e === "scale-mode" && (i === "world" || i === "screen") && (this.setLayerScaleMode("perimetro", i), this.setLayerScaleMode("vertices", i));
+      } else if (t === "scale-mode")
+        (i === "world" || i === "screen") && (this.setLayerScaleMode("perimetro", i), this.setLayerScaleMode("vertices", i));
+      else if (t === "modo-sequencial") {
+        const a = i !== null && i !== "false";
+        this.modoSequencial = a;
+      } else t === "chave-grupo" && (this.chaveGrupo = i || void 0);
   }
   initCAD() {
-    this.mapContainer && (this.controller.init(this.mapContainer, this.shadow), this.setupUIEvents(), this.renderLayersUI(), this._pontos.length > 0 && this.controller.setPontos(this._pontos), this._segmentos.length > 0 && this.controller.setSegmentos(this._segmentos), this._bancoPontos.length > 0 && this.controller.setBancoPontos(this._bancoPontos), this._confrontantes.length > 0 && this.controller.setConfrontantes(this._confrontantes), this.controller.layerManager.onChange((e) => {
+    if (!this.mapContainer) return;
+    if (this.controller.init(this.mapContainer, this.shadow), this.setupUIEvents(), this.renderLayersUI(), this.hasAttribute("modo-sequencial") && (this.controller.modoCliqueSequencialAtivo = !0, this.controller.context.modoSequencial = !0), this.hasAttribute("chave-grupo")) {
+      const i = this.getAttribute("chave-grupo");
+      i && (this.chaveGrupo = i);
+    }
+    this._pontos.length > 0 && this.controller.setPontos(this._pontos), this._segmentos.length > 0 && this.controller.setSegmentos(this._segmentos), this._bancoPontos.length > 0 && this.controller.setBancoPontos(this._bancoPontos), this._confrontantes.length > 0 && this.controller.setConfrontantes(this._confrontantes), this.controller.layerManager.onChange((i) => {
       this.renderLayersUI(), this.dispatchEvent(new CustomEvent("ui-camadas-alteradas", {
-        detail: { layers: e },
+        detail: { layers: i },
         bubbles: !0,
         composed: !0
       }));
-    }), this.controller.context.onMarkerClick = (e, t) => {
+    });
+    const t = this.controller.context.onMarkerClick;
+    this.controller.context.onMarkerClick = (i, a, r, s) => {
+      var u;
+      let n = r;
+      n || (n = this._pontos.find((d) => String(d.id) === String(i)) || this._bancoPontos.find((d) => String(d.id) === String(i)) || this._confrontantes.find((d) => String(d.id) === String(i)));
+      let c = s;
+      if (!c && n) {
+        const d = n.lat ?? n.latitude ?? 0, h = n.lon ?? n.lng ?? n.longitude ?? 0;
+        c = { lat: Number(d), lon: Number(h) };
+      }
+      if (c || (c = { lat: 0, lon: 0 }), this.modoSequencial) {
+        (u = this.controller.getMap()) == null || u.closePopup(), this.dispatchEvent(new CustomEvent("ui-clique-sequencial", {
+          detail: {
+            id: i,
+            elemento: n ?? { id: i, lat: c.lat, lon: c.lon },
+            coordenadas: c
+          },
+          bubbles: !0,
+          composed: !0
+        }));
+        return;
+      }
+      if (this.customMarkerClickHandler)
+        try {
+          this.customMarkerClickHandler(Number(i), a);
+        } catch (d) {
+          console.error("Erro no callback de clique de marcador:", d);
+        }
+      if (t)
+        try {
+          t(i, a, n, c);
+        } catch (d) {
+          console.error("Erro no handler anterior de marker click:", d);
+        }
       this.dispatchEvent(new CustomEvent("ui-ponto-selecionado", {
-        detail: { selectedIds: [e], lastSelectedId: e, isVizinho: t },
+        detail: { selectedIds: [i], lastSelectedId: i, isVizinho: a },
+        bubbles: !0,
+        composed: !0
+      })), this.dispatchEvent(new CustomEvent("ui-elemento-selecionado", {
+        detail: { id: i, elemento: n, tipo: a ? "vizinho" : "vertice", coordenadas: c },
         bubbles: !0,
         composed: !0
       }));
-    }, typeof ResizeObserver < "u" && this.mapContainer && (this.resizeObserver = new ResizeObserver(() => {
-      this.resizeDebounceTimer && clearTimeout(this.resizeDebounceTimer), this.resizeDebounceTimer = setTimeout(() => {
-        this.controller.invalidateSize();
-      }, 60);
-    }), this.resizeObserver.observe(this.mapContainer)), setTimeout(() => {
-      this.controller.invalidateSize();
-    }, 150));
+    }, this.controller.context.onPopupAcao = (i, a, r) => {
+      this.dispararAcaoPopup(i, a, r);
+    };
+    const e = this.controller.getMap();
+    e && e.on("click", (i) => {
+      var r, s;
+      if (this.mouseMovedSinceDown) return;
+      const a = i.originalEvent || new MouseEvent("click", { clientX: ((r = i.containerPoint) == null ? void 0 : r.x) || 0, clientY: ((s = i.containerPoint) == null ? void 0 : s.y) || 0 });
+      this.tratarCliqueLivreCanvas(a, i.latlng, i.containerPoint);
+    }), setTimeout(() => {
+      this.invalidateSizeSafely();
+    }, 150);
   }
   setupUIEvents() {
     this.uiListeners.cleanup();
-    const e = this.shadow.getElementById("btn-toggle-layers"), t = this.shadow.getElementById("btn-close-layers"), i = this.shadow.getElementById("btn-zoom-extents"), a = this.shadow.getElementById("btn-clear-selection");
-    this.uiListeners.add(e, "click", () => {
+    const t = this.shadow.getElementById("btn-toggle-layers"), e = this.shadow.getElementById("btn-close-layers"), i = this.shadow.getElementById("btn-zoom-extents"), a = this.shadow.getElementById("btn-clear-selection");
+    this.uiListeners.add(t, "click", () => {
       this.toggleLayersPanel();
-    }), this.uiListeners.add(t, "click", () => {
+    }), this.uiListeners.add(e, "click", () => {
       this.closeLayersPanel();
     }), this.uiListeners.add(i, "click", () => {
       this.zoomExtents();
     }), this.uiListeners.add(a, "click", () => {
       this.limparSelecao();
+    }), this.mapContainer && (this.uiListeners.add(this.mapContainer, "mousedown", (r) => {
+      r.button === 0 && (this.mouseDownPos = { x: r.clientX, y: r.clientY }, this.mouseMovedSinceDown = !1);
+    }), this.uiListeners.add(this.mapContainer, "mousemove", (r) => {
+      Math.hypot(r.clientX - this.mouseDownPos.x, r.clientY - this.mouseDownPos.y) >= 4 && (this.mouseMovedSinceDown = !0);
+    }), this.uiListeners.add(this.mapContainer, "click", (r) => {
+      r.button === 0 && (this.mouseMovedSinceDown || this.tratarCliqueLivreCanvas(r));
+    })), this.uiListeners.add(this.shadow, "click", (r) => {
+      var c;
+      const s = r.composedPath ? r.composedPath()[0] : r.target, n = (c = s == null ? void 0 : s.closest) == null ? void 0 : c.call(s, ".ui-popup-btn");
+      if (n) {
+        r.preventDefault(), r.stopPropagation();
+        const u = n.getAttribute("data-acao-id"), d = n.getAttribute("data-elemento-id");
+        u && d !== null && this.dispararAcaoPopup(u, d);
+      }
     });
+  }
+  /**
+   * Monitora e processa cliques em áreas livres do mapa para emissão do evento 'ui-canvas-clique'.
+   * Assegura que o evento não dispare indevidamente durante operações de arraste ou janelas de seleção CAD.
+   */
+  tratarCliqueLivreCanvas(t, e, i) {
+    var p, m;
+    const a = Date.now();
+    if (a - this.lastCanvasClickTime < 50 || (this.lastCanvasClickTime = a, this.modoSequencial) || this.controller.canvasInteracao.selectionHappened || this.controller.canvasInteracao.panHappened || this.mouseMovedSinceDown) return;
+    const r = typeof t.composedPath == "function" ? t.composedPath() : [], s = r.length > 0 ? r[0] : t.target;
+    if (s) {
+      const f = '.custom-leaflet-marker, .leaflet-marker-icon, .leaflet-interactive, .compact-popup, .leaflet-popup, .ui-popup-btn, .cad-btn-tool, .qgis-layer-panel, [class*="leaflet-marker"], [class*="leaflet-popup"]';
+      if (((p = s.matches) == null ? void 0 : p.call(s, f)) || ((m = s.closest) == null ? void 0 : m.call(s, f))) return;
+    }
+    const n = this.controller.getMap();
+    if (!n || !this.mapContainer) return;
+    let c = i;
+    if (!c) {
+      const f = this.mapContainer.getBoundingClientRect();
+      c = {
+        x: Math.round(t.clientX - f.left),
+        y: Math.round(t.clientY - f.top)
+      };
+    }
+    let u, d;
+    if (e)
+      u = e.lat, d = e.lng ?? e.lon;
+    else {
+      const f = n.containerPointToLatLng(x.point(c.x, c.y));
+      u = f.lat, d = f.lng;
+    }
+    const h = this.controller.layerManager.getLayers().filter((f) => f.visivel).map((f) => f.id);
+    this.dispatchEvent(new CustomEvent("ui-canvas-clique", {
+      detail: {
+        lat: u,
+        lon: d,
+        pontoPixel: c,
+        camadasAtivas: h,
+        eventoOriginal: t
+      },
+      bubbles: !0,
+      composed: !0
+    }));
+  }
+  /**
+   * Dispara o evento customizado 'ui-acao-popup' com as informações da ação acionada e fecha o popup.
+   */
+  dispararAcaoPopup(t, e, i) {
+    var s;
+    const a = Date.now();
+    if (this.lastPopupActionEmit && this.lastPopupActionEmit.acaoId === t && this.lastPopupActionEmit.elementoId === e && a - this.lastPopupActionEmit.time < 50)
+      return;
+    this.lastPopupActionEmit = { acaoId: t, elementoId: e, time: a };
+    let r = i;
+    r || (r = this._pontos.find((n) => String(n.id) === String(e)) || this._bancoPontos.find((n) => String(n.id) === String(e)) || this._confrontantes.find((n) => String(n.id) === String(e))), this.dispatchEvent(new CustomEvent("ui-acao-popup", {
+      detail: {
+        acaoId: t,
+        elementoId: e,
+        elemento: r ?? { id: e }
+      },
+      bubbles: !0,
+      composed: !0
+    })), (s = this.controller.getMap()) == null || s.closePopup();
   }
   toggleLayersPanel() {
     this.isLayersPanelOpen = !this.isLayersPanelOpen, this.layersPanel && (this.isLayersPanelOpen ? this.layersPanel.classList.remove("collapsed") : this.layersPanel.classList.add("collapsed"));
-    const e = this.shadow.getElementById("btn-toggle-layers");
-    e == null || e.classList.toggle("active", this.isLayersPanelOpen);
+    const t = this.shadow.getElementById("btn-toggle-layers");
+    t == null || t.classList.toggle("active", this.isLayersPanelOpen);
   }
   closeLayersPanel() {
-    var t;
-    this.isLayersPanelOpen = !1, (t = this.layersPanel) == null || t.classList.add("collapsed");
-    const e = this.shadow.getElementById("btn-toggle-layers");
-    e == null || e.classList.remove("active");
+    var e;
+    this.isLayersPanelOpen = !1, (e = this.layersPanel) == null || e.classList.add("collapsed");
+    const t = this.shadow.getElementById("btn-toggle-layers");
+    t == null || t.classList.remove("active");
   }
   renderLayersUI() {
-    const e = this.shadow.getElementById("layers-list-container");
-    if (!e) return;
-    const t = this.controller.layerManager.getLayers();
-    if (e.querySelectorAll(".layer-item").length === t.length) {
-      t.forEach((a) => {
-        const s = e.querySelector(`.layer-item[data-layer-id="${a.id}"]`);
-        if (s) {
-          const r = s.querySelector(".layer-chk-visibility");
-          r && r.checked !== a.visivel && (r.checked = a.visivel);
-          const l = s.querySelector(".layer-opacity-slider"), u = s.querySelector(".opacity-percent-label"), d = Math.round(a.opacidade * 100);
-          l && parseInt(l.value, 10) !== d && (l.value = String(d)), u && (u.textContent = `${d}%`);
-          const c = s.querySelector(".btn-lock-layer");
-          c && (c.classList.toggle("active", !!a.bloqueada), c.title = a.bloqueada ? "Desbloquear Camada" : "Bloquear Camada");
-          const p = s.querySelector(".btn-toggle-scale-mode");
-          p && a.estilo.scaleMode && (p.textContent = a.estilo.scaleMode === "world" ? "Métrico (m)" : "Tela (px)");
+    const t = this.shadow.getElementById("layers-list-container");
+    if (!t) return;
+    const e = this.controller.layerManager.getLayers();
+    if (t.querySelectorAll(".layer-item").length === e.length) {
+      e.forEach((a) => {
+        const r = t.querySelector(`.layer-item[data-layer-id="${a.id}"]`);
+        if (r) {
+          const s = r.querySelector(".layer-chk-visibility");
+          s && s.checked !== a.visivel && (s.checked = a.visivel);
+          const n = r.querySelector(".layer-opacity-slider"), c = r.querySelector(".opacity-percent-label"), u = Math.round(a.opacidade * 100);
+          n && parseInt(n.value, 10) !== u && (n.value = String(u)), c && (c.textContent = `${u}%`);
+          const d = r.querySelector(".btn-lock-layer");
+          d && (d.classList.toggle("active", !!a.bloqueada), d.title = a.bloqueada ? "Desbloquear Camada" : "Bloquear Camada");
+          const h = r.querySelector(".btn-toggle-scale-mode");
+          h && a.estilo.scaleMode && (h.textContent = a.estilo.scaleMode === "world" ? "Métrico (m)" : "Tela (px)");
         }
       });
       return;
     }
-    e.innerHTML = `
+    t.innerHTML = `
       <div class="layer-section-title">Camadas Ativas</div>
-      ${t.map((a) => `
+      ${e.map((a) => `
         <div class="layer-item" data-layer-id="${a.id}">
           <div class="layer-item-row">
             <label class="layer-item-label">
@@ -4268,32 +5104,32 @@ class bt extends HTMLElement {
           </div>
         </div>
       `).join("")}
-    `, this.layerItemListeners.cleanup(), e.querySelectorAll(".layer-chk-visibility").forEach((a) => {
-      this.layerItemListeners.add(a, "change", (s) => {
-        const r = s.target.getAttribute("data-layer-id"), l = s.target.checked;
-        r && this.setLayerVisibility(r, l);
+    `, this.layerItemListeners.cleanup(), t.querySelectorAll(".layer-chk-visibility").forEach((a) => {
+      this.layerItemListeners.add(a, "change", (r) => {
+        const s = r.target.getAttribute("data-layer-id"), n = r.target.checked;
+        s && this.setLayerVisibility(s, n);
       });
-    }), e.querySelectorAll(".layer-opacity-slider").forEach((a) => {
-      this.layerItemListeners.add(a, "input", (s) => {
-        const r = s.target.getAttribute("data-layer-id"), l = parseInt(s.target.value, 10), u = l / 100, d = s.target.closest(".layer-item"), c = d == null ? void 0 : d.querySelector(".opacity-percent-label");
-        c && (c.textContent = `${l}%`), r && this.setLayerOpacity(r, u);
+    }), t.querySelectorAll(".layer-opacity-slider").forEach((a) => {
+      this.layerItemListeners.add(a, "input", (r) => {
+        const s = r.target.getAttribute("data-layer-id"), n = parseInt(r.target.value, 10), c = n / 100, u = r.target.closest(".layer-item"), d = u == null ? void 0 : u.querySelector(".opacity-percent-label");
+        d && (d.textContent = `${n}%`), s && this.setLayerOpacity(s, c);
       });
-    }), e.querySelectorAll(".btn-lock-layer").forEach((a) => {
-      this.layerItemListeners.add(a, "click", (s) => {
-        const r = s.currentTarget.getAttribute("data-layer-id");
-        if (r) {
-          const l = this.controller.layerManager.getLayers().find((u) => u.id === r);
-          l && this.controller.layerManager.setLayerBlocked(r, !l.bloqueada);
+    }), t.querySelectorAll(".btn-lock-layer").forEach((a) => {
+      this.layerItemListeners.add(a, "click", (r) => {
+        const s = r.currentTarget.getAttribute("data-layer-id");
+        if (s) {
+          const n = this.controller.layerManager.getLayers().find((c) => c.id === s);
+          n && this.controller.layerManager.setLayerBlocked(s, !n.bloqueada);
         }
       });
-    }), e.querySelectorAll(".btn-toggle-scale-mode").forEach((a) => {
-      this.layerItemListeners.add(a, "click", (s) => {
-        const r = s.currentTarget.getAttribute("data-layer-id");
-        if (r) {
-          const l = this.controller.layerManager.getLayers().find((u) => u.id === r);
-          if (l) {
-            const u = l.estilo.scaleMode === "world" ? "screen" : "world";
-            this.setLayerScaleMode(r, u);
+    }), t.querySelectorAll(".btn-toggle-scale-mode").forEach((a) => {
+      this.layerItemListeners.add(a, "click", (r) => {
+        const s = r.currentTarget.getAttribute("data-layer-id");
+        if (s) {
+          const n = this.controller.layerManager.getLayers().find((c) => c.id === s);
+          if (n) {
+            const c = n.estilo.scaleMode === "world" ? "screen" : "world";
+            this.setLayerScaleMode(s, c);
           }
         }
       });
@@ -4303,72 +5139,221 @@ class bt extends HTMLElement {
   get pontos() {
     return this._pontos;
   }
-  set pontos(e) {
-    this._pontos = e || [], this.controller.setPontos(this._pontos);
+  set pontos(t) {
+    this._pontos = t || [], this.controller.setPontos(this._pontos);
   }
   get segmentos() {
     return this._segmentos;
   }
-  set segmentos(e) {
-    this._segmentos = e || [], this.controller.setSegmentos(this._segmentos);
+  set segmentos(t) {
+    this._segmentos = t || [], this.controller.setSegmentos(this._segmentos);
   }
   get bancoPontos() {
     return this._bancoPontos;
   }
-  set bancoPontos(e) {
-    this._bancoPontos = e || [], this.controller.setBancoPontos(this._bancoPontos);
+  set bancoPontos(t) {
+    this._bancoPontos = t || [], this.controller.setBancoPontos(this._bancoPontos);
   }
   get pontosHomologados() {
     return this.bancoPontos;
   }
-  set pontosHomologados(e) {
-    this.bancoPontos = e;
+  set pontosHomologados(t) {
+    this.bancoPontos = t;
   }
   get confrontantes() {
     return this._confrontantes;
   }
-  set confrontantes(e) {
-    this._confrontantes = e || [], this.controller.setConfrontantes(this._confrontantes);
+  set confrontantes(t) {
+    this._confrontantes = t || [], this.controller.setConfrontantes(this._confrontantes);
   }
   get vizinhos() {
     return this.confrontantes;
   }
-  set vizinhos(e) {
-    this.confrontantes = e;
+  set vizinhos(t) {
+    this.confrontantes = t;
+  }
+  /**
+   * Alterna o modo de captura sequencial ponto a ponto (reflte atributo 'modo-sequencial').
+   * Quando true, cliques em elementos geométricos suprimem popups e disparam 'ui-clique-sequencial'.
+   * Não desseleciona elementos previamente ativos.
+   */
+  get modoSequencial() {
+    return this.hasAttribute("modo-sequencial");
+  }
+  set modoSequencial(t) {
+    var a;
+    const e = !!t, i = this.hasAttribute("modo-sequencial");
+    e ? i || this.setAttribute("modo-sequencial", "") : i && this.removeAttribute("modo-sequencial"), this.controller.modoCliqueSequencialAtivo = e, this.controller.context.modoSequencial = e, e && ((a = this.controller.getMap()) == null || a.closePopup());
+  }
+  /**
+   * Propriedade de chave de agrupamento genérica para polilinhas e multi-geometrias.
+   * Pontos de grupos distintos nunca compartilham uma aresta a menos que exista uma conexão explícita entre seus IDs.
+   */
+  get chaveGrupo() {
+    return this.getAttribute("chave-grupo") || this._chaveGrupo;
+  }
+  set chaveGrupo(t) {
+    this._chaveGrupo = t, t ? this.getAttribute("chave-grupo") !== t && this.setAttribute("chave-grupo", t) : this.hasAttribute("chave-grupo") && this.removeAttribute("chave-grupo"), this.controller.chaveGrupo = t, this.controller.context.chaveGrupo = t, this.controller.layerManager.updateContext({ chaveGrupo: t });
   }
   // --- Métodos Públicos ---
-  fitBounds(e, t = [40, 40], i = !1) {
-    this.controller.fitBounds(e, t, i);
+  fitBounds(t, e = [40, 40], i = !1) {
+    this.controller.fitBounds(t, e, i);
   }
   zoomExtents() {
     this.controller.canvasInteracao.zoomExtents();
   }
-  selectPonto(e, t) {
-    this.controller.selectPonto(e, t);
+  selectPonto(t, e) {
+    this.controller.selectPonto(t, e);
   }
   limparSelecao() {
     this.controller.canvasInteracao.limparSelecao();
   }
-  setLayerVisibility(e, t) {
-    this.controller.layerManager.setLayerVisibility(e, t);
+  setLayerVisibility(t, e) {
+    this.controller.layerManager.setLayerVisibility(t, e);
   }
-  setLayerOpacity(e, t) {
-    this.controller.layerManager.setLayerOpacity(e, t);
+  setLayerOpacity(t, e) {
+    this.controller.layerManager.setLayerOpacity(t, e);
   }
-  setLayerScaleMode(e, t) {
-    this.controller.layerManager.setLayerScaleMode(e, t);
+  setLayerScaleMode(t, e) {
+    this.controller.layerManager.setLayerScaleMode(t, e);
   }
-  setGraphicScale(e) {
-    this.controller.setGraphicScale(e);
+  setGraphicScale(t) {
+    this.controller.setGraphicScale(t);
   }
   exportState() {
     return this.controller.exportState();
   }
-  importState(e) {
-    this.controller.importState(e);
+  importState(t) {
+    this.controller.importState(t);
   }
   invalidateSize() {
-    this.controller.invalidateSize();
+    this.invalidateSizeSafely();
+  }
+  /**
+   * Indica se há algum anel de destaque pulsante ativo no canvas.
+   */
+  get destaqueAtivo() {
+    return this.controller.destaqueAtivo;
+  }
+  /**
+   * Localiza, enquadra e pulsa visualmente qualquer elemento geométrico do canvas pelo identificador (ID).
+   * Agnóstico a entidades pontuais, lineares e poligonais.
+   * Não interfere no estado dos marcadores originais e limpa instâncias anteriores.
+   *
+   * @param id Identificador do elemento (número ou string)
+   * @param opcoes Configurações opcionais de pan suave, nível de zoom, duracaoMs e cor do pulso
+   */
+  destacarElemento(t, e) {
+    !this.controller.getMap() && this.mapContainer && this.initCAD(), this.controller.destacarElemento(t, e);
+  }
+  /**
+   * Remove o anel de destaque pulsante ativo e limpa quaisquer temporizadores pendentes.
+   */
+  limparDestaque() {
+    this.controller.limparDestaque();
+  }
+  // --- Fachada Agnóstica de Entidades Vetoriais e Camadas (API Pública) ---
+  /**
+   * Ingestão de nós pontuais na camada indicada (padrão: 'vertices').
+   */
+  plotarPontos(t, e = "vertices", i) {
+    const a = t || [];
+    e === "vertices" && (this._pontos = a), this.controller.plotarPontos(a, e, i);
+  }
+  /**
+   * Plota linhas vinculando pares de IDs.
+   */
+  plotarConexoes(t, e = "linhas") {
+    const i = t || [];
+    this.controller.plotarConexoes(i, e);
+  }
+  plotarPolilinhaSequencial(t, e = !0, i = "polilinha", a) {
+    const r = t || [];
+    (i === "polilinha" || i === "perimetro") && (this._pontos = r, this._segmentos = []);
+    const s = a ?? this.chaveGrupo;
+    this.controller.plotarPolilinhaSequencial(r, e, i, s);
+  }
+  /**
+   * Plota áreas a partir de anéis de coordenadas ou strings WKT.
+   */
+  plotarPoligonos(t, e = "poligonos") {
+    const i = t || [];
+    this.controller.plotarPoligonos(i, e);
+  }
+  /**
+   * Remove entidades das camadas especificadas ou de todas as camadas vetoriais se omitido.
+   */
+  limparCamadas(t) {
+    !t || t.length === 0 ? (this._pontos = [], this._segmentos = [], this._confrontantes = []) : (t.includes("vertices") && (this._pontos = []), (t.includes("linhas") || t.includes("perimetro") || t.includes("polilinha")) && (this._segmentos = []), (t.includes("poligonos") || t.includes("vizinhos")) && (this._confrontantes = [])), this.controller.limparCamadas(t);
+  }
+  /**
+   * Retorna as instâncias gráficas ativas no canvas (de uma camada específica ou de todas).
+   */
+  obterMarcadores(t) {
+    return this.controller.obterMarcadores(t);
+  }
+  // --- Fachada de Compatibilidade Legada ---
+  /**
+   * Recebe a lista de vértices e atualiza a camada de pontos do layerManager.
+   * Se receber um callback de clique, associa-o ao evento interno.
+   */
+  plotPontos(t, e) {
+    e && (this.customMarkerClickHandler = e);
+    const i = t || [];
+    this._pontos = i, this.controller.plotPontos(i, e);
+  }
+  /**
+   * Recebe as divisas cadastradas e delega a renderização para a camada vetorial de linhas.
+   */
+  plotSegmentos(t, e) {
+    const i = t || [];
+    e != null && (this._pontos = e || []), this._segmentos = i, this.controller.plotSegmentos(i, e);
+  }
+  /**
+   * Define os pontos e limpa os segmentos para forçar o fechamento automático da poligonal pelo caminhamento (Pn -> P1).
+   */
+  plotPolilinhaTemporaria(t) {
+    const e = t || [];
+    this._pontos = e, this._segmentos = [], this.controller.plotPolilinhaTemporaria(e);
+  }
+  /**
+   * Alimenta a camada de vértices homologados do SIGEF.
+   */
+  plotPoligonalHomologada(t) {
+    const e = t || [];
+    this._bancoPontos = e, this.controller.plotPoligonalHomologada(e), this.setLayerVisibility("homologados", !0), this.setLayerVisibility("homologados-pontos", !0);
+  }
+  /**
+   * Alimenta a camada de vértices confrontantes.
+   */
+  plotPontosVizinhos(t) {
+    const e = t || [];
+    this.controller.plotPontosVizinhos(e), this._confrontantes = this.controller.context.confrontantes || [];
+  }
+  /**
+   * Alimenta a camada de limites em polígonos WKT.
+   */
+  plotPoligonosVizinhos(t) {
+    const e = t || [];
+    this.controller.plotPoligonosVizinhos(e), this._confrontantes = this.controller.context.confrontantes || [];
+  }
+  /**
+   * Reseta as camadas vetoriais de trabalho, permitindo preservar opcionalmente o banco de pontos homologados.
+   */
+  clearOverlays(t = !1) {
+    this._pontos = [], this._segmentos = [], this._confrontantes = [], t || (this._bancoPontos = []), this.controller.clearOverlays(t);
+  }
+  /**
+   * Devolve o array de marcadores instanciados no Leaflet.
+   */
+  getMarkers() {
+    return this.controller.getMarkers();
+  }
+  /**
+   * Devolve o array de marcadores vizinhos/confrontantes instanciados no Leaflet.
+   */
+  getVizinhosMarkers() {
+    return this.controller.getVizinhosMarkers();
   }
   getMap() {
     return this.controller.getMap();
@@ -4380,157 +5365,157 @@ class bt extends HTMLElement {
     return this.controller.layerManager;
   }
 }
-customElements.get("ui-canvas-cad") || customElements.define("ui-canvas-cad", bt);
-const gt = `:host{display:flex;flex-direction:column;box-sizing:border-box;font-family:var(--ui-fonte-familia, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);font-size:var(--ui-tamanho-corpo-sm, 12px);color:var(--ui-cor-texto, #e1e1e6);background-color:var(--ui-cor-superficie, #141417);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));border-radius:var(--ui-raio-borda, 4px);overflow:hidden;width:100%;max-width:100%;height:100%;min-height:250px;-webkit-user-select:none;user-select:none;--ui-prop-altura-linha: 24px;--ui-prop-rotulo-largura: 45%}:host([densidade="compacta"]){--ui-prop-altura-linha: 20px;font-size:11px}:host([densidade="relaxada"]){--ui-prop-altura-linha: 30px;font-size:13px}.ui-prop__header{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);border-bottom:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));flex-shrink:0}.ui-prop__header-titulo{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--ui-cor-texto, #ffffff);text-transform:uppercase;letter-spacing:.5px}.ui-prop__header-icone{display:flex;align-items:center;color:var(--ui-cor-destaque, #00E08A)}.ui-prop__header-acoes{display:flex;align-items:center;gap:4px}.ui-prop__btn-icone{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background:transparent;border:none;border-radius:3px;color:var(--ui-cor-texto-secundario, #888899);cursor:pointer;transition:all .15s ease;padding:0}.ui-prop__btn-icone:hover{background-color:var(--ui-cor-hover-menu, rgba(255, 255, 255, .08));color:var(--ui-cor-texto, #ffffff)}.ui-prop__tipo-seletor-container{padding:8px 10px;background-color:var(--ui-cor-superficie, #141417);border-bottom:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .08));display:flex;flex-direction:column;gap:6px;flex-shrink:0}.ui-prop__tipo-revit-card{display:flex;align-items:center;gap:10px;background-color:var(--ui-cor-fundo-card, #18181c);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));border-radius:4px;padding:6px 8px;cursor:pointer;transition:border-color .15s ease}.ui-prop__tipo-revit-card:hover{border-color:var(--ui-cor-destaque, #00E08A)}.ui-prop__tipo-miniatura{width:32px;height:32px;border-radius:3px;background-color:var(--ui-cor-fundo-elevado, #24242a);display:flex;align-items:center;justify-content:center;color:var(--ui-cor-destaque, #00E08A);flex-shrink:0}.ui-prop__tipo-info{display:flex;flex-direction:column;flex:1;min-width:0}.ui-prop__tipo-nome{font-weight:600;font-size:12px;color:var(--ui-cor-texto, #ffffff);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ui-prop__tipo-subtexto{font-size:11px;color:var(--ui-cor-texto-secundario, #888899);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ui-prop__tipo-revit-subbarra{display:flex;align-items:center;gap:6px}.ui-prop__tipo-select{flex:1;min-width:0;width:0;height:24px;background-color:var(--ui-cor-fundo-card, #18181c);color:var(--ui-cor-texto, #e1e1e6);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .15));border-radius:3px;padding:0 22px 0 6px;font-size:11px;cursor:pointer;outline:none;appearance:none;-webkit-appearance:none;-moz-appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23888899' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;background-size:10px 6px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;box-sizing:border-box}.ui-prop__tipo-select:focus{border-color:var(--ui-cor-destaque, #00E08A)}.ui-prop__btn-editar-tipo{height:24px;padding:0 8px;background-color:var(--ui-cor-botao-secundario-fundo, #1e1e24);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .15));border-radius:3px;color:var(--ui-cor-texto, #ffffff);font-size:11px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all .15s ease}.ui-prop__btn-editar-tipo:hover{background-color:var(--ui-cor-botao-secundario-hover, #2a2a34);border-color:var(--ui-cor-destaque, #00E08A)}.ui-prop__tipo-autocad-bar{display:flex;align-items:center;gap:4px;width:100%;min-width:0;box-sizing:border-box}.ui-prop__tipo-autocad-acoes{display:flex;align-items:center;gap:3px;flex-shrink:0}.ui-prop__btn-autocad{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background:var(--ui-cor-fundo-card, #18181c);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .15));border-radius:3px;color:var(--ui-cor-texto, #e1e1e6);cursor:pointer;padding:0;transition:all .15s ease}.ui-prop__btn-autocad:hover{background-color:var(--ui-cor-hover-menu, rgba(255, 255, 255, .1));border-color:var(--ui-cor-destaque, #00E08A);color:var(--ui-cor-destaque, #00E08A)}.ui-prop__btn-autocad:active{transform:scale(.95)}.ui-prop__filtro-container{display:flex;align-items:center;padding:4px 8px;background-color:var(--ui-cor-fundo, #0b0b0d);border-bottom:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .08));gap:6px;flex-shrink:0}.ui-prop__filtro-icone{color:var(--ui-cor-texto-secundario, #888899);flex-shrink:0}.ui-prop__filtro-input{flex:1;background:transparent;border:none;outline:none;font-size:11px;color:var(--ui-cor-texto, #e1e1e6);padding:3px 0}.ui-prop__filtro-input::placeholder{color:var(--ui-cor-texto-secundario, #666677)}.ui-prop__corpo{flex:1;overflow-y:auto;overflow-x:hidden;background-color:var(--ui-cor-superficie, #141417);position:relative}.ui-prop__corpo::-webkit-scrollbar{width:8px}.ui-prop__corpo::-webkit-scrollbar-track{background:var(--ui-cor-fundo, #0b0b0d)}.ui-prop__corpo::-webkit-scrollbar-thumb{background:#ffffff2e;border-radius:4px}.ui-prop__corpo::-webkit-scrollbar-thumb:hover{background:#ffffff4d}.ui-prop__categoria{border-bottom:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .1))}.ui-prop__categoria-header{position:relative;z-index:25;display:flex;align-items:center;justify-content:space-between;height:24px;padding:0 8px;background-color:var(--ui-cor-fundo-elevado, #18181d);cursor:pointer;-webkit-user-select:none;user-select:none;font-weight:600;font-size:11px;color:var(--ui-cor-texto, #ffffff);border-top:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .05));transition:background-color .15s ease}.ui-prop__categoria-header:hover{background-color:var(--ui-cor-hover-menu, rgba(255, 255, 255, .06))}.ui-prop__categoria-titulo-bloco{display:flex;align-items:center;gap:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ui-prop__categoria-seta{display:inline-flex;align-items:center;justify-content:center;font-size:9px;width:12px;height:12px;color:var(--ui-cor-texto-secundario, #888899);transition:transform .15s ease}.ui-prop__categoria--aberta .ui-prop__categoria-seta{transform:rotate(90deg)}.ui-prop__categoria-contador{font-size:10px;font-weight:400;color:var(--ui-cor-texto-secundario, #888899)}.ui-prop__categoria-conteudo{display:none}.ui-prop__categoria--aberta .ui-prop__categoria-conteudo{display:block}.ui-prop__linha{display:flex;align-items:stretch;min-height:var(--ui-prop-altura-linha, 24px);border-bottom:1px dotted var(--ui-cor-borda, rgba(255, 255, 255, .08));box-sizing:border-box;position:relative;z-index:1;transition:background-color .1s ease}.ui-prop__linha:hover{background-color:var(--ui-cor-hover-menu, rgba(255, 255, 255, .04))}.ui-prop__linha:focus-within{background-color:#00e08a14}.ui-prop__linha:focus-within .ui-prop__col-rotulo{color:var(--ui-cor-texto, #ffffff);font-weight:500}.ui-prop__linha--modificada{background-color:#00e08a0d}.ui-prop__col-rotulo{width:var(--ui-prop-rotulo-largura, 45%);padding:2px 6px 2px 14px;display:flex;align-items:center;color:var(--ui-cor-texto-secundario, #9999aa);border-right:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .08));overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;position:relative;flex-shrink:0;box-sizing:border-box}.ui-prop__col-rotulo span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ui-prop__col-rotulo--scrub{cursor:ew-resize;-webkit-user-select:none;user-select:none;transition:color .15s ease,background-color .15s ease}.ui-prop__col-rotulo--scrub:hover{color:var(--ui-cor-destaque, #00E08A);background-color:#00e08a0d}.ui-prop__col-rotulo--arrastando{color:#000!important;background-color:var(--ui-cor-destaque, #00E08A)!important;font-weight:600;cursor:ew-resize!important}.ui-prop__col-rotulo--arrastando span{color:#000!important}.ui-prop__splitter{position:absolute;top:0;bottom:0;min-height:100%;left:calc(var(--ui-prop-rotulo-largura, 45%) - 4px);width:8px;cursor:col-resize;z-index:10;touch-action:none;-webkit-user-select:none;user-select:none;display:flex;align-items:center;justify-content:center}.ui-prop__splitter:after{content:"";position:absolute;top:0;bottom:0;left:3px;width:2px;background-color:transparent;pointer-events:none;transition:background-color .15s ease,box-shadow .15s ease}.ui-prop__splitter:hover:after,.ui-prop__splitter--ativo:after{background-color:var(--ui-cor-destaque, #00E08A);box-shadow:0 0 6px #00e08a80}.ui-prop__splitter--ativo{background-color:#00e08a14}.ui-prop__col-valor{width:calc(100% - var(--ui-prop-rotulo-largura, 45%));flex:1 1 0px;min-width:0!important;display:flex;align-items:stretch;padding:0;overflow:hidden;box-sizing:border-box;position:relative;transition:background-color .1s ease,box-shadow .1s ease}.ui-prop__col-valor:focus-within{background-color:var(--ui-cor-fundo, #0b0b0d);box-shadow:inset 0 0 0 1px var(--ui-cor-destaque, #00E08A)}.ui-prop__editor-input{width:100%;min-width:0;height:100%;min-height:var(--ui-prop-altura-linha, 24px);background:transparent;border:none;border-radius:0;color:var(--ui-cor-texto, #ffffff);font-family:inherit;font-size:11px;padding:0 8px;outline:none;box-sizing:border-box;transition:background-color .1s ease}.ui-prop__editor-input:hover{background-color:#ffffff08}.ui-prop__editor-input--numero{text-align:right;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-variant-numeric:tabular-nums}.ui-prop__editor-input--calculando{color:var(--ui-cor-destaque, #00E08A)!important;font-weight:500}.ui-prop__col-valor:has(.ui-prop__editor-input--calculando){background-color:#00e08a14!important;box-shadow:inset 0 0 0 1.5px var(--ui-cor-destaque, #00E08A)!important}.ui-prop__editor-select{flex:1 1 0px;min-width:0!important;width:0!important;max-width:100%;height:100%;min-height:var(--ui-prop-altura-linha, 24px);background-color:transparent;color:var(--ui-cor-texto, #ffffff);border:none;border-radius:0;font-size:11px;padding:0 20px 0 8px;outline:none;cursor:pointer;box-sizing:border-box;appearance:none;-webkit-appearance:none;-moz-appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23888899' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;background-size:8px 5px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;transition:background-color .1s ease}.ui-prop__editor-select:hover{background-color:#ffffff08}.ui-prop__editor-select option{background-color:var(--ui-cor-fundo-elevado, #18181c);color:var(--ui-cor-texto, #ffffff)}.ui-prop__editor-cor-container{display:flex;align-items:center;gap:6px;width:100%;max-width:100%;min-width:0!important;height:100%;min-height:var(--ui-prop-altura-linha, 24px);cursor:pointer;padding:0 20px 0 8px;box-sizing:border-box;position:relative;border:none;border-radius:0;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23888899' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;background-size:8px 5px;transition:background-color .1s ease}.ui-prop__editor-cor-container:hover{background-color:#ffffff0a}.ui-prop__cor-amostra{width:13px;height:13px;border-radius:2px;border:1px solid rgba(255,255,255,.3);flex-shrink:0;box-sizing:border-box}.ui-prop__cor-texto{flex:1 1 0px;min-width:0!important;width:0!important;font-size:11px;color:var(--ui-cor-texto, #ffffff);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ui-prop__cor-picker-oculto{position:absolute;opacity:0;pointer-events:none;width:0;height:0}.ui-prop__editor-linha-container{display:flex;align-items:center;gap:6px;width:100%;max-width:100%;min-width:0!important;height:100%;min-height:var(--ui-prop-altura-linha, 24px);padding:0 0 0 8px;box-sizing:border-box;overflow:hidden;border:none;border-radius:0}.ui-prop__linha-amostra-svg{width:24px;height:10px;flex-shrink:0}.ui-prop__linha-amostra-svg line{stroke:var(--ui-cor-texto, #e1e1e6);stroke-width:1.5}.ui-prop__linha-select{flex:1 1 0px;min-width:0!important;width:0!important;max-width:100%;height:100%;background:transparent;color:var(--ui-cor-texto, #ffffff);border:none;border-radius:0;font-size:11px;padding:0 20px 0 4px;outline:none;cursor:pointer;box-sizing:border-box;appearance:none;-webkit-appearance:none;-moz-appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23888899' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;background-size:8px 5px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap}.ui-prop__linha-select:hover{background-color:#ffffff08}.ui-prop__linha-select option{background-color:var(--ui-cor-fundo-elevado, #18181c);color:var(--ui-cor-texto, #ffffff)}.ui-prop__editor-espessura-container{display:flex;align-items:center;gap:6px;width:100%;max-width:100%;min-width:0!important;height:100%;min-height:var(--ui-prop-altura-linha, 24px);padding:0 0 0 8px;box-sizing:border-box;overflow:hidden;border:none;border-radius:0}.ui-prop__espessura-amostra-svg{width:20px;height:10px;flex-shrink:0}.ui-prop__espessura-amostra-svg line{stroke:var(--ui-cor-texto, #e1e1e6)}.ui-prop__espessura-select{flex:1 1 0px;min-width:0!important;width:0!important;max-width:100%;height:100%;background:transparent;color:var(--ui-cor-texto, #ffffff);border:none;border-radius:0;font-size:11px;padding:0 20px 0 4px;outline:none;cursor:pointer;box-sizing:border-box;appearance:none;-webkit-appearance:none;-moz-appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23888899' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;background-size:8px 5px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap}.ui-prop__espessura-select:hover{background-color:#ffffff08}.ui-prop__espessura-select option{background-color:var(--ui-cor-fundo-elevado, #18181c);color:var(--ui-cor-texto, #ffffff)}.ui-prop__editor-cor-cad-container{display:flex;align-items:center;gap:6px;width:100%;max-width:100%;min-width:0!important;height:100%;min-height:var(--ui-prop-altura-linha, 24px);padding:0 0 0 8px;box-sizing:border-box;overflow:hidden;border:none;border-radius:0}.ui-prop__cor-cad-select{flex:1 1 0px;min-width:0!important;width:0!important;max-width:100%;height:100%;background:transparent;color:var(--ui-cor-texto, #ffffff);border:none;border-radius:0;font-size:11px;padding:0 20px 0 4px;outline:none;cursor:pointer;box-sizing:border-box;appearance:none;-webkit-appearance:none;-moz-appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23888899' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;background-size:8px 5px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap}.ui-prop__cor-cad-select:hover{background-color:#ffffff08}.ui-prop__cor-cad-select option{background-color:var(--ui-cor-fundo-elevado, #18181c);color:var(--ui-cor-texto, #ffffff)}.ui-prop__editor-booleano{display:flex;align-items:center;gap:6px;width:100%;height:100%;min-height:var(--ui-prop-altura-linha, 24px);cursor:pointer;padding:0 8px;box-sizing:border-box;-webkit-user-select:none;user-select:none}.ui-prop__editor-booleano:hover{background-color:#ffffff08}.ui-prop__checkbox-custom{width:13px;height:13px;border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .25));border-radius:2px;background-color:var(--ui-cor-fundo, #0b0b0d);display:flex;align-items:center;justify-content:center;transition:all .15s ease}.ui-prop__checkbox-custom--marcado{background-color:var(--ui-cor-destaque, #00E08A);border-color:var(--ui-cor-destaque, #00E08A);color:#000}.ui-prop__booleano-rotulo{font-size:11px;color:var(--ui-cor-texto, #ffffff)}.ui-prop__btn-acao-inline{width:100%;height:100%;min-height:var(--ui-prop-altura-linha, 24px);padding:0 8px;background-color:transparent;border:none;border-radius:0;color:var(--ui-cor-texto, #ffffff);font-size:11px;font-weight:500;cursor:pointer;white-space:nowrap;text-align:left;transition:all .15s ease;box-sizing:border-box}.ui-prop__btn-acao-inline:hover{background-color:#ffffff0a;color:var(--ui-cor-destaque, #00E08A)}.ui-prop__valor-readonly{display:flex;align-items:center;width:100%;height:100%;min-height:var(--ui-prop-altura-linha, 24px);font-size:11px;color:var(--ui-cor-texto-secundario, #777788);padding:0 8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;box-sizing:border-box;-webkit-user-select:text;user-select:text}.ui-prop__valor-readonly--numero{justify-content:flex-end;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-variant-numeric:tabular-nums}.ui-prop__unidade-sufixo{display:flex;align-items:center;font-size:10px;color:var(--ui-cor-texto-secundario, #777788);padding-right:8px;flex-shrink:0;-webkit-user-select:none;user-select:none}.ui-prop__vazio{padding:24px 16px;text-align:center;color:var(--ui-cor-texto-secundario, #888899);font-size:12px}.ui-prop__footer{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background-color:var(--ui-cor-fundo-elevado, #18181c);border-top:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .1));flex-shrink:0}.ui-prop__link-ajuda{font-size:11px;color:var(--ui-cor-destaque, #00E08A);text-decoration:none;cursor:pointer}.ui-prop__link-ajuda:hover{text-decoration:underline}.ui-prop__footer-botoes{display:flex;gap:6px}.ui-prop__btn-aplicar{height:24px;padding:0 12px;background-color:var(--ui-cor-destaque, #00E08A);color:#000;border:none;border-radius:3px;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s ease}.ui-prop__btn-aplicar:disabled{background-color:#ffffff1a;color:#ffffff4d;cursor:not-allowed}.ui-prop__btn-desfazer{height:24px;padding:0 8px;background:transparent;color:var(--ui-cor-texto-secundario, #888899);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));border-radius:3px;font-size:11px;cursor:pointer;transition:all .15s ease}.ui-prop__btn-desfazer:hover:not(:disabled){background-color:var(--ui-cor-hover-menu, rgba(255, 255, 255, .08));color:var(--ui-cor-texto, #ffffff)}.ui-prop__btn-desfazer:disabled{opacity:.4;cursor:not-allowed}`;
-function vt(b) {
+customElements.get("ui-canvas-cad") || customElements.define("ui-canvas-cad", Me);
+const Pe = `:host{display:flex;flex-direction:column;box-sizing:border-box;font-family:var(--ui-fonte-familia, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);font-size:var(--ui-tamanho-corpo-sm, 12px);color:var(--ui-cor-texto, #e1e1e6);background-color:var(--ui-cor-superficie, #141417);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));border-radius:var(--ui-raio-borda, 4px);overflow:hidden;width:100%;max-width:100%;height:100%;min-height:250px;-webkit-user-select:none;user-select:none;--ui-prop-altura-linha: 24px;--ui-prop-rotulo-largura: 45%}:host([densidade="compacta"]){--ui-prop-altura-linha: 20px;font-size:11px}:host([densidade="relaxada"]){--ui-prop-altura-linha: 30px;font-size:13px}.ui-prop__header{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background-color:var(--ui-cor-fundo-elevado, #1a1a1e);border-bottom:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));flex-shrink:0}.ui-prop__header-titulo{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--ui-cor-texto, #ffffff);text-transform:uppercase;letter-spacing:.5px}.ui-prop__header-icone{display:flex;align-items:center;color:var(--ui-cor-destaque, #00E08A)}.ui-prop__header-acoes{display:flex;align-items:center;gap:4px}.ui-prop__btn-icone{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background:transparent;border:none;border-radius:3px;color:var(--ui-cor-texto-secundario, #888899);cursor:pointer;transition:all .15s ease;padding:0}.ui-prop__btn-icone:hover{background-color:var(--ui-cor-hover-menu, rgba(255, 255, 255, .08));color:var(--ui-cor-texto, #ffffff)}.ui-prop__tipo-seletor-container{padding:8px 10px;background-color:var(--ui-cor-superficie, #141417);border-bottom:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .08));display:flex;flex-direction:column;gap:6px;flex-shrink:0}.ui-prop__tipo-revit-card{display:flex;align-items:center;gap:10px;background-color:var(--ui-cor-fundo-card, #18181c);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));border-radius:4px;padding:6px 8px;cursor:pointer;transition:border-color .15s ease}.ui-prop__tipo-revit-card:hover{border-color:var(--ui-cor-destaque, #00E08A)}.ui-prop__tipo-miniatura{width:32px;height:32px;border-radius:3px;background-color:var(--ui-cor-fundo-elevado, #24242a);display:flex;align-items:center;justify-content:center;color:var(--ui-cor-destaque, #00E08A);flex-shrink:0}.ui-prop__tipo-info{display:flex;flex-direction:column;flex:1;min-width:0}.ui-prop__tipo-nome{font-weight:600;font-size:12px;color:var(--ui-cor-texto, #ffffff);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ui-prop__tipo-subtexto{font-size:11px;color:var(--ui-cor-texto-secundario, #888899);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ui-prop__tipo-revit-subbarra{display:flex;align-items:center;gap:6px}.ui-prop__tipo-select{flex:1;min-width:0;width:0;height:24px;background-color:var(--ui-cor-fundo-card, #18181c);color:var(--ui-cor-texto, #e1e1e6);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .15));border-radius:3px;padding:0 22px 0 6px;font-size:11px;cursor:pointer;outline:none;appearance:none;-webkit-appearance:none;-moz-appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23888899' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;background-size:10px 6px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;box-sizing:border-box}.ui-prop__tipo-select:focus{border-color:var(--ui-cor-destaque, #00E08A)}.ui-prop__btn-editar-tipo{height:24px;padding:0 8px;background-color:var(--ui-cor-botao-secundario-fundo, #1e1e24);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .15));border-radius:3px;color:var(--ui-cor-texto, #ffffff);font-size:11px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all .15s ease}.ui-prop__btn-editar-tipo:hover{background-color:var(--ui-cor-botao-secundario-hover, #2a2a34);border-color:var(--ui-cor-destaque, #00E08A)}.ui-prop__tipo-autocad-bar{display:flex;align-items:center;gap:4px;width:100%;min-width:0;box-sizing:border-box}.ui-prop__tipo-autocad-acoes{display:flex;align-items:center;gap:3px;flex-shrink:0}.ui-prop__btn-autocad{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background:var(--ui-cor-fundo-card, #18181c);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .15));border-radius:3px;color:var(--ui-cor-texto, #e1e1e6);cursor:pointer;padding:0;transition:all .15s ease}.ui-prop__btn-autocad:hover{background-color:var(--ui-cor-hover-menu, rgba(255, 255, 255, .1));border-color:var(--ui-cor-destaque, #00E08A);color:var(--ui-cor-destaque, #00E08A)}.ui-prop__btn-autocad:active{transform:scale(.95)}.ui-prop__filtro-container{display:flex;align-items:center;padding:4px 8px;background-color:var(--ui-cor-fundo, #0b0b0d);border-bottom:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .08));gap:6px;flex-shrink:0}.ui-prop__filtro-icone{color:var(--ui-cor-texto-secundario, #888899);flex-shrink:0}.ui-prop__filtro-input{flex:1;background:transparent;border:none;outline:none;font-size:11px;color:var(--ui-cor-texto, #e1e1e6);padding:3px 0}.ui-prop__filtro-input::placeholder{color:var(--ui-cor-texto-secundario, #666677)}.ui-prop__corpo{flex:1;overflow-y:auto;overflow-x:hidden;background-color:var(--ui-cor-superficie, #141417);position:relative}.ui-prop__corpo::-webkit-scrollbar{width:8px}.ui-prop__corpo::-webkit-scrollbar-track{background:var(--ui-cor-fundo, #0b0b0d)}.ui-prop__corpo::-webkit-scrollbar-thumb{background:#ffffff2e;border-radius:4px}.ui-prop__corpo::-webkit-scrollbar-thumb:hover{background:#ffffff4d}.ui-prop__categoria{border-bottom:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .1))}.ui-prop__categoria-header{position:relative;z-index:25;display:flex;align-items:center;justify-content:space-between;height:24px;padding:0 8px;background-color:var(--ui-cor-fundo-elevado, #18181d);cursor:pointer;-webkit-user-select:none;user-select:none;font-weight:600;font-size:11px;color:var(--ui-cor-texto, #ffffff);border-top:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .05));transition:background-color .15s ease}.ui-prop__categoria-header:hover{background-color:var(--ui-cor-hover-menu, rgba(255, 255, 255, .06))}.ui-prop__categoria-titulo-bloco{display:flex;align-items:center;gap:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ui-prop__categoria-seta{display:inline-flex;align-items:center;justify-content:center;font-size:9px;width:12px;height:12px;color:var(--ui-cor-texto-secundario, #888899);transition:transform .15s ease}.ui-prop__categoria--aberta .ui-prop__categoria-seta{transform:rotate(90deg)}.ui-prop__categoria-contador{font-size:10px;font-weight:400;color:var(--ui-cor-texto-secundario, #888899)}.ui-prop__categoria-conteudo{display:none}.ui-prop__categoria--aberta .ui-prop__categoria-conteudo{display:block}.ui-prop__linha{display:flex;align-items:stretch;min-height:var(--ui-prop-altura-linha, 24px);border-bottom:1px dotted var(--ui-cor-borda, rgba(255, 255, 255, .08));box-sizing:border-box;position:relative;z-index:1;transition:background-color .1s ease}.ui-prop__linha:hover{background-color:var(--ui-cor-hover-menu, rgba(255, 255, 255, .04))}.ui-prop__linha:focus-within{background-color:#00e08a14}.ui-prop__linha:focus-within .ui-prop__col-rotulo{color:var(--ui-cor-texto, #ffffff);font-weight:500}.ui-prop__linha--modificada{background-color:#00e08a0d}.ui-prop__col-rotulo{width:var(--ui-prop-rotulo-largura, 45%);padding:2px 6px 2px 14px;display:flex;align-items:center;color:var(--ui-cor-texto-secundario, #9999aa);border-right:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .08));overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;position:relative;flex-shrink:0;box-sizing:border-box}.ui-prop__col-rotulo span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ui-prop__col-rotulo--scrub{cursor:ew-resize;-webkit-user-select:none;user-select:none;transition:color .15s ease,background-color .15s ease}.ui-prop__col-rotulo--scrub:hover{color:var(--ui-cor-destaque, #00E08A);background-color:#00e08a0d}.ui-prop__col-rotulo--arrastando{color:#000!important;background-color:var(--ui-cor-destaque, #00E08A)!important;font-weight:600;cursor:ew-resize!important}.ui-prop__col-rotulo--arrastando span{color:#000!important}.ui-prop__splitter{position:absolute;top:0;bottom:0;min-height:100%;left:calc(var(--ui-prop-rotulo-largura, 45%) - 4px);width:8px;cursor:col-resize;z-index:10;touch-action:none;-webkit-user-select:none;user-select:none;display:flex;align-items:center;justify-content:center}.ui-prop__splitter:after{content:"";position:absolute;top:0;bottom:0;left:3px;width:2px;background-color:transparent;pointer-events:none;transition:background-color .15s ease,box-shadow .15s ease}.ui-prop__splitter:hover:after,.ui-prop__splitter--ativo:after{background-color:var(--ui-cor-destaque, #00E08A);box-shadow:0 0 6px #00e08a80}.ui-prop__splitter--ativo{background-color:#00e08a14}.ui-prop__col-valor{width:calc(100% - var(--ui-prop-rotulo-largura, 45%));flex:1 1 0px;min-width:0!important;display:flex;align-items:stretch;padding:0;overflow:hidden;box-sizing:border-box;position:relative;transition:background-color .1s ease,box-shadow .1s ease}.ui-prop__col-valor:focus-within{background-color:var(--ui-cor-fundo, #0b0b0d);box-shadow:inset 0 0 0 1px var(--ui-cor-destaque, #00E08A)}.ui-prop__editor-input{width:100%;min-width:0;height:100%;min-height:var(--ui-prop-altura-linha, 24px);background:transparent;border:none;border-radius:0;color:var(--ui-cor-texto, #ffffff);font-family:inherit;font-size:11px;padding:0 8px;outline:none;box-sizing:border-box;transition:background-color .1s ease}.ui-prop__editor-input:hover{background-color:#ffffff08}.ui-prop__editor-input--numero{text-align:right;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-variant-numeric:tabular-nums}.ui-prop__editor-input--calculando{color:var(--ui-cor-destaque, #00E08A)!important;font-weight:500}.ui-prop__col-valor:has(.ui-prop__editor-input--calculando){background-color:#00e08a14!important;box-shadow:inset 0 0 0 1.5px var(--ui-cor-destaque, #00E08A)!important}.ui-prop__editor-select{flex:1 1 0px;min-width:0!important;width:0!important;max-width:100%;height:100%;min-height:var(--ui-prop-altura-linha, 24px);background-color:transparent;color:var(--ui-cor-texto, #ffffff);border:none;border-radius:0;font-size:11px;padding:0 20px 0 8px;outline:none;cursor:pointer;box-sizing:border-box;appearance:none;-webkit-appearance:none;-moz-appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23888899' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;background-size:8px 5px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;transition:background-color .1s ease}.ui-prop__editor-select:hover{background-color:#ffffff08}.ui-prop__editor-select option{background-color:var(--ui-cor-fundo-elevado, #18181c);color:var(--ui-cor-texto, #ffffff)}.ui-prop__editor-cor-container{display:flex;align-items:center;gap:6px;width:100%;max-width:100%;min-width:0!important;height:100%;min-height:var(--ui-prop-altura-linha, 24px);cursor:pointer;padding:0 20px 0 8px;box-sizing:border-box;position:relative;border:none;border-radius:0;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23888899' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;background-size:8px 5px;transition:background-color .1s ease}.ui-prop__editor-cor-container:hover{background-color:#ffffff0a}.ui-prop__cor-amostra{width:13px;height:13px;border-radius:2px;border:1px solid rgba(255,255,255,.3);flex-shrink:0;box-sizing:border-box}.ui-prop__cor-texto{flex:1 1 0px;min-width:0!important;width:0!important;font-size:11px;color:var(--ui-cor-texto, #ffffff);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ui-prop__cor-picker-oculto{position:absolute;opacity:0;pointer-events:none;width:0;height:0}.ui-prop__editor-linha-container{display:flex;align-items:center;gap:6px;width:100%;max-width:100%;min-width:0!important;height:100%;min-height:var(--ui-prop-altura-linha, 24px);padding:0 0 0 8px;box-sizing:border-box;overflow:hidden;border:none;border-radius:0}.ui-prop__linha-amostra-svg{width:24px;height:10px;flex-shrink:0}.ui-prop__linha-amostra-svg line{stroke:var(--ui-cor-texto, #e1e1e6);stroke-width:1.5}.ui-prop__linha-select{flex:1 1 0px;min-width:0!important;width:0!important;max-width:100%;height:100%;background:transparent;color:var(--ui-cor-texto, #ffffff);border:none;border-radius:0;font-size:11px;padding:0 20px 0 4px;outline:none;cursor:pointer;box-sizing:border-box;appearance:none;-webkit-appearance:none;-moz-appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23888899' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;background-size:8px 5px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap}.ui-prop__linha-select:hover{background-color:#ffffff08}.ui-prop__linha-select option{background-color:var(--ui-cor-fundo-elevado, #18181c);color:var(--ui-cor-texto, #ffffff)}.ui-prop__editor-espessura-container{display:flex;align-items:center;gap:6px;width:100%;max-width:100%;min-width:0!important;height:100%;min-height:var(--ui-prop-altura-linha, 24px);padding:0 0 0 8px;box-sizing:border-box;overflow:hidden;border:none;border-radius:0}.ui-prop__espessura-amostra-svg{width:20px;height:10px;flex-shrink:0}.ui-prop__espessura-amostra-svg line{stroke:var(--ui-cor-texto, #e1e1e6)}.ui-prop__espessura-select{flex:1 1 0px;min-width:0!important;width:0!important;max-width:100%;height:100%;background:transparent;color:var(--ui-cor-texto, #ffffff);border:none;border-radius:0;font-size:11px;padding:0 20px 0 4px;outline:none;cursor:pointer;box-sizing:border-box;appearance:none;-webkit-appearance:none;-moz-appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23888899' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;background-size:8px 5px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap}.ui-prop__espessura-select:hover{background-color:#ffffff08}.ui-prop__espessura-select option{background-color:var(--ui-cor-fundo-elevado, #18181c);color:var(--ui-cor-texto, #ffffff)}.ui-prop__editor-cor-cad-container{display:flex;align-items:center;gap:6px;width:100%;max-width:100%;min-width:0!important;height:100%;min-height:var(--ui-prop-altura-linha, 24px);padding:0 0 0 8px;box-sizing:border-box;overflow:hidden;border:none;border-radius:0}.ui-prop__cor-cad-select{flex:1 1 0px;min-width:0!important;width:0!important;max-width:100%;height:100%;background:transparent;color:var(--ui-cor-texto, #ffffff);border:none;border-radius:0;font-size:11px;padding:0 20px 0 4px;outline:none;cursor:pointer;box-sizing:border-box;appearance:none;-webkit-appearance:none;-moz-appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23888899' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;background-size:8px 5px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap}.ui-prop__cor-cad-select:hover{background-color:#ffffff08}.ui-prop__cor-cad-select option{background-color:var(--ui-cor-fundo-elevado, #18181c);color:var(--ui-cor-texto, #ffffff)}.ui-prop__editor-booleano{display:flex;align-items:center;gap:6px;width:100%;height:100%;min-height:var(--ui-prop-altura-linha, 24px);cursor:pointer;padding:0 8px;box-sizing:border-box;-webkit-user-select:none;user-select:none}.ui-prop__editor-booleano:hover{background-color:#ffffff08}.ui-prop__checkbox-custom{width:13px;height:13px;border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .25));border-radius:2px;background-color:var(--ui-cor-fundo, #0b0b0d);display:flex;align-items:center;justify-content:center;transition:all .15s ease}.ui-prop__checkbox-custom--marcado{background-color:var(--ui-cor-destaque, #00E08A);border-color:var(--ui-cor-destaque, #00E08A);color:#000}.ui-prop__booleano-rotulo{font-size:11px;color:var(--ui-cor-texto, #ffffff)}.ui-prop__btn-acao-inline{width:100%;height:100%;min-height:var(--ui-prop-altura-linha, 24px);padding:0 8px;background-color:transparent;border:none;border-radius:0;color:var(--ui-cor-texto, #ffffff);font-size:11px;font-weight:500;cursor:pointer;white-space:nowrap;text-align:left;transition:all .15s ease;box-sizing:border-box}.ui-prop__btn-acao-inline:hover{background-color:#ffffff0a;color:var(--ui-cor-destaque, #00E08A)}.ui-prop__valor-readonly{display:flex;align-items:center;width:100%;height:100%;min-height:var(--ui-prop-altura-linha, 24px);font-size:11px;color:var(--ui-cor-texto-secundario, #777788);padding:0 8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;box-sizing:border-box;-webkit-user-select:text;user-select:text}.ui-prop__valor-readonly--numero{justify-content:flex-end;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-variant-numeric:tabular-nums}.ui-prop__unidade-sufixo{display:flex;align-items:center;font-size:10px;color:var(--ui-cor-texto-secundario, #777788);padding-right:8px;flex-shrink:0;-webkit-user-select:none;user-select:none}.ui-prop__vazio{padding:24px 16px;text-align:center;color:var(--ui-cor-texto-secundario, #888899);font-size:12px}.ui-prop__footer{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background-color:var(--ui-cor-fundo-elevado, #18181c);border-top:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .1));flex-shrink:0}.ui-prop__link-ajuda{font-size:11px;color:var(--ui-cor-destaque, #00E08A);text-decoration:none;cursor:pointer}.ui-prop__link-ajuda:hover{text-decoration:underline}.ui-prop__footer-botoes{display:flex;gap:6px}.ui-prop__btn-aplicar{height:24px;padding:0 12px;background-color:var(--ui-cor-destaque, #00E08A);color:#000;border:none;border-radius:3px;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s ease}.ui-prop__btn-aplicar:disabled{background-color:#ffffff1a;color:#ffffff4d;cursor:not-allowed}.ui-prop__btn-desfazer{height:24px;padding:0 8px;background:transparent;color:var(--ui-cor-texto-secundario, #888899);border:1px solid var(--ui-cor-borda, rgba(255, 255, 255, .12));border-radius:3px;font-size:11px;cursor:pointer;transition:all .15s ease}.ui-prop__btn-desfazer:hover:not(:disabled){background-color:var(--ui-cor-hover-menu, rgba(255, 255, 255, .08));color:var(--ui-cor-texto, #ffffff)}.ui-prop__btn-desfazer:disabled{opacity:.4;cursor:not-allowed}@media (max-width: 640px){:host{--ui-prop-altura-linha: 28px;font-size:13px}.ui-prop__btn-icone{min-width:28px;min-height:28px}.ui-prop__footer-botoes{gap:8px}.ui-prop__btn-aplicar,.ui-prop__btn-desfazer{height:30px;font-size:12px;padding:0 12px;touch-action:manipulation;-webkit-tap-highlight-color:transparent}.ui-prop__editor-input,.ui-prop__editor-select{touch-action:manipulation;font-size:14px}}`;
+function Ie(b) {
   if (!b || typeof b != "string") return null;
   let o = b.trim();
   if (!o) return null;
   o = o.replace(/(\d),(\d)/g, "$1.$2").replace(/,/g, "."), o = o.replace(/\bpi\b/gi, String(Math.PI)), o = o.replace(/\be\b/gi, String(Math.E));
-  let e = 0;
-  function t() {
-    return o[e] || "";
+  let t = 0;
+  function e() {
+    return o[t] || "";
   }
   function i() {
-    return o[e++] || "";
+    return o[t++] || "";
   }
   function a() {
-    for (; e < o.length && /\s/.test(o[e]); )
-      e++;
-  }
-  function s() {
-    a();
-    let d = r();
-    for (a(); e < o.length; ) {
-      const c = t();
-      if (c === "+" || c === "-") {
-        i(), a();
-        const p = e, m = r();
-        a(), o.slice(p, e).includes("%") ? d = c === "+" ? d + d * m : d - d * m : d = c === "+" ? d + m : d - m;
-      } else
-        break;
-    }
-    return d;
+    for (; t < o.length && /\s/.test(o[t]); )
+      t++;
   }
   function r() {
     a();
-    let d = l();
-    for (a(); e < o.length; ) {
-      const c = t();
-      if (c === "*" || c === "/" || c === "x" || c === "X") {
+    let u = s();
+    for (a(); t < o.length; ) {
+      const d = e();
+      if (d === "+" || d === "-") {
         i(), a();
-        const p = l();
-        if (c === "/" && p === 0)
-          throw new Error("Divisão por zero");
-        d = c === "/" ? d / p : d * p, a();
+        const h = t, p = s();
+        a(), o.slice(h, t).includes("%") ? u = d === "+" ? u + u * p : u - u * p : u = d === "+" ? u + p : u - p;
       } else
         break;
     }
-    return d;
+    return u;
   }
-  function l() {
+  function s() {
     a();
-    let d = u();
-    if (a(), t() === "^") {
-      i();
-      const c = l();
-      d = Math.pow(d, c);
-    } else if (o.slice(e, e + 2) === "**") {
-      e += 2;
-      const c = l();
-      d = Math.pow(d, c);
+    let u = n();
+    for (a(); t < o.length; ) {
+      const d = e();
+      if (d === "*" || d === "/" || d === "x" || d === "X") {
+        i(), a();
+        const h = n();
+        if (d === "/" && h === 0)
+          throw new Error("Divisão por zero");
+        u = d === "/" ? u / h : u * h, a();
+      } else
+        break;
     }
-    return d;
+    return u;
   }
-  function u() {
+  function n() {
     a();
-    const d = t();
-    if (d === "+" || d === "-") {
+    let u = c();
+    if (a(), e() === "^") {
       i();
-      const m = u();
-      return d === "-" ? -m : m;
+      const d = n();
+      u = Math.pow(u, d);
+    } else if (o.slice(t, t + 2) === "**") {
+      t += 2;
+      const d = n();
+      u = Math.pow(u, d);
     }
-    if (d === "(") {
+    return u;
+  }
+  function c() {
+    a();
+    const u = e();
+    if (u === "+" || u === "-") {
       i();
-      const m = s();
-      return a(), t() === ")" && i(), a(), t() === "%" ? (i(), m / 100) : m;
+      const p = c();
+      return u === "-" ? -p : p;
     }
-    const c = o.slice(e).match(/^([a-zA-Z_]\w*)\s*\(/);
-    if (c) {
-      const m = c[1].toLowerCase();
-      e += c[0].length;
-      const h = s();
-      a(), t() === ")" && i();
-      let f = h;
-      switch (m) {
+    if (u === "(") {
+      i();
+      const p = r();
+      return a(), e() === ")" && i(), a(), e() === "%" ? (i(), p / 100) : p;
+    }
+    const d = o.slice(t).match(/^([a-zA-Z_]\w*)\s*\(/);
+    if (d) {
+      const p = d[1].toLowerCase();
+      t += d[0].length;
+      const m = r();
+      a(), e() === ")" && i();
+      let f = m;
+      switch (p) {
         case "sqrt":
-          f = Math.sqrt(h);
+          f = Math.sqrt(m);
           break;
         case "abs":
-          f = Math.abs(h);
+          f = Math.abs(m);
           break;
         case "round":
-          f = Math.round(h);
+          f = Math.round(m);
           break;
         case "floor":
-          f = Math.floor(h);
+          f = Math.floor(m);
           break;
         case "ceil":
-          f = Math.ceil(h);
+          f = Math.ceil(m);
           break;
         case "sin":
-          f = Math.sin(h);
+          f = Math.sin(m);
           break;
         case "cos":
-          f = Math.cos(h);
+          f = Math.cos(m);
           break;
         case "tan":
-          f = Math.tan(h);
+          f = Math.tan(m);
           break;
       }
-      return a(), t() === "%" ? (i(), f / 100) : f;
+      return a(), e() === "%" ? (i(), f / 100) : f;
     }
-    const p = o.slice(e).match(/^([0-9]+(?:\.[0-9]+)?|\.[0-9]+)/);
-    if (p) {
-      e += p[0].length;
-      let m = parseFloat(p[0]);
-      return a(), t() === "%" && (i(), m = m / 100), m;
+    const h = o.slice(t).match(/^([0-9]+(?:\.[0-9]+)?|\.[0-9]+)/);
+    if (h) {
+      t += h[0].length;
+      let p = parseFloat(h[0]);
+      return a(), e() === "%" && (i(), p = p / 100), p;
     }
-    throw new Error("Caractere inválido: " + d);
+    throw new Error("Caractere inválido: " + u);
   }
   try {
-    const d = s();
-    return a(), e < o.length ? null : isFinite(d) ? d : null;
+    const u = r();
+    return a(), t < o.length ? null : isFinite(u) ? u : null;
   } catch {
     return null;
   }
 }
-class K extends HTMLElement {
+class ht extends HTMLElement {
   constructor() {
     super();
-    n(this, "shadow");
-    n(this, "listeners", new z());
-    n(this, "splitterListeners", new z());
+    l(this, "shadow");
+    l(this, "listeners", new D());
+    l(this, "splitterListeners", new D());
     // Dados Internos
-    n(this, "_categorias", []);
-    n(this, "_valoresOriginais", {});
-    n(this, "_valoresAtuais", {});
-    n(this, "_tipos", []);
-    n(this, "_tipoSelecionadoId", "");
-    n(this, "_termoBusca", "");
-    n(this, "_dirty", !1);
-    n(this, "_larguraRotuloPorcentagem", 45);
+    l(this, "_categorias", []);
+    l(this, "_valoresOriginais", {});
+    l(this, "_valoresAtuais", {});
+    l(this, "_tipos", []);
+    l(this, "_tipoSelecionadoId", "");
+    l(this, "_termoBusca", "");
+    l(this, "_dirty", !1);
+    l(this, "_larguraRotuloPorcentagem", 45);
     // Elementos DOM
-    n(this, "headerTituloElement");
-    n(this, "tipoContainerElement");
-    n(this, "filtroInputElement");
-    n(this, "corpoElement");
-    n(this, "footerElement");
-    n(this, "btnAplicarElement");
-    n(this, "btnDesfazerElement");
-    n(this, "splitterElement");
+    l(this, "headerTituloElement");
+    l(this, "tipoContainerElement");
+    l(this, "filtroInputElement");
+    l(this, "corpoElement");
+    l(this, "footerElement");
+    l(this, "btnAplicarElement");
+    l(this, "btnDesfazerElement");
+    l(this, "splitterElement");
     this.shadow = this.attachShadow({ mode: "open" }), this.shadow.innerHTML = `
-      <style>${gt}</style>
+      <style>${Pe}</style>
       <div class="ui-prop__container" id="container">
         <!-- 1. Header Superior -->
         <header class="ui-prop__header" id="header">
@@ -4599,10 +5584,10 @@ class K extends HTMLElement {
   }
   connectedCallback() {
     this.listeners.cleanup();
-    const e = this.shadow.getElementById("btn-expandir-tudo");
-    this.listeners.add(e, "click", () => this.toggleExpandirTodas());
-    const t = this.shadow.getElementById("btn-fechar");
-    this.listeners.add(t, "click", () => {
+    const t = this.shadow.getElementById("btn-expandir-tudo");
+    this.listeners.add(t, "click", () => this.toggleExpandirTodas());
+    const e = this.shadow.getElementById("btn-fechar");
+    this.listeners.add(e, "click", () => {
       this.dispatchEvent(new CustomEvent("ui-fechar", { bubbles: !0, composed: !0 }));
     }), this.listeners.add(this.filtroInputElement, "input", () => {
       this._termoBusca = (this.filtroInputElement.value || "").trim().toLowerCase(), this.renderCategorias();
@@ -4615,7 +5600,7 @@ class K extends HTMLElement {
   disconnectedCallback() {
     this.listeners.cleanup(), this.splitterListeners.cleanup();
   }
-  attributeChangedCallback(e, t, i) {
+  attributeChangedCallback(t, e, i) {
     this.syncState();
   }
   /* ====================================================
@@ -4624,9 +5609,9 @@ class K extends HTMLElement {
   get categorias() {
     return this._categorias;
   }
-  set categorias(e) {
-    this._categorias = Array.isArray(e) ? e : [], this._valoresOriginais = {}, this._valoresAtuais = {}, this._categorias.forEach((t) => {
-      (t.propriedades || []).forEach((i) => {
+  set categorias(t) {
+    this._categorias = Array.isArray(t) ? t : [], this._valoresOriginais = {}, this._valoresAtuais = {}, this._categorias.forEach((e) => {
+      (e.propriedades || []).forEach((i) => {
         this._valoresOriginais[i.id] = i.valor, this._valoresAtuais[i.id] = i.valor;
       });
     }), this._dirty = !1, this.atualizarBotoesFooter(), this.renderCategorias();
@@ -4634,20 +5619,20 @@ class K extends HTMLElement {
   get valores() {
     return { ...this._valoresAtuais };
   }
-  set valores(e) {
-    e && typeof e == "object" && (this._valoresAtuais = { ...this._valoresAtuais, ...e }, this._valoresOriginais = { ...this._valoresAtuais }, this._dirty = !1, this.atualizarBotoesFooter(), this.renderCategorias());
+  set valores(t) {
+    t && typeof t == "object" && (this._valoresAtuais = { ...this._valoresAtuais, ...t }, this._valoresOriginais = { ...this._valoresAtuais }, this._dirty = !1, this.atualizarBotoesFooter(), this.renderCategorias());
   }
   get tipos() {
     return this._tipos;
   }
-  set tipos(e) {
-    this._tipos = Array.isArray(e) ? e : [], this._tipos.length > 0 && !this._tipoSelecionadoId && (this._tipoSelecionadoId = this._tipos[0].id), this.renderSeletorTipos();
+  set tipos(t) {
+    this._tipos = Array.isArray(t) ? t : [], this._tipos.length > 0 && !this._tipoSelecionadoId && (this._tipoSelecionadoId = this._tipos[0].id), this.renderSeletorTipos();
   }
   get tipoSelecionado() {
     return this._tipoSelecionadoId;
   }
-  set tipoSelecionado(e) {
-    this._tipoSelecionadoId = String(e), this.renderSeletorTipos();
+  set tipoSelecionado(t) {
+    this._tipoSelecionadoId = String(t), this.renderSeletorTipos();
   }
   get dirty() {
     return this._dirty;
@@ -4658,24 +5643,24 @@ class K extends HTMLElement {
   /**
    * Define programmaticamente o valor de uma propriedade.
    */
-  definirValor(e, t) {
-    if (this._valoresAtuais[e] !== t) {
-      const i = this._valoresAtuais[e];
-      this._valoresAtuais[e] = t, this._dirty = !0, this.atualizarBotoesFooter(), this.atualizarCampoVisual(e, t), this.getAttribute("modo-aplicar") !== "manual" && this.emitirAlteracao(e, t, i);
+  definirValor(t, e) {
+    if (this._valoresAtuais[t] !== e) {
+      const i = this._valoresAtuais[t];
+      this._valoresAtuais[t] = e, this._dirty = !0, this.atualizarBotoesFooter(), this.atualizarCampoVisual(t, e), this.getAttribute("modo-aplicar") !== "manual" && this.emitirAlteracao(t, e, i);
     }
   }
   /**
    * Obtém o valor atual de uma propriedade pelo ID.
    */
-  obterValor(e) {
-    return this._valoresAtuais[e];
+  obterValor(t) {
+    return this._valoresAtuais[t];
   }
   /**
    * Confirma e aplica todas as edições pendentes (modo manual estilo Revit).
    */
   aplicar() {
     if (!this._dirty) return;
-    this._valoresOriginais = { ...this._valoresAtuais }, this._dirty = !1, this.atualizarBotoesFooter(), this.shadow.querySelectorAll(".ui-prop__linha--modificada").forEach((t) => t.classList.remove("ui-prop__linha--modificada")), this.dispatchEvent(
+    this._valoresOriginais = { ...this._valoresAtuais }, this._dirty = !1, this.atualizarBotoesFooter(), this.shadow.querySelectorAll(".ui-prop__linha--modificada").forEach((e) => e.classList.remove("ui-prop__linha--modificada")), this.dispatchEvent(
       new CustomEvent("ui-aplicar", {
         bubbles: !0,
         composed: !0,
@@ -4699,27 +5684,27 @@ class K extends HTMLElement {
    * Expande todas as categorias da tabela.
    */
   expandirTudo() {
-    this._categorias.forEach((t) => t.aberto = !0), this.shadow.querySelectorAll(".ui-prop__categoria").forEach((t) => t.classList.add("ui-prop__categoria--aberta"));
+    this._categorias.forEach((e) => e.aberto = !0), this.shadow.querySelectorAll(".ui-prop__categoria").forEach((e) => e.classList.add("ui-prop__categoria--aberta"));
   }
   /**
    * Colapsa todas as categorias da tabela.
    */
   colapsarTudo() {
-    this._categorias.forEach((t) => t.aberto = !1), this.shadow.querySelectorAll(".ui-prop__categoria").forEach((t) => t.classList.remove("ui-prop__categoria--aberta"));
+    this._categorias.forEach((e) => e.aberto = !1), this.shadow.querySelectorAll(".ui-prop__categoria").forEach((e) => e.classList.remove("ui-prop__categoria--aberta"));
   }
   /**
    * Alterna uma categoria específica entre expandida e colapsada.
    */
-  toggleCategoria(e) {
-    const t = this._categorias.find((i) => i.id === e);
-    if (t) {
-      t.aberto = t.aberto === !1;
-      const i = this.shadow.querySelector(`[data-cat-id="${e}"]`);
-      i && i.classList.toggle("ui-prop__categoria--aberta", !!t.aberto), this.dispatchEvent(
+  toggleCategoria(t) {
+    const e = this._categorias.find((i) => i.id === t);
+    if (e) {
+      e.aberto = e.aberto === !1;
+      const i = this.shadow.querySelector(`[data-cat-id="${t}"]`);
+      i && i.classList.toggle("ui-prop__categoria--aberta", !!e.aberto), this.dispatchEvent(
         new CustomEvent("ui-categoria-toggle", {
           bubbles: !0,
           composed: !0,
-          detail: { id: e, aberto: t.aberto }
+          detail: { id: t, aberto: e.aberto }
         })
       );
     }
@@ -4728,45 +5713,45 @@ class K extends HTMLElement {
      Lógica Interna e Sincronização
      ==================================================== */
   syncState() {
-    const e = this.getAttribute("titulo") || "Propriedades";
-    this.headerTituloElement.textContent = e;
-    const t = this.hasAttribute("fechavel"), i = this.shadow.getElementById("btn-fechar");
-    i && (i.style.display = t ? "inline-flex" : "none");
-    const a = this.hasAttribute("filtro"), s = this.shadow.getElementById("filtro-container");
-    s && (s.style.display = a ? "flex" : "none");
-    const r = this.getAttribute("largura-rotulo");
-    if (r) {
-      const u = parseFloat(r);
-      isNaN(u) || this.definirLarguraRotulo(u);
+    const t = this.getAttribute("titulo") || "Propriedades";
+    this.headerTituloElement.textContent = t;
+    const e = this.hasAttribute("fechavel"), i = this.shadow.getElementById("btn-fechar");
+    i && (i.style.display = e ? "inline-flex" : "none");
+    const a = this.hasAttribute("filtro"), r = this.shadow.getElementById("filtro-container");
+    r && (r.style.display = a ? "flex" : "none");
+    const s = this.getAttribute("largura-rotulo");
+    if (s) {
+      const c = parseFloat(s);
+      isNaN(c) || this.definirLarguraRotulo(c);
     }
-    const l = this.getAttribute("modo-aplicar");
-    this.footerElement.style.display = l === "manual" ? "flex" : "none", this.renderSeletorTipos(), this.renderCategorias();
+    const n = this.getAttribute("modo-aplicar");
+    this.footerElement.style.display = n === "manual" ? "flex" : "none", this.renderSeletorTipos(), this.renderCategorias();
   }
   initSplitter() {
     this.splitterListeners.cleanup();
-    let e = !1;
-    const t = (i) => {
+    let t = !1;
+    const e = (i) => {
       if (i.button !== 0) return;
-      i.preventDefault(), i.stopPropagation(), e = !0, this.splitterElement.classList.add("ui-prop__splitter--ativo");
+      i.preventDefault(), i.stopPropagation(), t = !0, this.splitterElement.classList.add("ui-prop__splitter--ativo");
       try {
         this.splitterElement.setPointerCapture(i.pointerId);
       } catch {
       }
-      const a = this.corpoElement.getBoundingClientRect(), s = (l) => {
-        if (!e) return;
-        const u = a.width;
-        if (u <= 0) return;
-        const d = l.clientX - a.left;
-        let h = Math.max(80, Math.min(u - 130, d)) / u * 100;
-        h = Math.max(20, Math.min(65, h)), this.definirLarguraRotulo(h);
-      }, r = (l) => {
-        if (e) {
-          e = !1, this.splitterElement.classList.remove("ui-prop__splitter--ativo");
+      const a = this.corpoElement.getBoundingClientRect(), r = (n) => {
+        if (!t) return;
+        const c = a.width;
+        if (c <= 0) return;
+        const u = n.clientX - a.left;
+        let m = Math.max(80, Math.min(c - 130, u)) / c * 100;
+        m = Math.max(20, Math.min(65, m)), this.definirLarguraRotulo(m);
+      }, s = (n) => {
+        if (t) {
+          t = !1, this.splitterElement.classList.remove("ui-prop__splitter--ativo");
           try {
-            this.splitterElement.hasPointerCapture(l.pointerId) && this.splitterElement.releasePointerCapture(l.pointerId);
+            this.splitterElement.hasPointerCapture(n.pointerId) && this.splitterElement.releasePointerCapture(n.pointerId);
           } catch {
           }
-          this.splitterElement.removeEventListener("pointermove", s), this.splitterElement.removeEventListener("pointerup", r), this.splitterElement.removeEventListener("pointercancel", r), this.dispatchEvent(
+          this.splitterElement.removeEventListener("pointermove", r), this.splitterElement.removeEventListener("pointerup", s), this.splitterElement.removeEventListener("pointercancel", s), this.dispatchEvent(
             new CustomEvent("ui-splitter-resize", {
               bubbles: !0,
               composed: !0,
@@ -4775,9 +5760,9 @@ class K extends HTMLElement {
           );
         }
       };
-      this.splitterElement.addEventListener("pointermove", s), this.splitterElement.addEventListener("pointerup", r), this.splitterElement.addEventListener("pointercancel", r);
+      this.splitterElement.addEventListener("pointermove", r), this.splitterElement.addEventListener("pointerup", s), this.splitterElement.addEventListener("pointercancel", s);
     };
-    this.splitterListeners.add(this.splitterElement, "pointerdown", t), this.splitterListeners.add(this.splitterElement, "dblclick", () => {
+    this.splitterListeners.add(this.splitterElement, "pointerdown", e), this.splitterListeners.add(this.splitterElement, "dblclick", () => {
       this.definirLarguraRotulo(45), this.dispatchEvent(
         new CustomEvent("ui-splitter-resize", {
           bubbles: !0,
@@ -4787,12 +5772,12 @@ class K extends HTMLElement {
       );
     });
   }
-  definirLarguraRotulo(e) {
-    const t = Math.max(20, Math.min(65, e));
-    this._larguraRotuloPorcentagem = t, this.style.setProperty("--ui-prop-rotulo-largura", `${t}%`), this.splitterElement && (this.splitterElement.style.left = `calc(${t}% - 4px)`);
+  definirLarguraRotulo(t) {
+    const e = Math.max(20, Math.min(65, t));
+    this._larguraRotuloPorcentagem = e, this.style.setProperty("--ui-prop-rotulo-largura", `${e}%`), this.splitterElement && (this.splitterElement.style.left = `calc(${e}% - 4px)`);
   }
   toggleExpandirTodas() {
-    this._categorias.some((t) => t.aberto === !1) ? this.expandirTudo() : this.colapsarTudo();
+    this._categorias.some((e) => e.aberto === !1) ? this.expandirTudo() : this.colapsarTudo();
   }
   renderSeletorTipos() {
     if (!this._tipos || this._tipos.length === 0) {
@@ -4800,73 +5785,73 @@ class K extends HTMLElement {
       return;
     }
     this.tipoContainerElement.style.display = "flex", this.tipoContainerElement.innerHTML = "";
-    const e = this.getAttribute("estilo-visual") || "autocad", t = this._tipos.find((i) => String(i.id) === String(this._tipoSelecionadoId)) || this._tipos[0];
-    if (e === "revit") {
+    const t = this.getAttribute("estilo-visual") || "autocad", e = this._tipos.find((i) => String(i.id) === String(this._tipoSelecionadoId)) || this._tipos[0];
+    if (t === "revit") {
       const i = document.createElement("div");
       i.className = "ui-prop__tipo-revit-card";
       const a = document.createElement("div");
-      a.className = "ui-prop__tipo-miniatura", t.iconeSvg ? a.innerHTML = t.iconeSvg : a.innerHTML = `
+      a.className = "ui-prop__tipo-miniatura", e.iconeSvg ? a.innerHTML = e.iconeSvg : a.innerHTML = `
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="3" y="3" width="18" height="18" rx="2"></rect>
             <path d="M3 9h18M9 21V9"></path>
           </svg>
         `;
-      const s = document.createElement("div");
-      s.className = "ui-prop__tipo-info";
       const r = document.createElement("div");
-      r.className = "ui-prop__tipo-nome", r.textContent = t.rotulo;
-      const l = document.createElement("div");
-      l.className = "ui-prop__tipo-subtexto", l.textContent = t.subtipo || "Tipo de Família", s.appendChild(r), s.appendChild(l), i.appendChild(a), i.appendChild(s);
-      const u = document.createElement("div");
-      u.className = "ui-prop__tipo-revit-subbarra";
-      const d = document.createElement("select");
-      d.className = "ui-prop__tipo-select", this._tipos.forEach((p) => {
-        const m = document.createElement("option");
-        m.value = p.id, m.textContent = `${p.rotulo}${p.subtipo ? ` : ${p.subtipo}` : ""}`, String(p.id) === String(this._tipoSelecionadoId) && (m.selected = !0), d.appendChild(m);
-      }), d.addEventListener("change", () => {
-        this.selecionarTipo(d.value);
+      r.className = "ui-prop__tipo-info";
+      const s = document.createElement("div");
+      s.className = "ui-prop__tipo-nome", s.textContent = e.rotulo;
+      const n = document.createElement("div");
+      n.className = "ui-prop__tipo-subtexto", n.textContent = e.subtipo || "Tipo de Família", r.appendChild(s), r.appendChild(n), i.appendChild(a), i.appendChild(r);
+      const c = document.createElement("div");
+      c.className = "ui-prop__tipo-revit-subbarra";
+      const u = document.createElement("select");
+      u.className = "ui-prop__tipo-select", this._tipos.forEach((h) => {
+        const p = document.createElement("option");
+        p.value = h.id, p.textContent = `${h.rotulo}${h.subtipo ? ` : ${h.subtipo}` : ""}`, String(h.id) === String(this._tipoSelecionadoId) && (p.selected = !0), u.appendChild(p);
+      }), u.addEventListener("change", () => {
+        this.selecionarTipo(u.value);
       });
-      const c = document.createElement("button");
-      c.type = "button", c.className = "ui-prop__btn-editar-tipo", c.innerHTML = `
+      const d = document.createElement("button");
+      d.type = "button", d.className = "ui-prop__btn-editar-tipo", d.innerHTML = `
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px; vertical-align: -1px;">
           <rect x="3" y="3" width="12" height="12" rx="1"></rect>
           <rect x="9" y="9" width="12" height="12" rx="1"></rect>
         </svg>
         <span>Editar tipo</span>
-      `, c.addEventListener("click", () => {
+      `, d.addEventListener("click", () => {
         this.dispatchEvent(new CustomEvent("ui-editar-tipo-clique", {
           bubbles: !0,
           composed: !0,
-          detail: { tipo: t }
+          detail: { tipo: e }
         }));
-      }), u.appendChild(d), u.appendChild(c), this.tipoContainerElement.appendChild(i), this.tipoContainerElement.appendChild(u);
+      }), c.appendChild(u), c.appendChild(d), this.tipoContainerElement.appendChild(i), this.tipoContainerElement.appendChild(c);
     } else {
       const i = document.createElement("div");
       i.className = "ui-prop__tipo-autocad-bar";
       const a = document.createElement("select");
-      a.className = "ui-prop__tipo-select", this._tipos.forEach((d) => {
-        const c = document.createElement("option");
-        c.value = d.id, c.textContent = d.rotulo, String(d.id) === String(this._tipoSelecionadoId) && (c.selected = !0), a.appendChild(c);
+      a.className = "ui-prop__tipo-select", this._tipos.forEach((u) => {
+        const d = document.createElement("option");
+        d.value = u.id, d.textContent = u.rotulo, String(u.id) === String(this._tipoSelecionadoId) && (d.selected = !0), a.appendChild(d);
       }), a.addEventListener("change", () => {
         this.selecionarTipo(a.value);
       });
-      const s = document.createElement("div");
-      s.className = "ui-prop__tipo-autocad-acoes";
-      const r = document.createElement("button");
-      r.type = "button", r.className = "ui-prop__btn-autocad", r.title = "Seleção Rápida (Quick Select)", r.setAttribute("aria-label", "Seleção rápida"), r.innerHTML = `
+      const r = document.createElement("div");
+      r.className = "ui-prop__tipo-autocad-acoes";
+      const s = document.createElement("button");
+      s.type = "button", s.className = "ui-prop__btn-autocad", s.title = "Seleção Rápida (Quick Select)", s.setAttribute("aria-label", "Seleção rápida"), s.innerHTML = `
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
           <path d="M19 13v6M16 16h6" stroke-width="2.5"></path>
         </svg>
-      `, r.addEventListener("click", () => {
+      `, s.addEventListener("click", () => {
         this.dispatchEvent(new CustomEvent("ui-quick-select", {
           bubbles: !0,
           composed: !0,
-          detail: { tipo: t }
+          detail: { tipo: e }
         }));
       });
-      const l = document.createElement("button");
-      l.type = "button", l.className = "ui-prop__btn-autocad", l.title = "Selecionar Objetos", l.setAttribute("aria-label", "Selecionar objetos"), l.innerHTML = `
+      const n = document.createElement("button");
+      n.type = "button", n.className = "ui-prop__btn-autocad", n.title = "Selecionar Objetos", n.setAttribute("aria-label", "Selecionar objetos"), n.innerHTML = `
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="12" r="7"></circle>
           <line x1="12" y1="2" x2="12" y2="7"></line>
@@ -4876,15 +5861,15 @@ class K extends HTMLElement {
           <line x1="12" y1="9" x2="12" y2="15" stroke-width="2.5"></line>
           <line x1="9" y1="12" x2="15" y2="12" stroke-width="2.5"></line>
         </svg>
-      `, l.addEventListener("click", () => {
+      `, n.addEventListener("click", () => {
         this.dispatchEvent(new CustomEvent("ui-selecionar-objetos", {
           bubbles: !0,
           composed: !0,
-          detail: { tipo: t }
+          detail: { tipo: e }
         }));
       });
-      const u = document.createElement("button");
-      u.type = "button", u.className = "ui-prop__btn-autocad", u.title = "Calculadora Rápida (QuickCalc)", u.setAttribute("aria-label", "Calculadora rápida"), u.innerHTML = `
+      const c = document.createElement("button");
+      c.type = "button", c.className = "ui-prop__btn-autocad", c.title = "Calculadora Rápida (QuickCalc)", c.setAttribute("aria-label", "Calculadora rápida"), c.innerHTML = `
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <rect x="4" y="2" width="16" height="20" rx="2"></rect>
           <line x1="8" y1="6" x2="16" y2="6"></line>
@@ -4895,148 +5880,148 @@ class K extends HTMLElement {
           <circle cx="12" cy="15" r="1" fill="currentColor"></circle>
           <circle cx="16" cy="15" r="1" fill="currentColor"></circle>
         </svg>
-      `, u.addEventListener("click", () => {
+      `, c.addEventListener("click", () => {
         this.dispatchEvent(new CustomEvent("ui-calculadora", {
           bubbles: !0,
           composed: !0,
-          detail: { tipo: t }
+          detail: { tipo: e }
         }));
-      }), s.appendChild(r), s.appendChild(l), s.appendChild(u), i.appendChild(a), i.appendChild(s), this.tipoContainerElement.appendChild(i);
+      }), r.appendChild(s), r.appendChild(n), r.appendChild(c), i.appendChild(a), i.appendChild(r), this.tipoContainerElement.appendChild(i);
     }
   }
-  selecionarTipo(e) {
-    this._tipoSelecionadoId = e, this.renderSeletorTipos();
-    const t = this._tipos.find((i) => String(i.id) === String(e));
+  selecionarTipo(t) {
+    this._tipoSelecionadoId = t, this.renderSeletorTipos();
+    const e = this._tipos.find((i) => String(i.id) === String(t));
     this.dispatchEvent(
       new CustomEvent("ui-tipo-alterado", {
         bubbles: !0,
         composed: !0,
-        detail: { id: e, tipo: t }
+        detail: { id: t, tipo: e }
       })
     );
   }
   renderCategorias() {
-    const e = this.shadow.getElementById("lista-categorias");
-    if (!e) return;
-    if (e.innerHTML = "", !this._categorias || this._categorias.length === 0) {
+    const t = this.shadow.getElementById("lista-categorias");
+    if (!t) return;
+    if (t.innerHTML = "", !this._categorias || this._categorias.length === 0) {
       const i = document.createElement("div");
-      i.className = "ui-prop__vazio", i.textContent = "Nenhuma propriedade disponível.", e.appendChild(i);
+      i.className = "ui-prop__vazio", i.textContent = "Nenhuma propriedade disponível.", t.appendChild(i);
       return;
     }
-    const t = document.createDocumentFragment();
+    const e = document.createDocumentFragment();
     this._categorias.forEach((i) => {
-      const a = (i.propriedades || []).filter((h) => this._termoBusca ? h.rotulo.toLowerCase().includes(this._termoBusca) || String(h.id).toLowerCase().includes(this._termoBusca) : !0);
+      const a = (i.propriedades || []).filter((m) => this._termoBusca ? m.rotulo.toLowerCase().includes(this._termoBusca) || String(m.id).toLowerCase().includes(this._termoBusca) : !0);
       if (this._termoBusca && a.length === 0)
         return;
-      const s = i.aberto !== !1, r = document.createElement("div");
-      r.className = `ui-prop__categoria ${s ? "ui-prop__categoria--aberta" : ""}`, r.setAttribute("data-cat-id", i.id);
-      const l = document.createElement("div");
-      l.className = "ui-prop__categoria-header";
-      const u = document.createElement("div");
-      u.className = "ui-prop__categoria-titulo-bloco";
+      const r = i.aberto !== !1, s = document.createElement("div");
+      s.className = `ui-prop__categoria ${r ? "ui-prop__categoria--aberta" : ""}`, s.setAttribute("data-cat-id", i.id);
+      const n = document.createElement("div");
+      n.className = "ui-prop__categoria-header";
+      const c = document.createElement("div");
+      c.className = "ui-prop__categoria-titulo-bloco";
+      const u = document.createElement("span");
+      u.className = "ui-prop__categoria-seta", u.textContent = "▶";
       const d = document.createElement("span");
-      d.className = "ui-prop__categoria-seta", d.textContent = "▶";
-      const c = document.createElement("span");
-      c.textContent = i.titulo, u.appendChild(d), u.appendChild(c);
-      const p = document.createElement("span");
-      p.className = "ui-prop__categoria-contador", p.textContent = String(a.length), l.appendChild(u), l.appendChild(p), l.addEventListener("click", () => {
+      d.textContent = i.titulo, c.appendChild(u), c.appendChild(d);
+      const h = document.createElement("span");
+      h.className = "ui-prop__categoria-contador", h.textContent = String(a.length), n.appendChild(c), n.appendChild(h), n.addEventListener("click", () => {
         this.toggleCategoria(i.id);
-      }), l.addEventListener("dblclick", () => {
+      }), n.addEventListener("dblclick", () => {
         this.toggleCategoria(i.id);
       });
-      const m = document.createElement("div");
-      m.className = "ui-prop__categoria-conteudo", a.forEach((h) => {
-        const f = this.criarLinhaPropriedade(i.id, h);
-        m.appendChild(f);
-      }), r.appendChild(l), r.appendChild(m), t.appendChild(r);
-    }), e.appendChild(t);
+      const p = document.createElement("div");
+      p.className = "ui-prop__categoria-conteudo", a.forEach((m) => {
+        const f = this.criarLinhaPropriedade(i.id, m);
+        p.appendChild(f);
+      }), s.appendChild(n), s.appendChild(p), e.appendChild(s);
+    }), t.appendChild(e);
   }
-  criarLinhaPropriedade(e, t) {
+  criarLinhaPropriedade(t, e) {
     const i = document.createElement("div");
-    i.className = "ui-prop__linha", i.setAttribute("data-prop-id", t.id);
-    const a = this._valoresAtuais[t.id] !== void 0 ? this._valoresAtuais[t.id] : t.valor, s = this._valoresOriginais[t.id];
-    this._dirty && a !== s && i.classList.add("ui-prop__linha--modificada"), i.addEventListener("dblclick", () => {
-      const c = i.querySelector(
+    i.className = "ui-prop__linha", i.setAttribute("data-prop-id", e.id);
+    const a = this._valoresAtuais[e.id] !== void 0 ? this._valoresAtuais[e.id] : e.valor, r = this._valoresOriginais[e.id];
+    this._dirty && a !== r && i.classList.add("ui-prop__linha--modificada"), i.addEventListener("dblclick", () => {
+      const d = i.querySelector(
         'input:not([type="color"]):not(.ui-prop__cor-picker-oculto), select, .ui-prop__btn-acao-inline'
       );
-      c && (c.focus(), c instanceof HTMLInputElement && c.select());
+      d && (d.focus(), d instanceof HTMLInputElement && d.select());
     });
-    const r = document.createElement("div");
-    r.className = "ui-prop__col-rotulo", r.title = t.rotulo;
-    const l = document.createElement("span");
-    if (l.textContent = t.rotulo, r.appendChild(l), t.tipo === "numero" && !t.somenteLeitura) {
-      r.classList.add("ui-prop__col-rotulo--scrub"), r.title = `${t.rotulo} (Arraste para ajustar, duplo-clique para editar)`;
-      let c = 0, p = 0, m = !1;
-      r.addEventListener("pointerdown", (h) => {
-        if (h.button !== 0) return;
-        c = h.clientX;
-        const f = this._valoresAtuais[t.id];
-        p = typeof f == "number" ? f : parseFloat(String(f || 0)) || 0, m = !1;
+    const s = document.createElement("div");
+    s.className = "ui-prop__col-rotulo", s.title = e.rotulo;
+    const n = document.createElement("span");
+    if (n.textContent = e.rotulo, s.appendChild(n), e.tipo === "numero" && !e.somenteLeitura) {
+      s.classList.add("ui-prop__col-rotulo--scrub"), s.title = `${e.rotulo} (Arraste para ajustar, duplo-clique para editar)`;
+      let d = 0, h = 0, p = !1;
+      s.addEventListener("pointerdown", (m) => {
+        if (m.button !== 0) return;
+        d = m.clientX;
+        const f = this._valoresAtuais[e.id];
+        h = typeof f == "number" ? f : parseFloat(String(f || 0)) || 0, p = !1;
         try {
-          r.setPointerCapture(h.pointerId);
+          s.setPointerCapture(m.pointerId);
         } catch {
         }
-        r.classList.add("ui-prop__col-rotulo--arrastando");
-        const g = (x) => {
-          const w = x.clientX - c;
-          if (Math.abs(w) > 2 && (m = !0), m) {
-            let E = 1;
-            x.shiftKey ? E = 0.1 : (x.ctrlKey || x.metaKey) && (E = 10);
-            const y = t.casasDecimais !== void 0 ? t.casasDecimais : 2, A = Math.pow(10, -Math.min(y, 2));
-            let C = p + w * A * E;
-            t.casasDecimais !== void 0 ? C = Number(C.toFixed(t.casasDecimais)) : C = Math.round(C * 100) / 100, this.registrarAlteracao(e, t.id, C), this.atualizarCampoVisual(t.id, C);
+        s.classList.add("ui-prop__col-rotulo--arrastando");
+        const v = (w) => {
+          const S = w.clientX - d;
+          if (Math.abs(S) > 2 && (p = !0), p) {
+            let P = 1;
+            w.shiftKey ? P = 0.1 : (w.ctrlKey || w.metaKey) && (P = 10);
+            const _ = e.casasDecimais !== void 0 ? e.casasDecimais : 2, I = Math.pow(10, -Math.min(_, 2));
+            let g = h + S * I * P;
+            e.casasDecimais !== void 0 ? g = Number(g.toFixed(e.casasDecimais)) : g = Math.round(g * 100) / 100, this.registrarAlteracao(t, e.id, g), this.atualizarCampoVisual(e.id, g);
           }
-        }, v = (x) => {
-          r.classList.remove("ui-prop__col-rotulo--arrastando");
+        }, y = (w) => {
+          s.classList.remove("ui-prop__col-rotulo--arrastando");
           try {
-            r.hasPointerCapture(x.pointerId) && r.releasePointerCapture(x.pointerId);
+            s.hasPointerCapture(w.pointerId) && s.releasePointerCapture(w.pointerId);
           } catch {
           }
-          r.removeEventListener("pointermove", g), r.removeEventListener("pointerup", v), r.removeEventListener("pointercancel", v);
+          s.removeEventListener("pointermove", v), s.removeEventListener("pointerup", y), s.removeEventListener("pointercancel", y);
         };
-        r.addEventListener("pointermove", g), r.addEventListener("pointerup", v), r.addEventListener("pointercancel", v);
+        s.addEventListener("pointermove", v), s.addEventListener("pointerup", y), s.addEventListener("pointercancel", y);
       });
     }
-    const u = document.createElement("div");
-    u.className = "ui-prop__col-valor";
-    const d = this.criarEditorValor(e, t, a);
-    if (u.appendChild(d), t.unidade) {
-      const c = document.createElement("span");
-      c.className = "ui-prop__unidade-sufixo", c.textContent = t.unidade, u.appendChild(c);
-    }
-    return i.appendChild(r), i.appendChild(u), i;
-  }
-  criarEditorValor(e, t, i) {
-    if (t.somenteLeitura || t.tipo === "readonly") {
-      const r = document.createElement("span"), l = typeof i == "number" || typeof i == "string" && /^-?\d+(\.\d+)?$/.test(i.trim());
-      return r.className = `ui-prop__valor-readonly ${l ? "ui-prop__valor-readonly--numero" : ""}`.trim(), r.textContent = i != null ? String(i) : "—", r;
-    }
-    if (t.tipo === "booleano") {
-      const r = document.createElement("label");
-      r.className = "ui-prop__editor-booleano";
-      const l = !!i, u = document.createElement("div");
-      u.className = `ui-prop__checkbox-custom ${l ? "ui-prop__checkbox-custom--marcado" : ""}`, u.textContent = l ? "✓" : "";
+    const c = document.createElement("div");
+    c.className = "ui-prop__col-valor";
+    const u = this.criarEditorValor(t, e, a);
+    if (c.appendChild(u), e.unidade) {
       const d = document.createElement("span");
-      return d.className = "ui-prop__booleano-rotulo", d.textContent = l ? "Sim" : "Não", r.appendChild(u), r.appendChild(d), r.addEventListener("click", (c) => {
-        c.preventDefault();
-        const p = !this._valoresAtuais[t.id];
-        this.registrarAlteracao(e, t.id, p), u.classList.toggle("ui-prop__checkbox-custom--marcado", p), u.textContent = p ? "✓" : "", d.textContent = p ? "Sim" : "Não";
-      }), r;
+      d.className = "ui-prop__unidade-sufixo", d.textContent = e.unidade, c.appendChild(d);
     }
-    if (t.tipo === "linha" || t.tipo === "linetype") {
-      const r = document.createElement("div");
-      r.className = "ui-prop__editor-linha-container";
-      const l = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-      l.setAttribute("class", "ui-prop__linha-amostra-svg"), l.setAttribute("viewBox", "0 0 44 12");
-      const u = document.createElementNS("http://www.w3.org/2000/svg", "line");
-      u.setAttribute("x1", "0"), u.setAttribute("y1", "6"), u.setAttribute("x2", "44"), u.setAttribute("y2", "6");
-      const d = (m) => {
-        const h = String(m || "").toLowerCase();
-        h.includes("dash") || h.includes("tracej") || h.includes("hidden") ? u.setAttribute("stroke-dasharray", "6,3") : h.includes("dot") || h.includes("ponto") || h.includes("pontilh") ? u.setAttribute("stroke-dasharray", "2,3") : h.includes("center") || h.includes("eixo") ? u.setAttribute("stroke-dasharray", "8,3,2,3") : u.setAttribute("stroke-dasharray", "none");
+    return i.appendChild(s), i.appendChild(c), i;
+  }
+  criarEditorValor(t, e, i) {
+    if (e.somenteLeitura || e.tipo === "readonly") {
+      const s = document.createElement("span"), n = typeof i == "number" || typeof i == "string" && /^-?\d+(\.\d+)?$/.test(i.trim());
+      return s.className = `ui-prop__valor-readonly ${n ? "ui-prop__valor-readonly--numero" : ""}`.trim(), s.textContent = i != null ? String(i) : "—", s;
+    }
+    if (e.tipo === "booleano") {
+      const s = document.createElement("label");
+      s.className = "ui-prop__editor-booleano";
+      const n = !!i, c = document.createElement("div");
+      c.className = `ui-prop__checkbox-custom ${n ? "ui-prop__checkbox-custom--marcado" : ""}`, c.textContent = n ? "✓" : "";
+      const u = document.createElement("span");
+      return u.className = "ui-prop__booleano-rotulo", u.textContent = n ? "Sim" : "Não", s.appendChild(c), s.appendChild(u), s.addEventListener("click", (d) => {
+        d.preventDefault();
+        const h = !this._valoresAtuais[e.id];
+        this.registrarAlteracao(t, e.id, h), c.classList.toggle("ui-prop__checkbox-custom--marcado", h), c.textContent = h ? "✓" : "", u.textContent = h ? "Sim" : "Não";
+      }), s;
+    }
+    if (e.tipo === "linha" || e.tipo === "linetype") {
+      const s = document.createElement("div");
+      s.className = "ui-prop__editor-linha-container";
+      const n = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      n.setAttribute("class", "ui-prop__linha-amostra-svg"), n.setAttribute("viewBox", "0 0 44 12");
+      const c = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      c.setAttribute("x1", "0"), c.setAttribute("y1", "6"), c.setAttribute("x2", "44"), c.setAttribute("y2", "6");
+      const u = (p) => {
+        const m = String(p || "").toLowerCase();
+        m.includes("dash") || m.includes("tracej") || m.includes("hidden") ? c.setAttribute("stroke-dasharray", "6,3") : m.includes("dot") || m.includes("ponto") || m.includes("pontilh") ? c.setAttribute("stroke-dasharray", "2,3") : m.includes("center") || m.includes("eixo") ? c.setAttribute("stroke-dasharray", "8,3,2,3") : c.setAttribute("stroke-dasharray", "none");
       };
-      d(i), l.appendChild(u);
-      const c = document.createElement("select");
-      return c.className = "ui-prop__linha-select", (t.opcoes && t.opcoes.length > 0 ? t.opcoes : [
+      u(i), n.appendChild(c);
+      const d = document.createElement("select");
+      return d.className = "ui-prop__linha-select", (e.opcoes && e.opcoes.length > 0 ? e.opcoes : [
         { id: "ByLayer", rotulo: "ByLayer" },
         { id: "ByBlock", rotulo: "ByBlock" },
         { id: "Continuous", rotulo: "Continuous" },
@@ -5044,29 +6029,29 @@ class K extends HTMLElement {
         { id: "Hidden", rotulo: "Hidden" },
         { id: "Center", rotulo: "Center" },
         { id: "Dotted", rotulo: "Dotted" }
-      ]).forEach((m) => {
-        const h = document.createElement("option");
-        h.value = String(m.id), h.textContent = m.rotulo, String(m.id).toLowerCase() === String(i).toLowerCase() && (h.selected = !0), c.appendChild(h);
-      }), c.addEventListener("change", () => {
-        d(c.value), this.registrarAlteracao(e, t.id, c.value);
-      }), c.addEventListener("keydown", (m) => {
-        m.key === "Enter" && this.focarProximoEditor(c);
-      }), r.appendChild(l), r.appendChild(c), r;
+      ]).forEach((p) => {
+        const m = document.createElement("option");
+        m.value = String(p.id), m.textContent = p.rotulo, String(p.id).toLowerCase() === String(i).toLowerCase() && (m.selected = !0), d.appendChild(m);
+      }), d.addEventListener("change", () => {
+        u(d.value), this.registrarAlteracao(t, e.id, d.value);
+      }), d.addEventListener("keydown", (p) => {
+        p.key === "Enter" && this.focarProximoEditor(d);
+      }), s.appendChild(n), s.appendChild(d), s;
     }
-    if (t.tipo === "espessura" || t.tipo === "lineweight") {
-      const r = document.createElement("div");
-      r.className = "ui-prop__editor-espessura-container";
-      const l = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-      l.setAttribute("class", "ui-prop__espessura-amostra-svg"), l.setAttribute("viewBox", "0 0 38 12");
-      const u = document.createElementNS("http://www.w3.org/2000/svg", "line");
-      u.setAttribute("x1", "0"), u.setAttribute("y1", "6"), u.setAttribute("x2", "38"), u.setAttribute("y2", "6");
-      const d = (m) => {
-        const h = parseFloat(String(m).replace(/[^0-9.]/g, ""));
-        return isNaN(h) || h <= 0 ? 1.5 : Math.min(8, Math.max(1, h * 8));
+    if (e.tipo === "espessura" || e.tipo === "lineweight") {
+      const s = document.createElement("div");
+      s.className = "ui-prop__editor-espessura-container";
+      const n = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      n.setAttribute("class", "ui-prop__espessura-amostra-svg"), n.setAttribute("viewBox", "0 0 38 12");
+      const c = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      c.setAttribute("x1", "0"), c.setAttribute("y1", "6"), c.setAttribute("x2", "38"), c.setAttribute("y2", "6");
+      const u = (p) => {
+        const m = parseFloat(String(p).replace(/[^0-9.]/g, ""));
+        return isNaN(m) || m <= 0 ? 1.5 : Math.min(8, Math.max(1, m * 8));
       };
-      u.setAttribute("stroke-width", String(d(i))), l.appendChild(u);
-      const c = document.createElement("select");
-      return c.className = "ui-prop__espessura-select", (t.opcoes && t.opcoes.length > 0 ? t.opcoes : [
+      c.setAttribute("stroke-width", String(u(i))), n.appendChild(c);
+      const d = document.createElement("select");
+      return d.className = "ui-prop__espessura-select", (e.opcoes && e.opcoes.length > 0 ? e.opcoes : [
         { id: "ByLayer", rotulo: "ByLayer" },
         { id: "ByBlock", rotulo: "ByBlock" },
         { id: "0.00 mm", rotulo: "0.00 mm" },
@@ -5086,27 +6071,27 @@ class K extends HTMLElement {
         { id: "1.00 mm", rotulo: "1.00 mm" },
         { id: "1.40 mm", rotulo: "1.40 mm" },
         { id: "2.00 mm", rotulo: "2.00 mm" }
-      ]).forEach((m) => {
-        const h = document.createElement("option");
-        h.value = String(m.id), h.textContent = m.rotulo, String(m.id).toLowerCase() === String(i).toLowerCase() && (h.selected = !0), c.appendChild(h);
-      }), c.addEventListener("change", () => {
-        u.setAttribute("stroke-width", String(d(c.value))), this.registrarAlteracao(e, t.id, c.value);
-      }), c.addEventListener("keydown", (m) => {
-        m.key === "Enter" && this.focarProximoEditor(c);
-      }), r.appendChild(l), r.appendChild(c), r;
+      ]).forEach((p) => {
+        const m = document.createElement("option");
+        m.value = String(p.id), m.textContent = p.rotulo, String(p.id).toLowerCase() === String(i).toLowerCase() && (m.selected = !0), d.appendChild(m);
+      }), d.addEventListener("change", () => {
+        c.setAttribute("stroke-width", String(u(d.value))), this.registrarAlteracao(t, e.id, d.value);
+      }), d.addEventListener("keydown", (p) => {
+        p.key === "Enter" && this.focarProximoEditor(d);
+      }), s.appendChild(n), s.appendChild(d), s;
     }
-    if (t.tipo === "cor-cad") {
-      const r = document.createElement("div");
-      r.className = "ui-prop__editor-cor-cad-container";
-      const l = document.createElement("div");
-      l.className = "ui-prop__cor-amostra";
-      const u = (m) => {
-        const h = String(m).toLowerCase();
-        return h === "red" || h === "1" ? "#ff0000" : h === "yellow" || h === "2" ? "#ffff00" : h === "green" || h === "3" ? "#00ff00" : h === "cyan" || h === "4" ? "#00ffff" : h === "blue" || h === "5" ? "#0000ff" : h === "magenta" || h === "6" ? "#ff00ff" : h === "white" || h === "7" || h === "bylayer" || h === "byblock" ? "#ffffff" : h.startsWith("#") ? h : "#ffffff";
+    if (e.tipo === "cor-cad") {
+      const s = document.createElement("div");
+      s.className = "ui-prop__editor-cor-cad-container";
+      const n = document.createElement("div");
+      n.className = "ui-prop__cor-amostra";
+      const c = (p) => {
+        const m = String(p).toLowerCase();
+        return m === "red" || m === "1" ? "#ff0000" : m === "yellow" || m === "2" ? "#ffff00" : m === "green" || m === "3" ? "#00ff00" : m === "cyan" || m === "4" ? "#00ffff" : m === "blue" || m === "5" ? "#0000ff" : m === "magenta" || m === "6" ? "#ff00ff" : m === "white" || m === "7" || m === "bylayer" || m === "byblock" ? "#ffffff" : m.startsWith("#") ? m : "#ffffff";
       };
-      l.style.backgroundColor = u(i);
-      const d = document.createElement("select");
-      d.className = "ui-prop__cor-cad-select", [
+      n.style.backgroundColor = c(i);
+      const u = document.createElement("select");
+      u.className = "ui-prop__cor-cad-select", [
         { id: "ByLayer", rotulo: "ByLayer" },
         { id: "ByBlock", rotulo: "ByBlock" },
         { id: "Red", rotulo: "Red (1)" },
@@ -5117,129 +6102,129 @@ class K extends HTMLElement {
         { id: "Magenta", rotulo: "Magenta (6)" },
         { id: "White", rotulo: "White (7)" },
         { id: "custom", rotulo: "Selecionar cor..." }
-      ].forEach((m) => {
-        const h = document.createElement("option");
-        h.value = m.id, h.textContent = m.rotulo, String(m.id).toLowerCase() === String(i).toLowerCase() && (h.selected = !0), d.appendChild(h);
+      ].forEach((p) => {
+        const m = document.createElement("option");
+        m.value = p.id, m.textContent = p.rotulo, String(p.id).toLowerCase() === String(i).toLowerCase() && (m.selected = !0), u.appendChild(m);
       });
-      const p = document.createElement("input");
-      return p.type = "color", p.className = "ui-prop__cor-picker-oculto", p.addEventListener("input", () => {
-        const m = p.value;
-        l.style.backgroundColor = m, this.registrarAlteracao(e, t.id, m);
-      }), d.addEventListener("change", () => {
-        d.value === "custom" ? p.click() : (l.style.backgroundColor = u(d.value), this.registrarAlteracao(e, t.id, d.value));
-      }), d.addEventListener("keydown", (m) => {
-        m.key === "Enter" && this.focarProximoEditor(d);
-      }), r.appendChild(l), r.appendChild(d), r.appendChild(p), r;
+      const h = document.createElement("input");
+      return h.type = "color", h.className = "ui-prop__cor-picker-oculto", h.addEventListener("input", () => {
+        const p = h.value;
+        n.style.backgroundColor = p, this.registrarAlteracao(t, e.id, p);
+      }), u.addEventListener("change", () => {
+        u.value === "custom" ? h.click() : (n.style.backgroundColor = c(u.value), this.registrarAlteracao(t, e.id, u.value));
+      }), u.addEventListener("keydown", (p) => {
+        p.key === "Enter" && this.focarProximoEditor(u);
+      }), s.appendChild(n), s.appendChild(u), s.appendChild(h), s;
     }
-    if (t.tipo === "selecao") {
-      const r = document.createElement("select");
-      return r.className = "ui-prop__editor-select", (t.opcoes || []).forEach((l) => {
-        const u = document.createElement("option");
-        u.value = String(l.id), u.textContent = l.rotulo, String(l.id) === String(i) && (u.selected = !0), r.appendChild(u);
-      }), r.addEventListener("change", () => {
-        this.registrarAlteracao(e, t.id, r.value);
-      }), r.addEventListener("keydown", (l) => {
-        l.key === "Enter" && this.focarProximoEditor(r);
-      }), r;
+    if (e.tipo === "selecao") {
+      const s = document.createElement("select");
+      return s.className = "ui-prop__editor-select", (e.opcoes || []).forEach((n) => {
+        const c = document.createElement("option");
+        c.value = String(n.id), c.textContent = n.rotulo, String(n.id) === String(i) && (c.selected = !0), s.appendChild(c);
+      }), s.addEventListener("change", () => {
+        this.registrarAlteracao(t, e.id, s.value);
+      }), s.addEventListener("keydown", (n) => {
+        n.key === "Enter" && this.focarProximoEditor(s);
+      }), s;
     }
-    if (t.tipo === "cor") {
-      const r = document.createElement("div");
-      r.className = "ui-prop__editor-cor-container";
-      const l = document.createElement("div");
-      l.className = "ui-prop__cor-amostra", l.style.backgroundColor = i || "#ffffff";
-      const u = document.createElement("span");
-      u.className = "ui-prop__cor-texto", u.textContent = t.textoAmostra || String(i || "ByLayer");
-      const d = document.createElement("input");
-      return d.type = "color", d.className = "ui-prop__cor-picker-oculto", d.value = typeof i == "string" && i.startsWith("#") ? i : "#ffffff", d.addEventListener("input", () => {
-        const c = d.value;
-        l.style.backgroundColor = c, u.textContent = c, this.registrarAlteracao(e, t.id, c);
-      }), r.addEventListener("click", () => {
-        d.click();
-      }), r.appendChild(l), r.appendChild(u), r.appendChild(d), r;
+    if (e.tipo === "cor") {
+      const s = document.createElement("div");
+      s.className = "ui-prop__editor-cor-container";
+      const n = document.createElement("div");
+      n.className = "ui-prop__cor-amostra", n.style.backgroundColor = i || "#ffffff";
+      const c = document.createElement("span");
+      c.className = "ui-prop__cor-texto", c.textContent = e.textoAmostra || String(i || "ByLayer");
+      const u = document.createElement("input");
+      return u.type = "color", u.className = "ui-prop__cor-picker-oculto", u.value = typeof i == "string" && i.startsWith("#") ? i : "#ffffff", u.addEventListener("input", () => {
+        const d = u.value;
+        n.style.backgroundColor = d, c.textContent = d, this.registrarAlteracao(t, e.id, d);
+      }), s.addEventListener("click", () => {
+        u.click();
+      }), s.appendChild(n), s.appendChild(c), s.appendChild(u), s;
     }
-    if (t.tipo === "acao") {
-      const r = document.createElement("button");
-      return r.type = "button", r.className = "ui-prop__btn-acao-inline", r.textContent = t.rotuloAcao || "Editar...", r.addEventListener("click", () => {
-        typeof t.onClickAcao == "function" && t.onClickAcao(t), this.dispatchEvent(
+    if (e.tipo === "acao") {
+      const s = document.createElement("button");
+      return s.type = "button", s.className = "ui-prop__btn-acao-inline", s.textContent = e.rotuloAcao || "Editar...", s.addEventListener("click", () => {
+        typeof e.onClickAcao == "function" && e.onClickAcao(e), this.dispatchEvent(
           new CustomEvent("ui-acao-clique", {
             bubbles: !0,
             composed: !0,
-            detail: { id: t.id, categoriaId: e, propriedade: t }
+            detail: { id: e.id, categoriaId: t, propriedade: e }
           })
         );
-      }), r.addEventListener("keydown", (l) => {
-        l.key === "Enter" && r.click();
-      }), r;
+      }), s.addEventListener("keydown", (n) => {
+        n.key === "Enter" && s.click();
+      }), s;
     }
-    if (t.tipo === "numero") {
-      const r = document.createElement("input");
-      r.type = "text", r.inputMode = "decimal", r.autocomplete = "off", r.spellcheck = !1, r.className = "ui-prop__editor-input ui-prop__editor-input--numero", t.placeholder && (r.placeholder = t.placeholder);
-      const l = (d) => {
-        if (d == null || d === "") return "";
-        const c = Number(d);
-        return isNaN(c) ? String(d) : t.casasDecimais !== void 0 ? c.toFixed(t.casasDecimais) : String(c);
+    if (e.tipo === "numero") {
+      const s = document.createElement("input");
+      s.type = "text", s.inputMode = "decimal", s.autocomplete = "off", s.spellcheck = !1, s.className = "ui-prop__editor-input ui-prop__editor-input--numero", e.placeholder && (s.placeholder = e.placeholder);
+      const n = (u) => {
+        if (u == null || u === "") return "";
+        const d = Number(u);
+        return isNaN(d) ? String(u) : e.casasDecimais !== void 0 ? d.toFixed(e.casasDecimais) : String(d);
       };
-      r.value = l(i), r.addEventListener("focus", () => {
-        r.select();
-      }), r.addEventListener("input", () => {
-        const d = r.value, c = /[\+\-\*\/\^\%\(\)]/.test(d) && !/^[+-]?[0-9]*\.?[0-9]*$/.test(d.trim());
-        r.classList.toggle("ui-prop__editor-input--calculando", c);
+      s.value = n(i), s.addEventListener("focus", () => {
+        s.select();
+      }), s.addEventListener("input", () => {
+        const u = s.value, d = /[\+\-\*\/\^\%\(\)]/.test(u) && !/^[+-]?[0-9]*\.?[0-9]*$/.test(u.trim());
+        s.classList.toggle("ui-prop__editor-input--calculando", d);
       });
-      const u = () => {
-        r.classList.remove("ui-prop__editor-input--calculando");
-        const d = r.value.trim();
-        if (d === "") {
-          this.registrarAlteracao(e, t.id, null);
+      const c = () => {
+        s.classList.remove("ui-prop__editor-input--calculando");
+        const u = s.value.trim();
+        if (u === "") {
+          this.registrarAlteracao(t, e.id, null);
           return;
         }
-        const c = vt(d);
-        if (c !== null && !isNaN(c)) {
-          let p = c;
-          t.casasDecimais !== void 0 && (p = Number(c.toFixed(t.casasDecimais))), r.value = l(p), p !== this._valoresAtuais[t.id] && this.registrarAlteracao(e, t.id, p);
+        const d = Ie(u);
+        if (d !== null && !isNaN(d)) {
+          let h = d;
+          e.casasDecimais !== void 0 && (h = Number(d.toFixed(e.casasDecimais))), s.value = n(h), h !== this._valoresAtuais[e.id] && this.registrarAlteracao(t, e.id, h);
         } else
-          r.value = l(this._valoresAtuais[t.id]);
+          s.value = n(this._valoresAtuais[e.id]);
       };
-      return r.addEventListener("change", u), r.addEventListener("blur", u), r.addEventListener("keydown", (d) => {
-        if (d.key === "Enter")
-          u(), this.focarProximoEditor(r);
-        else if (d.key === "Escape")
-          r.classList.remove("ui-prop__editor-input--calculando"), r.value = l(this._valoresAtuais[t.id]), r.blur();
-        else if (d.key === "ArrowUp" || d.key === "ArrowDown") {
-          d.preventDefault();
-          const c = parseFloat(r.value) || 0;
-          let p = t.casasDecimais !== void 0 ? Math.pow(10, -t.casasDecimais) : 1;
-          d.shiftKey ? p *= 10 : d.altKey && (p *= 0.1);
-          let m = d.key === "ArrowUp" ? c + p : c - p;
-          t.casasDecimais !== void 0 ? m = Number(m.toFixed(t.casasDecimais)) : m = Math.round(m * 100) / 100, r.value = l(m), this.registrarAlteracao(e, t.id, m);
+      return s.addEventListener("change", c), s.addEventListener("blur", c), s.addEventListener("keydown", (u) => {
+        if (u.key === "Enter")
+          c(), this.focarProximoEditor(s);
+        else if (u.key === "Escape")
+          s.classList.remove("ui-prop__editor-input--calculando"), s.value = n(this._valoresAtuais[e.id]), s.blur();
+        else if (u.key === "ArrowUp" || u.key === "ArrowDown") {
+          u.preventDefault();
+          const d = parseFloat(s.value) || 0;
+          let h = e.casasDecimais !== void 0 ? Math.pow(10, -e.casasDecimais) : 1;
+          u.shiftKey ? h *= 10 : u.altKey && (h *= 0.1);
+          let p = u.key === "ArrowUp" ? d + h : d - h;
+          e.casasDecimais !== void 0 ? p = Number(p.toFixed(e.casasDecimais)) : p = Math.round(p * 100) / 100, s.value = n(p), this.registrarAlteracao(t, e.id, p);
         }
-      }), r;
+      }), s;
     }
     const a = document.createElement("input");
-    a.type = "text", a.className = "ui-prop__editor-input", t.placeholder && (a.placeholder = t.placeholder), a.value = i != null ? String(i) : "", a.addEventListener("focus", () => {
+    a.type = "text", a.className = "ui-prop__editor-input", e.placeholder && (a.placeholder = e.placeholder), a.value = i != null ? String(i) : "", a.addEventListener("focus", () => {
       a.select();
     });
-    const s = () => {
-      a.value !== this._valoresAtuais[t.id] && this.registrarAlteracao(e, t.id, a.value);
+    const r = () => {
+      a.value !== this._valoresAtuais[e.id] && this.registrarAlteracao(t, e.id, a.value);
     };
-    return a.addEventListener("change", s), a.addEventListener("keydown", (r) => {
-      r.key === "Enter" ? (s(), this.focarProximoEditor(a)) : r.key === "Escape" && (a.value = String(this._valoresAtuais[t.id] ?? ""), a.blur());
+    return a.addEventListener("change", r), a.addEventListener("keydown", (s) => {
+      s.key === "Enter" ? (r(), this.focarProximoEditor(a)) : s.key === "Escape" && (a.value = String(this._valoresAtuais[e.id] ?? ""), a.blur());
     }), a;
   }
-  registrarAlteracao(e, t, i) {
-    const a = this._valoresAtuais[t];
-    this._valoresAtuais[t] = i, this._dirty = !0, this.atualizarBotoesFooter();
-    const s = this.shadow.querySelector(`[data-prop-id="${t}"]`);
-    s && s.classList.add("ui-prop__linha--modificada"), this.getAttribute("modo-aplicar") !== "manual" && this.emitirAlteracao(t, i, a, e);
+  registrarAlteracao(t, e, i) {
+    const a = this._valoresAtuais[e];
+    this._valoresAtuais[e] = i, this._dirty = !0, this.atualizarBotoesFooter();
+    const r = this.shadow.querySelector(`[data-prop-id="${e}"]`);
+    r && r.classList.add("ui-prop__linha--modificada"), this.getAttribute("modo-aplicar") !== "manual" && this.emitirAlteracao(e, i, a, t);
   }
-  emitirAlteracao(e, t, i, a = "") {
+  emitirAlteracao(t, e, i, a = "") {
     this.dispatchEvent(
       new CustomEvent("ui-propriedade-alterada", {
         bubbles: !0,
         composed: !0,
         detail: {
-          id: e,
+          id: t,
           categoriaId: a,
-          valor: t,
+          valor: e,
           valorAnterior: i,
           todosValores: { ...this._valoresAtuais }
         }
@@ -5249,154 +6234,145 @@ class K extends HTMLElement {
   atualizarBotoesFooter() {
     this.btnAplicarElement.disabled = !this._dirty, this.btnDesfazerElement.disabled = !this._dirty;
   }
-  focarProximoEditor(e) {
-    const t = Array.from(
+  focarProximoEditor(t) {
+    const e = Array.from(
       this.shadow.querySelectorAll(
         '.ui-prop__linha input:not([disabled]):not([type="color"]):not(.ui-prop__cor-picker-oculto), .ui-prop__linha select:not([disabled]), .ui-prop__linha .ui-prop__btn-acao-inline:not([disabled])'
       )
-    ), i = t.indexOf(e);
-    if (i !== -1 && i + 1 < t.length) {
-      const a = t[i + 1];
+    ), i = e.indexOf(t);
+    if (i !== -1 && i + 1 < e.length) {
+      const a = e[i + 1];
       a.focus(), a instanceof HTMLInputElement && a.select();
     }
   }
-  atualizarCampoVisual(e, t) {
-    const i = this.shadow.querySelector(`[data-prop-id="${e}"]`);
+  atualizarCampoVisual(t, e) {
+    const i = this.shadow.querySelector(`[data-prop-id="${t}"]`);
     if (!i) return;
     const a = i.querySelector('input:not([type="color"]):not(.ui-prop__cor-picker-oculto)');
-    a && (a.value = String(t ?? ""));
-    const s = i.querySelector("select");
-    s && (s.value = String(t ?? ""));
-    const r = i.querySelector(".ui-prop__linha-amostra-svg line");
-    if (r) {
-      const c = String(t || "").toLowerCase();
-      c.includes("dash") || c.includes("tracej") || c.includes("hidden") ? r.setAttribute("stroke-dasharray", "6,3") : c.includes("dot") || c.includes("ponto") || c.includes("pontilh") ? r.setAttribute("stroke-dasharray", "2,3") : c.includes("center") || c.includes("eixo") ? r.setAttribute("stroke-dasharray", "8,3,2,3") : r.setAttribute("stroke-dasharray", "none");
+    a && (a.value = String(e ?? ""));
+    const r = i.querySelector("select");
+    r && (r.value = String(e ?? ""));
+    const s = i.querySelector(".ui-prop__linha-amostra-svg line");
+    if (s) {
+      const d = String(e || "").toLowerCase();
+      d.includes("dash") || d.includes("tracej") || d.includes("hidden") ? s.setAttribute("stroke-dasharray", "6,3") : d.includes("dot") || d.includes("ponto") || d.includes("pontilh") ? s.setAttribute("stroke-dasharray", "2,3") : d.includes("center") || d.includes("eixo") ? s.setAttribute("stroke-dasharray", "8,3,2,3") : s.setAttribute("stroke-dasharray", "none");
     }
-    const l = i.querySelector(".ui-prop__espessura-amostra-svg line");
-    if (l) {
-      const c = parseFloat(String(t).replace(/[^0-9.]/g, "")), p = isNaN(c) || c <= 0 ? 1.5 : Math.min(8, Math.max(1, c * 8));
-      l.setAttribute("stroke-width", String(p));
+    const n = i.querySelector(".ui-prop__espessura-amostra-svg line");
+    if (n) {
+      const d = parseFloat(String(e).replace(/[^0-9.]/g, "")), h = isNaN(d) || d <= 0 ? 1.5 : Math.min(8, Math.max(1, d * 8));
+      n.setAttribute("stroke-width", String(h));
     }
-    const u = i.querySelector(".ui-prop__cor-amostra");
-    u && typeof t == "string" && (u.style.backgroundColor = t);
-    const d = i.querySelector(".ui-prop__valor-readonly");
-    d && (d.textContent = t != null ? String(t) : "—");
+    const c = i.querySelector(".ui-prop__cor-amostra");
+    c && typeof e == "string" && (c.style.backgroundColor = e);
+    const u = i.querySelector(".ui-prop__valor-readonly");
+    u && (u.textContent = e != null ? String(e) : "—");
   }
 }
-customElements.get("ui-tabela-propriedades") || customElements.define("ui-tabela-propriedades", K);
-customElements.get("ui-painel-propriedades") || customElements.define("ui-painel-propriedades", class extends K {
+customElements.get("ui-tabela-propriedades") || customElements.define("ui-tabela-propriedades", ht);
+customElements.get("ui-painel-propriedades") || customElements.define("ui-painel-propriedades", class extends ht {
 });
-customElements.get("ui-propriedades") || customElements.define("ui-propriedades", class extends K {
+customElements.get("ui-propriedades") || customElements.define("ui-propriedades", class extends ht {
 });
-class kt {
-  constructor(o, e) {
-    n(this, "polylines", []);
-    n(this, "bancoPontosAtivo", !1);
-    n(this, "core");
+class Re {
+  constructor(o, t) {
+    l(this, "polylines", []);
+    l(this, "bancoPontosAtivo", !1);
+    l(this, "core");
     this.core = o;
   }
   setBancoPontosAtivo(o) {
     this.bancoPontosAtivo = o;
   }
-  plotSegmentos(o, e) {
-    this.core.map && o.forEach((t) => {
-      const i = e.find((s) => String(s.id) === String(t.ponto_inicio_id)), a = e.find((s) => String(s.id) === String(t.ponto_fim_id));
+  plotSegmentos(o, t) {
+    this.core.map && o.forEach((e) => {
+      const i = t.find((r) => String(r.id) === String(e.ponto_inicio_id)), a = t.find((r) => String(r.id) === String(e.ponto_fim_id));
       if (i && a && i.lat && i.lon && a.lat && a.lon) {
-        const s = t.tipo_limite_sigef || t.tipo_limite || "", r = t.metodo_posicionamento_sigef || t.metodo_posicionamento || "", l = this.bancoPontosAtivo ? "#94a3b8" : s === "LA1" ? "#10b981" : "#3b82f6", u = this.core.config.perimetroWeight, d = this.bancoPontosAtivo ? 0.4 : 1, c = _.polyline([[i.lat, i.lon], [a.lat, a.lon]], {
-          color: l,
-          weight: u,
-          opacity: d,
-          dashArray: s === "LN1" ? "6, 6" : void 0,
+        const r = e.tipo_limite_sigef || e.tipo_limite || "", s = e.metodo_posicionamento_sigef || e.metodo_posicionamento || "", n = this.bancoPontosAtivo ? "#94a3b8" : r === "LA1" ? "#10b981" : "#3b82f6", c = this.core.config.perimetroWeight, u = this.bancoPontosAtivo ? 0.4 : 1, d = x.polyline([[i.lat, i.lon], [a.lat, a.lon]], {
+          color: n,
+          weight: c,
+          opacity: u,
+          dashArray: r === "LN1" ? "6, 6" : void 0,
           pane: "perimetroPane"
         }).bindPopup(`
           <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.3;">
-            <div style="font-weight:700; font-size:12px; margin-bottom:3px; color:#ffffff;">${k(i.nome_vertice)} ↔ ${k(a.nome_vertice)}</div>
-            <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">Limite: ${k(s)} · ${k(r)}</div>
+            <div style="font-weight:700; font-size:12px; margin-bottom:3px; color:#ffffff;">${E(i.nome_vertice)} ↔ ${E(a.nome_vertice)}</div>
+            <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">Limite: ${E(r)} · ${E(s)}</div>
           </div>
         `, {
           className: "compact-popup",
           maxWidth: 220
         }).addTo(this.core.map);
-        this.polylines.push(c);
+        this.polylines.push(d);
       }
     });
   }
   plotPolilinhaTemporaria(o) {
+    var n, c, u;
     if (!this.core.map) return;
-    const e = o.filter(
-      (r) => r.lat && r.lon && r.lat !== 0 && r.lon !== 0 && r.tipo_ponto !== "B" && r.tipo !== "B" && r.ignorar_poligono !== 1
+    const t = o.filter(
+      (d) => d.lat && d.lon && d.lat !== 0 && d.lon !== 0 && d.tipo_ponto !== "B" && d.tipo !== "B" && d.ignorar_poligono !== 1
     );
-    if (e.length < 2) return;
-    const t = {};
-    e.forEach((r) => {
-      const l = r.matricula_id != null ? `mat_${r.matricula_id}` : r.planilha_origem || "default";
-      t[l] || (t[l] = []), t[l].push(r);
-    });
-    const i = this.bancoPontosAtivo ? "#94a3b8" : "#10b981", a = this.core.config.fechamentoWeight || 2, s = this.bancoPontosAtivo ? 0.4 : 1;
-    Object.values(t).forEach((r) => {
-      if (r.sort((c, p) => Number(c.ordem_caminhamento ?? 999999) - Number(p.ordem_caminhamento ?? 999999)), r.length < 2) return;
-      for (let c = 0; c < r.length - 1; c++) {
-        const p = r[c], m = r[c + 1], h = _.polyline([[p.lat, p.lon], [m.lat, m.lon]], {
-          color: i,
-          weight: a,
+    if (t.length < 2) return;
+    const e = ((n = this.core.controller) == null ? void 0 : n.chaveGrupo) || ((u = (c = this.core.controller) == null ? void 0 : c.context) == null ? void 0 : u.chaveGrupo), i = it(t, e), a = this.bancoPontosAtivo ? "#94a3b8" : "#10b981", r = this.core.config.fechamentoWeight || 2, s = this.bancoPontosAtivo ? 0.4 : 1;
+    Object.values(i).forEach((d) => {
+      const h = ot(d);
+      if (h.length < 2) return;
+      for (let v = 0; v < h.length - 1; v++) {
+        const y = h[v], w = h[v + 1], S = x.polyline([[y.lat, y.lon], [w.lat, w.lon]], {
+          color: a,
+          weight: r,
           opacity: s,
           pane: "perimetroPane"
         }).addTo(this.core.map);
-        this.polylines.push(h);
+        this.polylines.push(S);
       }
-      const l = r[r.length - 1], u = r[0], d = _.polyline([[l.lat, l.lon], [u.lat, u.lon]], {
-        color: i,
-        weight: a,
+      const p = h[h.length - 1], m = h[0], f = x.polyline([[p.lat, p.lon], [m.lat, m.lon]], {
+        color: a,
+        weight: r,
         opacity: s,
         dashArray: "4, 4",
         pane: "perimetroPane"
       }).addTo(this.core.map);
-      this.polylines.push(d);
+      this.polylines.push(f);
     });
   }
   plotPoligonalHomologada(o) {
+    var a, r, s;
     if (!this.core.map || !this.core.bancoPontosGroup) return;
     this.core.bancoPontosGroup.clearLayers();
-    const e = o.filter((i) => i.lat && i.lon && i.lat !== 0 && i.lon !== 0);
-    if (e.length === 0) return;
-    this.bancoPontosAtivo = !0, e.forEach((i) => {
-      const a = `
-        <div class="w-4.5 h-4.5 bg-amber-500 text-slate-950 border-2 border-slate-900 rounded-full flex items-center justify-center text-[7px] font-black font-mono shadow-md hover:scale-125 transition-transform" id="banco-marker-${i.id}">
+    const t = o.filter((n) => n.lat && n.lon && n.lat !== 0 && n.lon !== 0);
+    if (t.length === 0) return;
+    this.bancoPontosAtivo = !0, t.forEach((n) => {
+      const c = `
+        <div class="w-4.5 h-4.5 bg-amber-500 text-slate-950 border-2 border-slate-900 rounded-full flex items-center justify-center text-[7px] font-black font-mono shadow-md hover:scale-125 transition-transform" id="banco-marker-${n.id}">
           H
         </div>
-      `, s = _.divIcon({
-        html: a,
+      `, u = x.divIcon({
+        html: c,
         className: "banco-leaflet-marker",
         iconSize: [18, 18]
-      }), r = `
+      }), d = `
         <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.35; min-width:180px;">
           <div style="font-weight:800; font-size:11px; color:#fbbf24; text-transform:uppercase; letter-spacing:0.5px; border-bottom:1px solid rgba(255, 255, 255, 0.1); padding-bottom:3px; margin-bottom:5px;">Vértice Homologado SIGEF</div>
-          <div style="font-weight:700; font-size:13px; margin-bottom:3px; color:#ffffff;">${k(i.codigo_completo || i.nome_vertice)}</div>
-          <div style="font-size:11px; color:rgba(255, 255, 255, 0.7); font-family:monospace;">Este (E): ${i.este ? i.este.toFixed(2) : "N/A"} m</div>
-          <div style="font-size:11px; color:rgba(255, 255, 255, 0.7); font-family:monospace; margin-bottom:3px;">Norte (N): ${i.norte ? i.norte.toFixed(2) : "N/A"} m</div>
-          <div style="font-size:11px; color:rgba(255, 255, 255, 0.7); margin-bottom:2px;">Alt (h): <strong>${i.altitude ? i.altitude.toFixed(2) : "N/A"} m</strong></div>
-          <div style="font-size:10px; color:rgba(255, 255, 255, 0.45);">Método: ${k(i.metodo_posicionamento) || "N/A"} · Limite: ${k(i.tipo_limite) || "N/A"}</div>
-          ${i.confrontante_descritivo ? `<div style="font-size:10px; color:rgba(255, 255, 255, 0.65); border-top:1px solid rgba(255, 255, 255, 0.1); padding-top:4px; margin-top:4px; word-break:break-word;"><strong>Conf:</strong> ${k(i.confrontante_descritivo)}</div>` : ""}
+          <div style="font-weight:700; font-size:13px; margin-bottom:3px; color:#ffffff;">${E(n.codigo_completo || n.nome_vertice)}</div>
+          <div style="font-size:11px; color:rgba(255, 255, 255, 0.7); font-family:monospace;">Este (E): ${n.este ? n.este.toFixed(2) : "N/A"} m</div>
+          <div style="font-size:11px; color:rgba(255, 255, 255, 0.7); font-family:monospace; margin-bottom:3px;">Norte (N): ${n.norte ? n.norte.toFixed(2) : "N/A"} m</div>
+          <div style="font-size:11px; color:rgba(255, 255, 255, 0.7); margin-bottom:2px;">Alt (h): <strong>${n.altitude ? n.altitude.toFixed(2) : "N/A"} m</strong></div>
+          <div style="font-size:10px; color:rgba(255, 255, 255, 0.45);">Método: ${E(n.metodo_posicionamento) || "N/A"} · Limite: ${E(n.tipo_limite) || "N/A"}</div>
+          ${n.confrontante_descritivo ? `<div style="font-size:10px; color:rgba(255, 255, 255, 0.65); border-top:1px solid rgba(255, 255, 255, 0.1); padding-top:4px; margin-top:4px; word-break:break-word;"><strong>Conf:</strong> ${E(n.confrontante_descritivo)}</div>` : ""}
         </div>
       `;
-      _.marker([i.lat, i.lon], {
-        icon: s,
+      x.marker([n.lat, n.lon], {
+        icon: u,
         pane: "verticesPane"
-      }).bindPopup(r, { className: "compact-popup", maxWidth: 220 }).addTo(this.core.bancoPontosGroup);
+      }).bindPopup(d, { className: "compact-popup", maxWidth: 220 }).addTo(this.core.bancoPontosGroup);
     });
-    const t = {};
-    e.forEach((i) => {
-      const a = i.matricula_id ? `mat_${i.matricula_id}` : i.planilha_origem || "default";
-      t[a] || (t[a] = []), t[a].push(i);
-    });
-    for (const i in t) {
-      const a = t[i];
-      if (a.sort((s, r) => {
-        const l = s.ordem_caminhamento !== void 0 && s.ordem_caminhamento !== null ? s.ordem_caminhamento : s.id, u = r.ordem_caminhamento !== void 0 && r.ordem_caminhamento !== null ? r.ordem_caminhamento : r.id;
-        return l - u;
-      }), a.length >= 2) {
-        const s = a.map((r) => _.latLng(r.lat, r.lon));
-        s.push(_.latLng(a[0].lat, a[0].lon)), _.polyline(s, {
+    const e = ((a = this.core.controller) == null ? void 0 : a.chaveGrupo) || ((s = (r = this.core.controller) == null ? void 0 : r.context) == null ? void 0 : s.chaveGrupo), i = it(t, e);
+    for (const n in i) {
+      const c = ot(i[n]);
+      if (c.length >= 2) {
+        const u = c.map((d) => x.latLng(d.lat, d.lon));
+        u.push(x.latLng(c[0].lat, c[0].lon)), x.polyline(u, {
           color: "#f59e0b",
           // Cor âmbar contrastante premium
           weight: this.core.config.bancoWeight,
@@ -5410,77 +6386,77 @@ class kt {
     this.core.map && this.polylines.forEach((o) => this.core.map.removeLayer(o)), this.core.bancoPontosGroup && this.core.bancoPontosGroup.clearLayers(), this.polylines = [];
   }
 }
-class At {
-  constructor(o, e) {
-    n(this, "markers", []);
-    n(this, "vizinhosMarkers", []);
-    n(this, "vizinhosPoligonos", []);
-    n(this, "core");
-    n(this, "controller");
-    this.core = o, this.controller = e;
+class He {
+  constructor(o, t) {
+    l(this, "markers", []);
+    l(this, "vizinhosMarkers", []);
+    l(this, "vizinhosPoligonos", []);
+    l(this, "core");
+    l(this, "controller");
+    this.core = o, this.controller = t;
   }
-  plotPontos(o, e) {
-    this.core.map && o.forEach((t) => {
-      var i, a, s;
-      if (t.lat && t.lon && t.lat !== 0 && t.lon !== 0) {
-        const r = t.tipo_ponto === "B" || t.tipo === "B", l = t.tipo_ponto === "M" || t.tipo === "M";
-        let u = "bg-mint-vibrant", d = "x", c = 7;
-        l ? (u = "bg-indigo-500", c = 9) : r && (u = "bg-rose-500", c = 9);
-        const p = this.core.config.enableAnimations ? "transition-all duration-150" : "", m = (a = (i = this.controller) == null ? void 0 : i.linhas) != null && a.bancoPontosAtivo ? "opacity-40 hover:opacity-100" : "", h = D(d, c, u, `${p} ${m}`, `map-marker-${t.id}`), f = _.divIcon({
-          html: h,
+  plotPontos(o, t) {
+    this.core.map && o.forEach((e) => {
+      var i, a, r;
+      if (e.lat && e.lon && e.lat !== 0 && e.lon !== 0) {
+        const s = e.tipo_ponto === "B" || e.tipo === "B", n = e.tipo_ponto === "M" || e.tipo === "M";
+        let c = "bg-mint-vibrant", u = "x", d = 7;
+        n ? (c = "bg-indigo-500", d = 9) : s && (c = "bg-rose-500", d = 9);
+        const h = this.core.config.enableAnimations ? "transition-all duration-150" : "", p = (a = (i = this.controller) == null ? void 0 : i.linhas) != null && a.bancoPontosAtivo ? "opacity-40 hover:opacity-100" : "", m = at(u, d, c, `${h} ${p}`, `map-marker-${e.id}`), f = x.divIcon({
+          html: m,
           className: "custom-leaflet-marker flex items-center justify-center",
-          iconSize: [c + 6, c + 6]
-        }), g = l ? "Base Homologada PPP" : r ? "Base de Campo (Translação)" : "Vértice de Perímetro", v = _.marker([t.lat, t.lon], {
+          iconSize: [d + 6, d + 6]
+        }), v = n ? "Base Homologada PPP" : s ? "Base de Campo (Translação)" : "Vértice de Perímetro", y = x.marker([e.lat, e.lon], {
           icon: f,
           pane: "verticesPane"
         });
-        v.pontoId = t.id, (s = this.controller) != null && s.modoCliqueSequencialAtivo || v.bindPopup(`
+        y.pontoId = e.id, (r = this.controller) != null && r.modoCliqueSequencialAtivo || y.bindPopup(`
             <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.3;">
-              <div style="font-weight:700; font-size:13px; margin-bottom:4px; color:#ffffff;">${k(t.nome_vertice)}</div>
-              <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">${k(g)} · ${k(t.tipo_ponto || t.tipo)}</div>
-              <div style="font-size:11px; color:rgba(255, 255, 255, 0.45); font-family:monospace; margin-top:4px;">Lat ${t.lat.toFixed(6)} &nbsp; Lon ${t.lon.toFixed(6)}</div>
+              <div style="font-weight:700; font-size:13px; margin-bottom:4px; color:#ffffff;">${E(e.nome_vertice)}</div>
+              <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">${E(v)} · ${E(e.tipo_ponto || e.tipo)}</div>
+              <div style="font-size:11px; color:rgba(255, 255, 255, 0.45); font-family:monospace; margin-top:4px;">Lat ${e.lat.toFixed(6)} &nbsp; Lon ${e.lon.toFixed(6)}</div>
             </div>
           `, {
           className: "compact-popup",
           maxWidth: 220
-        }), v.addTo(this.core.map), v.setZIndexOffset(1e3), v.on("click", () => {
-          e(t.id);
-        }), this.markers.push(v);
+        }), y.addTo(this.core.map), y.setZIndexOffset(1e3), y.on("click", () => {
+          t(e.id);
+        }), this.markers.push(y);
       }
     });
   }
   plotPontosVizinhos(o) {
     if (!this.core.map || !this.core.pontosVizinhosGroup) return;
-    this.core.map.hasLayer(this.core.pontosVizinhosGroup) || this.core.pontosVizinhosGroup.addTo(this.core.map), this.vizinhosMarkers && this.vizinhosMarkers.length > 0 && (this.vizinhosMarkers.forEach((t) => {
-      t.off(), t.unbindPopup();
+    this.core.map.hasLayer(this.core.pontosVizinhosGroup) || this.core.pontosVizinhosGroup.addTo(this.core.map), this.vizinhosMarkers && this.vizinhosMarkers.length > 0 && (this.vizinhosMarkers.forEach((e) => {
+      e.off(), e.unbindPopup();
     }), this.vizinhosMarkers = []), this.core.pontosVizinhosGroup.clearLayers();
-    const e = /* @__PURE__ */ new Map();
-    (o || []).forEach((t) => {
-      const i = t.lat ?? t.latitude ?? t.y, a = t.lon ?? t.lng ?? t.longitude ?? t.x, s = typeof i == "string" ? parseFloat(i.replace(",", ".")) : Number(i), r = typeof a == "string" ? parseFloat(a.replace(",", ".")) : Number(a);
-      if (s !== void 0 && r !== void 0 && !isNaN(s) && !isNaN(r) && s !== 0 && r !== 0) {
-        t.lat = s, t.lon = r;
-        const l = t.confrontante_id !== void 0 && t.confrontante_id !== null ? String(t.confrontante_id) : "0";
-        e.has(l) || e.set(l, []), e.get(l).push(t);
+    const t = /* @__PURE__ */ new Map();
+    (o || []).forEach((e) => {
+      const i = e.lat ?? e.latitude ?? e.y, a = e.lon ?? e.lng ?? e.longitude ?? e.x, r = typeof i == "string" ? parseFloat(i.replace(",", ".")) : Number(i), s = typeof a == "string" ? parseFloat(a.replace(",", ".")) : Number(a);
+      if (r !== void 0 && s !== void 0 && !isNaN(r) && !isNaN(s) && r !== 0 && s !== 0) {
+        e.lat = r, e.lon = s;
+        const n = e.confrontante_id !== void 0 && e.confrontante_id !== null ? String(e.confrontante_id) : "0";
+        t.has(n) || t.set(n, []), t.get(n).push(e);
       }
-    }), e.forEach((t) => {
-      if (t.length >= 2) {
-        t.sort((a, s) => a.id - s.id);
-        const i = t.map((a) => _.latLng(a.lat, a.lon));
-        t.length > 2 && i.push(_.latLng(t[0].lat, t[0].lon)), _.polyline(i, {
+    }), t.forEach((e) => {
+      if (e.length >= 2) {
+        e.sort((a, r) => Number(a.id) - Number(r.id));
+        const i = e.map((a) => x.latLng(a.lat, a.lon));
+        e.length > 2 && i.push(x.latLng(e[0].lat, e[0].lon)), x.polyline(i, {
           color: "#a855f7",
           weight: this.core.config.vizinhoWeight,
           dashArray: "4, 6",
           pane: "overlayPane"
         }).addTo(this.core.pontosVizinhosGroup);
       }
-      t.forEach((i) => {
-        var p, m;
+      e.forEach((i) => {
+        var h, p;
         const a = document.createElement("div");
         a.className = "p-2 font-sans text-xs bg-[#0c1510] text-white min-w-[200px] rounded", a.innerHTML = `
           <div class="font-bold text-purple-400 mb-1 border-b border-white/10 pb-1">Confrontante (Importado)</div>
-          <div class="mb-1"><strong>Vértice:</strong> <span class="font-mono">${k(i.nome_vertice || "")}</span></div>
-          <div class="mb-1"><strong>Proprietário:</strong> ${k(i.nome_confrontante || "") || "Desconhecido"}</div>
-          <div class="mb-1"><strong>Propriedade:</strong> ${k(i.nome_propriedade || "") || "Desconhecida"}</div>
+          <div class="mb-1"><strong>Vértice:</strong> <span class="font-mono">${E(i.nome_vertice || "")}</span></div>
+          <div class="mb-1"><strong>Proprietário:</strong> ${E(i.nome_confrontante || "") || "Desconhecido"}</div>
+          <div class="mb-1"><strong>Propriedade:</strong> ${E(i.nome_propriedade || "") || "Desconhecida"}</div>
           <div class="mb-1"><strong>Coordenadas:</strong> ${i.lat.toFixed(7)}, ${i.lon.toFixed(7)}</div>
           <div class="text-[10px] text-white/50 border-t border-white/5 pt-1 mt-1 font-mono uppercase tracking-wider mb-2">Pontos Imutáveis do Vizinho</div>
           <div style="display:flex; gap:6px; border-top:1px solid rgba(255,255,255,0.1); padding-top:6px;">
@@ -5491,22 +6467,22 @@ class At {
               Ocultar
             </button>
           </div>
-        `, (p = a.querySelector(".btn-integrar")) == null || p.addEventListener("click", () => {
+        `, (h = a.querySelector(".btn-integrar")) == null || h.addEventListener("click", () => {
           window.dispatchEvent(new CustomEvent("gerencigeo:integrar_vizinho", { detail: { pontoId: i.id } }));
-        }), (m = a.querySelector(".btn-ocultar")) == null || m.addEventListener("click", () => {
+        }), (p = a.querySelector(".btn-ocultar")) == null || p.addEventListener("click", () => {
           window.dispatchEvent(new CustomEvent("gerencigeo:ocultar_vizinho", { detail: { pontoId: i.id } }));
         });
-        let s = this.core.config.markerStyleV || "cross", r = this.core.config.markerSizeV || 8;
-        i.tipo_ponto === "M" || i.tipo === "M" || i.tipo === "B" ? (s = this.core.config.markerStyleM || "circle-dot", r = this.core.config.markerSizeM || 14) : (i.tipo_ponto === "P" || i.tipo === "P" || i.tipo === "O") && (s = this.core.config.markerStyleP || "circle", r = this.core.config.markerSizeP || 10);
-        const l = this.core.config.enableAnimations ? "transition-all duration-150" : "", u = D(s, r, "bg-[#a855f7]", l, `map-marker-vizinho-${i.id}`), d = _.divIcon({
-          html: u,
+        let r = this.core.config.markerStyleV || "cross", s = this.core.config.markerSizeV || 8;
+        i.tipo_ponto === "M" || i.tipo === "M" || i.tipo === "B" ? (r = this.core.config.markerStyleM || "circle-dot", s = this.core.config.markerSizeM || 14) : (i.tipo_ponto === "P" || i.tipo === "P" || i.tipo === "O") && (r = this.core.config.markerStyleP || "circle", s = this.core.config.markerSizeP || 10);
+        const n = this.core.config.enableAnimations ? "transition-all duration-150" : "", c = at(r, s, "bg-[#a855f7]", n, `map-marker-vizinho-${i.id}`), u = x.divIcon({
+          html: c,
           className: "custom-leaflet-marker flex items-center justify-center",
-          iconSize: [r + 4, r + 4]
-        }), c = _.marker([i.lat, i.lon], {
-          icon: d,
+          iconSize: [s + 4, s + 4]
+        }), d = x.marker([i.lat, i.lon], {
+          icon: u,
           pane: "overlayPane"
         }).bindPopup(a, { className: "custom-leaflet-popup" });
-        c.pontoId = i.id, c.isVizinho = !0, c.addTo(this.core.pontosVizinhosGroup), this.vizinhosMarkers.push(c);
+        d.pontoId = i.id, d.isVizinho = !0, d.addTo(this.core.pontosVizinhosGroup), this.vizinhosMarkers.push(d);
       });
     });
   }
@@ -5514,16 +6490,16 @@ class At {
    * Desenha o perímetro (limites) dos imóveis vizinhos importados via WKT POLYGON
    */
   plotPoligonosVizinhos(o) {
-    !this.core.map || !this.core.pontosVizinhosGroup || (this.core.map.hasLayer(this.core.pontosVizinhosGroup) || this.core.pontosVizinhosGroup.addTo(this.core.map), this.vizinhosPoligonos.length > 0 && (this.vizinhosPoligonos.forEach((e) => e.off()), this.vizinhosPoligonos = []), (o || []).forEach((e) => {
-      if (!e || !e.poligono_wkt) return;
-      const t = /POLYGON\s*\(\s*\(\s*(.*?)\s*\)\s*\)/i.exec(e.poligono_wkt);
-      if (!t) return;
-      const i = t[1].split(",").map((l) => {
-        const u = l.trim().split(/\s+/), d = parseFloat(u[0]), c = parseFloat(u[1]);
-        return !isNaN(c) && !isNaN(d) ? [c, d] : null;
-      }).filter((l) => l !== null);
+    !this.core.map || !this.core.pontosVizinhosGroup || (this.core.map.hasLayer(this.core.pontosVizinhosGroup) || this.core.pontosVizinhosGroup.addTo(this.core.map), this.vizinhosPoligonos.length > 0 && (this.vizinhosPoligonos.forEach((t) => t.off()), this.vizinhosPoligonos = []), (o || []).forEach((t) => {
+      if (!t || !t.poligono_wkt) return;
+      const e = /POLYGON\s*\(\s*\(\s*(.*?)\s*\)\s*\)/i.exec(t.poligono_wkt);
+      if (!e) return;
+      const i = e[1].split(",").map((n) => {
+        const c = n.trim().split(/\s+/), u = parseFloat(c[0]), d = parseFloat(c[1]);
+        return !isNaN(d) && !isNaN(u) ? [d, u] : null;
+      }).filter((n) => n !== null);
       if (i.length < 3) return;
-      const a = k(e.nome_propriedade || "Propriedade Vizinha"), s = k(e.nome || "Desconhecido"), r = _.polygon(i, {
+      const a = E(t.nome_propriedade || "Propriedade Vizinha"), r = E(t.nome || "Desconhecido"), s = x.polygon(i, {
         color: "#a855f7",
         weight: this.core.config.vizinhoWeight,
         dashArray: "4, 6",
@@ -5534,10 +6510,10 @@ class At {
         <div class="p-2 font-sans text-xs bg-[#0c1510] text-white min-w-[200px] rounded">
           <div class="font-bold text-purple-400 mb-1 border-b border-white/10 pb-1">Limite do Vizinho (Importado)</div>
           <div class="mb-1"><strong>Propriedade:</strong> ${a}</div>
-          <div class="mb-1"><strong>Proprietário:</strong> ${s}</div>
+          <div class="mb-1"><strong>Proprietário:</strong> ${r}</div>
         </div>
       `, { className: "custom-leaflet-popup" });
-      r.addTo(this.core.pontosVizinhosGroup), this.vizinhosPoligonos.push(r);
+      s.addTo(this.core.pontosVizinhosGroup), this.vizinhosPoligonos.push(s);
     }));
   }
   clearMarkers() {
@@ -5548,34 +6524,34 @@ class At {
     }), this.vizinhosMarkers = []), this.vizinhosPoligonos && (this.vizinhosPoligonos.forEach((o) => o.off()), this.vizinhosPoligonos = []), this.core.pontosVizinhosGroup && this.core.pontosVizinhosGroup.clearLayers();
   }
 }
-class xt {
+class Te {
   constructor() {
-    n(this, "listeners", /* @__PURE__ */ new Map());
+    l(this, "listeners", /* @__PURE__ */ new Map());
   }
-  on(o, e) {
-    return this.listeners.has(o) || this.listeners.set(o, /* @__PURE__ */ new Set()), this.listeners.get(o).add(e), () => this.off(o, e);
+  on(o, t) {
+    return this.listeners.has(o) || this.listeners.set(o, /* @__PURE__ */ new Set()), this.listeners.get(o).add(t), () => this.off(o, t);
   }
-  once(o, e) {
-    const t = (i) => {
-      this.off(o, t), e(i);
+  once(o, t) {
+    const e = (i) => {
+      this.off(o, e), t(i);
     };
-    this.on(o, t);
+    this.on(o, e);
   }
-  off(o, e) {
-    const t = this.listeners.get(o);
-    t && (t.delete(e), t.size === 0 && this.listeners.delete(o));
+  off(o, t) {
+    const e = this.listeners.get(o);
+    e && (e.delete(t), e.size === 0 && this.listeners.delete(o));
   }
-  emit(o, e) {
-    const t = this.listeners.get(o);
-    t && t.forEach((i) => {
+  emit(o, t) {
+    const e = this.listeners.get(o);
+    e && e.forEach((i) => {
       try {
-        i(e);
+        i(t);
       } catch (a) {
         console.error(`[UIBus] Erro ao executar ouvinte do evento "${o}":`, a);
       }
     }), typeof window < "u" && window.dispatchEvent(
       new CustomEvent(`uibus:${o}`, {
-        detail: e,
+        detail: t,
         bubbles: !0,
         composed: !0
       })
@@ -5588,61 +6564,61 @@ class xt {
    * Abre um modal pelo seu ID no documento.
    */
   abrirModal(o) {
-    const e = document.getElementById(o);
-    return e && typeof e.abrir == "function" ? (e.abrir(), this.emit("modal:aberto", { id: o }), !0) : e ? (e.setAttribute("aberto", ""), this.emit("modal:aberto", { id: o }), !0) : (console.warn(`[UIBus] Modal com ID "${o}" não encontrado no DOM.`), !1);
+    const t = document.getElementById(o);
+    return t && typeof t.abrir == "function" ? (t.abrir(), this.emit("modal:aberto", { id: o }), !0) : t ? (t.setAttribute("aberto", ""), this.emit("modal:aberto", { id: o }), !0) : (console.warn(`[UIBus] Modal com ID "${o}" não encontrado no DOM.`), !1);
   }
   /**
    * Fecha um modal pelo seu ID ou todos os modais abertos se nenhum ID for passado.
    */
   fecharModal(o) {
     if (o) {
-      const e = document.getElementById(o);
-      return e && typeof e.fechar == "function" ? (e.fechar(), this.emit("modal:fechado", { id: o }), !0) : e ? (e.removeAttribute("aberto"), e.removeAttribute("open"), this.emit("modal:fechado", { id: o }), !0) : !1;
+      const t = document.getElementById(o);
+      return t && typeof t.fechar == "function" ? (t.fechar(), this.emit("modal:fechado", { id: o }), !0) : t ? (t.removeAttribute("aberto"), t.removeAttribute("open"), this.emit("modal:fechado", { id: o }), !0) : !1;
     } else
       return document.querySelectorAll(
         "ui-modal[aberto], ui-modal[open], ui-dialog[aberto], ui-dialog[open]"
-      ).forEach((t) => {
-        typeof t.fechar == "function" ? t.fechar() : (t.removeAttribute("aberto"), t.removeAttribute("open"));
+      ).forEach((e) => {
+        typeof e.fechar == "function" ? e.fechar() : (e.removeAttribute("aberto"), e.removeAttribute("open"));
       }), this.emit("modal:fechado-todos"), !0;
   }
   /**
    * Abre um painel lateral (drawer / sheet) pelo seu ID no documento.
    */
   abrirDrawer(o) {
-    const e = document.getElementById(o);
-    return e && typeof e.abrir == "function" ? (e.abrir(), this.emit("drawer:aberto", { id: o }), !0) : e ? (e.setAttribute("aberto", ""), this.emit("drawer:aberto", { id: o }), !0) : (console.warn(`[UIBus] Drawer com ID "${o}" não encontrado no DOM.`), !1);
+    const t = document.getElementById(o);
+    return t && typeof t.abrir == "function" ? (t.abrir(), this.emit("drawer:aberto", { id: o }), !0) : t ? (t.setAttribute("aberto", ""), this.emit("drawer:aberto", { id: o }), !0) : (console.warn(`[UIBus] Drawer com ID "${o}" não encontrado no DOM.`), !1);
   }
   /**
    * Fecha um painel lateral (drawer / sheet) pelo seu ID ou todos se nenhum for passado.
    */
   fecharDrawer(o) {
     if (o) {
-      const e = document.getElementById(o);
-      return e && typeof e.fechar == "function" ? (e.fechar(), this.emit("drawer:fechado", { id: o }), !0) : e ? (e.removeAttribute("aberto"), e.removeAttribute("open"), this.emit("drawer:fechado", { id: o }), !0) : !1;
+      const t = document.getElementById(o);
+      return t && typeof t.fechar == "function" ? (t.fechar(), this.emit("drawer:fechado", { id: o }), !0) : t ? (t.removeAttribute("aberto"), t.removeAttribute("open"), this.emit("drawer:fechado", { id: o }), !0) : !1;
     } else
       return document.querySelectorAll(
         "ui-drawer[aberto], ui-drawer[open], ui-sheet[aberto], ui-sheet[open]"
-      ).forEach((t) => {
-        typeof t.fechar == "function" ? t.fechar() : (t.removeAttribute("aberto"), t.removeAttribute("open"));
+      ).forEach((e) => {
+        typeof e.fechar == "function" ? e.fechar() : (e.removeAttribute("aberto"), e.removeAttribute("open"));
       }), this.emit("drawer:fechado-todos"), !0;
   }
   /**
    * Dispara uma notificação toast flutuante inteligente.
    */
   notificar(o) {
-    typeof o == "string" ? F.notificar({ mensagem: o, tipo: "info" }) : F.notificar(o);
+    typeof o == "string" ? Q.notificar({ mensagem: o, tipo: "info" }) : Q.notificar(o);
   }
   /**
    * Copia um texto para a área de transferência do usuário e exibe feedback opcional.
    */
-  async copiar(o, e) {
+  async copiar(o, t) {
     try {
-      return await navigator.clipboard.writeText(o), e !== void 0 && this.notificar({
+      return await navigator.clipboard.writeText(o), t !== void 0 && this.notificar({
         tipo: "sucesso",
-        mensagem: e || "Copiado para a área de transferência!"
+        mensagem: t || "Copiado para a área de transferência!"
       }), this.emit("clipboard:copiado", { texto: o }), !0;
-    } catch (t) {
-      return console.error("[UIBus] Falha ao copiar texto:", t), this.notificar({
+    } catch (e) {
+      return console.error("[UIBus] Falha ao copiar texto:", e), this.notificar({
         tipo: "erro",
         mensagem: "Não foi possível copiar o texto."
       }), !1;
@@ -5652,153 +6628,163 @@ class xt {
    * Altera a densidade visual global do kit (compacta, normal ou relaxada).
    */
   definirDensidade(o) {
-    let e = 20;
-    typeof o == "number" ? e = Math.max(15, o) : o === "compacta" ? e = 15 : o === "relaxada" ? e = 32 : e = 20, document.documentElement.style.setProperty("--ui-altura-minima", `${e}px`), document.documentElement.style.setProperty("--ui-campo-altura", `${e}px`), document.documentElement.setAttribute("data-ui-densidade", typeof o == "string" ? o : "custom"), this.emit("densidade:alterada", { densidade: o, alturaPx: e });
+    let t = 20;
+    typeof o == "number" ? t = Math.max(15, o) : o === "compacta" ? t = 15 : o === "relaxada" ? t = 32 : t = 20, document.documentElement.style.setProperty("--ui-altura-minima", `${t}px`), document.documentElement.style.setProperty("--ui-campo-altura", `${t}px`), document.documentElement.setAttribute("data-ui-densidade", typeof o == "string" ? o : "custom"), this.emit("densidade:alterada", { densidade: o, alturaPx: t });
   }
   /**
    * Alterna ou define o tema visual global.
    */
   definirTema(o) {
-    const e = document.documentElement, t = e.getAttribute("data-tema") || (e.classList.contains("dark") ? "escuro" : "claro"), i = o || (t === "escuro" ? "claro" : "escuro");
-    return e.setAttribute("data-tema", i), i === "escuro" ? e.classList.add("dark") : e.classList.remove("dark"), this.emit("tema:alterado", { tema: i }), i;
+    const t = document.documentElement;
+    let e = t.getAttribute("data-tema");
+    e || (e = t.classList.contains("dark") ? "escuro" : t.classList.contains("light") ? "claro" : "escuro");
+    const i = o || (e === "escuro" ? "claro" : "escuro");
+    return t.setAttribute("data-tema", i), i === "escuro" ? (t.classList.add("dark"), t.classList.remove("light")) : (t.classList.remove("dark"), t.classList.add("light")), this.emit("tema:alterado", { tema: i }), i;
   }
 }
-const M = new xt();
-let ie = !1;
-function yt() {
-  ie || typeof document > "u" || (ie = !0, document.addEventListener("click", (b) => {
-    const o = b.composedPath ? b.composedPath() : [b.target], e = "[target-modal], [modal-alvo], [dismiss-modal], [fechar-modal], [target-drawer], [drawer-alvo], [dismiss-drawer], [fechar-drawer], [toast-sucesso], [toast-erro], [toast-alerta], [toast-info], [copiar-texto], [alternar-tema], [definir-densidade], [limpar-form]";
-    let t = null;
-    for (const m of o)
-      if (m instanceof HTMLElement && m.matches(e)) {
-        t = m;
+const j = new Te();
+let gt = !1;
+function qe() {
+  gt || typeof document > "u" || (gt = !0, document.addEventListener("click", (b) => {
+    const o = b.composedPath ? b.composedPath() : [b.target], t = "[target-modal], [modal-alvo], [dismiss-modal], [fechar-modal], [target-drawer], [drawer-alvo], [dismiss-drawer], [fechar-drawer], [toast-sucesso], [toast-erro], [toast-alerta], [toast-info], [copiar-texto], [alternar-tema], [definir-densidade], [limpar-form]";
+    let e = null;
+    for (const p of o)
+      if (p instanceof HTMLElement && p.matches(t)) {
+        e = p;
         break;
       }
-    if (!t) return;
-    const i = t.getAttribute("target-modal") || t.getAttribute("modal-alvo");
-    if (i && M.abrirModal(i), t.hasAttribute("dismiss-modal") || t.hasAttribute("fechar-modal")) {
-      const m = t.getAttribute("dismiss-modal") || t.getAttribute("fechar-modal");
-      if (m && m !== "")
-        M.fecharModal(m);
+    if (!e) return;
+    const i = e.getAttribute("target-modal") || e.getAttribute("modal-alvo");
+    if (i && j.abrirModal(i), e.hasAttribute("dismiss-modal") || e.hasAttribute("fechar-modal")) {
+      const p = e.getAttribute("dismiss-modal") || e.getAttribute("fechar-modal");
+      if (p && p !== "")
+        j.fecharModal(p);
       else {
-        let h = null;
+        let m = null;
         for (const f of o)
           if (f instanceof HTMLElement && (f.matches("ui-modal, ui-dialog") || f.tagName === "UI-MODAL" || f.tagName === "UI-DIALOG")) {
-            h = f;
+            m = f;
             break;
           }
-        h && (typeof h.fechar == "function" ? h.fechar() : (h.removeAttribute("aberto"), h.removeAttribute("open")));
+        m && (typeof m.fechar == "function" ? m.fechar() : (m.removeAttribute("aberto"), m.removeAttribute("open")));
       }
     }
-    const a = t.getAttribute("target-drawer") || t.getAttribute("drawer-alvo");
-    if (a && M.abrirDrawer(a), t.hasAttribute("dismiss-drawer") || t.hasAttribute("fechar-drawer")) {
-      const m = t.getAttribute("dismiss-drawer") || t.getAttribute("fechar-drawer");
-      if (m && m !== "")
-        M.fecharDrawer(m);
+    const a = e.getAttribute("target-drawer") || e.getAttribute("drawer-alvo");
+    if (a && j.abrirDrawer(a), e.hasAttribute("dismiss-drawer") || e.hasAttribute("fechar-drawer")) {
+      const p = e.getAttribute("dismiss-drawer") || e.getAttribute("fechar-drawer");
+      if (p && p !== "")
+        j.fecharDrawer(p);
       else {
-        let h = null;
+        let m = null;
         for (const f of o)
           if (f instanceof HTMLElement && (f.matches("ui-drawer, ui-sheet, ui-painel-lateral, ui-gaveta") || f.tagName.startsWith("UI-DRAWER") || f.tagName.startsWith("UI-SHEET"))) {
-            h = f;
+            m = f;
             break;
           }
-        h && (typeof h.fechar == "function" ? h.fechar() : (h.removeAttribute("aberto"), h.removeAttribute("open")));
+        m && (typeof m.fechar == "function" ? m.fechar() : (m.removeAttribute("aberto"), m.removeAttribute("open")));
       }
     }
-    const s = t.getAttribute("toast-sucesso");
-    s && M.notificar({ tipo: "sucesso", mensagem: s });
-    const r = t.getAttribute("toast-erro");
-    r && M.notificar({ tipo: "erro", mensagem: r });
-    const l = t.getAttribute("toast-alerta");
-    l && M.notificar({ tipo: "alerta", mensagem: l });
-    const u = t.getAttribute("toast-info");
-    u && M.notificar({ tipo: "info", mensagem: u });
-    const d = t.getAttribute("copiar-texto");
-    if (d !== null) {
-      let m = d;
-      if (d.startsWith("#") || d.startsWith("."))
+    const r = e.getAttribute("toast-sucesso");
+    r && j.notificar({ tipo: "sucesso", mensagem: r });
+    const s = e.getAttribute("toast-erro");
+    s && j.notificar({ tipo: "erro", mensagem: s });
+    const n = e.getAttribute("toast-alerta");
+    n && j.notificar({ tipo: "alerta", mensagem: n });
+    const c = e.getAttribute("toast-info");
+    c && j.notificar({ tipo: "info", mensagem: c });
+    const u = e.getAttribute("copiar-texto");
+    if (u !== null) {
+      let p = u;
+      if (u.startsWith("#") || u.startsWith("."))
         try {
-          const f = document.querySelector(d);
-          f && (m = f.value !== void 0 ? f.value : f.textContent || "");
+          const f = document.querySelector(u);
+          f && (p = f.value !== void 0 ? f.value : f.textContent || "");
         } catch {
         }
-      const h = t.getAttribute("copiar-mensagem") || "Copiado com sucesso!";
-      M.copiar(m, h);
+      const m = e.getAttribute("copiar-mensagem") || "Copiado com sucesso!";
+      j.copiar(p, m);
     }
-    t.hasAttribute("alternar-tema") && M.definirTema();
-    const c = t.getAttribute("definir-densidade");
-    c && M.definirDensidade(c);
-    const p = t.getAttribute("limpar-form");
-    if (p) {
-      const m = document.getElementById(p);
-      m && typeof m.reset == "function" && (m.reset(), M.notificar({ tipo: "info", mensagem: "Formulário limpo." }));
+    e.hasAttribute("alternar-tema") && j.definirTema();
+    const d = e.getAttribute("definir-densidade");
+    d && j.definirDensidade(d);
+    const h = e.getAttribute("limpar-form");
+    if (h) {
+      const p = document.getElementById(h);
+      p && typeof p.reset == "function" && (p.reset(), j.notificar({ tipo: "info", mensagem: "Formulário limpo." }));
     }
   }));
 }
-typeof document < "u" && yt();
+typeof document < "u" && qe();
 export {
-  rt as CAD_INTERACTIVE_PANES,
-  st as CanvasInteracao,
-  mt as CanvasLayerManager,
-  te as DEFAULT_CONFIG,
-  pt as DEFAULT_LAYERS,
-  ft as GerenciGeoMapaController,
-  ht as GridLayerRenderer,
-  S as LayerRendererFactory,
-  z as ListenerBag,
-  j as MapaConfigManager,
-  at as MapaCore,
-  kt as MapaLinhas,
-  At as MapaMarcadores,
-  nt as TileLayerRenderer,
-  se as UIAlerta,
-  Pe as UIAvatar,
-  G as UIBadge,
-  oe as UIBotao,
-  fe as UIBotaoPrimario,
-  M as UIBus,
-  ae as UICampoTexto,
-  bt as UICanvasCAD,
-  Be as UICard,
-  re as UICheckbox,
-  Le as UIChip,
-  Re as UIDialog,
-  N as UIDrawer,
-  it as UIEsqueleto,
-  He as UIGaveta,
-  Ee as UIIcone,
-  Ke as UIKpi,
-  V as UIListaFlutuante,
-  Qe as UIMapa,
-  et as UIMapaLinha,
-  Je as UIMapaMarcador,
-  Xe as UIMetrica,
-  O as UIModal,
-  De as UIPainelLateral,
-  We as UIPopover,
-  H as UIRadio,
-  U as UISegmented,
-  Ne as UISegmento,
-  ge as UISelect,
-  Oe as UISheet,
-  ce as UISkeleton,
-  Y as UIStat,
-  W as UISwitch,
-  Ue as UITabela,
-  K as UITabelaPropriedades,
-  Me as UITag,
-  ye as UITexto,
-  F as UIToast,
-  Se as UIToggle,
-  ne as UITooltip,
-  ct as VectorLinesLayerRenderer,
-  dt as VectorPointsLayerRenderer,
-  ut as VectorPolygonsLayerRenderer,
-  lt as WmsLayerRenderer,
-  vt as avaliarExpressaoMatematica,
-  k as escapeHtml,
-  Et as formatUTM,
-  D as getPointShapeHtml,
-  yt as initZeroJSTriggers,
-  q as parseCoordenada
+  ze as CADMapaController,
+  xe as CAD_INTERACTIVE_PANES,
+  ze as CanvasCADController,
+  ye as CanvasInteracao,
+  Le as CanvasLayerManager,
+  bt as DEFAULT_CONFIG,
+  Se as DEFAULT_LAYERS,
+  ze as GerenciGeoMapaController,
+  Ce as GridLayerRenderer,
+  F as LayerRendererFactory,
+  D as ListenerBag,
+  st as MapaConfigManager,
+  ve as MapaCore,
+  Re as MapaLinhas,
+  He as MapaMarcadores,
+  _e as TileLayerRenderer,
+  _t as UIAlerta,
+  Wt as UIAvatar,
+  ct as UIBadge,
+  vt as UIBotao,
+  zt as UIBotaoPrimario,
+  j as UIBus,
+  xt as UICampoTexto,
+  Me as UICanvasCAD,
+  Kt as UICard,
+  yt as UICheckbox,
+  jt as UIChip,
+  Qt as UIDialog,
+  K as UIDrawer,
+  be as UIEsqueleto,
+  ie as UIGaveta,
+  $t as UIIcone,
+  ce as UIKpi,
+  nt as UIListaFlutuante,
+  he as UIMapa,
+  me as UIMapaLinha,
+  pe as UIMapaMarcador,
+  de as UIMetrica,
+  et as UIModal,
+  ee as UIPainelLateral,
+  re as UIPopover,
+  rt as UIRadio,
+  dt as UISegmented,
+  Yt as UISegmento,
+  Pt as UISelect,
+  te as UISheet,
+  kt as UISkeleton,
+  ut as UIStat,
+  lt as UISwitch,
+  ne as UITabela,
+  ht as UITabelaPropriedades,
+  Vt as UITag,
+  qt as UITexto,
+  Q as UIToast,
+  Ft as UIToggle,
+  wt as UITooltip,
+  Ee as VectorLinesLayerRenderer,
+  ke as VectorPointsLayerRenderer,
+  Ae as VectorPolygonsLayerRenderer,
+  we as WmsLayerRenderer,
+  it as agruparPontosPorChave,
+  Ie as avaliarExpressaoMatematica,
+  tt as bindPopupAcoesEvents,
+  E as escapeHtml,
+  ft as extrairCentroDeWkt,
+  $e as formatUTM,
+  at as getPointShapeHtml,
+  qe as initZeroJSTriggers,
+  ot as ordenarPontosPorSequencia,
+  R as parseCoordenada,
+  J as renderPopupAcoesHtml
 };

@@ -14,6 +14,8 @@
   user-select: none;
   line-height: 1;
   outline: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .ui-switch--disabled {
@@ -103,3 +105,18 @@
 .ui-switch--label-esquerda {
   flex-direction: row-reverse;
 }
+
+/* ==========================================
+   Refinamento Mobile & Touch Ergonomics
+   ========================================== */
+@media (max-width: 640px) {
+  .ui-switch {
+    min-height: 40px;
+    padding: 4px 0;
+  }
+
+  .ui-switch__label {
+    font-size: 14px;
+  }
+}
+

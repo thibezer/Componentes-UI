@@ -33,6 +33,8 @@
               box-shadow 0.15s ease;
   text-align: center;
   user-select: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .ui-botao-primario:focus-visible {
@@ -228,3 +230,15 @@
     transform: rotate(360deg);
   }
 }
+
+/* ==========================================
+   Refinamento Mobile & Touch Ergonomics
+   ========================================== */
+@media (max-width: 640px) {
+  :host(:not([inline])) .ui-botao-primario {
+    min-height: max(var(--ui-campo-altura, 38px), 38px);
+    font-size: 14px;
+    padding: 0 14px;
+  }
+}
+

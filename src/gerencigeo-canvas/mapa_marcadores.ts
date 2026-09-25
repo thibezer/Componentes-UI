@@ -73,7 +73,7 @@ export class MapaMarcadores {
         marker.setZIndexOffset(1000);
 
         marker.on('click', () => {
-          onMarkerClick(p.id);
+          onMarkerClick(p.id as any);
         });
 
         this.markers.push(marker);
@@ -115,7 +115,7 @@ export class MapaMarcadores {
 
     grupos.forEach((pontosGrupo) => {
       if (pontosGrupo.length >= 2) {
-        pontosGrupo.sort((a, b) => a.id - b.id);
+        pontosGrupo.sort((a, b) => Number(a.id) - Number(b.id));
 
         const coords = pontosGrupo.map(p => L.latLng(p.lat as number, p.lon as number));
 

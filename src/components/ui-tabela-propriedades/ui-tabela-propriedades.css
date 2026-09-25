@@ -1012,3 +1012,38 @@
   opacity: 0.4;
   cursor: not-allowed;
 }
+
+/* ==========================================
+   Refinamento Mobile & Touch Ergonomics
+   ========================================== */
+@media (max-width: 640px) {
+  :host {
+    --ui-prop-altura-linha: 28px;
+    font-size: 13px;
+  }
+
+  .ui-prop__btn-icone {
+    min-width: 28px;
+    min-height: 28px;
+  }
+
+  .ui-prop__footer-botoes {
+    gap: 8px;
+  }
+
+  .ui-prop__btn-aplicar,
+  .ui-prop__btn-desfazer {
+    height: 30px;
+    font-size: 12px;
+    padding: 0 12px;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .ui-prop__editor-input,
+  .ui-prop__editor-select {
+    touch-action: manipulation;
+    font-size: 14px;
+  }
+}
+

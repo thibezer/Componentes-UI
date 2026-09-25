@@ -18,6 +18,9 @@
   max-height: var(--ui-tabela-max-height, 500px);
   overflow-x: auto;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-x pan-y;
   border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
   border-radius: var(--ui-raio-borda, 6px);
   background-color: var(--ui-cor-superficie, #141417);
@@ -363,3 +366,34 @@
   color: #000;
   font-weight: 600;
 }
+
+/* ==========================================
+   Refinamento Mobile & Touch Ergonomics
+   ========================================== */
+@media (max-width: 640px) {
+  .ui-tabela th {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+
+  .ui-tabela td {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+
+  .ui-tabela__header-text {
+    margin-right: 16px;
+  }
+
+  .ui-tabela__sort-icon,
+  .ui-tabela__header-icon {
+    width: 24px;
+    min-width: 24px;
+    max-width: 24px;
+  }
+
+  .ui-tabela__resizer {
+    width: 14px; /* Área de toque ampliada para facilitar arraste no mobile */
+  }
+}
+

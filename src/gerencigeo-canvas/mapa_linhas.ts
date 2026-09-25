@@ -1,6 +1,6 @@
 import L from 'leaflet';
 import type { Segmento, Ponto, BancoPonto } from './types';
-import { escapeHtml } from './utils';
+import { escapeHtml, agruparPontosPorChave, ordenarPontosPorSequencia } from './utils';
 import type { MapaCore } from './mapa_core';
 
 export class MapaLinhas {
@@ -59,29 +59,22 @@ export class MapaLinhas {
 
     if (validPoints.length < 2) return;
 
-    // Agrupar pontos por matricula_id ou planilha_origem para traçar perímetros independentes (evita linhas cruzadas em imóveis multi-matrículas)
-    const grupos: { [key: string]: Ponto[] } = {};
-    validPoints.forEach(p => {
-      const key = p.matricula_id != null 
-        ? `mat_${p.matricula_id}` 
-        : (p.planilha_origem || 'default');
-      if (!grupos[key]) grupos[key] = [];
-      grupos[key].push(p);
-    });
+    const chaveGrupo = (this.core as any).controller?.chaveGrupo || (this.core as any).controller?.context?.chaveGrupo;
+    const grupos = agruparPontosPorChave(validPoints, chaveGrupo);
 
     const color = this.bancoPontosAtivo ? '#94a3b8' : '#10b981';
     const weight = this.core.config.fechamentoWeight || 2;
     const opacity = this.bancoPontosAtivo ? 0.4 : 1.0;
 
     Object.values(grupos).forEach(grupoPontos => {
-      // Ordena os pontos dentro de cada perímetro/matrícula individualmente
-      grupoPontos.sort((a, b) => Number(a.ordem_caminhamento ?? 999999) - Number(b.ordem_caminhamento ?? 999999));
-      if (grupoPontos.length < 2) return;
+      // Ordena os pontos dentro de cada grupo individualmente pela sua sequência
+      const sortedPontos = ordenarPontosPorSequencia(grupoPontos);
+      if (sortedPontos.length < 2) return;
 
       // Traça segmentos i -> i+1 do grupo
-      for (let i = 0; i < grupoPontos.length - 1; i++) {
-        const pIni = grupoPontos[i];
-        const pFim = grupoPontos[i + 1];
+      for (let i = 0; i < sortedPontos.length - 1; i++) {
+        const pIni = sortedPontos[i];
+        const pFim = sortedPontos[i + 1];
         const polyline = L.polyline([[pIni.lat as number, pIni.lon as number], [pFim.lat as number, pFim.lon as number]], {
           color: color,
           weight: weight,
@@ -92,9 +85,9 @@ export class MapaLinhas {
         this.polylines.push(polyline);
       }
 
-      // Fecha o perímetro do grupo: pLast -> pFirst
-      const pLast = grupoPontos[grupoPontos.length - 1];
-      const pFirst = grupoPontos[0];
+      // Fecha o perímetro do grupo: pLast -> pFirst (em linha tracejada)
+      const pLast = sortedPontos[sortedPontos.length - 1];
+      const pFirst = sortedPontos[0];
       const polylineClose = L.polyline([[pLast.lat as number, pLast.lon as number], [pFirst.lat as number, pFirst.lon as number]], {
         color: color,
         weight: weight,
@@ -150,23 +143,12 @@ export class MapaLinhas {
       marker.addTo(this.core.bancoPontosGroup!);
     });
 
-    // 2. Agrupar pontos por matricula_id (ou planilha_origem) e traçar a polilinha fechada
-    const grupos: { [key: string]: BancoPonto[] } = {};
-    validPoints.forEach(p => {
-      const key = p.matricula_id ? `mat_${p.matricula_id}` : (p.planilha_origem || 'default');
-      if (!grupos[key]) {
-        grupos[key] = [];
-      }
-      grupos[key].push(p);
-    });
+    // 2. Agrupar pontos por chave e traçar a polilinha fechada
+    const chaveGrupo = (this.core as any).controller?.chaveGrupo || (this.core as any).controller?.context?.chaveGrupo;
+    const grupos = agruparPontosPorChave(validPoints, chaveGrupo);
 
     for (const key in grupos) {
-      const pontosGrupo = grupos[key];
-      pontosGrupo.sort((a, b) => {
-        const ordA = a.ordem_caminhamento !== undefined && a.ordem_caminhamento !== null ? a.ordem_caminhamento : a.id;
-        const ordB = b.ordem_caminhamento !== undefined && b.ordem_caminhamento !== null ? b.ordem_caminhamento : b.id;
-        return ordA - ordB;
-      });
+      const pontosGrupo = ordenarPontosPorSequencia(grupos[key]);
 
       if (pontosGrupo.length >= 2) {
         const coords = pontosGrupo.map(p => L.latLng(p.lat as number, p.lon as number));

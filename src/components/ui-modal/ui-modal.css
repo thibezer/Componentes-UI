@@ -114,6 +114,8 @@
   align-items: center;
   justify-content: center;
   transition: color 0.15s ease, background-color 0.15s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .ui-modal__close svg,
@@ -130,6 +132,8 @@
 .ui-modal__body {
   padding: 20px;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
   flex: 1;
   box-sizing: border-box;
 }
@@ -147,6 +151,7 @@
 
 /* ====================================================
    Mobile Bottom Sheet (Ativado em <= 640px ou [bottom-sheet])
+   Com suporte a Safe Area Insets (iPhone Home Indicator) e dvh
    ==================================================== */
 @media (max-width: 640px) {
   .ui-modal__dialog {
@@ -157,9 +162,20 @@
     width: 100vw !important;
     max-width: 100vw !important;
     border-radius: 16px 16px 0 0 !important;
-    max-height: 80vh !important;
+    max-height: 85vh !important;
+    max-height: 85dvh !important;
     border-bottom: none !important;
     box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.7) !important;
+  }
+
+  .ui-modal__close {
+    min-width: 44px;
+    min-height: 44px;
+    font-size: 18px;
+  }
+
+  .ui-modal__footer {
+    padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px)) !important;
   }
 
   :host([aberto]) .ui-modal__dialog,
@@ -180,9 +196,20 @@
   width: 100vw !important;
   max-width: 100vw !important;
   border-radius: 16px 16px 0 0 !important;
-  max-height: 80vh !important;
+  max-height: 85vh !important;
+  max-height: 85dvh !important;
   border-bottom: none !important;
   box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.7) !important;
+}
+
+:host([bottom-sheet]) .ui-modal__close {
+  min-width: 44px;
+  min-height: 44px;
+  font-size: 18px;
+}
+
+:host([bottom-sheet]) .ui-modal__footer {
+  padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px)) !important;
 }
 
 :host([bottom-sheet][aberto]) .ui-modal__dialog,
@@ -193,3 +220,4 @@
 :host([bottom-sheet]) .ui-modal__handle {
   display: block !important;
 }
+

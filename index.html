@@ -1,33 +1,32 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-tema="escuro" class="dark">
 
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Playground de Web Components UI Universais</title>
   <style>
-    :root {
-      color-scheme: dark;
-    }
-
     body {
-      background-color: #0b0b0d;
-      color: #e1e1e6;
+      background-color: var(--ui-cor-fundo, #0b0b0d);
+      color: var(--ui-cor-texto, #e1e1e6);
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
       margin: 0;
       padding: 24px;
+      transition: background-color 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                  color 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     header {
-      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      border-bottom: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
       padding-bottom: 16px;
       margin-bottom: 24px;
+      transition: border-color 0.25s ease;
     }
 
     header h1 {
       margin: 0 0 8px 0;
       font-size: 22px;
-      color: #00E08A;
+      color: var(--ui-cor-primaria, #00E08A);
       display: flex;
       align-items: center;
       gap: 10px;
@@ -36,12 +35,12 @@
     header p {
       margin: 0;
       font-size: 13px;
-      color: #a0a0b0;
+      color: var(--ui-cor-texto-secundario, #a0a0b0);
     }
 
     .grid-container {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
       gap: 20px;
     }
 
@@ -50,24 +49,32 @@
     }
 
     .card-componente {
-      background: #141417;
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: var(--ui-cor-superficie, #141417);
+      border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.08));
       border-radius: 8px;
       padding: 16px;
       display: flex;
       flex-direction: column;
       gap: 16px;
+      transition: background-color 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                  border-color 0.25s ease,
+                  box-shadow 0.25s ease;
+    }
+
+    [data-tema="claro"] .card-componente {
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     }
 
     .card-componente h2 {
       margin: 0;
       font-size: 15px;
-      color: #ffffff;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      color: var(--ui-cor-texto, #ffffff);
+      border-bottom: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.06));
       padding-bottom: 8px;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      transition: color 0.25s ease, border-color 0.25s ease;
     }
 
     .component-demo {
@@ -75,9 +82,11 @@
       flex-direction: column;
       gap: 12px;
       align-items: flex-start;
-      background: #1a1a1e;
+      background: var(--ui-cor-fundo-elevado, #1a1a1e);
       padding: 16px;
       border-radius: 6px;
+      border: 1px solid var(--ui-cor-borda, transparent);
+      transition: background-color 0.25s ease, border-color 0.25s ease;
     }
 
     .demo-row {
@@ -89,9 +98,10 @@
 
     .demo-label {
       font-size: 12px;
-      color: #888899;
+      color: var(--ui-cor-texto-secundario, #888899);
       width: 120px;
       flex-shrink: 0;
+      transition: color 0.25s ease;
     }
 
     /* Painel de Controle de Redimensionamento Dinâmico */
@@ -99,10 +109,11 @@
       display: flex;
       flex-direction: column;
       gap: 12px;
-      background: #101014;
+      background: var(--ui-cor-fundo-card, #101014);
       padding: 14px 16px;
       border-radius: 6px;
-      border: 1px solid rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.06));
+      transition: background-color 0.25s ease, border-color 0.25s ease;
     }
 
     .resizer-row {
@@ -120,28 +131,29 @@
     }
 
     .control-group label {
-      color: #a0a0b0;
+      color: var(--ui-cor-texto-secundario, #a0a0b0);
+      transition: color 0.25s ease;
     }
 
     .control-group input[type="range"] {
       cursor: pointer;
-      accent-color: #00E08A;
+      accent-color: var(--ui-cor-primaria, #00E08A);
     }
 
     .preset-btn {
-      background: #1f1f24;
-      color: #e1e1e6;
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: var(--ui-cor-botao-secundario-fundo, #1f1f24);
+      color: var(--ui-cor-texto, #e1e1e6);
+      border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
       padding: 4px 10px;
       border-radius: 4px;
       font-size: 12px;
       cursor: pointer;
-      transition: background 0.15s;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
     }
 
     .preset-btn:hover {
-      background: #00E08A;
-      color: #000;
+      background: var(--ui-cor-primaria, #00E08A);
+      color: var(--ui-cor-texto-sobre-primaria, #000);
     }
 
     .resizable-box {
@@ -153,11 +165,11 @@
       width: 320px;
       height: 140px;
       padding: 16px;
-      background: #18181c;
-      border: 2px dashed rgba(0, 224, 138, 0.4);
+      background: var(--ui-cor-fundo-card, #18181c);
+      border: 2px dashed var(--ui-cor-primaria, rgba(0, 224, 138, 0.4));
       border-radius: 6px;
       box-sizing: border-box;
-      transition: width 0.1s ease, height 0.1s ease;
+      transition: width 0.1s ease, height 0.1s ease, background-color 0.25s ease, border-color 0.25s ease;
     }
 
     /* Matriz de Variações Lado a Lado */
@@ -169,43 +181,48 @@
     }
 
     .matrix-column {
-      background: #18181c;
-      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: var(--ui-cor-fundo-card, #18181c);
+      border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.06));
       padding: 12px;
       border-radius: 6px;
       display: flex;
       flex-direction: column;
       gap: 10px;
+      transition: background-color 0.25s ease, border-color 0.25s ease;
     }
 
     .matrix-title {
       font-size: 12px;
-      color: #00E08A;
+      color: var(--ui-cor-primaria, #00E08A);
       font-weight: bold;
       text-transform: uppercase;
       letter-spacing: 0.5px;
+      transition: color 0.25s ease;
     }
 
     /* Console Card */
     .console-card {
       grid-column: 1 / -1;
-      background: #0d0d10;
-      border: 1px solid rgba(0, 224, 138, 0.2);
+      background: var(--ui-cor-superficie, #0d0d10);
+      border: 1px solid var(--ui-cor-borda, rgba(0, 224, 138, 0.2));
       border-radius: 8px;
       padding: 16px;
+      transition: background-color 0.25s ease, border-color 0.25s ease;
     }
 
     .console-card h3 {
       margin: 0 0 10px 0;
       font-size: 13px;
-      color: #00E08A;
+      color: var(--ui-cor-primaria, #00E08A);
       text-transform: uppercase;
       letter-spacing: 0.5px;
+      transition: color 0.25s ease;
     }
 
     pre#log-console {
-      background: #050507;
-      color: #33ff99;
+      background: var(--ui-cor-fundo, #050507);
+      color: var(--ui-cor-primaria, #33ff99);
+      border: 1px solid var(--ui-cor-borda, transparent);
       font-family: 'Fira Code', 'Consolas', monospace;
       font-size: 12px;
       padding: 12px;
@@ -214,31 +231,203 @@
       overflow-y: auto;
       margin: 0;
       white-space: pre-wrap;
+      transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+    }
+
+    [data-tema="claro"] pre#log-console {
+      background: #f1f3f5;
+      color: #087f5b;
+      border-color: rgba(0, 0, 0, 0.08);
     }
 
     .badge {
       font-size: 10px;
       background: rgba(0, 224, 138, 0.15);
-      color: #00E08A;
+      color: var(--ui-cor-primaria, #00E08A);
       padding: 2px 6px;
       border-radius: 4px;
       text-transform: uppercase;
       font-weight: bold;
+      transition: background-color 0.25s ease, color 0.25s ease;
+    }
+
+    [data-tema="claro"] .badge {
+      background: rgba(0, 179, 104, 0.12);
+      color: #008f53;
+    }
+
+    /* ====================================================
+       Refinamento Mobile & Touch Ergonomics (Telas <= 768px e <= 480px)
+       ==================================================== */
+    @media (max-width: 768px) {
+      body {
+        padding: 12px;
+        overflow-x: hidden;
+      }
+
+      .demo-header {
+        flex-direction: column;
+        align-items: stretch !important;
+        gap: 14px !important;
+        margin-bottom: 18px;
+      }
+
+      .header-actions {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .header-actions > ui-botao-primario {
+        flex: 1 1 auto;
+      }
+
+      .demo-header h1 {
+        font-size: 19px;
+        flex-wrap: wrap;
+      }
+
+      .grid-container {
+        grid-template-columns: 1fr !important;
+        gap: 14px;
+      }
+
+      .card-componente {
+        padding: 14px 12px;
+        border-radius: 8px;
+        gap: 12px;
+      }
+
+      .variations-matrix {
+        grid-template-columns: 1fr !important;
+        gap: 12px;
+      }
+
+      .matrix-column {
+        padding: 10px;
+      }
+
+      .resizer-controls {
+        padding: 12px 10px;
+      }
+
+      .resizer-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+      }
+
+      .control-group {
+        flex-wrap: wrap;
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .control-group input[type="range"] {
+        flex: 1;
+        min-width: 120px;
+      }
+
+      .preset-btn {
+        min-height: 36px;
+        padding: 6px 12px;
+        touch-action: manipulation;
+        font-size: 12px;
+      }
+
+      .demo-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 6px;
+      }
+
+      .demo-label {
+        width: 100%;
+      }
+
+      .demo-row > ui-lista-flutuante,
+      .demo-row > ui-campo-texto {
+        width: 100% !important;
+      }
+
+      .resizable-box {
+        width: 100% !important;
+        max-width: 100% !important;
+      }
+
+      .palette-grid-responsive {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+      }
+
+      .interactive-grid-responsive {
+        grid-template-columns: 1fr !important;
+        gap: 14px !important;
+      }
+
+      .tabela-incra-actions {
+        flex-direction: column;
+        align-items: stretch !important;
+      }
+
+      .tabela-incra-actions > ui-botao-primario,
+      .tabela-incra-actions > ui-campo-texto {
+        width: 100%;
+      }
+
+      .tabela-incra-actions > .densidade-bar {
+        margin-left: 0 !important;
+        width: 100%;
+        box-sizing: border-box;
+        justify-content: space-between;
+      }
+
+      .cad-actions-bar {
+        overflow-x: auto;
+        flex-wrap: nowrap !important;
+        padding-bottom: 8px;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .cad-actions-bar > ui-botao-primario {
+        flex-shrink: 0;
+      }
+
+      pre#log-console {
+        font-size: 11px;
+        height: 150px;
+        word-break: break-all;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 8px;
+      }
+
+      .card-componente {
+        padding: 10px;
+      }
+
+      .component-demo {
+        padding: 10px;
+      }
     }
   </style>
 </head>
 
 <body>
 
-  <header style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px;">
+  <header class="demo-header" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px;">
     <div>
       <h1>🧪 Playground de Web Components UI Universais <span class="badge">SANDBOX</span></h1>
       <p>Ambiente isolado para testes visuais, redimensionamento dinâmico (horizontal e vertical), orquestração UIBus e
         Zero-JS.</p>
     </div>
-    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-      <ui-botao-primario alternar-tema variante="ghost" inline title="Alternar Modo Claro / Escuro">
-        🌓 Tema
+    <div class="header-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+      <ui-botao-primario id="btn-alternar-tema" alternar-tema variante="ghost" inline title="Alternar Modo Claro / Escuro">
+        🌓 Tema: Escuro
       </ui-botao-primario>
       <ui-botao-primario copiar-texto="https://github.com/thibezer/Componentes-UI"
         copiar-mensagem="Link do repositório copiado!" variante="ghost" inline title="Copiar URL do Projeto">
@@ -255,7 +444,7 @@
     <!-- Card Especial: Painel de Controle de Redimensionamento Interativo (Largura x Altura) -->
     <article class="card-componente full-width-card">
       <h2>
-        <span>📐 Testador Interativo de Dimensões Globais (Largura x Altura)</span>
+        <span>📐 Painel de Redimensionamento Interativo (Largura x Altura)</span>
         <span id="tag-dimensao-atual" class="badge">320px x 20px</span>
       </h2>
 
@@ -267,7 +456,7 @@
           <div class="control-group">
             <label for="slider-largura">↔️ Largura dos Containers:</label>
             <input type="range" id="slider-largura" min="140" max="700" value="320" step="10" />
-            <span id="valor-largura" style="font-weight: bold; color: #00E08A; min-width: 50px;">320px</span>
+            <span id="valor-largura" style="font-weight: bold; color: var(--ui-cor-primaria, #00E08A); min-width: 50px;">320px</span>
           </div>
 
           <div class="control-group">
@@ -280,11 +469,11 @@
         </div>
 
         <!-- Linha 2: Controles de Altura -->
-        <div class="resizer-row" style="border-top: 1px solid rgba(255, 255, 255, 0.06); padding-top: 10px;">
+        <div class="resizer-row" style="border-top: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.06)); padding-top: 10px;">
           <div class="control-group">
             <label for="slider-altura">↕️ Altura Global dos Campos:</label>
             <input type="range" id="slider-altura" min="15" max="60" value="20" step="1" />
-            <span id="valor-altura" style="font-weight: bold; color: #00E08A; min-width: 50px;">20px</span>
+            <span id="valor-altura" style="font-weight: bold; color: var(--ui-cor-primaria, #00E08A); min-width: 50px;">20px</span>
           </div>
 
           <div class="control-group">
@@ -493,7 +682,7 @@
             <ui-campo-texto id="campo-busca" placeholder="Buscar camada ou componente...">
               <span slot="icone-esquerda">🔍</span>
             </ui-campo-texto>
-            <ui-campo-texto id="campo-senha" label="Senha de Acesso" tipo="password" value="secret123" alternar-senha>
+            <ui-campo-texto id="campo-senha" label="Senha de Acesso" tipo="password" value="senha_demo_exemplo" alternar-senha>
               <span slot="icone-esquerda">🔒</span>
               <span slot="icone-direita" style="cursor: pointer;" title="Clique para Revelar/Ocultar Senha">👁️</span>
             </ui-campo-texto>
@@ -506,7 +695,7 @@
           <div style="display: flex; flex-direction: column; gap: 10px;">
             <ui-campo-texto id="campo-erro" label="Código do Lote" value="ABC-99" erro
               mensagem-erro="Código de lote inválido ou expirado."></ui-campo-texto>
-            <ui-campo-texto id="campo-bloqueado" label="Chave de API (Leitura)" value="gk_live_89123891283" disabled
+            <ui-campo-texto id="campo-bloqueado" label="Chave de API (Leitura)" value="gk_demo_chave_ficticia_0000" disabled
               helper-text="Campo desabilitado para edição."></ui-campo-texto>
           </div>
         </div>
@@ -584,9 +773,9 @@
       </div>
     </article>
 
-    <!-- Card 8: Nível 2 - Controles e Seleção de Dados (<ui-checkbox> & <ui-radio>) -->
+    <!-- Card 8: Controles e Seleção de Dados (<ui-checkbox>, <ui-radio> & <ui-switch>) -->
     <article class="card-componente full-width-card">
-      <h2>6. Nível 2: Controles de Seleção (&lt;ui-checkbox&gt; & &lt;ui-radio&gt;)</h2>
+      <h2>6. Controles de Seleção (&lt;ui-checkbox&gt;, &lt;ui-radio&gt; &amp; &lt;ui-switch&gt;)</h2>
       <div class="variations-matrix">
 
         <!-- Coluna 1: Checkbox (Seleções Múltiplas) -->
@@ -604,7 +793,7 @@
         <div class="matrix-column">
           <span class="matrix-title">Botão Rádio Grupo (&lt;ui-radio&gt;)</span>
           <div style="display: flex; flex-direction: column; gap: 10px;">
-            <span style="font-size: 11px; color: #888899;">Modo de Visualização do Mapa:</span>
+            <span style="font-size: 11px; color: var(--ui-cor-texto-secundario, #888899);">Modo de Visualização do Mapa:</span>
             <ui-radio id="rdo-vetor" name="modo-mapa" label="Vetor 2D" value="vetor" marcado></ui-radio>
             <ui-radio id="rdo-satelite" name="modo-mapa" label="Imagem de Satélite" value="satelite"></ui-radio>
             <ui-radio id="rdo-hibrido" name="modo-mapa" label="Modelo Híbrido 3D" value="hibrido"></ui-radio>
@@ -642,9 +831,9 @@
       </div>
     </article>
 
-    <!-- Card 9: Nível 2 - Select Bottom Sheet, Badges/Chips & Avatares -->
+    <!-- Card 9: Select Bottom Sheet, Badges/Chips & Avatares -->
     <article class="card-componente full-width-card">
-      <h2>7. Nível 2: Select Bottom-Sheet, Badges/Chips &amp; Avatares</h2>
+      <h2>7. Select Bottom-Sheet, Badges/Chips &amp; Avatares</h2>
       <div class="variations-matrix">
 
         <!-- Coluna 1: Select / Dropdown com Mobile Bottom Sheet -->
@@ -658,7 +847,7 @@
               <option value="ES_ES">Español</option>
               <option value="FR_FR">Français</option>
             </ui-select>
-            <span style="font-size: 11px; color: #888899;">💡 <em>Em telas pequenas (&lt;= 640px) ou com o atributo
+            <span style="font-size: 11px; color: var(--ui-cor-texto-secundario, #888899);">💡 <em>Em telas pequenas (&lt;= 640px) ou com o atributo
                 <code>bottom-sheet</code>, este Select abre como um painel deslizante inferior.</em></span>
           </div>
         </div>
@@ -703,9 +892,9 @@
       </div>
     </article>
 
-    <!-- Card 10: Nível 3 - Contêineres & Moléculas (<ui-card>) -->
+    <!-- Card 10: Contêineres & Moléculas (<ui-card>) -->
     <article class="card-componente full-width-card">
-      <h2>8. Nível 3: Contêineres de Molécula (&lt;ui-card&gt;)</h2>
+      <h2>8. Contêineres de Molécula (&lt;ui-card&gt;)</h2>
       <div class="variations-matrix">
 
         <!-- Caso 1: Card de Métricas / Perfil (Elevado) -->
@@ -741,7 +930,7 @@
           <span class="matrix-title">Card de Conteúdo com Capa (Plano)</span>
           <ui-card elevacao="plano">
             <div slot="midia"
-              style="height: 100px; background: linear-gradient(135deg, #18181c 0%, #00E08A22 100%); display: flex; align-items: center; justify-content: center; border-bottom: 1px solid rgba(255,255,255,0.08);">
+              style="height: 100px; background: linear-gradient(135deg, var(--ui-cor-fundo-card, #18181c) 0%, rgba(0, 224, 138, 0.15) 100%); display: flex; align-items: center; justify-content: center; border-bottom: 1px solid var(--ui-cor-borda, rgba(255,255,255,0.08));">
               <ui-icone nome="gear" tamanho="xl" cor="primaria"></ui-icone>
             </div>
             <div slot="cabecalho"
@@ -788,9 +977,9 @@
       </div>
     </article>
 
-    <!-- Card 11: Nível 3 - Overlays & Feedback (<ui-modal>, <ui-alerta>, <ui-toast>) -->
+    <!-- Card 11: Overlays & Feedback (<ui-modal>, <ui-drawer>, <ui-alerta>, <ui-toast>) -->
     <article class="card-componente full-width-card">
-      <h2>9. Nível 3: Overlays &amp; Feedback (&lt;ui-modal&gt; &amp; &lt;ui-alerta&gt;)</h2>
+      <h2>9. Overlays &amp; Feedback (&lt;ui-modal&gt;, &lt;ui-drawer&gt; &amp; &lt;ui-alerta&gt;)</h2>
       <div class="variations-matrix">
 
         <!-- Coluna 1: Disparadores de Modal / Bottom Sheet -->
@@ -803,7 +992,7 @@
             <ui-botao-primario id="btn-abrir-bottom-sheet" target-modal="modal-bottom-sheet" variante="secondary">
               <ui-icone nome="bell" tamanho="sm"></ui-icone> Abrir Mobile Bottom Sheet
             </ui-botao-primario>
-            <span style="font-size: 11px; color: #888899;">💡 <em>No desktop o modal é centralizado. No mobile ou com o
+            <span style="font-size: 11px; color: var(--ui-cor-texto-secundario, #888899);">💡 <em>No desktop o modal é centralizado. No mobile ou com o
                 atributo <code>bottom-sheet</code>, ele desliza do fundo da tela.</em></span>
           </div>
         </div>
@@ -825,7 +1014,7 @@
           <span class="matrix-title">Notificações Toast Flutuantes</span>
           <div style="display: flex; flex-direction: column; gap: 10px;">
             <ui-botao-primario id="btn-toast-sucesso" toast-sucesso="Operação concluída com sucesso no servidor!"
-              variante="primary" style="background-color: #00E08A; color: #000;">
+              variante="primary">
               Disparar Toast Sucesso 🟢
             </ui-botao-primario>
             <ui-botao-primario id="btn-toast-erro" toast-erro="Falha na conexão: Servidor indisponível (500)."
@@ -861,7 +1050,7 @@
               <span>Ajuda no Mobile (Clique):</span>
               <ui-tooltip texto="Esta opção ativa a sincronização em nuvem automática." gatilho="clique" posicao="topo">
                 <span
-                  style="cursor: pointer; display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: rgba(0, 224, 138, 0.2); color: #00E08A; font-weight: bold; font-size: 12px;">?</span>
+                  style="cursor: pointer; display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: rgba(0, 224, 138, 0.2); color: var(--ui-cor-primaria, #00E08A); font-weight: bold; font-size: 12px;">?</span>
               </ui-tooltip>
             </div>
           </div>
@@ -870,19 +1059,23 @@
       </div>
     </article>
 
-    <!-- 15. Tabela Orientada a Dados (Tipo Excel / INCRA SIGEF) -->
+    <!-- Card 12: Tabela Orientada a Dados (Tipo Excel / INCRA SIGEF) -->
     <article class="card-componente full-width-card">
       <h2>
-        <span>Tabela Orientada a Dados &amp; Alta Densidade (&lt;ui-tabela&gt;)</span>
+        <span>10. Tabela Orientada a Dados &amp; Alta Densidade (&lt;ui-tabela&gt;)</span>
         <ui-badge variante="sucesso">Data-Driven &amp; Excel Mode</ui-badge>
       </h2>
-      <p style="font-size: 13px; color: #a0a0b0; margin: 0;">
+      <p style="font-size: 13px; color: var(--ui-cor-texto-secundario, #a0a0b0); margin: 0;">
         Web Component estritamente orientado a dados com Shadow DOM, scroll bidirecional independente, cabeçalho sticky,
         zebra-striping, ordenação de 3 estados client-side (Asc → Desc → Original), controle de densidade visual e corte
         de texto com reticências.
       </p>
 
-      <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 12px;">
+      <p style="font-size: 12px; color: var(--ui-cor-texto-secundario, #888899); margin: 6px 0 10px 0;">
+        💡 <em>Nota sobre os controles de densidade: Os botões de densidade demonstram acionamento simultâneo: alteram a propriedade local do componente (<code>tabelaIncra.densidade = ...</code>) e, via atributo Zero-JS <code>[definir-densidade]</code>, propagam a densidade globalmente pelo barramento <code>UIBus</code> para os demais elementos da página.</em>
+      </p>
+
+      <div class="tabela-incra-actions" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 12px;">
         <ui-botao-primario id="btn-tabela-dados-incra" variante="primary" inline>Carregar Relatório INCRA/SIGEF (10
           Vértices)</ui-botao-primario>
         <ui-botao-primario id="btn-tabela-empty" variante="secondary" inline>Simular Vazio</ui-botao-primario>
@@ -890,9 +1083,10 @@
         <ui-campo-texto id="filtro-tabela-incra" placeholder="🔍 Filtrar registros em tempo real..."
           style="flex: 1; min-width: 220px;"></ui-campo-texto>
 
-        <div
-          style="display: inline-flex; gap: 6px; align-items: center; background: #1a1a1e; padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08); margin-left: auto;">
-          <span style="font-size: 12px; color: #888899;">Densidade:</span>
+        <div class="densidade-bar"
+          style="display: inline-flex; gap: 6px; align-items: center; background: var(--ui-cor-fundo-elevado, #1a1a1e); padding: 4px 10px; border-radius: 6px; border: 1px solid var(--ui-cor-borda, rgba(255,255,255,0.08)); margin-left: auto;"
+          title="Dispara densidade local da tabela e propaga densidade global via UIBus">
+          <span style="font-size: 12px; color: var(--ui-cor-texto-secundario, #888899);">Densidade (Local &amp; Global UIBus):</span>
           <ui-botao-primario id="btn-densidade-compacta" definir-densidade="compacta" variante="ghost" inline
             style="min-height: 20px;">Compacta</ui-botao-primario>
           <ui-botao-primario id="btn-densidade-normal" definir-densidade="normal" variante="secondary" inline
@@ -907,12 +1101,13 @@
       </div>
     </article>
     <!-- 16. Componentes de Mapa (Leaflet) -->
+    <!-- Card 13: Componentes de Mapa (Leaflet) -->
     <article class="card-componente full-width-card">
       <h2>
-        <span>Componentes de Mapa Canvas (&lt;ui-mapa&gt;)</span>
+        <span>11. Componentes de Mapa Canvas (&lt;ui-mapa&gt;)</span>
         <ui-badge variante="info">Leaflet Integration</ui-badge>
       </h2>
-      <p style="font-size: 13px; color: #a0a0b0; margin: 0 0 16px 0;">
+      <p style="font-size: 13px; color: var(--ui-cor-texto-secundario, #a0a0b0); margin: 0 0 16px 0;">
         Um canvas interativo para renderizar mapas do OpenStreetMap com marcadores e linhas conectando pontos,
         encapsulado via Shadow DOM.
       </p>
@@ -928,16 +1123,16 @@
       </div>
     </article>
 
-    <!-- 17. Canvas CAD / GIS Geodésico (<ui-canvas-cad>) -->
+    <!-- Card 14: Canvas CAD / GIS Geodésico (<ui-canvas-cad>) -->
     <article class="card-componente full-width-card">
       <h2>
-        <span>Mesa CAD / GIS Geodésico (&lt;ui-canvas-cad&gt;)</span>
+        <span>12. Mesa CAD / GIS Geodésico (&lt;ui-canvas-cad&gt;)</span>
         <div style="display: flex; gap: 6px;">
           <ui-badge variante="sucesso">QGIS Layers</ui-badge>
           <ui-badge variante="info">AutoCAD CAD Engine</ui-badge>
         </div>
       </h2>
-      <p style="font-size: 13px; color: #a0a0b0; margin: 0 0 14px 0;">
+      <p style="font-size: 13px; color: var(--ui-cor-texto-secundario, #a0a0b0); margin: 0 0 14px 0;">
         Ambiente cartográfico e mesa CAD profissional com arquitetura de camadas estilo QGIS (Layer Manager dinâmico,
         opacidade, bloqueio e escala fixed-world/screen), interações AutoCAD (Pan na rodinha, Janela Window azul
         E&rarr;D e Crossing verde D&rarr;E, atalho ESC e zoom extents), suporte a WMS SIGEF e renderização vetorial de
@@ -945,7 +1140,7 @@
       </p>
 
       <!-- Barra de Ações de Teste do Canvas CAD -->
-      <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; align-items: center;">
+      <div class="cad-actions-bar" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; align-items: center;">
         <ui-botao-primario inline style="height: 32px;" variante="primary" id="btn-cad-carregar-dados">Carregar
           Poligonal Geodésica</ui-botao-primario>
         <ui-botao-primario inline style="height: 32px;" variante="secondary" id="btn-cad-toggle-layers">Alternar Painel
@@ -965,30 +1160,30 @@
       </div>
     </article>
 
-    <!-- 18. Recursos Inteligentes: Zero-JS, Formulário Nativo (FACE) e UIBus -->
+    <!-- Card 15: Recursos Inteligentes: Zero-JS, Formulário Nativo (FACE) e UIBus -->
     <article class="card-componente full-width-card"
-      style="border: 1px solid rgba(0, 224, 138, 0.3); background: linear-gradient(180deg, #141417 0%, #101518 100%);">
+      style="border: 1px solid var(--ui-cor-destaque, rgba(0, 224, 138, 0.3));">
       <h2>
         <span style="display: flex; align-items: center; gap: 8px;">
-          ⚡ Central Inteligente: Zero-JS Triggers, FormData Nativo &amp; UIBus
+          13. ⚡ Central Inteligente: Zero-JS Triggers, FormData Nativo &amp; UIBus
         </span>
         <div style="display: flex; gap: 6px;">
           <ui-badge variante="sucesso">Zero Boilerplate</ui-badge>
           <ui-badge variante="info">W3C FACE</ui-badge>
         </div>
       </h2>
-      <p style="font-size: 13px; color: #a0a0b0; margin: 0;">
+      <p style="font-size: 13px; color: var(--ui-cor-texto-secundario, #a0a0b0); margin: 0;">
         Demonstração de integração avançada: botões executam ações sem 1 linha de JS (atributos declarativos),
         formulários capturam todos os campos de uma vez com <code>new FormData(form)</code> e a central
         <code>UIBus</code> orquestra eventos globais.
       </p>
 
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; width: 100%;">
+      <div class="interactive-grid-responsive" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 16px; width: 100%;">
         <!-- Coluna 1: Ações Declarativas Zero-JS -->
         <div class="component-demo" style="width: 100%; box-sizing: border-box;">
-          <span style="font-size: 13px; font-weight: 600; color: #00E08A;">1. Ações Declarativas "Zero-JS" (Sem
+          <span style="font-size: 13px; font-weight: 600; color: var(--ui-cor-primaria, #00E08A);">1. Ações Declarativas "Zero-JS" (Sem
             Script)</span>
-          <span style="font-size: 12px; color: #888899;">Botões realizam ações apenas lendo seus atributos HTML:</span>
+          <span style="font-size: 12px; color: var(--ui-cor-texto-secundario, #888899);">Botões realizam ações apenas lendo seus atributos HTML:</span>
 
           <div style="display: flex; flex-wrap: wrap; gap: 8px; width: 100%;">
             <ui-botao-primario target-modal="modal-zero-js" variante="primary" inline>
@@ -1017,9 +1212,9 @@
 
         <!-- Coluna 2: Formulário Nativo Automático com FormData -->
         <div class="component-demo" style="width: 100%; box-sizing: border-box;">
-          <span style="font-size: 13px; font-weight: 600; color: #00E08A;">2. Formulário Nativo (1 Clique para Extrair
+          <span style="font-size: 13px; font-weight: 600; color: var(--ui-cor-primaria, #00E08A);">2. Formulário Nativo (1 Clique para Extrair
             Tudo)</span>
-          <span style="font-size: 12px; color: #888899;">Componentes participam de <code>&lt;form&gt;</code> com
+          <span style="font-size: 12px; color: var(--ui-cor-texto-secundario, #888899);">Componentes participam de <code>&lt;form&gt;</code> com
             <code>FormData</code> nativo:</span>
 
           <form id="form-demo-inteligente" style="display: flex; flex-direction: column; gap: 10px; width: 100%;">
@@ -1044,22 +1239,23 @@
       </div>
     </article>
 
-    <!-- Nova Seção: Paleta / Tabela de Propriedades (Estilo AutoCAD & Revit) -->
-    <article class="demo-card">
-      <div class="demo-card-header">
-        <h2>📐 Paleta &amp; Tabela de Propriedades (AutoCAD &amp; Revit)</h2>
-        <p>Componente para inspeção técnica de objetos, categorias retráteis, splitter arrastável e editores inline
-          ricos.</p>
-      </div>
+    <!-- Card 16: Paleta / Tabela de Propriedades (Estilo AutoCAD & Revit) -->
+    <article class="card-componente full-width-card">
+      <h2>
+        <span>14. 📐 Paleta &amp; Tabela de Propriedades (AutoCAD &amp; Revit)</span>
+      </h2>
+      <p style="font-size: 13px; color: var(--ui-cor-texto-secundario, #a0a0b0); margin: 0 0 16px 0;">
+        Componente para inspeção técnica de objetos, categorias retráteis, splitter arrastável e editores inline ricos.
+      </p>
 
-      <div
-        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 24px; width: 100%; box-sizing: border-box;">
+      <div class="palette-grid-responsive"
+        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 24px; width: 100%; box-sizing: border-box;">
         <!-- Exemplo 1: AutoCAD -->
         <div style="display: flex; flex-direction: column; gap: 8px;">
           <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-size: 13px; font-weight: 600; color: #00E08A;">1. Estilo AutoCAD (Círculo
+            <span style="font-size: 13px; font-weight: 600; color: var(--ui-cor-primaria, #00E08A);">1. Estilo AutoCAD (Círculo
               Selecionado)</span>
-            <span style="font-size: 11px; color: #888899;">Splitter arrastável + Imediato</span>
+            <span style="font-size: 11px; color: var(--ui-cor-texto-secundario, #888899);">Splitter arrastável + Imediato</span>
           </div>
           <div style="height: 480px; width: 100%;">
             <ui-tabela-propriedades id="propriedades-autocad" estilo-visual="autocad" filtro></ui-tabela-propriedades>
@@ -1069,8 +1265,8 @@
         <!-- Exemplo 2: Revit -->
         <div style="display: flex; flex-direction: column; gap: 8px;">
           <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-size: 13px; font-weight: 600; color: #00E08A;">2. Estilo Revit (Planta de Piso)</span>
-            <span style="font-size: 11px; color: #888899;">Card de Tipo + Modo Aplicar</span>
+            <span style="font-size: 13px; font-weight: 600; color: var(--ui-cor-primaria, #00E08A);">2. Estilo Revit (Planta de Piso)</span>
+            <span style="font-size: 11px; color: var(--ui-cor-texto-secundario, #888899);">Card de Tipo + Modo Aplicar</span>
           </div>
           <div style="height: 480px; width: 100%;">
             <ui-tabela-propriedades id="propriedades-revit" estilo-visual="revit"

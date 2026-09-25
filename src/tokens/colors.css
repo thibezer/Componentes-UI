@@ -1,4 +1,9 @@
-:root {
+:root,
+:root[data-tema="escuro"],
+:root.dark,
+[data-tema="escuro"] {
+  color-scheme: dark;
+
   /* Cores Principais */
   --ui-cor-primaria: #00E08A;
   --ui-cor-texto-sobre-primaria: #000000;
@@ -31,10 +36,14 @@
 }
 
 /* ==========================================
-   Design Tokens - Tema Claro (Ativado via data-tema="claro")
+   Design Tokens - Tema Claro (Ativado via data-tema="claro" ou classe .light)
    ========================================== */
 :root[data-tema="claro"],
-[data-tema="claro"] {
+:root.light,
+[data-tema="claro"],
+[data-theme="light"] {
+  color-scheme: light;
+
   /* Cores Principais */
   --ui-cor-primaria: #00B368;
   --ui-cor-texto-sobre-primaria: #ffffff;
@@ -65,3 +74,4 @@
   /* Bordas e Divisores */
   --ui-cor-borda: rgba(0, 0, 0, 0.12);
 }
+

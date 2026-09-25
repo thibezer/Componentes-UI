@@ -1,5 +1,5 @@
 import L from 'leaflet';
-import type { CanvasLayerDef, CanvasLayerState, CanvasRenderContext, CanvasGraphicScale } from './types';
+import type { CanvasLayerDef, CanvasLayerState, CanvasRenderContext, CanvasGraphicScale, CanvasLayerType, CanvasLayerCategory } from './types';
 import { LayerRendererFactory } from './layer_renderer_factory';
 import { TileLayerRenderer } from './renderers/tile_renderer';
 import { WmsLayerRenderer } from './renderers/wms_renderer';
@@ -182,6 +182,16 @@ export class CanvasLayerManager {
         pane.style.pointerEvents = 'auto';
       }
     });
+
+    // Pane de sobreposição para anel de destaque (destacarElemento)
+    let destaquePane = this.map!.getPane('pane-destaque');
+    if (!destaquePane) {
+      destaquePane = this.map!.createPane('pane-destaque');
+    }
+    if (destaquePane) {
+      destaquePane.style.zIndex = '850';
+      destaquePane.style.pointerEvents = 'none';
+    }
   }
 
   public renderAllLayers(): void {
@@ -341,6 +351,114 @@ export class CanvasLayerManager {
   public isLayerActiveAndSelectable(layerId: string): boolean {
     const layer = this.layers.find(l => l.id === layerId);
     return !!(layer && layer.visivel && layer.interativo && !layer.bloqueada);
+  }
+
+  public getLayerInstance(layerId: string): L.Layer | L.LayerGroup | undefined {
+    return this.layerInstances.get(layerId);
+  }
+
+  public getAllLayerInstances(): (L.Layer | L.LayerGroup)[] {
+    return Array.from(this.layerInstances.values());
+  }
+
+  /**
+   * Obtém uma camada existente ou a cria dinamicamente de forma agnóstica.
+   */
+  public getOrCreateLayer(
+    id: string,
+    tipo: CanvasLayerType = 'vetorial-pontos',
+    nome?: string,
+    categoria: CanvasLayerCategory = 'custom'
+  ): CanvasLayerDef {
+    let layer = this.layers.find(l => l.id === id);
+    if (!layer) {
+      layer = {
+        id,
+        nome: nome || id,
+        categoria,
+        tipo,
+        visivel: true,
+        opacidade: 1.0,
+        zIndex: tipo === 'vetorial-pontos' ? 650 : (tipo === 'vetorial-linhas' ? 450 : 500),
+        interativo: true,
+        bloqueada: false,
+        estilo: { scaleMode: 'screen' }
+      };
+      this.layers.push(layer);
+      if (this.map) {
+        const paneName = `pane-${layer.id}`;
+        let pane = this.map.getPane(paneName);
+        if (!pane) {
+          pane = this.map.createPane(paneName);
+        }
+        if (pane) {
+          pane.style.zIndex = String(layer.zIndex);
+          pane.style.pointerEvents = 'auto';
+        }
+      }
+      this.notifyChange();
+    }
+    return layer;
+  }
+
+  /**
+   * Define os dados de uma camada e solicita re-renderização ao renderizador correspondente.
+   */
+  public setLayerData(id: string, dados: any): void {
+    const layer = this.layers.find(l => l.id === id);
+    if (!layer) return;
+    layer.dados = dados;
+
+    const instance = this.layerInstances.get(id);
+    if (instance && this.map && this.context) {
+      const renderer = LayerRendererFactory.get(layer.tipo);
+      if (renderer) {
+        renderer.update(layer, instance, { dados }, this.context, this.map);
+      }
+    } else if (this.map && this.context && layer.visivel) {
+      const renderer = LayerRendererFactory.get(layer.tipo);
+      if (renderer) {
+        const newInst = renderer.render(layer, this.map, this.context);
+        if (newInst) {
+          newInst.addTo(this.map);
+          this.layerInstances.set(id, newInst);
+        }
+      }
+    }
+    this.notifyChange();
+  }
+
+  /**
+   * Remove entidades das camadas especificadas ou de todas as camadas vetoriais se omitido.
+   */
+  public clearLayers(idsCamadas?: string[]): void {
+    const targetLayers = idsCamadas && idsCamadas.length > 0
+      ? this.layers.filter(l => idsCamadas.includes(l.id))
+      : this.layers.filter(l => typeof l.tipo === 'string' && l.tipo.startsWith('vetorial'));
+
+    targetLayers.forEach(layer => {
+      layer.dados = null;
+      const instance = this.layerInstances.get(layer.id);
+      if (instance && (instance as any).clearLayers) {
+        (instance as any).clearLayers();
+      }
+    });
+
+    if (!idsCamadas || idsCamadas.length === 0) {
+      if (this.context) {
+        this.context.pontos = [];
+        this.context.segmentos = [];
+        this.context.confrontantes = [];
+      }
+    } else {
+      if (this.context) {
+        if (idsCamadas.includes('vertices')) this.context.pontos = [];
+        if (idsCamadas.includes('linhas') || idsCamadas.includes('perimetro') || idsCamadas.includes('polilinha')) this.context.segmentos = [];
+        if (idsCamadas.includes('poligonos') || idsCamadas.includes('vizinhos')) this.context.confrontantes = [];
+      }
+    }
+
+    this.notifyChange();
   }
 
   public exportState(): CanvasLayerState[] {

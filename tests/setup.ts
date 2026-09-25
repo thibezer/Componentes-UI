@@ -43,3 +43,19 @@ if (typeof HTMLCanvasElement !== 'undefined') {
     return null;
   };
 }
+
+import L from 'leaflet';
+
+if (L && L.Canvas) {
+  const origClear = (L.Canvas.prototype as any)._clear;
+  (L.Canvas.prototype as any)._clear = function () {
+    if (!this._ctx) return;
+    return origClear.call(this);
+  };
+
+  const origDraw = (L.Canvas.prototype as any)._draw;
+  (L.Canvas.prototype as any)._draw = function () {
+    if (!this._ctx) return;
+    return origDraw.call(this);
+  };
+}

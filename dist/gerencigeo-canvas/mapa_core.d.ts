@@ -21,7 +21,11 @@ export declare class MapaCore {
     private currentSigefAbortController?;
     constructor(controller: MapaCoreControllerRef);
     init(containerIdOrElement: string | HTMLElement): L.Map | null;
-    invalidateSize(): void;
+    /**
+     * Recalcula com segurança as dimensões do viewport Leaflet.
+     * Absorve silenciosamente exceções de desmontagem e panes desanexados (undefined._leaflet_pos).
+     */
+    invalidateSize(animate?: boolean): void;
     private applyMapStyles;
     private listenConfigBroadcast;
     destroy(): void;
