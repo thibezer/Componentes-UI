@@ -6,7 +6,7 @@ import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 
 export class UIMapaMarcador extends SafeHTMLElement {
   static get observedAttributes() {
-    return ['lat', 'lng', 'titulo'];
+    return ['lat', 'lng', 'titulo', 'cor', 'formato'];
   }
   
   private marker: L.Marker | null = null;
@@ -60,6 +60,12 @@ export class UIMapaMarcador extends SafeHTMLElement {
           this.marker.bindPopup(this.createPopupContent(newVal));
         }
       }
+      if (name === 'cor' || name === 'formato') {
+        const L = obterLeafletSincrono() || (window as any).L;
+        if (L) {
+          this.marker.setIcon(this.createIcon(L));
+        }
+      }
     }
   }
 
@@ -68,6 +74,35 @@ export class UIMapaMarcador extends SafeHTMLElement {
     container.className = 'ui-mapa-popup';
     container.textContent = titulo;
     return container;
+  }
+
+  private createIcon(L: any): any {
+    const cor = this.getAttribute('cor') || '#00f5a0';
+    const formato = this.getAttribute('formato') || 'pin';
+
+    if (formato === 'circle') {
+      const html = `<div style="width:14px; height:14px; background-color:${cor}; border-radius:50%; border:2px solid #ffffff; box-shadow:0 1px 4px rgba(0,0,0,0.6);"></div>`;
+      return L.divIcon({
+        className: 'ui-mapa-div-marker',
+        html,
+        iconSize: [14, 14],
+        iconAnchor: [7, 7]
+      });
+    }
+
+    const html = `
+      <svg width="24" height="32" viewBox="0 0 24 32" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.45));">
+        <path d="M12 0C5.372 0 0 5.372 0 12C0 21 12 32 12 32C12 32 24 21 24 12C24 5.372 18.628 0 12 0Z" fill="${cor}"/>
+        <circle cx="12" cy="11" r="4.5" fill="#ffffff"/>
+      </svg>
+    `;
+    return L.divIcon({
+      className: 'ui-mapa-svg-pin',
+      html,
+      iconSize: [24, 32],
+      iconAnchor: [12, 32],
+      popupAnchor: [0, -30]
+    });
   }
   
   private initMarker() {
@@ -99,7 +134,9 @@ export class UIMapaMarcador extends SafeHTMLElement {
     const L = obterLeafletSincrono() || (window as any).L;
     if (!L) return;
 
-    this.marker = L.marker([coord.lat, coord.lon]);
+    this.marker = L.marker([coord.lat, coord.lon], {
+      icon: this.createIcon(L)
+    });
     if (this.marker) {
       if (titulo) {
         this.marker.bindPopup(this.createPopupContent(titulo));

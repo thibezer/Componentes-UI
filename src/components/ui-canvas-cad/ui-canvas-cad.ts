@@ -240,7 +240,18 @@ export class UICanvasCAD extends SafeHTMLElement {
     this.controller.fitBounds(pontos, padding, incluirVizinhos);
   }
   public zoomExtents(): void { this.controller.canvasInteracao.zoomExtents(); }
-  public selectPonto(id: number, zoomLevel?: number): void { this.controller.selectPonto(id, zoomLevel); }
+  public selectPonto(id: string | number, zoomLevel?: number): void { this.controller.selectPonto(id, zoomLevel); }
+  public selecionarPonto(id: string | number, zoomLevel?: number): void { this.controller.selectPonto(id, zoomLevel); }
+  public get pontosSelecionados(): (string | number)[] {
+    return (this.controller.context as any).selectedPontoIds || this.controller.canvasInteracao.ctx.selectedPontoIds || [];
+  }
+  public set pontosSelecionados(ids: (string | number)[]) {
+    const safeIds = Array.isArray(ids) ? ids : [];
+    this.controller.canvasInteracao.ctx.selectedPontoIds = safeIds as any;
+    (this.controller.context as any).selectedPontoIds = [...safeIds];
+    this.controller.atualizarDestaqueMarcadores();
+  }
+  public atualizarDestaqueMarcadores(): void { this.controller.atualizarDestaqueMarcadores(); }
   public limparSelecao(): void { this.controller.canvasInteracao.limparSelecao(); }
   public setLayerVisibility(id: string, visivel: boolean): void { this.controller.layerManager.setLayerVisibility(id, visivel); }
   public setLayerOpacity(id: string, opacidade: number): void { this.controller.layerManager.setLayerOpacity(id, opacidade); }

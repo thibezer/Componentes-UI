@@ -165,7 +165,10 @@ export function tratarCliqueMarcador(
 
   if (customMarkerClickHandler) {
     try {
-      customMarkerClickHandler(Number(pId), isVizinho);
+      const parsedId = (pId !== undefined && pId !== null && !isNaN(Number(pId)) && String(pId).trim() !== '')
+        ? Number(pId)
+        : pId;
+      customMarkerClickHandler(parsedId as any, isVizinho);
     } catch (err) {
       console.error('Erro no callback de clique de marcador:', err);
     }

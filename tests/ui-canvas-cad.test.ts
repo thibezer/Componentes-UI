@@ -443,6 +443,48 @@ describe('Canvas CAD Engine & <ui-canvas-cad>', () => {
       document.body.removeChild(el);
     });
 
+    it('deve destacar visualmente pontos selecionados via clique, selectPonto e propriedade pontosSelecionados', async () => {
+      const el = document.createElement('ui-canvas-cad') as UICanvasCAD;
+      document.body.appendChild(el);
+      await new Promise(r => setTimeout(r, 20));
+
+      const pontos = [
+        { id: 'pt-alpha', lat: -23.765, lon: -53.320, estilo: 'circle', corPrimaria: '#00f5a0' },
+        { id: 'pt-beta', lat: -23.766, lon: -53.321, estilo: 'square', corPrimaria: '#6366f1' }
+      ];
+
+      el.plotarPontos(pontos, 'vertices');
+      const markers = el.obterMarcadores('vertices');
+      expect(markers.length).toBe(2);
+
+      const mAlpha = markers.find(m => String((m as any).pontoId) === 'pt-alpha') as any;
+      const mBeta = markers.find(m => String((m as any).pontoId) === 'pt-beta') as any;
+
+      expect(mAlpha.isSelected).toBeFalsy();
+      expect(mBeta.isSelected).toBeFalsy();
+
+      // 1. Destaque via selectPonto
+      el.selectPonto('pt-alpha');
+      expect(mAlpha.isSelected).toBe(true);
+      expect(mAlpha.options.zIndexOffset).toBe(2000);
+      expect(mBeta.isSelected).toBeFalsy();
+      expect(mBeta.options.zIndexOffset).toBe(0);
+
+      // 2. Destaque via propriedade reativa pontosSelecionados
+      el.pontosSelecionados = ['pt-beta'];
+      expect(mAlpha.isSelected).toBe(false);
+      expect(mAlpha.options.zIndexOffset).toBe(0);
+      expect(mBeta.isSelected).toBe(true);
+      expect(mBeta.options.zIndexOffset).toBe(2000);
+
+      // 3. Limpeza de seleção restaura zIndex e remove destaque
+      el.limparSelecao();
+      expect(mBeta.isSelected).toBe(false);
+      expect(mBeta.options.zIndexOffset).toBe(0);
+
+      document.body.removeChild(el);
+    });
+
     it('deve plotar conexões e polilinha sequencial sem acoplamento a domínio', async () => {
       const el = document.createElement('ui-canvas-cad') as UICanvasCAD;
       document.body.appendChild(el);

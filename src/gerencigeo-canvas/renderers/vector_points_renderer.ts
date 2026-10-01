@@ -1,7 +1,7 @@
 import L from 'leaflet';
 import type { ILayerRenderer } from '../layer_renderer_factory';
 import type { CanvasLayerDef, CanvasRenderContext, Ponto } from '../types';
-import { escapeHtml } from '../utils';
+import { escapeHtml, renderPopupAcoesHtml, bindPopupAcoesEvents } from '../utils';
 import { getPointShapeHtml } from '../mapa_pontos_shapes';
 
 export class VectorPointsLayerRenderer implements ILayerRenderer {
@@ -16,10 +16,17 @@ export class VectorPointsLayerRenderer implements ILayerRenderer {
     const zoomCallback = () => {
       if (layerDef.estilo.scaleMode === 'world') {
         group.eachLayer((marker: any) => {
-          if (marker.setIcon && marker.baseSize && marker.shapeStyle && marker.markerBg && marker.pontoId) {
+          if (marker.setIcon && marker.baseSize && marker.shapeStyle && marker.markerBg && marker.pontoId !== undefined) {
             const size = this.calculateSize(layerDef, map, context, marker.baseSize);
             const animClass = context.config.enableAnimations ? 'transition-all duration-150' : '';
-            const markerHtml = getPointShapeHtml(marker.shapeStyle, size, marker.markerBg, animClass, `map-marker-${layerDef.id}-${marker.pontoId}`);
+            const markerHtml = getPointShapeHtml(
+              marker.shapeStyle,
+              size,
+              marker.markerBg,
+              animClass,
+              `map-marker-${layerDef.id}-${marker.pontoId}`,
+              !!marker.isSelected
+            );
 
             const customIcon = L.divIcon({
               html: markerHtml,
@@ -68,51 +75,69 @@ export class VectorPointsLayerRenderer implements ILayerRenderer {
     const isVizinhoLayer = layerDef.id === 'vizinhos';
     const isHomologadoLayer = layerDef.id === 'homologados' || layerDef.id === 'homologados-pontos';
 
+    const selectedIds = ((context as any).selectedPontoIds || []) as (string | number)[];
+
     pontos.forEach(p => {
       const lat = p.lat ?? (p as any).latitude;
       const lon = p.lon ?? (p as any).lng ?? (p as any).longitude;
 
-      if (lat && lon && lat !== 0 && lon !== 0) {
+      if (lat !== undefined && lon !== undefined && lat !== 0 && lon !== 0 && !isNaN(Number(lat)) && !isNaN(Number(lon))) {
         const isBaseFisica = p.tipo_ponto === 'B' || p.tipo === 'B';
         const isBasePPP = p.tipo_ponto === 'M' || p.tipo === 'M';
 
         let shapeStyle = layerDef.estilo.estiloMarcador || 'x';
-        let markerBg = 'bg-mint-vibrant';
+        let markerBg = layerDef.estilo.corPrimaria || 'bg-mint-vibrant';
         let baseSize = layerDef.estilo.tamanhoMarcador || 7;
 
         if (isHomologadoLayer) {
           shapeStyle = 'circle';
-          markerBg = 'bg-amber-500';
+          markerBg = layerDef.estilo.corPrimaria || '#f59e0b';
           baseSize = 8;
         } else if (isVizinhoLayer) {
-          shapeStyle = isBasePPP ? 'circle-dot' : 'cross';
-          markerBg = 'bg-[#a855f7]';
+          shapeStyle = isBasePPP ? 'circle-dot' : (layerDef.estilo.estiloMarcador || 'cross');
+          markerBg = layerDef.estilo.corPrimaria || '#a855f7';
           baseSize = isBasePPP ? 10 : 8;
         } else if (isBasePPP) {
-          markerBg = 'bg-indigo-500';
+          markerBg = '#6366f1';
           shapeStyle = 'circle-dot';
           baseSize = 10;
         } else if (isBaseFisica) {
-          markerBg = 'bg-rose-500';
+          markerBg = '#f43f5e';
           shapeStyle = 'square';
           baseSize = 9;
         }
 
+        const isSelected = Boolean(
+          (p as any).selecionado ||
+          (selectedIds.length > 0 && (selectedIds.includes(p.id) || selectedIds.includes(String(p.id)) || selectedIds.includes(Number(p.id))))
+        );
+
         const size = this.calculateSize(layerDef, map, context, baseSize);
         const animClass = context.config.enableAnimations ? 'transition-all duration-150' : '';
-        const markerHtml = getPointShapeHtml(shapeStyle, size, markerBg, animClass, `map-marker-${layerDef.id}-${p.id}`);
+        const markerHtml = getPointShapeHtml(
+          shapeStyle,
+          size,
+          markerBg,
+          animClass,
+          `map-marker-${layerDef.id}-${p.id}`,
+          isSelected
+        );
 
         const customIcon = L.divIcon({
           html: markerHtml,
-          className: 'custom-leaflet-marker flex items-center justify-center',
+          className: `custom-leaflet-marker flex items-center justify-center ${isSelected ? 'cad-marker-selected' : ''}`,
           iconSize: [size + 6, size + 6]
         });
 
-        const marker = L.marker([lat, lon], {
+        const marker = L.marker([Number(lat), Number(lon)], {
           icon: customIcon,
           pane: paneName,
           interactive: isInteractive
         });
+
+        if (isSelected) {
+          marker.setZIndexOffset(2000);
+        }
 
         (marker as any).pontoId = p.id;
         (marker as any).layerId = layerDef.id;
@@ -120,6 +145,7 @@ export class VectorPointsLayerRenderer implements ILayerRenderer {
         (marker as any).baseSize = baseSize;
         (marker as any).shapeStyle = shapeStyle;
         (marker as any).markerBg = markerBg;
+        (marker as any).isSelected = isSelected;
 
         if (isInteractive) {
           const popupRole = isHomologadoLayer
@@ -132,20 +158,30 @@ export class VectorPointsLayerRenderer implements ILayerRenderer {
             ? 'Base de Campo (Translação)'
             : 'Vértice de Perímetro';
 
+          const acoes = p.acoes || layerDef.acoes || layerDef.dados?.acoes || [];
+          const acoesHtml = renderPopupAcoesHtml(acoes, p.id);
+
           marker.bindPopup(`
             <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.3;">
               <div style="font-weight:700; font-size:13px; margin-bottom:4px; color:#ffffff;">${escapeHtml(p.nome_vertice || String(p.id))}</div>
               <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">${escapeHtml(popupRole)} · ${escapeHtml(p.tipo_ponto || p.tipo || 'Vértice')}</div>
               <div style="font-size:11px; color:rgba(255, 255, 255, 0.45); font-family:monospace; margin-top:4px;">Lat ${Number(lat).toFixed(6)} &nbsp; Lon ${Number(lon).toFixed(6)}</div>
+              ${acoesHtml}
             </div>
           `, {
             className: 'compact-popup',
-            maxWidth: 220
+            maxWidth: 240
           });
+
+          if (acoes && acoes.length > 0) {
+            marker.on('popupopen', (e: any) => {
+              bindPopupAcoesEvents(e.popup, p, context, marker);
+            });
+          }
 
           marker.on('click', () => {
             if (context.onMarkerClick) {
-              context.onMarkerClick(p.id, isVizinhoLayer);
+              context.onMarkerClick(p.id, isVizinhoLayer, p, { lat: Number(lat), lon: Number(lon) });
             }
           });
         }

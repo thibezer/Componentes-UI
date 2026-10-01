@@ -247,11 +247,19 @@ export class CanvasInteracao {
       this.ctx.selectedPontoIds = [];
       this.ctx.selectedVizinhoPontoIds = [];
       this.ctx.lastSelectedPontoId = null;
+      if (this.ctx.mapaController) {
+        (this.ctx.mapaController.context as any).selectedPontoIds = [];
+        this.ctx.mapaController.atualizarDestaqueMarcadores?.();
+      }
       this.notificarSelecao();
     }
   }
 
   private notificarSelecao(): void {
+    if (this.ctx.mapaController) {
+      (this.ctx.mapaController.context as any).selectedPontoIds = [...this.ctx.selectedPontoIds];
+      this.ctx.mapaController.atualizarDestaqueMarcadores?.();
+    }
     if (this.ctx.atualizarDestaqueLinhasTabela) {
       this.ctx.atualizarDestaqueLinhasTabela();
     }

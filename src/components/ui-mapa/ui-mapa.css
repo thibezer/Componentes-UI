@@ -19,3 +19,25 @@
   z-index: 1000;
 }
 
+.ui-mapa-popup {
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: #111827;
+  padding: 2px 4px;
+}
+
+.ui-mapa-svg-pin,
+.ui-mapa-div-marker {
+  background: transparent !important;
+  border: none !important;
+  cursor: pointer;
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.ui-mapa-svg-pin:hover,
+.ui-mapa-div-marker:hover {
+  transform: scale(1.15);
+  filter: brightness(1.2);
+}
+

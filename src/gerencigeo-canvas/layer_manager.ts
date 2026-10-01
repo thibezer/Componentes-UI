@@ -390,6 +390,14 @@ export class CanvasLayerManager {
     return this.layerInstances.get(id);
   }
 
+  public getLayer(id: string): CanvasLayerDef | undefined {
+    return this.layers.find(l => l.id === id);
+  }
+
+  public getLayerDef(id: string): CanvasLayerDef | undefined {
+    return this.layers.find(l => l.id === id);
+  }
+
   public getOrCreateLayer(id: string, tipo: string, nome: string): CanvasLayerDef {
     let layer = this.layers.find(l => l.id === id);
     if (!layer) {
