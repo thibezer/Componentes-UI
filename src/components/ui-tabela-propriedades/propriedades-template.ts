@@ -4,6 +4,24 @@ export function criarTemplateTabelaPropriedades(): string {
   return `
     <style>${estilos}</style>
     <div class="ui-prop__container" id="container">
+      <!-- 0. Faixa Vertical da Coluna Estreita (visível quando colapsado) -->
+      <div class="ui-prop__faixa-estreita" id="faixa-estreita" title="Clique para expandir painel">
+        <span class="ui-prop__faixa-icone">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="3" y1="9" x2="21" y2="9"></line>
+            <line x1="9" y1="21" x2="9" y2="9"></line>
+          </svg>
+        </span>
+        <button type="button" class="ui-prop__faixa-btn-expandir" id="btn-expandir-faixa" title="Expandir painel de propriedades">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <polyline points="9 18 15 12 9 6"></polyline>
+            <line x1="5" y1="5" x2="5" y2="19"></line>
+          </svg>
+        </button>
+        <span class="ui-prop__faixa-texto">PROPRIEDADES</span>
+      </div>
+
       <!-- 1. Header Superior -->
       <header class="ui-prop__header" id="header">
         <div class="ui-prop__header-titulo">
@@ -17,6 +35,19 @@ export function criarTemplateTabelaPropriedades(): string {
           <span id="header-titulo-texto">Propriedades</span>
         </div>
         <div class="ui-prop__header-acoes">
+          <button type="button" class="ui-prop__btn-icone" id="btn-flutuante" title="Desacoplar / Modo flutuante (CAD)" aria-label="Modo flutuante">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="14" height="14" rx="2"></rect>
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <line x1="10" y1="14" x2="21" y2="3"></line>
+            </svg>
+          </button>
+          <button type="button" class="ui-prop__btn-icone" id="btn-colapsar-horizontal" title="Recolher para coluna estreita" aria-label="Recolher para coluna estreita">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="11 17 6 12 11 7"></polyline>
+              <line x1="18" y1="5" x2="18" y2="19"></line>
+            </svg>
+          </button>
           <button type="button" class="ui-prop__btn-icone" id="btn-densidade" title="Alternar compressão vertical" aria-label="Alternar densidade vertical">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="4 7 12 11 20 7"></polyline>
@@ -64,6 +95,9 @@ export function criarTemplateTabelaPropriedades(): string {
           <button type="button" class="ui-prop__btn-aplicar" id="btn-aplicar" disabled>Aplicar</button>
         </div>
       </footer>
+
+      <!-- 6. Grip para redimensionar no modo flutuante -->
+      <div class="ui-prop__resizer-canto" id="resizer-canto" title="Redimensionar"></div>
     </div>
   `;
 }

@@ -38,6 +38,144 @@
   font-size: 12px;
 }
 
+/* ====================================================
+   Modo Coluna Estreita (AutoCAD Auto-Hide Strip)
+   ==================================================== */
+
+:host([colapsado]) {
+  width: 32px !important;
+  min-width: 32px !important;
+  max-width: 32px !important;
+  height: 100% !important;
+  cursor: pointer;
+  transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+:host([colapsado]) .ui-prop__header,
+:host([colapsado]) .ui-prop__tipo-seletor-container,
+:host([colapsado]) .ui-prop__filtro-container,
+:host([colapsado]) .ui-prop__corpo-wrapper,
+:host([colapsado]) .ui-prop__footer,
+:host([colapsado]) .ui-prop__resizer-canto {
+  display: none !important;
+}
+
+:host([colapsado]) .ui-prop__faixa-estreita {
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 8px 0;
+  gap: 10px;
+  box-sizing: border-box;
+  background-color: var(--ui-cor-fundo-elevado, #18181d);
+  user-select: none;
+  cursor: pointer;
+}
+
+.ui-prop__faixa-estreita {
+  display: none;
+}
+
+.ui-prop__faixa-icone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ui-cor-destaque, #00E08A);
+  flex-shrink: 0;
+}
+
+.ui-prop__faixa-btn-expandir {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
+  border-radius: 3px;
+  color: var(--ui-cor-texto, #e1e1e6);
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.ui-prop__faixa-btn-expandir:hover {
+  background-color: var(--ui-cor-destaque, #00E08A);
+  color: #000000;
+  border-color: var(--ui-cor-destaque, #00E08A);
+}
+
+.ui-prop__faixa-texto {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--ui-cor-texto-secundario, #888899);
+  margin-top: 8px;
+  flex: 1;
+  pointer-events: none;
+}
+
+:host([colapsado]):hover .ui-prop__faixa-texto {
+  color: var(--ui-cor-texto, #ffffff);
+}
+
+/* ====================================================
+   Modo Flutuante (AutoCAD Floating Palette)
+   ==================================================== */
+
+:host([flutuante]) {
+  position: fixed !important;
+  z-index: 1050 !important;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.14), 0 6px 14px rgba(0, 0, 0, 0.5) !important;
+  border-radius: 6px !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  resize: both;
+  overflow: hidden;
+  max-width: 95vw;
+  max-height: 95vh;
+  min-width: 220px;
+  min-height: 200px;
+}
+
+:host([flutuante]) .ui-prop__header {
+  cursor: grab;
+  user-select: none;
+}
+
+:host([flutuante].arrastando) .ui-prop__header {
+  cursor: grabbing !important;
+}
+
+.ui-prop__resizer-canto {
+  display: none;
+}
+
+:host([flutuante]) .ui-prop__resizer-canto {
+  display: block;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 14px;
+  height: 14px;
+  cursor: nwse-resize;
+  z-index: 50;
+  background: linear-gradient(135deg, transparent 50%, rgba(255, 255, 255, 0.25) 50%, rgba(255, 255, 255, 0.25) 65%, transparent 65%, transparent 80%, rgba(255, 255, 255, 0.25) 80%);
+  pointer-events: auto;
+}
+
+.ui-prop__btn-icone--ativo {
+  background-color: rgba(0, 224, 138, 0.18) !important;
+  color: var(--ui-cor-destaque, #00E08A) !important;
+}
+
 .ui-prop__container {
   display: flex;
   flex-direction: column;
@@ -240,12 +378,13 @@
   min-width: 0;
   width: 0;
   height: 20px;
-  background-color: var(--ui-cor-fundo-card, #18181c);
-  color: var(--ui-cor-texto, #e1e1e6);
-  border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.15));
-  border-radius: 3px;
-  padding: 0 18px 0 5px;
+  background-color: transparent;
+  color: var(--ui-cor-texto, #ffffff);
+  border: none;
+  border-radius: 2px;
+  padding: 0 16px 0 2px;
   font-size: 10.5px;
+  font-weight: 500;
   cursor: pointer;
   outline: none;
   appearance: none;
@@ -253,36 +392,43 @@
   -moz-appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg width='8' height='5' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23888899' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 5px center;
+  background-position: right 4px center;
   background-size: 8px 5px;
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
   box-sizing: border-box;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.ui-prop__tipo-select:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+}
+
+.ui-prop__tipo-select:focus {
+  background-color: rgba(0, 224, 138, 0.08);
+  color: var(--ui-cor-destaque, #00E08A);
 }
 
 :host([densidade="compacta"]) .ui-prop__tipo-select {
   height: 18px;
   font-size: 10px;
-  padding: 0 16px 0 4px;
+  padding: 0 14px 0 2px;
 }
 
 :host([densidade="ultracompacta"]) .ui-prop__tipo-select {
   height: 16px;
   font-size: 9.5px;
-  padding: 0 14px 0 3px;
-}
-
-.ui-prop__tipo-select:focus {
-  border-color: var(--ui-cor-destaque, #00E08A);
+  padding: 0 12px 0 2px;
 }
 
 .ui-prop__btn-editar-tipo {
   height: 20px;
   padding: 0 6px;
-  background-color: var(--ui-cor-botao-secundario-fundo, #1e1e24);
-  border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.15));
-  border-radius: 3px;
+  background-color: transparent;
+  border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
+  border-radius: 2px;
   color: var(--ui-cor-texto, #ffffff);
   font-size: 10.5px;
   font-weight: 500;
@@ -310,17 +456,21 @@
 .ui-prop__tipo-autocad-bar {
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 2px;
   width: 100%;
   min-width: 0;
   box-sizing: border-box;
+  background: transparent;
 }
 
 .ui-prop__tipo-autocad-acoes {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 1px;
   flex-shrink: 0;
+  border-left: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.08));
+  padding-left: 3px;
+  margin-left: 1px;
 }
 
 .ui-prop__btn-autocad {
@@ -329,10 +479,10 @@
   justify-content: center;
   width: 20px;
   height: 20px;
-  background: var(--ui-cor-fundo-card, #18181c);
-  border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.15));
-  border-radius: 3px;
-  color: var(--ui-cor-texto, #e1e1e6);
+  background: transparent;
+  border: none;
+  border-radius: 2px;
+  color: var(--ui-cor-texto-secundario, #888899);
   cursor: pointer;
   padding: 0;
   transition: all 0.15s ease;
@@ -350,12 +500,12 @@
 
 .ui-prop__btn-autocad:hover {
   background-color: var(--ui-cor-hover-menu, rgba(255, 255, 255, 0.1));
-  border-color: var(--ui-cor-destaque, #00E08A);
   color: var(--ui-cor-destaque, #00E08A);
 }
 
 .ui-prop__btn-autocad:active {
-  transform: scale(0.95);
+  transform: scale(0.92);
+  background-color: rgba(0, 224, 138, 0.15);
 }
 
 /* ====================================================

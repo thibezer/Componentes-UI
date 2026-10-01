@@ -9,10 +9,46 @@ export interface ContextoPainelControles {
   onAplicar: () => void;
   onDesfazer: () => void;
   onAlternarDensidade?: () => void;
+  onAlternarFlutuante?: () => void;
+  onAlternarColapsoHorizontal?: () => void;
 }
 
 export function conectarPainelControles(ctx: ContextoPainelControles): void {
-  const { shadow, listeners, host, onToggleExpandirTodas, onFiltrar, onAplicar, onDesfazer, onAlternarDensidade } = ctx;
+  const {
+    shadow,
+    listeners,
+    host,
+    onToggleExpandirTodas,
+    onFiltrar,
+    onAplicar,
+    onDesfazer,
+    onAlternarDensidade,
+    onAlternarFlutuante,
+    onAlternarColapsoHorizontal
+  } = ctx;
+
+  const btnFlutuante = shadow.getElementById('btn-flutuante');
+  if (btnFlutuante && onAlternarFlutuante) {
+    listeners.add(btnFlutuante, 'click', onAlternarFlutuante);
+  }
+
+  const btnColapsarHorizontal = shadow.getElementById('btn-colapsar-horizontal');
+  if (btnColapsarHorizontal && onAlternarColapsoHorizontal) {
+    listeners.add(btnColapsarHorizontal, 'click', onAlternarColapsoHorizontal);
+  }
+
+  const faixaEstreita = shadow.getElementById('faixa-estreita');
+  if (faixaEstreita && onAlternarColapsoHorizontal) {
+    listeners.add(faixaEstreita, 'click', onAlternarColapsoHorizontal);
+  }
+
+  const btnExpandirFaixa = shadow.getElementById('btn-expandir-faixa');
+  if (btnExpandirFaixa && onAlternarColapsoHorizontal) {
+    listeners.add(btnExpandirFaixa, 'click', (e: Event) => {
+      e.stopPropagation();
+      onAlternarColapsoHorizontal();
+    });
+  }
 
   const btnDensidade = shadow.getElementById('btn-densidade');
   if (btnDensidade && onAlternarDensidade) {
@@ -66,6 +102,20 @@ export function sincronizarPainelControles(shadow: ShadowRoot, host: HTMLElement
   const btnFechar = shadow.getElementById('btn-fechar');
   if (btnFechar) {
     btnFechar.style.display = host.hasAttribute('fechavel') ? 'inline-flex' : 'none';
+  }
+
+  const btnFlutuante = shadow.getElementById('btn-flutuante');
+  if (btnFlutuante) {
+    const isFlutuante = host.hasAttribute('flutuante');
+    btnFlutuante.title = isFlutuante ? 'Acoplar painel (Dock)' : 'Desacoplar / Modo flutuante (CAD)';
+    btnFlutuante.classList.toggle('ui-prop__btn-icone--ativo', isFlutuante);
+  }
+
+  const btnColapsarHorizontal = shadow.getElementById('btn-colapsar-horizontal');
+  if (btnColapsarHorizontal) {
+    const isColapsado = host.hasAttribute('colapsado');
+    btnColapsarHorizontal.title = isColapsado ? 'Expandir painel' : 'Recolher para coluna estreita';
+    btnColapsarHorizontal.classList.toggle('ui-prop__btn-icone--ativo', isColapsado);
   }
 
   const btnDensidade = shadow.getElementById('btn-densidade');

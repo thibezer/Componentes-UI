@@ -300,5 +300,85 @@ describe('UITabelaPropriedades - Paleta CAD & Revit', () => {
     expect(tabela.densidade).toBe('padrao');
     expect(spyDensidade).toHaveBeenCalledWith(expect.objectContaining({ detail: { densidade: 'padrao' } }));
   });
+
+  it('deve alternar modo flutuante (CAD) e emitir evento ui-flutuante-alterado', () => {
+    const shadow = tabela.shadowRoot!;
+    const btnFlutuante = shadow.querySelector('#btn-flutuante') as HTMLButtonElement;
+    expect(btnFlutuante).toBeTruthy();
+
+    const spyFlutuante = vi.fn();
+    tabela.addEventListener('ui-flutuante-alterado', spyFlutuante);
+
+    // 1. Alterna para flutuante via botão
+    btnFlutuante.click();
+    expect(tabela.hasAttribute('flutuante')).toBe(true);
+    expect(tabela.flutuante).toBe(true);
+    expect(tabela.style.position).toBe('fixed');
+    expect(spyFlutuante).toHaveBeenCalledWith(
+      expect.objectContaining({
+        detail: expect.objectContaining({ flutuante: true })
+      })
+    );
+
+    // 2. Desacopla / Volta ao normal via método público
+    const estado = tabela.alternarFlutuante();
+    expect(estado).toBe(false);
+    expect(tabela.hasAttribute('flutuante')).toBe(false);
+    expect(tabela.flutuante).toBe(false);
+    expect(tabela.style.position).toBe('');
+  });
+
+  it('deve alternar colapso horizontal para coluna estreita e emitir evento ui-colapso-horizontal', () => {
+    const shadow = tabela.shadowRoot!;
+    const btnColapsarHorizontal = shadow.querySelector('#btn-colapsar-horizontal') as HTMLButtonElement;
+    const faixaEstreita = shadow.querySelector('#faixa-estreita') as HTMLElement;
+    expect(btnColapsarHorizontal).toBeTruthy();
+    expect(faixaEstreita).toBeTruthy();
+
+    const spyColapso = vi.fn();
+    tabela.addEventListener('ui-colapso-horizontal', spyColapso);
+
+    // 1. Colapsa horizontalmente via botão do header
+    btnColapsarHorizontal.click();
+    expect(tabela.hasAttribute('colapsado')).toBe(true);
+    expect(tabela.colapsado).toBe(true);
+    expect(spyColapso).toHaveBeenCalledWith(
+      expect.objectContaining({
+        detail: { colapsado: true }
+      })
+    );
+
+    // 2. Expande de volta clicando na faixa estreita
+    faixaEstreita.click();
+    expect(tabela.hasAttribute('colapsado')).toBe(false);
+    expect(tabela.colapsado).toBe(false);
+    expect(spyColapso).toHaveBeenCalledWith(
+      expect.objectContaining({
+        detail: { colapsado: false }
+      })
+    );
+
+    // 3. Testa setter da propriedade
+    tabela.colapsado = true;
+    expect(tabela.hasAttribute('colapsado')).toBe(true);
+    tabela.colapsado = false;
+    expect(tabela.hasAttribute('colapsado')).toBe(false);
+  });
+
+  it('deve renderizar a 2ª linha (tipo e botões CAD) com estilo borderless integrado à barra', () => {
+    tabela.setAttribute('estilo-visual', 'autocad');
+    tabela.tipos = mockTipos;
+
+    const shadow = tabela.shadowRoot!;
+    const linhaTipo = shadow.querySelector('.ui-prop__tipo-autocad-bar') as HTMLElement;
+    expect(linhaTipo).toBeTruthy();
+
+    const seletorTipo = shadow.querySelector('.ui-prop__tipo-select') as HTMLElement;
+    expect(seletorTipo).toBeTruthy();
+
+    const btnsAcao = shadow.querySelectorAll('.ui-prop__btn-autocad');
+    expect(btnsAcao.length).toBe(3);
+  });
 });
+
 
