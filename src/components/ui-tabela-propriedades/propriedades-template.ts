@@ -42,9 +42,11 @@ export function criarTemplateTabelaPropriedades(): string {
       </div>
 
       <!-- 4. Corpo Rolável com Grade de Categorias -->
-      <div class="ui-prop__corpo" id="corpo">
+      <div class="ui-prop__corpo-wrapper" id="corpo-wrapper">
         <div class="ui-prop__splitter" id="splitter"></div>
-        <div class="ui-prop__lista-categorias" id="lista-categorias"></div>
+        <div class="ui-prop__corpo" id="corpo">
+          <div class="ui-prop__lista-categorias" id="lista-categorias"></div>
+        </div>
       </div>
 
       <!-- 5. Rodapé com Ações (Aplicar / Desfazer) -->
