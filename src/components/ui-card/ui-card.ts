@@ -1,7 +1,8 @@
 import estilos from './ui-card.css?inline';
 import { ListenerBag } from '../../core/listener-bag';
+import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 
-export class UICard extends HTMLElement {
+export class UICard extends SafeHTMLElement {
   static get observedAttributes() {
     return [
       'elevacao',
@@ -187,6 +188,4 @@ export class UICard extends HTMLElement {
   };
 }
 
-if (!customElements.get('ui-card')) {
-  customElements.define('ui-card', UICard);
-}
+definirCustomElement('ui-card', UICard);

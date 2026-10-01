@@ -35,8 +35,9 @@ export * from './propriedades-render-arvore';
 export * from './propriedades-gerenciador-valores';
 export * from './propriedades-painel-controles';
 export * from './propriedades-dom-utils';
+import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 
-export class UITabelaPropriedades extends HTMLElement {
+export class UITabelaPropriedades extends SafeHTMLElement {
   static get observedAttributes() {
     return [
       'titulo',
@@ -291,6 +292,4 @@ export class UITabelaPropriedades extends HTMLElement {
   }
 }
 
-if (!customElements.get('ui-tabela-propriedades')) {
-  customElements.define('ui-tabela-propriedades', UITabelaPropriedades);
-}
+definirCustomElement('ui-tabela-propriedades', UITabelaPropriedades);

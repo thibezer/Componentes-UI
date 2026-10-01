@@ -1,6 +1,7 @@
 import estilos from './ui-tooltip.css?inline';
+import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 
-export class UITooltip extends HTMLElement {
+export class UITooltip extends SafeHTMLElement {
   static get observedAttributes() {
     return [
       'texto',
@@ -230,10 +231,5 @@ export class UITooltip extends HTMLElement {
 
 export class UIPopover extends UITooltip {}
 
-if (!customElements.get('ui-tooltip')) {
-  customElements.define('ui-tooltip', UITooltip);
-}
-
-if (!customElements.get('ui-popover')) {
-  customElements.define('ui-popover', UIPopover);
-}
+definirCustomElement('ui-tooltip', UITooltip);
+definirCustomElement('ui-popover', UIPopover);

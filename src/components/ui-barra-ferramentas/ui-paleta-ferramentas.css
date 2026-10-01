@@ -1,0 +1,77 @@
+:host {
+  display: inline-block;
+  box-sizing: border-box;
+  font-family: var(--ui-fonte-base, 'Inter', sans-serif);
+  color: var(--ui-cor-texto, #e1e1e6);
+}
+
+.ui-paleta {
+  --ui-paleta-btn: 34px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  box-sizing: border-box;
+  background: var(--ui-cor-superficie, #141417);
+  border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
+  border-radius: var(--ui-raio-borda, 6px);
+  user-select: none;
+}
+
+.ui-paleta--horizontal {
+  flex-direction: row;
+}
+
+.ui-paleta--sm { --ui-paleta-btn: 28px; }
+.ui-paleta--lg { --ui-paleta-btn: 42px; }
+
+/* Duas colunas (padrão Photoshop) */
+.ui-paleta--cols-2 {
+  display: grid;
+  grid-template-columns: repeat(2, var(--ui-paleta-btn));
+  justify-content: center;
+}
+
+.ui-paleta--cols-2 .ui-paleta__sep {
+  grid-column: 1 / -1;
+}
+
+.ui-paleta .ui-ferr-btn {
+  width: var(--ui-paleta-btn);
+  height: var(--ui-paleta-btn);
+}
+
+/* Ferramenta ativa: preenchimento sólido, como em Illustrator/Photoshop */
+.ui-paleta .ui-ferr-btn--ativo {
+  background: var(--ui-cor-primaria, #00E08A);
+  border-color: transparent;
+  color: var(--ui-cor-texto-sobre-primaria, #000000);
+}
+
+/* Triângulo no canto = grupo com flyout */
+.ui-ferr-btn--grupo::after {
+  content: '';
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-bottom: 5px solid currentColor;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.ui-paleta__sep {
+  width: 70%;
+  height: 1px;
+  margin: 3px 0;
+  background: var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
+}
+
+.ui-paleta--horizontal .ui-paleta__sep {
+  width: 1px;
+  height: 70%;
+  margin: 0 3px;
+}

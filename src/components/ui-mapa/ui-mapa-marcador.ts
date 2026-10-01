@@ -1,8 +1,10 @@
-import L from 'leaflet';
+import type L from 'leaflet';
+import { obterLeafletSincrono } from '../../core/leaflet-loader';
 import { UIMapa } from './ui-mapa';
 import { parseCoordenada } from '../../gerencigeo-canvas/utils';
+import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 
-export class UIMapaMarcador extends HTMLElement {
+export class UIMapaMarcador extends SafeHTMLElement {
   static get observedAttributes() {
     return ['lat', 'lng', 'titulo'];
   }
@@ -94,16 +96,17 @@ export class UIMapaMarcador extends HTMLElement {
     if (!coord) return;
 
     const titulo = this.getAttribute('titulo');
-    
+    const L = obterLeafletSincrono() || (window as any).L;
+    if (!L) return;
+
     this.marker = L.marker([coord.lat, coord.lon]);
-    if (titulo) {
-      this.marker.bindPopup(this.createPopupContent(titulo));
+    if (this.marker) {
+      if (titulo) {
+        this.marker.bindPopup(this.createPopupContent(titulo));
+      }
+      this.marker.addTo(map);
     }
-    
-    this.marker.addTo(map);
   }
 }
 
-if (!customElements.get('ui-mapa-marcador')) {
-  customElements.define('ui-mapa-marcador', UIMapaMarcador);
-}
+definirCustomElement('ui-mapa-marcador', UIMapaMarcador);

@@ -5,10 +5,11 @@ export interface ContextoLabelPlaceholder {
   placeholderText: string;
   isFlutuante: boolean;
   estaFocado: boolean;
+  obrigatorio?: boolean;
 }
 
 export function sincronizarLabelEPlaceholder(ctx: ContextoLabelPlaceholder): void {
-  const { labelElement, inputElement, labelText, placeholderText, isFlutuante, estaFocado } = ctx;
+  const { labelElement, inputElement, labelText, placeholderText, isFlutuante, estaFocado, obrigatorio } = ctx;
   const temValor = inputElement.value.trim() !== '';
 
   let temAutofill = false;
@@ -19,7 +20,11 @@ export function sincronizarLabelEPlaceholder(ctx: ContextoLabelPlaceholder): voi
   }
 
   if (labelText) {
-    labelElement.textContent = labelText;
+    if (obrigatorio) {
+      labelElement.innerHTML = `${labelText} <span class="ui-campo-texto__asterisco" aria-hidden="true">*</span>`;
+    } else {
+      labelElement.textContent = labelText;
+    }
     labelElement.style.display = 'flex';
 
     if (isFlutuante) {

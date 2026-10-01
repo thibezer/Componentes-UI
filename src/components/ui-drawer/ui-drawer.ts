@@ -1,5 +1,6 @@
 import estilos from './ui-drawer.css?inline';
 import { ListenerBag } from '../../core/listener-bag';
+import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 import {
   obterElementosFocaveis,
   isTopMostDrawer,
@@ -9,7 +10,7 @@ import {
 
 export type PosicaoDrawer = 'direita' | 'esquerda' | 'baixo' | 'cima';
 
-export class UIDrawer extends HTMLElement {
+export class UIDrawer extends SafeHTMLElement {
   static get observedAttributes() {
     return [
       'aberto',
@@ -263,20 +264,9 @@ export class UISheet extends UIDrawer {}
 export class UIPainelLateral extends UIDrawer {}
 export class UIGaveta extends UIDrawer {}
 
-if (!customElements.get('ui-drawer')) {
-  customElements.define('ui-drawer', UIDrawer);
-}
-
-if (!customElements.get('ui-sheet')) {
-  customElements.define('ui-sheet', UISheet);
-}
-
-if (!customElements.get('ui-painel-lateral')) {
-  customElements.define('ui-painel-lateral', UIPainelLateral);
-}
-
-if (!customElements.get('ui-gaveta')) {
-  customElements.define('ui-gaveta', UIGaveta);
-}
+definirCustomElement('ui-drawer', UIDrawer);
+definirCustomElement('ui-sheet', UISheet);
+definirCustomElement('ui-painel-lateral', UIPainelLateral);
+definirCustomElement('ui-gaveta', UIGaveta);
 
 export * from './drawer-acessibilidade';

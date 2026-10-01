@@ -1,4 +1,5 @@
 import estilos from './ui-icone.css?inline';
+import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 
 export type TamanhoIcone = 'sm' | 'md' | 'lg' | 'xl' | string | number;
 
@@ -15,7 +16,7 @@ const ICONES_SVG_NATIVOS: Record<string, string> = {
   close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>'
 };
 
-export class UIIcone extends HTMLElement {
+export class UIIcone extends SafeHTMLElement {
   static get observedAttributes() {
     return ['tamanho', 'size', 'cor', 'color', 'nome', 'name'];
   }
@@ -105,6 +106,4 @@ export class UIIcone extends HTMLElement {
   }
 }
 
-if (!customElements.get('ui-icone')) {
-  customElements.define('ui-icone', UIIcone);
-}
+definirCustomElement('ui-icone', UIIcone);

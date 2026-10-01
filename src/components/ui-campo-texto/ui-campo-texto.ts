@@ -4,8 +4,10 @@ import {
   sincronizarIconeSenha,
   sincronizarFeedbackErro
 } from './campo-texto-estados';
+import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
+import { validarRestricoesCampoTexto, aplicarValidadeInternals } from '../../core/form-validacao';
 
-export class UICampoTexto extends HTMLElement {
+export class UICampoTexto extends SafeHTMLElement {
   static formAssociated = true;
   private internals: ReturnType<HTMLElement['attachInternals']>;
 
@@ -25,10 +27,12 @@ export class UICampoTexto extends HTMLElement {
   private _focado: boolean = false;
   private _inputId: string;
   private _defaultValue: string = '';
+  private _formDisabled: boolean = false;
+  private _customErrorMessage: string = '';
 
   constructor() {
     super();
-    this.internals = this.attachInternals();
+    this.internals = typeof this.attachInternals === 'function' ? this.attachInternals() : ({} as any);
     const shadow = this.attachShadow({ mode: 'open', delegatesFocus: true });
     shadow.innerHTML = criarTemplateCampoTexto();
 
@@ -92,13 +96,174 @@ export class UICampoTexto extends HTMLElement {
   }
 
   get value(): string {
-    return this.inputElement.value;
+    return this.inputElement ? this.inputElement.value : (this.getAttribute('value') || '');
   }
 
   set value(val: string) {
-    this.inputElement.value = val;
     this.setAttribute('value', val);
+    if (this.inputElement) {
+      try {
+        this.inputElement.value = val;
+      } catch {
+        // Ignora caso valor viole formato restrito de input nativo
+      }
+    }
     this.syncState();
+  }
+
+  // === Ciclo de Vida Form-Associated Custom Elements (W3C FACE) ===
+  public formDisabledCallback(disabled: boolean): void {
+    this._formDisabled = disabled;
+    this.syncState();
+  }
+
+  public formResetCallback(): void {
+    this.inputElement.value = this._defaultValue;
+    this.internals?.setFormValue(this._defaultValue);
+    this.syncState();
+  }
+
+  public formStateRestoreCallback(state: any, _mode: 'restore' | 'autocomplete'): void {
+    if (typeof state === 'string') {
+      this.value = state;
+    }
+  }
+
+  get form(): HTMLFormElement | null {
+    return this.closest('form') ?? this.internals?.form ?? null;
+  }
+
+  get name(): string {
+    return this.getAttribute('name') || '';
+  }
+
+  set name(val: string) {
+    this.setAttribute('name', val);
+  }
+
+  get type(): string {
+    return this.getAttribute('tipo') || this.getAttribute('type') || 'text';
+  }
+
+  get disabled(): boolean {
+    return this.hasAttribute('disabled') || this._formDisabled;
+  }
+
+  set disabled(val: boolean) {
+    if (val) this.setAttribute('disabled', '');
+    else this.removeAttribute('disabled');
+  }
+
+  get required(): boolean {
+    return this.hasAttribute('obrigatorio') || this.hasAttribute('required');
+  }
+
+  set required(val: boolean) {
+    if (val) this.setAttribute('obrigatorio', '');
+    else {
+      this.removeAttribute('obrigatorio');
+      this.removeAttribute('required');
+    }
+    this.syncState();
+  }
+
+  get obrigatorio(): boolean {
+    return this.required;
+  }
+
+  set obrigatorio(val: boolean) {
+    this.required = val;
+  }
+
+  get minLength(): number {
+    const val = this.getAttribute('minlength') ?? this.getAttribute('min-length');
+    return val ? parseInt(val, 10) : -1;
+  }
+
+  set minLength(val: number) {
+    if (val >= 0) this.setAttribute('minlength', String(val));
+    else this.removeAttribute('minlength');
+    this.syncState();
+  }
+
+  get maxLength(): number {
+    const val = this.getAttribute('maxlength') ?? this.getAttribute('max-length');
+    return val ? parseInt(val, 10) : -1;
+  }
+
+  set maxLength(val: number) {
+    if (val >= 0) this.setAttribute('maxlength', String(val));
+    else this.removeAttribute('maxlength');
+    this.syncState();
+  }
+
+  get pattern(): string {
+    return this.getAttribute('pattern') || '';
+  }
+
+  set pattern(val: string) {
+    if (val) this.setAttribute('pattern', val);
+    else this.removeAttribute('pattern');
+    this.syncState();
+  }
+
+  get validity(): ValidityState | undefined {
+    this.atualizarValidade();
+    return this.internals?.validity;
+  }
+
+  get validationMessage(): string {
+    this.atualizarValidade();
+    return this.internals?.validationMessage ?? '';
+  }
+
+  get willValidate(): boolean {
+    return this.internals?.willValidate ?? false;
+  }
+
+  public checkValidity(): boolean {
+    this.atualizarValidade();
+    return this.internals?.checkValidity?.() ?? true;
+  }
+
+  public reportValidity(): boolean {
+    this.atualizarValidade();
+    return this.internals?.reportValidity?.() ?? true;
+  }
+
+  public setCustomValidity(error: string): void {
+    this._customErrorMessage = error || '';
+    this.atualizarValidade();
+  }
+
+  private atualizarValidade(): void {
+    const minLenStr = this.getAttribute('minlength') ?? this.getAttribute('min-length');
+    const maxLenStr = this.getAttribute('maxlength') ?? this.getAttribute('max-length');
+    const minStr = this.getAttribute('min');
+    const maxStr = this.getAttribute('max');
+
+    const inputVal = this.inputElement ? this.inputElement.value : '';
+    const rawVal = this.getAttribute('value') || inputVal;
+    const isBadInput = Boolean(this.inputElement?.validity?.badInput);
+
+    const resultado = validarRestricoesCampoTexto({
+      val: inputVal,
+      rawVal,
+      badInput: isBadInput,
+      disabled: this.disabled,
+      required: this.required,
+      tipo: this.type,
+      minlength: minLenStr !== null ? parseInt(minLenStr, 10) : null,
+      maxlength: maxLenStr !== null ? parseInt(maxLenStr, 10) : null,
+      min: minStr !== null ? parseFloat(minStr) : null,
+      max: maxStr !== null ? parseFloat(maxStr) : null,
+      step: this.getAttribute('step'),
+      pattern: this.getAttribute('pattern'),
+      customError: this._customErrorMessage,
+      mensagemValidacao: this.getAttribute('mensagem-validacao')
+    });
+
+    aplicarValidadeInternals(this.internals, resultado, this.inputElement);
   }
 
   public alternarVisibilidadeSenha() {
@@ -152,17 +317,34 @@ export class UICampoTexto extends HTMLElement {
       labelText: this.getAttribute('label'),
       placeholderText: this.getAttribute('placeholder') || '',
       isFlutuante: this.hasAttribute('label-flutuante'),
-      estaFocado: this._focado
+      estaFocado: this._focado,
+      obrigatorio: this.required
     });
 
-    const tipoBase = this.getAttribute('tipo') || 'text';
+    const tipoBase = this.getAttribute('tipo') || this.getAttribute('type') || 'text';
     if (!this._senhaVisivel) {
-      this.inputElement.type = tipoBase;
+      try {
+        this.inputElement.type = tipoBase;
+      } catch {
+        this.inputElement.type = 'text';
+      }
     }
+
+    const minLen = this.getAttribute('minlength') ?? this.getAttribute('min-length');
+    if (minLen !== null) this.inputElement.minLength = parseInt(minLen, 10);
+    else this.inputElement.removeAttribute('minlength');
+
+    const maxLen = this.getAttribute('maxlength') ?? this.getAttribute('max-length');
+    if (maxLen !== null) this.inputElement.maxLength = parseInt(maxLen, 10);
+    else this.inputElement.removeAttribute('maxlength');
+
+    const patternVal = this.getAttribute('pattern');
+    if (patternVal !== null) this.inputElement.pattern = patternVal;
+    else this.inputElement.removeAttribute('pattern');
 
     this.internals.setFormValue(this.inputElement.value);
 
-    const isDisabled = this.hasAttribute('disabled');
+    const isDisabled = this.hasAttribute('disabled') || this._formDisabled;
     const isReadonly = this.hasAttribute('readonly');
     this.inputElement.disabled = isDisabled;
     this.inputElement.readOnly = isReadonly;
@@ -185,6 +367,8 @@ export class UICampoTexto extends HTMLElement {
       this.getAttribute('mensagem-erro'),
       this.getAttribute('helper-text')
     );
+
+    this.atualizarValidade();
   }
 
   private handleRightIconClick = (e: MouseEvent) => {
@@ -240,15 +424,11 @@ export class UICampoTexto extends HTMLElement {
     );
   };
 
-  formResetCallback() {
-    this.inputElement.value = this._defaultValue;
-    this.syncState();
-  }
-
   private handleChange = (e: Event) => {
     e.stopPropagation();
     const val = (e.target as HTMLInputElement).value;
     this.internals.setFormValue(val);
+    this.syncState();
     this.dispatchEvent(
       new CustomEvent('ui-change', {
         detail: { value: val },
@@ -266,9 +446,7 @@ export class UICampoTexto extends HTMLElement {
   };
 }
 
-if (!customElements.get('ui-campo-texto')) {
-  customElements.define('ui-campo-texto', UICampoTexto);
-}
+definirCustomElement('ui-campo-texto', UICampoTexto);
 
 export * from './campo-texto-estados';
 export * from './campo-texto-template';

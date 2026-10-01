@@ -9,7 +9,10 @@ export const ATRIBUTOS_OBSERVADOS_SEGMENTED = [
   'tamanho',
   'size',
   'largura-total',
-  'full-width'
+  'full-width',
+  'obrigatorio',
+  'required',
+  'mensagem-validacao'
 ];
 
 export function criarTemplateSegmented(): string {

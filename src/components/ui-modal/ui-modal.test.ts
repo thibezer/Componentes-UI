@@ -102,4 +102,40 @@ describe('UIModal', () => {
     expect(modal1.aberto).toBe(true); // Modal 1 stays open
     expect(modal2.aberto).toBe(false); // Modal 2 (topmost) closes
   });
+
+  it('deve associar semanticamente o diálogo ao título via aria-labelledby e id único', () => {
+    modal1.setAttribute('titulo', 'Confirmar Exclusão');
+    const dialog = modal1.shadowRoot.querySelector('.ui-modal__dialog');
+    const titulo = modal1.shadowRoot.querySelector('.ui-modal__titulo');
+
+    expect(titulo.id).toBeTruthy();
+    expect(dialog.getAttribute('aria-labelledby')).toBe(titulo.id);
+    expect(titulo.textContent).toBe('Confirmar Exclusão');
+  });
+
+  it('deve respeitar aria-label diretamente se fornecido', () => {
+    modal1.setAttribute('aria-label', 'Janela de Ajuda Rápida');
+    const dialog = modal1.shadowRoot.querySelector('.ui-modal__dialog');
+
+    expect(dialog.getAttribute('aria-label')).toBe('Janela de Ajuda Rápida');
+    expect(dialog.hasAttribute('aria-labelledby')).toBe(false);
+  });
+
+  it('deve tornar o conteúdo atrás do modal inerte (inert) ao abrir e restaurar ao fechar', () => {
+    const mainContent = document.createElement('main');
+    mainContent.innerHTML = '<button id="btn-fundo">Clique-me</button>';
+    document.body.appendChild(mainContent);
+
+    expect(mainContent.hasAttribute('inert')).toBe(false);
+
+    // Abre o modal
+    modal1.abrir();
+    expect(mainContent.hasAttribute('inert')).toBe(true);
+
+    // Fecha o modal
+    modal1.fechar();
+    expect(mainContent.hasAttribute('inert')).toBe(false);
+
+    document.body.removeChild(mainContent);
+  });
 });

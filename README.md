@@ -65,9 +65,38 @@ npm install git+https://github.com/thibezer/Componentes-UI.git
 No ponto de entrada da sua aplicação (`main.ts`, `index.js` ou `App.tsx`):
 
 ```typescript
-import 'ui-components-kit/dist/ui-kit.css';
+// 1. Estilos globais obrigatórios (tokens CSS)
+import 'ui-components-kit/style.css';
+
+// 2. Biblioteca completa (ou escolha os submódulos abaixo)
 import 'ui-components-kit';
 ```
+
+#### 🚀 Importação Modular e Otimizada (Sub-paths)
+
+Pague apenas pelo que utilizar. Importe por domínio de funcionalidade ou por componente específico:
+
+##### 1. Por Domínio / Categoria:
+```typescript
+import 'ui-components-kit/forms';    // Campos, Select, Checkbox, Radio, Switch (~8 kB gzip)
+import 'ui-components-kit/feedback'; // Modais, Drawers, Alertas, Toasts, Tooltips, Skeletons (~6 kB gzip)
+import 'ui-components-kit/data';     // Tabela, Tabela-Propriedades, Stat KPI, Badge (~4 kB gzip)
+import 'ui-components-kit/tools';    // Ribbon CAD/Office e Paleta de Ferramentas (~10 kB gzip)
+import 'ui-components-kit/core';     // Apenas UIBus, Zero-JS e ListenerBag (< 1 kB gzip)
+import 'ui-components-kit/canvas';   // Mesa CAD vetorial e motor GIS (~33 kB gzip)
+import 'ui-components-kit/mapa';     // Mapa Geográfico Leaflet (~3 kB gzip)
+```
+
+##### 2. Granular por Componente (Ultra Leve):
+```typescript
+import 'ui-components-kit/botao';       // Apenas <ui-botao> e <ui-botao-primario> (~3.4 kB gzip)
+import 'ui-components-kit/campo-texto'; // Apenas <ui-campo-texto> com FACE e anti-zoom (~3.9 kB gzip)
+import 'ui-components-kit/modal';       // Apenas <ui-modal> com bottom-sheet mobile (~3.3 kB gzip)
+import 'ui-components-kit/card';        // Apenas <ui-card> com elevação (~2.3 kB gzip)
+import 'ui-components-kit/tabela';      // Apenas <ui-tabela> virtualizada
+```
+
+> **Zero Overhead**: Uma tela que utilize apenas `<ui-botao>` e `<ui-campo-texto>` importa menos de **8 kB gzip**, sem carregar nada de Leaflet, CAD, GIS ou virtualização.
 
 ---
 
@@ -347,14 +376,41 @@ tabela.recarregar();   // Recarrega os dados da API remota
 
 ---
 
-### React / Next.js
-```tsx
-import React, { useEffect, useRef, useState } from 'react';
-import 'ui-components-kit/dist/ui-kit.css';
-import 'ui-components-kit';
-import { UIBus } from 'ui-components-kit';
+### React / Next.js (SSR & Client Components)
 
-export function DashboardPropriedades() {
+A biblioteca é **100% SSR-safe**: todas as classes herdam de `SafeHTMLElement` e o registro de tags utiliza verificações de segurança para ambientes sem DOM (Node.js). Isso garante que você pode importar tipos, classes e constantes tanto no servidor quanto no cliente sem encontrar `ReferenceError: HTMLElement is not defined` ou `customElements is not defined`.
+
+#### No Next.js (App Router):
+
+Crie um componente cliente provedor ou registre no topo do seu layout/página cliente:
+
+```tsx
+// components/UIProvider.tsx
+'use client';
+
+import { useEffect } from 'react';
+import 'ui-components-kit/style.css';
+import 'ui-components-kit/register'; // Registra todos os Custom Elements com segurança no cliente
+
+export function UIProvider({ children }: { children: React.ReactNode }) {
+  return <>{children}</>;
+}
+```
+
+Ou registre de forma modular apenas o que a tela precisa:
+
+```tsx
+// app/dashboard/page.tsx
+'use client';
+
+import React, { useEffect, useRef, useState } from 'react';
+import 'ui-components-kit/style.css';
+import 'ui-components-kit/forms';
+import 'ui-components-kit/botao';
+import 'ui-components-kit/tabela';
+import { UIBus } from 'ui-components-kit/core';
+
+export default function DashboardPropriedades() {
   const tabelaRef = useRef<any>(null);
   const [nome, setNome] = useState('');
 
@@ -418,7 +474,7 @@ export function DashboardPropriedades() {
 
 <script setup>
 import { ref } from 'vue';
-import 'ui-components-kit/dist/ui-kit.css';
+import 'ui-components-kit/style.css';
 import 'ui-components-kit';
 
 const termoBusca = ref('');
@@ -494,6 +550,8 @@ window.addEventListener('message', (event) => {
 | `<ui-stat>` | Cartão KPI de estatísticas, métricas e tendências. | `rotulo`, `valor`, `variacao`, `tipo-variacao` | - |
 | `<ui-tabela>` | Tabela orientada a dados, virtualizada tipo Excel. | `colunas`, `dados`, `src`, `densidade` | `ui-sort`, `ui-column-resize` |
 | `<ui-tabela-propriedades>` | Inspetor de propriedades técnicas padrão AutoCAD & Revit com cálculos matemáticos inline (+, -, *, /, ^, %), arraste de valor contínuo (scrubbing), splitter redimensionável e editores CAD. | `categorias`, `tipo-objeto`, `splitter-pos`, `modo-aplicar`, `filtro` | `ui-propriedade-alterada`, `ui-aplicar`, `ui-desfazer`, `ui-editar-tipo`, `ui-acao-clique`, `ui-quick-select`, `ui-calculadora` |
+| `<ui-ribbon>` | Barra de ferramentas em abas e grupos (estilo AutoCAD / Word / Excel): botões grandes e pequenos em colunas de 3, toggles, menus suspensos, abas contextuais, modo recolhido (duplo clique na aba) e navegação por teclado (roving tabindex). | `abas`, `aba-ativa`, `recolhido`, `compacto` | `ui-ferramenta`, `ui-aba-change` |
+| `<ui-paleta-ferramentas>` | Paleta de ferramentas (estilo Illustrator / Photoshop): seleção exclusiva, grupos com flyout (clique longo, botão direito ou seta), 1 ou 2 colunas, vertical/horizontal e atalhos de teclado que percorrem o grupo. | `ferramentas`, `valor`, `orientacao`, `colunas`, `tamanho`, `atalhos` | `ui-change`, `ui-selecionar`, `ui-ferramenta` |
 | `<ui-mapa>` | Mapa geográfico interativo com camadas OpenStreetMap. | `lat`, `lng`, `zoom`, `camadas` | - |
 | `<ui-canvas-cad>` | Mesa CAD/GIS para poligonais e vértices geodésicos. | `pontos`, `segmentos`, `fitBounds()` | `ui-ponto-selecionado` |
 

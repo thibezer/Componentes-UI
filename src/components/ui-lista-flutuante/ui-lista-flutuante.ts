@@ -6,10 +6,8 @@ import {
   criarTemplateListaFlutuante,
   ATRIBUTOS_OBSERVADOS_LISTA_FLUTUANTE
 } from './lista-flutuante-template';
-import {
-  renderizarItensLista,
-  atualizarEstadoSelecaoLista
-} from './lista-flutuante-render';
+import { renderizarItensLista, atualizarEstadoSelecaoLista } from './lista-flutuante-render';
+import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 
 export * from './tipos';
 export * from './lista-flutuante-posicionamento';
@@ -17,7 +15,7 @@ export * from './lista-flutuante-teclado';
 export * from './lista-flutuante-template';
 export * from './lista-flutuante-render';
 
-export class UIListaFlutuante extends HTMLElement {
+export class UIListaFlutuante extends SafeHTMLElement {
   static formAssociated = true;
   private internals: ReturnType<HTMLElement['attachInternals']>;
 
@@ -37,13 +35,15 @@ export class UIListaFlutuante extends HTMLElement {
   private _itens: ItemLista[] = [];
   private _value: string = '';
   private _defaultValue: string = '';
+  private _formDisabled: boolean = false;
+  private _customErrorMessage: string = '';
   private observer!: MutationObserver;
   private posicionamento: ListaFlutuantePosicionamento;
   private teclado: ListaFlutuanteTeclado;
 
   constructor() {
     super();
-    this.internals = this.attachInternals();
+    this.internals = typeof this.attachInternals === 'function' ? this.attachInternals() : ({} as any);
     const shadow = this.attachShadow({ mode: 'open' });
     shadow.innerHTML = criarTemplateListaFlutuante();
 
@@ -114,7 +114,7 @@ export class UIListaFlutuante extends HTMLElement {
       this.value = value || '';
     }
     if (name === 'disabled') {
-      this.button.disabled = value !== null;
+      this.button.disabled = this.disabled;
     }
     if (name === 'altura' || name === 'height') {
       if (value) {
@@ -135,24 +135,135 @@ export class UIListaFlutuante extends HTMLElement {
     this.internals.setFormValue(val);
     this.syncLabel();
     atualizarEstadoSelecaoLista(this.listElement, this._value);
+    this.atualizarValidade();
   }
 
-  get label(): string {
-    return this.getAttribute('label') || this.getAttribute('rotulo') || '';
-  }
-
+  get label(): string { return this.getAttribute('label') || this.getAttribute('rotulo') || ''; }
   set label(val: string) {
-    if (val) {
-      this.setAttribute('label', val);
-    } else {
-      this.removeAttribute('label');
-      this.removeAttribute('rotulo');
-    }
+    if (val) this.setAttribute('label', val);
+    else { this.removeAttribute('label'); this.removeAttribute('rotulo'); }
     this.syncLabel();
   }
 
-  formResetCallback() {
+  get disabled(): boolean {
+    return this.hasAttribute('disabled') || this._formDisabled;
+  }
+
+  set disabled(val: boolean) {
+    if (val) {
+      this.setAttribute('disabled', '');
+    } else {
+      this.removeAttribute('disabled');
+    }
+    this.button.disabled = this.disabled;
+  }
+
+  get form(): HTMLFormElement | null {
+    return this.closest('form') ?? this.internals?.form ?? null;
+  }
+
+  get name(): string {
+    return this.getAttribute('name') || '';
+  }
+
+  set name(val: string) {
+    this.setAttribute('name', val);
+  }
+
+  get type(): string {
+    return 'select-one';
+  }
+
+  get required(): boolean {
+    return this.hasAttribute('obrigatorio') || this.hasAttribute('required');
+  }
+
+  set required(val: boolean) {
+    if (val) this.setAttribute('obrigatorio', '');
+    else {
+      this.removeAttribute('obrigatorio');
+      this.removeAttribute('required');
+    }
+    this.syncState();
+  }
+
+  get obrigatorio(): boolean {
+    return this.required;
+  }
+
+  set obrigatorio(val: boolean) {
+    this.required = val;
+  }
+
+  get validity(): ValidityState | undefined {
+    this.atualizarValidade();
+    return this.internals?.validity;
+  }
+
+  get validationMessage(): string {
+    this.atualizarValidade();
+    return this.internals?.validationMessage ?? '';
+  }
+
+  get willValidate(): boolean {
+    return this.internals?.willValidate ?? false;
+  }
+
+  public checkValidity(): boolean {
+    this.atualizarValidade();
+    return this.internals?.checkValidity?.() ?? true;
+  }
+
+  public reportValidity(): boolean {
+    this.atualizarValidade();
+    return this.internals?.reportValidity?.() ?? true;
+  }
+
+  public setCustomValidity(error: string): void {
+    this._customErrorMessage = error || '';
+    this.atualizarValidade();
+  }
+
+  public atualizarValidade(): void {
+    if (!this.internals || typeof this.internals.setValidity !== 'function') return;
+
+    if (this.disabled) {
+      this.internals.setValidity({});
+      return;
+    }
+
+    if (this._customErrorMessage) {
+      this.internals.setValidity({ customError: true }, this._customErrorMessage, this.button);
+      return;
+    }
+
+    const isRequired = this.hasAttribute('obrigatorio') || this.hasAttribute('required');
+    if (isRequired && (!this._value || this._value.trim() === '')) {
+      const msg = this.getAttribute('mensagem-validacao') || 'Selecione um item da lista.';
+      this.internals.setValidity({ valueMissing: true }, msg, this.button);
+      return;
+    }
+
+    this.internals.setValidity({});
+  }
+
+  // === Ciclo de Vida Form-Associated Custom Elements (W3C FACE) ===
+  public formDisabledCallback(disabled: boolean): void {
+    this._formDisabled = disabled;
+    this.button.disabled = this.disabled;
+    if (this.disabled) {
+      this.fechar();
+    }
+  }
+
+  public formResetCallback(): void {
     this.value = this._defaultValue;
+  }
+
+  public formStateRestoreCallback(state: any, _mode: 'restore' | 'autocomplete'): void {
+    if (typeof state === 'string') {
+      this.value = state;
+    }
   }
 
   get itens(): ItemLista[] {
@@ -167,7 +278,7 @@ export class UIListaFlutuante extends HTMLElement {
 
   private toggleLista = (e: MouseEvent) => {
     e.stopPropagation();
-    if (this.hasAttribute('disabled')) return;
+    if (this.disabled) return;
     if (this.hasAttribute('aberta')) {
       this.fechar();
     } else {
@@ -176,7 +287,7 @@ export class UIListaFlutuante extends HTMLElement {
   };
 
   private handleKeyDown = (e: KeyboardEvent) => {
-    if (this.hasAttribute('disabled')) return;
+    if (this.disabled) return;
     if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
       e.preventDefault();
       if (!this.hasAttribute('aberta')) {
@@ -199,7 +310,7 @@ export class UIListaFlutuante extends HTMLElement {
   };
 
   public abrir() {
-    if (this.hasAttribute('aberta')) return;
+    if (this.disabled || this.hasAttribute('aberta')) return;
     this.setAttribute('aberta', '');
     this.posicionamento.posicionar();
     this.posicionamento.ativarAcompanhamento(this.fechar);
@@ -223,7 +334,11 @@ export class UIListaFlutuante extends HTMLElement {
   private syncLabel() {
     const labelAttr = this.getAttribute('label') || this.getAttribute('rotulo');
     if (labelAttr) {
-      this.labelElement.textContent = labelAttr;
+      if (this.required) {
+        this.labelElement.innerHTML = `${labelAttr} <span class="ui-lista-flutuante__asterisco" style="color: var(--ui-cor-texto-erro, #ff5555); margin-left: 2px;">*</span>`;
+      } else {
+        this.labelElement.textContent = labelAttr;
+      }
       this.labelElement.style.display = 'block';
       this.sheetTituloElement.textContent = labelAttr;
     } else {
@@ -262,6 +377,7 @@ export class UIListaFlutuante extends HTMLElement {
       this.internals.setFormValue(this._value);
     }
     this.syncLabel();
+    this.atualizarValidade();
   }
 
   private selecionarItem(item: ItemLista) {
@@ -294,10 +410,5 @@ export class UIListaFlutuante extends HTMLElement {
 
 export class UISelect extends UIListaFlutuante {}
 
-if (!customElements.get('ui-lista-flutuante')) {
-  customElements.define('ui-lista-flutuante', UIListaFlutuante);
-}
-
-if (!customElements.get('ui-select')) {
-  customElements.define('ui-select', UISelect);
-}
+definirCustomElement('ui-lista-flutuante', UIListaFlutuante);
+definirCustomElement('ui-select', UISelect);

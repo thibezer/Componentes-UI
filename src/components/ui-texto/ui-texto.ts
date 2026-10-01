@@ -1,4 +1,5 @@
 import estilos from './ui-texto.css?inline';
+import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 
 export type VarianteTexto = 
   | 'h1' 
@@ -21,7 +22,7 @@ const TAGS_PERMITIDAS = new Set([
   'small', 'code', 'strong', 'em', 'label', 'blockquote', 'pre', 'b', 'i'
 ]);
 
-export class UITexto extends HTMLElement {
+export class UITexto extends SafeHTMLElement {
   static get observedAttributes() {
     return ['variante', 'tag', 'cor', 'peso', 'alinhamento', 'truncar'];
   }
@@ -31,13 +32,18 @@ export class UITexto extends HTMLElement {
 
   constructor() {
     super();
-    this.shadow = this.attachShadow({ mode: 'open' });
-    this.container = document.createElement('p');
-    this.container.className = 'ui-texto ui-texto--corpo';
-    this.container.appendChild(document.createElement('slot'));
+    if (typeof this.attachShadow === 'function' && typeof document !== 'undefined') {
+      this.shadow = this.attachShadow({ mode: 'open' });
+      this.container = document.createElement('p');
+      this.container.className = 'ui-texto ui-texto--corpo';
+      this.container.appendChild(document.createElement('slot'));
 
-    this.shadow.innerHTML = `<style>${estilos}</style>`;
-    this.shadow.appendChild(this.container);
+      this.shadow.innerHTML = `<style>${estilos}</style>`;
+      this.shadow.appendChild(this.container);
+    } else {
+      this.shadow = null as any;
+      this.container = null as any;
+    }
   }
 
   connectedCallback() {
@@ -105,6 +111,4 @@ export class UITexto extends HTMLElement {
   }
 }
 
-if (!customElements.get('ui-texto')) {
-  customElements.define('ui-texto', UITexto);
-}
+definirCustomElement('ui-texto', UITexto);

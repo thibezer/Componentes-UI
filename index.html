@@ -1276,6 +1276,27 @@
       </div>
     </article>
 
+    <!-- Card 17: Barras de Ferramentas (Ribbon CAD/Office & Paleta Illustrator/Photoshop) -->
+    <article class="card-componente full-width-card">
+      <h2>
+        <span>15. 🧰 Barras de Ferramentas (&lt;ui-ribbon&gt; &amp; &lt;ui-paleta-ferramentas&gt;)</span>
+      </h2>
+      <p style="font-size: 13px; color: var(--ui-cor-texto-secundario, #a0a0b0); margin: 0 0 16px 0;">
+        Ribbon com abas e grupos (estilo AutoCAD / Word / Excel) e paleta com flyouts por clique longo, botão direito ou
+        seta (estilo Illustrator / Photoshop). Atalhos de teclado ativos na paleta: V, H, M (repita para percorrer o grupo), L, T.
+      </p>
+
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        <ui-ribbon id="demo-ribbon" aba-ativa="inicio"></ui-ribbon>
+
+        <div style="display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;">
+          <ui-paleta-ferramentas id="demo-paleta" atalhos valor="selecionar"></ui-paleta-ferramentas>
+          <ui-paleta-ferramentas id="demo-paleta-2col" colunas="2" tamanho="sm" valor="selecionar"></ui-paleta-ferramentas>
+          <ui-paleta-ferramentas id="demo-paleta-horizontal" orientacao="horizontal" valor="selecionar"></ui-paleta-ferramentas>
+        </div>
+      </div>
+    </article>
+
     <!-- Console de Eventos em Tempo Real -->
     <section class="console-card">
       <h3>Console de Eventos Customizados em Tempo Real</h3>

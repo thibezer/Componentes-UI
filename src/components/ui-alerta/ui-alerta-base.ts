@@ -1,5 +1,6 @@
 import estilos from './ui-alerta.css?inline';
 import { ListenerBag } from '../../core/listener-bag';
+import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 
 export const ICONES_ALERTA: Record<string, string> = {
   sucesso: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>',
@@ -8,7 +9,7 @@ export const ICONES_ALERTA: Record<string, string> = {
   info: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>'
 };
 
-export class UIAlerta extends HTMLElement {
+export class UIAlerta extends SafeHTMLElement {
   static get observedAttributes() {
     return [
       'tipo',
@@ -134,6 +135,4 @@ export class UIAlerta extends HTMLElement {
   }
 }
 
-if (!customElements.get('ui-alerta')) {
-  customElements.define('ui-alerta', UIAlerta);
-}
+definirCustomElement('ui-alerta', UIAlerta);

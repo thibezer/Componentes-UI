@@ -1,5 +1,6 @@
 import estilos from './ui-botao.css?inline';
 import { ListenerBag } from '../../core/listener-bag';
+import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 
 export type VarianteBotao = 
   | 'primary' | 'primario'
@@ -10,7 +11,7 @@ export type VarianteBotao =
   | 'destaque'
   | 'outline' | 'borda';
 
-export class UIBotao extends HTMLElement {
+export class UIBotao extends SafeHTMLElement {
   static get observedAttributes() {
     return ['disabled', 'variante', 'carregando', 'loading', 'estado', 'tamanho', 'size', 'altura', 'height', 'densidade'];
   }
@@ -227,10 +228,5 @@ export class UIBotao extends HTMLElement {
 
 export class UIBotaoPrimario extends UIBotao {}
 
-if (!customElements.get('ui-botao')) {
-  customElements.define('ui-botao', UIBotao);
-}
-
-if (!customElements.get('ui-botao-primario')) {
-  customElements.define('ui-botao-primario', UIBotaoPrimario);
-}
+definirCustomElement('ui-botao', UIBotao);
+definirCustomElement('ui-botao-primario', UIBotaoPrimario);

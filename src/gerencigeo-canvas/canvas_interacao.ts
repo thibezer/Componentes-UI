@@ -1,6 +1,9 @@
 import L from 'leaflet';
 import type { Ponto } from './types';
 import type { CanvasLayerManager } from './layer_manager';
+import { CanvasSelecaoBox, CAD_INTERACTIVE_PANES } from './canvas_selecao_box';
+
+export { CAD_INTERACTIVE_PANES };
 
 export interface CanvasInteracaoContext {
   mapaController?: any;
@@ -13,21 +16,6 @@ export interface CanvasInteracaoContext {
   atualizarDestaqueLinhasTabela?: () => void;
   onSelectionChange?: (selectedIds: number[], selectedVizinhoIds: number[]) => void;
 }
-
-/**
- * Lista unificada de panes interativos do CAD (cobre arquitetura legada e nova)
- */
-export const CAD_INTERACTIVE_PANES = [
-  'verticesPane',
-  'perimetroPane',
-  'overlayPane',
-  'markerPane',
-  'pane-vertices',
-  'pane-perimetro',
-  'pane-vizinhos',
-  'pane-homologados',
-  'pane-homologados-pontos'
-];
 
 /**
  * Controlador de Interações do Canvas AutoCAD-like para o Leaflet
@@ -45,18 +33,11 @@ export class CanvasInteracao {
   public ctx: CanvasInteracaoContext;
   private map: L.Map | null = null;
   private mapContainer: HTMLElement | null = null;
-  
+  private selecaoBox: CanvasSelecaoBox | null = null;
+
   // Estados de Pan (Rodinha)
   private isPanning: boolean = false;
   private lastMousePos = { x: 0, y: 0 };
-  
-  // Estados de Seleção (Clique Esquerdo)
-  private isSelecting: boolean = false;
-  private selectStartPos = { x: 0, y: 0 };
-  private selectStartPoint: L.Point | null = null;
-  private selectionDiv: HTMLDivElement | null = null;
-  
-  // Tempo do último clique do botão do meio
   private lastMiddleClickTime: number = 0;
 
   // Estados de Toque (Mobile/Tablet)
@@ -64,9 +45,7 @@ export class CanvasInteracao {
   private touchStartDist = 0;
   private isTouchPanning: boolean = false;
 
-  // Sinaliza que uma caixa de seleção foi arrastada
   public selectionHappened: boolean = false;
-  // Sinaliza que uma operação de pan ocorreu
   public panHappened: boolean = false;
 
   constructor(ctx?: Partial<CanvasInteracaoContext>) {
@@ -89,33 +68,17 @@ export class CanvasInteracao {
     this.mapContainer = this.map.getContainer();
     if (!this.mapContainer) return;
 
-    // Desativa comportamentos padrão de arrasto com botão esquerdo para Pan
     this.map.dragging.disable();
     this.map.doubleClickZoom.disable();
 
-    // Cria elemento da caixa de seleção relativo ao container
-    if (!this.selectionDiv) {
-      this.selectionDiv = document.createElement('div');
-      this.selectionDiv.className = 'cad-selection-box';
-      this.selectionDiv.style.position = 'absolute';
-      this.selectionDiv.style.zIndex = '9999';
-      this.selectionDiv.style.pointerEvents = 'none';
-      this.selectionDiv.style.display = 'none';
-      this.selectionDiv.style.borderRadius = '2px';
-      
-      const parent = this.mapContainer;
-      parent.style.position = 'relative';
-      parent.appendChild(this.selectionDiv);
-    }
+    this.selecaoBox = new CanvasSelecaoBox(this.map, this.mapContainer, this.ctx);
 
-    // Registra listeners de eventos do mouse
     this.mapContainer.addEventListener('mousedown', this.handleMouseDown);
     this.mapContainer.addEventListener('mousemove', this.handleMouseMove);
     window.addEventListener('mouseup', this.handleMouseUp);
     this.mapContainer.addEventListener('contextmenu', this.handleContextMenu);
     window.addEventListener('keydown', this.handleKeyDown);
 
-    // Registra listeners de touch para dispositivos móveis e tablets
     this.mapContainer.addEventListener('touchstart', this.handleTouchStart, { passive: false });
     this.mapContainer.addEventListener('touchmove', this.handleTouchMove, { passive: false });
     this.mapContainer.addEventListener('touchend', this.handleTouchEnd);
@@ -135,17 +98,15 @@ export class CanvasInteracao {
     window.removeEventListener('mouseup', this.handleMouseUp);
     window.removeEventListener('keydown', this.handleKeyDown);
 
-    if (this.selectionDiv && this.selectionDiv.parentNode) {
-      this.selectionDiv.parentNode.removeChild(this.selectionDiv);
-      this.selectionDiv = null;
+    if (this.selecaoBox) {
+      this.selecaoBox.destruir();
+      this.selecaoBox = null;
     }
-    
+
     if (this.map) {
       this.map.dragging.enable();
       this.map.doubleClickZoom.enable();
     }
-
-    this.setPanesPointerEvents('auto');
   }
 
   private handleTouchStart = (e: TouchEvent): void => {
@@ -199,23 +160,11 @@ export class CanvasInteracao {
     e.preventDefault();
   };
 
-  private setPanesPointerEvents(value: 'auto' | 'none'): void {
-    if (!this.map) return;
-    CAD_INTERACTIVE_PANES.forEach(p => {
-      const paneEl = this.map?.getPane(p);
-      if (paneEl) {
-        paneEl.style.pointerEvents = value;
-      }
-    });
-  }
-
   private handleMouseDown = (e: MouseEvent): void => {
     if (!this.map || !this.mapContainer) return;
 
-    // 1. Botão do Meio (Scroll Wheel Drag) -> Pan do AutoCAD
     if (e.button === 1) {
       e.preventDefault();
-      
       const agora = Date.now();
       if (agora - this.lastMiddleClickTime < 300) {
         this.zoomExtents();
@@ -230,38 +179,18 @@ export class CanvasInteracao {
       return;
     }
 
-    // 2. Botão Esquerdo -> Janela de Seleção CAD
     if (e.button === 0) {
       this.selectionHappened = false;
       if (this.ctx.mapaController && this.ctx.mapaController.modoCliqueSequencialAtivo) {
         return;
       }
-
-      const rect = this.mapContainer.getBoundingClientRect();
-      const localX = e.clientX - rect.left;
-      const localY = e.clientY - rect.top;
-
-      this.isSelecting = true;
-      this.selectStartPos = { x: localX, y: localY };
-      this.selectStartPoint = this.map.mouseEventToContainerPoint(e);
-      
-      if (this.selectionDiv) {
-        this.selectionDiv.style.left = `${localX}px`;
-        this.selectionDiv.style.top = `${localY}px`;
-        this.selectionDiv.style.width = '0px';
-        this.selectionDiv.style.height = '0px';
-        this.selectionDiv.style.display = 'block';
-      }
-
-      // Supressão de clicks em panes durante o arrasto
-      this.setPanesPointerEvents('none');
+      this.selecaoBox?.iniciarSelecao(e);
     }
   };
 
   private handleMouseMove = (e: MouseEvent): void => {
     if (!this.map || !this.mapContainer) return;
 
-    // Executa Pan
     if (this.isPanning) {
       const dx = this.lastMousePos.x - e.clientX;
       const dy = this.lastMousePos.y - e.clientY;
@@ -273,33 +202,7 @@ export class CanvasInteracao {
       return;
     }
 
-    // Atualiza retângulo de seleção
-    if (this.isSelecting && this.selectionDiv) {
-      const rect = this.mapContainer.getBoundingClientRect();
-      const currentX = e.clientX - rect.left;
-      const currentY = e.clientY - rect.top;
-
-      const width = Math.abs(currentX - this.selectStartPos.x);
-      const height = Math.abs(currentY - this.selectStartPos.y);
-      const left = Math.min(currentX, this.selectStartPos.x);
-      const top = Math.min(currentY, this.selectStartPos.y);
-
-      this.selectionDiv.style.left = `${Math.round(left)}px`;
-      this.selectionDiv.style.top = `${Math.round(top)}px`;
-      this.selectionDiv.style.width = `${Math.round(width)}px`;
-      this.selectionDiv.style.height = `${Math.round(height)}px`;
-
-      // Direção do arrasto:
-      if (currentX >= this.selectStartPos.x) {
-        // Window Selection (Esquerda -> Direita): Azul Sólida
-        this.selectionDiv.style.background = 'rgba(14, 116, 144, 0.22)'; 
-        this.selectionDiv.style.border = '1px solid #06b6d4'; 
-      } else {
-        // Crossing Selection (Direita -> Esquerda): Verde Tracejada
-        this.selectionDiv.style.background = 'rgba(16, 185, 129, 0.22)'; 
-        this.selectionDiv.style.border = '1px dashed #10b981'; 
-      }
-    }
+    this.selecaoBox?.atualizarSelecao(e);
   };
 
   private handleMouseUp = (e: MouseEvent): void => {
@@ -313,120 +216,18 @@ export class CanvasInteracao {
       }, 120);
     }
 
-    if (this.isSelecting) {
-      this.isSelecting = false;
-      if (this.selectionDiv) {
-        this.selectionDiv.style.display = 'none';
+    if (this.selecaoBox && this.selecaoBox.isSelecting) {
+      const selecionou = this.selecaoBox.finalizarSelecao(
+        e,
+        () => this.notificarSelecao(),
+        () => this.limparSelecao()
+      );
+      if (selecionou) {
+        this.selectionHappened = true;
+        setTimeout(() => {
+          this.selectionHappened = false;
+        }, 120);
       }
-
-      if (!this.map || !this.mapContainer) return;
-
-      this.map.closePopup();
-      setTimeout(() => {
-        try {
-          this.setPanesPointerEvents('auto');
-          if (this.ctx.layerManager) {
-            this.ctx.layerManager.ensurePanes();
-          }
-        } catch (e) {}
-      }, 80);
-
-      const rectBounds = this.mapContainer.getBoundingClientRect();
-      const currentX = e.clientX - rectBounds.left;
-      const currentY = e.clientY - rectBounds.top;
-
-      const endPoint = this.map.mouseEventToContainerPoint(e);
-      const width = Math.abs(currentX - this.selectStartPos.x);
-      const height = Math.abs(currentY - this.selectStartPos.y);
-
-      // Clique curto no vazio -> limpa seleção
-      if (width < 4 && height < 4) {
-        this.selectionHappened = false;
-        const target = e.target as HTMLElement;
-        if (target && (target.classList?.contains('leaflet-container') || target.id === 'mapa-triagem' || target.closest?.('.leaflet-pane'))) {
-          const clicouNoMarcador = target.closest?.('.custom-leaflet-marker') || target.closest?.('.custom-div-icon');
-          if (!clicouNoMarcador) {
-            this.limparSelecao();
-          }
-        }
-        return;
-      }
-
-      if (!this.selectStartPoint) {
-        return;
-      }
-
-      this.selectionHappened = true;
-      setTimeout(() => {
-        this.selectionHappened = false;
-      }, 120);
-
-      const rect = {
-        x1: Math.min(this.selectStartPoint.x, endPoint.x),
-        y1: Math.min(this.selectStartPoint.y, endPoint.y),
-        x2: Math.max(this.selectStartPoint.x, endPoint.x),
-        y2: Math.max(this.selectStartPoint.y, endPoint.y)
-      };
-
-      const markers = (this.ctx.mapaController?.getMarkers() || []) as L.Marker[];
-      const vizinhosMarkers = (this.ctx.mapaController?.getVizinhosMarkers() || []) as L.Marker[];
-      
-      const selectedIds: number[] = [];
-      const selectedVizinhoIds: number[] = [];
-
-      // Filtra apenas camadas ativas e interativas
-      const canSelectMain = !this.ctx.layerManager || this.ctx.layerManager.isLayerActiveAndSelectable('vertices');
-      const canSelectVizinhos = !this.ctx.layerManager || this.ctx.layerManager.isLayerActiveAndSelectable('vizinhos');
-
-      if (canSelectMain) {
-        markers.forEach(m => {
-          const pId = (m as any).pontoId;
-          if (!pId) return;
-
-          const mPos = this.map!.latLngToContainerPoint(m.getLatLng());
-          const inside = mPos.x >= rect.x1 && mPos.x <= rect.x2 && mPos.y >= rect.y1 && mPos.y <= rect.y2;
-          if (inside) selectedIds.push(pId);
-        });
-      }
-
-      if (canSelectVizinhos) {
-        vizinhosMarkers.forEach(m => {
-          const pId = (m as any).pontoId;
-          if (!pId) return;
-
-          const mPos = this.map!.latLngToContainerPoint(m.getLatLng());
-          const inside = mPos.x >= rect.x1 && mPos.x <= rect.x2 && mPos.y >= rect.y1 && mPos.y <= rect.y2;
-          if (inside) selectedVizinhoIds.push(pId);
-        });
-      }
-
-      // Aplica seleção (Ctrl/Cmd aditivo)
-      if (e.ctrlKey || e.metaKey) {
-        selectedIds.forEach(id => {
-          if (this.ctx.selectedPontoIds.includes(id)) {
-            this.ctx.selectedPontoIds = this.ctx.selectedPontoIds.filter((sid: number) => sid !== id);
-          } else {
-            this.ctx.selectedPontoIds.push(id);
-          }
-        });
-        
-        selectedVizinhoIds.forEach(id => {
-          if (this.ctx.selectedVizinhoPontoIds.includes(id)) {
-            this.ctx.selectedVizinhoPontoIds = this.ctx.selectedVizinhoPontoIds.filter((sid: number) => sid !== id);
-          } else {
-            this.ctx.selectedVizinhoPontoIds.push(id);
-          }
-        });
-      } else {
-        this.ctx.selectedPontoIds = selectedIds;
-        this.ctx.selectedVizinhoPontoIds = selectedVizinhoIds;
-      }
-
-      if (this.ctx.selectedPontoIds.length > 0) {
-        this.ctx.lastSelectedPontoId = this.ctx.selectedPontoIds[this.ctx.selectedPontoIds.length - 1];
-      }
-
-      this.notificarSelecao();
     }
   };
 
@@ -434,18 +235,9 @@ export class CanvasInteracao {
     if (e.key === 'Escape') {
       const activeEl = document.activeElement;
       if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT' || (activeEl as HTMLElement).isContentEditable)) {
-        return; // Não interfere enquanto o usuário digita em campos de texto
+        return;
       }
-      if (this.isSelecting) {
-        this.isSelecting = false;
-        if (this.selectionDiv) {
-          this.selectionDiv.style.display = 'none';
-        }
-        this.setPanesPointerEvents('auto');
-        if (this.ctx.layerManager) {
-          this.ctx.layerManager.ensurePanes();
-        }
-      }
+      this.selecaoBox?.cancelarSelecao();
       this.limparSelecao();
     }
   };

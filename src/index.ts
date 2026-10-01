@@ -28,15 +28,44 @@ export * from './components/ui-alerta';
 export * from './components/ui-tooltip';
 export * from './components/ui-tabela';
 export * from './components/ui-stat';
-export * from './components/ui-mapa';
 export * from './components/ui-skeleton';
-export * from './components/ui-canvas-cad';
 export * from './components/ui-tabela-propriedades';
-export * from './gerencigeo-canvas';
+export * from './components/ui-barra-ferramentas';
+
 // 5. Núcleo Inteligente, Orquestração e Barramento de Eventos
 export * from './core/ui-bus';
 export * from './core/zero-js-triggers';
 export * from './core/listener-bag';
+export * from './core/leaflet-loader';
+export * from './core/ssr-safe';
+
+// 6. Carregamento Sob Demanda (Lazy) para Componentes Geoespaciais (Leaflet Opcional)
+export const carregarModuloMapa = () => import('./mapa');
+export const carregarModuloCanvas = () => import('./canvas');
+
+// Tipos exportados para IntelliSense sem custo de runtime
+export type { UIMapa } from './components/ui-mapa';
+export type { UIMapaMarcador } from './components/ui-mapa/ui-mapa-marcador';
+export type { UIMapaLinha } from './components/ui-mapa/ui-mapa-linha';
+export type { UICanvasCAD } from './components/ui-canvas-cad';
+
+// Auto-carregamento declarativo caso as tags existam no DOM (Ambiente CDN / HTML)
+if (typeof document !== 'undefined') {
+  const verificarTagsGeo = () => {
+    if (document.querySelector('ui-mapa, ui-mapa-marcador, ui-mapa-linha') && !customElements.get('ui-mapa')) {
+      import('./mapa');
+    }
+    if (document.querySelector('ui-canvas-cad') && !customElements.get('ui-canvas-cad')) {
+      import('./canvas');
+    }
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', verificarTagsGeo, { once: true });
+  } else {
+    verificarTagsGeo();
+  }
+}
 
 // Inicialização automática das ações declarativas Zero-JS
 import { initZeroJSTriggers } from './core/zero-js-triggers';
@@ -69,6 +98,7 @@ import type { UIMapaLinha } from './components/ui-mapa/ui-mapa-linha';
 import type { UISkeleton, UIEsqueleto } from './components/ui-skeleton';
 import type { UICanvasCAD } from './components/ui-canvas-cad';
 import type { UITabelaPropriedades } from './components/ui-tabela-propriedades';
+import type { UIRibbon, UIPaletaFerramentas } from './components/ui-barra-ferramentas';
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -113,6 +143,8 @@ declare global {
     'ui-tabela-propriedades': UITabelaPropriedades;
     'ui-painel-propriedades': UITabelaPropriedades;
     'ui-propriedades': UITabelaPropriedades;
+    'ui-ribbon': UIRibbon;
+    'ui-paleta-ferramentas': UIPaletaFerramentas;
   }
 }
 

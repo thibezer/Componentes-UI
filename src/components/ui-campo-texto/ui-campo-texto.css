@@ -36,6 +36,12 @@
   flex-shrink: 0;
 }
 
+.ui-campo-texto__asterisco {
+  color: var(--ui-cor-texto-erro, #ff5555);
+  margin-left: 2px;
+  font-weight: 600;
+}
+
 .ui-campo-texto__wrapper {
   position: relative;
   display: flex;

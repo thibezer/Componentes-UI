@@ -1,8 +1,9 @@
 import estilos from './ui-stat.css?inline';
+import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 
 export type TendenciaStat = 'alta' | 'positivo' | 'baixa' | 'negativo' | 'neutro';
 
-export class UIStat extends HTMLElement {
+export class UIStat extends SafeHTMLElement {
   static get observedAttributes() {
     return [
       'rotulo',
@@ -164,14 +165,6 @@ export class UIStat extends HTMLElement {
 export class UIKpi extends UIStat {}
 export class UIMetrica extends UIStat {}
 
-if (!customElements.get('ui-stat')) {
-  customElements.define('ui-stat', UIStat);
-}
-
-if (!customElements.get('ui-kpi')) {
-  customElements.define('ui-kpi', UIKpi);
-}
-
-if (!customElements.get('ui-metrica')) {
-  customElements.define('ui-metrica', UIMetrica);
-}
+definirCustomElement('ui-stat', UIStat);
+definirCustomElement('ui-kpi', UIKpi);
+definirCustomElement('ui-metrica', UIMetrica);

@@ -1,7 +1,9 @@
-import L from 'leaflet';
+import type L from 'leaflet';
+import { obterLeafletSincrono } from '../../core/leaflet-loader';
 import { UIMapa } from './ui-mapa';
+import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 
-export class UIMapaLinha extends HTMLElement {
+export class UIMapaLinha extends SafeHTMLElement {
   static get observedAttributes() {
     return ['pontos', 'cor', 'espessura'];
   }
@@ -74,16 +76,18 @@ export class UIMapaLinha extends HTMLElement {
     
     const cor = this.getAttribute('cor') || '#3388ff';
     const espessura = parseInt(this.getAttribute('espessura') || '3', 10);
-    
+    const L = obterLeafletSincrono() || (window as any).L;
+    if (!L) return;
+
     this.polyline = L.polyline(this.getPontos(), {
       color: cor,
       weight: espessura
     });
     
-    this.polyline.addTo(map);
+    if (this.polyline) {
+      this.polyline.addTo(map);
+    }
   }
 }
 
-if (!customElements.get('ui-mapa-linha')) {
-  customElements.define('ui-mapa-linha', UIMapaLinha);
-}
+definirCustomElement('ui-mapa-linha', UIMapaLinha);

@@ -1,4 +1,8 @@
-import 'element-internals-polyfill';
+export {};
+
+if (typeof window !== 'undefined' && typeof customElements !== 'undefined') {
+  await import('element-internals-polyfill');
+}
 
 // Mock abrangente de Canvas 2D Context para testes headless/HappyDOM com Leaflet Canvas
 if (typeof HTMLCanvasElement !== 'undefined') {
@@ -44,18 +48,19 @@ if (typeof HTMLCanvasElement !== 'undefined') {
   };
 }
 
-import L from 'leaflet';
+if (typeof window !== 'undefined') {
+  const L = (await import('leaflet')).default;
+  if (L && L.Canvas) {
+    const origClear = (L.Canvas.prototype as any)._clear;
+    (L.Canvas.prototype as any)._clear = function () {
+      if (!this._ctx) return;
+      return origClear.call(this);
+    };
 
-if (L && L.Canvas) {
-  const origClear = (L.Canvas.prototype as any)._clear;
-  (L.Canvas.prototype as any)._clear = function () {
-    if (!this._ctx) return;
-    return origClear.call(this);
-  };
-
-  const origDraw = (L.Canvas.prototype as any)._draw;
-  (L.Canvas.prototype as any)._draw = function () {
-    if (!this._ctx) return;
-    return origDraw.call(this);
-  };
+    const origDraw = (L.Canvas.prototype as any)._draw;
+    (L.Canvas.prototype as any)._draw = function () {
+      if (!this._ctx) return;
+      return origDraw.call(this);
+    };
+  }
 }

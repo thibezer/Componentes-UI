@@ -1,9 +1,10 @@
 import estilos from './ui-skeleton.css?inline';
+import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 
 export type VarianteSkeleton = 'texto' | 'circular' | 'retangular' | 'card';
 export type AnimacaoSkeleton = 'shimmer' | 'pulso' | 'nenhum';
 
-export class UISkeleton extends HTMLElement {
+export class UISkeleton extends SafeHTMLElement {
   static get observedAttributes() {
     return [
       'variante',
@@ -161,10 +162,5 @@ export class UISkeleton extends HTMLElement {
 
 export class UIEsqueleto extends UISkeleton {}
 
-if (!customElements.get('ui-skeleton')) {
-  customElements.define('ui-skeleton', UISkeleton);
-}
-
-if (!customElements.get('ui-esqueleto')) {
-  customElements.define('ui-esqueleto', UIEsqueleto);
-}
+definirCustomElement('ui-skeleton', UISkeleton);
+definirCustomElement('ui-esqueleto', UIEsqueleto);

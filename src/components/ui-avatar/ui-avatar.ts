@@ -1,6 +1,7 @@
 import estilos from './ui-avatar.css?inline';
+import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 
-export class UIAvatar extends HTMLElement {
+export class UIAvatar extends SafeHTMLElement {
   static get observedAttributes() {
     return [
       'src',
@@ -121,6 +122,4 @@ export class UIAvatar extends HTMLElement {
   }
 }
 
-if (!customElements.get('ui-avatar')) {
-  customElements.define('ui-avatar', UIAvatar);
-}
+definirCustomElement('ui-avatar', UIAvatar);

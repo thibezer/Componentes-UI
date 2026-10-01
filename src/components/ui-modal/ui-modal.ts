@@ -1,6 +1,8 @@
 import estilos from './ui-modal.css?inline';
+import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
+import { aplicarInertForaDoModal, removerInertForaDoModal } from './modal-acessibilidade';
 
-export class UIModal extends HTMLElement {
+export class UIModal extends SafeHTMLElement {
   static _openCount: number = 0;
 
   static get observedAttributes() {
@@ -9,6 +11,9 @@ export class UIModal extends HTMLElement {
       'open',
       'titulo',
       'title',
+      'aria-label',
+      'aria-labelledby',
+      'rotulo',
       'bottom-sheet',
       'bloquear-fechamento'
     ];
@@ -20,17 +25,20 @@ export class UIModal extends HTMLElement {
   private closeElement: HTMLButtonElement;
   private _elementoGatilho: HTMLElement | null = null;
   private _focables: HTMLElement[] = [];
+  private _tituloId: string;
+  private _elementosInertes = new Set<HTMLElement>();
 
   constructor() {
     super();
+    this._tituloId = `ui-modal-title-${Math.random().toString(36).substring(2, 9)}`;
     const shadow = this.attachShadow({ mode: 'open' });
     shadow.innerHTML = `
       <style>${estilos}</style>
       <div class="ui-modal__backdrop"></div>
-      <div class="ui-modal__dialog" role="dialog" aria-modal="true" tabindex="-1">
+      <div class="ui-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="${this._tituloId}" tabindex="-1">
         <div class="ui-modal__handle"></div>
         <div class="ui-modal__header">
-          <h3 class="ui-modal__titulo"></h3>
+          <h3 class="ui-modal__titulo" id="${this._tituloId}"></h3>
           <button class="ui-modal__close" type="button" aria-label="Fechar modal" title="Fechar">✕</button>
         </div>
         <div class="ui-modal__body">
@@ -71,6 +79,8 @@ export class UIModal extends HTMLElement {
     slotElements.forEach(slot => {
       slot.removeEventListener('slotchange', this.handleSlotChange);
     });
+
+    removerInertForaDoModal(this._elementosInertes);
 
     if (this.hasAttribute('data-scroll-locked')) {
       this.removeAttribute('data-scroll-locked');
@@ -144,6 +154,7 @@ export class UIModal extends HTMLElement {
   public fechar() {
     if (this.hasAttribute('bloquear-fechamento')) return;
     if (this.aberto) {
+      removerInertForaDoModal(this._elementosInertes);
       this.aberto = false;
       this.dispatchEvent(
         new CustomEvent('ui-fechar', {
@@ -164,15 +175,27 @@ export class UIModal extends HTMLElement {
     const tituloText = this.getAttribute('titulo') || this.getAttribute('title') || '';
     const footerSlot = this.shadowRoot?.querySelector('.ui-modal__footer') as HTMLElement | null;
 
-    // Acessibilidade
+    // Acessibilidade semântica WAI-ARIA
     this.dialogElement.setAttribute('aria-hidden', String(!isAberto));
 
-    // Título
-    if (tituloText) {
+    const ariaLabel = this.getAttribute('aria-label') || this.getAttribute('rotulo');
+    const ariaLabelledby = this.getAttribute('aria-labelledby');
+
+    if (ariaLabel) {
+      this.dialogElement.setAttribute('aria-label', ariaLabel);
+      this.dialogElement.removeAttribute('aria-labelledby');
+    } else if (ariaLabelledby) {
+      this.dialogElement.setAttribute('aria-labelledby', ariaLabelledby);
+      this.dialogElement.removeAttribute('aria-label');
+    } else if (tituloText) {
       this.tituloElement.textContent = tituloText;
       this.tituloElement.style.display = 'block';
+      this.dialogElement.setAttribute('aria-labelledby', this._tituloId);
+      this.dialogElement.removeAttribute('aria-label');
     } else {
       this.tituloElement.style.display = 'none';
+      this.dialogElement.removeAttribute('aria-labelledby');
+      this.dialogElement.setAttribute('aria-label', 'Diálogo modal');
     }
 
     // Ocultar rodapé se não houver elementos atribuídos
@@ -186,8 +209,11 @@ export class UIModal extends HTMLElement {
       footerSlot.style.display = hasFooterContent ? 'flex' : 'none';
     }
 
-    // Bloquear rolagem do corpo da página ao abrir
+    // Camada de inert e bloqueio de rolagem do body ao abrir
     if (isAberto) {
+      if (this._elementosInertes.size === 0) {
+        this._elementosInertes = aplicarInertForaDoModal(this);
+      }
       if (!this.hasAttribute('data-scroll-locked')) {
         this.setAttribute('data-scroll-locked', 'true');
         UIModal._openCount++;
@@ -196,6 +222,9 @@ export class UIModal extends HTMLElement {
         }
       }
     } else {
+      if (this._elementosInertes.size > 0) {
+        removerInertForaDoModal(this._elementosInertes);
+      }
       if (this.hasAttribute('data-scroll-locked')) {
         this.removeAttribute('data-scroll-locked');
         UIModal._openCount = Math.max(0, UIModal._openCount - 1);
@@ -290,10 +319,5 @@ export class UIModal extends HTMLElement {
 
 export class UIDialog extends UIModal {}
 
-if (!customElements.get('ui-modal')) {
-  customElements.define('ui-modal', UIModal);
-}
-
-if (!customElements.get('ui-dialog')) {
-  customElements.define('ui-dialog', UIDialog);
-}
+definirCustomElement('ui-modal', UIModal);
+definirCustomElement('ui-dialog', UIDialog);

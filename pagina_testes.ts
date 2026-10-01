@@ -1,5 +1,6 @@
 import './src/index';
-import { UIToast } from './src/index';
+import { UIToast, ICONES_FERRAMENTAS as I } from './src/index';
+import type { UIRibbon, UIPaletaFerramentas, FerramentaItem } from './src/index';
 import type { UIListaFlutuante } from './src/components/ui-lista-flutuante';
 import type { UIModal } from './src/components/ui-modal';
 import type { UITabela, TabelaColuna } from './src/components/ui-tabela';
@@ -841,6 +842,135 @@ document.addEventListener('DOMContentLoaded', () => {
       registrarLog(`[Revit] Botão "Editar tipo" acionado para: ${e.detail.tipo?.rotulo}`);
     });
   }
+
+  // ----------------------------------------------------
+  // Barras de Ferramentas (Ribbon & Paleta)
+  // ----------------------------------------------------
+  const demoRibbon = document.getElementById('demo-ribbon') as UIRibbon | null;
+  if (demoRibbon) {
+    demoRibbon.abas = [
+      {
+        id: 'inicio',
+        rotulo: 'Início',
+        grupos: [
+          {
+            id: 'transferencia',
+            rotulo: 'Área de Transferência',
+            itens: [
+              { id: 'colar', rotulo: 'Colar', icone: I.colar, tamanho: 'grande', atalho: 'Ctrl+V' },
+              { id: 'copiar', rotulo: 'Copiar', icone: I.copiar, atalho: 'Ctrl+C' },
+              { id: 'desfazer', rotulo: 'Desfazer', icone: I.desfazer, atalho: 'Ctrl+Z' },
+              { id: 'refazer', rotulo: 'Refazer', icone: I.refazer, atalho: 'Ctrl+Y' }
+            ]
+          },
+          {
+            id: 'desenho',
+            rotulo: 'Desenho',
+            itens: [
+              {
+                id: 'menu-linha',
+                rotulo: 'Linha',
+                icone: I.linha,
+                tamanho: 'grande',
+                filhos: [
+                  { id: 'linha', rotulo: 'Linha', icone: I.linha, atalho: 'L' },
+                  { id: 'polilinha', rotulo: 'Polilinha', icone: I.polilinha, atalho: 'PL' },
+                  { id: 'sep', tipo: 'separador' },
+                  { id: 'arco', rotulo: 'Arco', icone: I.arco, atalho: 'A' }
+                ]
+              },
+              { id: 'retangulo', rotulo: 'Retângulo', icone: I.retangulo },
+              { id: 'circulo', rotulo: 'Círculo', icone: I.circulo },
+              { id: 'texto', rotulo: 'Texto', icone: I.texto }
+            ]
+          },
+          {
+            id: 'formato',
+            rotulo: 'Formato',
+            itens: [
+              { id: 'negrito', icone: I.negrito, rotulo: 'Negrito', tipo: 'toggle', somenteIcone: true, atalho: 'Ctrl+B' },
+              { id: 'italico', icone: I.italico, rotulo: 'Itálico', tipo: 'toggle', somenteIcone: true, atalho: 'Ctrl+I' },
+              { id: 'grade', icone: I.grade, rotulo: 'Grade', tipo: 'toggle', somenteIcone: true, ativo: true }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'anotar',
+        rotulo: 'Anotar',
+        grupos: [
+          {
+            id: 'medicao',
+            rotulo: 'Medição',
+            itens: [
+              { id: 'medir', rotulo: 'Medir', icone: I.medir, tamanho: 'grande' },
+              { id: 'camadas', rotulo: 'Camadas', icone: I.camadas, tamanho: 'grande' }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'edicao-poli',
+        rotulo: 'Edição de Polilinha',
+        contextual: true,
+        oculta: true,
+        grupos: [
+          {
+            id: 'vertices',
+            rotulo: 'Vértices',
+            itens: [{ id: 'add-vertice', rotulo: 'Adicionar', icone: I.ponto, tamanho: 'grande' }]
+          }
+        ]
+      }
+    ];
+
+    demoRibbon.addEventListener('ui-ferramenta', (e: any) => {
+      const d = e.detail;
+      registrarLog(`[Ribbon] ${d.pai ? d.pai.id + ' → ' : ''}${d.id}${d.ativo !== undefined ? ` (ativo=${d.ativo})` : ''} [aba: ${d.aba}]`);
+      if (d.id === 'polilinha') demoRibbon.definirAbaVisivel('edicao-poli', true);
+    });
+    demoRibbon.addEventListener('ui-aba-change', (e: any) => registrarLog(`[Ribbon] Aba: ${e.detail.id}`));
+  }
+
+  const ferramentasPaleta = (): FerramentaItem[] => [
+    { id: 'selecionar', rotulo: 'Selecionar', icone: I.selecionar, atalho: 'V' },
+    { id: 'mao', rotulo: 'Mão', icone: I.mao, atalho: 'H' },
+    { id: 'zoom', rotulo: 'Zoom', icone: I.zoom, atalho: 'Z' },
+    { id: 's1', tipo: 'separador' },
+    {
+      id: 'g-forma',
+      filhos: [
+        { id: 'retangulo', rotulo: 'Retângulo', icone: I.retangulo, atalho: 'M' },
+        { id: 'circulo', rotulo: 'Círculo', icone: I.circulo, atalho: 'M' },
+        { id: 'arco', rotulo: 'Arco', icone: I.arco }
+      ]
+    },
+    {
+      id: 'g-linha',
+      filhos: [
+        { id: 'linha', rotulo: 'Linha', icone: I.linha, atalho: 'L' },
+        { id: 'polilinha', rotulo: 'Polilinha', icone: I.polilinha }
+      ]
+    },
+    { id: 'caneta', rotulo: 'Caneta', icone: I.caneta, atalho: 'P' },
+    { id: 'texto', rotulo: 'Texto', icone: I.texto, atalho: 'T' },
+    { id: 's2', tipo: 'separador' },
+    { id: 'medir', rotulo: 'Medir', icone: I.medir, atalho: 'I' },
+    { id: 'grade', rotulo: 'Grade', icone: I.grade, tipo: 'toggle' },
+    { id: 'desfazer', rotulo: 'Desfazer', icone: I.desfazer, tipo: 'botao' }
+  ];
+
+  ['demo-paleta', 'demo-paleta-2col', 'demo-paleta-horizontal'].forEach(id => {
+    const paleta = document.getElementById(id) as UIPaletaFerramentas | null;
+    if (!paleta) return;
+    paleta.ferramentas = ferramentasPaleta();
+    paleta.addEventListener('ui-change', (e: any) => registrarLog(`[Paleta:${id}] Ferramenta: ${e.detail.anterior || '—'} → ${e.detail.valor}`));
+    paleta.addEventListener('ui-ferramenta', (e: any) => {
+      if (e.detail.item.tipo === 'toggle' || e.detail.item.tipo === 'botao') {
+        registrarLog(`[Paleta:${id}] ${e.detail.id}${e.detail.ativo !== undefined ? ` (ativo=${e.detail.ativo})` : ''}`);
+      }
+    });
+  });
 
   registrarLog('Playground autônomo inicializado com Suporte Inteligente (Zero-JS, FormData e UIBus).');
 });

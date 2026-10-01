@@ -108,6 +108,7 @@ class UIBusManager {
    * Abre um modal pelo seu ID no documento.
    */
   public abrirModal(idModal: string): boolean {
+    if (typeof document === 'undefined') return false;
     const modal = document.getElementById(idModal) as ControllableUIElement | null;
     if (modal && typeof modal.abrir === 'function') {
       modal.abrir();
@@ -126,6 +127,7 @@ class UIBusManager {
    * Fecha um modal pelo seu ID ou todos os modais abertos se nenhum ID for passado.
    */
   public fecharModal(idModal?: string): boolean {
+    if (typeof document === 'undefined') return false;
     if (idModal) {
       const modal = document.getElementById(idModal) as ControllableUIElement | null;
       if (modal && typeof modal.fechar === 'function') {
@@ -159,6 +161,7 @@ class UIBusManager {
    * Abre um painel lateral (drawer / sheet) pelo seu ID no documento.
    */
   public abrirDrawer(idDrawer: string): boolean {
+    if (typeof document === 'undefined') return false;
     const drawer = document.getElementById(idDrawer) as ControllableUIElement | null;
     if (drawer && typeof drawer.abrir === 'function') {
       drawer.abrir();
@@ -177,6 +180,7 @@ class UIBusManager {
    * Fecha um painel lateral (drawer / sheet) pelo seu ID ou todos se nenhum for passado.
    */
   public fecharDrawer(idDrawer?: string): boolean {
+    if (typeof document === 'undefined') return false;
     if (idDrawer) {
       const drawer = document.getElementById(idDrawer) as ControllableUIElement | null;
       if (drawer && typeof drawer.fechar === 'function') {
@@ -221,6 +225,9 @@ class UIBusManager {
    * Copia um texto para a área de transferência do usuário e exibe feedback opcional.
    */
   public async copiar(texto: string, mensagemFeedback?: string): Promise<boolean> {
+    if (typeof navigator === 'undefined' || !navigator.clipboard) {
+      return false;
+    }
     try {
       await navigator.clipboard.writeText(texto);
       if (mensagemFeedback !== undefined) {
@@ -257,6 +264,7 @@ class UIBusManager {
     } else {
       altura = 34;
     }
+    if (typeof document === 'undefined') return;
     document.documentElement.style.setProperty('--ui-altura-minima', `${altura}px`);
     document.documentElement.style.setProperty('--ui-campo-altura', `${altura}px`);
     document.documentElement.setAttribute('data-ui-densidade', typeof densidade === 'string' ? densidade : 'custom');
@@ -267,6 +275,7 @@ class UIBusManager {
    * Alterna ou define o tema visual global.
    */
   public definirTema(tema?: 'claro' | 'escuro'): string {
+    if (typeof document === 'undefined') return tema || 'escuro';
     const html = document.documentElement;
     let temaAtual = html.getAttribute('data-tema');
     if (!temaAtual) {

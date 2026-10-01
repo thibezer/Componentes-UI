@@ -1,7 +1,8 @@
 import estilos from './ui-switch.css?inline';
 import { ListenerBag } from '../../core/listener-bag';
+import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 
-export class UISwitch extends HTMLElement {
+export class UISwitch extends SafeHTMLElement {
   static formAssociated = true;
   private internals: ReturnType<HTMLElement['attachInternals']>;
 
@@ -15,7 +16,11 @@ export class UISwitch extends HTMLElement {
       'size',
       'label',
       'posicao-label',
-      'value'
+      'value',
+      'name',
+      'obrigatorio',
+      'required',
+      'mensagem-validacao'
     ];
   }
 
@@ -23,10 +28,12 @@ export class UISwitch extends HTMLElement {
   private labelElement: HTMLSpanElement;
   private listeners = new ListenerBag();
   private _defaultChecked: boolean = false;
+  private _formDisabled: boolean = false;
+  private _customErrorMessage: string = '';
 
   constructor() {
     super();
-    this.internals = this.attachInternals();
+    this.internals = typeof this.attachInternals === 'function' ? this.attachInternals() : ({} as any);
     const shadow = this.attachShadow({ mode: 'open' });
     shadow.innerHTML = `
       <style>${estilos}</style>
@@ -102,7 +109,7 @@ export class UISwitch extends HTMLElement {
   }
 
   get disabled(): boolean {
-    return this.hasAttribute('disabled');
+    return this.hasAttribute('disabled') || this._formDisabled;
   }
 
   set disabled(val: boolean) {
@@ -112,6 +119,87 @@ export class UISwitch extends HTMLElement {
       this.removeAttribute('disabled');
     }
     this.syncState();
+  }
+
+  get form(): HTMLFormElement | null {
+    return this.closest('form') ?? this.internals?.form ?? null;
+  }
+
+  get type(): string {
+    return 'checkbox';
+  }
+
+  get required(): boolean {
+    return this.hasAttribute('obrigatorio') || this.hasAttribute('required');
+  }
+
+  set required(val: boolean) {
+    if (val) this.setAttribute('obrigatorio', '');
+    else {
+      this.removeAttribute('obrigatorio');
+      this.removeAttribute('required');
+    }
+    this.syncState();
+  }
+
+  get obrigatorio(): boolean {
+    return this.required;
+  }
+
+  set obrigatorio(val: boolean) {
+    this.required = val;
+  }
+
+  get validity(): ValidityState | undefined {
+    this.atualizarValidade();
+    return this.internals?.validity;
+  }
+
+  get validationMessage(): string {
+    this.atualizarValidade();
+    return this.internals?.validationMessage ?? '';
+  }
+
+  get willValidate(): boolean {
+    return this.internals?.willValidate ?? false;
+  }
+
+  public checkValidity(): boolean {
+    this.atualizarValidade();
+    return this.internals?.checkValidity?.() ?? true;
+  }
+
+  public reportValidity(): boolean {
+    this.atualizarValidade();
+    return this.internals?.reportValidity?.() ?? true;
+  }
+
+  public setCustomValidity(error: string): void {
+    this._customErrorMessage = error || '';
+    this.atualizarValidade();
+  }
+
+  private atualizarValidade(): void {
+    if (!this.internals || typeof this.internals.setValidity !== 'function') return;
+
+    if (this.disabled) {
+      this.internals.setValidity({});
+      return;
+    }
+
+    if (this._customErrorMessage) {
+      this.internals.setValidity({ customError: true }, this._customErrorMessage, this.containerElement);
+      return;
+    }
+
+    const isRequired = this.hasAttribute('obrigatorio') || this.hasAttribute('required');
+    if (isRequired && !this.ativo) {
+      const msg = this.getAttribute('mensagem-validacao') || 'Ative este interruptor para continuar.';
+      this.internals.setValidity({ valueMissing: true }, msg, this.containerElement);
+      return;
+    }
+
+    this.internals.setValidity({});
   }
 
   public alternar() {
@@ -192,10 +280,28 @@ export class UISwitch extends HTMLElement {
     } else {
       this.internals.setFormValue(null);
     }
+
+    this.atualizarValidade();
   }
 
-  formResetCallback() {
+  // === Ciclo de Vida Form-Associated Custom Elements (W3C FACE) ===
+  public formDisabledCallback(disabled: boolean): void {
+    this._formDisabled = disabled;
+    this.syncState();
+  }
+
+  public formResetCallback(): void {
     this.ativo = this._defaultChecked;
+    this.syncState();
+  }
+
+  public formStateRestoreCallback(state: any, _mode: 'restore' | 'autocomplete'): void {
+    if (typeof state === 'string') {
+      this.ativo = state === (this.getAttribute('value') || 'on');
+    } else if (typeof state === 'boolean') {
+      this.ativo = state;
+    }
+    this.syncState();
   }
 
   private handleClick = (e: MouseEvent) => {
@@ -221,10 +327,5 @@ export class UISwitch extends HTMLElement {
 
 export class UIToggle extends UISwitch {}
 
-if (!customElements.get('ui-switch')) {
-  customElements.define('ui-switch', UISwitch);
-}
-
-if (!customElements.get('ui-toggle')) {
-  customElements.define('ui-toggle', UIToggle);
-}
+definirCustomElement('ui-switch', UISwitch);
+definirCustomElement('ui-toggle', UIToggle);

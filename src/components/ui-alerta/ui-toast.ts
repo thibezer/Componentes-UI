@@ -1,4 +1,5 @@
 import { UIAlerta } from './ui-alerta-base';
+import { definirCustomElement } from '../../core/ssr-safe';
 
 export interface UIToastAcao {
   rotulo: string;
@@ -180,6 +181,7 @@ export class UIToast extends UIAlerta {
 
   // Utilitário estático para disparo imperativo de Toasts de qualquer lugar no código
   static notificar(opcoes: UIToastOpcoes) {
+    if (typeof document === 'undefined') return null as any;
     const posicao = opcoes.posicao || 'bottom-right';
     const toast = document.createElement('ui-toast') as UIToast;
     if (opcoes.tipo) toast.setAttribute('tipo', opcoes.tipo);
@@ -200,6 +202,4 @@ export class UIToast extends UIAlerta {
   }
 }
 
-if (!customElements.get('ui-toast')) {
-  customElements.define('ui-toast', UIToast);
-}
+definirCustomElement('ui-toast', UIToast);

@@ -1,7 +1,8 @@
 import estilos from './ui-checkbox.css?inline';
 import { ListenerBag } from '../../core/listener-bag';
+import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 
-export class UICheckbox extends HTMLElement {
+export class UICheckbox extends SafeHTMLElement {
   static formAssociated = true;
   private internals: ReturnType<HTMLElement['attachInternals']>;
 
@@ -15,7 +16,10 @@ export class UICheckbox extends HTMLElement {
       'value',
       'label',
       'posicao-label',
-      'name'
+      'name',
+      'obrigatorio',
+      'required',
+      'mensagem-validacao'
     ];
   }
 
@@ -25,10 +29,12 @@ export class UICheckbox extends HTMLElement {
   private listeners = new ListenerBag();
   private _defaultChecked: boolean = false;
   private _defaultIndeterminate: boolean = false;
+  private _formDisabled: boolean = false;
+  private _customErrorMessage: string = '';
 
   constructor() {
     super();
-    this.internals = this.attachInternals();
+    this.internals = typeof this.attachInternals === 'function' ? this.attachInternals() : ({} as any);
     const shadow = this.attachShadow({ mode: 'open' });
     shadow.innerHTML = `
       <style>${estilos}</style>
@@ -119,7 +125,7 @@ export class UICheckbox extends HTMLElement {
   }
 
   get disabled(): boolean {
-    return this.hasAttribute('disabled');
+    return this.hasAttribute('disabled') || this._formDisabled;
   }
 
   set disabled(val: boolean) {
@@ -129,6 +135,87 @@ export class UICheckbox extends HTMLElement {
       this.removeAttribute('disabled');
     }
     this.syncState();
+  }
+
+  get form(): HTMLFormElement | null {
+    return this.closest('form') ?? this.internals?.form ?? null;
+  }
+
+  get type(): string {
+    return 'checkbox';
+  }
+
+  get required(): boolean {
+    return this.hasAttribute('obrigatorio') || this.hasAttribute('required');
+  }
+
+  set required(val: boolean) {
+    if (val) this.setAttribute('obrigatorio', '');
+    else {
+      this.removeAttribute('obrigatorio');
+      this.removeAttribute('required');
+    }
+    this.syncState();
+  }
+
+  get obrigatorio(): boolean {
+    return this.required;
+  }
+
+  set obrigatorio(val: boolean) {
+    this.required = val;
+  }
+
+  get validity(): ValidityState | undefined {
+    this.atualizarValidade();
+    return this.internals?.validity;
+  }
+
+  get validationMessage(): string {
+    this.atualizarValidade();
+    return this.internals?.validationMessage ?? '';
+  }
+
+  get willValidate(): boolean {
+    return this.internals?.willValidate ?? false;
+  }
+
+  public checkValidity(): boolean {
+    this.atualizarValidade();
+    return this.internals?.checkValidity?.() ?? true;
+  }
+
+  public reportValidity(): boolean {
+    this.atualizarValidade();
+    return this.internals?.reportValidity?.() ?? true;
+  }
+
+  public setCustomValidity(error: string): void {
+    this._customErrorMessage = error || '';
+    this.atualizarValidade();
+  }
+
+  private atualizarValidade(): void {
+    if (!this.internals || typeof this.internals.setValidity !== 'function') return;
+
+    if (this.disabled) {
+      this.internals.setValidity({});
+      return;
+    }
+
+    if (this._customErrorMessage) {
+      this.internals.setValidity({ customError: true }, this._customErrorMessage, this.containerElement);
+      return;
+    }
+
+    const isRequired = this.hasAttribute('obrigatorio') || this.hasAttribute('required');
+    if (isRequired && !this.marcado) {
+      const msg = this.getAttribute('mensagem-validacao') || 'Marque esta caixa para continuar.';
+      this.internals.setValidity({ valueMissing: true }, msg, this.containerElement);
+      return;
+    }
+
+    this.internals.setValidity({});
   }
 
   public alternar() {
@@ -232,11 +319,29 @@ export class UICheckbox extends HTMLElement {
     } else {
       this.internals.setFormValue(null);
     }
+
+    this.atualizarValidade();
   }
 
-  formResetCallback() {
+  // === Ciclo de Vida Form-Associated Custom Elements (W3C FACE) ===
+  public formDisabledCallback(disabled: boolean): void {
+    this._formDisabled = disabled;
+    this.syncState();
+  }
+
+  public formResetCallback(): void {
     this.marcado = this._defaultChecked;
     this.indeterminado = this._defaultIndeterminate;
+    this.syncState();
+  }
+
+  public formStateRestoreCallback(state: any, _mode: 'restore' | 'autocomplete'): void {
+    if (typeof state === 'string') {
+      this.marcado = state === (this.getAttribute('value') || 'on');
+    } else if (typeof state === 'boolean') {
+      this.marcado = state;
+    }
+    this.syncState();
   }
 
   private handleClick = (e: MouseEvent) => {
@@ -260,6 +365,4 @@ export class UICheckbox extends HTMLElement {
   };
 }
 
-if (!customElements.get('ui-checkbox')) {
-  customElements.define('ui-checkbox', UICheckbox);
-}
+definirCustomElement('ui-checkbox', UICheckbox);

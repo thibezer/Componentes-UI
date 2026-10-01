@@ -6,6 +6,7 @@ import {
   criarBotaoOpcao,
   ATRIBUTOS_OBSERVADOS_SEGMENTED
 } from './segmented-template';
+import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 
 export interface UISegmentedOpcao {
   valor: string;
@@ -14,7 +15,7 @@ export interface UISegmentedOpcao {
   disabled?: boolean;
 }
 
-export class UISegmented extends HTMLElement {
+export class UISegmented extends SafeHTMLElement {
   static formAssociated = true;
 
   static get observedAttributes() {
@@ -28,6 +29,8 @@ export class UISegmented extends HTMLElement {
   private slotElement: HTMLSlotElement;
   private _opcoes: UISegmentedOpcao[] = [];
   private _defaultValue: string = '';
+  private _formDisabled: boolean = false;
+  private _customErrorMessage: string = '';
   private listeners = new ListenerBag();
   private indicadorController: SegmentedIndicadorController;
 
@@ -79,8 +82,103 @@ export class UISegmented extends HTMLElement {
     }
   }
 
-  formResetCallback() {
+  // === Ciclo de Vida Form-Associated Custom Elements (W3C FACE) ===
+  public formDisabledCallback(disabled: boolean): void {
+    this._formDisabled = disabled;
+    this.syncState();
+  }
+
+  public formResetCallback(): void {
     this.valor = this._defaultValue;
+    this.syncState();
+  }
+
+  public formStateRestoreCallback(state: any, _mode: 'restore' | 'autocomplete'): void {
+    if (typeof state === 'string') {
+      this.valor = state;
+    }
+    this.syncState();
+  }
+
+  get form(): HTMLFormElement | null {
+    return this.closest('form') ?? this.internals?.form ?? null;
+  }
+
+  get type(): string {
+    return 'select-one';
+  }
+
+  get required(): boolean {
+    return this.hasAttribute('obrigatorio') || this.hasAttribute('required');
+  }
+
+  set required(val: boolean) {
+    if (val) this.setAttribute('obrigatorio', '');
+    else {
+      this.removeAttribute('obrigatorio');
+      this.removeAttribute('required');
+    }
+    this.syncState();
+  }
+
+  get obrigatorio(): boolean {
+    return this.required;
+  }
+
+  set obrigatorio(val: boolean) {
+    this.required = val;
+  }
+
+  get validity(): ValidityState | undefined {
+    this.atualizarValidade();
+    return this.internals?.validity;
+  }
+
+  get validationMessage(): string {
+    this.atualizarValidade();
+    return this.internals?.validationMessage ?? '';
+  }
+
+  get willValidate(): boolean {
+    return this.internals?.willValidate ?? false;
+  }
+
+  public checkValidity(): boolean {
+    this.atualizarValidade();
+    return this.internals?.checkValidity?.() ?? true;
+  }
+
+  public reportValidity(): boolean {
+    this.atualizarValidade();
+    return this.internals?.reportValidity?.() ?? true;
+  }
+
+  public setCustomValidity(error: string): void {
+    this._customErrorMessage = error || '';
+    this.atualizarValidade();
+  }
+
+  public atualizarValidade(): void {
+    if (!this.internals || typeof this.internals.setValidity !== 'function') return;
+
+    if (this.disabled) {
+      this.internals.setValidity({});
+      return;
+    }
+
+    if (this._customErrorMessage) {
+      this.internals.setValidity({ customError: true }, this._customErrorMessage, this.rootElement);
+      return;
+    }
+
+    const isRequired = this.hasAttribute('obrigatorio') || this.hasAttribute('required');
+    if (isRequired && (!this.valor || this.valor.trim() === '')) {
+      const msg = this.getAttribute('mensagem-validacao') || 'Selecione uma opção.';
+      this.internals.setValidity({ valueMissing: true }, msg, this.rootElement);
+      return;
+    }
+
+    this.internals.setValidity({});
   }
 
   get valor(): string {
@@ -109,7 +207,7 @@ export class UISegmented extends HTMLElement {
   }
 
   get disabled(): boolean {
-    return this.hasAttribute('disabled');
+    return this.hasAttribute('disabled') || this._formDisabled;
   }
 
   set disabled(val: boolean) {
@@ -166,11 +264,13 @@ export class UISegmented extends HTMLElement {
       this.trackElement.appendChild(btn);
     });
 
-    if (!valorAtual && this._opcoes.length > 0) {
+    const permiteSemSelecao = this.required || this.hasAttribute('sem-selecao-inicial');
+    if (!valorAtual && this._opcoes.length > 0 && !permiteSemSelecao) {
       this.selecionarIndice(0, false);
     } else {
       this.indicadorController.atualizar();
     }
+    this.atualizarValidade();
   }
 
   public selecionarIndice(indice: number, dispararEventos: boolean = true) {
@@ -222,6 +322,7 @@ export class UISegmented extends HTMLElement {
     }
 
     this.indicadorController.atualizar();
+    this.atualizarValidade();
   }
 
   private handleKeyDown = (e: KeyboardEvent) => {
@@ -248,18 +349,14 @@ export class UISegmented extends HTMLElement {
     });
 
     this.indicadorController.atualizar();
+    this.atualizarValidade();
   }
 }
 
 export class UISegmento extends UISegmented {}
 
-if (!customElements.get('ui-segmented')) {
-  customElements.define('ui-segmented', UISegmented);
-}
-
-if (!customElements.get('ui-segmento')) {
-  customElements.define('ui-segmento', UISegmento);
-}
+definirCustomElement('ui-segmented', UISegmented);
+definirCustomElement('ui-segmento', UISegmento);
 
 export * from './segmented-indicador';
 export * from './segmented-teclado';

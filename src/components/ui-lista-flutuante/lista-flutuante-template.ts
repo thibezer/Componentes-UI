@@ -14,7 +14,11 @@ export const ATRIBUTOS_OBSERVADOS_LISTA_FLUTUANTE = [
   'size',
   'altura',
   'height',
-  'densidade'
+  'densidade',
+  'name',
+  'obrigatorio',
+  'required',
+  'mensagem-validacao'
 ];
 
 export function criarTemplateListaFlutuante(): string {

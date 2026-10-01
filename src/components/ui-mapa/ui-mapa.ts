@@ -1,35 +1,39 @@
-import L from 'leaflet';
+import type L from 'leaflet';
+import { carregarLeaflet } from '../../core/leaflet-loader';
 import { leafletCss } from '../../core/leaflet-style';
 import estilos from './ui-mapa.css?inline';
+import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 
-const BASEMAPS: Record<string, { nome: string; layer: () => L.TileLayer }> = {
-  osm: {
-    nome: 'OpenStreetMap',
-    layer: () => L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    })
-  },
-  satelite: {
-    nome: 'Satélite (Esri)',
-    layer: () => L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-      attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-    })
-  },
-  topografia: {
-    nome: 'Topografia',
-    layer: () => L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
-      attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
-    })
-  },
-  ruas: {
-    nome: 'Ruas (Esri)',
-    layer: () => L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
-      attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012'
-    })
-  }
-};
+function obterBasemaps(L: any): Record<string, { nome: string; layer: () => L.TileLayer }> {
+  return {
+    osm: {
+      nome: 'OpenStreetMap',
+      layer: () => L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      })
+    },
+    satelite: {
+      nome: 'Satélite (Esri)',
+      layer: () => L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+      })
+    },
+    topografia: {
+      nome: 'Topografia',
+      layer: () => L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+        attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
+      })
+    },
+    ruas: {
+      nome: 'Ruas (Esri)',
+      layer: () => L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012'
+      })
+    }
+  };
+}
 
-export class UIMapa extends HTMLElement {
+export class UIMapa extends SafeHTMLElement {
   static get observedAttributes() {
     return ['lat', 'lng', 'zoom'];
   }
@@ -91,9 +95,22 @@ export class UIMapa extends HTMLElement {
     }
   }
   
-  private initMap() {
+  private async initMap() {
     if (this.mapInstance) return;
-    
+
+    const L = await carregarLeaflet();
+    if (!L) {
+      this.mapContainer.innerHTML = `
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; min-height: 140px; padding: 16px; box-sizing: border-box; text-align: center; color: var(--ui-cor-texto-secundario, #888899); font-family: var(--ui-fonte-base, 'Inter', sans-serif); font-size: 12px; background: var(--ui-cor-superficie, #141417); border-radius: var(--ui-raio-borda, 6px); border: 1px dashed var(--ui-cor-borda, rgba(255,255,255,0.15));">
+          <span style="font-size: 20px; margin-bottom: 6px;">🗺️</span>
+          <strong style="color: var(--ui-cor-texto, #e1e1e6); margin-bottom: 4px;">Leaflet não encontrado</strong>
+          <span style="max-width: 320px; line-height: 1.4;">Para utilizar o componente <code>&lt;ui-mapa&gt;</code>, instale a biblioteca <code>leaflet</code> ou inclua seu script no HTML: <code>&lt;script src=".../leaflet.js"&gt;&lt;/script&gt;</code>.</span>
+        </div>
+      `;
+      return;
+    }
+
+    const BASEMAPS = obterBasemaps(L);
     const lat = parseFloat(this.getAttribute('lat') || '-23.550520'); // SP default
     const lng = parseFloat(this.getAttribute('lng') || '-46.633308');
     const zoom = parseInt(this.getAttribute('zoom') || '13', 10);
@@ -104,13 +121,13 @@ export class UIMapa extends HTMLElement {
     let camadasAtivas: string[] = ['osm']; // Padrão
     
     if (camadasStr) {
-      camadasAtivas = camadasStr.split(',').map(s => s.trim().toLowerCase()).filter(s => BASEMAPS[s]);
+      camadasAtivas = camadasStr.split(',').map((s: string) => s.trim().toLowerCase()).filter((s: string) => BASEMAPS[s]);
       if (camadasAtivas.length === 0) camadasAtivas = ['osm'];
     }
     
     // Adiciona a primeira camada da lista como camada padrão visível
     const layerPrincipal = BASEMAPS[camadasAtivas[0]].layer();
-    layerPrincipal.addTo(this.mapInstance);
+    layerPrincipal.addTo(this.mapInstance!);
 
     // Se tiver múltiplas camadas, cria o controle
     if (camadasAtivas.length > 1) {
@@ -121,11 +138,13 @@ export class UIMapa extends HTMLElement {
         const key = camadasAtivas[i];
         baseMaps[BASEMAPS[key].nome] = BASEMAPS[key].layer();
       }
-      L.control.layers(baseMaps, undefined, { position: 'topright' }).addTo(this.mapInstance);
+      L.control.layers(baseMaps, undefined, { position: 'topright' }).addTo(this.mapInstance!);
     }
     
     // Contorno para o problema do caminho das imagens do Leaflet no Webpack/Vite
-    L.Icon.Default.imagePath = 'https://unpkg.com/leaflet@1.9.4/dist/images/';
+    if (L.Icon?.Default) {
+      L.Icon.Default.imagePath = 'https://unpkg.com/leaflet@1.9.4/dist/images/';
+    }
 
     // Monitora redimensionamento do contêiner com ResizeObserver
     if (typeof ResizeObserver !== 'undefined' && this.mapContainer) {
@@ -156,6 +175,4 @@ export class UIMapa extends HTMLElement {
   }
 }
 
-if (!customElements.get('ui-mapa')) {
-  customElements.define('ui-mapa', UIMapa);
-}
+definirCustomElement('ui-mapa', UIMapa);

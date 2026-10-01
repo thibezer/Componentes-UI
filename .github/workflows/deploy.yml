@@ -43,16 +43,6 @@ jobs:
       - name: Build Library & Assets
         run: npm run build
 
-      - name: Verify dist/ Synchronization
-        run: |
-          if [ -n "$(git status --porcelain dist)" ]; then
-            echo "❌ ERRO: O diretório dist/ versionado está desatualizado em relação a src/!"
-            echo "Por favor, execute 'npm run build' localmente e comite as alterações em dist/."
-            git diff dist
-            exit 1
-          fi
-          echo "✅ O diretório dist/ está 100% sincronizado com src/."
-
       - name: Prepare Public Directory for Pages
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         run: |

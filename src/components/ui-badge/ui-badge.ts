@@ -1,7 +1,8 @@
 import estilos from './ui-badge.css?inline';
 import { ListenerBag } from '../../core/listener-bag';
+import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 
-export class UIBadge extends HTMLElement {
+export class UIBadge extends SafeHTMLElement {
   static get observedAttributes() {
     return [
       'variante',
@@ -114,14 +115,6 @@ export class UIBadge extends HTMLElement {
 export class UIChip extends UIBadge {}
 export class UITag extends UIBadge {}
 
-if (!customElements.get('ui-badge')) {
-  customElements.define('ui-badge', UIBadge);
-}
-
-if (!customElements.get('ui-chip')) {
-  customElements.define('ui-chip', UIChip);
-}
-
-if (!customElements.get('ui-tag')) {
-  customElements.define('ui-tag', UITag);
-}
+definirCustomElement('ui-badge', UIBadge);
+definirCustomElement('ui-chip', UIChip);
+definirCustomElement('ui-tag', UITag);

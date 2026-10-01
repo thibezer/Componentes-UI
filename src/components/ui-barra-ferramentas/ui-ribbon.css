@@ -1,0 +1,180 @@
+:host {
+  display: block;
+  position: relative;
+  box-sizing: border-box;
+  font-family: var(--ui-fonte-base, 'Inter', sans-serif);
+  color: var(--ui-cor-texto, #e1e1e6);
+}
+
+.ui-ribbon {
+  display: flex;
+  flex-direction: column;
+  background: var(--ui-cor-superficie, #141417);
+  border-bottom: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
+  user-select: none;
+}
+
+/* ---------- Abas ---------- */
+.ui-ribbon__abas {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 30px;
+  padding: 0 8px;
+  box-sizing: border-box;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-bottom: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
+}
+
+.ui-ribbon__abas::-webkit-scrollbar {
+  display: none;
+}
+
+.ui-ribbon__aba {
+  position: relative;
+  flex-shrink: 0;
+  height: 28px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 6px 6px 0 0;
+  background: transparent;
+  color: var(--ui-cor-texto-secundario, #888899);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.ui-ribbon__aba:hover {
+  color: var(--ui-cor-texto, #e1e1e6);
+}
+
+.ui-ribbon__aba:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--ui-cor-primaria, #00E08A);
+}
+
+.ui-ribbon__aba--ativa {
+  color: var(--ui-cor-texto, #e1e1e6);
+  background: var(--ui-cor-fundo-elevado, #1a1a1e);
+}
+
+.ui-ribbon__aba--ativa::after {
+  content: '';
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 0;
+  height: 2px;
+  border-radius: 2px 2px 0 0;
+  background: var(--ui-cor-primaria, #00E08A);
+}
+
+.ui-ribbon__aba--contextual {
+  color: var(--ui-cor-primaria, #00E08A);
+}
+
+/* ---------- Painel de grupos ---------- */
+.ui-ribbon__painel {
+  background: var(--ui-cor-fundo-elevado, #1a1a1e);
+  overflow-x: auto;
+}
+
+.ui-ribbon__grupos {
+  display: flex;
+  align-items: stretch;
+  min-height: 84px;
+  padding: 4px 8px;
+  box-sizing: border-box;
+}
+
+.ui-ribbon__grupo {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  padding: 0 8px;
+  border-right: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
+}
+
+.ui-ribbon__grupo:last-child {
+  border-right: 0;
+}
+
+.ui-ribbon__grupo-itens {
+  display: flex;
+  flex: 1;
+  align-items: stretch;
+  gap: 2px;
+}
+
+.ui-ribbon__grupo-rotulo {
+  padding-top: 2px;
+  color: var(--ui-cor-texto-secundario, #888899);
+  font-size: 11px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.ui-ribbon__coluna {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+}
+
+.ui-ribbon__separador {
+  width: 1px;
+  margin: 4px 3px;
+  background: var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
+}
+
+/* ---------- Botões no ribbon ---------- */
+.ui-ferr-btn--grande {
+  flex-direction: column;
+  min-width: 52px;
+  padding: 4px 6px;
+  gap: 3px;
+}
+
+.ui-ferr-btn--pequeno {
+  height: 22px;
+  padding: 0 6px;
+  justify-content: flex-start;
+}
+
+.ui-ferr-btn--pequeno.ui-ferr-btn--so-icone {
+  width: 24px;
+  padding: 0;
+  justify-content: center;
+}
+
+/* ---------- Recolhido (duplo clique na aba) ---------- */
+:host([recolhido]) .ui-ribbon__painel {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 900;
+  border-bottom: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+:host([recolhido]) .ui-ribbon--aberto .ui-ribbon__painel {
+  display: block;
+}
+
+:host([recolhido]) .ui-ribbon__aba--ativa::after {
+  display: none;
+}
+
+/* ---------- Compacto ---------- */
+:host([compacto]) .ui-ribbon__grupos {
+  min-height: 64px;
+}
+
+:host([compacto]) .ui-ferr-btn--grande {
+  min-width: 44px;
+}

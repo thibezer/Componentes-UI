@@ -1,11 +1,5 @@
 import { ListenerBag } from '../../core/listener-bag';
-import type {
-  DensidadeTabela,
-  TabelaColuna,
-  UISortDetail,
-  UIColumnResizeDetail,
-  UIRowScrollOptions
-} from './tipos';
+import type { DensidadeTabela, TabelaColuna, UISortDetail, UIColumnResizeDetail, UIRowScrollOptions } from './tipos';
 import { TabelaRemotaController } from './tabela-remota';
 import { TabelaSelecaoController } from './tabela-selecao';
 import { TabelaOrquestradorDados } from './tabela-orquestrador-dados';
@@ -17,14 +11,12 @@ import {
   orquestrarEstruturaInicial,
   ContextoOrquestradorRender
 } from './tabela-renderizador';
-import {
-  sincronizarAtributosTabela,
-  tratarMudancaAtributoTabela
-} from './tabela-atributos-sync';
+import { sincronizarAtributosTabela, tratarMudancaAtributoTabela } from './tabela-atributos-sync';
+import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 
 export type { DensidadeTabela, TabelaColuna, UISortDetail, UIColumnResizeDetail, UIRowScrollOptions };
 
-export class UITabela extends HTMLElement {
+export class UITabela extends SafeHTMLElement {
   static get observedAttributes() {
     return ['texto-vazio', 'empty-text', 'max-height', 'densidade', 'density', 'virtualizar', 'virtualize', 'src', 'carregando', 'loading', 'chave-id', 'id-key'];
   }
@@ -265,9 +257,9 @@ export class UITabela extends HTMLElement {
       virtualizar: this._virtualizar,
       rowHeight: this.getRowHeight(),
       headerListeners: this._headerListeners,
-      onSetIsResizing: (res) => { this._isResizing = res; },
-      onActiveResizeCleanup: (cleanup) => { this._activeResizeCleanup = cleanup; },
-      onHeaderClick: (col) => this.handleHeaderClick(col)
+      onSetIsResizing: (res: boolean) => { this._isResizing = res; },
+      onActiveResizeCleanup: (cleanup: (() => void) | null) => { this._activeResizeCleanup = cleanup; },
+      onHeaderClick: (col: TabelaColuna) => this.handleHeaderClick(col)
     };
   }
 
@@ -282,9 +274,7 @@ export class UITabela extends HTMLElement {
   }
 }
 
-if (!customElements.get('ui-tabela')) {
-  customElements.define('ui-tabela', UITabela);
-}
+definirCustomElement('ui-tabela', UITabela);
 
 export * from './tabela-ordenacao';
 export * from './tabela-localizador';

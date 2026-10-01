@@ -127,3 +127,65 @@ export function processarAcaoPopup(
 
   ctx.fecharPopup();
 }
+
+export function tratarCliqueMarcador(
+  ctx: ContextoEventosCanvas,
+  pId: string | number,
+  isVizinho: boolean | undefined,
+  elemento: any,
+  coords: { lat: number; lon: number } | undefined,
+  prevMarkerClick?: (pId: string | number, isVizinho?: boolean, elemento?: any, coords?: { lat: number; lon: number }) => void,
+  customMarkerClickHandler?: (pontoId: number, isVizinho?: boolean) => void
+): void {
+  let safeElemento = elemento || ctx.obterElementoPorId(pId);
+
+  let safeCoords = coords;
+  if (!safeCoords && safeElemento) {
+    const rawLat = safeElemento.lat ?? (safeElemento as any).latitude ?? 0;
+    const rawLon = safeElemento.lon ?? safeElemento.lng ?? (safeElemento as any).longitude ?? 0;
+    safeCoords = { lat: Number(rawLat), lon: Number(rawLon) };
+  }
+  if (!safeCoords) {
+    safeCoords = { lat: 0, lon: 0 };
+  }
+
+  if (ctx.modoSequencial) {
+    ctx.fecharPopup();
+    ctx.host.dispatchEvent(new CustomEvent('ui-clique-sequencial', {
+      detail: {
+        id: pId,
+        elemento: safeElemento ?? { id: pId, lat: safeCoords.lat, lon: safeCoords.lon },
+        coordenadas: safeCoords
+      },
+      bubbles: true,
+      composed: true
+    }));
+    return;
+  }
+
+  if (customMarkerClickHandler) {
+    try {
+      customMarkerClickHandler(Number(pId), isVizinho);
+    } catch (err) {
+      console.error('Erro no callback de clique de marcador:', err);
+    }
+  }
+  if (prevMarkerClick) {
+    try {
+      prevMarkerClick(pId, isVizinho, safeElemento, safeCoords);
+    } catch (err) {
+      console.error('Erro no handler anterior de marker click:', err);
+    }
+  }
+  ctx.host.dispatchEvent(new CustomEvent('ui-ponto-selecionado', {
+    detail: { selectedIds: [pId], lastSelectedId: pId, isVizinho },
+    bubbles: true,
+    composed: true
+  }));
+  ctx.host.dispatchEvent(new CustomEvent('ui-elemento-selecionado', {
+    detail: { id: pId, elemento: safeElemento, tipo: isVizinho ? 'vizinho' : 'vertice', coordenadas: safeCoords },
+    bubbles: true,
+    composed: true
+  }));
+}
+
