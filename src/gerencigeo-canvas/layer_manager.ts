@@ -382,6 +382,80 @@ export class CanvasLayerManager {
     });
   }
 
+  public getAllLayerInstances(): (L.Layer | L.LayerGroup)[] {
+    return Array.from(this.layerInstances.values());
+  }
+
+  public getLayerInstance(id: string): L.Layer | L.LayerGroup | undefined {
+    return this.layerInstances.get(id);
+  }
+
+  public getOrCreateLayer(id: string, tipo: string, nome: string): CanvasLayerDef {
+    let layer = this.layers.find(l => l.id === id);
+    if (!layer) {
+      layer = {
+        id,
+        nome,
+        categoria: 'custom',
+        tipo,
+        visivel: true,
+        opacidade: 1.0,
+        zIndex: 600,
+        interativo: true,
+        bloqueada: false,
+        estilo: { scaleMode: 'screen' }
+      };
+      this.layers.push(layer);
+      this.ensurePanes();
+    }
+    return layer;
+  }
+
+  public setLayerData(id: string, dados: any): void {
+    const layer = this.layers.find(l => l.id === id);
+    if (!layer) return;
+    layer.dados = dados;
+
+    const instance = this.layerInstances.get(id);
+    if (instance && this.map && this.context) {
+      const renderer = LayerRendererFactory.get(layer.tipo);
+      if (renderer) {
+        renderer.update(layer, instance, { dados }, this.context, this.map);
+      }
+    } else if (layer.visivel && this.map && this.context) {
+      const renderer = LayerRendererFactory.get(layer.tipo);
+      if (renderer) {
+        const inst = renderer.render(layer, this.map, this.context);
+        if (inst) {
+          inst.addTo(this.map);
+          this.layerInstances.set(id, inst);
+        }
+      }
+    }
+
+    this.notifyChange();
+  }
+
+  public clearLayers(ids?: string[]): void {
+    const toClear = ids && ids.length > 0
+      ? ids
+      : Array.from(this.layerInstances.keys());
+
+    toClear.forEach(id => {
+      if (this.layerInstances.has(id)) {
+        const instance = this.layerInstances.get(id)!;
+        const layer = this.layers.find(l => l.id === id);
+        if (layer) {
+          const renderer = LayerRendererFactory.get(layer.tipo);
+          if (renderer) renderer.destroy(instance, this.map!);
+        }
+        this.layerInstances.delete(id);
+      }
+    });
+
+    this.notifyChange();
+  }
+
   public destroy(): void {
     if (this.map) {
       this.layerInstances.forEach((instance, layerId) => {
