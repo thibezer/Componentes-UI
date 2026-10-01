@@ -8,10 +8,16 @@ export interface ContextoPainelControles {
   onFiltrar: (termo: string) => void;
   onAplicar: () => void;
   onDesfazer: () => void;
+  onAlternarDensidade?: () => void;
 }
 
 export function conectarPainelControles(ctx: ContextoPainelControles): void {
-  const { shadow, listeners, host, onToggleExpandirTodas, onFiltrar, onAplicar, onDesfazer } = ctx;
+  const { shadow, listeners, host, onToggleExpandirTodas, onFiltrar, onAplicar, onDesfazer, onAlternarDensidade } = ctx;
+
+  const btnDensidade = shadow.getElementById('btn-densidade');
+  if (btnDensidade && onAlternarDensidade) {
+    listeners.add(btnDensidade, 'click', onAlternarDensidade);
+  }
 
   const btnExpandirTudo = shadow.getElementById('btn-expandir-tudo');
   if (btnExpandirTudo) {
@@ -60,6 +66,12 @@ export function sincronizarPainelControles(shadow: ShadowRoot, host: HTMLElement
   const btnFechar = shadow.getElementById('btn-fechar');
   if (btnFechar) {
     btnFechar.style.display = host.hasAttribute('fechavel') ? 'inline-flex' : 'none';
+  }
+
+  const btnDensidade = shadow.getElementById('btn-densidade');
+  if (btnDensidade) {
+    const densidadeAtual = host.getAttribute('densidade') || 'padrão';
+    btnDensidade.title = `Compressão vertical: ${densidadeAtual} (clique para alternar)`;
   }
 
   const filtroCont = shadow.getElementById('filtro-container');

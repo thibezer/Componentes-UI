@@ -274,16 +274,31 @@ describe('UITabelaPropriedades - Paleta CAD & Revit', () => {
     expect(spyCalc).toHaveBeenCalledTimes(1);
   });
 
-  it('deve disparar evento ui-ajuda ao clicar no link de ajuda do rodapé', () => {
-    tabela.setAttribute('modo-aplicar', 'manual');
-    const spyAjuda = vi.fn();
-    tabela.addEventListener('ui-ajuda', spyAjuda);
-
+  it('deve alternar a compressão vertical (densidade) ao clicar no botão de densidade ou chamar alternarDensidade()', () => {
     const shadow = tabela.shadowRoot!;
-    const linkAjuda = shadow.querySelector('#link-ajuda') as HTMLElement;
-    linkAjuda.click();
+    const btnDensidade = shadow.querySelector('#btn-densidade') as HTMLButtonElement;
+    expect(btnDensidade).toBeTruthy();
 
-    expect(spyAjuda).toHaveBeenCalledTimes(1);
+    const spyDensidade = vi.fn();
+    tabela.addEventListener('ui-densidade-alterada', spyDensidade);
+
+    // 1. Padrão -> Compacta
+    btnDensidade.click();
+    expect(tabela.getAttribute('densidade')).toBe('compacta');
+    expect(tabela.densidade).toBe('compacta');
+    expect(spyDensidade).toHaveBeenCalledWith(expect.objectContaining({ detail: { densidade: 'compacta' } }));
+
+    // 2. Compacta -> Ultracompacta
+    btnDensidade.click();
+    expect(tabela.getAttribute('densidade')).toBe('ultracompacta');
+    expect(tabela.densidade).toBe('ultracompacta');
+    expect(spyDensidade).toHaveBeenCalledWith(expect.objectContaining({ detail: { densidade: 'ultracompacta' } }));
+
+    // 3. Ultracompacta -> Padrão
+    btnDensidade.click();
+    expect(tabela.hasAttribute('densidade')).toBe(false);
+    expect(tabela.densidade).toBe('padrao');
+    expect(spyDensidade).toHaveBeenCalledWith(expect.objectContaining({ detail: { densidade: 'padrao' } }));
   });
 });
 

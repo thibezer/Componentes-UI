@@ -8,7 +8,7 @@ export function criarTemplateTabelaPropriedades(): string {
       <header class="ui-prop__header" id="header">
         <div class="ui-prop__header-titulo">
           <span class="ui-prop__header-icone">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
               <line x1="3" y1="9" x2="21" y2="9"></line>
               <line x1="9" y1="21" x2="9" y2="9"></line>
@@ -17,8 +17,15 @@ export function criarTemplateTabelaPropriedades(): string {
           <span id="header-titulo-texto">Propriedades</span>
         </div>
         <div class="ui-prop__header-acoes">
+          <button type="button" class="ui-prop__btn-icone" id="btn-densidade" title="Alternar compressão vertical" aria-label="Alternar densidade vertical">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="4 7 12 11 20 7"></polyline>
+              <polyline points="4 17 12 13 20 17"></polyline>
+              <line x1="4" y1="12" x2="20" y2="12"></line>
+            </svg>
+          </button>
           <button type="button" class="ui-prop__btn-icone" id="btn-expandir-tudo" title="Expandir/Recolher Tudo" aria-label="Expandir ou recolher tudo">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="7 13 12 18 17 13"></polyline>
               <polyline points="7 6 12 11 17 6"></polyline>
             </svg>

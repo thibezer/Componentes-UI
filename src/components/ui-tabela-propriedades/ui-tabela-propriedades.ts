@@ -119,7 +119,8 @@ export class UITabelaPropriedades extends SafeHTMLElement {
         this.renderCategorias();
       },
       onAplicar: () => this.aplicar(),
-      onDesfazer: () => this.desfazer()
+      onDesfazer: () => this.desfazer(),
+      onAlternarDensidade: () => this.alternarDensidade()
     });
 
     this.controladorSplitter.init();
@@ -212,6 +213,46 @@ export class UITabelaPropriedades extends SafeHTMLElement {
 
   public toggleCategoria(idCategoria: string): void {
     alternarCategoria(this.shadow, this, this._categorias, idCategoria);
+  }
+
+  get densidade(): 'padrao' | 'compacta' | 'ultracompacta' | 'relaxada' {
+    return (this.getAttribute('densidade') as any) || 'padrao';
+  }
+
+  set densidade(val: 'padrao' | 'compacta' | 'ultracompacta' | 'relaxada') {
+    if (!val || val === 'padrao') {
+      this.removeAttribute('densidade');
+    } else {
+      this.setAttribute('densidade', val);
+    }
+  }
+
+  public alternarDensidade(): string {
+    const atual = this.getAttribute('densidade') || 'padrao';
+    let proxima = 'compacta';
+    if (atual === 'compacta') {
+      proxima = 'ultracompacta';
+    } else if (atual === 'ultracompacta') {
+      proxima = 'padrao';
+    } else {
+      proxima = 'compacta';
+    }
+
+    if (proxima === 'padrao') {
+      this.removeAttribute('densidade');
+    } else {
+      this.setAttribute('densidade', proxima);
+    }
+
+    this.dispatchEvent(
+      new CustomEvent('ui-densidade-alterada', {
+        bubbles: true,
+        composed: true,
+        detail: { densidade: proxima }
+      })
+    );
+    sincronizarPainelControles(this.shadow, this);
+    return proxima;
   }
 
   private syncState() {

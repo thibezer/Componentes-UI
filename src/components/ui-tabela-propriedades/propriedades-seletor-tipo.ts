@@ -132,7 +132,7 @@ export function renderizarSeletorTipos(ctx: ContextoSeletorTipo): void {
     btnQuickSelect.title = 'Seleção rápida';
     btnQuickSelect.setAttribute('aria-label', 'Seleção rápida');
     btnQuickSelect.innerHTML = `
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
       </svg>
     `;
@@ -147,7 +147,7 @@ export function renderizarSeletorTipos(ctx: ContextoSeletorTipo): void {
     btnSelectObjects.title = 'Selecionar objetos';
     btnSelectObjects.setAttribute('aria-label', 'Selecionar objetos');
     btnSelectObjects.innerHTML = `
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="12" cy="12" r="7"></circle>
         <line x1="12" y1="2" x2="12" y2="7"></line>
         <line x1="12" y1="17" x2="12" y2="22"></line>
@@ -168,7 +168,7 @@ export function renderizarSeletorTipos(ctx: ContextoSeletorTipo): void {
     btnCalc.title = 'Calculadora rápida';
     btnCalc.setAttribute('aria-label', 'Calculadora rápida');
     btnCalc.innerHTML = `
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <rect x="4" y="2" width="16" height="20" rx="2"></rect>
         <line x1="8" y1="6" x2="16" y2="6"></line>
         <circle cx="8" cy="11" r="1" fill="currentColor"></circle>
