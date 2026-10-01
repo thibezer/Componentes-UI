@@ -7,15 +7,18 @@
 
 .ui-paleta {
   --ui-paleta-btn: 34px;
+  --ui-paleta-padding: 4px;
+  --ui-paleta-raio: var(--ui-paleta-raio-borda, 10px);
+  --ui-paleta-btn-raio: var(--ui-paleta-raio-botao, max(2px, calc(var(--ui-paleta-raio) - var(--ui-paleta-padding))));
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  padding: 4px;
+  padding: var(--ui-paleta-padding);
   box-sizing: border-box;
   background: var(--ui-cor-superficie, #141417);
   border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
-  border-radius: var(--ui-raio-borda, 6px);
+  border-radius: var(--ui-paleta-raio);
   user-select: none;
 }
 
@@ -23,8 +26,15 @@
   flex-direction: row;
 }
 
-.ui-paleta--sm { --ui-paleta-btn: 28px; }
-.ui-paleta--lg { --ui-paleta-btn: 42px; }
+.ui-paleta--sm {
+  --ui-paleta-btn: 28px;
+  --ui-paleta-raio: var(--ui-paleta-raio-borda, 8px);
+}
+
+.ui-paleta--lg {
+  --ui-paleta-btn: 42px;
+  --ui-paleta-raio: var(--ui-paleta-raio-borda, 12px);
+}
 
 /* Duas colunas (padrão Photoshop) */
 .ui-paleta--cols-2 {
@@ -40,6 +50,7 @@
 .ui-paleta .ui-ferr-btn {
   width: var(--ui-paleta-btn);
   height: var(--ui-paleta-btn);
+  border-radius: var(--ui-paleta-btn-raio);
 }
 
 /* Ferramenta ativa: preenchimento sólido, como em Illustrator/Photoshop */

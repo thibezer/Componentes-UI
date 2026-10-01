@@ -344,4 +344,15 @@ describe('Web Component: <ui-paleta-ferramentas>', () => {
     expect(p.valor).toBe('linha');
     expect(btn(p, 'linha').classList.contains('ui-ferr-btn--ativo')).toBe(true);
   });
+
+  it('aplica classes e estrutura de raios concêntricos na paleta e botões de ferramentas', () => {
+    const raiz = paleta.shadowRoot!.querySelector('.ui-paleta') as HTMLElement;
+    expect(raiz).toBeTruthy();
+
+    const primeiroBtn = raiz.querySelector('.ui-ferr-btn') as HTMLElement;
+    expect(primeiroBtn).toBeTruthy();
+    expect(primeiroBtn.classList.contains('ui-ferr-btn--paleta')).toBe(true);
+  });
 });
+
+
