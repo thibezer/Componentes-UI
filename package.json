@@ -81,6 +81,11 @@
       "import": "./dist/card.es.js",
       "require": "./dist/card.cjs.js"
     },
+    "./camadas": {
+      "types": "./dist/camadas.d.ts",
+      "import": "./dist/camadas.es.js",
+      "require": "./dist/camadas.cjs.js"
+    },
     "./style.css": "./dist/ui-kit.css"
   },
   "scripts": {

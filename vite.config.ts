@@ -30,6 +30,7 @@ export default defineConfig({
         'campo-texto': './src/campo-texto.ts',
         'modal': './src/modal.ts',
         'card': './src/card.ts',
+        'camadas': './src/camadas.ts',
       },
       name: 'UIComponentsKit',
       formats: ['es', 'cjs'],

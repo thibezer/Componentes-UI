@@ -31,6 +31,7 @@ export * from './components/ui-stat';
 export * from './components/ui-skeleton';
 export * from './components/ui-tabela-propriedades';
 export * from './components/ui-barra-ferramentas';
+export * from './components/ui-camadas';
 
 // 5. Núcleo Inteligente, Orquestração e Barramento de Eventos
 export * from './core/ui-bus';
@@ -99,6 +100,7 @@ import type { UISkeleton, UIEsqueleto } from './components/ui-skeleton';
 import type { UICanvasCAD } from './components/ui-canvas-cad';
 import type { UITabelaPropriedades } from './components/ui-tabela-propriedades';
 import type { UIRibbon, UIPaletaFerramentas } from './components/ui-barra-ferramentas';
+import type { UICamadas, UIPainelCamadas, UILayerPanel } from './components/ui-camadas';
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -145,6 +147,9 @@ declare global {
     'ui-propriedades': UITabelaPropriedades;
     'ui-ribbon': UIRibbon;
     'ui-paleta-ferramentas': UIPaletaFerramentas;
+    'ui-camadas': UICamadas;
+    'ui-painel-camadas': UIPainelCamadas;
+    'ui-layer-panel': UILayerPanel;
   }
 }
 

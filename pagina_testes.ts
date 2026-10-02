@@ -1,6 +1,6 @@
 import './src/index';
 import { UIToast, ICONES_FERRAMENTAS as I } from './src/index';
-import type { UIRibbon, UIPaletaFerramentas, FerramentaItem } from './src/index';
+import type { UIRibbon, UIPaletaFerramentas, FerramentaItem, UICamadas, CamadaItem, FeicaoItem } from './src/index';
 import type { UIListaFlutuante } from './src/components/ui-lista-flutuante';
 import type { UIModal } from './src/components/ui-modal';
 import type { UITabela, TabelaColuna } from './src/components/ui-tabela';
@@ -971,6 +971,206 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   });
+
+  // ----------------------------------------------------
+  // 16. Painel de Camadas GIS / CAD (<ui-camadas>)
+  // ----------------------------------------------------
+  const mockCamadasGis: CamadaItem[] = [
+    { id: 'camada-zoneamento', name: 'Zoneamento (ZR3 / Comercial)', color: '#00E08A', visible: true, locked: false },
+    { id: 'camada-lotes', name: 'Lotes e Glebas Urbanas', color: '#38bdf8', visible: true, locked: false },
+    { id: 'camada-eixos', name: 'Eixos Viários & Rodovias', color: '#f59e0b', visible: true, locked: false },
+    { id: 'camada-hidro', name: 'Hidrografia & APPs', color: '#06b6d4', visible: true, locked: false },
+    { id: 'camada-marcos', name: 'Marcos Geodésicos / Vértices', color: '#ec4899', visible: true, locked: false }
+  ];
+
+  const mockFeicoesGis: FeicaoItem[] = [
+    {
+      id: 'feat-poly-1',
+      name: 'Gleba A - Perímetro Fazenda Real',
+      layerId: 'camada-zoneamento',
+      type: 'Polygon',
+      category: 'Perímetro',
+      status: 'oficial',
+      color: '#00E08A',
+      coordinates: [
+        [-23.55052, -46.633308],
+        [-23.55152, -46.633308],
+        [-23.55152, -46.635308],
+        [-23.55052, -46.635308],
+        [-23.55052, -46.633308]
+      ]
+    },
+    {
+      id: 'feat-poly-2',
+      name: 'Reserva Legal - APP Nascente 01',
+      layerId: 'camada-hidro',
+      type: 'Polygon',
+      category: 'Ambiental',
+      status: 'oficial',
+      color: '#06b6d4',
+      coordinates: [
+        [-23.5520, -46.6340],
+        [-23.5535, -46.6340],
+        [-23.5535, -46.6360],
+        [-23.5520, -46.6360],
+        [-23.5520, -46.6340]
+      ]
+    },
+    {
+      id: 'feat-poly-3',
+      name: 'Lote 14 Quadra B (Proposta)',
+      layerId: 'camada-lotes',
+      type: 'Polygon',
+      category: 'Loteamento',
+      status: 'previa',
+      color: '#38bdf8',
+      coordinates: [
+        [-23.5540, -46.6320],
+        [-23.5550, -46.6320],
+        [-23.5550, -46.6330],
+        [-23.5540, -46.6330],
+        [-23.5540, -46.6320]
+      ]
+    },
+    {
+      id: 'feat-poly-4',
+      name: 'Lote 15 Quadra B (Oficial)',
+      layerId: 'camada-lotes',
+      type: 'Polygon',
+      category: 'Loteamento',
+      status: 'oficial',
+      color: '#38bdf8',
+      coordinates: [
+        [-23.5540, -46.6331],
+        [-23.5550, -46.6331],
+        [-23.5550, -46.6341],
+        [-23.5540, -46.6341],
+        [-23.5540, -46.6331]
+      ]
+    },
+    {
+      id: 'feat-line-1',
+      name: 'Avenida das Palmeiras (Eixo Principal)',
+      layerId: 'camada-eixos',
+      type: 'LineString',
+      category: 'Viário',
+      status: 'oficial',
+      color: '#f59e0b',
+      coordinates: [
+        [-23.5500, -46.6300],
+        [-23.5525, -46.6335],
+        [-23.5560, -46.6380]
+      ]
+    },
+    {
+      id: 'feat-line-2',
+      name: 'Rua Projetada 03 (Ligação)',
+      layerId: 'camada-eixos',
+      type: 'LineString',
+      category: 'Viário',
+      status: 'previa',
+      color: '#f59e0b',
+      coordinates: [
+        [-23.5525, -46.6335],
+        [-23.5540, -46.6310]
+      ]
+    },
+    {
+      id: 'feat-point-1',
+      name: 'M-01 (Marco Base Geodésico INCRA)',
+      layerId: 'camada-marcos',
+      type: 'Point',
+      category: 'Vértice',
+      status: 'oficial',
+      color: '#ec4899',
+      coordinates: [-23.55052, -46.633308]
+    },
+    {
+      id: 'feat-point-2',
+      name: 'M-02 (Vértice de Divisa Fazenda)',
+      layerId: 'camada-marcos',
+      type: 'Point',
+      category: 'Vértice',
+      status: 'oficial',
+      color: '#ec4899',
+      coordinates: [-23.55152, -46.635308]
+    }
+  ];
+
+  const painelDocked = document.getElementById('demo-camadas-docked') as UICamadas | null;
+  const painelFlutuante = document.getElementById('demo-camadas-flutuante') as UICamadas | null;
+
+  [painelDocked, painelFlutuante].forEach((painel, idx) => {
+    if (!painel) return;
+    const nomePainel = idx === 0 ? 'Docked' : 'Flutuante';
+    painel.definirCamadas(
+      JSON.parse(JSON.stringify(mockCamadasGis)),
+      JSON.parse(JSON.stringify(mockFeicoesGis))
+    );
+
+    painel.addEventListener('ui-camada-selecionada', (e: any) => {
+      registrarLog(`[Camadas:${nomePainel}] Camada ativa para desenho: ${e.detail.camadaId}`);
+    });
+    painel.addEventListener('ui-feicoes-selecionadas', (e: any) => {
+      registrarLog(`[Camadas:${nomePainel}] Feições selecionadas: ${e.detail.feicoesIds?.length || 0} item(ns)`);
+    });
+    painel.addEventListener('ui-camada-visibilidade', (e: any) => {
+      registrarLog(`[Camadas:${nomePainel}] Visibilidade camada "${e.detail.camadaId}": ${e.detail.visivel}`);
+    });
+    painel.addEventListener('ui-camada-bloqueio', (e: any) => {
+      registrarLog(`[Camadas:${nomePainel}] Bloqueio camada "${e.detail.camadaId}": ${e.detail.bloqueado}`);
+    });
+    painel.addEventListener('ui-feicao-movida', (e: any) => {
+      registrarLog(`[Camadas:${nomePainel}] Feição "${e.detail.feicao?.name}" transferida: ${e.detail.camadaOrigemId} → ${e.detail.camadaDestinoId}`);
+    });
+    painel.addEventListener('ui-mapa-base-alterado', (e: any) => {
+      registrarLog(`[Camadas:${nomePainel}] Mapa base alterado para: ${e.detail.mapaBaseId}`);
+    });
+    painel.addEventListener('ui-acao-massa', (e: any) => {
+      registrarLog(`[Camadas:${nomePainel}] Ação coletiva: "${e.detail.acao}" em ${e.detail.feicoesIds?.length || 0} feição(ões)`);
+    });
+    painel.addEventListener('ui-camada-adicionar', () => {
+      const novaId = 'camada-auto-' + Date.now();
+      const novaCamada = { id: novaId, name: `Nova Camada ${painel.camadas.length + 1}`, color: '#a855f7', visible: true };
+      painel.definirCamadas([...painel.camadas, novaCamada], painel.feicoes);
+      registrarLog(`[Camadas:${nomePainel}] Nova camada criada: ${novaCamada.name}`);
+      UIToast.notificar({ tipo: 'sucesso', titulo: 'Nova Camada', mensagem: `Camada "${novaCamada.name}" criada com sucesso.` });
+    });
+  });
+
+  const btnToggleColapso = document.getElementById('btn-toggle-camadas-colapso');
+  if (btnToggleColapso && painelFlutuante) {
+    btnToggleColapso.addEventListener('click', () => {
+      painelFlutuante.alternarColapso();
+      registrarLog(`[Camadas:Flutuante] Colapsado = ${painelFlutuante.colapsado}`);
+    });
+  }
+
+  const btnResetStorage = document.getElementById('btn-reset-camadas-storage');
+  if (btnResetStorage) {
+    btnResetStorage.addEventListener('click', () => {
+      painelDocked?.limparLembranca();
+      painelFlutuante?.limparLembranca();
+      UIToast.notificar({
+        tipo: 'alerta',
+        titulo: 'Lembrança Resetada',
+        mensagem: 'As preferências de camadas salvas no LocalStorage foram limpas. Recarregue a página para ver o estado padrão original.'
+      });
+      registrarLog('[Camadas] Preferências de estado no LocalStorage limpas com sucesso.');
+    });
+  }
+
+  const btnAddMockCamada = document.getElementById('btn-add-mock-camada');
+  if (btnAddMockCamada && painelFlutuante) {
+    btnAddMockCamada.addEventListener('click', () => {
+      const id = 'camada-dinamica-' + Date.now();
+      const cores = ['#ef4444', '#f97316', '#84cc16', '#06b6d4', '#8b5cf6'];
+      const cor = cores[Math.floor(Math.random() * cores.length)];
+      const novaCamada = { id, name: `Levantamento Drone ${painelFlutuante.camadas.length + 1}`, color: cor, visible: true };
+      painelFlutuante.definirCamadas([...painelFlutuante.camadas, novaCamada], painelFlutuante.feicoes);
+      registrarLog(`[Camadas:Flutuante] Adicionada via botão: ${novaCamada.name}`);
+    });
+  }
 
   registrarLog('Playground autônomo inicializado com Suporte Inteligente (Zero-JS, FormData e UIBus).');
 });

@@ -1297,6 +1297,68 @@
       </div>
     </article>
 
+    <!-- 16. Painel de Camadas GIS / CAD (<ui-camadas>) -->
+    <article class="card-componente full-width-card">
+      <h2>
+        <span>16. 📚 Painel de Camadas GIS / CAD (&lt;ui-camadas&gt;)</span>
+        <span style="font-size: 11px; font-weight: 500; color: var(--ui-cor-primaria, #00E08A); background: rgba(0, 224, 138, 0.12); padding: 2px 8px; border-radius: 4px; border: 1px solid rgba(0, 224, 138, 0.3);">
+          Novo • Estilo ConecteMapas &amp; Illustrator
+        </span>
+      </h2>
+      <p style="font-size: 13px; color: var(--ui-cor-texto-secundario, #a0a0b0); margin: 0 0 16px 0;">
+        Árvore hierárquica de camadas e feições vetoriais (polígonos, linhas e pontos), busca rápida com filtro instantâneo,
+        drag-and-drop HTML5 para reordenação de Z-Index e movimentação entre camadas, drawer de configurações (opacidade/cor),
+        seleção com Shift e Ctrl, cálculo automático de métricas (área em ha e comprimento em m/km), rodapé de ações em massa e seletor de mapas base.
+      </p>
+
+      <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;">
+        <!-- Demonstração 1: Painel Docked / Integrado -->
+        <div style="display: flex; flex-direction: column; gap: 8px; width: 340px; max-width: 100%;">
+          <span style="font-size: 12px; font-weight: 600; color: var(--ui-cor-texto, #ffffff);">
+            Modo Docked (Painel Lateral de Camadas)
+          </span>
+          <div style="height: 540px; border-radius: 8px; overflow: hidden; border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.1));">
+            <ui-camadas id="demo-camadas-docked"></ui-camadas>
+          </div>
+        </div>
+
+        <!-- Demonstração 2: Simulação de Mapa com Painel Flutuante e Canvas Interativo -->
+        <div style="flex: 1; min-width: 320px; display: flex; flex-direction: column; gap: 8px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 12px; font-weight: 600; color: var(--ui-cor-texto, #ffffff);">
+              Simulação no Mapa GIS com Painel Flutuante Colapsável
+            </span>
+            <div style="display: flex; gap: 8px;">
+              <ui-botao-primario id="btn-toggle-camadas-colapso" variante="secondary" tamanho="sm">
+                Alternar Colapso
+              </ui-botao-primario>
+              <ui-botao-primario id="btn-reset-camadas-storage" variante="ghost" tamanho="sm" title="Limpar preferências e estados persistidos no LocalStorage">
+                Resetar Lembrança
+              </ui-botao-primario>
+              <ui-botao-primario id="btn-add-mock-camada" variante="primary" tamanho="sm">
+                + Adicionar Camada Dinâmica
+              </ui-botao-primario>
+            </div>
+          </div>
+
+          <div style="position: relative; height: 540px; border-radius: 8px; overflow: hidden; background: #08080a; border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.1)); display: flex; align-items: center; justify-content: center;">
+            <!-- Fundo simulando mapa orbital de satélite com grid CAD -->
+            <div style="position: absolute; inset: 0; background: radial-gradient(circle at center, #1b263b 0%, #0d1b2a 100%); opacity: 0.9;"></div>
+            <div style="position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px); background-size: 32px 32px;"></div>
+            
+            <div style="position: relative; z-index: 1; text-align: center; color: var(--ui-cor-texto-secundario, #888899); pointer-events: none; padding: 20px;">
+              <div style="font-size: 36px; margin-bottom: 8px;">🗺️</div>
+              <div style="font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 4px;">Área de Visualização do Mapa / CAD</div>
+              <div style="font-size: 12px;">Interaja com o painel de camadas à direita para ver a sincronização e eventos em tempo real.</div>
+            </div>
+
+            <!-- Painel Flutuante -->
+            <ui-camadas id="demo-camadas-flutuante" flutuante></ui-camadas>
+          </div>
+        </div>
+      </div>
+    </article>
+
     <!-- Console de Eventos em Tempo Real -->
     <section class="console-card">
       <h3>Console de Eventos Customizados em Tempo Real</h3>
