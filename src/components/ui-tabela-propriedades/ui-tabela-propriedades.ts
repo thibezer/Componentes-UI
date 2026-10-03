@@ -13,6 +13,8 @@ import { renderizarSeletorTipos } from './propriedades-seletor-tipo';
 import { criarControladorSplitter, ControladorSplitterPropriedades } from './propriedades-splitter';
 import { criarTemplateTabelaPropriedades } from './propriedades-template';
 import { renderizarCategoriasETree } from './propriedades-render-arvore';
+import { alternarPosicionamentoFlutuante, conectarArrastoFlutuante } from './propriedades-flutuante';
+import { proximaDensidade } from './propriedades-densidade';
 import { GerenciadorValoresPropriedades } from './propriedades-gerenciador-valores';
 import {
   conectarPainelControles,
@@ -35,6 +37,8 @@ export * from './propriedades-render-arvore';
 export * from './propriedades-gerenciador-valores';
 export * from './propriedades-painel-controles';
 export * from './propriedades-dom-utils';
+export * from './propriedades-flutuante';
+export * from './propriedades-densidade';
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 
 export class UITabelaPropriedades extends SafeHTMLElement {
@@ -127,7 +131,7 @@ export class UITabelaPropriedades extends SafeHTMLElement {
       onAlternarColapsoHorizontal: () => this.alternarColapsoHorizontal()
     });
 
-    this.configurarArrastoFlutuante();
+    conectarArrastoFlutuante(this, this.shadow, this.listeners);
     this.controladorSplitter.init();
     this.syncState();
   }
@@ -233,15 +237,7 @@ export class UITabelaPropriedades extends SafeHTMLElement {
   }
 
   public alternarDensidade(): string {
-    const atual = this.getAttribute('densidade') || 'padrao';
-    let proxima = 'compacta';
-    if (atual === 'compacta') {
-      proxima = 'ultracompacta';
-    } else if (atual === 'ultracompacta') {
-      proxima = 'padrao';
-    } else {
-      proxima = 'compacta';
-    }
+    const proxima = proximaDensidade(this.getAttribute('densidade') || 'padrao');
 
     if (proxima === 'padrao') {
       this.removeAttribute('densidade');
@@ -281,28 +277,7 @@ export class UITabelaPropriedades extends SafeHTMLElement {
   }
 
   public alternarFlutuante(): boolean {
-    const isFlutuante = this.hasAttribute('flutuante');
-    if (isFlutuante) {
-      this.removeAttribute('flutuante');
-      this.style.left = '';
-      this.style.top = '';
-      this.style.right = '';
-      this.style.bottom = '';
-      this.style.position = '';
-      this.style.zIndex = '';
-    } else {
-      this.setAttribute('flutuante', '');
-      this.style.position = 'fixed';
-      if (!this.style.left && !this.style.top) {
-        const largura = 300;
-        const left = Math.max(20, (typeof window !== 'undefined' ? window.innerWidth : 1024) - largura - 30);
-        this.style.left = `${left}px`;
-        this.style.top = `70px`;
-        this.style.width = `${largura}px`;
-        this.style.height = `480px`;
-      }
-    }
-    const novoEstado = !isFlutuante;
+    const novoEstado = alternarPosicionamentoFlutuante(this);
     sincronizarPainelControles(this.shadow, this);
     this.dispatchEvent(new CustomEvent('ui-flutuante-alterado', {
       bubbles: true,
@@ -333,135 +308,6 @@ export class UITabelaPropriedades extends SafeHTMLElement {
       detail: { colapsado: novoEstado }
     }));
     return novoEstado;
-  }
-
-  private configurarArrastoFlutuante(): void {
-    const headerEl = this.shadow.getElementById('header');
-    if (headerEl) {
-      let dragId: number | null = null;
-      let startX = 0;
-      let startY = 0;
-      let initLeft = 0;
-      let initTop = 0;
-
-      const onPointerMove = (e: PointerEvent) => {
-        if (dragId === null) return;
-        const dx = e.clientX - startX;
-        const dy = e.clientY - startY;
-
-        let nLeft = initLeft + dx;
-        let nTop = initTop + dy;
-
-        const maxL = Math.max(0, (typeof window !== 'undefined' ? window.innerWidth : 1024) - this.offsetWidth);
-        const maxT = Math.max(0, (typeof window !== 'undefined' ? window.innerHeight : 768) - 30);
-        nLeft = Math.max(0, Math.min(maxL, nLeft));
-        nTop = Math.max(0, Math.min(maxT, nTop));
-
-        this.style.left = `${nLeft}px`;
-        this.style.top = `${nTop}px`;
-        this.style.right = 'auto';
-        this.style.bottom = 'auto';
-      };
-
-      const onPointerUp = (e: PointerEvent) => {
-        if (dragId === null) return;
-        try {
-          headerEl.releasePointerCapture(e.pointerId);
-        } catch (_err) {}
-        headerEl.removeEventListener('pointermove', onPointerMove);
-        headerEl.removeEventListener('pointerup', onPointerUp);
-        headerEl.removeEventListener('pointercancel', onPointerUp);
-        dragId = null;
-        this.classList.remove('arrastando');
-
-        this.dispatchEvent(new CustomEvent('ui-mover', {
-          bubbles: true,
-          composed: true,
-          detail: { left: this.style.left, top: this.style.top }
-        }));
-      };
-
-      this.listeners.add(headerEl, 'pointerdown', (e: PointerEvent) => {
-        if (!this.hasAttribute('flutuante')) return;
-        const target = e.target as HTMLElement;
-        if (target.closest('button, input, select, a')) return;
-        if (e.button !== 0) return;
-
-        e.preventDefault();
-        dragId = e.pointerId;
-        startX = e.clientX;
-        startY = e.clientY;
-
-        const rect = this.getBoundingClientRect();
-        initLeft = rect.left;
-        initTop = rect.top;
-
-        this.classList.add('arrastando');
-        try {
-          headerEl.setPointerCapture(e.pointerId);
-        } catch (_err) {}
-
-        headerEl.addEventListener('pointermove', onPointerMove);
-        headerEl.addEventListener('pointerup', onPointerUp);
-        headerEl.addEventListener('pointercancel', onPointerUp);
-      });
-    }
-
-    const resizerCanto = this.shadow.getElementById('resizer-canto');
-    if (resizerCanto) {
-      let resizeId: number | null = null;
-      let startW = 0;
-      let startH = 0;
-      let startX = 0;
-      let startY = 0;
-
-      const onResizeMove = (e: PointerEvent) => {
-        if (resizeId === null) return;
-        const nw = Math.max(200, startW + (e.clientX - startX));
-        const nh = Math.max(180, startH + (e.clientY - startY));
-        this.style.width = `${nw}px`;
-        this.style.height = `${nh}px`;
-      };
-
-      const onResizeUp = (e: PointerEvent) => {
-        if (resizeId === null) return;
-        try {
-          resizerCanto.releasePointerCapture(e.pointerId);
-        } catch (_err) {}
-        resizerCanto.removeEventListener('pointermove', onResizeMove);
-        resizerCanto.removeEventListener('pointerup', onResizeUp);
-        resizerCanto.removeEventListener('pointercancel', onResizeUp);
-        resizeId = null;
-
-        this.dispatchEvent(new CustomEvent('ui-redimensionar', {
-          bubbles: true,
-          composed: true,
-          detail: { width: this.style.width, height: this.style.height }
-        }));
-      };
-
-      this.listeners.add(resizerCanto, 'pointerdown', (e: PointerEvent) => {
-        if (!this.hasAttribute('flutuante')) return;
-        if (e.button !== 0) return;
-        e.preventDefault();
-        e.stopPropagation();
-
-        resizeId = e.pointerId;
-        startX = e.clientX;
-        startY = e.clientY;
-        const rect = this.getBoundingClientRect();
-        startW = rect.width;
-        startH = rect.height;
-
-        try {
-          resizerCanto.setPointerCapture(e.pointerId);
-        } catch (_err) {}
-
-        resizerCanto.addEventListener('pointermove', onResizeMove);
-        resizerCanto.addEventListener('pointerup', onResizeUp);
-        resizerCanto.addEventListener('pointercancel', onResizeUp);
-      });
-    }
   }
 
   private syncState() {
