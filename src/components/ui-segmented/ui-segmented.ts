@@ -6,7 +6,8 @@ import {
   criarBotaoOpcao,
   ATRIBUTOS_OBSERVADOS_SEGMENTED
 } from './segmented-template';
-import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
+import { definirCustomElement } from '../../core/ssr-safe';
+import { FormAssociatedElement } from '../../core/form-associated-element';
 
 export interface UISegmentedOpcao {
   valor: string;
@@ -15,30 +16,22 @@ export interface UISegmentedOpcao {
   disabled?: boolean;
 }
 
-export class UISegmented extends SafeHTMLElement {
-  static formAssociated = true;
-
+export class UISegmented extends FormAssociatedElement {
   static get observedAttributes() {
     return ATRIBUTOS_OBSERVADOS_SEGMENTED;
   }
 
-  private internals?: ReturnType<HTMLElement['attachInternals']>;
   private rootElement: HTMLDivElement;
   private trackElement: HTMLDivElement;
   private indicadorElement: HTMLDivElement;
   private slotElement: HTMLSlotElement;
   private _opcoes: UISegmentedOpcao[] = [];
   private _defaultValue: string = '';
-  private _formDisabled: boolean = false;
-  private _customErrorMessage: string = '';
   private listeners = new ListenerBag();
   private indicadorController: SegmentedIndicadorController;
 
   constructor() {
     super();
-    if (this.attachInternals) {
-      this.internals = this.attachInternals();
-    }
 
     const shadow = this.attachShadow({ mode: 'open' });
     shadow.innerHTML = criarTemplateSegmented();
@@ -83,11 +76,6 @@ export class UISegmented extends SafeHTMLElement {
   }
 
   // === Ciclo de Vida Form-Associated Custom Elements (W3C FACE) ===
-  public formDisabledCallback(disabled: boolean): void {
-    this._formDisabled = disabled;
-    this.syncState();
-  }
-
   public formResetCallback(): void {
     this.valor = this._defaultValue;
     this.syncState();
@@ -100,62 +88,8 @@ export class UISegmented extends SafeHTMLElement {
     this.syncState();
   }
 
-  get form(): HTMLFormElement | null {
-    return this.closest('form') ?? this.internals?.form ?? null;
-  }
-
   get type(): string {
     return 'select-one';
-  }
-
-  get required(): boolean {
-    return this.hasAttribute('obrigatorio') || this.hasAttribute('required');
-  }
-
-  set required(val: boolean) {
-    if (val) this.setAttribute('obrigatorio', '');
-    else {
-      this.removeAttribute('obrigatorio');
-      this.removeAttribute('required');
-    }
-    this.syncState();
-  }
-
-  get obrigatorio(): boolean {
-    return this.required;
-  }
-
-  set obrigatorio(val: boolean) {
-    this.required = val;
-  }
-
-  get validity(): ValidityState | undefined {
-    this.atualizarValidade();
-    return this.internals?.validity;
-  }
-
-  get validationMessage(): string {
-    this.atualizarValidade();
-    return this.internals?.validationMessage ?? '';
-  }
-
-  get willValidate(): boolean {
-    return this.internals?.willValidate ?? false;
-  }
-
-  public checkValidity(): boolean {
-    this.atualizarValidade();
-    return this.internals?.checkValidity?.() ?? true;
-  }
-
-  public reportValidity(): boolean {
-    this.atualizarValidade();
-    return this.internals?.reportValidity?.() ?? true;
-  }
-
-  public setCustomValidity(error: string): void {
-    this._customErrorMessage = error || '';
-    this.atualizarValidade();
   }
 
   public atualizarValidade(): void {
@@ -282,7 +216,7 @@ export class UISegmented extends SafeHTMLElement {
     this.setAttribute('valor', opcao.valor);
 
     if (this.internals) {
-      this.internals.setFormValue(opcao.valor);
+      this.internals.setFormValue?.(opcao.valor);
     }
 
     this.atualizarSelecao(opcao.valor);
@@ -318,7 +252,7 @@ export class UISegmented extends SafeHTMLElement {
     });
 
     if (this.internals) {
-      this.internals.setFormValue(novoValor);
+      this.internals.setFormValue?.(novoValor);
     }
 
     this.indicadorController.atualizar();
@@ -331,7 +265,7 @@ export class UISegmented extends SafeHTMLElement {
     });
   };
 
-  private syncState() {
+  protected syncState() {
     const tamanho = this.getAttribute('tamanho') || this.getAttribute('size') || 'md';
     const isFull = this.hasAttribute('largura-total') || this.hasAttribute('full-width');
     const isDisabled = this.disabled;

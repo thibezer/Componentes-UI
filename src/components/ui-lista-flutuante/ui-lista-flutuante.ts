@@ -7,7 +7,8 @@ import {
   ATRIBUTOS_OBSERVADOS_LISTA_FLUTUANTE
 } from './lista-flutuante-template';
 import { renderizarItensLista, atualizarEstadoSelecaoLista } from './lista-flutuante-render';
-import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
+import { definirCustomElement } from '../../core/ssr-safe';
+import { FormAssociatedElement } from '../../core/form-associated-element';
 
 export * from './tipos';
 export * from './lista-flutuante-posicionamento';
@@ -15,10 +16,7 @@ export * from './lista-flutuante-teclado';
 export * from './lista-flutuante-template';
 export * from './lista-flutuante-render';
 
-export class UIListaFlutuante extends SafeHTMLElement {
-  static formAssociated = true;
-  private internals: ReturnType<HTMLElement['attachInternals']>;
-
+export class UIListaFlutuante extends FormAssociatedElement {
   static get observedAttributes() {
     return ATRIBUTOS_OBSERVADOS_LISTA_FLUTUANTE;
   }
@@ -35,15 +33,12 @@ export class UIListaFlutuante extends SafeHTMLElement {
   private _itens: ItemLista[] = [];
   private _value: string = '';
   private _defaultValue: string = '';
-  private _formDisabled: boolean = false;
-  private _customErrorMessage: string = '';
   private observer!: MutationObserver;
   private posicionamento: ListaFlutuantePosicionamento;
   private teclado: ListaFlutuanteTeclado;
 
   constructor() {
     super();
-    this.internals = typeof this.attachInternals === 'function' ? this.attachInternals() : ({} as any);
     const shadow = this.attachShadow({ mode: 'open' });
     shadow.innerHTML = criarTemplateListaFlutuante();
 
@@ -158,10 +153,6 @@ export class UIListaFlutuante extends SafeHTMLElement {
     this.button.disabled = this.disabled;
   }
 
-  get form(): HTMLFormElement | null {
-    return this.closest('form') ?? this.internals?.form ?? null;
-  }
-
   get name(): string {
     return this.getAttribute('name') || '';
   }
@@ -172,56 +163,6 @@ export class UIListaFlutuante extends SafeHTMLElement {
 
   get type(): string {
     return 'select-one';
-  }
-
-  get required(): boolean {
-    return this.hasAttribute('obrigatorio') || this.hasAttribute('required');
-  }
-
-  set required(val: boolean) {
-    if (val) this.setAttribute('obrigatorio', '');
-    else {
-      this.removeAttribute('obrigatorio');
-      this.removeAttribute('required');
-    }
-    this.syncState();
-  }
-
-  get obrigatorio(): boolean {
-    return this.required;
-  }
-
-  set obrigatorio(val: boolean) {
-    this.required = val;
-  }
-
-  get validity(): ValidityState | undefined {
-    this.atualizarValidade();
-    return this.internals?.validity;
-  }
-
-  get validationMessage(): string {
-    this.atualizarValidade();
-    return this.internals?.validationMessage ?? '';
-  }
-
-  get willValidate(): boolean {
-    return this.internals?.willValidate ?? false;
-  }
-
-  public checkValidity(): boolean {
-    this.atualizarValidade();
-    return this.internals?.checkValidity?.() ?? true;
-  }
-
-  public reportValidity(): boolean {
-    this.atualizarValidade();
-    return this.internals?.reportValidity?.() ?? true;
-  }
-
-  public setCustomValidity(error: string): void {
-    this._customErrorMessage = error || '';
-    this.atualizarValidade();
   }
 
   public atualizarValidade(): void {
@@ -367,7 +308,7 @@ export class UIListaFlutuante extends SafeHTMLElement {
     }
   };
 
-  private syncState() {
+  protected syncState() {
     const altura = this.getAttribute('altura') || this.getAttribute('height');
     if (altura) {
       this.style.setProperty('--ui-campo-altura', isNaN(Number(altura)) ? altura : `${altura}px`);

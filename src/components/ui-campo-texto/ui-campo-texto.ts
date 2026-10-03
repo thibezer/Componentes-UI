@@ -4,13 +4,11 @@ import {
   sincronizarIconeSenha,
   sincronizarFeedbackErro
 } from './campo-texto-estados';
-import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
+import { definirCustomElement } from '../../core/ssr-safe';
+import { FormAssociatedElement } from '../../core/form-associated-element';
 import { validarRestricoesCampoTexto, aplicarValidadeInternals } from '../../core/form-validacao';
 
-export class UICampoTexto extends SafeHTMLElement {
-  static formAssociated = true;
-  private internals: ReturnType<HTMLElement['attachInternals']>;
-
+export class UICampoTexto extends FormAssociatedElement {
   static get observedAttributes() {
     return ATRIBUTOS_OBSERVADOS_CAMPO_TEXTO;
   }
@@ -27,12 +25,9 @@ export class UICampoTexto extends SafeHTMLElement {
   private _focado: boolean = false;
   private _inputId: string;
   private _defaultValue: string = '';
-  private _formDisabled: boolean = false;
-  private _customErrorMessage: string = '';
 
   constructor() {
     super();
-    this.internals = typeof this.attachInternals === 'function' ? this.attachInternals() : ({} as any);
     const shadow = this.attachShadow({ mode: 'open', delegatesFocus: true });
     shadow.innerHTML = criarTemplateCampoTexto();
 
@@ -112,11 +107,6 @@ export class UICampoTexto extends SafeHTMLElement {
   }
 
   // === Ciclo de Vida Form-Associated Custom Elements (W3C FACE) ===
-  public formDisabledCallback(disabled: boolean): void {
-    this._formDisabled = disabled;
-    this.syncState();
-  }
-
   public formResetCallback(): void {
     this.inputElement.value = this._defaultValue;
     this.internals?.setFormValue(this._defaultValue);
@@ -127,10 +117,6 @@ export class UICampoTexto extends SafeHTMLElement {
     if (typeof state === 'string') {
       this.value = state;
     }
-  }
-
-  get form(): HTMLFormElement | null {
-    return this.closest('form') ?? this.internals?.form ?? null;
   }
 
   get name(): string {
@@ -152,27 +138,6 @@ export class UICampoTexto extends SafeHTMLElement {
   set disabled(val: boolean) {
     if (val) this.setAttribute('disabled', '');
     else this.removeAttribute('disabled');
-  }
-
-  get required(): boolean {
-    return this.hasAttribute('obrigatorio') || this.hasAttribute('required');
-  }
-
-  set required(val: boolean) {
-    if (val) this.setAttribute('obrigatorio', '');
-    else {
-      this.removeAttribute('obrigatorio');
-      this.removeAttribute('required');
-    }
-    this.syncState();
-  }
-
-  get obrigatorio(): boolean {
-    return this.required;
-  }
-
-  set obrigatorio(val: boolean) {
-    this.required = val;
   }
 
   get minLength(): number {
@@ -207,36 +172,7 @@ export class UICampoTexto extends SafeHTMLElement {
     this.syncState();
   }
 
-  get validity(): ValidityState | undefined {
-    this.atualizarValidade();
-    return this.internals?.validity;
-  }
-
-  get validationMessage(): string {
-    this.atualizarValidade();
-    return this.internals?.validationMessage ?? '';
-  }
-
-  get willValidate(): boolean {
-    return this.internals?.willValidate ?? false;
-  }
-
-  public checkValidity(): boolean {
-    this.atualizarValidade();
-    return this.internals?.checkValidity?.() ?? true;
-  }
-
-  public reportValidity(): boolean {
-    this.atualizarValidade();
-    return this.internals?.reportValidity?.() ?? true;
-  }
-
-  public setCustomValidity(error: string): void {
-    this._customErrorMessage = error || '';
-    this.atualizarValidade();
-  }
-
-  private atualizarValidade(): void {
+  public atualizarValidade(): void {
     const minLenStr = this.getAttribute('minlength') ?? this.getAttribute('min-length');
     const maxLenStr = this.getAttribute('maxlength') ?? this.getAttribute('max-length');
     const minStr = this.getAttribute('min');
@@ -296,7 +232,7 @@ export class UICampoTexto extends SafeHTMLElement {
     this.syncState();
   };
 
-  private syncState() {
+  protected syncState() {
     const temIconeEsquerda = this.leftSlotElement.assignedNodes().length > 0 || this.querySelector('[slot="icone-esquerda"]') !== null;
     if (temIconeEsquerda) {
       this.setAttribute('tem-icone-esquerda', '');
