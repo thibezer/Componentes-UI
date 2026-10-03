@@ -9,7 +9,7 @@ export * from './components/ui-checkbox';
 export * from './components/ui-radio';
 export * from './components/ui-switch';
 
-import type { UICampoTexto } from './components/ui-campo-texto';
+import type { UICampoTexto, UIInput } from './components/ui-campo-texto';
 import type { UIListaFlutuante, UISelect } from './components/ui-lista-flutuante';
 import type { UICheckbox } from './components/ui-checkbox';
 import type { UIRadio } from './components/ui-radio';
@@ -18,6 +18,7 @@ import type { UISwitch, UIToggle } from './components/ui-switch';
 declare global {
   interface HTMLElementTagNameMap {
     'ui-campo-texto': UICampoTexto;
+    'ui-input': UIInput;
     'ui-lista-flutuante': UIListaFlutuante;
     'ui-select': UISelect;
     'ui-checkbox': UICheckbox;

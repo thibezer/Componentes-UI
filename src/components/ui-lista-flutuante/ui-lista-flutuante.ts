@@ -9,6 +9,7 @@ import {
 import { renderizarItensLista, atualizarEstadoSelecaoLista } from './lista-flutuante-render';
 import { definirCustomElement } from '../../core/ssr-safe';
 import { FormAssociatedElement } from '../../core/form-associated-element';
+import { gerarIdUnico, obterRotuloExterno, cliqueVeioDeRotuloExterno } from '../../core/acessibilidade';
 
 export * from './tipos';
 export * from './lista-flutuante-posicionamento';
@@ -29,6 +30,7 @@ export class UIListaFlutuante extends FormAssociatedElement {
   private backdropElement: HTMLDivElement;
   private sheetTituloElement: HTMLSpanElement;
   private sheetCloseButton: HTMLButtonElement;
+  private idsAcessibilidade: { label: string; gatilho: string; texto: string; lista: string };
   private listeners = new ListenerBag();
   private _itens: ItemLista[] = [];
   private _value: string = '';
@@ -51,6 +53,21 @@ export class UIListaFlutuante extends FormAssociatedElement {
     this.sheetTituloElement = shadow.querySelector('.ui-lista-flutuante__sheet-titulo')!;
     this.sheetCloseButton = shadow.querySelector('.ui-lista-flutuante__sheet-close')!;
 
+    // Associação rótulo ↔ botão nativo gerada internamente: o consumidor não gerencia IDs.
+    // O nome acessível combina rótulo + valor atual ("Cidade, Curitiba"), como um <select> nativo.
+    const base = gerarIdUnico('ui-select');
+    this.idsAcessibilidade = {
+      label: `${base}-label`,
+      gatilho: `${base}-gatilho`,
+      texto: `${base}-texto`,
+      lista: `${base}-lista`
+    };
+    this.labelElement.id = this.idsAcessibilidade.label;
+    this.button.id = this.idsAcessibilidade.gatilho;
+    this.textoElement.id = this.idsAcessibilidade.texto;
+    this.content.id = this.idsAcessibilidade.lista;
+    this.button.setAttribute('aria-controls', this.idsAcessibilidade.lista);
+
     this.posicionamento = new ListaFlutuantePosicionamento(this, this.button, this.content);
     this.teclado = new ListaFlutuanteTeclado(this.listElement);
   }
@@ -67,6 +84,8 @@ export class UIListaFlutuante extends FormAssociatedElement {
       this.fechar();
     });
     this.listeners.add(document, 'click', this.handleClickFora);
+    this.listeners.add(this.labelElement, 'click', this.focarGatilho);
+    this.listeners.add(this, 'click', this.handleHostClick);
     this._defaultValue = this.getAttribute('value') || '';
     this.carregarItensFilhos();
     this.syncState();
@@ -102,7 +121,7 @@ export class UIListaFlutuante extends FormAssociatedElement {
     if (name === 'aberta') {
       this.button.setAttribute('aria-expanded', String(value !== null));
     }
-    if (name === 'texto-padrao' || name === 'placeholder' || name === 'label' || name === 'rotulo') {
+    if (name === 'texto-padrao' || name === 'placeholder' || name === 'label' || name === 'rotulo' || name === 'aria-label') {
       this.syncLabel();
     }
     if (name === 'value' && value !== this._value) {
@@ -282,8 +301,13 @@ export class UIListaFlutuante extends FormAssociatedElement {
       }
       this.labelElement.style.display = 'block';
       this.sheetTituloElement.textContent = labelAttr;
+      this.button.setAttribute('aria-labelledby', `${this.idsAcessibilidade.label} ${this.idsAcessibilidade.texto}`);
+      this.content.setAttribute('aria-labelledby', this.idsAcessibilidade.label);
+      this.button.removeAttribute('aria-label');
+      this.content.removeAttribute('aria-label');
     } else {
       this.labelElement.style.display = 'none';
+      this.sincronizarRotuloExterno();
       const textoPadrao = this.getAttribute('texto-padrao') || this.getAttribute('placeholder') || 'Opções';
       this.sheetTituloElement.textContent = textoPadrao;
     }
@@ -296,6 +320,30 @@ export class UIListaFlutuante extends FormAssociatedElement {
       this.textoElement.textContent = textoPadrao;
     }
   }
+
+  /** Sem o atributo `label`, usa o rótulo de fora do Shadow DOM (aria-label, <label for>, <label> envolvente). */
+  private sincronizarRotuloExterno() {
+    this.button.removeAttribute('aria-labelledby');
+    this.content.removeAttribute('aria-labelledby');
+    const rotuloExterno = obterRotuloExterno(this, this.internals);
+    if (rotuloExterno) {
+      this.button.setAttribute('aria-labelledby', `${this.idsAcessibilidade.gatilho} ${this.idsAcessibilidade.texto}`);
+      this.button.setAttribute('aria-label', rotuloExterno);
+      this.content.setAttribute('aria-label', rotuloExterno);
+    } else {
+      this.button.removeAttribute('aria-label');
+      this.content.removeAttribute('aria-label');
+    }
+  }
+
+  /** Clicar no rótulo foca o controle (comportamento do <select> nativo), sem abrir a lista. */
+  private focarGatilho = () => {
+    if (!this.disabled) this.button.focus();
+  };
+
+  private handleHostClick = (e: MouseEvent) => {
+    if (cliqueVeioDeRotuloExterno(this, e)) this.focarGatilho();
+  };
 
   private handleListClick = (e: MouseEvent) => {
     e.stopPropagation();

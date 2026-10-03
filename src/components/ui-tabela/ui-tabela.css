@@ -301,7 +301,7 @@
 /* Context Menu de Largura Exata (Botão Direito no Cabeçalho) */
 .ui-tabela__context-menu {
   position: absolute;
-  z-index: 100;
+  z-index: var(--ui-z-popover, 1050);
   background-color: var(--ui-cor-fundo-elevado, #1a1a1e);
   border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.2));
   border-radius: var(--ui-raio-borda, 6px);

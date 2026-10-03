@@ -5,6 +5,7 @@ import {
   sincronizarFeedbackErro
 } from './campo-texto-estados';
 import { definirCustomElement } from '../../core/ssr-safe';
+import { gerarIdUnico, obterRotuloExterno, cliqueVeioDeRotuloExterno } from '../../core/acessibilidade';
 import { FormAssociatedElement } from '../../core/form-associated-element';
 import { validarRestricoesCampoTexto, aplicarValidadeInternals } from '../../core/form-validacao';
 
@@ -38,7 +39,8 @@ export class UICampoTexto extends FormAssociatedElement {
     this.rightIconContainer = shadow.querySelector('.ui-campo-texto__icone--direita')!;
     this.leftSlotElement = shadow.querySelector('slot[name="icone-esquerda"]')!;
     
-    this._inputId = `ui-input-${Math.random().toString(36).substring(2, 9)}`;
+    // Associação label ↔ input nativo gerada internamente: o consumidor não gerencia IDs
+    this._inputId = gerarIdUnico('ui-input');
     this.inputElement.id = this._inputId;
     this.labelElement.htmlFor = this._inputId;
     this.helperElement.id = `${this._inputId}-helper`;
@@ -61,6 +63,7 @@ export class UICampoTexto extends FormAssociatedElement {
     this.rightIconContainer.addEventListener('click', this.handleRightIconClick);
     this.rightIconContainer.addEventListener('keydown', this.handleRightIconKeyDown);
     this.leftSlotElement.addEventListener('slotchange', this.handleSlotChange);
+    this.addEventListener('click', this.handleHostClick);
 
     this._defaultValue = this.getAttribute('value') || '';
     if (this.hasAttribute('value') && !this.inputElement.value) {
@@ -79,6 +82,7 @@ export class UICampoTexto extends FormAssociatedElement {
     this.rightIconContainer.removeEventListener('click', this.handleRightIconClick);
     this.rightIconContainer.removeEventListener('keydown', this.handleRightIconKeyDown);
     this.leftSlotElement.removeEventListener('slotchange', this.handleSlotChange);
+    this.removeEventListener('click', this.handleHostClick);
 
     if (this._checkTimer) clearTimeout(this._checkTimer);
   }
@@ -256,6 +260,7 @@ export class UICampoTexto extends FormAssociatedElement {
       estaFocado: this._focado,
       obrigatorio: this.required
     });
+    this.sincronizarNomeAcessivel();
 
     const tipoBase = this.getAttribute('tipo') || this.getAttribute('type') || 'text';
     if (!this._senhaVisivel) {
@@ -306,6 +311,26 @@ export class UICampoTexto extends FormAssociatedElement {
 
     this.atualizarValidade();
   }
+
+  /**
+   * Sem o atributo `label`, o input nativo herda o nome acessível de fora do Shadow DOM
+   * (`aria-label` no host, `<label for>` ou `<label>` envolvente).
+   */
+  private sincronizarNomeAcessivel() {
+    const rotuloExterno = this.getAttribute('label') ? '' : obterRotuloExterno(this, this.internals);
+    if (rotuloExterno) {
+      this.inputElement.setAttribute('aria-label', rotuloExterno);
+    } else {
+      this.inputElement.removeAttribute('aria-label');
+    }
+  }
+
+  private handleHostClick = (e: MouseEvent) => {
+    // Clique em <label> externo associado ao host: foca o input nativo
+    if (cliqueVeioDeRotuloExterno(this, e) && !this.disabled) {
+      this.inputElement.focus();
+    }
+  };
 
   private handleRightIconClick = (e: MouseEvent) => {
     const tipoBase = this.getAttribute('tipo');
@@ -382,7 +407,11 @@ export class UICampoTexto extends FormAssociatedElement {
   };
 }
 
+/** Alias semântico: `<ui-input>` é idêntico a `<ui-campo-texto>`. */
+export class UIInput extends UICampoTexto {}
+
 definirCustomElement('ui-campo-texto', UICampoTexto);
+definirCustomElement('ui-input', UIInput);
 
 export * from './campo-texto-estados';
 export * from './campo-texto-template';

@@ -93,7 +93,7 @@
   height: 100vh;
   background: transparent;
   backdrop-filter: none;
-  z-index: 9998;
+  z-index: calc(var(--ui-z-popover, 1050) - 1);
 }
 
 :host([aberta]) .ui-lista-flutuante__backdrop {
@@ -120,7 +120,7 @@
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.55);
   max-height: 220px;
   overflow-y: auto;
-  z-index: 9999;
+  z-index: var(--ui-z-popover, 1050);
   box-sizing: border-box;
   inset: auto;
 }

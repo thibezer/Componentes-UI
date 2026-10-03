@@ -132,7 +132,7 @@
 
 :host([flutuante]) {
   position: fixed !important;
-  z-index: 1050 !important;
+  z-index: var(--ui-z-docked-bar, 600) !important;
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.14), 0 6px 14px rgba(0, 0, 0, 0.5) !important;
   border-radius: 6px !important;
   backdrop-filter: blur(16px);

@@ -28,7 +28,8 @@ export const ATRIBUTOS_OBSERVADOS_CAMPO_TEXTO = [
   'size',
   'altura',
   'height',
-  'densidade'
+  'densidade',
+  'aria-label'
 ];
 
 export function criarTemplateCampoTexto(): string {

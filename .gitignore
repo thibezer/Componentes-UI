@@ -9,3 +9,6 @@ privado/
 private/
 
 
+
+# Arquivos temporários do Vite
+vite.config.ts.timestamp-*

@@ -1,0 +1,430 @@
+/* ====================================================
+   UI Seletor de Mapa Base - Estilos Modernos & Glassmorphism
+   Componente flutuante e discreto para seleção de mapa base
+   ==================================================== */
+
+:host {
+  display: inline-block;
+  font-family: var(--ui-fonte-principal, 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+  color: var(--ui-cor-texto, #f1f1f5);
+  box-sizing: border-box;
+  user-select: none;
+}
+
+:host *,
+:host *::before,
+:host *::after {
+  box-sizing: border-box;
+}
+
+/* --- Posicionamentos Automáticos no Mapa --- */
+:host([posicao="bottom-right"]) {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  z-index: var(--ui-z-workspace-hud, 500);
+}
+
+:host([posicao="bottom-left"]) {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  z-index: var(--ui-z-workspace-hud, 500);
+}
+
+:host([posicao="top-right"]) {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: var(--ui-z-workspace-hud, 500);
+}
+
+:host([posicao="top-left"]) {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: var(--ui-z-workspace-hud, 500);
+}
+
+:host([posicao="inline"]) {
+  position: relative;
+  display: inline-flex;
+}
+
+/* Wrapper Geral */
+.ui-basemap-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* --- Gatilho Principal (Botão / Pill Discreto) --- */
+.ui-basemap-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 12px 0 6px;
+  background: var(--ui-cor-fundo-elevado, rgba(18, 18, 24, 0.88));
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
+  border-radius: 9999px;
+  color: var(--ui-cor-texto, #f1f1f5);
+  cursor: pointer;
+  outline: none;
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35), 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ui-basemap-trigger:hover {
+  background: var(--ui-cor-fundo-hover, rgba(28, 28, 36, 0.95));
+  border-color: var(--ui-cor-primaria, #00E08A);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45), 0 0 12px rgba(0, 224, 138, 0.2);
+}
+
+.ui-basemap-trigger:focus-visible {
+  border-color: var(--ui-cor-primaria, #00E08A);
+  box-shadow: 0 0 0 2px rgba(0, 224, 138, 0.35);
+}
+
+.ui-basemap-trigger.active {
+  border-color: var(--ui-cor-primaria, #00E08A);
+  background: var(--ui-cor-fundo-ativo, rgba(22, 26, 32, 0.95));
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), 0 0 10px rgba(0, 224, 138, 0.25);
+}
+
+/* Modo Compacto (Apenas Ícone/Thumbnail Redonda) */
+:host([compacto]) .ui-basemap-trigger,
+.ui-basemap-trigger.compacto {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+:host([compacto]) .ui-basemap-label,
+:host([compacto]) .ui-basemap-chevron,
+.ui-basemap-trigger.compacto .ui-basemap-label,
+.ui-basemap-trigger.compacto .ui-basemap-chevron {
+  display: none !important;
+}
+
+/* Miniatura no Botão Gatilho */
+.ui-basemap-thumb-mini {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1.5px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.2));
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.ui-basemap-thumb-mini.fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--ui-cor-primaria, #00E08A);
+}
+
+.ui-basemap-thumb-mini.fallback svg {
+  width: 13px;
+  height: 13px;
+}
+
+.ui-basemap-label {
+  white-space: nowrap;
+  max-width: 130px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ui-basemap-chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ui-cor-texto-secundario, #888899);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  margin-left: 2px;
+}
+
+.ui-basemap-chevron svg {
+  width: 12px;
+  height: 12px;
+}
+
+.ui-basemap-trigger.active .ui-basemap-chevron {
+  transform: rotate(180deg);
+  color: var(--ui-cor-primaria, #00E08A);
+}
+
+/* --- Popover Suspenso (Menu de Opções) --- */
+.ui-basemap-popover {
+  position: absolute;
+  min-width: 210px;
+  max-width: 250px;
+  background: var(--ui-cor-fundo-elevado, rgba(16, 16, 22, 0.95));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
+  border-radius: 12px;
+  padding: 6px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6), 0 2px 8px rgba(0, 0, 0, 0.3);
+  z-index: var(--ui-z-popover, 1050);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+
+  /* Animação */
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(8px) scale(0.97);
+  transition: opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+              visibility 0.18s;
+}
+
+/* Posições relativas do popover */
+.ui-basemap-wrapper.pos-bottom-right .ui-basemap-popover,
+.ui-basemap-wrapper.pos-bottom-left .ui-basemap-popover,
+.ui-basemap-wrapper.pos-bottom .ui-basemap-popover {
+  bottom: calc(100% + 8px);
+  transform: translateY(8px) scale(0.97);
+}
+
+.ui-basemap-wrapper.pos-bottom-right .ui-basemap-popover {
+  right: 0;
+}
+
+.ui-basemap-wrapper.pos-bottom-left .ui-basemap-popover {
+  left: 0;
+}
+
+.ui-basemap-wrapper.pos-top-right .ui-basemap-popover,
+.ui-basemap-wrapper.pos-top-left .ui-basemap-popover,
+.ui-basemap-wrapper.pos-top .ui-basemap-popover {
+  top: calc(100% + 8px);
+  transform: translateY(-8px) scale(0.97);
+}
+
+.ui-basemap-wrapper.pos-top-right .ui-basemap-popover {
+  right: 0;
+}
+
+.ui-basemap-wrapper.pos-top-left .ui-basemap-popover {
+  left: 0;
+}
+
+/* Estado Aberto */
+.ui-basemap-popover.aberto {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+/* Cabeçalho do Popover */
+.ui-basemap-popover-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px 6px 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 2px;
+}
+
+.ui-basemap-popover-titulo {
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--ui-cor-texto-secundario, #888899);
+}
+
+.ui-basemap-popover-badge {
+  font-size: 9px;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(0, 224, 138, 0.12);
+  color: var(--ui-cor-primaria, #00E08A);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Lista de Itens de Mapa Base */
+.ui-basemap-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 280px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 2px;
+}
+
+.ui-basemap-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.ui-basemap-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ui-basemap-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 2px;
+}
+
+/* Cada Item da Lista */
+.ui-basemap-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: 7px;
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  outline: none;
+}
+
+.ui-basemap-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.ui-basemap-item:focus-visible {
+  border-color: var(--ui-cor-primaria, #00E08A);
+  background: rgba(0, 224, 138, 0.06);
+}
+
+.ui-basemap-item.active {
+  background: rgba(0, 224, 138, 0.12);
+  border-color: rgba(0, 224, 138, 0.35);
+}
+
+/* Preview do Item */
+.ui-basemap-item-preview {
+  width: 32px;
+  height: 24px;
+  border-radius: 4px;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.ui-basemap-item-preview-none {
+  width: 32px;
+  height: 24px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--ui-cor-texto-secundario, #888899);
+}
+
+.ui-basemap-item-preview-none svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Textos do Item */
+.ui-basemap-item-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.ui-basemap-item-nome {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ui-cor-texto, #f1f1f5);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ui-basemap-item.active .ui-basemap-item-nome {
+  color: var(--ui-cor-primaria, #00E08A);
+  font-weight: 600;
+}
+
+.ui-basemap-item-desc {
+  font-size: 9.5px;
+  color: var(--ui-cor-texto-secundario, #77778b);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Ícone Ativo (Checkmark) */
+.ui-basemap-item-check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: var(--ui-cor-primaria, #00E08A);
+  opacity: 0;
+  transform: scale(0.6);
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ui-basemap-item.active .ui-basemap-item-check {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.ui-basemap-item-check svg {
+  width: 13px;
+  height: 13px;
+}
+
+/* --- Tema Claro (opcional) --- */
+:host-context([data-tema="claro"]),
+:host-context(.light),
+:host([data-tema="claro"]) {
+  --ui-cor-texto: #1a1a1e;
+  --ui-cor-texto-secundario: #666677;
+}
+
+:host-context([data-tema="claro"]) .ui-basemap-trigger,
+:host([data-tema="claro"]) .ui-basemap-trigger {
+  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(0, 0, 0, 0.12);
+  color: #1a1a1e;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+}
+
+:host-context([data-tema="claro"]) .ui-basemap-popover,
+:host([data-tema="claro"]) .ui-basemap-popover {
+  background: rgba(255, 255, 255, 0.97);
+  border-color: rgba(0, 0, 0, 0.12);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+}
+
+:host-context([data-tema="claro"]) .ui-basemap-item:hover,
+:host([data-tema="claro"]) .ui-basemap-item:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+:host-context([data-tema="claro"]) .ui-basemap-item.active,
+:host([data-tema="claro"]) .ui-basemap-item.active {
+  background: rgba(0, 180, 110, 0.12);
+  border-color: rgba(0, 180, 110, 0.35);
+}

@@ -137,7 +137,7 @@ export class UIToast extends UIAlerta {
       container = document.createElement('div');
       container.id = containerId;
       container.style.position = 'fixed';
-      container.style.zIndex = '10000';
+      container.style.setProperty('z-index', 'var(--ui-z-toast, 1100)');
       container.style.display = 'flex';
       container.style.gap = '10px';
       container.style.maxWidth = '400px';

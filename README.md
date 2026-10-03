@@ -45,10 +45,10 @@ Adicione as tags no `<head>` ou antes do fechamento do `</body>`:
 
 ```html
 <!-- 1. Design Tokens e Estilos Globais -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/thibezer/Componentes-UI@main/dist/ui-kit.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@thibezer/ui-components-kit@1/dist/ui-kit.css">
 
 <!-- 2. Biblioteca dos Componentes (Módulo ES) -->
-<script type="module" src="https://cdn.jsdelivr.net/gh/thibezer/Componentes-UI@main/dist/ui-kit.es.js"></script>
+<script type="module" src="https://cdn.jsdelivr.net/npm/@thibezer/ui-components-kit@1/dist/index.js"></script>
 
 <!-- 3. Uso imediato no HTML -->
 <ui-botao-primario variante="primary">Clique Aqui</ui-botao-primario>
@@ -56,44 +56,58 @@ Adicione as tags no `<head>` ou antes do fechamento do `</body>`:
 
 ### Opção 2: NPM / Módulos ES (React, Vue, Next.js, Vite)
 
-Instale a biblioteca diretamente do repositório:
+Instale pelo npm:
 
 ```bash
-npm install git+https://github.com/thibezer/Componentes-UI.git
+npm install @thibezer/ui-components-kit
 ```
+
+> O pacote é publicado já compilado (`dist/`) e **não executa build na instalação**, então funciona em CI/CD e em servidores com `npm ci --omit=dev`. A antiga instalação por URL Git (`git+https://github.com/...`) não é mais suportada: o repositório não versiona `dist/`.
 
 No ponto de entrada da sua aplicação (`main.ts`, `index.js` ou `App.tsx`):
 
 ```typescript
 // 1. Estilos globais obrigatórios (tokens CSS)
-import 'ui-components-kit/style.css';
+import '@thibezer/ui-components-kit/style.css';
 
 // 2. Biblioteca completa (ou escolha os submódulos abaixo)
-import 'ui-components-kit';
+import '@thibezer/ui-components-kit';
 ```
 
 #### 🚀 Importação Modular e Otimizada (Sub-paths)
 
 Pague apenas pelo que utilizar. Importe por domínio de funcionalidade ou por componente específico:
 
+O export map expõe explicitamente os pontos de entrada canônicos (ESM em `.js`, CommonJS em `.cjs` e tipos `.d.ts`):
+
+| Subpath | Arquivo (ESM) |
+|---|---|
+| `@thibezer/ui-components-kit` | `dist/index.js` |
+| `@thibezer/ui-components-kit/camadas` | `dist/camadas.js` |
+| `@thibezer/ui-components-kit/forms` | `dist/forms.js` |
+| `@thibezer/ui-components-kit/feedback` | `dist/feedback.js` |
+| `@thibezer/ui-components-kit/tabela` | `dist/tabela.js` |
+| `@thibezer/ui-components-kit/style.css` | `dist/ui-kit.css` (100% autocontido, sem `@import`) |
+
 ##### 1. Por Domínio / Categoria:
 ```typescript
-import 'ui-components-kit/forms';    // Campos, Select, Checkbox, Radio, Switch (~8 kB gzip)
-import 'ui-components-kit/feedback'; // Modais, Drawers, Alertas, Toasts, Tooltips, Skeletons (~6 kB gzip)
-import 'ui-components-kit/data';     // Tabela, Tabela-Propriedades, Stat KPI, Badge (~4 kB gzip)
-import 'ui-components-kit/tools';    // Ribbon CAD/Office e Paleta de Ferramentas (~10 kB gzip)
-import 'ui-components-kit/core';     // Apenas UIBus, Zero-JS e ListenerBag (< 1 kB gzip)
-import 'ui-components-kit/canvas';   // Mesa CAD vetorial e motor GIS (~33 kB gzip)
-import 'ui-components-kit/mapa';     // Mapa Geográfico Leaflet (~3 kB gzip)
+import '@thibezer/ui-components-kit/forms';    // Campos, Select, Checkbox, Radio, Switch (~8 kB gzip)
+import '@thibezer/ui-components-kit/feedback'; // Modais, Drawers, Alertas, Toasts, Tooltips, Skeletons (~6 kB gzip)
+import '@thibezer/ui-components-kit/data';     // Tabela, Tabela-Propriedades, Stat KPI, Badge (~4 kB gzip)
+import '@thibezer/ui-components-kit/tools';    // Ribbon CAD/Office e Paleta de Ferramentas (~10 kB gzip)
+import '@thibezer/ui-components-kit/core';     // Apenas UIBus, Zero-JS e ListenerBag (< 1 kB gzip)
+import '@thibezer/ui-components-kit/canvas';   // Mesa CAD vetorial e motor GIS (~33 kB gzip)
+import '@thibezer/ui-components-kit/camadas';  // Painel de Camadas GIS/CAD redimensionável (~21 kB gzip)
+import '@thibezer/ui-components-kit/mapa';     // Mapa Geográfico Leaflet (~3 kB gzip)
 ```
 
 ##### 2. Granular por Componente (Ultra Leve):
 ```typescript
-import 'ui-components-kit/botao';       // Apenas <ui-botao> e <ui-botao-primario> (~3.4 kB gzip)
-import 'ui-components-kit/campo-texto'; // Apenas <ui-campo-texto> com FACE e anti-zoom (~3.9 kB gzip)
-import 'ui-components-kit/modal';       // Apenas <ui-modal> com bottom-sheet mobile (~3.3 kB gzip)
-import 'ui-components-kit/card';        // Apenas <ui-card> com elevação (~2.3 kB gzip)
-import 'ui-components-kit/tabela';      // Apenas <ui-tabela> virtualizada
+import '@thibezer/ui-components-kit/botao';       // Apenas <ui-botao> e <ui-botao-primario> (~3.4 kB gzip)
+import '@thibezer/ui-components-kit/campo-texto'; // Apenas <ui-campo-texto> com FACE e anti-zoom (~3.9 kB gzip)
+import '@thibezer/ui-components-kit/modal';       // Apenas <ui-modal> com bottom-sheet mobile (~3.3 kB gzip)
+import '@thibezer/ui-components-kit/card';        // Apenas <ui-card> com elevação (~2.3 kB gzip)
+import '@thibezer/ui-components-kit/tabela';      // Apenas <ui-tabela> virtualizada
 ```
 
 > **Zero Overhead**: Uma tela que utilize apenas `<ui-botao>` e `<ui-campo-texto>` importa menos de **8 kB gzip**, sem carregar nada de Leaflet, CAD, GIS ou virtualização.
@@ -161,7 +175,7 @@ Os campos de texto (`<ui-campo-texto>`), listas flutuantes/selects (`<ui-lista-f
 
 #### 4. Via Barramento Global de Densidade (`UIBus`):
 ```javascript
-import { UIBus } from 'ui-components-kit';
+import { UIBus } from '@thibezer/ui-components-kit';
 
 // Altera a densidade de toda a aplicação em tempo real:
 UIBus.definirDensidade('compacta'); // 26px
@@ -203,10 +217,12 @@ campo.addEventListener('ui-input', (e) => {
 });
 ```
 
+> **Mutação de usuário vs. programática (`<ui-camadas>`)**: eventos saem do componente **somente** em resposta a interações físicas (clique, drag-and-drop, teclado). Atribuir `painel.layers = [...]`, alterar atributos (`camada-ativa`, `colapsado`, `mapa-base-ativo`...) ou chamar métodos públicos (`definirCamadaAtiva`, `selecionarFeicao`, `limparSelecao`, `colapsar`, `definirAltura`...) apenas atualiza o DOM interno — sem redisparar eventos. Isso elimina loops de sincronização em apps reativos (React, Vue, Svelte). Para forçar a emissão numa chamada programática, passe `emitirEvento = true` (ex.: `painel.definirCamadaAtiva('lotes', true)`).
+
 ### 5. Serviços Globais e Helpers
 Utilitários prontos para uso sem necessidade de instanciar elementos:
 ```javascript
-import { UIToast, UIBus } from 'ui-components-kit';
+import { UIToast, UIBus } from '@thibezer/ui-components-kit';
 
 UIToast.notificar({
   tipo: 'sucesso',
@@ -214,6 +230,32 @@ UIToast.notificar({
   mensagem: 'Os dados foram sincronizados.',
   duracao: 4000
 });
+```
+
+### 6. Escala de Elevação (z-index)
+Todos os componentes flutuantes consomem tokens de elevação previsíveis (com fallback), definidos em `ui-kit.css`. Sobrescreva-os no `:root` da aplicação para encaixar a pilha do kit entre os HUDs e modais do seu app:
+```css
+:root {
+  --ui-z-workspace-hud: 500;  /* <ui-camadas flutuante>, <ui-seletor-mapa-base>, toolbars do canvas */
+  --ui-z-docked-bar: 600;     /* <ui-ribbon> recolhido, <ui-tabela-propriedades flutuante> */
+  --ui-z-drawer: 700;         /* <ui-drawer> e backdrop */
+  --ui-z-modal: 1000;         /* <ui-modal> e backdrop */
+  --ui-z-popover: 1050;       /* menus suspensos/contexto, <ui-select> (acima do modal, funciona dentro dele) */
+  --ui-z-toast: 1100;         /* UIToast */
+  --ui-z-tooltip: 1200;       /* <ui-tooltip> */
+}
+```
+
+### 7. Acessibilidade Nativa de Rótulos
+`<ui-input>` (alias de `<ui-campo-texto>`), `<ui-select>` e `<ui-switch>` geram IDs únicos internamente e associam o rótulo visível ao controle nativo do Shadow DOM — o projeto consumidor não precisa gerenciar IDs:
+```html
+<ui-input label="Nome"></ui-input>                  <!-- <label for> ↔ <input> interno -->
+<ui-select label="Cidade">...</ui-select>           <!-- aria-labelledby = rótulo + valor atual -->
+<ui-switch label="Modo escuro"></ui-switch>         <!-- role="switch" aria-labelledby -->
+
+<!-- Sem o atributo label, o nome acessível vem de fora do Shadow DOM: -->
+<label>Telefone <ui-input></ui-input></label>
+<ui-switch aria-label="Camada visível"></ui-switch>
 ```
 
 ---
@@ -295,7 +337,7 @@ form.addEventListener('submit', (e) => {
 O `UIBus` é uma central reativa que permite comandar qualquer componente do sistema ou ouvir eventos sem precisar de `querySelector`:
 
 ```javascript
-import { UIBus } from 'ui-components-kit';
+import { UIBus } from '@thibezer/ui-components-kit';
 
 // 1. Executar Ações Diretas:
 UIBus.abrirModal('modal-confirmacao');
@@ -352,7 +394,7 @@ tabela.recarregar();   // Recarrega os dados da API remota
 <html lang="pt-BR">
 <head>
   <link rel="stylesheet" href="dist/ui-kit.css">
-  <script type="module" src="dist/ui-kit.es.js"></script>
+  <script type="module" src="dist/index.js"></script>
 </head>
 <body>
   <ui-campo-texto id="meu-campo" label="Nome do Projeto"></ui-campo-texto>
@@ -389,8 +431,8 @@ Crie um componente cliente provedor ou registre no topo do seu layout/página cl
 'use client';
 
 import { useEffect } from 'react';
-import 'ui-components-kit/style.css';
-import 'ui-components-kit/register'; // Registra todos os Custom Elements com segurança no cliente
+import '@thibezer/ui-components-kit/style.css';
+import '@thibezer/ui-components-kit/register'; // Registra todos os Custom Elements com segurança no cliente
 
 export function UIProvider({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
@@ -404,11 +446,11 @@ Ou registre de forma modular apenas o que a tela precisa:
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import 'ui-components-kit/style.css';
-import 'ui-components-kit/forms';
-import 'ui-components-kit/botao';
-import 'ui-components-kit/tabela';
-import { UIBus } from 'ui-components-kit/core';
+import '@thibezer/ui-components-kit/style.css';
+import '@thibezer/ui-components-kit/forms';
+import '@thibezer/ui-components-kit/botao';
+import '@thibezer/ui-components-kit/tabela';
+import { UIBus } from '@thibezer/ui-components-kit/core';
 
 export default function DashboardPropriedades() {
   const tabelaRef = useRef<any>(null);
@@ -474,8 +516,8 @@ export default function DashboardPropriedades() {
 
 <script setup>
 import { ref } from 'vue';
-import 'ui-components-kit/style.css';
-import 'ui-components-kit';
+import '@thibezer/ui-components-kit/style.css';
+import '@thibezer/ui-components-kit';
 
 const termoBusca = ref('');
 const opcoes = ref([
@@ -500,7 +542,7 @@ Comunicação segura entre iframes e sistemas pais via eventos do `UIBus`:
 
 ```javascript
 // Dentro do Iframe (Filho):
-import { UIBus } from 'ui-components-kit';
+import { UIBus } from '@thibezer/ui-components-kit';
 
 UIBus.on('vertice:salvo', (dados) => {
   window.parent.postMessage({ tipo: 'VERTICE_SALVO', payload: dados }, '*');
@@ -553,6 +595,7 @@ window.addEventListener('message', (event) => {
 | `<ui-ribbon>` | Barra de ferramentas em abas e grupos (estilo AutoCAD / Word / Excel): botões grandes e pequenos em colunas de 3, toggles, menus suspensos, abas contextuais, modo recolhido (duplo clique na aba) e navegação por teclado (roving tabindex). | `abas`, `aba-ativa`, `recolhido`, `compacto` | `ui-ferramenta`, `ui-aba-change` |
 | `<ui-paleta-ferramentas>` | Paleta de ferramentas (estilo Illustrator / Photoshop): seleção exclusiva, grupos com flyout (clique longo, botão direito ou seta), 1 ou 2 colunas, vertical/horizontal e atalhos de teclado que percorrem o grupo. | `ferramentas`, `valor`, `orientacao`, `colunas`, `tamanho`, `atalhos` | `ui-change`, `ui-selecionar`, `ui-ferramenta` |
 | `<ui-mapa>` | Mapa geográfico interativo com camadas OpenStreetMap. | `lat`, `lng`, `zoom`, `camadas` | - |
+| `<ui-camadas>` | Painel de camadas vetoriais CAD/GIS com hierarquia em árvore, barra de arraste vertical (`redimensionavel`), estabilidade de altura sem colapso, drag-and-drop, métricas geodésicas e persistência no LocalStorage. | `redimensionavel`, `altura`, `min-altura`, `max-altura`, `flutuante`, `colapsado`, `camada-ativa`, `persistir` | `ui-redimensionar-altura`, `ui-camada-selecionada`, `ui-camada-visibilidade`, `ui-camadas-reordenadas`, `ui-acao-massa` |
 | `<ui-canvas-cad>` | Mesa CAD/GIS para poligonais e vértices geodésicos. | `pontos`, `segmentos`, `fitBounds()` | `ui-ponto-selecionado` |
 
 ---
@@ -575,6 +618,7 @@ window.addEventListener('message', (event) => {
    npm run build
    ```
    Gera na pasta `dist/`:
-   * `dist/ui-kit.es.js` (Módulo ES para Vite, Webpack, Rollup)
-   * `dist/ui-kit.umd.js` (Módulo UMD para scripts legados)
-   * `dist/ui-kit.css` (Design Tokens e Estilos compilados)
+   * `dist/index.js` e `dist/<modulo>.js` (Módulos ES para Vite, Webpack, Rollup)
+   * `dist/index.cjs` e `dist/<modulo>.cjs` (CommonJS para `require`)
+   * `dist/*.d.ts` (Tipagens TypeScript)
+   * `dist/ui-kit.css` (Design Tokens compilados, 100% autocontido — o build falha se restar qualquer `@import`)

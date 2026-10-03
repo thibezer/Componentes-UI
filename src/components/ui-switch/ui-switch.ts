@@ -2,6 +2,7 @@ import estilos from './ui-switch.css?inline';
 import { ListenerBag } from '../../core/listener-bag';
 import { definirCustomElement } from '../../core/ssr-safe';
 import { FormAssociatedElement } from '../../core/form-associated-element';
+import { gerarIdUnico, obterRotuloExterno, cliqueVeioDeRotuloExterno } from '../../core/acessibilidade';
 
 export class UISwitch extends FormAssociatedElement {
   static get observedAttributes() {
@@ -18,12 +19,14 @@ export class UISwitch extends FormAssociatedElement {
       'name',
       'obrigatorio',
       'required',
-      'mensagem-validacao'
+      'mensagem-validacao',
+      'aria-label'
     ];
   }
 
   private containerElement: HTMLDivElement;
   private labelElement: HTMLSpanElement;
+  private labelId: string;
   private listeners = new ListenerBag();
   private _defaultChecked: boolean = false;
 
@@ -42,6 +45,10 @@ export class UISwitch extends FormAssociatedElement {
 
     this.containerElement = shadow.querySelector('.ui-switch')!;
     this.labelElement = shadow.querySelector('.ui-switch__label')!;
+
+    // Associação rótulo ↔ controle gerada internamente: o consumidor não gerencia IDs
+    this.labelId = gerarIdUnico('ui-switch-label');
+    this.labelElement.id = this.labelId;
   }
 
   connectedCallback() {
@@ -50,6 +57,7 @@ export class UISwitch extends FormAssociatedElement {
     this.listeners.add(this.containerElement, 'keydown', this.handleKeyDown);
     this.listeners.add(this.containerElement, 'focus', this.handleFocus);
     this.listeners.add(this.containerElement, 'blur', this.handleBlur);
+    this.listeners.add(this, 'click', this.handleHostClick);
     this._defaultChecked = this.hasAttribute('ativo') || this.hasAttribute('ligado') || this.hasAttribute('checked');
     this.syncState();
   }
@@ -208,12 +216,21 @@ export class UISwitch extends FormAssociatedElement {
       this.containerElement.classList.remove('ui-switch--label-esquerda');
     }
 
-    // Rótulo
+    // Rótulo (visível via atributo `label` ou externo via aria-label / <label for> / <label> envolvente)
     if (labelText) {
       this.labelElement.textContent = labelText;
       this.labelElement.style.display = 'inline';
+      this.containerElement.setAttribute('aria-labelledby', this.labelId);
+      this.containerElement.removeAttribute('aria-label');
     } else {
       this.labelElement.style.display = 'none';
+      this.containerElement.removeAttribute('aria-labelledby');
+      const rotuloExterno = obterRotuloExterno(this, this.internals);
+      if (rotuloExterno) {
+        this.containerElement.setAttribute('aria-label', rotuloExterno);
+      } else {
+        this.containerElement.removeAttribute('aria-label');
+      }
     }
 
     if (isChecked) {
@@ -243,6 +260,14 @@ export class UISwitch extends FormAssociatedElement {
   private handleClick = (e: MouseEvent) => {
     e.preventDefault();
     this.alternar();
+  };
+
+  private handleHostClick = (e: MouseEvent) => {
+    // Clique em <label> externo associado ao host: alterna como um checkbox nativo
+    if (cliqueVeioDeRotuloExterno(this, e)) {
+      this.alternar();
+      this.containerElement.focus();
+    }
   };
 
   private handleKeyDown = (e: KeyboardEvent) => {

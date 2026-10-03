@@ -32,9 +32,9 @@
 ### 1. Importação
 
 ```typescript
-import 'ui-components-kit';
+import '@thibezer/ui-components-kit';
 // Ou importando o módulo específico:
-import 'ui-components-kit/camadas';
+import '@thibezer/ui-components-kit/camadas';
 ```
 
 ### 2. No HTML

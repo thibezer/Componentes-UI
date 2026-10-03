@@ -1,0 +1,26 @@
+/* ==========================================
+   Escala de Elevação (z-index)
+   ------------------------------------------
+   Camadas previsíveis para componentes flutuantes. Os componentes
+   consomem estes tokens com fallback (var(--ui-z-*, N)), então o
+   aplicativo consumidor pode reposicionar toda a pilha sobrescrevendo
+   apenas as variáveis — sem disputar valores mágicos como 9999.
+
+   workspace-hud  → HUDs sobre o mapa/canvas (painel de camadas, seletor de mapa base, toolbars do canvas)
+   docked-bar     → barras ancoradas e paletas flutuantes (ribbon, tabela de propriedades flutuante)
+   drawer         → gavetas/painéis laterais e seus backdrops
+   modal          → diálogos modais e seus backdrops
+   popover        → menus suspensos, menus de contexto e listas de seleção (acima de modal para funcionar dentro dele)
+   toast          → notificações
+   tooltip        → dicas de contexto (sempre no topo)
+   ========================================== */
+
+:root {
+  --ui-z-workspace-hud: 500;
+  --ui-z-docked-bar: 600;
+  --ui-z-drawer: 700;
+  --ui-z-modal: 1000;
+  --ui-z-popover: 1050;
+  --ui-z-toast: 1100;
+  --ui-z-tooltip: 1200;
+}

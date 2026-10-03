@@ -72,7 +72,7 @@
    ========================================== */
 .ui-ferr-menu {
   position: fixed;
-  z-index: 1000;
+  z-index: var(--ui-z-popover, 1050);
   display: flex;
   flex-direction: column;
   gap: 1px;

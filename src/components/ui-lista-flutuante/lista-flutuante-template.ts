@@ -18,7 +18,8 @@ export const ATRIBUTOS_OBSERVADOS_LISTA_FLUTUANTE = [
   'name',
   'obrigatorio',
   'required',
-  'mensagem-validacao'
+  'mensagem-validacao',
+  'aria-label'
 ];
 
 export function criarTemplateListaFlutuante(): string {

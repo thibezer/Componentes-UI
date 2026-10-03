@@ -32,6 +32,13 @@ export * from './components/ui-skeleton';
 export * from './components/ui-tabela-propriedades';
 export * from './components/ui-barra-ferramentas';
 export * from './components/ui-camadas';
+export { UISeletorMapaBase, UIMapaBase } from './components/ui-seletor-mapa-base';
+export type {
+  PosicaoSeletorMapaBase,
+  VarianteSeletorMapaBase,
+  UISeletorMapaBaseOpcoes,
+  DetalheEventoMapaBaseAlterado
+} from './components/ui-seletor-mapa-base';
 
 // 5. Núcleo Inteligente, Orquestração e Barramento de Eventos
 export * from './core/ui-bus';
@@ -39,6 +46,7 @@ export * from './core/zero-js-triggers';
 export * from './core/listener-bag';
 export * from './core/leaflet-loader';
 export * from './core/ssr-safe';
+export * from './core/acessibilidade';
 
 // 6. Carregamento Sob Demanda (Lazy) para Componentes Geoespaciais (Leaflet Opcional)
 export const carregarModuloMapa = () => import('./mapa');
@@ -78,7 +86,7 @@ if (typeof document !== 'undefined') {
 import type { UIBotao, UIBotaoPrimario } from './components/ui-botao';
 import type { UIListaFlutuante, UISelect } from './components/ui-lista-flutuante';
 import type { UITexto } from './components/ui-texto';
-import type { UICampoTexto } from './components/ui-campo-texto';
+import type { UICampoTexto, UIInput } from './components/ui-campo-texto';
 import type { UIIcone } from './components/ui-icone';
 import type { UICheckbox } from './components/ui-checkbox';
 import type { UIRadio } from './components/ui-radio';
@@ -101,6 +109,7 @@ import type { UICanvasCAD } from './components/ui-canvas-cad';
 import type { UITabelaPropriedades } from './components/ui-tabela-propriedades';
 import type { UIRibbon, UIPaletaFerramentas } from './components/ui-barra-ferramentas';
 import type { UICamadas, UIPainelCamadas, UILayerPanel } from './components/ui-camadas';
+import type { UISeletorMapaBase } from './components/ui-seletor-mapa-base';
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -110,6 +119,7 @@ declare global {
     'ui-select': UISelect;
     'ui-texto': UITexto;
     'ui-campo-texto': UICampoTexto;
+    'ui-input': UIInput;
     'ui-icone': UIIcone;
     'ui-checkbox': UICheckbox;
     'ui-radio': UIRadio;
@@ -150,6 +160,8 @@ declare global {
     'ui-camadas': UICamadas;
     'ui-painel-camadas': UIPainelCamadas;
     'ui-layer-panel': UILayerPanel;
+    'ui-seletor-mapa-base': UISeletorMapaBase;
+    'ui-mapa-base': UISeletorMapaBase;
   }
 }
 
