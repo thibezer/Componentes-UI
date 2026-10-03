@@ -31,7 +31,7 @@
   top: 10px;
   right: 10px;
   bottom: 46px;
-  z-index: 500;
+  z-index: var(--ui-z-workspace-hud, 500);
   width: auto;
   height: var(--ui-camadas-altura, auto);
 }
@@ -83,7 +83,7 @@
   position: absolute;
   top: 10px;
   right: 10px;
-  z-index: 499;
+  z-index: calc(var(--ui-z-workspace-hud, 500) - 1);
   background: var(--ui-cor-superficie, #141417);
   border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.18));
   border-radius: var(--ui-raio-borda, 6px);
@@ -1301,3 +1301,36 @@
 }
 
 
+
+/* ===== Acessibilidade e estados de interação ===== */
+
+/* Cadeado destravado: visível porém discreto, para que haja onde clicar */
+.ui-col-lock.ui-lock-open {
+  opacity: 0.28;
+}
+
+.ui-col-lock.ui-lock-open:hover,
+.ui-col-lock.ui-lock-open:focus-visible {
+  opacity: 0.8;
+}
+
+.ui-col-lock[data-locked-by-layer] {
+  cursor: not-allowed;
+}
+
+/* Foco visível para os controles operáveis por teclado */
+.ui-col[role="button"]:focus-visible,
+.ui-basemap-card:focus-visible,
+.ui-feat-row:focus-visible,
+.ui-layer-row:focus-visible {
+  outline: 2px solid var(--ui-cor-primaria, #00E08A);
+  outline-offset: -2px;
+}
+
+/* Confirmação em 2 passos do botão de excluir do rodapé */
+.ui-footer-btn.confirming {
+  color: #fff;
+  background: #dc2626;
+  width: auto;
+  padding: 0 6px;
+}

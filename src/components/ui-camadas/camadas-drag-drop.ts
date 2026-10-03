@@ -4,6 +4,7 @@
    ==================================================== */
 
 import { CamadaItem, FeicaoItem } from './tipos';
+import { buscarPorAtributo } from './camadas-utils';
 
 export interface UICamadasHost {
   camadas: CamadaItem[];
@@ -40,8 +41,10 @@ export class CamadasDragDropManager {
         this.host.editingLayerId = layerId;
         this.host.solicitarRenderizacao();
 
-        const input = this.shadow.querySelector(
-          `[data-inline-layer-input="${layerId}"]`
+        const input = buscarPorAtributo(
+          this.shadow,
+          'data-inline-layer-input',
+          layerId
         ) as HTMLInputElement | null;
         if (input) {
           input.focus();
@@ -92,8 +95,10 @@ export class CamadasDragDropManager {
         this.host.editingFeatureId = featId;
         this.host.solicitarRenderizacao();
 
-        const input = this.shadow.querySelector(
-          `[data-inline-feat-input="${featId}"]`
+        const input = buscarPorAtributo(
+          this.shadow,
+          'data-inline-feat-input',
+          featId
         ) as HTMLInputElement | null;
         if (input) {
           input.focus();
@@ -191,7 +196,10 @@ export class CamadasDragDropManager {
         }
       });
 
-      layerRow.addEventListener('dragleave', () => {
+      layerRow.addEventListener('dragleave', (e: Event) => {
+        // Passar sobre um elemento filho dispara dragleave no pai: só limpa ao sair de fato da linha
+        const destino = (e as DragEvent).relatedTarget as Node | null;
+        if (destino && layerRow.contains(destino)) return;
         layerRow.classList.remove('drop-above', 'drop-below', 'drop-into');
       });
 
@@ -292,7 +300,9 @@ export class CamadasDragDropManager {
         featRow.classList.toggle('drop-below', !isTop);
       });
 
-      featRow.addEventListener('dragleave', () => {
+      featRow.addEventListener('dragleave', (e: Event) => {
+        const destino = (e as DragEvent).relatedTarget as Node | null;
+        if (destino && featRow.contains(destino)) return;
         featRow.classList.remove('drop-above', 'drop-below');
       });
 

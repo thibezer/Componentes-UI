@@ -5,7 +5,8 @@
 
 import { CamadaItem, FeicaoItem } from './tipos';
 import { ICONES } from './camadas-icones';
-import { escapeHtml, sanitizarCorCss } from './camadas-utils';
+import { escapeHtml, sanitizarCorCss, corParaHex } from './camadas-utils';
+import { filtrarFeicoesPorBusca, LIMITE_FEICOES_POR_CAMADA } from './camadas-selecao';
 
 export interface ParametrosRenderArvore {
   camadas: CamadaItem[];
@@ -18,6 +19,7 @@ export interface ParametrosRenderArvore {
   editingFeatureId: string | null;
   searchQuery: string;
   limiteFeicoesPorCamada?: number;
+  mostrarBotaoColapsar?: boolean;
 }
 
 export { escapeHtml };
@@ -49,7 +51,8 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
     editingLayerId,
     editingFeatureId,
     searchQuery,
-    limiteFeicoesPorCamada = 80
+    limiteFeicoesPorCamada = LIMITE_FEICOES_POR_CAMADA,
+    mostrarBotaoColapsar = false
   } = params;
 
   const q = (searchQuery || '').trim().toLowerCase();
@@ -75,10 +78,12 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
       <div class="ui-tree-actions">
         <button id="btn-toggle-all-vis" class="ui-tree-action-btn" title="${
           allVisible ? 'Ocultar Todas as Camadas' : 'Exibir Todas as Camadas'
-        }">
+        }" aria-label="${allVisible ? 'Ocultar Todas as Camadas' : 'Exibir Todas as Camadas'}">
           ${allVisible ? ICONES.olhoAberto : ICONES.olhoFechado}
         </button>
-        <button id="btn-toggle-all-expand" class="ui-tree-action-btn" title="${
+        <button id="btn-toggle-all-expand" class="ui-tree-action-btn" aria-label="${
+          allExpanded ? 'Recolher Todos os Grupos' : 'Expandir Todos os Grupos'
+        }" title="${
           allExpanded ? 'Recolher Todos os Grupos' : 'Expandir Todos os Grupos'
         }">
           <span class="ui-chevron-icon ${allExpanded ? 'open' : ''}">${ICONES.chevronDir}</span>
@@ -86,17 +91,22 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
         <button id="btn-add-layer" class="ui-tree-btn-new" title="Adicionar nova camada vetorial">
           ${ICONES.mais} Camada
         </button>
+        ${
+          mostrarBotaoColapsar
+            ? `<button id="btn-colapsar" class="ui-camadas-btn-colapsar" title="Recolher painel" aria-label="Recolher painel">${ICONES.recolherPainel}</button>`
+            : ''
+        }
       </div>
     </div>
 
     <div class="ui-tree-search-wrapper">
       <span class="ui-tree-search-icon">${ICONES.busca}</span>
-      <input type="text" class="ui-tree-search-input" id="input-layer-search" placeholder="Buscar camada ou feição..." value="${escapeHtml(
+      <input type="text" class="ui-tree-search-input" id="input-layer-search" aria-label="Buscar camada ou feição" placeholder="Buscar camada ou feição..." value="${escapeHtml(
         searchQuery
       )}" />
       ${
         searchQuery
-          ? `<button class="ui-tree-search-clear" id="btn-clear-layer-search" title="Limpar busca">${ICONES.fechar}</button>`
+          ? `<button class="ui-tree-search-clear" id="btn-clear-layer-search" title="Limpar busca" aria-label="Limpar busca">${ICONES.fechar}</button>`
           : ''
       }
     </div>
@@ -113,15 +123,7 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
       const isSettingsOpen = activeSettingsLayerId === layer.id;
       const isActiveLayer = camadaAtivaId === layer.id;
 
-      let layerFeats = featsByLayer.get(layer.id) || [];
-      if (q) {
-        layerFeats = layerFeats.filter(
-          (f) =>
-            (f.name || '').toLowerCase().includes(q) ||
-            (f.category || '').toLowerCase().includes(q) ||
-            (f.type || '').toLowerCase().includes(q)
-        );
-      }
+      const layerFeats = filtrarFeicoesPorBusca(featsByLayer.get(layer.id) || [], q);
 
       const allFeatsSelected =
         layerFeats.length > 0 && layerFeats.every((f) => selectedFeatureIds.has(f.id));
@@ -137,7 +139,13 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
           const featName = escapeHtml(feat.name || 'Feição');
           const featColor = sanitizarCorCss(feat.color, safeColor);
           const isFeatVisible = feat.visible !== false;
-          const isFeatLocked = feat.locked === true || isLocked;
+          const featTravadaPelaCamada = isLocked;
+          const isFeatLocked = feat.locked === true || featTravadaPelaCamada;
+          const tituloLockFeicao = featTravadaPelaCamada
+            ? 'Bloqueada pela camada'
+            : isFeatLocked
+              ? 'Desbloquear Feição'
+              : 'Bloquear Feição';
           const isFeatSelected = selectedFeatureIds.has(feat.id);
 
           const status = feat.status;
@@ -151,17 +159,19 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
           return `
             <div class="ui-feat-row ${isFeatSelected ? 'selected-row' : ''} ${
             !isFeatVisible ? 'hidden-row' : ''
-          }" data-feat-row="${featId}" data-feat-select="${featId}" data-feat-layer="${safeId}" draggable="true" title="Clique para selecionar | Arraste para reordenar">
-              <div class="ui-col ui-col-eye" data-feat-eye="${featId}" title="${
+          }" data-feat-row="${featId}" data-feat-select="${featId}" data-feat-layer="${safeId}" role="treeitem" aria-selected="${isFeatSelected}" tabindex="-1" draggable="true" title="Clique para selecionar | Arraste para reordenar">
+              <div class="ui-col ui-col-eye" data-feat-eye="${featId}" role="button" tabindex="0" aria-label="${
+            isFeatVisible ? 'Ocultar Feição' : 'Exibir Feição'
+          }" title="${
             isFeatVisible ? 'Ocultar Feição' : 'Exibir Feição'
           }">
                 ${isFeatVisible ? ICONES.olhoAberto : ICONES.olhoFechado}
               </div>
 
-              <div class="ui-col ui-col-lock" data-feat-lock="${featId}" title="${
-            isFeatLocked ? 'Desbloquear Feição' : 'Bloquear Feição'
-          }">
-                ${isFeatLocked ? ICONES.cadeadoTrancado : ''}
+              <div class="ui-col ui-col-lock ${!isFeatLocked ? 'ui-lock-open' : ''}" data-feat-lock="${featId}" ${
+            featTravadaPelaCamada ? 'data-locked-by-layer="true"' : ''
+          } role="button" tabindex="0" aria-label="${tituloLockFeicao}" title="${tituloLockFeicao}">
+                ${isFeatLocked ? ICONES.cadeadoTrancado : ICONES.cadeadoAberto}
               </div>
 
               <div class="ui-col ui-col-colorbar" style="background: ${featColor};"></div>
@@ -179,10 +189,10 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
               </div>
 
               <div class="ui-col ui-col-actions">
-                <button class="ui-micro-btn" data-feat-fit="${featId}" title="Enquadrar no mapa">${ICONES.alvoEnquadrar}</button>
+                <button class="ui-micro-btn" data-feat-fit="${featId}" title="Enquadrar no mapa" aria-label="Enquadrar feição no mapa">${ICONES.alvoEnquadrar}</button>
               </div>
 
-              <div class="ui-col ui-col-target" data-feat-target="${featId}" title="Selecionar feição">
+              <div class="ui-col ui-col-target" data-feat-target="${featId}" role="button" tabindex="0" aria-label="Selecionar feição" title="Selecionar feição">
                 <div class="ui-target-circle ${isFeatSelected ? 'selected' : ''}"></div>
               </div>
             </div>
@@ -205,7 +215,7 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
               <span class="ui-drawer-icon">${ICONES.engrenagem}</span>
               <span class="ui-drawer-title">Configurações da Camada</span>
             </div>
-            <button type="button" class="ui-drawer-btn-fechar" data-layer-settings-close="${safeId}" title="Fechar configurações (Esc)">
+            <button type="button" class="ui-drawer-btn-fechar" data-layer-settings-close="${safeId}" title="Fechar configurações (Esc)" aria-label="Fechar configurações">
               ${ICONES.fechar}
             </button>
           </div>
@@ -220,7 +230,7 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
                 <label class="ui-drawer-color-pill" title="Clique para alterar a cor da camada">
                   <span class="ui-drawer-color-sample" id="sample-color-${safeId}" style="background-color: ${safeColor};"></span>
                   <span class="ui-drawer-color-hex" id="hex-color-${safeId}">${safeColor.toUpperCase()}</span>
-                  <input type="color" data-layer-color-picker="${safeId}" value="${safeColor}" class="ui-drawer-color-native" />
+                  <input type="color" aria-label="Cor da camada" data-layer-color-picker="${safeId}" value="${corParaHex(safeColor, '#00e08a')}" class="ui-drawer-color-native" />
                 </label>
               </div>
             </div>
@@ -232,7 +242,7 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
                 <span class="ui-drawer-badge" id="badge-op-${safeId}">${currentOpacityPct}%</span>
               </div>
               <div class="ui-drawer-slider-container">
-                <input type="range" min="0.05" max="1" step="0.05" value="${currentOpacity}" data-layer-opacity-slider="${safeId}" class="ui-drawer-slider" />
+                <input type="range" aria-label="Opacidade da camada" min="0.05" max="1" step="0.05" value="${Number(currentOpacity) || 0}" data-layer-opacity-slider="${safeId}" class="ui-drawer-slider" />
               </div>
             </div>
           </div>
@@ -253,27 +263,31 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
         : '';
 
       return `
-        <div class="ui-layer-group" data-layer-id="${safeId}">
+        <div class="ui-layer-group" data-layer-id="${safeId}" role="treeitem" aria-expanded="${isExpanded}">
           <div class="ui-layer-row ${!isVisible ? 'hidden-layer' : ''} ${
         isActiveLayer ? 'active-drawing-layer' : ''
-      }" data-layer-row="${safeId}" data-layer-id="${safeId}" draggable="true" style="--layer-active-color: ${safeColor};">
+      }" data-layer-row="${safeId}" data-layer-id="${safeId}" tabindex="-1" draggable="true" style="--layer-active-color: ${safeColor};">
             <div class="ui-col ui-col-drag" title="Arrastar para reordenar Z-Index">${ICONES.dragHandle}</div>
 
-            <div class="ui-col ui-col-eye" data-layer-eye="${safeId}" title="${
+            <div class="ui-col ui-col-eye" data-layer-eye="${safeId}" role="button" tabindex="0" aria-label="${
+        isVisible ? 'Ocultar Camada' : 'Exibir Camada'
+      }" title="${
         isVisible ? 'Ocultar Camada' : 'Exibir Camada'
       }">
               ${isVisible ? ICONES.olhoAberto : ICONES.olhoFechado}
             </div>
 
-            <div class="ui-col ui-col-lock" data-layer-lock="${safeId}" title="${
+            <div class="ui-col ui-col-lock ${!isLocked ? 'ui-lock-open' : ''}" data-layer-lock="${safeId}" role="button" tabindex="0" aria-label="${
+        isLocked ? 'Desbloquear Camada' : 'Bloquear Camada'
+      }" title="${
         isLocked ? 'Desbloquear Camada' : 'Bloquear Camada'
       }">
-              ${isLocked ? ICONES.cadeadoTrancado : ''}
+              ${isLocked ? ICONES.cadeadoTrancado : ICONES.cadeadoAberto}
             </div>
 
             <div class="ui-col ui-col-colorbar" style="background: ${safeColor};"></div>
 
-            <div class="ui-col ui-col-chevron" data-layer-expand="${safeId}">
+            <div class="ui-col ui-col-chevron" data-layer-expand="${safeId}" role="button" tabindex="0" aria-label="${isExpanded ? 'Recolher grupo' : 'Expandir grupo'}">
               <span class="ui-chevron-icon ${isExpanded ? 'open' : ''}">${ICONES.chevronDir}</span>
             </div>
 
@@ -288,11 +302,11 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
             </div>
 
             <div class="ui-col ui-col-actions">
-              <button class="ui-micro-btn" data-layer-fit="${safeId}" title="Enquadrar camada no mapa">${ICONES.alvoEnquadrar}</button>
-              <button class="ui-micro-btn ${isSettingsOpen ? 'active' : ''}" data-layer-settings="${safeId}" title="Ajustar cor, opacidade e excluir">${ICONES.engrenagem}</button>
+              <button class="ui-micro-btn" data-layer-fit="${safeId}" title="Enquadrar camada no mapa" aria-label="Enquadrar camada no mapa">${ICONES.alvoEnquadrar}</button>
+              <button class="ui-micro-btn ${isSettingsOpen ? 'active' : ''}" data-layer-settings="${safeId}" title="Ajustar cor, opacidade e excluir" aria-label="Configurações da camada" aria-expanded="${isSettingsOpen}">${ICONES.engrenagem}</button>
             </div>
 
-            <div class="ui-col ui-col-target" data-layer-target="${safeId}" title="Selecionar todas as feições deste grupo">
+            <div class="ui-col ui-col-target" data-layer-target="${safeId}" role="button" tabindex="0" aria-label="Selecionar todas as feições deste grupo" title="Selecionar todas as feições deste grupo">
               <div class="ui-target-circle ${
                 allFeatsSelected ? 'selected' : someFeatsSelected ? 'partial' : ''
               }"></div>
@@ -301,7 +315,7 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
 
           ${settingsDrawerHtml}
 
-          <div class="ui-children-container" style="display: ${isExpanded ? 'block' : 'none'};">
+          <div class="ui-children-container" role="group" style="display: ${isExpanded ? 'block' : 'none'};">
             ${feicoesHtml}
             ${truncateNotice}
             ${
@@ -318,7 +332,7 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
   return `
     ${toolbarHtml}
     <div class="ui-panel-box">
-      <div class="ui-layer-tree" id="ui-layer-tree-mount">
+      <div class="ui-layer-tree" id="ui-layer-tree-mount" role="tree" aria-label="Camadas e feições" aria-multiselectable="true">
         ${camadasHtml}
       </div>
     </div>

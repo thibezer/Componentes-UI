@@ -6,12 +6,20 @@
 
 import { CamadaItem } from './tipos';
 
-export interface CamadaOverridePersistido {
+export interface CamadaPropsPersistidas {
   name?: string;
   visible?: boolean;
   locked?: boolean;
   opacity?: number;
   color?: string;
+}
+
+export interface CamadaOverridePersistido extends CamadaPropsPersistidas {
+  /**
+   * Valores fornecidos pela aplicação (via definirCamadas/adicionarCamada) quando o override foi salvo.
+   * Se a aplicação passar um valor diferente depois, ela vence a customização do usuário.
+   */
+  origem?: CamadaPropsPersistidas;
 }
 
 export interface EstadoPersistidoCamadas {
@@ -89,10 +97,21 @@ export function limparEstadoPersistido(storageKey: string): void {
 /**
  * Mescla o estado das camadas carregadas com os overrides persistidos pelo usuário
  */
+export function snapshotCamada(camada: CamadaItem): CamadaPropsPersistidas {
+  return {
+    name: camada.name,
+    visible: camada.visible !== false,
+    locked: !!camada.locked,
+    opacity: typeof camada.opacity === 'number' ? camada.opacity : 1,
+    color: camada.color || '#00E08A'
+  };
+}
+
 export function reidratarCamadasComOverrides(
   camadas: CamadaItem[],
   estadoPersistido: EstadoPersistidoCamadas | null,
-  expandedLayersSet: Set<string>
+  expandedLayersSet: Set<string>,
+  origensCamadas?: Map<string, CamadaPropsPersistidas>
 ): void {
   if (!Array.isArray(camadas)) return;
 
@@ -105,13 +124,21 @@ export function reidratarCamadasComOverrides(
     const camada = camadas[i];
     const ov = overrides[camada.id];
 
-    // Restaura propriedades visuais salvas
+    // Registra o que a aplicação enviou, antes de qualquer override
+    origensCamadas?.set(camada.id, snapshotCamada(camada));
+
+    // Restaura propriedades salvas, exceto as que a aplicação alterou desde o último salvamento
     if (ov) {
-      if (typeof ov.name === 'string' && ov.name.trim()) camada.name = ov.name;
-      if (typeof ov.visible === 'boolean') camada.visible = ov.visible;
-      if (typeof ov.locked === 'boolean') camada.locked = ov.locked;
-      if (typeof ov.opacity === 'number') camada.opacity = ov.opacity;
-      if (typeof ov.color === 'string') camada.color = ov.color;
+      const origem = ov.origem;
+      const aplicacaoAlterou = (prop: keyof CamadaPropsPersistidas): boolean => {
+        const atual = origensCamadas?.get(camada.id)?.[prop];
+        return origem !== undefined && origem[prop] !== atual;
+      };
+      if (typeof ov.name === 'string' && ov.name.trim() && !aplicacaoAlterou('name')) camada.name = ov.name;
+      if (typeof ov.visible === 'boolean' && !aplicacaoAlterou('visible')) camada.visible = ov.visible;
+      if (typeof ov.locked === 'boolean' && !aplicacaoAlterou('locked')) camada.locked = ov.locked;
+      if (typeof ov.opacity === 'number' && !aplicacaoAlterou('opacity')) camada.opacity = ov.opacity;
+      if (typeof ov.color === 'string' && !aplicacaoAlterou('color')) camada.color = ov.color;
     }
 
     // Restaura estado de expansão:
@@ -144,6 +171,7 @@ export function reidratarCamadasComOverrides(
 
 export interface EntradaMontagemEstado {
   estadoAnterior: EstadoPersistidoCamadas | null;
+  origensCamadas?: Map<string, CamadaPropsPersistidas>;
   camadas: CamadaItem[];
   expandedLayers: Set<string>;
   camadaAtivaId: string | null;
@@ -184,7 +212,8 @@ export function montarEstadoPersistido(entrada: EntradaMontagemEstado): EstadoPe
         visible: l.visible !== false,
         locked: !!l.locked,
         opacity: typeof l.opacity === 'number' ? l.opacity : 1,
-        color: l.color || '#00E08A'
+        color: l.color || '#00E08A',
+        origem: entrada.origensCamadas?.get(l.id) ?? overrides[l.id]?.origem
       };
     });
   }

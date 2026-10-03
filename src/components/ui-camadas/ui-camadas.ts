@@ -19,10 +19,10 @@ import { renderizarGridMapasBase, MAPAS_BASE_PADRAO } from './camadas-mapas-base
 import { CamadasDragDropManager } from './camadas-drag-drop';
 import { CamadasHostCompleto } from './camadas-host';
 import { conectarEventosArvore } from './camadas-eventos-arvore';
+import { conectarTecladoEAcessibilidade } from './camadas-teclado';
 import {
   sincronizarCamadaAtivaDOM,
-  sincronizarSelecaoDOM,
-  aplicarFiltroBuscaDOM
+  sincronizarSelecaoDOM
 } from './camadas-sincronizacao-dom';
 import {
   obterIdsVisiveisFeicoes,
@@ -30,9 +30,12 @@ import {
   removerSelecoesInvalidas
 } from './camadas-selecao';
 import { ICONES } from './camadas-icones';
+import { debounce } from './camadas-utils';
 import {
   gerarChaveStorage,
   carregarEstadoPersistido,
+  CamadaPropsPersistidas,
+  snapshotCamada,
   salvarEstadoPersistido,
   montarEstadoPersistido,
   limparEstadoPersistido,
@@ -72,6 +75,9 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
   private dragDropManager!: CamadasDragDropManager;
   private resizerController!: ControladorResizerCamadas;
   private alturaCustomizada: number | null = null;
+  private conectado = false;
+  private origensCamadas = new Map<string, CamadaPropsPersistidas>();
+  private salvarLembrancaDebounced = debounce(() => this.salvarLembrancaEstado(), 200);
 
   // Estado interno
   public camadas: CamadaItem[] = [];
@@ -127,7 +133,6 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
         this.salvarLembrancaEstado();
       }
     });
-    this.resizerController.init();
   }
 
   connectedCallback() {
@@ -135,8 +140,9 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
     if (this.persistir) {
       const estado = carregarEstadoPersistido(this.obterChaveStorageAtual());
       if (estado) {
-        if (typeof estado.painelColapsado === 'boolean') {
-          this.colapsado = estado.painelColapsado;
+        // O atributo declarado pelo autor vence o estado salvo (mesma regra dos demais campos)
+        if (estado.painelColapsado === true && !this.hasAttribute('colapsado')) {
+          this.colapsado = true;
         }
         if (estado.camadaAtivaId && !this.getAttribute('camada-ativa')) {
           this.camadaAtivaId = estado.camadaAtivaId;
@@ -158,12 +164,18 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
       this.resizerController.definirAltura(this.getAttribute('altura'), false);
     }
 
+    this.resizerController.init();
     this.render();
     this.conectarEventosGerais();
-    this.conectarTecladoAcessibilidade();
+    conectarTecladoEAcessibilidade(this, this, this.shadow, this.corpoElement, this.listeners);
+
+    // A partir daqui os atributos já foram lidos: é seguro gravar no storage com a chave correta
+    this.conectado = true;
+    if (this.camadas.length > 0) this.salvarLembrancaEstado();
   }
 
   disconnectedCallback() {
+    this.conectado = false;
     this.resizerController?.destruir();
     this.listeners.cleanup();
   }
@@ -171,20 +183,22 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
   attributeChangedCallback(name: string, oldVal: string | null, newVal: string | null) {
     if (oldVal === newVal) return;
 
+    // Mudanças de atributo vêm do aplicativo consumidor (mutação programática):
+    // apenas sincronizam o DOM interno, sem redisparar eventos para fora.
     if (name === 'colapsado') {
-      const isColapsado = newVal !== null;
-      this.dispararEvento('ui-colapso-alterado', { colapsado: isColapsado });
       this.salvarLembrancaEstado();
     } else if (name === 'camada-ativa') {
       this.sincronizarCamadaAtivaDOM();
       this.salvarLembrancaEstado();
     } else if (name === 'mapa-base-ativo') {
-      if (newVal) {
-        this.shadow.querySelectorAll('[data-basemap-id]').forEach((c) => {
-          c.classList.toggle('active', c.getAttribute('data-basemap-id') === newVal);
-        });
-      }
-    } else if (name === 'mostrar-mapas-base' || name === 'mostrar-rodape' || name === 'mostrar-busca') {
+      if (newVal) this.marcarMapaBaseAtivoNoDOM(newVal);
+    } else if (
+      name === 'mostrar-mapas-base' ||
+      name === 'mostrar-rodape' ||
+      name === 'mostrar-busca' ||
+      name === 'colapsavel' ||
+      name === 'flutuante'
+    ) {
       this.solicitarRenderizacao();
     } else if (name === 'altura') {
       this.resizerController?.definirAltura(newVal, false);
@@ -218,14 +232,22 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
     this.setAttribute('mapa-base-ativo', valor);
   }
 
-  public selecionarMapaBase(id: string): void {
+  public selecionarMapaBase(id: string, emitirEvento = false): void {
     if (!id || this.mapaBaseAtivo === id) return;
     this.mapaBaseAtivo = id;
-    this.shadow.querySelectorAll('[data-basemap-id]').forEach((c) => {
-      c.classList.toggle('active', c.getAttribute('data-basemap-id') === id);
-    });
+    this.marcarMapaBaseAtivoNoDOM(id);
     this.salvarLembrancaEstado();
-    this.dispararEvento('ui-mapa-base-alterado', { mapaBaseId: id });
+    if (emitirEvento) {
+      this.dispararEvento('ui-mapa-base-alterado', { mapaBaseId: id });
+    }
+  }
+
+  private marcarMapaBaseAtivoNoDOM(id: string): void {
+    this.shadow.querySelectorAll('[data-basemap-id]').forEach((c) => {
+      const ativo = c.getAttribute('data-basemap-id') === id;
+      c.classList.toggle('active', ativo);
+      c.setAttribute('aria-pressed', String(ativo));
+    });
   }
 
   public get abaAtiva(): AbaPainelCamadas {
@@ -244,6 +266,13 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
     } else {
       this.removeAttribute('colapsado');
     }
+  }
+
+  public get colapsavel(): boolean {
+    return this.getAttribute('colapsavel') !== 'false';
+  }
+  public set colapsavel(valor: boolean) {
+    this.setAttribute('colapsavel', String(valor));
   }
 
   public get flutuante(): boolean {
@@ -329,7 +358,8 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
   }
 
   public definirAltura(alturaPx: number | string | null, persistir = true): void {
-    this.resizerController?.definirAltura(alturaPx, true);
+    // Chamada programática: 'ui-redimensionar-altura' é exclusivo do arraste/duplo-clique no resizer
+    this.resizerController?.definirAltura(alturaPx, false);
     const num = alturaPx !== null ? parseFloat(String(alturaPx)) : null;
     this.alturaCustomizada = isNaN(num as number) ? null : num;
     if (persistir) {
@@ -343,12 +373,19 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
     return gerarChaveStorage(this.storageKey, this.id);
   }
 
+  /** Versão com debounce, para interações contínuas (seletor de cor, slider de opacidade). */
+  public agendarSalvarLembranca(): void {
+    this.salvarLembrancaDebounced();
+  }
+
   public salvarLembrancaEstado(): void {
-    if (!this.persistir) return;
+    // Antes de conectar, atributos como storage-key/id ainda podem não ter sido lidos
+    if (!this.persistir || !this.conectado) return;
 
     const chave = this.obterChaveStorageAtual();
     const estado = montarEstadoPersistido({
       estadoAnterior: carregarEstadoPersistido(chave),
+      origensCamadas: this.origensCamadas,
       camadas: this.camadas,
       expandedLayers: this.expandedLayers,
       camadaAtivaId: this.camadaAtivaId,
@@ -367,19 +404,51 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
   }
 
   // --- API Pública de Alta Ergonomia ---
+  //
+  // Contrato de eventos: toda mutação feita pelo aplicativo consumidor (propriedades,
+  // atributos e métodos públicos) atualiza apenas o DOM interno, sem disparar eventos.
+  // Eventos saem do componente somente em resposta a uma interação física do usuário
+  // (clique, drag-and-drop, teclado). Métodos que aceitam `emitirEvento` permitem
+  // optar explicitamente pela emissão quando necessário.
+
+  /** Atalho reativo para `definirCamadas()` — não dispara eventos. */
+  public get layers(): CamadaItem[] {
+    return this.camadas;
+  }
+  public set layers(camadas: CamadaItem[]) {
+    this.definirCamadas(camadas);
+  }
+
+  /** Atalho reativo para `definirFeicoes()` — não dispara eventos. */
+  public get features(): FeicaoItem[] {
+    return this.feicoes;
+  }
+  public set features(feicoes: FeicaoItem[]) {
+    this.definirFeicoes(feicoes);
+  }
+
+  /** Atalho reativo para `definirMapasBase()` — não dispara eventos. */
+  public get basemaps(): MapaBaseItem[] {
+    return this.mapasBase;
+  }
+  public set basemaps(mapas: MapaBaseItem[]) {
+    this.definirMapasBase(mapas);
+  }
 
   public definirCamadas(camadas: CamadaItem[], feicoes?: FeicaoItem[]): void {
     this.camadas = Array.isArray(camadas) ? camadas.map((c) => ({ ...c })) : [];
+    this.origensCamadas.clear();
 
     // Reidratação inteligente com suporte à lembrança de estado (expansão, visibilidade, travas, opacidade, cor, ordem)
     if (this.persistir) {
       const estado = carregarEstadoPersistido(this.obterChaveStorageAtual());
-      reidratarCamadasComOverrides(this.camadas, estado, this.expandedLayers);
+      reidratarCamadasComOverrides(this.camadas, estado, this.expandedLayers, this.origensCamadas);
       if (estado?.camadaAtivaId && this.camadas.some((l) => l.id === estado.camadaAtivaId)) {
         this.camadaAtivaId = estado.camadaAtivaId;
       }
     } else {
       this.camadas.forEach((l) => {
+        this.origensCamadas.set(l.id, snapshotCamada(l));
         if (!this.expandedLayers.has(l.id)) {
           this.expandedLayers.add(l.id);
         }
@@ -387,7 +456,7 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
     }
 
     if (Array.isArray(feicoes)) {
-      this.feicoes = [...feicoes];
+      this.feicoes = feicoes.map((f) => ({ ...f }));
       const layerIdsExistentes = new Set(this.camadas.map((l) => l.id));
       const orfas = this.feicoes.filter((f) => f.layerId && !layerIdsExistentes.has(f.layerId));
       if (orfas.length > 0) {
@@ -408,7 +477,7 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
   }
 
   public definirFeicoes(feicoes: FeicaoItem[]): void {
-    this.feicoes = Array.isArray(feicoes) ? [...feicoes] : [];
+    this.feicoes = Array.isArray(feicoes) ? feicoes.map((f) => ({ ...f })) : [];
     this.sincronizarSelecoesComFeicoesValidas();
     this.solicitarRenderizacao();
   }
@@ -418,7 +487,7 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
     this.solicitarRenderizacao();
   }
 
-  public definirCamadaAtiva(camadaId: string, emitirEvento = true): void {
+  public definirCamadaAtiva(camadaId: string, emitirEvento = false): void {
     if (!camadaId || this.camadaAtivaId === camadaId) return;
     this.camadaAtivaId = camadaId;
     this.sincronizarCamadaAtivaDOM();
@@ -449,8 +518,14 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
 
   public adicionarCamada(camada: CamadaItem): void {
     if (!camada || !camada.id) return;
-    this.camadas.push(camada);
-    this.expandedLayers.add(camada.id);
+    if (this.camadas.some((l) => l.id === camada.id)) {
+      console.warn(`[UI-Camadas] adicionarCamada ignorado: já existe uma camada com id '${camada.id}'.`);
+      return;
+    }
+    const nova = { ...camada };
+    this.camadas.push(nova);
+    this.origensCamadas.set(nova.id, snapshotCamada(nova));
+    this.expandedLayers.add(nova.id);
     this.salvarLembrancaEstado();
     this.solicitarRenderizacao();
   }
@@ -458,6 +533,12 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
   public removerCamada(camadaId: string): void {
     this.camadas = this.camadas.filter((l) => l.id !== camadaId);
     this.feicoes = this.feicoes.filter((f) => f.layerId !== camadaId);
+    this.origensCamadas.delete(camadaId);
+    this.expandedLayers.delete(camadaId);
+    if (this.activeSettingsLayerId === camadaId) this.activeSettingsLayerId = null;
+    // Remove da seleção as feições que deixaram de existir junto com a camada
+    this.sincronizarSelecoesComFeicoesValidas();
+    if (this.selectedFeatureIds.size === 0) this.lastClickedFeatureId = null;
     if (this.camadaAtivaId === camadaId) {
       this.camadaAtivaId = this.camadas[0]?.id ?? null;
     }
@@ -467,7 +548,11 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
 
   public adicionarFeicao(feicao: FeicaoItem): void {
     if (!feicao || !feicao.id) return;
-    this.feicoes.push(feicao);
+    if (this.feicoes.some((f) => f.id === feicao.id)) {
+      console.warn(`[UI-Camadas] adicionarFeicao ignorado: já existe uma feição com id '${feicao.id}'.`);
+      return;
+    }
+    this.feicoes.push({ ...feicao });
     this.solicitarRenderizacao();
   }
 
@@ -482,13 +567,17 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
   public removerFeicao(feicaoId: string): void {
     this.feicoes = this.feicoes.filter((f) => f.id !== feicaoId);
     this.selectedFeatureIds.delete(feicaoId);
-    this.notificarMudancaSelecao();
     this.solicitarRenderizacao();
   }
 
-  public selecionarFeicao(feicaoId: string, acumular = false, intervalo = false): void {
+  public selecionarFeicao(
+    feicaoId: string,
+    acumular = false,
+    intervalo = false,
+    emitirEvento = false
+  ): void {
     const resultado = calcularSelecaoFeicao(
-      obterIdsVisiveisFeicoes(this.camadas, this.feicoes, this.expandedLayers),
+      obterIdsVisiveisFeicoes(this.camadas, this.feicoes, this.expandedLayers, this.searchQuery),
       this.selectedFeatureIds,
       this.lastClickedFeatureId,
       feicaoId,
@@ -501,9 +590,10 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
     this.lastClickedFeatureId = resultado.ultimoClicadoId;
 
     this.sincronizarSelecaoDOM();
-    this.notificarMudancaSelecao();
+    if (emitirEvento) {
+      this.notificarMudancaSelecao();
+    }
   }
-
 
   public selecionarFeicoes(ids: string[], emitirEvento = false): void {
     const novosIds = ids || [];
@@ -519,7 +609,7 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
     }
   }
 
-  public limparSelecao(emitirEvento = true): void {
+  public limparSelecao(emitirEvento = false): void {
     if (this.selectedFeatureIds.size === 0) return;
     this.selectedFeatureIds.clear();
     this.lastClickedFeatureId = null;
@@ -541,27 +631,37 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
     this.solicitarRenderizacao();
   }
 
-  public alternarVisibilidadeTodas(): void {
+  public alternarVisibilidadeTodas(emitirEvento = false): void {
     const algumaVisivel = this.camadas.some((l) => l.visible !== false);
     const novoVis = !algumaVisivel;
     this.camadas.forEach((l) => {
       l.visible = novoVis;
-      this.dispararEvento('ui-camada-visibilidade', { camadaId: l.id, visivel: novoVis });
+      if (emitirEvento) {
+        this.dispararEvento('ui-camada-visibilidade', { camadaId: l.id, visivel: novoVis });
+      }
     });
     this.salvarLembrancaEstado();
     this.solicitarRenderizacao();
   }
 
-  public colapsar(): void {
-    this.colapsado = true;
+  public colapsar(emitirEvento = false): void {
+    this.definirColapso(true, emitirEvento);
   }
 
-  public expandir(): void {
-    this.colapsado = false;
+  public expandir(emitirEvento = false): void {
+    this.definirColapso(false, emitirEvento);
   }
 
-  public alternarColapso(): void {
-    this.colapsado = !this.colapsado;
+  public alternarColapso(emitirEvento = false): void {
+    this.definirColapso(!this.colapsado, emitirEvento);
+  }
+
+  private definirColapso(valor: boolean, emitirEvento: boolean): void {
+    if (this.colapsado === valor) return;
+    this.colapsado = valor;
+    if (emitirEvento) {
+      this.dispararEvento('ui-colapso-alterado', { colapsado: valor });
+    }
   }
 
   // --- Renderização e Ciclo de Vida ---
@@ -593,7 +693,8 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
       activeSettingsLayerId: this.activeSettingsLayerId,
       editingLayerId: this.editingLayerId,
       editingFeatureId: this.editingFeatureId,
-      searchQuery: this.searchQuery
+      searchQuery: this.searchQuery,
+      mostrarBotaoColapsar: this.flutuante && this.getAttribute('colapsavel') !== 'false'
     });
 
     const mapasBaseHtml = this.mostrarMapasBase
@@ -604,11 +705,41 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
       ? renderizarRodapeAcoes(this.camadas, this.feicoes, this.selectedFeatureIds)
       : '';
 
+    // O innerHTML recria a árvore inteira: guarda scroll e foco para devolvê-los depois
+    const treeAntes = this.shadow.getElementById('ui-layer-tree-mount');
+    const scrollCorpo = this.corpoElement.scrollTop;
+    const scrollArvore = treeAntes ? treeAntes.scrollTop : 0;
+    const focado = this.shadow.activeElement as HTMLInputElement | HTMLElement | null;
+    const focoId = focado && this.corpoElement.contains(focado) ? focado.id : '';
+    const caret =
+      focado && 'selectionStart' in focado ? (focado as HTMLInputElement).selectionStart : null;
+
     this.corpoElement.innerHTML = `
       ${arvoreHtml}
       ${rodapeHtml}
       ${mapasBaseHtml}
     `;
+
+    this.corpoElement.scrollTop = scrollCorpo;
+    const treeDepois = this.shadow.getElementById('ui-layer-tree-mount');
+    if (treeDepois) treeDepois.scrollTop = scrollArvore;
+
+    if (focoId) {
+      const novo = this.shadow.getElementById(focoId) as HTMLInputElement | null;
+      if (novo) {
+        novo.focus({ preventScroll: true });
+        if (caret !== null && typeof novo.setSelectionRange === 'function') {
+          try {
+            novo.setSelectionRange(caret, caret);
+          } catch {
+            // Tipos de input sem suporte a seleção (ex.: color) são ignorados
+          }
+        }
+      }
+    }
+
+    // Roving tabindex: apenas a primeira linha entra na ordem de Tab; as demais usam setas
+    this.shadow.querySelector<HTMLElement>('[data-layer-row], [data-feat-row]')?.setAttribute('tabindex', '0');
 
     conectarEventosArvore(this, this.shadow);
     this.dragDropManager.bindAll();
@@ -617,29 +748,8 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
   // --- Conexão de Eventos ---
 
   private conectarEventosGerais(): void {
-    // 1. Botão colapsar painel
-    const btnColapsar = this.shadow.getElementById('btn-colapsar');
-    if (btnColapsar) {
-      btnColapsar.addEventListener('click', () => this.colapsar());
-    }
-
-    // 2. Botão flutuante expandir
-    if (this.btnExpandirFlutuante) {
-      this.btnExpandirFlutuante.addEventListener('click', () => this.expandir());
-    }
-  }
-
-  private conectarTecladoAcessibilidade(): void {
-    this.addEventListener('keydown', (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement) return;
-
-      if (e.key === 'Escape') {
-        if (this.selectedFeatureIds.size > 0) {
-          e.preventDefault();
-          this.limparSelecao();
-        }
-      }
-    });
+    // Botão flutuante de expansão (persiste entre renders; o listener é limpo ao desconectar)
+    this.listeners.add(this.btnExpandirFlutuante, 'click', () => this.expandir(true));
   }
 
   // --- Sincronização de DOM (delegada) ---
@@ -650,10 +760,6 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
 
   public sincronizarSelecaoDOM(): void {
     sincronizarSelecaoDOM(this, this.shadow);
-  }
-
-  public aplicarFiltroBuscaDOM(query: string): void {
-    aplicarFiltroBuscaDOM(this, this.shadow, query);
   }
 
   // --- Auxiliares Internos ---

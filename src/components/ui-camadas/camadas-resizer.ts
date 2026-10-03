@@ -70,6 +70,8 @@ export function criarControladorRedimensionamentoAltura(
     }
   }
 
+  let cancelarArrasteAtivo: (() => void) | null = null;
+
   function init(): void {
     if (!ctx.resizerElement) return;
 
@@ -116,6 +118,16 @@ export function criarControladorRedimensionamentoAltura(
         );
       };
 
+      const encerrarArraste = () => {
+        isDragging = false;
+        cancelarArrasteAtivo = null;
+        window.removeEventListener('pointermove', onPointerMove);
+        window.removeEventListener('pointerup', onPointerUp);
+        window.removeEventListener('pointercancel', onPointerUp);
+        ctx.resizerElement?.classList.remove('ui-camadas-resizer--ativo');
+        ctx.hostElement.classList.remove('ui-camadas--redimensionando');
+      };
+
       const onPointerUp = (upEvent: PointerEvent) => {
         if (!isDragging) return;
         isDragging = false;
@@ -149,6 +161,7 @@ export function criarControladorRedimensionamentoAltura(
         );
       };
 
+      cancelarArrasteAtivo = encerrarArraste;
       window.addEventListener('pointermove', onPointerMove);
       window.addEventListener('pointerup', onPointerUp);
       window.addEventListener('pointercancel', onPointerUp);
@@ -168,6 +181,8 @@ export function criarControladorRedimensionamentoAltura(
   }
 
   function destruir(): void {
+    // Desconectar no meio de um arraste não pode deixar listeners globais pendurados na window
+    cancelarArrasteAtivo?.();
     ctx.listeners.cleanup();
   }
 

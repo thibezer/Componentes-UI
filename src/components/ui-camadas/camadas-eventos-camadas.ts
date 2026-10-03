@@ -6,7 +6,8 @@
 
 import { CamadasHostCompleto } from './camadas-host';
 import { ICONES } from './camadas-icones';
-import { sanitizarCorCss } from './camadas-utils';
+import { sanitizarCorCss, buscarPorAtributo, definirRotuloControle } from './camadas-utils';
+import { filtrarFeicoesPorBusca } from './camadas-selecao';
 
 export function conectarEventosCamadas(host: CamadasHostCompleto, shadow: ShadowRoot): void {
   // 5. Linhas de Camadas
@@ -22,7 +23,7 @@ export function conectarEventosCamadas(host: CamadasHostCompleto, shadow: Shadow
       }
       const layerId = row.getAttribute('data-layer-row');
       if (layerId) {
-        host.definirCamadaAtiva(layerId);
+        host.definirCamadaAtiva(layerId, true);
       }
     });
   });
@@ -63,9 +64,10 @@ export function conectarEventosCamadas(host: CamadasHostCompleto, shadow: Shadow
         layer.visible = layer.visible === false;
         const isVis = layer.visible !== false;
         btn.innerHTML = isVis ? ICONES.olhoAberto : ICONES.olhoFechado;
-        btn.setAttribute('title', isVis ? 'Ocultar Camada' : 'Exibir Camada');
+        definirRotuloControle(btn, isVis ? 'Ocultar Camada' : 'Exibir Camada');
         const row = btn.closest('.ui-layer-row');
         if (row) row.classList.toggle('hidden-layer', !isVis);
+        atualizarIconeVisibilidadeGlobal(host, shadow);
 
         host.salvarLembrancaEstado();
         host.dispararEvento('ui-camada-visibilidade', {
@@ -84,8 +86,10 @@ export function conectarEventosCamadas(host: CamadasHostCompleto, shadow: Shadow
       const layer = host.camadas.find((l) => l.id === layerId);
       if (layer) {
         layer.locked = !layer.locked;
-        btn.innerHTML = layer.locked ? ICONES.cadeadoTrancado : '';
-        btn.setAttribute('title', layer.locked ? 'Desbloquear Camada' : 'Bloquear Camada');
+        btn.innerHTML = layer.locked ? ICONES.cadeadoTrancado : ICONES.cadeadoAberto;
+        btn.classList.toggle('ui-lock-open', !layer.locked);
+        definirRotuloControle(btn, layer.locked ? 'Desbloquear Camada' : 'Bloquear Camada');
+        propagarBloqueioParaFeicoes(host, shadow, layer.id, layer.locked === true);
         host.salvarLembrancaEstado();
         host.dispararEvento('ui-camada-bloqueio', {
           camadaId: layer.id,
@@ -126,7 +130,7 @@ export function conectarEventosCamadas(host: CamadasHostCompleto, shadow: Shadow
   });
 
   // Seletor de cor no drawer da camada (atualização cirúrgica em tempo real)
-  const atualizarCorCamadaNoDOM = (layerId: string, novaCor: string) => {
+  const atualizarCorCamadaNoDOM = (layerId: string, novaCor: string, persistirAgora: boolean) => {
     const layer = host.camadas.find((l) => l.id === layerId);
     if (!layer) return;
     const corSegura = sanitizarCorCss(novaCor, layer.color || '#00E08A');
@@ -141,27 +145,29 @@ export function conectarEventosCamadas(host: CamadasHostCompleto, shadow: Shadow
     const drawer = shadow.getElementById(`settings-drawer-${layerId}`);
     if (drawer) drawer.style.setProperty('--drawer-cor-camada', corSegura);
 
-    const row = shadow.querySelector(`[data-layer-row="${layerId}"]`) as HTMLElement;
+    const row = buscarPorAtributo(shadow, 'data-layer-row', layerId);
     if (row) {
       row.style.setProperty('--layer-active-color', corSegura);
       const bar = row.querySelector('.ui-col-colorbar') as HTMLElement;
       if (bar) bar.style.backgroundColor = corSegura;
     }
 
-    host.salvarLembrancaEstado();
+    if (persistirAgora) host.salvarLembrancaEstado();
+    else host.agendarSalvarLembranca();
     host.dispararEvento('ui-camada-cor', { camadaId: layer.id, cor: corSegura });
   };
 
   shadow.querySelectorAll('[data-layer-color-picker]').forEach((picker) => {
     const p = picker as HTMLInputElement;
-    const onColorChange = (e: Event) => {
+    const onColorChange = (persistirAgora: boolean) => (e: Event) => {
       const layerId = p.getAttribute('data-layer-color-picker');
       if (!layerId) return;
       const color = (e.target as HTMLInputElement).value;
-      atualizarCorCamadaNoDOM(layerId, color);
+      atualizarCorCamadaNoDOM(layerId, color, persistirAgora);
     };
-    p.addEventListener('input', onColorChange);
-    p.addEventListener('change', onColorChange);
+    // 'input' dispara a cada movimento do seletor (grava com debounce); 'change' é o valor final
+    p.addEventListener('input', onColorChange(false));
+    p.addEventListener('change', onColorChange(true));
   });
 
   // Slider de opacidade no drawer da camada (atualização cirúrgica em tempo real)
@@ -173,10 +179,10 @@ export function conectarEventosCamadas(host: CamadasHostCompleto, shadow: Shadow
     const badge = shadow.getElementById(`badge-op-${layerId}`);
     if (badge) badge.textContent = `${Math.round(val * 100)}%`;
 
-    const slider = shadow.querySelector(`[data-layer-opacity-slider="${layerId}"]`) as HTMLInputElement;
+    const slider = buscarPorAtributo(shadow, 'data-layer-opacity-slider', layerId) as HTMLInputElement | null;
     if (slider && parseFloat(slider.value) !== val) slider.value = String(val);
 
-    host.salvarLembrancaEstado();
+    host.agendarSalvarLembranca();
     host.dispararEvento('ui-camada-opacidade', { camadaId: layer.id, opacidade: val });
   };
 
@@ -210,7 +216,9 @@ export function conectarEventosCamadas(host: CamadasHostCompleto, shadow: Shadow
       } else {
         if (confirmTimeout) clearTimeout(confirmTimeout);
         host.dispararEvento('ui-camada-excluida', { camadaId: layerId });
+        const selecionadasAntes = host.selectedFeatureIds.size;
         host.removerCamada(layerId);
+        if (host.selectedFeatureIds.size !== selecionadasAntes) host.notificarMudancaSelecao();
       }
     });
   });
@@ -221,7 +229,10 @@ export function conectarEventosCamadas(host: CamadasHostCompleto, shadow: Shadow
       e.stopPropagation();
       const me = e as MouseEvent;
       const layerId = target.getAttribute('data-layer-target');
-      const layerFeats = host.feicoes.filter((f) => f.layerId === layerId);
+      const layerFeats = filtrarFeicoesPorBusca(
+        host.feicoes.filter((f) => f.layerId === layerId),
+        host.searchQuery
+      );
       if (layerFeats.length === 0) return;
 
       const allSelected = layerFeats.every((f) => host.selectedFeatureIds.has(f.id));
@@ -236,4 +247,37 @@ export function conectarEventosCamadas(host: CamadasHostCompleto, shadow: Shadow
       host.notificarMudancaSelecao();
     });
   });
+}
+
+/** Mantém o ícone do botão "ocultar/exibir todas" coerente com o estado individual das camadas */
+function atualizarIconeVisibilidadeGlobal(host: CamadasHostCompleto, shadow: ShadowRoot): void {
+  const btn = shadow.getElementById('btn-toggle-all-vis');
+  if (!btn) return;
+  const todasVisiveis = host.camadas.every((l) => l.visible !== false);
+  btn.innerHTML = todasVisiveis ? ICONES.olhoAberto : ICONES.olhoFechado;
+  definirRotuloControle(btn, todasVisiveis ? 'Ocultar Todas as Camadas' : 'Exibir Todas as Camadas');
+}
+
+/** Reflete no DOM das feições o bloqueio herdado da camada (sem redesenhar a árvore) */
+function propagarBloqueioParaFeicoes(
+  host: CamadasHostCompleto,
+  shadow: ShadowRoot,
+  layerId: string,
+  camadaTravada: boolean
+): void {
+  host.feicoes
+    .filter((f) => f.layerId === layerId)
+    .forEach((f) => {
+      const el = buscarPorAtributo(shadow, 'data-feat-lock', f.id);
+      if (!el) return;
+      const travada = f.locked === true || camadaTravada;
+      el.innerHTML = travada ? ICONES.cadeadoTrancado : ICONES.cadeadoAberto;
+      el.classList.toggle('ui-lock-open', !travada);
+      if (camadaTravada) el.setAttribute('data-locked-by-layer', 'true');
+      else el.removeAttribute('data-locked-by-layer');
+      definirRotuloControle(
+        el,
+        camadaTravada ? 'Bloqueada pela camada' : travada ? 'Desbloquear Feição' : 'Bloquear Feição'
+      );
+    });
 }

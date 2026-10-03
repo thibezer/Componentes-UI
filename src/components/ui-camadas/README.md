@@ -68,6 +68,11 @@ painel.definirCamadas(
     }
   ]
 );
+
+// Atalhos reativos (equivalentes a definirCamadas / definirFeicoes / definirMapasBase)
+painel.layers = camadas;
+painel.features = feicoes;
+painel.basemaps = mapasBase;
 ```
 
 ---
@@ -135,7 +140,7 @@ const painel = document.querySelector('ui-camadas');
 // Define camadas e feições do painel
 painel.definirCamadas(camadas, feicoes);
 
-// Redimensiona a altura (com persistência opcional)
+// Redimensiona a altura (2º parâmetro = persistir no LocalStorage; não dispara evento)
 painel.definirAltura(520, true);
 
 // Seleciona o mapa base ativo
@@ -158,6 +163,15 @@ painel.colapsar();
 painel.expandir();
 painel.alternarColapso();
 
+// Métodos que alteram estado observável são silenciosos por padrão.
+// Para propagar como se fosse ação do usuário, passe emitirEvento = true:
+painel.definirCamadaAtiva('camada-lotes', true);  // dispara ui-camada-selecionada
+painel.selecionarMapaBase('osm', true);           // dispara ui-mapa-base-alterado
+painel.selecionarFeicao('lote-01', false, false, true);
+painel.limparSelecao(true);
+painel.alternarVisibilidadeTodas(true);
+painel.colapsar(true);                            // dispara ui-colapso-alterado
+
 // Limpar dados salvos no LocalStorage
 painel.limparLembranca();
 ```
@@ -166,7 +180,16 @@ painel.limparLembranca();
 
 ## 📡 Eventos Customizados Disparados
 
-Todos os eventos disparam com `{ bubbles: true, composed: true }`:
+Todos os eventos disparam com `{ bubbles: true, composed: true }`.
+
+> **Somente interações do usuário disparam eventos.** Clique, drag-and-drop, teclado e o arraste da barra de altura emitem os eventos abaixo. Mutações feitas pelo aplicativo — `painel.layers = [...]`, `setAttribute('camada-ativa' | 'colapsado' | 'mapa-base-ativo' | 'altura', ...)` ou métodos públicos — atualizam apenas o DOM interno, **sem** redisparar eventos. Assim, o padrão reativo "evento → atualiza estado → reatribui `layers`" nunca entra em loop.
+>
+> ```typescript
+> painel.addEventListener('ui-camada-visibilidade', (e) => {
+>   store.setVisivel(e.detail.camadaId, e.detail.visivel);
+>   painel.layers = store.camadas; // seguro: não redispara ui-camada-visibilidade
+> });
+> ```
 
 | Evento | Detalhe (`event.detail`) | Descrição |
 | :--- | :--- | :--- |

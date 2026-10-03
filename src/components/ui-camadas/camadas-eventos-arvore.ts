@@ -6,7 +6,7 @@
 
 import { CamadasHostCompleto } from './camadas-host';
 import { ICONES } from './camadas-icones';
-import { debounce } from './camadas-utils';
+import { debounce, definirRotuloControle } from './camadas-utils';
 import { conectarEventosCamadas } from './camadas-eventos-camadas';
 import { conectarEventosRodape } from './camadas-eventos-rodape';
 
@@ -14,7 +14,7 @@ function conectarToolbarEBusca(host: CamadasHostCompleto, shadow: ShadowRoot): v
   // 1. Visibilidade de todas as camadas
   const btnToggleAllVis = shadow.getElementById('btn-toggle-all-vis');
   if (btnToggleAllVis) {
-    btnToggleAllVis.addEventListener('click', () => host.alternarVisibilidadeTodas());
+    btnToggleAllVis.addEventListener('click', () => host.alternarVisibilidadeTodas(true));
   }
 
   // 2. Expandir/recolher todas
@@ -40,28 +40,47 @@ function conectarToolbarEBusca(host: CamadasHostCompleto, shadow: ShadowRoot): v
     });
   }
 
-  // 4. Busca rápida
+  // 4. Botão de recolher o painel (renderizado apenas no modo flutuante)
+  const btnColapsar = shadow.getElementById('btn-colapsar');
+  if (btnColapsar) {
+    btnColapsar.addEventListener('click', () => host.colapsar(true));
+  }
+
+  conectarBusca(host, shadow);
+}
+
+/**
+ * Busca: re-renderiza a árvore com o termo, para que o filtro valha sobre TODAS as feições
+ * (e não só as linhas já desenhadas, limitadas por camada). O render devolve foco e cursor ao campo.
+ */
+function conectarBusca(host: CamadasHostCompleto, shadow: ShadowRoot): void {
   const inputSearch = shadow.getElementById('input-layer-search') as HTMLInputElement | null;
   const btnClearSearch = shadow.getElementById('btn-clear-layer-search');
 
+  const limparBusca = () => {
+    host.searchQuery = '';
+    host.solicitarRenderizacao();
+    shadow.getElementById('input-layer-search')?.focus();
+  };
+
   if (inputSearch) {
-    const executarBuscaDebounced = debounce((q: string) => {
-      host.aplicarFiltroBuscaDOM(q);
-    }, 75);
+    const renderizarBuscaDebounced = debounce(() => host.solicitarRenderizacao(), 75);
 
     inputSearch.addEventListener('input', (e) => {
       host.searchQuery = (e.target as HTMLInputElement).value;
-      executarBuscaDebounced(host.searchQuery);
+      renderizarBuscaDebounced();
+    });
+
+    inputSearch.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && host.searchQuery) {
+        e.preventDefault();
+        limparBusca();
+      }
     });
   }
 
   if (btnClearSearch) {
-    btnClearSearch.addEventListener('click', () => {
-      host.searchQuery = '';
-      if (inputSearch) inputSearch.value = '';
-      host.aplicarFiltroBuscaDOM('');
-      if (inputSearch) inputSearch.focus();
-    });
+    btnClearSearch.addEventListener('click', limparBusca);
   }
 }
 
@@ -82,7 +101,7 @@ function conectarEventosFeicoes(host: CamadasHostCompleto, shadow: ShadowRoot): 
       const featId = node.getAttribute('data-feat-select');
       if (!featId) return;
 
-      host.selecionarFeicao(featId, me.ctrlKey || me.metaKey, me.shiftKey);
+      host.selecionarFeicao(featId, me.ctrlKey || me.metaKey, me.shiftKey, true);
     });
   });
 
@@ -93,7 +112,7 @@ function conectarEventosFeicoes(host: CamadasHostCompleto, shadow: ShadowRoot): 
       const me = e as MouseEvent;
       const featId = target.getAttribute('data-feat-target');
       if (featId) {
-        host.selecionarFeicao(featId, me.ctrlKey || me.metaKey, me.shiftKey);
+        host.selecionarFeicao(featId, me.ctrlKey || me.metaKey, me.shiftKey, true);
       }
     });
   });
@@ -108,7 +127,7 @@ function conectarEventosFeicoes(host: CamadasHostCompleto, shadow: ShadowRoot): 
         feat.visible = feat.visible === false;
         const isVis = feat.visible !== false;
         btn.innerHTML = isVis ? ICONES.olhoAberto : ICONES.olhoFechado;
-        btn.setAttribute('title', isVis ? 'Ocultar Feição' : 'Exibir Feição');
+        definirRotuloControle(btn, isVis ? 'Ocultar Feição' : 'Exibir Feição');
         const row = btn.closest('.ui-feat-row');
         if (row) row.classList.toggle('hidden-row', !isVis);
 
@@ -124,12 +143,15 @@ function conectarEventosFeicoes(host: CamadasHostCompleto, shadow: ShadowRoot): 
   shadow.querySelectorAll('[data-feat-lock]').forEach((btn) => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
+      // Enquanto a camada estiver travada, o bloqueio da feição não pode ser alterado individualmente
+      if (btn.hasAttribute('data-locked-by-layer')) return;
       const featId = btn.getAttribute('data-feat-lock');
       const feat = host.feicoes.find((f) => f.id === featId);
       if (feat) {
         feat.locked = !feat.locked;
-        btn.innerHTML = feat.locked ? ICONES.cadeadoTrancado : '';
-        btn.setAttribute('title', feat.locked ? 'Desbloquear Feição' : 'Bloquear Feição');
+        btn.innerHTML = feat.locked ? ICONES.cadeadoTrancado : ICONES.cadeadoAberto;
+        btn.classList.toggle('ui-lock-open', !feat.locked);
+        definirRotuloControle(btn, feat.locked ? 'Desbloquear Feição' : 'Bloquear Feição');
         host.dispararEvento('ui-feicao-bloqueio', {
           feicaoId: feat.id,
           bloqueado: feat.locked
@@ -151,10 +173,24 @@ function conectarEventosFeicoes(host: CamadasHostCompleto, shadow: ShadowRoot): 
 }
 
 function conectarEventosMapasBase(host: CamadasHostCompleto, shadow: ShadowRoot): void {
+  // Miniaturas remotas podem falhar (offline, CSP, bloqueio): troca por um ícone neutro
+  shadow.querySelectorAll<HTMLImageElement>('[data-basemap-thumb]').forEach((img) => {
+    img.addEventListener(
+      'error',
+      () => {
+        const fallback = document.createElement('div');
+        fallback.className = 'ui-basemap-preview-none';
+        fallback.innerHTML = ICONES.mapa;
+        img.replaceWith(fallback);
+      },
+      { once: true }
+    );
+  });
+
   shadow.querySelectorAll('[data-basemap-id]').forEach((card) => {
     card.addEventListener('click', () => {
       const basemapId = card.getAttribute('data-basemap-id');
-      if (basemapId) host.selecionarMapaBase(basemapId);
+      if (basemapId) host.selecionarMapaBase(basemapId, true);
     });
   });
 }

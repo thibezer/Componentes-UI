@@ -127,12 +127,14 @@ describe('UICamadas - Painel de Camadas GIS/CAD', () => {
     expect(painel.camadaAtivaId).toBe('camada-2');
   });
 
-  it('deve selecionar feição e atualizar contadores no rodapé', () => {
+  it('deve selecionar feição ao clicar na linha e emitir ui-feicao-selecionada', () => {
     painel.definirCamadas(mockCamadas, mockFeicoes);
     const spy = vi.fn();
     painel.addEventListener('ui-feicao-selecionada', spy);
 
-    painel.selecionarFeicao('feat-1');
+    const linha = painel.shadowRoot!.querySelector('[data-feat-select="feat-1"]') as HTMLElement;
+    expect(linha).toBeTruthy();
+    linha.click();
 
     expect(spy).toHaveBeenCalledTimes(1);
     expect(spy.mock.calls[0][0].detail.feicaoId).toBe('feat-1');
@@ -201,6 +203,116 @@ describe('UICamadas - Painel de Camadas GIS/CAD', () => {
     painel.expandir();
     expect(painel.colapsado).toBe(false);
     expect(painel.hasAttribute('colapsado')).toBe(false);
+
+    painel.setAttribute('colapsado', '');
+    expect(spy).not.toHaveBeenCalled();
+  });
+
+  it('deve emitir ui-colapso-alterado apenas quando o usuário clica no botão de expandir', () => {
+    painel.colapsar();
+    const spy = vi.fn();
+    painel.addEventListener('ui-colapso-alterado', spy);
+
+    (painel.shadowRoot!.getElementById('btn-expandir-flutuante') as HTMLElement).click();
+    expect(painel.colapsado).toBe(false);
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(spy.mock.calls[0][0].detail).toEqual({ colapsado: false });
+  });
+
+  describe('Mutação programática vs. interação do usuário', () => {
+    const eventosPainel = [
+      'ui-camada-selecionada',
+      'ui-camada-visibilidade',
+      'ui-feicoes-selecionadas',
+      'ui-feicao-selecionada',
+      'ui-mapa-base-alterado',
+      'ui-colapso-alterado',
+      'ui-redimensionar-altura'
+    ];
+
+    beforeEach(() => {
+      // Isola do estado persistido por testes anteriores
+      localStorage.clear();
+      document.body.innerHTML = '';
+      painel = document.createElement('ui-camadas') as UICamadas;
+      painel.setAttribute('persistir', 'false');
+      document.body.appendChild(painel);
+    });
+
+    function espionarTodos() {
+      const spy = vi.fn();
+      eventosPainel.forEach((nome) => painel.addEventListener(nome, spy));
+      return spy;
+    }
+
+    it('não deve disparar eventos quando o consumidor altera propriedades, atributos ou métodos públicos', () => {
+      const spy = espionarTodos();
+
+      painel.layers = mockCamadas;
+      painel.features = mockFeicoes;
+      painel.definirCamadaAtiva('camada-2');
+      painel.camadaAtivaId = 'camada-1';
+      painel.setAttribute('camada-ativa', 'camada-2');
+      painel.selecionarFeicao('feat-1');
+      painel.selecionarFeicoes(['feat-1', 'feat-2']);
+      painel.removerFeicao('feat-2');
+      painel.limparSelecao();
+      painel.alternarVisibilidadeTodas();
+      painel.selecionarMapaBase('ruas');
+      painel.setAttribute('mapa-base-ativo', 'satelite');
+      painel.colapsado = true;
+      painel.alternarColapso();
+      painel.definirAltura(360);
+      painel.altura = 420;
+
+      expect(spy).not.toHaveBeenCalled();
+      expect(painel.camadaAtivaId).toBe('camada-2');
+      expect(painel.layers.map((c) => c.id)).toEqual(['camada-1', 'camada-2']);
+    });
+
+    it('deve refletir element.layers = [...] no DOM sem reemitir eventos (sem loop de sincronização)', () => {
+      painel.layers = mockCamadas;
+      let reatribuicoes = 0;
+      painel.addEventListener('ui-camada-visibilidade', (e) => {
+        const { camadaId, visivel } = (e as CustomEvent).detail;
+        reatribuicoes++;
+        // Padrão de app reativo: o estado externo é atualizado e reatribuído ao componente
+        painel.layers = painel.layers.map((c) => (c.id === camadaId ? { ...c, visible: visivel } : c));
+      });
+
+      (painel.shadowRoot!.querySelector('[data-layer-eye="camada-1"]') as HTMLElement).click();
+
+      expect(reatribuicoes).toBe(1);
+      const linha = painel.shadowRoot!.querySelector('[data-layer-row="camada-1"]');
+      expect(linha?.classList.contains('hidden-layer')).toBe(true);
+    });
+
+    it('deve emitir eventos quando o usuário interage com o mapa base e a limpeza por teclado', () => {
+      painel.definirCamadas(mockCamadas, mockFeicoes);
+      const spyMapa = vi.fn();
+      const spySelecao = vi.fn();
+      painel.addEventListener('ui-mapa-base-alterado', spyMapa);
+      painel.addEventListener('ui-feicoes-selecionadas', spySelecao);
+
+      const card = painel.shadowRoot!.querySelector('[data-basemap-id]:not(.active)') as HTMLElement;
+      expect(card).toBeTruthy();
+      card.click();
+      expect(spyMapa).toHaveBeenCalledTimes(1);
+
+      painel.selecionarFeicoes(['feat-1']);
+      painel.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      expect(spySelecao).toHaveBeenCalledTimes(1);
+      expect(spySelecao.mock.calls[0][0].detail.feicoesIds).toEqual([]);
+    });
+
+    it('deve permitir optar explicitamente pela emissão via parâmetro emitirEvento', () => {
+      painel.definirCamadas(mockCamadas, mockFeicoes);
+      const spy = vi.fn();
+      painel.addEventListener('ui-camada-selecionada', spy);
+
+      painel.definirCamadaAtiva('camada-2', true);
+      expect(spy).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('deve executar ações em massa através dos botões do rodapé', () => {
@@ -407,18 +519,14 @@ describe('UICamadas - Painel de Camadas GIS/CAD', () => {
       expect(painel.redimensionavel).toBe(true);
     });
 
-    it('deve permitir definir altura via método e disparar evento customizado', () => {
+    it('deve permitir definir altura via método sem disparar evento (mutação programática)', () => {
       const spy = vi.fn();
       painel.addEventListener('ui-redimensionar-altura', spy);
 
       painel.definirAltura(380);
       expect(painel.style.height).toBe('380px');
       expect(painel.style.getPropertyValue('--ui-camadas-altura')).toBe('380px');
-      expect(spy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          detail: { altura: 380 }
-        })
-      );
+      expect(spy).not.toHaveBeenCalled();
     });
 
     it('deve resetar altura ao receber duplo clique no resizer', () => {
@@ -427,7 +535,10 @@ describe('UICamadas - Painel de Camadas GIS/CAD', () => {
       painel.definirAltura(450);
       expect(painel.style.height).toBe('450px');
 
+      const spy = vi.fn();
+      painel.addEventListener('ui-redimensionar-altura', spy);
       resizer.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+      expect(spy).toHaveBeenCalledWith(expect.objectContaining({ detail: { altura: null } }));
       expect(painel.style.height).toBe('');
       expect(painel.style.getPropertyValue('--ui-camadas-altura')).toBe('');
     });

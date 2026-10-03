@@ -38,6 +38,7 @@ export function sincronizarSelecaoDOM(host: CamadasHostCompleto, shadow: ShadowR
     const featId = row.getAttribute('data-feat-row');
     const isSelected = featId ? host.selectedFeatureIds.has(featId) : false;
     row.classList.toggle('selected-row', isSelected);
+    row.setAttribute('aria-selected', String(isSelected));
     const circle = row.querySelector('.ui-target-circle');
     if (circle) circle.classList.toggle('selected', isSelected);
   });
@@ -116,61 +117,9 @@ export function sincronizarSelecaoDOM(host: CamadasHostCompleto, shadow: ShadowR
     clearBtn.className = 'ui-footer-btn';
     clearBtn.title = 'Limpar seleção';
     clearBtn.innerHTML = ICONES.fechar;
-    clearBtn.addEventListener('click', () => host.limparSelecao());
+    clearBtn.addEventListener('click', () => host.limparSelecao(true));
     rightFooter.appendChild(clearBtn);
   } else if (!temSel && clearBtn) {
     clearBtn.remove();
   }
-}
-
-export function aplicarFiltroBuscaDOM(host: CamadasHostCompleto, shadow: ShadowRoot, query: string): void {
-  const q = (query || '').trim().toLowerCase();
-  const treeMount = shadow.getElementById('ui-layer-tree-mount');
-  if (!treeMount) return;
-
-  const btnClearSearch = shadow.getElementById('btn-clear-layer-search');
-  if (btnClearSearch) {
-    btnClearSearch.style.display = q ? 'flex' : 'none';
-  }
-
-  const groups = treeMount.querySelectorAll('.ui-layer-group');
-  groups.forEach((group) => {
-    const layerId = group.getAttribute('data-layer-id');
-    const layer = host.camadas.find((l) => l.id === layerId);
-    const layerName = (layer?.name || '').toLowerCase();
-    const featRows = group.querySelectorAll('.ui-feat-row');
-
-    if (!q) {
-      group.classList.remove('ui-search-hidden');
-      featRows.forEach((row) => row.classList.remove('ui-search-hidden'));
-      return;
-    }
-
-    let hasMatch = false;
-    featRows.forEach((row) => {
-      const featId = row.getAttribute('data-feat-row');
-      const feat = host.feicoes.find((f) => f.id === featId);
-      const featName = (feat?.name || '').toLowerCase();
-      const featCat = (feat?.category || '').toLowerCase();
-      const featType = (feat?.type || '').toLowerCase();
-
-      const matches = featName.includes(q) || featCat.includes(q) || featType.includes(q);
-      if (matches) {
-        row.classList.remove('ui-search-hidden');
-        hasMatch = true;
-      } else {
-        row.classList.add('ui-search-hidden');
-      }
-    });
-
-    const layerMatches = layerName.includes(q);
-    if (layerMatches || hasMatch) {
-      group.classList.remove('ui-search-hidden');
-      if (layerMatches && !hasMatch) {
-        featRows.forEach((row) => row.classList.remove('ui-search-hidden'));
-      }
-    } else {
-      group.classList.add('ui-search-hidden');
-    }
-  });
 }

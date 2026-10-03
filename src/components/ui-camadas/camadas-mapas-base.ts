@@ -5,6 +5,7 @@
 
 import { MapaBaseItem } from './tipos';
 import { ICONES } from './camadas-icones';
+import { escapeHtml } from './camadas-utils';
 
 export const MAPAS_BASE_PADRAO: MapaBaseItem[] = [
   {
@@ -65,13 +66,13 @@ export function renderizarGridMapasBase(
 
       let previewHtml = '';
       if (item.thumbnailUrl) {
-        previewHtml = `<img class="ui-basemap-preview" src="${escapeHtml(item.thumbnailUrl)}" alt="${safeNome}" loading="lazy" />`;
+        previewHtml = `<img class="ui-basemap-preview" src="${escapeHtml(item.thumbnailUrl)}" alt="" loading="lazy" referrerpolicy="no-referrer" data-basemap-thumb />`;
       } else {
         previewHtml = `<div class="ui-basemap-preview-none">${ICONES.gradeCad}</div>`;
       }
 
       return `
-        <div class="ui-basemap-card ${isAtivo ? 'active' : ''}" data-basemap-id="${safeId}" title="${safeDesc}">
+        <div class="ui-basemap-card ${isAtivo ? 'active' : ''}" data-basemap-id="${safeId}" role="button" tabindex="0" aria-pressed="${isAtivo}" title="${safeDesc}">
           ${previewHtml}
           <span>${safeNome}</span>
         </div>
@@ -87,14 +88,4 @@ export function renderizarGridMapasBase(
       </div>
     </div>
   `;
-}
-
-function escapeHtml(str: string): string {
-  if (!str) return '';
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
 }
