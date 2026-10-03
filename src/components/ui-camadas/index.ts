@@ -10,4 +10,6 @@ export * from './camadas-rodape';
 export * from './camadas-arvore-renderer';
 export * from './camadas-drag-drop';
 export * from './camadas-persistencia';
+export * from './camadas-host';
+export * from './camadas-selecao';
 export * from './ui-camadas';

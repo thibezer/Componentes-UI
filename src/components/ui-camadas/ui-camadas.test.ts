@@ -379,5 +379,68 @@ describe('UICamadas - Painel de Camadas GIS/CAD', () => {
       painel.limparLembranca();
       expect(localStorage.getItem(chave)).toBeNull();
     });
+
+    it('deve persistir e restaurar altura configurada pelo programador ou usuário', () => {
+      painel.id = 'painel-altura-persistencia';
+      painel.definirAltura(480);
+      expect(painel.style.height).toBe('480px');
+
+      // Novo painel com mesmo ID deve restaurar a altura
+      const outroPainel = document.createElement('ui-camadas') as UICamadas;
+      outroPainel.id = 'painel-altura-persistencia';
+      document.body.appendChild(outroPainel);
+
+      expect(outroPainel.style.height).toBe('480px');
+      expect(outroPainel.style.getPropertyValue('--ui-camadas-altura')).toBe('480px');
+    });
+  });
+
+  describe('Redimensionamento Vertical e Estabilidade de Altura', () => {
+    it('deve conter o resizer de altura na estrutura do Shadow DOM', () => {
+      const shadow = painel.shadowRoot!;
+      const resizer = shadow.getElementById('resizer-altura');
+      expect(resizer).toBeTruthy();
+      expect(painel.redimensionavel).toBe(false);
+
+      painel.redimensionavel = true;
+      expect(painel.hasAttribute('redimensionavel')).toBe(true);
+      expect(painel.redimensionavel).toBe(true);
+    });
+
+    it('deve permitir definir altura via método e disparar evento customizado', () => {
+      const spy = vi.fn();
+      painel.addEventListener('ui-redimensionar-altura', spy);
+
+      painel.definirAltura(380);
+      expect(painel.style.height).toBe('380px');
+      expect(painel.style.getPropertyValue('--ui-camadas-altura')).toBe('380px');
+      expect(spy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          detail: { altura: 380 }
+        })
+      );
+    });
+
+    it('deve resetar altura ao receber duplo clique no resizer', () => {
+      const shadow = painel.shadowRoot!;
+      const resizer = shadow.getElementById('resizer-altura')!;
+      painel.definirAltura(450);
+      expect(painel.style.height).toBe('450px');
+
+      resizer.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+      expect(painel.style.height).toBe('');
+      expect(painel.style.getPropertyValue('--ui-camadas-altura')).toBe('');
+    });
+
+    it('deve manter a estabilidade da altura mesmo com apenas 1 camada ou vazia', () => {
+      painel.definirAltura(500);
+      painel.definirCamadas([{ id: 'c1', name: 'Única Camada', color: '#00E08A', visible: true, locked: false }]);
+
+      // O container e o host devem manter a altura definida sem colapsar
+      expect(painel.style.height).toBe('500px');
+      const container = painel.shadowRoot!.getElementById('panel-container');
+      expect(container).toBeTruthy();
+    });
   });
 });
+

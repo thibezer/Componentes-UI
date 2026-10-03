@@ -23,6 +23,7 @@ export interface EstadoPersistidoCamadas {
   ordemCamadasIds?: string[];
   mapaBaseAtivo?: string;
   densidade?: 'compacto' | 'normal';
+  altura?: number | null;
   camadasOverrides?: Record<string, CamadaOverridePersistido>;
   ultimaAtualizacao?: number;
 }
@@ -139,4 +140,66 @@ export function reidratarCamadasComOverrides(
       return posA - posB;
     });
   }
+}
+
+export interface EntradaMontagemEstado {
+  estadoAnterior: EstadoPersistidoCamadas | null;
+  camadas: CamadaItem[];
+  expandedLayers: Set<string>;
+  camadaAtivaId: string | null;
+  painelColapsado: boolean;
+  mapaBaseAtivo: string;
+  densidade: 'compacto' | 'normal';
+  altura: number | null;
+}
+
+/**
+ * Monta o estado a persistir. Se ainda não há camadas na instância,
+ * preserva listas e overrides do estado anterior.
+ */
+export function montarEstadoPersistido(entrada: EntradaMontagemEstado): EstadoPersistidoCamadas {
+  const { estadoAnterior, camadas, expandedLayers } = entrada;
+
+  let expandedList: string[] = estadoAnterior?.expandedLayerIds || [];
+  let collapsedList: string[] = estadoAnterior?.collapsedLayerIds || [];
+  let ordemList: string[] = estadoAnterior?.ordemCamadasIds || [];
+  const overrides: Record<string, CamadaOverridePersistido> = {
+    ...(estadoAnterior?.camadasOverrides || {})
+  };
+
+  if (camadas.length > 0) {
+    expandedList = [];
+    collapsedList = [];
+    ordemList = camadas.map((l) => l.id);
+
+    camadas.forEach((l) => {
+      if (expandedLayers.has(l.id)) {
+        expandedList.push(l.id);
+      } else {
+        collapsedList.push(l.id);
+      }
+
+      overrides[l.id] = {
+        name: l.name,
+        visible: l.visible !== false,
+        locked: !!l.locked,
+        opacity: typeof l.opacity === 'number' ? l.opacity : 1,
+        color: l.color || '#00E08A'
+      };
+    });
+  }
+
+  return {
+    versao: 1,
+    expandedLayerIds: expandedList,
+    collapsedLayerIds: collapsedList,
+    camadaAtivaId: entrada.camadaAtivaId,
+    painelColapsado: entrada.painelColapsado,
+    ordemCamadasIds: ordemList,
+    mapaBaseAtivo: entrada.mapaBaseAtivo,
+    densidade: entrada.densidade,
+    altura: entrada.altura,
+    camadasOverrides: overrides,
+    ultimaAtualizacao: Date.now()
+  };
 }
