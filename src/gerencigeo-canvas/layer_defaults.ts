@@ -64,17 +64,16 @@ export const DEFAULT_LAYERS: CanvasLayerDef[] = [
   },
   {
     id: 'homologados-pontos',
-    nome: 'Marcos Homologados (SIGEF)',
+    nome: 'Marcos Homologados (Banco)',
     categoria: 'referencia',
     tipo: 'vetorial-pontos',
     visivel: true,
     opacidade: 1.0,
-    zIndex: 660,
+    zIndex: 430,
     interativo: true,
     bloqueada: false,
     estilo: {
       tamanhoMarcador: 8,
-      corPrimaria: '#f59e0b',
       estiloMarcador: 'circle',
       scaleMode: 'screen'
     }
