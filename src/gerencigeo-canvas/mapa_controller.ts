@@ -14,7 +14,7 @@ import {
   executarPlotarPontos, executarPlotarConexoes, executarPlotarPolilinha, executarPlotarPoligonos,
   executarPlotSegmentos, executarClearOverlays
 } from './controller_dados_ops';
-import { getPointShapeHtml } from './mapa_pontos_shapes';
+import { atualizarDestaqueMarcadores, normalizarIdPonto } from './canvas_destaque_marcadores';
 
 export class GerenciGeoMapaController {
   public core: MapaCore;
@@ -57,9 +57,7 @@ export class GerenciGeoMapaController {
       },
       onMarkerClick: (pId: string | number, isVizinho?: boolean) => {
         if (this.modoCliqueSequencialAtivo || this.context.modoSequencial) return;
-        const parsedId = (pId !== undefined && pId !== null && !isNaN(Number(pId)) && String(pId).trim() !== '')
-          ? Number(pId)
-          : pId;
+        const parsedId = normalizarIdPonto(pId);
         if (this.customMarkerClickCallback) {
           try { this.customMarkerClickCallback(parsedId as any, isVizinho); } catch (err) { console.error('Erro no customMarkerClickCallback:', err); }
         }
@@ -219,7 +217,7 @@ export class GerenciGeoMapaController {
       this.core.map.setView(marker.getLatLng(), targetZoom);
       marker.openPopup();
     }
-    const parsedId = (pId !== undefined && pId !== null && !isNaN(Number(pId)) && String(pId).trim() !== '') ? Number(pId) : pId;
+    const parsedId = normalizarIdPonto(pId);
     this.canvasInteracao.ctx.selectedPontoIds = [parsedId as any];
     this.canvasInteracao.ctx.lastSelectedPontoId = parsedId as any;
     (this.context as any).selectedPontoIds = [parsedId as any];
@@ -227,74 +225,7 @@ export class GerenciGeoMapaController {
   }
 
   public atualizarDestaqueMarcadores(): void {
-    const selectedIds = ((this.context as any).selectedPontoIds || []) as (string | number)[];
-    const selectedVizinhos = (this.canvasInteracao.ctx.selectedVizinhoPontoIds || []) as (string | number)[];
-    const allSelected = new Set([
-      ...selectedIds.map(String),
-      ...selectedVizinhos.map(String)
-    ]);
-
-    const markers = this.getMarkers();
-    for (const marker of markers) {
-      const anyMarker = marker as any;
-      const pId = anyMarker.pontoId;
-      if (pId === undefined || pId === null) continue;
-
-      const isSelected = allSelected.has(String(pId));
-      if (anyMarker.isSelected !== isSelected) {
-        anyMarker.isSelected = isSelected;
-
-        if (isSelected) {
-          marker.setZIndexOffset(2000);
-        } else {
-          marker.setZIndexOffset(0);
-        }
-
-        if (anyMarker.shapeStyle && anyMarker.baseSize && anyMarker.markerBg) {
-          const layerDef = this.layerManager.getLayerDef(anyMarker.layerId);
-          const baseSize = anyMarker.baseSize || 8;
-          let size = baseSize;
-          if (this.core.map && layerDef?.estilo?.scaleMode === 'world') {
-            const dimMetros = layerDef.estilo.dimensaoMetros || 0.25;
-            const center = this.core.map.getCenter();
-            const zoom = this.core.map.getZoom();
-            const metersPerPixel = (40075016.686 * Math.abs(Math.cos((center.lat * Math.PI) / 180))) / Math.pow(2, zoom + 8);
-            const px = dimMetros / (metersPerPixel > 0 ? metersPerPixel : 1);
-            const multiplier = this.context.graphicScale?.markerScaleMultiplier || 1.0;
-            size = Math.max(3, Math.round(px * multiplier));
-          } else {
-            const multiplier = this.context.graphicScale?.markerScaleMultiplier || 1.0;
-            size = Math.max(4, Math.round(baseSize * multiplier));
-          }
-
-          const animClass = this.context.config.enableAnimations ? 'transition-all duration-150' : '';
-          const markerHtml = getPointShapeHtml(
-            anyMarker.shapeStyle,
-            size,
-            anyMarker.markerBg,
-            animClass,
-            `map-marker-${anyMarker.layerId || 'pts'}-${pId}`,
-            isSelected
-          );
-
-          const customIcon = L.divIcon({
-            html: markerHtml,
-            className: `custom-leaflet-marker flex items-center justify-center ${isSelected ? 'cad-marker-selected ponto-selecionado' : ''}`,
-            iconSize: [size + 6, size + 6]
-          });
-          marker.setIcon(customIcon);
-        }
-
-        const el = marker.getElement();
-        if (el) {
-          if (isSelected) {
-            el.classList.add('cad-marker-selected', 'ponto-selecionado');
-          } else {
-            el.classList.remove('cad-marker-selected', 'ponto-selecionado');
-          }
-        }
-      }
-    }
+    atualizarDestaqueMarcadores(this);
   }
 
   public fitBounds(pontos?: Ponto[], padding: [number, number] = [40, 40], incluirVizinhos: boolean = false): void {
