@@ -19,7 +19,7 @@
   background-color: var(--ui-cor-fundo-elevado, #1e1e24);
   color: var(--ui-cor-texto, #e1e1e6);
   border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.16));
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--ui-sombra-md, 0 4px 16px rgba(0, 0, 0, 0.5));
   white-space: normal;
   max-width: var(--ui-tooltip-texto-distancia, 260px);
   width: max-content;

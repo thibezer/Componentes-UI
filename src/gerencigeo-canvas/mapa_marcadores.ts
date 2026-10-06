@@ -58,10 +58,10 @@ export class MapaMarcadores {
 
         if (!this.controller?.modoCliqueSequencialAtivo) {
           marker.bindPopup(`
-            <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.3;">
+            <div style="font-family:var(--ui-fonte-base, sans-serif); color:rgba(255, 255, 255, 0.9); line-height:1.3;">
               <div style="font-weight:700; font-size:13px; margin-bottom:4px; color:#ffffff;">${escapeHtml(p.nome_vertice)}</div>
               <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">${escapeHtml(popupRole)} · ${escapeHtml(p.tipo_ponto || p.tipo)}</div>
-              <div style="font-size:11px; color:rgba(255, 255, 255, 0.45); font-family:monospace; margin-top:4px;">Lat ${p.lat.toFixed(6)} &nbsp; Lon ${p.lon.toFixed(6)}</div>
+              <div style="font-size:11px; color:rgba(255, 255, 255, 0.45); font-family:var(--ui-fonte-codigo, monospace); margin-top:4px;">Lat ${p.lat.toFixed(6)} &nbsp; Lon ${p.lon.toFixed(6)}</div>
             </div>
           `, {
             className: 'compact-popup',

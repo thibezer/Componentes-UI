@@ -135,6 +135,34 @@
   background-color: var(--ui-cor-hover-menu, rgba(255, 255, 255, 0.08));
 }
 
+/* Botão de ordenação: herda a aparência do cabeçalho, ganha foco de teclado */
+.ui-tabela__ordenar {
+  all: unset;
+  display: flex;
+  width: 100%;
+  box-sizing: border-box;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  text-align: inherit;
+}
+
+.ui-tabela__ordenar:focus-visible {
+  outline: 2px solid var(--ui-cor-primaria, #00E08A);
+  outline-offset: 2px;
+  border-radius: var(--ui-raio-sm, 4px);
+}
+
+/* Foco de teclado na linha (navegação com setas) */
+.ui-tabela tbody tr:focus {
+  outline: none;
+}
+
+.ui-tabela tbody tr:focus-visible {
+  outline: 2px solid var(--ui-cor-primaria, #00E08A);
+  outline-offset: -2px;
+}
+
 /* Seta de Ordenação SVG */
 .ui-tabela__sort-arrow {
   display: inline-block;
@@ -216,13 +244,13 @@
 /* Linha Selecionada */
 .ui-tabela tbody tr.ui-tabela__tr--selecionada,
 .ui-tabela tbody tr[data-selecionada="true"] {
-  background-color: rgba(0, 224, 138, 0.14) !important;
+  background-color: var(--ui-cor-linha-selecionada, color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 14%, transparent));
   box-shadow: inset 3px 0 0 var(--ui-cor-primaria, #00E08A);
 }
 
 .ui-tabela tbody tr.ui-tabela__tr--selecionada:hover,
 .ui-tabela tbody tr[data-selecionada="true"]:hover {
-  background-color: rgba(0, 224, 138, 0.22) !important;
+  background-color: var(--ui-cor-linha-selecionada-hover, color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 22%, transparent));
 }
 
 /* Linhas Espaçadoras da Virtualização (Windowing) */
@@ -285,7 +313,7 @@
 .ui-tabela__spinner {
   width: 32px;
   height: 32px;
-  border: 3px solid rgba(255, 255, 255, 0.15);
+  border: 3px solid color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 15%, transparent);
   border-top-color: var(--ui-cor-primaria, #00E08A);
   border-radius: 50%;
   animation: ui-tabela-spin 0.8s linear infinite;
@@ -305,7 +333,7 @@
   background-color: var(--ui-cor-fundo-elevado, #1a1a1e);
   border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.2));
   border-radius: var(--ui-raio-borda, 6px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+  box-shadow: var(--ui-sombra-md, 0 4px 20px rgba(0, 0, 0, 0.6));
   padding: 6px;
   display: flex;
   flex-direction: column;
@@ -317,7 +345,7 @@
 
 .ui-tabela__context-item {
   padding: 8px 12px;
-  border-radius: 4px;
+  border-radius: var(--ui-raio-sm, 4px);
   cursor: pointer;
   color: var(--ui-cor-texto, #e1e1e6);
   display: flex;
@@ -339,7 +367,7 @@
   background-color: var(--ui-cor-fundo-elevado, #1a1a1e);
   color: var(--ui-cor-texto, #e1e1e6);
   padding: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+  box-shadow: var(--ui-sombra-lg, 0 8px 32px rgba(0, 0, 0, 0.8));
   font-family: inherit;
   font-size: 14px;
 }
@@ -353,7 +381,7 @@
 .ui-tabela__prompt-dialog input {
   width: 100%;
   padding: 6px 8px;
-  border-radius: 4px;
+  border-radius: var(--ui-raio-sm, 4px);
   border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.2));
   background: var(--ui-cor-superficie, #141417);
   color: var(--ui-cor-texto, #e1e1e6);
@@ -370,7 +398,7 @@
   color: var(--ui-cor-texto, #e1e1e6);
   border: none;
   padding: 6px 12px;
-  border-radius: 4px;
+  border-radius: var(--ui-raio-sm, 4px);
   cursor: pointer;
 }
 .ui-tabela__prompt-actions button:last-child {

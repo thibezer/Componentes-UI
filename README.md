@@ -2,7 +2,7 @@
 
 Biblioteca de **Web Components Nativos Universais e Agnósticos**, construída no padrão oficial **W3C Custom Elements + Shadow DOM**, com TypeScript, Design Tokens em CSS modular e Vite.
 
-Projetada para funcionar em **qualquer linguagem, framework ou sistema web** (HTML puro, React, Next.js, Vue, Angular, Svelte, PHP, Django, WordPress, Blazor, etc.) com **zero dependências externas**.
+Projetada para funcionar em **qualquer linguagem, framework ou sistema web** (HTML puro, React, Next.js, Vue, Angular, Svelte, PHP, Django, WordPress, Blazor, etc.) com **zero dependências externas** (exceto `<ui-mapa>` e `<ui-canvas-cad>`, que usam o Leaflet como dependência opcional).
 
 ---
 
@@ -53,6 +53,16 @@ Adicione as tags no `<head>` ou antes do fechamento do `</body>`:
 <!-- 3. Uso imediato no HTML -->
 <ui-botao-primario variante="primary">Clique Aqui</ui-botao-primario>
 ```
+
+> **Mapa e CAD via CDN (`<ui-mapa>`, `<ui-canvas-cad>`)**: esses componentes dependem do [Leaflet](https://leafletjs.com/), importado como `leaflet` (especificador "bare"), que o navegador só resolve com um *import map*. Declare-o **antes** do script da biblioteca:
+>
+> ```html
+> <script type="importmap">
+>   { "imports": { "leaflet": "https://cdn.jsdelivr.net/npm/leaflet@1.9.4/+esm" } }
+> </script>
+> ```
+>
+> Os demais componentes não precisam do Leaflet. Com npm, basta `npm install leaflet`.
 
 ### Opção 2: NPM / Módulos ES (React, Vue, Next.js, Vite)
 
@@ -258,6 +268,62 @@ Todos os componentes flutuantes consomem tokens de elevação previsíveis (com 
 <ui-switch aria-label="Camada visível"></ui-switch>
 ```
 
+### 8. Temas Claro e Escuro
+Sem configuração, o kit **segue o tema do sistema operacional** (`prefers-color-scheme`). Para fixar um tema, use o atributo na raiz — ou em qualquer elemento, para fixar só aquele trecho:
+```html
+<html data-tema="escuro">   <!-- ou "claro"; também aceitos: class="dark|light" e data-theme="dark|light" -->
+<aside data-tema="claro">…</aside>   <!-- trecho claro dentro de uma página escura -->
+```
+```javascript
+UIBus.definirTema('auto');   // volta a seguir o SO
+UIBus.on('tema:alterado', ({ tema }) => { /* também dispara quando o SO muda, se o tema não estiver fixado */ });
+```
+Os componentes recebem o tema **apenas pelos tokens de cor** (`--ui-cor-*`, `--ui-sombra-*`), que atravessam o Shadow DOM. Todo token de texto atinge contraste **WCAG AA (4,5:1)** nos dois temas, inclusive sobre fundos tingidos de status e no texto sobre a cor primária e o botão destrutivo — verificado em `tests/tema.test.ts`.
+
+| Token | Uso |
+| :--- | :--- |
+| `--ui-cor-texto-sucesso` / `-erro` / `-alerta` / `-info` | Texto e tons de status (alertas, badges, toasts) |
+| `--ui-cor-texto-sobre-status` | Texto sobre fundo sólido de status (badge sólido) |
+| `--ui-cor-fundo-recuado` | Faixas rebaixadas (rodapés de modal e drawer) |
+| `--ui-sombra-sm` / `-md` / `-lg` | Sombras: densas no escuro, suaves no claro |
+
+### 9. Tipografia e Raios
+Todos os componentes usam apenas dois tokens de família de fonte e uma escala de raios derivada de `--ui-raio-borda`. Sobrescreva no `:root` (a escala é calculada lá):
+```css
+:root {
+  --ui-fonte-base: 'Roboto', sans-serif;      /* textos da interface */
+  --ui-fonte-codigo: 'JetBrains Mono', monospace; /* coordenadas, valores técnicos, código */
+
+  --ui-raio-borda: 4px;  /* base: botões, campos, menus */
+  /* derivados automaticamente: --ui-raio-sm (2/3), --ui-raio-lg (5/3), --ui-raio-xl (8/3) */
+  /* --ui-raio-borda: 0  →  interface totalmente reta */
+}
+```
+
+### 10. Estilização Interna com `::part`
+O Shadow DOM isola o CSS, mas os elementos internos principais são expostos com `part`, com nomes consistentes entre componentes (uma regra serve para vários):
+
+| Componente | Parts |
+| :--- | :--- |
+| `<ui-botao>` / `<ui-botao-primario>` | `base`, `spinner` |
+| `<ui-campo-texto>` / `<ui-input>` | `rotulo`, `campo`, `input`, `icone`, `icone-esquerda`, `icone-direita`, `ajuda` |
+| `<ui-lista-flutuante>` / `<ui-select>` | `rotulo`, `campo`, `valor`, `seta`, `lista`, `opcao`, `opcao-selecionada` |
+| `<ui-checkbox>`, `<ui-radio>`, `<ui-switch>` | `base`, `controle`, `indicador`, `rotulo` |
+| `<ui-segmented>` | `base`, `indicador`, `opcao`, `opcao-selecionada` |
+| `<ui-modal>`, `<ui-drawer>` | `fundo`, `painel`, `cabecalho`, `titulo`, `descricao` (drawer), `fechar`, `corpo`, `rodape` |
+| `<ui-card>` | `base`, `midia`, `cabecalho`, `corpo`, `rodape` |
+| `<ui-badge>` / `<ui-chip>` | `base`, `rotulo`, `remover` |
+| `<ui-alerta>` / toasts | `base`, `icone`, `conteudo`, `titulo`, `mensagem`, `acao`, `fechar`, `progresso` |
+| `<ui-tooltip>` | `balao`, `texto`, `seta` |
+| `<ui-tabela>` | `base`, `tabela`, `celula-cabecalho`, `ordenar`, `linha`, `linha-selecionada`, `celula`, `vazio`, `carregando` |
+
+```css
+ui-campo-texto::part(campo) { border-width: 2px; }
+ui-modal::part(painel) { max-width: 720px; }
+ui-tabela::part(linha-selecionada) { background: #0b3d2a; }
+:is(ui-checkbox, ui-radio, ui-switch)::part(rotulo) { font-weight: 600; }
+```
+
 ---
 
 ## ⚡ Recursos Inteligentes de Alta Produtividade
@@ -299,7 +365,7 @@ Você pode acionar modais, fechar janelas, disparar notificações toast ou copi
 | `toast-alerta="msg"` | Dispara uma notificação flutuante de aviso. | `toast-alerta="Preencha os campos obrigatórios."` |
 | `copiar-texto="texto\|#id"` | Copia o texto ou o valor do elemento referenciado. | `copiar-texto="#campo-pix"` |
 | `limpar-form="id"` | Reseta todos os campos do formulário indicado. | `limpar-form="form-cadastro"` |
-| `alternar-tema` | Alterna entre tema claro e escuro globalmente. | `alternar-tema` |
+| `alternar-tema` | Alterna entre tema claro e escuro globalmente (a partir do tema em vigor, inclusive o do SO). | `alternar-tema` |
 
 ---
 
@@ -331,6 +397,8 @@ form.addEventListener('submit', (e) => {
 });
 ```
 
+Assim como nos campos nativos, **Enter** em um `<ui-campo-texto>` submete o formulário pelo botão de envio padrão (`<ui-botao-primario type="submit">` ou `<button>`), que também pode estar fora do `<form>` com `form="id-do-form"`. Para impedir, chame `preventDefault()` no `keydown`. O `name`/`value` do botão que submeteu chega como `e.submitter` (use `new FormData(form, e.submitter)`), e gatilhos Zero-JS em botões `disabled` ou `carregando` são ignorados.
+
 ---
 
 ### 3. Barramento Global de Orquestração (`UIBus`)
@@ -345,7 +413,8 @@ UIBus.fecharModal('modal-confirmacao');
 UIBus.notificar({ tipo: 'sucesso', mensagem: 'Operação concluída!' });
 UIBus.copiar('Texto para a área de transferência', 'Copiado!');
 UIBus.definirDensidade('compacta'); // 'compacta' | 'normal' | 'relaxada'
-UIBus.definirTema('escuro');        // 'claro' | 'escuro'
+UIBus.definirTema('escuro');        // 'claro' | 'escuro' | 'auto' (segue o SO); sem argumento, alterna
+UIBus.obterTema();                  // tema em vigor: 'claro' | 'escuro'
 
 // 2. Comunicação Desacoplada (Pub/Sub):
 UIBus.on('vertice:selecionado', (dadosVertice) => {
@@ -422,6 +491,26 @@ tabela.recarregar();   // Recarrega os dados da API remota
 
 A biblioteca é **100% SSR-safe**: todas as classes herdam de `SafeHTMLElement` e o registro de tags utiliza verificações de segurança para ambientes sem DOM (Node.js). Isso garante que você pode importar tipos, classes e constantes tanto no servidor quanto no cliente sem encontrar `ReferenceError: HTMLElement is not defined` ou `customElements is not defined`.
 
+#### Tipos no TSX (autocompletar e checagem)
+O pacote gera tipos para todas as tags a partir do Custom Elements Manifest. Registre-os uma vez no `tsconfig.json`:
+
+```json
+{ "compilerOptions": { "types": ["@thibezer/ui-components-kit/tipos-react"] } }
+```
+
+A partir daí o editor sugere atributos, propriedades e eventos de cada tag, e o TypeScript recusa valores inválidos:
+
+```tsx
+<ui-tabela
+  colunas={[{ id: 'ponto', rotulo: 'Ponto', ordenavel: true }]}   // tipado como TabelaColuna[]
+  densidade="compacta"                                             // 'compacta' | 'normal' | 'relaxada'
+  onui-sort={(e) => console.log(e.detail)}                         // eventos ui-* no formato do React 19
+/>
+<ui-tabela densidade="enorme" />                                   // ❌ erro de tipo
+```
+
+Outros JSX (Preact, Solid etc.) podem usar o mapa agnóstico `ElementosUI` de `@thibezer/ui-components-kit/tipos-elementos`.
+
 #### No Next.js (App Router):
 
 Crie um componente cliente provedor ou registre no topo do seu layout/página cliente:
@@ -451,9 +540,10 @@ import '@thibezer/ui-components-kit/forms';
 import '@thibezer/ui-components-kit/botao';
 import '@thibezer/ui-components-kit/tabela';
 import { UIBus } from '@thibezer/ui-components-kit/core';
+import type { UITabela } from '@thibezer/ui-components-kit/tabela';
 
 export default function DashboardPropriedades() {
-  const tabelaRef = useRef<any>(null);
+  const tabelaRef = useRef<UITabela>(null);
   const [nome, setNome] = useState('');
 
   useEffect(() => {
@@ -474,8 +564,10 @@ export default function DashboardPropriedades() {
         label="Pesquisar Imóvel"
         value={nome}
         onInput={(e: any) => {
-          setNome(e.detail?.value || '');
-          tabelaRef.current?.filtrar(e.detail?.value || '');
+          // Os eventos nativos `input`/`change` não têm `detail`: leia o valor do próprio elemento
+          const valor = e.target.value;
+          setNome(valor);
+          tabelaRef.current?.filtrar(valor);
         }}
       ></ui-campo-texto>
 
@@ -494,6 +586,18 @@ export default function DashboardPropriedades() {
 ---
 
 ### Vue.js
+
+Para autocompletar e checar props e eventos nos templates (Volar), registre os tipos no `tsconfig.json` e informe ao Vue que tags `ui-*` são custom elements:
+
+```json
+{ "compilerOptions": { "types": ["@thibezer/ui-components-kit/tipos-vue"] } }
+```
+
+```javascript
+// vite.config.js
+vue({ template: { compilerOptions: { isCustomElement: (tag) => tag.startsWith('ui-') } } })
+```
+
 ```vue
 <template>
   <div class="container">
@@ -563,7 +667,7 @@ window.addEventListener('message', (event) => {
 ### 🟢 Camada 1: Fundamentos
 | Tag | Descrição | Principais Atributos / Props | Eventos Emitidos |
 | :--- | :--- | :--- | :--- |
-| `<ui-botao-primario>` | Botão com estados de loading, ícone e variantes. | `variante`, `carregando`, `disabled`, `target-modal` | `ui-click` |
+| `<ui-botao-primario>` | Botão com estados de loading, ícone e variantes. Form-associated (`type="submit"`/`"reset"`, `name`/`value`, `form`). Só com ícone, informe `aria-label` (ou `title`). | `variante`, `carregando`, `disabled`, `type`, `aria-label`, `target-modal` | `ui-click` |
 | `<ui-campo-texto>` | Input de texto com Floating Label, validação e senha. | `label`, `value`, `tipo`, `obrigatorio`, `name` | `ui-input`, `ui-change` |
 | `<ui-lista-flutuante>` | Select/Dropdown com Bottom Sheet no mobile. | `itens`, `value`, `placeholder`, `name` | `ui-selecionar` |
 | `<ui-texto>` | Tipografia semântica (H1-H6, corpo, caption, código). | `variante`, `cor`, `peso` | - |
@@ -577,26 +681,31 @@ window.addEventListener('message', (event) => {
 | `<ui-switch>` | Chave de alternância liga/desliga física instantânea. | `ativo`, `name`, `value` | `ui-change` |
 | `<ui-segmented>` | Controle segmentado de opções (Pills/Tabs deslizantes). | `opcoes`, `value`, `name`, `tamanho` | `ui-change`, `ui-selecionar` |
 | `<ui-badge>` / `<ui-chip>` | Tags de status e chips com botão de remoção. | `variante`, `removivel`, `value` | `ui-remove` |
-| `<ui-avatar>` | Avatar com fotos, iniciais e status online. | `nome`, `foto`, `status`, `tamanho` | - |
+| `<ui-avatar>` | Avatar com fotos, iniciais e status online. | `nome`, `src`, `status`, `tamanho` | - |
 
 ### 🟣 Camada 3: Contêineres, Overlays, Dados & GIS
 | Tag | Descrição | Principais Atributos / Props | Eventos Emitidos |
 | :--- | :--- | :--- | :--- |
 | `<ui-card>` | Cartão de conteúdo com slots nomeados e elevação. | `elevacao`, `clicavel` | `ui-click` |
-| `<ui-modal>` | Modal centralizado no PC e Bottom Sheet no Mobile. | `aberto`, `titulo`, `bottom-sheet` | `ui-abrir`, `ui-fechar` |
-| `<ui-drawer>` | Painel lateral deslizante (Sheet/Gaveta direita/esquerda). | `aberto`, `lado`, `titulo`, `largura` | `ui-abrir`, `ui-fechar` |
+| `<ui-modal>` | Modal centralizado no PC e Bottom Sheet no Mobile. Abrir/fechar por `abrir()`/`fechar()` ou pelo atributo `aberto` tem o mesmo efeito (eventos, foco, `inert`). Foco inicial no `[autofocus]` ou no primeiro controle do conteúdo; ao fechar, volta ao gatilho. Modais empilhados: só o último aberto é interativo. | `aberto`, `titulo`, `bottom-sheet`, `bloquear-fechamento` (oculta o "✕" e ignora Esc/fundo) | `ui-abrir`, `ui-fechar` |
+| `<ui-drawer>` | Painel lateral deslizante (Sheet/Gaveta direita/esquerda). | `aberto`, `posicao` (`direita`, `esquerda`, `baixo`, `cima`), `titulo`, `largura` | `ui-abrir`, `ui-fechar` |
 | `<ui-alerta>` | Banner de notificação contextual fixo. | `variante`, `titulo`, `fechavel` | `ui-fechar` |
 | `<ui-toast>` | Notificações flutuantes inteligentes com pilha flex. | `UIToast.notificar({ tipo, mensagem })` | - |
-| `<ui-tooltip>` | Dica contextual inteligente (Hover PC / Toque Mobile). | `texto`, `posicao`, `gatilho` | - |
+| `<ui-tooltip>` | Dica contextual inteligente (Hover PC / Toque Mobile). O texto vira `aria-description` do gatilho (lido pelo leitor de tela, também repassado pelo `<ui-botao>`); **Esc** fecha sem mover o foco; o balão não some ao levar o ponteiro até ele. | `texto`, `posicao`, `gatilho` | - |
 | `<ui-skeleton>` | Placeholder de carregamento animado com pulsos. | `tipo`, `largura`, `altura`, `animado` | - |
-| `<ui-stat>` | Cartão KPI de estatísticas, métricas e tendências. | `rotulo`, `valor`, `variacao`, `tipo-variacao` | - |
-| `<ui-tabela>` | Tabela orientada a dados, virtualizada tipo Excel. | `colunas`, `dados`, `src`, `densidade` | `ui-sort`, `ui-column-resize` |
+| `<ui-stat>` | Cartão KPI de estatísticas, métricas e tendências. | `rotulo`, `valor`, `variacao`, `tendencia` (`alta`, `baixa`, `neutro`) | - |
+| `<ui-tabela>` | Tabela orientada a dados, virtualizada tipo Excel. **Teclado**: cabeçalhos ordenáveis são botões (Tab + Enter/Espaço, com `aria-sort`); nas linhas, ↑/↓, Home/End e PageUp/PageDown movem o foco e Enter/Espaço selecionam (`aria-current`). A seleção é mantida ao ordenar e filtrar. Nome acessível via `aria-label`. | `colunas`, `dados`, `src`, `densidade`, `aria-label` | `ui-sort`, `ui-column-resize`, `ui-linha-clique` |
 | `<ui-tabela-propriedades>` | Inspetor de propriedades técnicas padrão AutoCAD & Revit com cálculos matemáticos inline (+, -, *, /, ^, %), arraste de valor contínuo (scrubbing), splitter redimensionável e editores CAD. | `categorias`, `tipo-objeto`, `splitter-pos`, `modo-aplicar`, `filtro` | `ui-propriedade-alterada`, `ui-aplicar`, `ui-desfazer`, `ui-editar-tipo`, `ui-acao-clique`, `ui-quick-select`, `ui-calculadora` |
 | `<ui-ribbon>` | Barra de ferramentas em abas e grupos (estilo AutoCAD / Word / Excel): botões grandes e pequenos em colunas de 3, toggles, menus suspensos, abas contextuais, modo recolhido (duplo clique na aba) e navegação por teclado (roving tabindex). | `abas`, `aba-ativa`, `recolhido`, `compacto` | `ui-ferramenta`, `ui-aba-change` |
 | `<ui-paleta-ferramentas>` | Paleta de ferramentas (estilo Illustrator / Photoshop): seleção exclusiva, grupos com flyout (clique longo, botão direito ou seta), 1 ou 2 colunas, vertical/horizontal e atalhos de teclado que percorrem o grupo. | `ferramentas`, `valor`, `orientacao`, `colunas`, `tamanho`, `atalhos` | `ui-change`, `ui-selecionar`, `ui-ferramenta` |
 | `<ui-mapa>` | Mapa geográfico interativo com camadas OpenStreetMap. | `lat`, `lng`, `zoom`, `camadas` | - |
 | `<ui-camadas>` | Painel de camadas vetoriais CAD/GIS com hierarquia em árvore, barra de arraste vertical (`redimensionavel`), estabilidade de altura sem colapso, drag-and-drop, métricas geodésicas e persistência no LocalStorage. | `redimensionavel`, `altura`, `min-altura`, `max-altura`, `flutuante`, `colapsado`, `camada-ativa`, `persistir` | `ui-redimensionar-altura`, `ui-camada-selecionada`, `ui-camada-visibilidade`, `ui-camadas-reordenadas`, `ui-acao-massa` |
 | `<ui-canvas-cad>` | Mesa CAD/GIS para poligonais e vértices geodésicos. | `pontos`, `segmentos`, `fitBounds()` | `ui-ponto-selecionado` |
+
+---
+
+### Custom Elements Manifest
+O pacote publica `custom-elements.json` (campo `customElements` do `package.json`), o formato padrão que IDEs, Storybook e geradores de documentação leem para listar tags, atributos, propriedades, eventos e `::part` de cada componente. Ele é gerado no `npm run build` pelo [`@custom-elements-manifest/analyzer`](https://custom-elements-manifest.open-wc.org/), e os tipos React/Vue são derivados dele — por isso nunca ficam desatualizados em relação ao código.
 
 ---
 
@@ -622,3 +731,9 @@ window.addEventListener('message', (event) => {
    * `dist/index.cjs` e `dist/<modulo>.cjs` (CommonJS para `require`)
    * `dist/*.d.ts` (Tipagens TypeScript)
    * `dist/ui-kit.css` (Design Tokens compilados, 100% autocontido — o build falha se restar qualquer `@import`)
+   * `dist/custom-elements.json` (Custom Elements Manifest) e `dist/tipos-react.d.ts`, `dist/tipos-vue.d.ts`, `dist/tipos-elementos.d.ts`
+
+4. **Verificar os tipos gerados** (depois do build):
+   ```bash
+   npm run test:tipos
+   ```

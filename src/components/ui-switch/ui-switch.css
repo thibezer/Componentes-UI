@@ -32,7 +32,7 @@
   height: 20px;
   background-color: var(--ui-cor-fundo-elevado, #1a1a1e);
   border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.16));
-  border-radius: 999px;
+  border-radius: var(--ui-raio-pill, 999px);
   box-sizing: border-box;
   padding: 1px;
   transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
@@ -42,7 +42,7 @@
 .ui-switch:focus-visible .ui-switch__track,
 .ui-switch--foco .ui-switch__track {
   border-color: var(--ui-cor-primaria, #00E08A);
-  box-shadow: 0 0 0 2px rgba(0, 224, 138, 0.25);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 25%, transparent);
 }
 
 .ui-switch--checked .ui-switch__track {
@@ -56,7 +56,7 @@
   height: 16px;
   background-color: #ffffff;
   border-radius: 50%;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--ui-sombra-sm, 0 1px 3px rgba(0, 0, 0, 0.3));
   transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease;
   transform: translateX(0);
 }

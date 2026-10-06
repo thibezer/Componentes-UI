@@ -40,20 +40,20 @@ export class UIAlerta extends SafeHTMLElement {
     const shadow = this.attachShadow({ mode: 'open' });
     shadow.innerHTML = `
       <style>${estilos}</style>
-      <div class="ui-alerta" role="alert">
-        <span class="ui-alerta__icone"></span>
-        <div class="ui-alerta__conteudo">
-          <h4 class="ui-alerta__titulo" style="display: none;"></h4>
-          <p class="ui-alerta__mensagem">
+      <div class="ui-alerta" part="base" role="alert">
+        <span class="ui-alerta__icone" part="icone"></span>
+        <div class="ui-alerta__conteudo" part="conteudo">
+          <h4 class="ui-alerta__titulo" part="titulo" style="display: none;"></h4>
+          <p class="ui-alerta__mensagem" part="mensagem">
             <span class="ui-alerta__mensagem-texto" style="display: none;"></span>
             <slot></slot>
           </p>
         </div>
         <div class="ui-alerta__acoes" style="display: none;">
-          <button type="button" class="ui-alerta__botao-acao"></button>
+          <button type="button" class="ui-alerta__botao-acao" part="acao"></button>
         </div>
-        <button class="ui-alerta__close" type="button" aria-label="Fechar alerta" style="display: none;" title="Fechar">✕</button>
-        <div class="ui-toast__progresso" style="display: none;">
+        <button class="ui-alerta__close" part="fechar" type="button" aria-label="Fechar alerta" style="display: none;" title="Fechar">✕</button>
+        <div class="ui-toast__progresso" part="progresso" style="display: none;">
           <div class="ui-toast__progresso-barra"></div>
         </div>
       </div>

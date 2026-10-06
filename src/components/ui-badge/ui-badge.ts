@@ -26,10 +26,10 @@ export class UIBadge extends SafeHTMLElement {
     const shadow = this.attachShadow({ mode: 'open' });
     shadow.innerHTML = `
       <style>${estilos}</style>
-      <span class="ui-badge">
+      <span class="ui-badge" part="base">
         <slot></slot>
-        <span class="ui-badge__label" style="display: none;"></span>
-        <span class="ui-badge__close" role="button" tabindex="0" aria-label="Remover" style="display: none;" title="Remover">✕</span>
+        <span class="ui-badge__label" part="rotulo" style="display: none;"></span>
+        <span class="ui-badge__close" part="remover" role="button" tabindex="0" aria-label="Remover" style="display: none;" title="Remover">✕</span>
       </span>
     `;
 

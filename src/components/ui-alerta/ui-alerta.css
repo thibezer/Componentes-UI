@@ -59,7 +59,7 @@
   font-size: 14px;
   cursor: pointer;
   padding: 2px 6px;
-  border-radius: 4px;
+  border-radius: var(--ui-raio-sm, 4px);
   line-height: 1;
   flex-shrink: 0;
   margin-top: -2px;
@@ -69,42 +69,46 @@
 
 .ui-alerta__close:hover {
   opacity: 1;
-  background-color: rgba(255, 255, 255, 0.15);
+  background-color: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 15%, transparent);
 }
 
 /* Variantes Temáticas (Sucesso, Erro, Alerta, Info) */
 .ui-alerta--sucesso {
-  background-color: rgba(0, 224, 138, 0.12);
-  border-color: rgba(0, 224, 138, 0.3);
+  background-color: color-mix(in srgb, var(--ui-cor-texto-sucesso, #00E08A) 12%, transparent);
+  border-color: color-mix(in srgb, var(--ui-cor-texto-sucesso, #00E08A) 30%, transparent);
   color: var(--ui-cor-texto-sucesso, #00E08A);
 }
+
 .ui-alerta--sucesso .ui-alerta__mensagem {
   color: var(--ui-cor-texto, #e1e1e6);
 }
 
 .ui-alerta--erro {
-  background-color: rgba(255, 85, 85, 0.12);
-  border-color: rgba(255, 85, 85, 0.3);
+  background-color: color-mix(in srgb, var(--ui-cor-texto-erro, #ff5555) 12%, transparent);
+  border-color: color-mix(in srgb, var(--ui-cor-texto-erro, #ff5555) 30%, transparent);
   color: var(--ui-cor-texto-erro, #ff5555);
 }
+
 .ui-alerta--erro .ui-alerta__mensagem {
   color: var(--ui-cor-texto, #e1e1e6);
 }
 
 .ui-alerta--alerta {
-  background-color: rgba(255, 184, 108, 0.12);
-  border-color: rgba(255, 184, 108, 0.3);
+  background-color: color-mix(in srgb, var(--ui-cor-texto-alerta, #ffb86c) 12%, transparent);
+  border-color: color-mix(in srgb, var(--ui-cor-texto-alerta, #ffb86c) 30%, transparent);
   color: var(--ui-cor-texto-alerta, #ffb86c);
 }
+
 .ui-alerta--alerta .ui-alerta__mensagem {
   color: var(--ui-cor-texto, #e1e1e6);
 }
 
 .ui-alerta--info {
-  background-color: rgba(0, 170, 255, 0.12);
-  border-color: rgba(0, 170, 255, 0.3);
-  color: #00aaff;
+  background-color: color-mix(in srgb, var(--ui-cor-texto-info, #33b5ff) 12%, transparent);
+  border-color: color-mix(in srgb, var(--ui-cor-texto-info, #33b5ff) 30%, transparent);
+  color: var(--ui-cor-texto-info, #33b5ff);
 }
+
 .ui-alerta--info .ui-alerta__mensagem {
   color: var(--ui-cor-texto, #e1e1e6);
 }
@@ -118,8 +122,8 @@
 }
 
 .ui-alerta__botao-acao {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 16%, transparent);
   color: inherit;
   font-family: inherit;
   font-size: 12px;
@@ -136,8 +140,8 @@
 }
 
 .ui-alerta__botao-acao:hover {
-  background: rgba(255, 255, 255, 0.18);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 18%, transparent);
+  border-color: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 30%, transparent);
 }
 
 .ui-alerta__botao-acao:active {
@@ -150,25 +154,25 @@
 }
 
 .ui-alerta__botao-acao--primario {
-  background: rgba(0, 224, 138, 0.15);
-  border-color: rgba(0, 224, 138, 0.35);
+  background: color-mix(in srgb, var(--ui-cor-texto-sucesso, #00E08A) 15%, transparent);
+  border-color: color-mix(in srgb, var(--ui-cor-texto-sucesso, #00E08A) 35%, transparent);
   color: var(--ui-cor-primaria, #00E08A);
 }
 
 .ui-alerta__botao-acao--primario:hover {
-  background: rgba(0, 224, 138, 0.25);
-  border-color: rgba(0, 224, 138, 0.5);
+  background: color-mix(in srgb, var(--ui-cor-texto-sucesso, #00E08A) 25%, transparent);
+  border-color: color-mix(in srgb, var(--ui-cor-texto-sucesso, #00E08A) 50%, transparent);
 }
 
 .ui-alerta__botao-acao--destrutivo {
-  background: rgba(255, 68, 68, 0.15);
-  border-color: rgba(255, 68, 68, 0.35);
+  background: color-mix(in srgb, var(--ui-cor-texto-erro, #ff5555) 15%, transparent);
+  border-color: color-mix(in srgb, var(--ui-cor-texto-erro, #ff5555) 35%, transparent);
   color: var(--ui-cor-texto-erro, #ff5555);
 }
 
 .ui-alerta__botao-acao--destrutivo:hover {
-  background: rgba(255, 68, 68, 0.25);
-  border-color: rgba(255, 68, 68, 0.5);
+  background: color-mix(in srgb, var(--ui-cor-texto-erro, #ff5555) 25%, transparent);
+  border-color: color-mix(in srgb, var(--ui-cor-texto-erro, #ff5555) 50%, transparent);
 }
 
 /* ====================================================
@@ -183,10 +187,33 @@
 }
 
 .ui-toast__banner {
-  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  box-shadow: var(--ui-sombra-lg, 0 10px 30px rgba(0, 0, 0, 0.3)), 0 0 0 1px var(--ui-cor-borda, rgba(255, 255, 255, 0.1));
   animation: ui-toast-slide 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
   overflow: hidden;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* Fundo equilibrado com vidro fosco translúcido (~82% opacidade) */
+.ui-toast__banner.ui-alerta--sucesso {
+  background-color: color-mix(in srgb, color-mix(in srgb, var(--ui-cor-fundo-elevado, #1a1a1e) 88%, var(--ui-cor-texto-sucesso, #00E08A) 12%) 60%, transparent);
+  border-color: color-mix(in srgb, var(--ui-cor-texto-sucesso, #00E08A) 40%, transparent);
+}
+
+.ui-toast__banner.ui-alerta--erro {
+  background-color: color-mix(in srgb, color-mix(in srgb, var(--ui-cor-fundo-elevado, #1a1a1e) 88%, var(--ui-cor-texto-erro, #ff5555) 12%) 60%, transparent);
+  border-color: color-mix(in srgb, var(--ui-cor-texto-erro, #ff5555) 40%, transparent);
+}
+
+.ui-toast__banner.ui-alerta--alerta {
+  background-color: color-mix(in srgb, color-mix(in srgb, var(--ui-cor-fundo-elevado, #1a1a1e) 88%, var(--ui-cor-texto-alerta, #ffb86c) 12%) 60%, transparent);
+  border-color: color-mix(in srgb, var(--ui-cor-texto-alerta, #ffb86c) 40%, transparent);
+}
+
+.ui-toast__banner.ui-alerta--info {
+  background-color: color-mix(in srgb, color-mix(in srgb, var(--ui-cor-fundo-elevado, #1a1a1e) 88%, var(--ui-cor-texto-info, #33b5ff) 12%) 60%, transparent);
+  border-color: color-mix(in srgb, var(--ui-cor-texto-info, #33b5ff) 40%, transparent);
 }
 
 /* Barra de Progresso Temporal (Sonner Style) */
@@ -196,7 +223,7 @@
   left: 0;
   right: 0;
   height: 2px;
-  background: rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 8%, transparent);
   overflow: hidden;
 }
 
@@ -219,6 +246,7 @@
   from {
     transform: scaleX(1);
   }
+
   to {
     transform: scaleX(0);
   }
@@ -229,6 +257,7 @@
     transform: translateX(100%);
     opacity: 0;
   }
+
   to {
     transform: translateX(0);
     opacity: 1;

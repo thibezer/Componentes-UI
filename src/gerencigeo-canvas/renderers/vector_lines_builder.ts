@@ -87,7 +87,7 @@ export function rebuildVectorLines(
           const acoesHtml = renderPopupAcoesHtml(acoes, conexaoId);
 
           polyline.bindPopup(`
-            <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.3;">
+            <div style="font-family:var(--ui-fonte-base, sans-serif); color:rgba(255, 255, 255, 0.9); line-height:1.3;">
               <div style="font-weight:700; font-size:12px; margin-bottom:3px; color:#ffffff;">Conexão ${escapeHtml(String(c.origemId))} ↔ ${escapeHtml(String(c.destinoId))}</div>
               <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">Tipo: ${escapeHtml(c.tipoLinha || 'contínua')}</div>
               ${acoesHtml}
@@ -133,7 +133,7 @@ export function rebuildVectorLines(
 
       if (isInteractive) {
         polylineCorpo.bindPopup(`
-          <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.3;">
+          <div style="font-family:var(--ui-fonte-base, sans-serif); color:rgba(255, 255, 255, 0.9); line-height:1.3;">
             <div style="font-weight:700; font-size:12px; margin-bottom:3px; color:#ffffff;">Polilinha: Grupo ${escapeHtml(grupoKey)}</div>
             <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">Vértices: ${sortedPontos.length}</div>
           </div>
@@ -186,7 +186,7 @@ export function rebuildVectorLines(
           const acoesHtml = renderPopupAcoesHtml(acoes, segmentoId);
 
           polyline.bindPopup(`
-            <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.3;">
+            <div style="font-family:var(--ui-fonte-base, sans-serif); color:rgba(255, 255, 255, 0.9); line-height:1.3;">
               <div style="font-weight:700; font-size:12px; margin-bottom:3px; color:#ffffff;">${escapeHtml(pIni.nome_vertice)} ↔ ${escapeHtml(pFim.nome_vertice)}</div>
               <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">Limite: ${escapeHtml(tipoLim || 'N/A')} · ${escapeHtml(metodoPos || 'N/A')}</div>
               ${acoesHtml}

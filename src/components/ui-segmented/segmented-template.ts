@@ -18,8 +18,8 @@ export const ATRIBUTOS_OBSERVADOS_SEGMENTED = [
 export function criarTemplateSegmented(): string {
   return `
     <style>${estilos}</style>
-    <div class="ui-segmented ui-segmented--md" role="radiogroup">
-      <div class="ui-segmented__indicador"></div>
+    <div class="ui-segmented ui-segmented--md" part="base" role="radiogroup">
+      <div class="ui-segmented__indicador" part="indicador"></div>
       <div class="ui-segmented__track" style="display: contents;"></div>
       <slot style="display: none;"></slot>
     </div>
@@ -37,6 +37,7 @@ export function criarBotaoOpcao(
   btn.type = 'button';
   btn.role = 'radio';
   btn.className = 'ui-segmented__item';
+  btn.setAttribute('part', opcao.valor === valorAtual ? 'opcao opcao-selecionada' : 'opcao');
   btn.dataset.valor = opcao.valor;
   btn.dataset.indice = String(indice);
 

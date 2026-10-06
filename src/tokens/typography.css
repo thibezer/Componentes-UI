@@ -1,7 +1,7 @@
 :root {
-  /* Famílias de Fontes */
-  --ui-fonte-base: 'Inter', system-ui, -apple-system, sans-serif;
-  --ui-fonte-codigo: 'Fira Code', 'Consolas', monospace;
+  /* Famílias de Fontes: os únicos tokens de família usados pelos componentes */
+  --ui-fonte-base: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --ui-fonte-codigo: 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
   /* Escala de Tamanhos de Fonte */
   --ui-tamanho-h1: clamp(24px, 4vw, 36px);

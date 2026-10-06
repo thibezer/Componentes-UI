@@ -7,7 +7,7 @@
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  font-family: var(--ui-fonte-familia, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
+  font-family: var(--ui-fonte-base, 'Inter', sans-serif);
   font-size: var(--ui-tamanho-corpo-sm, 12px);
   color: var(--ui-cor-texto, #e1e1e6);
   background-color: var(--ui-cor-superficie, #141417);
@@ -92,7 +92,7 @@
   justify-content: center;
   width: 20px;
   height: 20px;
-  background: rgba(255, 255, 255, 0.05);
+  background: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 5%, transparent);
   border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
   border-radius: 3px;
   color: var(--ui-cor-texto, #e1e1e6);
@@ -133,7 +133,7 @@
 :host([flutuante]) {
   position: fixed !important;
   z-index: var(--ui-z-docked-bar, 600) !important;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.14), 0 6px 14px rgba(0, 0, 0, 0.5) !important;
+  box-shadow: var(--ui-sombra-lg, 0 16px 48px rgba(0, 0, 0, 0.75)), 0 0 0 1px color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 14%, transparent), 0 6px 14px rgba(0, 0, 0, 0.5) !important;
   border-radius: 6px !important;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -167,12 +167,12 @@
   height: 14px;
   cursor: nwse-resize;
   z-index: 50;
-  background: linear-gradient(135deg, transparent 50%, rgba(255, 255, 255, 0.25) 50%, rgba(255, 255, 255, 0.25) 65%, transparent 65%, transparent 80%, rgba(255, 255, 255, 0.25) 80%);
+  background: linear-gradient(135deg, transparent 50%, color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 25%, transparent) 50%, color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 25%, transparent) 65%, transparent 65%, transparent 80%, color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 25%, transparent) 80%);
   pointer-events: auto;
 }
 
 .ui-prop__btn-icone--ativo {
-  background-color: rgba(0, 224, 138, 0.18) !important;
+  background-color: color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 18%, transparent) !important;
   color: var(--ui-cor-destaque, #00E08A) !important;
 }
 
@@ -321,7 +321,7 @@
   gap: 10px;
   background-color: var(--ui-cor-fundo-card, #18181c);
   border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
-  border-radius: 4px;
+  border-radius: var(--ui-raio-sm, 4px);
   padding: 6px 8px;
   cursor: pointer;
   transition: border-color 0.15s ease;
@@ -402,12 +402,12 @@
 }
 
 .ui-prop__tipo-select:hover {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 5%, transparent);
   color: #ffffff;
 }
 
 .ui-prop__tipo-select:focus {
-  background-color: rgba(0, 224, 138, 0.08);
+  background-color: color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 8%, transparent);
   color: var(--ui-cor-destaque, #00E08A);
 }
 
@@ -505,7 +505,7 @@
 
 .ui-prop__btn-autocad:active {
   transform: scale(0.92);
-  background-color: rgba(0, 224, 138, 0.15);
+  background-color: color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 15%, transparent);
 }
 
 /* ====================================================
@@ -564,7 +564,7 @@
   background-color: var(--ui-cor-superficie, #141417);
   position: relative;
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.18) var(--ui-cor-fundo, #0b0b0d);
+  scrollbar-color: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 18%, transparent) var(--ui-cor-fundo, #0b0b0d);
 }
 
 /* Scrollbar técnica e compacta */
@@ -577,12 +577,12 @@
 }
 
 .ui-prop__corpo::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.18);
-  border-radius: 4px;
+  background: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 18%, transparent);
+  border-radius: var(--ui-raio-sm, 4px);
 }
 
 .ui-prop__corpo::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 30%, transparent);
 }
 
 /* ====================================================
@@ -686,7 +686,7 @@
 }
 
 .ui-prop__linha:focus-within {
-  background-color: rgba(0, 224, 138, 0.08);
+  background-color: color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 8%, transparent);
 }
 
 .ui-prop__linha:focus-within .ui-prop__col-rotulo {
@@ -695,7 +695,7 @@
 }
 
 .ui-prop__linha--modificada {
-  background-color: rgba(0, 224, 138, 0.05);
+  background-color: color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 5%, transparent);
 }
 
 .ui-prop__col-rotulo {
@@ -739,7 +739,7 @@
 
 .ui-prop__col-rotulo--scrub:hover {
   color: var(--ui-cor-destaque, #00E08A);
-  background-color: rgba(0, 224, 138, 0.05);
+  background-color: color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 5%, transparent);
 }
 
 .ui-prop__col-rotulo--arrastando {
@@ -785,11 +785,11 @@
 .ui-prop__splitter:hover::after,
 .ui-prop__splitter--ativo::after {
   background-color: var(--ui-cor-destaque, #00E08A);
-  box-shadow: 0 0 6px rgba(0, 224, 138, 0.5);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 50%, transparent);
 }
 
 .ui-prop__splitter--ativo {
-  background-color: rgba(0, 224, 138, 0.08);
+  background-color: color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 8%, transparent);
 }
 
 .ui-prop__col-valor {
@@ -833,12 +833,12 @@
 }
 
 .ui-prop__editor-input:hover {
-  background-color: rgba(255, 255, 255, 0.03);
+  background-color: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 3%, transparent);
 }
 
 .ui-prop__editor-input--numero {
   text-align: right;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-family: var(--ui-fonte-codigo, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
   font-variant-numeric: tabular-nums;
 }
 
@@ -849,7 +849,7 @@
 }
 
 .ui-prop__col-valor:has(.ui-prop__editor-input--calculando) {
-  background-color: rgba(0, 224, 138, 0.08) !important;
+  background-color: color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 8%, transparent) !important;
   box-shadow: inset 0 0 0 1.5px var(--ui-cor-destaque, #00E08A) !important;
 }
 
@@ -883,7 +883,7 @@
 }
 
 .ui-prop__editor-select:hover {
-  background-color: rgba(255, 255, 255, 0.03);
+  background-color: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 3%, transparent);
 }
 
 .ui-prop__editor-select option {
@@ -915,14 +915,14 @@
 }
 
 .ui-prop__editor-cor-container:hover {
-  background-color: rgba(255, 255, 255, 0.04);
+  background-color: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 4%, transparent);
 }
 
 .ui-prop__cor-amostra {
   width: 13px;
   height: 13px;
   border-radius: 2px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 30%, transparent);
   flex-shrink: 0;
   box-sizing: border-box;
 }
@@ -1002,7 +1002,7 @@
 }
 
 .ui-prop__linha-select:hover {
-  background-color: rgba(255, 255, 255, 0.03);
+  background-color: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 3%, transparent);
 }
 
 .ui-prop__linha-select option {
@@ -1065,7 +1065,7 @@
 }
 
 .ui-prop__espessura-select:hover {
-  background-color: rgba(255, 255, 255, 0.03);
+  background-color: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 3%, transparent);
 }
 
 .ui-prop__espessura-select option {
@@ -1118,7 +1118,7 @@
 }
 
 .ui-prop__cor-cad-select:hover {
-  background-color: rgba(255, 255, 255, 0.03);
+  background-color: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 3%, transparent);
 }
 
 .ui-prop__cor-cad-select option {
@@ -1141,7 +1141,7 @@
 }
 
 .ui-prop__editor-booleano:hover {
-  background-color: rgba(255, 255, 255, 0.03);
+  background-color: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 3%, transparent);
 }
 
 .ui-prop__checkbox-custom {
@@ -1187,7 +1187,7 @@
 }
 
 .ui-prop__btn-acao-inline:hover {
-  background-color: rgba(255, 255, 255, 0.04);
+  background-color: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 4%, transparent);
   color: var(--ui-cor-destaque, #00E08A);
 }
 
@@ -1210,7 +1210,7 @@
 
 .ui-prop__valor-readonly--numero {
   justify-content: flex-end;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-family: var(--ui-fonte-codigo, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
   font-variant-numeric: tabular-nums;
 }
 
@@ -1277,8 +1277,8 @@
 }
 
 .ui-prop__btn-aplicar:disabled {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.3);
+  background-color: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 10%, transparent);
+  color: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 30%, transparent);
   cursor: not-allowed;
 }
 

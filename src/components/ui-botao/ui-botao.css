@@ -123,7 +123,7 @@
 .ui-botao-primario--secondary:hover:not(:disabled),
 .ui-botao-primario--secundario:hover:not(:disabled) {
   background: var(--ui-cor-botao-secundario-hover, #2a2a34);
-  border-color: rgba(255, 255, 255, 0.24);
+  border-color: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 24%, transparent);
 }
 
 /* 3. Ghost / Tertiary */
@@ -164,7 +164,7 @@
 
 .ui-botao-primario--outline:hover:not(:disabled),
 .ui-botao-primario--borda:hover:not(:disabled) {
-  background: rgba(0, 224, 138, 0.12);
+  background: color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 12%, transparent);
   border-color: var(--ui-cor-primaria, #00E08A);
   filter: brightness(1.08);
 }

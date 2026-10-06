@@ -33,11 +33,11 @@ export class UICheckbox extends FormAssociatedElement {
     const shadow = this.attachShadow({ mode: 'open' });
     shadow.innerHTML = `
       <style>${estilos}</style>
-      <div class="ui-checkbox" tabindex="0" role="checkbox" aria-checked="false">
-        <span class="ui-checkbox__box">
-          <span class="ui-checkbox__mark"></span>
+      <div class="ui-checkbox" part="base" tabindex="0" role="checkbox" aria-checked="false">
+        <span class="ui-checkbox__box" part="controle">
+          <span class="ui-checkbox__mark" part="indicador"></span>
         </span>
-        <span class="ui-checkbox__label" style="display: none;"></span>
+        <span class="ui-checkbox__label" part="rotulo" style="display: none;"></span>
       </div>
     `;
 

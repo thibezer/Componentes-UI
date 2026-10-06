@@ -25,19 +25,19 @@ export class UICard extends SafeHTMLElement {
     const shadow = this.attachShadow({ mode: 'open' });
     shadow.innerHTML = `
       <style>${estilos}</style>
-      <div class="ui-card">
-        <div class="ui-card__media">
+      <div class="ui-card" part="base">
+        <div class="ui-card__media" part="midia">
           <slot name="midia"></slot>
           <slot name="media"></slot>
         </div>
-        <div class="ui-card__header">
+        <div class="ui-card__header" part="cabecalho">
           <slot name="cabecalho"></slot>
           <slot name="header"></slot>
         </div>
-        <div class="ui-card__body">
+        <div class="ui-card__body" part="corpo">
           <slot></slot>
         </div>
-        <div class="ui-card__footer">
+        <div class="ui-card__footer" part="rodape">
           <slot name="rodape"></slot>
           <slot name="footer"></slot>
         </div>
