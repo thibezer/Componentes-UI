@@ -1,6 +1,9 @@
 import estilos from './ui-tooltip.css?inline';
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 
+/** Tempo para levar o ponteiro do gatilho até o balão sem que ele feche (WCAG 1.4.13). */
+const ATRASO_OCULTAR_MS = 120;
+
 export class UITooltip extends SafeHTMLElement {
   static get observedAttributes() {
     return [
@@ -19,6 +22,9 @@ export class UITooltip extends SafeHTMLElement {
   private containerElement: HTMLDivElement;
   private bubbleElement: HTMLDivElement;
   private _posicionamentoAtivo: boolean = false;
+  private _timerOcultar: ReturnType<typeof setTimeout> | null = null;
+  /** Gatilho que recebeu `aria-description` deste tooltip (para remover depois). */
+  private _gatilhoDescrito: HTMLElement | null = null;
 
   constructor() {
     super();
@@ -27,16 +33,17 @@ export class UITooltip extends SafeHTMLElement {
       <style>${estilos}</style>
       <div class="ui-tooltip ui-tooltip--topo">
         <slot></slot>
-        <div class="ui-tooltip__bubble" role="tooltip" popover="manual">
-          <span class="ui-tooltip__texto"></span>
+        <div class="ui-tooltip__bubble" part="balao" role="tooltip" popover="manual">
+          <span class="ui-tooltip__texto" part="texto"></span>
           <slot name="conteudo"></slot>
-          <span class="ui-tooltip__arrow"></span>
+          <span class="ui-tooltip__arrow" part="seta"></span>
         </div>
       </div>
     `;
 
     this.containerElement = shadow.querySelector('.ui-tooltip')!;
     this.bubbleElement = shadow.querySelector('.ui-tooltip__bubble')!;
+    shadow.querySelectorAll('slot').forEach((slot) => slot.addEventListener('slotchange', () => this.sincronizarDescricao()));
   }
 
   connectedCallback() {
@@ -55,7 +62,10 @@ export class UITooltip extends SafeHTMLElement {
     this.removeEventListener('focusout', this.handleMouseLeave);
     this.removeEventListener('click', this.handleClick);
     document.removeEventListener('click', this.handleClickOutside);
-    
+    document.removeEventListener('keydown', this.handleEscape, true);
+    this.cancelarOcultar();
+    this.removerDescricao();
+
     if (this._posicionamentoAtivo) {
       this._posicionamentoAtivo = false;
       window.removeEventListener('scroll', this.posicionarBubble, { capture: true });
@@ -166,8 +176,11 @@ export class UITooltip extends SafeHTMLElement {
       }
     }
 
+    this.sincronizarDescricao();
+
     if (isAberto) {
       document.addEventListener('click', this.handleClickOutside);
+      document.addEventListener('keydown', this.handleEscape, true);
       if (typeof (this.bubbleElement as any).showPopover === 'function') {
         try { (this.bubbleElement as any).showPopover(); } catch(_e) {}
       }
@@ -185,6 +198,7 @@ export class UITooltip extends SafeHTMLElement {
       }
     } else {
       document.removeEventListener('click', this.handleClickOutside);
+      document.removeEventListener('keydown', this.handleEscape, true);
       if (typeof (this.bubbleElement as any).hidePopover === 'function') {
         try { (this.bubbleElement as any).hidePopover(); } catch(_e) {}
       }
@@ -200,6 +214,7 @@ export class UITooltip extends SafeHTMLElement {
   private handleMouseEnter = () => {
     const gatilho = this.getAttribute('gatilho') || this.getAttribute('trigger') || 'hover';
     if (gatilho === 'hover' || gatilho === 'passar-mouse') {
+      this.cancelarOcultar();
       this.mostrar();
     }
   };
@@ -207,9 +222,67 @@ export class UITooltip extends SafeHTMLElement {
   private handleMouseLeave = () => {
     const gatilho = this.getAttribute('gatilho') || this.getAttribute('trigger') || 'hover';
     if (gatilho === 'hover' || gatilho === 'passar-mouse') {
-      this.ocultar();
+      // Atraso: atravessar o espaço até o balão não o fecha (o balão está no Shadow DOM do host)
+      this.cancelarOcultar();
+      this._timerOcultar = setTimeout(() => {
+        this._timerOcultar = null;
+        this.ocultar();
+      }, ATRASO_OCULTAR_MS);
     }
   };
+
+  private cancelarOcultar() {
+    if (this._timerOcultar) {
+      clearTimeout(this._timerOcultar);
+      this._timerOcultar = null;
+    }
+  }
+
+  /**
+   * Escape fecha o tooltip sem mover o foco (WCAG 1.4.13). Ouvido na captura e interrompido,
+   * para que dentro de um modal o primeiro Escape feche só o tooltip.
+   */
+  private handleEscape = (e: KeyboardEvent) => {
+    if (e.key !== 'Escape' || !this.aberto) return;
+    e.stopPropagation();
+    this.cancelarOcultar();
+    this.ocultar();
+  };
+
+  /**
+   * O balão vive no Shadow DOM, fora do alcance de `aria-describedby` do gatilho (light DOM).
+   * O texto é exposto como `aria-description` no gatilho, sem sobrescrever uma descrição do consumidor.
+   */
+  private sincronizarDescricao() {
+    if (!this.isConnected) {
+      this.removerDescricao();
+      return;
+    }
+    const gatilho = Array.from(this.children).find((el) => !el.hasAttribute('slot')) as HTMLElement | undefined;
+    const descricao = (
+      this.getAttribute('texto') || this.getAttribute('text') ||
+      this.querySelector('[slot="conteudo"]')?.textContent || ''
+    ).replace(/\s+/g, ' ').trim();
+
+    if (this._gatilhoDescrito && this._gatilhoDescrito !== gatilho) this.removerDescricao();
+    if (!gatilho) return;
+
+    const descritoPeloConsumidor = this._gatilhoDescrito !== gatilho &&
+      (gatilho.hasAttribute('aria-describedby') || gatilho.hasAttribute('aria-description'));
+    if (descritoPeloConsumidor) return;
+
+    if (descricao && !this.disabled) {
+      gatilho.setAttribute('aria-description', descricao);
+      this._gatilhoDescrito = gatilho;
+    } else {
+      this.removerDescricao();
+    }
+  }
+
+  private removerDescricao() {
+    this._gatilhoDescrito?.removeAttribute('aria-description');
+    this._gatilhoDescrito = null;
+  }
 
   private handleClick = (e: MouseEvent) => {
     const gatilho = this.getAttribute('gatilho') || this.getAttribute('trigger') || 'hover';

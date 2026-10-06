@@ -42,19 +42,19 @@ export class UIDrawer extends SafeHTMLElement {
     const shadow = this.attachShadow({ mode: 'open' });
     shadow.innerHTML = `
       <style>${estilos}</style>
-      <div class="ui-drawer__backdrop"></div>
-      <aside class="ui-drawer__painel" role="dialog" aria-modal="true" tabindex="-1">
-        <div class="ui-drawer__header">
+      <div class="ui-drawer__backdrop" part="fundo"></div>
+      <aside class="ui-drawer__painel" part="painel" role="dialog" aria-modal="true" tabindex="-1">
+        <div class="ui-drawer__header" part="cabecalho">
           <div class="ui-drawer__titulo-container">
-            <h3 class="ui-drawer__titulo"></h3>
-            <p class="ui-drawer__descricao" style="display: none;"></p>
+            <h3 class="ui-drawer__titulo" part="titulo"></h3>
+            <p class="ui-drawer__descricao" part="descricao" style="display: none;"></p>
           </div>
-          <button type="button" class="ui-drawer__close" aria-label="Fechar painel lateral" title="Fechar">✕</button>
+          <button type="button" class="ui-drawer__close" part="fechar" aria-label="Fechar painel lateral" title="Fechar">✕</button>
         </div>
-        <div class="ui-drawer__body">
+        <div class="ui-drawer__body" part="corpo">
           <slot></slot>
         </div>
-        <div class="ui-drawer__footer">
+        <div class="ui-drawer__footer" part="rodape">
           <slot name="rodape"></slot>
           <slot name="footer"></slot>
         </div>

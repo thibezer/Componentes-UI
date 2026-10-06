@@ -48,7 +48,7 @@ export async function consultarSigefNoPonto(
   })
     .setLatLng(e.latlng)
     .setContent(`
-      <div style="font-family:sans-serif; display:flex; align-items:center; gap:8px; color:rgba(255,255,255,0.9); font-size:12px;">
+      <div style="font-family:var(--ui-fonte-base, sans-serif); display:flex; align-items:center; gap:8px; color:rgba(255,255,255,0.9); font-size:12px;">
         <svg style="animation:spin 1s linear infinite; width:14px; height:14px; flex-shrink:0;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
           <circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.2)" stroke-width="4" fill="none"></circle>
           <path fill="#00f5a0" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -104,14 +104,14 @@ export async function consultarSigefNoPonto(
         const sigefConsultarUrl = `https://sigef.incra.gov.br/geo/parcela/detalhe/${safeUuid}/`;
 
         const popupContainer = document.createElement('div');
-        popupContainer.style.cssText = 'font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.4; min-width:180px;';
+        popupContainer.style.cssText = 'font-family:var(--ui-fonte-base, sans-serif); color:rgba(255, 255, 255, 0.9); line-height:1.4; min-width:180px;';
         popupContainer.innerHTML = `
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; padding-bottom:5px; border-bottom:1px solid rgba(255, 255, 255, 0.1);">
             <span style="font-weight:700; font-size:11px; color:#10b981; text-transform:uppercase; letter-spacing:0.5px;">SIGEF</span>
             <span style="font-size:10px; color:rgba(255, 255, 255, 0.5);">${escapeHtml(props.situacao_informada || props.status || 'Certificada')}</span>
           </div>
           <div style="font-weight:700; font-size:12px; margin-bottom:4px; color:#ffffff; word-break:break-word;">${escapeHtml(nomeArea)}</div>
-          <div style="font-size:11px; color:rgba(255, 255, 255, 0.7); margin-bottom:2px;">Cód: <span style="font-family:monospace;">${escapeHtml(props.codigo_imovel || 'N/A')}</span></div>
+          <div style="font-size:11px; color:rgba(255, 255, 255, 0.7); margin-bottom:2px;">Cód: <span style="font-family:var(--ui-fonte-codigo, monospace);">${escapeHtml(props.codigo_imovel || 'N/A')}</span></div>
           <div style="display:flex; gap:12px; font-size:11px; color:rgba(255, 255, 255, 0.7); margin-bottom:6px;">
             <span>Mat: <strong style="color:#ffffff;">${escapeHtml(props.registro_matricula || props.matricula || 'N/A')}</strong></span>
             <span>${escapeHtml(props.data_submissao || '')}</span>
@@ -146,14 +146,14 @@ export async function consultarSigefNoPonto(
         loadingPopup.setContent(popupContainer);
       } else {
         loadingPopup.setContent(`
-          <div style="font-family:sans-serif; font-size:12px; color:#b45309; padding:2px 0;">
+          <div style="font-family:var(--ui-fonte-base, sans-serif); font-size:12px; color:#b45309; padding:2px 0;">
             Lote identificado, mas código da parcela indisponível.
           </div>
         `);
       }
     } else {
       loadingPopup.setContent(`
-        <div style="font-family:sans-serif; font-size:12px; color:rgba(255, 255, 255, 0.7); padding:2px 0;">
+        <div style="font-family:var(--ui-fonte-base, sans-serif); font-size:12px; color:rgba(255, 255, 255, 0.7); padding:2px 0;">
           Nenhum imóvel SIGEF certificado neste ponto.
         </div>
       `);
@@ -161,14 +161,14 @@ export async function consultarSigefNoPonto(
   } catch (err: any) {
     if (err.name === 'AbortError') {
       loadingPopup.setContent(`
-        <div style="font-family:sans-serif; font-size:12px; color:#f59e0b; padding:2px 0;">
+        <div style="font-family:var(--ui-fonte-base, sans-serif); font-size:12px; color:#f59e0b; padding:2px 0;">
           Consulta cancelada ou tempo limite de resposta esgotado.
         </div>
       `);
     } else {
       console.warn('Erro ao consultar SIGEF:', err);
       loadingPopup.setContent(`
-        <div style="font-family:sans-serif; font-size:12px; color:#f59e0b; padding:2px 0;">
+        <div style="font-family:var(--ui-fonte-base, sans-serif); font-size:12px; color:#f59e0b; padding:2px 0;">
           Serviço de consulta SIGEF indisponível nesta área.
         </div>
       `);

@@ -1,3 +1,5 @@
+import { renderizarRotulo } from '../../core/rotulo';
+
 export interface ContextoLabelPlaceholder {
   labelElement: HTMLLabelElement;
   inputElement: HTMLInputElement;
@@ -20,11 +22,7 @@ export function sincronizarLabelEPlaceholder(ctx: ContextoLabelPlaceholder): voi
   }
 
   if (labelText) {
-    if (obrigatorio) {
-      labelElement.innerHTML = `${labelText} <span class="ui-campo-texto__asterisco" aria-hidden="true">*</span>`;
-    } else {
-      labelElement.textContent = labelText;
-    }
+    renderizarRotulo(labelElement, labelText, Boolean(obrigatorio), 'ui-campo-texto__asterisco');
     labelElement.style.display = 'flex';
 
     if (isFlutuante) {

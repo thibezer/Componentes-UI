@@ -36,17 +36,17 @@ export function criarTemplateCampoTexto(): string {
   return `
     <style>${estilos}</style>
     <div class="ui-campo-texto__container">
-      <label class="ui-campo-texto__label" style="display: none;"></label>
-      <div class="ui-campo-texto__wrapper">
-        <span class="ui-campo-texto__icone ui-campo-texto__icone--esquerda">
+      <label class="ui-campo-texto__label" part="rotulo" style="display: none;"></label>
+      <div class="ui-campo-texto__wrapper" part="campo">
+        <span class="ui-campo-texto__icone ui-campo-texto__icone--esquerda" part="icone icone-esquerda">
           <slot name="icone-esquerda"></slot>
         </span>
-        <input class="ui-campo-texto__input" type="text" />
-        <span class="ui-campo-texto__icone ui-campo-texto__icone--direita">
+        <input class="ui-campo-texto__input" part="input" type="text" />
+        <span class="ui-campo-texto__icone ui-campo-texto__icone--direita" part="icone icone-direita">
           <slot name="icone-direita"></slot>
         </span>
       </div>
     </div>
-    <div class="ui-campo-texto__helper" style="display: none;"></div>
+    <div class="ui-campo-texto__helper" part="ajuda" style="display: none;"></div>
   `;
 }

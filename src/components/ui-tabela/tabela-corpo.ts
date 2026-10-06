@@ -16,6 +16,8 @@ export interface ContextoCorpoTabela {
   chaveId: string;
   virtualizar: boolean;
   rowHeight: number;
+  /** Linha que recebe tabindex=0 (foco móvel); fora da janela renderizada, vale a primeira visível. */
+  indiceAtivo?: number | null;
   isItemSelecionado: (item: Record<string, any>, index: number) => boolean;
   onLinhaClique: (item: Record<string, any>, index: number) => void;
   formatWidth: (largura?: string | number) => string;
@@ -51,6 +53,14 @@ export function renderizarCorpoTabela(ctx: ContextoCorpoTabela): void {
     endIndex = Math.min(totalLinhas, Math.ceil((scrollTop + clientHeight) / rowHeight) + buffer);
   }
 
+  // A virtualização recria as linhas: guarda qual linha tinha o foco para devolvê-lo depois
+  const raiz = ctx.tbodyElement.getRootNode() as Document | ShadowRoot;
+  const focado = raiz.activeElement as HTMLElement | null;
+  const indiceComFoco = focado && focado.parentElement === ctx.tbodyElement ? focado.getAttribute('data-index') : null;
+
+  const indiceAtivo = ctx.indiceAtivo ?? null;
+  const indiceFocavel = indiceAtivo !== null && indiceAtivo >= startIndex && indiceAtivo < endIndex ? indiceAtivo : startIndex;
+
   ctx.tbodyElement.innerHTML = '';
   const fragment = document.createDocumentFragment();
 
@@ -69,6 +79,8 @@ export function renderizarCorpoTabela(ctx: ContextoCorpoTabela): void {
     const item = ctx.dadosExibicao[rowIndex];
     const tr = document.createElement('tr');
     tr.setAttribute('data-index', String(rowIndex));
+    tr.setAttribute('part', 'linha');
+    tr.tabIndex = rowIndex === indiceFocavel ? 0 : -1;
 
     const chave = ctx.chaveId;
     if (item[chave] !== undefined) {
@@ -81,6 +93,8 @@ export function renderizarCorpoTabela(ctx: ContextoCorpoTabela): void {
 
     if (ctx.isItemSelecionado(item, rowIndex)) {
       tr.classList.add('ui-tabela__tr--selecionada');
+      tr.setAttribute('part', 'linha linha-selecionada');
+      tr.setAttribute('aria-current', 'true');
       tr.setAttribute('data-selecionada', 'true');
     }
 
@@ -96,6 +110,7 @@ export function renderizarCorpoTabela(ctx: ContextoCorpoTabela): void {
       const td = document.createElement('td');
       const alignClass = ctx.getAlignmentClass(coluna.alinhamento);
       td.className = alignClass;
+      td.setAttribute('part', 'celula');
       td.style.textAlign = ctx.getTextAlign(coluna.alinhamento);
 
       if (coluna.larguraMaxima !== undefined) {
@@ -151,4 +166,9 @@ export function renderizarCorpoTabela(ctx: ContextoCorpoTabela): void {
   }
 
   ctx.tbodyElement.appendChild(fragment);
+
+  if (indiceComFoco !== null) {
+    const linha = ctx.tbodyElement.querySelector<HTMLElement>(`tr[data-index="${indiceComFoco}"]`);
+    linha?.focus({ preventScroll: true });
+  }
 }

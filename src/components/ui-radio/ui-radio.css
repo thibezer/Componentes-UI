@@ -41,7 +41,7 @@
 .ui-radio:focus-visible .ui-radio__circle,
 .ui-radio--foco .ui-radio__circle {
   border-color: var(--ui-cor-primaria, #00E08A);
-  box-shadow: 0 0 0 2px rgba(0, 224, 138, 0.25);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 25%, transparent);
 }
 
 .ui-radio--checked .ui-radio__circle {

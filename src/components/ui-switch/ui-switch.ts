@@ -35,11 +35,11 @@ export class UISwitch extends FormAssociatedElement {
     const shadow = this.attachShadow({ mode: 'open' });
     shadow.innerHTML = `
       <style>${estilos}</style>
-      <div class="ui-switch" tabindex="0" role="switch" aria-checked="false">
-        <span class="ui-switch__track">
-          <span class="ui-switch__thumb"></span>
+      <div class="ui-switch" part="base" tabindex="0" role="switch" aria-checked="false">
+        <span class="ui-switch__track" part="controle">
+          <span class="ui-switch__thumb" part="indicador"></span>
         </span>
-        <span class="ui-switch__label" style="display: none;"></span>
+        <span class="ui-switch__label" part="rotulo" style="display: none;"></span>
       </div>
     `;
 

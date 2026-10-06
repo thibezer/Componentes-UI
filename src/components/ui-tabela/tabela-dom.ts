@@ -44,6 +44,7 @@ export function montarEstruturaDOM(
 
   const container = document.createElement('div');
   container.className = 'ui-tabela-container';
+  container.setAttribute('part', 'base');
   if (maxHeightAttr) {
     container.style.maxHeight = maxHeightAttr;
   }
@@ -51,6 +52,7 @@ export function montarEstruturaDOM(
   // Empty State Placeholder
   const emptyDiv = document.createElement('div');
   emptyDiv.className = 'ui-tabela__empty';
+  emptyDiv.setAttribute('part', 'vazio');
   emptyDiv.style.display = 'none';
 
   const svgIcon = document.createElement('div');
@@ -69,6 +71,7 @@ export function montarEstruturaDOM(
   // Table elements
   const tableElement = document.createElement('table');
   tableElement.className = 'ui-tabela';
+  tableElement.setAttribute('part', 'tabela');
   const colgroupElement = document.createElement('colgroup');
   const theadElement = document.createElement('thead');
   const tbodyElement = document.createElement('tbody');
@@ -83,6 +86,7 @@ export function montarEstruturaDOM(
   // Overlay de Carregamento
   const loadingDiv = document.createElement('div');
   loadingDiv.className = 'ui-tabela__loading';
+  loadingDiv.setAttribute('part', 'carregando');
   loadingDiv.style.display = carregando ? 'flex' : 'none';
   loadingDiv.innerHTML = `
     <div class="ui-tabela__spinner"></div>

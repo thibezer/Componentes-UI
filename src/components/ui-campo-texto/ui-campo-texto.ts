@@ -8,6 +8,7 @@ import { definirCustomElement } from '../../core/ssr-safe';
 import { gerarIdUnico, obterRotuloExterno, cliqueVeioDeRotuloExterno } from '../../core/acessibilidade';
 import { FormAssociatedElement } from '../../core/form-associated-element';
 import { validarRestricoesCampoTexto, aplicarValidadeInternals } from '../../core/form-validacao';
+import { submeterImplicitamente } from '../../core/form-submissao';
 
 export class UICampoTexto extends FormAssociatedElement {
   static get observedAttributes() {
@@ -60,6 +61,7 @@ export class UICampoTexto extends FormAssociatedElement {
     this.inputElement.addEventListener('change', this.handleChange);
     this.inputElement.addEventListener('focus', this.handleFocus);
     this.inputElement.addEventListener('blur', this.handleBlur);
+    this.inputElement.addEventListener('keydown', this.handleKeyDown);
     this.rightIconContainer.addEventListener('click', this.handleRightIconClick);
     this.rightIconContainer.addEventListener('keydown', this.handleRightIconKeyDown);
     this.leftSlotElement.addEventListener('slotchange', this.handleSlotChange);
@@ -79,6 +81,7 @@ export class UICampoTexto extends FormAssociatedElement {
     this.inputElement.removeEventListener('change', this.handleChange);
     this.inputElement.removeEventListener('focus', this.handleFocus);
     this.inputElement.removeEventListener('blur', this.handleBlur);
+    this.inputElement.removeEventListener('keydown', this.handleKeyDown);
     this.rightIconContainer.removeEventListener('click', this.handleRightIconClick);
     this.rightIconContainer.removeEventListener('keydown', this.handleRightIconKeyDown);
     this.leftSlotElement.removeEventListener('slotchange', this.handleSlotChange);
@@ -361,6 +364,19 @@ export class UICampoTexto extends FormAssociatedElement {
     this._focado = false;
     this.wrapperElement.classList.remove('ui-campo-texto__wrapper--foco');
     this.syncState();
+  };
+
+  /**
+   * Enter submete o formulário como num <input> nativo. Aguarda um tick para que
+   * ouvintes do consumidor possam cancelar com `preventDefault()` no keydown.
+   */
+  private handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key !== 'Enter' || e.isComposing || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+    const form = this.form;
+    if (!form) return;
+    setTimeout(() => {
+      if (!e.defaultPrevented && this.isConnected) submeterImplicitamente(form);
+    });
   };
 
   private handleInput = (e: Event) => {

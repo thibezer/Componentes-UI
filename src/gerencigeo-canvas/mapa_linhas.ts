@@ -36,7 +36,7 @@ export class MapaLinhas {
           dashArray: tipoLim === 'LN1' ? '6, 6' : undefined,
           pane: 'perimetroPane'
         }).bindPopup(`
-          <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.3;">
+          <div style="font-family:var(--ui-fonte-base, sans-serif); color:rgba(255, 255, 255, 0.9); line-height:1.3;">
             <div style="font-weight:700; font-size:12px; margin-bottom:3px; color:#ffffff;">${escapeHtml(pIni.nome_vertice)} ↔ ${escapeHtml(pFim.nome_vertice)}</div>
             <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">Limite: ${escapeHtml(tipoLim)} · ${escapeHtml(metodoPos)}</div>
           </div>
@@ -124,11 +124,11 @@ export class MapaLinhas {
       });
 
       const popupContent = `
-        <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.35; min-width:180px;">
+        <div style="font-family:var(--ui-fonte-base, sans-serif); color:rgba(255, 255, 255, 0.9); line-height:1.35; min-width:180px;">
           <div style="font-weight:800; font-size:11px; color:#fbbf24; text-transform:uppercase; letter-spacing:0.5px; border-bottom:1px solid rgba(255, 255, 255, 0.1); padding-bottom:3px; margin-bottom:5px;">Vértice Homologado SIGEF</div>
           <div style="font-weight:700; font-size:13px; margin-bottom:3px; color:#ffffff;">${escapeHtml(p.codigo_completo || p.nome_vertice)}</div>
-          <div style="font-size:11px; color:rgba(255, 255, 255, 0.7); font-family:monospace;">Este (E): ${p.este ? p.este.toFixed(2) : 'N/A'} m</div>
-          <div style="font-size:11px; color:rgba(255, 255, 255, 0.7); font-family:monospace; margin-bottom:3px;">Norte (N): ${p.norte ? p.norte.toFixed(2) : 'N/A'} m</div>
+          <div style="font-size:11px; color:rgba(255, 255, 255, 0.7); font-family:var(--ui-fonte-codigo, monospace);">Este (E): ${p.este ? p.este.toFixed(2) : 'N/A'} m</div>
+          <div style="font-size:11px; color:rgba(255, 255, 255, 0.7); font-family:var(--ui-fonte-codigo, monospace); margin-bottom:3px;">Norte (N): ${p.norte ? p.norte.toFixed(2) : 'N/A'} m</div>
           <div style="font-size:11px; color:rgba(255, 255, 255, 0.7); margin-bottom:2px;">Alt (h): <strong>${p.altitude ? p.altitude.toFixed(2) : 'N/A'} m</strong></div>
           <div style="font-size:10px; color:rgba(255, 255, 255, 0.45);">Método: ${escapeHtml(p.metodo_posicionamento) || 'N/A'} · Limite: ${escapeHtml(p.tipo_limite) || 'N/A'}</div>
           ${p.confrontante_descritivo ? `<div style="font-size:10px; color:rgba(255, 255, 255, 0.65); border-top:1px solid rgba(255, 255, 255, 0.1); padding-top:4px; margin-top:4px; word-break:break-word;"><strong>Conf:</strong> ${escapeHtml(p.confrontante_descritivo)}</div>` : ''}

@@ -28,6 +28,10 @@ interface ControllableUIElement extends HTMLElement {
 class UIBusManager {
   private listeners: Map<string, Set<UIEmitterCallback<any>>> = new Map();
 
+  constructor() {
+    this.observarTemaDoSistema();
+  }
+
   /**
    * Registra um ouvinte para um canal ou evento global tipado.
    */
@@ -125,6 +129,7 @@ class UIBusManager {
 
   /**
    * Fecha um modal pelo seu ID ou todos os modais abertos se nenhum ID for passado.
+   * Retorna `false` se o modal não existir ou continuar aberto (`bloquear-fechamento`).
    */
   public fecharModal(idModal?: string): boolean {
     if (typeof document === 'undefined') return false;
@@ -132,6 +137,8 @@ class UIBusManager {
       const modal = document.getElementById(idModal) as ControllableUIElement | null;
       if (modal && typeof modal.fechar === 'function') {
         modal.fechar();
+        // `bloquear-fechamento` mantém o modal aberto: não anuncia um fechamento que não ocorreu
+        if (modal.hasAttribute('aberto') || modal.hasAttribute('open')) return false;
         this.emit('modal:fechado', { id: idModal });
         return true;
       } else if (modal) {
@@ -272,29 +279,67 @@ class UIBusManager {
   }
 
   /**
-   * Alterna ou define o tema visual global.
+   * Tema em vigor: o forçado na raiz (`data-tema`, `data-theme`, `.dark`/`.light`)
+   * ou, sem nenhum, o do sistema operacional (`prefers-color-scheme`).
    */
-  public definirTema(tema?: 'claro' | 'escuro'): string {
-    if (typeof document === 'undefined') return tema || 'escuro';
-    const html = document.documentElement;
-    let temaAtual = html.getAttribute('data-tema');
-    if (!temaAtual) {
-      temaAtual = html.classList.contains('dark') ? 'escuro' : (html.classList.contains('light') ? 'claro' : 'escuro');
-    }
-    const novoTema = tema || (temaAtual === 'escuro' ? 'claro' : 'escuro');
-
-    html.setAttribute('data-tema', novoTema);
-    if (novoTema === 'escuro') {
-      html.classList.add('dark');
-      html.classList.remove('light');
-    } else {
-      html.classList.remove('dark');
-      html.classList.add('light');
-    }
-
-    this.emit('tema:alterado', { tema: novoTema });
-    return novoTema;
+  public obterTema(): 'claro' | 'escuro' {
+    if (typeof document === 'undefined') return 'escuro';
+    const forcado = temaForcado(document.documentElement);
+    if (forcado) return forcado;
+    return sistemaPrefereClaro() ? 'claro' : 'escuro';
   }
+
+  /**
+   * Define o tema global. Sem argumento, alterna o tema em vigor;
+   * `'auto'` remove o tema forçado e volta a seguir o sistema operacional.
+   */
+  public definirTema(tema?: 'claro' | 'escuro' | 'auto'): 'claro' | 'escuro' {
+    if (typeof document === 'undefined') return tema === 'claro' ? 'claro' : 'escuro';
+    const html = document.documentElement;
+
+    if (tema === 'auto') {
+      html.removeAttribute('data-tema');
+      html.removeAttribute('data-theme');
+      html.classList.remove('dark', 'light');
+    } else {
+      const novoTema = tema || (this.obterTema() === 'escuro' ? 'claro' : 'escuro');
+      html.setAttribute('data-tema', novoTema);
+      html.classList.toggle('dark', novoTema === 'escuro');
+      html.classList.toggle('light', novoTema === 'claro');
+    }
+
+    const temaEmVigor = this.obterTema();
+    this.emit('tema:alterado', { tema: temaEmVigor });
+    return temaEmVigor;
+  }
+
+  /** Com o tema seguindo o SO, avisa `tema:alterado` quando o usuário troca o tema do sistema. */
+  private observarTemaDoSistema(): void {
+    if (this._observandoSistema || typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
+    this._observandoSistema = true;
+    window.matchMedia('(prefers-color-scheme: light)').addEventListener?.('change', () => {
+      if (!temaForcado(document.documentElement)) {
+        this.emit('tema:alterado', { tema: this.obterTema() });
+      }
+    });
+  }
+
+  private _observandoSistema = false;
+}
+
+function temaForcado(html: HTMLElement): 'claro' | 'escuro' | null {
+  const atributo = html.getAttribute('data-tema') || html.getAttribute('data-theme');
+  if (atributo === 'escuro' || atributo === 'dark') return 'escuro';
+  if (atributo === 'claro' || atributo === 'light') return 'claro';
+  if (html.classList.contains('dark')) return 'escuro';
+  if (html.classList.contains('light')) return 'claro';
+  return null;
+}
+
+function sistemaPrefereClaro(): boolean {
+  return typeof window !== 'undefined'
+    && typeof window.matchMedia === 'function'
+    && window.matchMedia('(prefers-color-scheme: light)').matches;
 }
 
 export const UIBus = new UIBusManager();

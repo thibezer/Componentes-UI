@@ -8,6 +8,7 @@ import {
 } from './segmented-template';
 import { definirCustomElement } from '../../core/ssr-safe';
 import { FormAssociatedElement } from '../../core/form-associated-element';
+import { alternarPart } from '../../core/parts';
 
 export interface UISegmentedOpcao {
   valor: string;
@@ -244,6 +245,7 @@ export class UISegmented extends FormAssociatedElement {
     botoes.forEach(btn => {
       const isAtivo = btn.dataset.valor === novoValor;
       btn.classList.toggle('ui-segmented__item--ativo', isAtivo);
+      alternarPart(btn, 'opcao-selecionada', isAtivo);
       btn.setAttribute('aria-checked', String(isAtivo));
       btn.tabIndex = isAtivo ? 0 : -1;
       if (isAtivo) {

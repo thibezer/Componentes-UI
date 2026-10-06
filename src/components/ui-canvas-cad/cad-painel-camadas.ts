@@ -76,7 +76,7 @@ export function renderizarPainelCamadas(
         <div class="layer-controls-row">
           <span>Opacidade</span>
           <input type="range" min="0" max="100" value="${Math.round(layer.opacidade * 100)}" class="layer-opacity-slider" data-layer-id="${layer.id}" />
-          <span class="opacity-percent-label" style="font-family:monospace; font-size:9px; width:28px; text-align:right;">${Math.round(layer.opacidade * 100)}%</span>
+          <span class="opacity-percent-label" style="font-family:var(--ui-fonte-codigo, monospace); font-size:9px; width:28px; text-align:right;">${Math.round(layer.opacidade * 100)}%</span>
         </div>
       </div>
     `).join('')}

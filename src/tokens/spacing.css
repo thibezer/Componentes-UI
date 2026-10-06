@@ -1,6 +1,12 @@
 :root {
-  /* Bordas e Raios */
+  /* Bordas e Raios
+     --ui-raio-borda é a base (controles: botões, campos, menus). A escala deriva dela,
+     então sobrescrever só a base no :root ajusta tudo (0 = interface totalmente reta). */
   --ui-raio-borda: 6px;
+  --ui-raio-sm: calc(var(--ui-raio-borda) * 2 / 3);   /* 4px: itens de lista, chips, detalhes */
+  --ui-raio-lg: calc(var(--ui-raio-borda) * 5 / 3);   /* 10px: contêineres de mapa/CAD */
+  --ui-raio-xl: calc(var(--ui-raio-borda) * 8 / 3);   /* 16px: bottom sheets */
+  --ui-raio-pill: 999px;                              /* pílulas e badges arredondados */
 
   /* Espaçamentos (Escala de Espaço) */
   --ui-espaco-xs: 4px;

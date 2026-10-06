@@ -29,11 +29,11 @@ export class UIRadio extends FormAssociatedElement {
     const shadow = this.attachShadow({ mode: 'open' });
     shadow.innerHTML = `
       <style>${estilos}</style>
-      <div class="ui-radio" tabindex="0" role="radio" aria-checked="false">
-        <span class="ui-radio__circle">
-          <span class="ui-radio__dot"></span>
+      <div class="ui-radio" part="base" tabindex="0" role="radio" aria-checked="false">
+        <span class="ui-radio__circle" part="controle">
+          <span class="ui-radio__dot" part="indicador"></span>
         </span>
-        <span class="ui-radio__label" style="display: none;"></span>
+        <span class="ui-radio__label" part="rotulo" style="display: none;"></span>
       </div>
     `;
 

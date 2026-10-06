@@ -1,7 +1,21 @@
+/* ==========================================
+   Design Tokens - Cores
+   ------------------------------------------
+   Sem atributo, o tema segue o sistema operacional (prefers-color-scheme).
+   Para forçar: <html data-tema="claro"> ou <html data-tema="escuro">
+   (também aceitos: classes .light / .dark e data-theme="light|dark").
+   O atributo pode ir em qualquer elemento para forçar o tema só naquele trecho.
+
+   Contraste: todo token de texto atinge WCAG AA (4,5:1) sobre os fundos do
+   próprio tema; texto sobre --ui-cor-primaria e sobre o botão destrutivo também.
+   ========================================== */
+
+/* Tema Escuro (padrão quando o SO não prefere claro) */
 :root,
 :root[data-tema="escuro"],
 :root.dark,
-[data-tema="escuro"] {
+[data-tema="escuro"],
+[data-theme="dark"] {
   color-scheme: dark;
 
   /* Cores Principais */
@@ -15,29 +29,35 @@
   --ui-cor-fundo-elevado: #1a1a1e;
   --ui-cor-fundo-card: #18181c;
   --ui-cor-fundo-menu: #18181c;
+  --ui-cor-fundo-recuado: rgba(0, 0, 0, 0.15);
   --ui-cor-hover-menu: rgba(255, 255, 255, 0.08);
 
   /* Texto e Cores Temáticas */
   --ui-cor-texto: #e1e1e6;
-  --ui-cor-texto-secundario: #888899;
+  --ui-cor-texto-secundario: #9696a6;
   --ui-cor-texto-erro: #ff5555;
   --ui-cor-texto-sucesso: #00E08A;
   --ui-cor-texto-alerta: #ffb86c;
+  --ui-cor-texto-info: #33b5ff;
+  --ui-cor-texto-sobre-status: #000000;
 
   /* Cores para Variações de Botão */
   --ui-cor-botao-secundario-fundo: #1e1e24;
   --ui-cor-botao-secundario-hover: #2a2a34;
-  --ui-cor-botao-destrutivo-fundo: #ff4444;
-  --ui-cor-botao-destrutivo-hover: #e03333;
+  --ui-cor-botao-destrutivo-fundo: #d32f2f;
+  --ui-cor-botao-destrutivo-hover: #b71c1c;
   --ui-cor-botao-destrutivo-texto: #ffffff;
 
   /* Bordas e Divisores */
   --ui-cor-borda: rgba(255, 255, 255, 0.12);
+
+  /* Sombras (mais densas no escuro para separar superfícies) */
+  --ui-sombra-sm: 0 2px 6px rgba(0, 0, 0, 0.3);
+  --ui-sombra-md: 0 4px 14px rgba(0, 0, 0, 0.4);
+  --ui-sombra-lg: 0 16px 40px rgba(0, 0, 0, 0.6);
 }
 
-/* ==========================================
-   Design Tokens - Tema Claro (Ativado via data-tema="claro" ou classe .light)
-   ========================================== */
+/* Tema Claro - forçado por atributo/classe */
 :root[data-tema="claro"],
 :root.light,
 [data-tema="claro"],
@@ -45,9 +65,9 @@
   color-scheme: light;
 
   /* Cores Principais */
-  --ui-cor-primaria: #00B368;
+  --ui-cor-primaria: #006b40;
   --ui-cor-texto-sobre-primaria: #ffffff;
-  --ui-cor-destaque: #00B368;
+  --ui-cor-destaque: #006b40;
 
   /* Neutros e Fundos */
   --ui-cor-fundo: #f8f9fa;
@@ -55,23 +75,76 @@
   --ui-cor-fundo-elevado: #f1f3f5;
   --ui-cor-fundo-card: #ffffff;
   --ui-cor-fundo-menu: #ffffff;
+  --ui-cor-fundo-recuado: rgba(0, 0, 0, 0.03);
   --ui-cor-hover-menu: rgba(0, 0, 0, 0.05);
 
   /* Texto e Cores Temáticas */
   --ui-cor-texto: #1a1a1e;
-  --ui-cor-texto-secundario: #6c757d;
-  --ui-cor-texto-erro: #e03131;
-  --ui-cor-texto-sucesso: #00B368;
-  --ui-cor-texto-alerta: #f59f00;
+  --ui-cor-texto-secundario: #5c636a;
+  --ui-cor-texto-erro: #b02020;
+  --ui-cor-texto-sucesso: #006b40;
+  --ui-cor-texto-alerta: #875000;
+  --ui-cor-texto-info: #095db0;
+  --ui-cor-texto-sobre-status: #ffffff;
 
   /* Cores para Variações de Botão */
   --ui-cor-botao-secundario-fundo: #e9ecef;
   --ui-cor-botao-secundario-hover: #dee2e6;
-  --ui-cor-botao-destrutivo-fundo: #e03131;
-  --ui-cor-botao-destrutivo-hover: #c92a2a;
+  --ui-cor-botao-destrutivo-fundo: #c92a2a;
+  --ui-cor-botao-destrutivo-hover: #a61e1e;
   --ui-cor-botao-destrutivo-texto: #ffffff;
 
   /* Bordas e Divisores */
   --ui-cor-borda: rgba(0, 0, 0, 0.12);
+
+  /* Sombras */
+  --ui-sombra-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --ui-sombra-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --ui-sombra-lg: 0 12px 32px rgba(0, 0, 0, 0.15);
 }
 
+/* Tema Claro - automático pelo SO, quando nenhum tema foi forçado na raiz.
+   Mantenha este bloco idêntico ao anterior (verificado em tests/tema.test.ts). */
+@media (prefers-color-scheme: light) {
+  :root:not([data-tema="escuro"]):not(.dark):not([data-theme="dark"]) {
+    color-scheme: light;
+
+    /* Cores Principais */
+    --ui-cor-primaria: #006b40;
+    --ui-cor-texto-sobre-primaria: #ffffff;
+    --ui-cor-destaque: #006b40;
+
+    /* Neutros e Fundos */
+    --ui-cor-fundo: #f8f9fa;
+    --ui-cor-superficie: #ffffff;
+    --ui-cor-fundo-elevado: #f1f3f5;
+    --ui-cor-fundo-card: #ffffff;
+    --ui-cor-fundo-menu: #ffffff;
+    --ui-cor-fundo-recuado: rgba(0, 0, 0, 0.03);
+    --ui-cor-hover-menu: rgba(0, 0, 0, 0.05);
+
+    /* Texto e Cores Temáticas */
+    --ui-cor-texto: #1a1a1e;
+    --ui-cor-texto-secundario: #5c636a;
+    --ui-cor-texto-erro: #b02020;
+    --ui-cor-texto-sucesso: #006b40;
+    --ui-cor-texto-alerta: #875000;
+    --ui-cor-texto-info: #095db0;
+    --ui-cor-texto-sobre-status: #ffffff;
+
+    /* Cores para Variações de Botão */
+    --ui-cor-botao-secundario-fundo: #e9ecef;
+    --ui-cor-botao-secundario-hover: #dee2e6;
+    --ui-cor-botao-destrutivo-fundo: #c92a2a;
+    --ui-cor-botao-destrutivo-hover: #a61e1e;
+    --ui-cor-botao-destrutivo-texto: #ffffff;
+
+    /* Bordas e Divisores */
+    --ui-cor-borda: rgba(0, 0, 0, 0.12);
+
+    /* Sombras */
+    --ui-sombra-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+    --ui-sombra-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --ui-sombra-lg: 0 12px 32px rgba(0, 0, 0, 0.15);
+  }
+}

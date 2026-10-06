@@ -1,5 +1,6 @@
 import type { UIRowScrollOptions } from './tipos';
 import { localizarIndiceItem } from './tabela-localizador';
+import { alternarPart } from '../../core/parts';
 
 export interface ContextoTabelaSelecao {
   host: HTMLElement;
@@ -40,6 +41,21 @@ export class TabelaSelecaoController {
     this.atualizarLinhasSelecionadas();
   }
 
+  /**
+   * Reaplica uma seleção anterior após ordenar, filtrar ou trocar os dados:
+   * mantém o item se ele (ou outro com a mesma chave) ainda estiver na exibição.
+   */
+  public restaurarSelecao(item: Record<string, any>): void {
+    const chave = this.ctx.chaveId;
+    const indice = this.ctx.dadosExibicao.findIndex(
+      (d) => d === item || (item[chave] !== undefined && d[chave] !== undefined && String(d[chave]) === String(item[chave]))
+    );
+    if (indice >= 0) {
+      this.itemSelecionado = this.ctx.dadosExibicao[indice];
+      this.indiceSelecionado = indice;
+    }
+  }
+
   public limparSelecao(): void {
     this.itemSelecionado = null;
     this.indiceSelecionado = null;
@@ -73,10 +89,13 @@ export class TabelaSelecaoController {
       const isSelected = item ? this.isItemSelecionado(item, rowIndex) : false;
 
       tr.classList.toggle('ui-tabela__tr--selecionada', isSelected);
+      alternarPart(tr, 'linha-selecionada', isSelected);
       if (isSelected) {
         tr.setAttribute('data-selecionada', 'true');
+        tr.setAttribute('aria-current', 'true');
       } else {
         tr.removeAttribute('data-selecionada');
+        tr.removeAttribute('aria-current');
       }
     });
   }

@@ -75,7 +75,7 @@ export class VectorPolygonsLayerRenderer implements ILayerRenderer {
                 .join('');
             }
             poligono.bindPopup(`
-              <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.3; min-width:180px;">
+              <div style="font-family:var(--ui-fonte-base, sans-serif); color:rgba(255, 255, 255, 0.9); line-height:1.3; min-width:180px;">
                 <div style="font-weight:700; font-size:12px; color:#c084fc; margin-bottom:3px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:3px;">Polígono ${escapeHtml(String(c.id ?? ''))}</div>
                 ${metaHtml || `<div style="font-size:11px;">Área vetorial definida por ${c.coordenadas.length} vértices</div>`}
               </div>
@@ -141,7 +141,7 @@ export class VectorPolygonsLayerRenderer implements ILayerRenderer {
               const acoesHtml = renderPopupAcoesHtml(acoes, c.id);
 
               poligono.bindPopup(`
-                <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.3; min-width:180px;">
+                <div style="font-family:var(--ui-fonte-base, sans-serif); color:rgba(255, 255, 255, 0.9); line-height:1.3; min-width:180px;">
                   <div style="font-weight:700; font-size:12px; color:#c084fc; margin-bottom:3px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:3px;">${nomePropriedade}</div>
                   <div style="font-size:11px; margin-bottom:2px;"><strong>Identificador:</strong> ${escapeHtml(String(c.id ?? ''))}</div>
                   ${c.nome ? `<div style="font-size:11px;"><strong>Proprietário:</strong> ${nomeConfrontante}</div>` : ''}
@@ -187,10 +187,10 @@ export class VectorPolygonsLayerRenderer implements ILayerRenderer {
               const acoesPontoHtml = renderPopupAcoesHtml(acoesPonto, p.id);
 
               marker.bindPopup(`
-                <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.3; min-width:170px;">
+                <div style="font-family:var(--ui-fonte-base, sans-serif); color:rgba(255, 255, 255, 0.9); line-height:1.3; min-width:170px;">
                   <div style="font-weight:700; font-size:12px; color:#c084fc; margin-bottom:3px;">${escapeHtml(p.nome_vertice || String(p.id))}</div>
                   <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">Confrontante: ${escapeHtml(c.nome || 'Desconhecido')}</div>
-                  <div style="font-size:10px; color:rgba(255, 255, 255, 0.45); font-family:monospace; margin-top:3px;">Lat ${coord.lat.toFixed(6)} &nbsp; Lon ${coord.lon.toFixed(6)}</div>
+                  <div style="font-size:10px; color:rgba(255, 255, 255, 0.45); font-family:var(--ui-fonte-codigo, monospace); margin-top:3px;">Lat ${coord.lat.toFixed(6)} &nbsp; Lon ${coord.lon.toFixed(6)}</div>
                   ${acoesPontoHtml}
                 </div>
               `, { className: 'compact-popup', maxWidth: 220 });

@@ -1,8 +1,12 @@
 import estilos from './ui-botao.css?inline';
 import { ListenerBag } from '../../core/listener-bag';
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
+import { submeterFormulario } from '../../core/form-submissao';
 
-export type VarianteBotao = 
+/** Atributos ARIA do host repassados ao <button> interno, que é quem recebe foco e é anunciado. */
+const ATRIBUTOS_ARIA_REPASSADOS = ['aria-label', 'aria-description', 'aria-pressed', 'aria-expanded', 'aria-haspopup'];
+
+export type VarianteBotao =
   | 'primary' | 'primario'
   | 'secondary' | 'secundario'
   | 'ghost' | 'terciario'
@@ -12,8 +16,14 @@ export type VarianteBotao =
   | 'outline' | 'borda';
 
 export class UIBotao extends SafeHTMLElement {
+  /** Form-associated: respeita `form="id"` e `<fieldset disabled>` como um <button> nativo. */
+  static formAssociated = true;
+
   static get observedAttributes() {
-    return ['disabled', 'variante', 'carregando', 'loading', 'estado', 'tamanho', 'size', 'altura', 'height', 'densidade'];
+    return [
+      'disabled', 'variante', 'carregando', 'loading', 'estado', 'tamanho', 'size', 'altura', 'height', 'densidade',
+      'title', ...ATRIBUTOS_ARIA_REPASSADOS
+    ];
   }
 
   private button: HTMLButtonElement;
@@ -21,14 +31,17 @@ export class UIBotao extends SafeHTMLElement {
   private slotElement: HTMLSlotElement;
   private opticalState: 'icon-start' | 'icon-end' | 'icon-only' | null = null;
   private listeners = new ListenerBag();
+  private internals: ReturnType<HTMLElement['attachInternals']> | null;
+  private _formDisabled = false;
 
   constructor() {
     super();
-    const shadow = this.attachShadow({ mode: 'open' });
+    this.internals = typeof this.attachInternals === 'function' ? this.attachInternals() : null;
+    const shadow = this.attachShadow({ mode: 'open', delegatesFocus: true });
     shadow.innerHTML = `
       <style>${estilos}</style>
-      <button class="ui-botao-primario" type="button">
-        <span class="ui-botao-primario__spinner-container" style="display: none;">
+      <button class="ui-botao-primario" part="base" type="button">
+        <span class="ui-botao-primario__spinner-container" part="spinner" style="display: none;">
           <svg class="ui-botao-primario__spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle>
             <path d="M12 2 a 10 10 0 0 1 10 10"></path>
@@ -56,6 +69,29 @@ export class UIBotao extends SafeHTMLElement {
 
   attributeChangedCallback(_name: string, _old: string | null, _value: string | null) {
     this.syncState();
+  }
+
+  public formDisabledCallback(disabled: boolean): void {
+    this._formDisabled = disabled;
+    this.syncState();
+  }
+
+  get form(): HTMLFormElement | null {
+    return this.internals?.form ?? this.closest('form');
+  }
+
+  get disabled(): boolean {
+    return this.hasAttribute('disabled') || this._formDisabled;
+  }
+
+  set disabled(val: boolean) {
+    if (val) this.setAttribute('disabled', '');
+    else this.removeAttribute('disabled');
+  }
+
+  /** Ativa o botão como um clique real (no-op se desabilitado ou carregando), como `HTMLButtonElement.click()`. */
+  public override click(): void {
+    this.button.click();
   }
 
   get carregando(): boolean {
@@ -169,12 +205,14 @@ export class UIBotao extends SafeHTMLElement {
     }
 
     const isCarregando = this.carregando;
-    const isDisabled = this.hasAttribute('disabled') || isCarregando;
+    const isDisabled = this.disabled || isCarregando;
     const variante = this.getAttribute('variante') || 'primario';
     const estadoForcado = this.getAttribute('estado');
 
     this.button.disabled = isDisabled;
     this.spinnerContainer.style.display = isCarregando ? 'inline-flex' : 'none';
+    if (isCarregando) this.button.setAttribute('aria-busy', 'true');
+    else this.button.removeAttribute('aria-busy');
 
     const classes = ['ui-botao-primario', `ui-botao-primario--${variante}`];
 
@@ -196,31 +234,46 @@ export class UIBotao extends SafeHTMLElement {
       classes.push('ui-botao-primario--has-icon-end');
     }
 
-    if (this.opticalState === 'icon-only' || variante === 'icon-only' || variante === 'icone') {
+    const ehSomenteIcone = this.opticalState === 'icon-only' || variante === 'icon-only' || variante === 'icone';
+    if (ehSomenteIcone) {
       classes.push('ui-botao-primario--icon-only');
     }
 
     this.button.className = classes.join(' ');
+    this.sincronizarAria(ehSomenteIcone);
+  }
+
+  /**
+   * O foco e o anúncio do leitor de tela ficam no <button> interno, então os atributos
+   * ARIA do host são copiados para ele. Botão só com ícone e sem `aria-label` usa o `title`.
+   */
+  private sincronizarAria(ehSomenteIcone: boolean) {
+    ATRIBUTOS_ARIA_REPASSADOS.forEach((atributo) => {
+      const valor = this.getAttribute(atributo);
+      if (valor !== null) this.button.setAttribute(atributo, valor);
+      else this.button.removeAttribute(atributo);
+    });
+
+    const titulo = this.getAttribute('title');
+    if (ehSomenteIcone && !this.hasAttribute('aria-label') && titulo) {
+      this.button.setAttribute('aria-label', titulo);
+    }
   }
 
   private handleClick = (e: MouseEvent) => {
-    if (this.hasAttribute('disabled') || this.carregando) {
+    if (this.disabled || this.carregando) {
       e.preventDefault();
       e.stopPropagation();
       return;
     }
     this.dispatchEvent(new CustomEvent('ui-click', { detail: { originalEvent: e }, bubbles: true, composed: true }));
 
-    const form = this.closest('form');
+    const form = this.form;
     if (form) {
       if (this.hasAttribute('tipo-reset') || this.getAttribute('type') === 'reset') {
         form.reset();
       } else if (this.hasAttribute('tipo-submit') || this.getAttribute('type') === 'submit') {
-        try {
-          form.requestSubmit(this.button);
-        } catch {
-          form.requestSubmit();
-        }
+        submeterFormulario(form, this.getAttribute('name'), this.getAttribute('value'));
       }
     }
   };

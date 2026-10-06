@@ -122,5 +122,28 @@ describe('Zero-JS Triggers - Ações Declarativas', () => {
     expect(() => btn.click()).not.toThrow();
     expect(copiarSpy).toHaveBeenCalledWith('#123-seletor-invalido', 'Copiado com sucesso!');
   });
-});
 
+  it.each([
+    ['disabled', ''],
+    ['carregando', ''],
+    ['aria-disabled', 'true'],
+  ])('não deve executar ações quando o gatilho tiver [%s]', (atributo, valor) => {
+    const abrirModalSpy = vi.spyOn(UIBus, 'abrirModal').mockReturnValue(true);
+    const notificarSpy = vi.spyOn(UIBus, 'notificar').mockImplementation(() => {});
+    abrirModalSpy.mockClear();
+    notificarSpy.mockClear();
+
+    const gatilho = document.createElement('div');
+    gatilho.setAttribute('target-modal', 'modal-x');
+    gatilho.setAttribute('toast-sucesso', 'Salvo!');
+    gatilho.setAttribute(atributo, valor);
+    document.body.appendChild(gatilho);
+
+    gatilho.click();
+    expect(abrirModalSpy).not.toHaveBeenCalled();
+    expect(notificarSpy).not.toHaveBeenCalled();
+
+    abrirModalSpy.mockRestore();
+    notificarSpy.mockRestore();
+  });
+});

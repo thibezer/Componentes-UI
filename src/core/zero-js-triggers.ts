@@ -8,6 +8,23 @@ import { UIBus } from './ui-bus';
 
 let _inicializado = false;
 
+/**
+ * Gatilho desabilitado ou em carregamento não executa ações: evita abrir modais,
+ * copiar ou exibir toasts a partir de um botão que visualmente não responde.
+ */
+function gatilhoInativo(el: HTMLElement): boolean {
+  if (el.hasAttribute('disabled') || el.hasAttribute('carregando') || el.getAttribute('aria-disabled') === 'true') {
+    return true;
+  }
+  // `loading` é sinônimo de `carregando` nos componentes do kit (em <img> significa lazy/eager)
+  if (el.localName.startsWith('ui-') && el.hasAttribute('loading')) return true;
+  try {
+    return el.matches(':disabled');
+  } catch {
+    return false;
+  }
+}
+
 export function initZeroJSTriggers(): void {
   if (_inicializado || typeof document === 'undefined') return;
   _inicializado = true;
@@ -24,7 +41,7 @@ export function initZeroJSTriggers(): void {
       }
     }
 
-    if (!elementoGatilho) return;
+    if (!elementoGatilho || gatilhoInativo(elementoGatilho)) return;
 
     // 1. Abrir Modal Declarativo
     const targetModal = elementoGatilho.getAttribute('target-modal') || elementoGatilho.getAttribute('modal-alvo');

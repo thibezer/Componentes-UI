@@ -10,6 +10,7 @@ import { renderizarItensLista, atualizarEstadoSelecaoLista } from './lista-flutu
 import { definirCustomElement } from '../../core/ssr-safe';
 import { FormAssociatedElement } from '../../core/form-associated-element';
 import { gerarIdUnico, obterRotuloExterno, cliqueVeioDeRotuloExterno } from '../../core/acessibilidade';
+import { renderizarRotulo } from '../../core/rotulo';
 
 export * from './tipos';
 export * from './lista-flutuante-posicionamento';
@@ -294,11 +295,7 @@ export class UIListaFlutuante extends FormAssociatedElement {
   private syncLabel() {
     const labelAttr = this.getAttribute('label') || this.getAttribute('rotulo');
     if (labelAttr) {
-      if (this.required) {
-        this.labelElement.innerHTML = `${labelAttr} <span class="ui-lista-flutuante__asterisco" style="color: var(--ui-cor-texto-erro, #ff5555); margin-left: 2px;">*</span>`;
-      } else {
-        this.labelElement.textContent = labelAttr;
-      }
+      renderizarRotulo(this.labelElement, labelAttr, this.required, 'ui-lista-flutuante__asterisco');
       this.labelElement.style.display = 'block';
       this.sheetTituloElement.textContent = labelAttr;
       this.button.setAttribute('aria-labelledby', `${this.idsAcessibilidade.label} ${this.idsAcessibilidade.texto}`);

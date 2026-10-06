@@ -1,4 +1,5 @@
 import { ItemLista } from './tipos';
+import { alternarPart } from '../../core/parts';
 
 /**
  * Renderiza os itens <li> na lista do listbox
@@ -17,6 +18,7 @@ export function renderizarItensLista(
     li.textContent = item.label;
     li.role = 'option';
     li.tabIndex = -1;
+    li.setAttribute('part', isSelected ? 'opcao opcao-selecionada' : 'opcao');
     if (isSelected) li.setAttribute('aria-selected', 'true');
     listElement.appendChild(li);
   });
@@ -29,6 +31,7 @@ export function atualizarEstadoSelecaoLista(listElement: HTMLUListElement, valor
   const liElements = listElement.querySelectorAll('.ui-lista-flutuante__item');
   liElements.forEach((li) => {
     const itemId = li.getAttribute('data-id');
+    alternarPart(li, 'opcao-selecionada', itemId === String(valorAtual));
     if (itemId === String(valorAtual)) {
       li.classList.add('ui-lista-flutuante__item--selecionado');
       li.setAttribute('aria-selected', 'true');

@@ -82,7 +82,7 @@
   background: var(--ui-cor-fundo-menu, #18181c);
   border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
   border-radius: var(--ui-raio-borda, 6px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  box-shadow: var(--ui-sombra-lg, 0 8px 24px rgba(0, 0, 0, 0.35));
   font-family: var(--ui-fonte-base, 'Inter', sans-serif);
   color: var(--ui-cor-texto, #e1e1e6);
 }
@@ -96,7 +96,7 @@
   padding: 0 8px;
   box-sizing: border-box;
   border: 0;
-  border-radius: 4px;
+  border-radius: var(--ui-raio-sm, 4px);
   background: transparent;
   color: inherit;
   font: inherit;

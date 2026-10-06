@@ -1,10 +1,19 @@
 import estilos from './ui-modal.css?inline';
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
-import { aplicarInertForaDoModal, removerInertForaDoModal } from './modal-acessibilidade';
+import { empilharModal, desempilharModal, ehModalDoTopo } from './modal-pilha';
+
+const SELETORES_FOCAVEIS = 'a[href], button, input, textarea, select, details, [tabindex]:not([tabindex="-1"]), ui-campo-texto, ui-input, ui-botao, ui-botao-primario, ui-checkbox, ui-switch, ui-lista-flutuante, ui-radio, ui-select, ui-segmented';
+
+/** Elemento realmente focado, atravessando Shadow DOMs (ex.: o <button> interno de um <ui-botao>). */
+function elementoAtivoProfundo(): HTMLElement | null {
+  let ativo = document.activeElement as HTMLElement | null;
+  while (ativo?.shadowRoot?.activeElement) {
+    ativo = ativo.shadowRoot.activeElement as HTMLElement;
+  }
+  return ativo;
+}
 
 export class UIModal extends SafeHTMLElement {
-  static _openCount: number = 0;
-
   static get observedAttributes() {
     return [
       'aberto',
@@ -26,7 +35,8 @@ export class UIModal extends SafeHTMLElement {
   private _elementoGatilho: HTMLElement | null = null;
   private _focables: HTMLElement[] = [];
   private _tituloId: string;
-  private _elementosInertes = new Set<HTMLElement>();
+  /** Estado já aplicado (pilha, inert, scroll, eventos); difere de `aberto` durante uma transição. */
+  private _estaAberto = false;
 
   constructor() {
     super();
@@ -34,17 +44,17 @@ export class UIModal extends SafeHTMLElement {
     const shadow = this.attachShadow({ mode: 'open' });
     shadow.innerHTML = `
       <style>${estilos}</style>
-      <div class="ui-modal__backdrop"></div>
-      <div class="ui-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="${this._tituloId}" tabindex="-1">
+      <div class="ui-modal__backdrop" part="fundo"></div>
+      <div class="ui-modal__dialog" part="painel" role="dialog" aria-modal="true" aria-labelledby="${this._tituloId}" tabindex="-1">
         <div class="ui-modal__handle"></div>
-        <div class="ui-modal__header">
-          <h3 class="ui-modal__titulo" id="${this._tituloId}"></h3>
-          <button class="ui-modal__close" type="button" aria-label="Fechar modal" title="Fechar">✕</button>
+        <div class="ui-modal__header" part="cabecalho">
+          <h3 class="ui-modal__titulo" part="titulo" id="${this._tituloId}"></h3>
+          <button class="ui-modal__close" part="fechar" type="button" aria-label="Fechar modal" title="Fechar">✕</button>
         </div>
-        <div class="ui-modal__body">
+        <div class="ui-modal__body" part="corpo">
           <slot></slot>
         </div>
-        <div class="ui-modal__footer">
+        <div class="ui-modal__footer" part="rodape">
           <slot name="rodape"></slot>
           <slot name="footer"></slot>
         </div>
@@ -80,31 +90,13 @@ export class UIModal extends SafeHTMLElement {
       slot.removeEventListener('slotchange', this.handleSlotChange);
     });
 
-    removerInertForaDoModal(this._elementosInertes);
-
-    if (this.hasAttribute('data-scroll-locked')) {
-      this.removeAttribute('data-scroll-locked');
-      UIModal._openCount = Math.max(0, UIModal._openCount - 1);
-      if (UIModal._openCount === 0) {
-        document.body.style.overflow = '';
-      }
+    if (this._estaAberto) {
+      this._estaAberto = false;
+      desempilharModal(this);
     }
   }
 
-  attributeChangedCallback(name: string, _old: string | null, value: string | null) {
-    if ((name === 'aberto' || name === 'open') && value !== null) {
-      if (document.activeElement && document.activeElement !== document.body) {
-        this._elementoGatilho = document.activeElement as HTMLElement;
-      }
-      setTimeout(() => {
-        this._atualizarFocables();
-        if (this._focables.length > 0) {
-          this._focables[0].focus();
-        } else {
-          this.dialogElement.focus();
-        }
-      }, 0);
-    }
+  attributeChangedCallback(_name: string, _old: string | null, _value: string | null) {
     this.syncState();
   }
 
@@ -123,51 +115,66 @@ export class UIModal extends SafeHTMLElement {
       this.removeAttribute('aberto');
       this.removeAttribute('open');
     }
-    this.syncState();
   }
 
   public abrir() {
-    if (!this.aberto) {
-      // Salvar quem disparou o modal
-      if (document.activeElement && document.activeElement !== document.body) {
-        this._elementoGatilho = document.activeElement as HTMLElement;
-      }
-      this.aberto = true;
-      this.dispatchEvent(
-        new CustomEvent('ui-abrir', {
-          bubbles: true,
-          composed: true,
-        })
-      );
-      // Aguardar render para capturar os focusables e focar o primeiro
-      setTimeout(() => {
-        this._atualizarFocables();
-        if (this._focables.length > 0) {
-          this._focables[0].focus();
-        } else {
-          this.dialogElement.focus();
-        }
-      }, 0);
+    this.aberto = true;
+  }
+
+  /** Fecha o modal, exceto com `bloquear-fechamento` (remova o atributo ou use `aberto = false` para forçar). */
+  public fechar() {
+    if (this.hasAttribute('bloquear-fechamento')) return;
+    this.aberto = false;
+  }
+
+  /**
+   * Abrir/fechar pelo método, pela propriedade ou pelo atributo (`aberto`/`open`, comum em
+   * React/Vue) passa sempre por aqui: mesmos eventos, mesmo foco e mesma camada de inert.
+   */
+  private aoAbrir() {
+    this._estaAberto = true;
+    const ativo = elementoAtivoProfundo();
+    this._elementoGatilho = ativo && ativo !== document.body && !this.contains(ativo) ? ativo : null;
+
+    empilharModal(this);
+    this.dispatchEvent(new CustomEvent('ui-abrir', { bubbles: true, composed: true }));
+
+    // Aguarda o slot ser renderizado para localizar o conteúdo focável
+    setTimeout(() => {
+      if (this._estaAberto) this.focarConteudoInicial();
+    }, 0);
+  }
+
+  private aoFechar() {
+    this._estaAberto = false;
+    desempilharModal(this);
+    this.dispatchEvent(new CustomEvent('ui-fechar', { bubbles: true, composed: true }));
+
+    // Devolve o foco ao gatilho, a menos que a aplicação já o tenha movido para outro lugar
+    const gatilho = this._elementoGatilho;
+    this._elementoGatilho = null;
+    const ativo = document.activeElement;
+    const focoPerdido = !ativo || ativo === document.body || ativo === this || this.contains(ativo);
+    if (gatilho?.isConnected && focoPerdido) {
+      gatilho.focus();
     }
   }
 
-  public fechar() {
-    if (this.hasAttribute('bloquear-fechamento')) return;
-    if (this.aberto) {
-      removerInertForaDoModal(this._elementosInertes);
-      this.aberto = false;
-      this.dispatchEvent(
-        new CustomEvent('ui-fechar', {
-          bubbles: true,
-          composed: true,
-        })
-      );
-      // Restaurar o foco
-      if (this._elementoGatilho) {
-        this._elementoGatilho.focus();
-        this._elementoGatilho = null;
-      }
+  /**
+   * Foco inicial: `[autofocus]`, senão o primeiro controle do conteúdo/rodapé.
+   * O botão "✕" não recebe o foco inicial, evitando fechar o modal com um Enter acidental;
+   * sem controles, o próprio diálogo é focado para que o leitor de tela anuncie o título.
+   */
+  private focarConteudoInicial() {
+    const conteudo = this.obterFocaveisDoConteudo();
+    const comAutofocus = conteudo.filter((el) => el.hasAttribute('autofocus'));
+
+    for (const candidato of [...comAutofocus, ...conteudo]) {
+      candidato.focus();
+      const ativo = document.activeElement;
+      if (ativo === candidato || candidato.contains(ativo)) return;
     }
+    this.dialogElement.focus();
   }
 
   private syncState() {
@@ -209,29 +216,10 @@ export class UIModal extends SafeHTMLElement {
       footerSlot.style.display = hasFooterContent ? 'flex' : 'none';
     }
 
-    // Camada de inert e bloqueio de rolagem do body ao abrir
-    if (isAberto) {
-      if (this._elementosInertes.size === 0) {
-        this._elementosInertes = aplicarInertForaDoModal(this);
-      }
-      if (!this.hasAttribute('data-scroll-locked')) {
-        this.setAttribute('data-scroll-locked', 'true');
-        UIModal._openCount++;
-        if (UIModal._openCount === 1) {
-          document.body.style.overflow = 'hidden';
-        }
-      }
-    } else {
-      if (this._elementosInertes.size > 0) {
-        removerInertForaDoModal(this._elementosInertes);
-      }
-      if (this.hasAttribute('data-scroll-locked')) {
-        this.removeAttribute('data-scroll-locked');
-        UIModal._openCount = Math.max(0, UIModal._openCount - 1);
-        if (UIModal._openCount === 0) {
-          document.body.style.overflow = '';
-        }
-      }
+    // Transição de estado (inert, bloqueio de rolagem, eventos e foco) só com o elemento no documento
+    if (this.isConnected && isAberto !== this._estaAberto) {
+      if (isAberto) this.aoAbrir();
+      else this.aoFechar();
     }
   }
 
@@ -245,46 +233,36 @@ export class UIModal extends SafeHTMLElement {
     this.fechar();
   };
 
-  private _atualizarFocables() {
-    // Busca por elementos focáveis no shadow dom e light dom associado
-    const focusableSelectors = 'a[href], button, input, textarea, select, details, [tabindex]:not([tabindex="-1"]), ui-campo-texto, ui-botao, ui-botao-primario, ui-checkbox, ui-switch, ui-lista-flutuante, ui-radio, ui-select';
-
-    // Obter focáveis do Shadow DOM
-    let shadowFocables = Array.from(this.shadowRoot!.querySelectorAll(focusableSelectors)) as HTMLElement[];
-    // Remover elementos que estão explicitamente display: none
-    shadowFocables = shadowFocables.filter(el => window.getComputedStyle(el).display !== 'none');
-
-    // Obter focáveis do Light DOM (slotted content)
-    const slotElements = this.shadowRoot!.querySelectorAll('slot');
-    let lightFocables: HTMLElement[] = [];
-    slotElements.forEach(slot => {
-      const assigned = slot.assignedElements({ flatten: true });
-      assigned.forEach(node => {
-        if (node instanceof HTMLElement) {
-          if (node.matches(focusableSelectors)) {
-            lightFocables.push(node);
-          }
-          lightFocables.push(...Array.from(node.querySelectorAll(focusableSelectors)) as HTMLElement[]);
-        }
-      });
-    });
-
-    this._focables = [...shadowFocables, ...lightFocables].filter(el => {
-      // Filter out disabled elements
-      return !el.hasAttribute('disabled') && el.getAttribute('aria-hidden') !== 'true';
-    });
+  private static ehFocavel(el: HTMLElement): boolean {
+    return !el.hasAttribute('disabled') && el.getAttribute('aria-hidden') !== 'true';
   }
 
-  private _isTopMostModal(): boolean {
-    const modaisAbertos = Array.from(document.querySelectorAll('ui-modal[aberto], ui-modal[open], ui-dialog[aberto], ui-dialog[open]'));
-    return modaisAbertos[modaisAbertos.length - 1] === this;
+  /** Focáveis do conteúdo projetado (corpo e rodapé), na ordem dos slots. */
+  private obterFocaveisDoConteudo(): HTMLElement[] {
+    const focaveis: HTMLElement[] = [];
+    this.shadowRoot!.querySelectorAll('slot').forEach(slot => {
+      slot.assignedElements({ flatten: true }).forEach(node => {
+        if (!(node instanceof HTMLElement)) return;
+        if (node.matches(SELETORES_FOCAVEIS)) focaveis.push(node);
+        focaveis.push(...Array.from(node.querySelectorAll<HTMLElement>(SELETORES_FOCAVEIS)));
+      });
+    });
+    return focaveis.filter(UIModal.ehFocavel);
+  }
+
+  private _atualizarFocables() {
+    // Focáveis do próprio Shadow DOM (botão fechar), exceto os ocultos
+    const shadowFocables = Array.from(this.shadowRoot!.querySelectorAll<HTMLElement>(SELETORES_FOCAVEIS))
+      .filter(el => window.getComputedStyle(el).display !== 'none' && UIModal.ehFocavel(el));
+
+    this._focables = [...shadowFocables, ...this.obterFocaveisDoConteudo()];
   }
 
   private handleKeyDown = (e: KeyboardEvent) => {
-    if (!this.aberto) return;
+    if (!this._estaAberto) return;
 
-    // Process keyboard events only if this modal is the top-most active modal
-    if (!this._isTopMostModal()) return;
+    // Apenas o modal aberto por último responde ao teclado
+    if (!ehModalDoTopo(this)) return;
 
     if (e.key === 'Escape') {
       this.fechar();

@@ -32,6 +32,7 @@ export interface ContextoOrquestradorRender {
   chaveId: string;
   virtualizar: boolean;
   rowHeight: number;
+  indiceAtivo: number | null;
   onSetIsResizing: (resizing: boolean) => void;
   onActiveResizeCleanup: (cleanup: (() => void) | null) => void;
   onHeaderClick: (col: TabelaColuna) => void;
@@ -92,6 +93,7 @@ export function executarOrquestracaoCorpo(ctx: ContextoOrquestradorRender): void
     chaveId: ctx.chaveId,
     virtualizar: ctx.virtualizar,
     rowHeight: ctx.rowHeight,
+    indiceAtivo: ctx.indiceAtivo,
     isItemSelecionado: (item, idx) => ctx.selecaoController.isItemSelecionado(item, idx),
     onLinhaClique: (item, idx) => {
       ctx.selecaoController.setItemSelecionado(item);

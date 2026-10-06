@@ -18,7 +18,7 @@ export type { DensidadeTabela, TabelaColuna, UISortDetail, UIColumnResizeDetail,
 
 export class UITabela extends SafeHTMLElement {
   static get observedAttributes() {
-    return ['texto-vazio', 'empty-text', 'max-height', 'densidade', 'density', 'virtualizar', 'virtualize', 'src', 'carregando', 'loading', 'chave-id', 'id-key'];
+    return ['texto-vazio', 'empty-text', 'max-height', 'densidade', 'density', 'virtualizar', 'virtualize', 'src', 'carregando', 'loading', 'chave-id', 'id-key', 'aria-label'];
   }
 
   private shadow: ShadowRoot;
@@ -40,6 +40,9 @@ export class UITabela extends SafeHTMLElement {
   private _scrollHandler: ((e: Event) => void) | null = null;
   private _activeResizeCleanup: (() => void) | null = null;
   private _headerListeners = new ListenerBag();
+  private _corpoListeners = new ListenerBag();
+  /** Linha com o foco móvel (navegação por teclado); null = primeira linha visível. */
+  private _indiceAtivo: number | null = null;
 
   private remotaController: TabelaRemotaController;
   private selecaoController: TabelaSelecaoController;
@@ -75,6 +78,16 @@ export class UITabela extends SafeHTMLElement {
 
   attributeChangedCallback(name: string, _oldVal: string | null, newVal: string | null) {
     tratarMudancaAtributoTabela(name, newVal, this.obterContextoAtributos());
+    this.sincronizarAria();
+  }
+
+  /** Nome acessível vem do host (`aria-label`); `aria-busy` acompanha o carregamento remoto. */
+  private sincronizarAria() {
+    if (!this._tableElement) return;
+    const rotulo = this.getAttribute('aria-label');
+    if (rotulo) this._tableElement.setAttribute('aria-label', rotulo);
+    else this._tableElement.removeAttribute('aria-label');
+    this._tableElement.setAttribute('aria-busy', String(this._carregando));
   }
 
   private syncAttributes() { sincronizarAtributosTabela(this.obterContextoAtributos()); }
@@ -107,6 +120,7 @@ export class UITabela extends SafeHTMLElement {
     if (this._carregando) this.setAttribute('carregando', '');
     else { this.removeAttribute('carregando'); this.removeAttribute('loading'); }
     if (this._loadingElement) this._loadingElement.style.display = this._carregando ? 'flex' : 'none';
+    this.sincronizarAria();
   }
 
   public async carregarDoEndpoint(url?: string): Promise<void> { await this.remotaController.carregar(url || this._src || ''); }
@@ -129,6 +143,7 @@ export class UITabela extends SafeHTMLElement {
     if (this._activeResizeCleanup) { this._activeResizeCleanup(); this._activeResizeCleanup = null; }
     this.remotaController.abortar();
     this._headerListeners.cleanup();
+    this._corpoListeners.cleanup();
   }
 
   get colunas(): TabelaColuna[] { return this._colunas; }
@@ -201,6 +216,7 @@ export class UITabela extends SafeHTMLElement {
   private getRowHeight(): number { return getRowHeight(this.densidade); }
 
   private atualizarContextoSelecao() {
+    const selecaoAnterior = this.selecaoController?.getItemSelecionado() ?? null;
     this.selecaoController = new TabelaSelecaoController({
       host: this,
       tbodyElement: this._tbodyElement,
@@ -210,6 +226,9 @@ export class UITabela extends SafeHTMLElement {
       getRowHeight: () => this.getRowHeight(),
       onRenderBody: () => this.renderBody()
     });
+    // Ordenar, filtrar ou trocar os dados mantém a linha selecionada (se ainda existir)
+    if (selecaoAnterior) this.selecaoController.restaurarSelecao(selecaoAnterior);
+    this._indiceAtivo = this.selecaoController.getIndiceSelecionado();
   }
 
   public renderTotal() {
@@ -238,6 +257,85 @@ export class UITabela extends SafeHTMLElement {
     if (this._virtualizar && this._containerElement && !this._scrollHandler) {
       this._scrollHandler = inicializarScrollVirtualizacao(this._containerElement, () => this.renderBody());
     }
+
+    if (this._tbodyElement && this._corpoListeners.size === 0) {
+      this._corpoListeners.add<KeyboardEvent>(this._tbodyElement, 'keydown', this.handleTecladoCorpo);
+      this._corpoListeners.add<FocusEvent>(this._tbodyElement, 'focusin', this.handleFocoLinha);
+    }
+    this.sincronizarAria();
+  }
+
+  /** Mantém um único tabindex=0 (foco móvel): Tab entra na tabela pela última linha ativa. */
+  private handleFocoLinha = (e: FocusEvent) => {
+    const tr = e.target as HTMLElement;
+    if (tr.parentElement !== this._tbodyElement || !tr.hasAttribute('data-index')) return;
+    this._indiceAtivo = Number(tr.getAttribute('data-index'));
+    this._tbodyElement!.querySelectorAll<HTMLElement>('tr[tabindex="0"]').forEach((linha) => {
+      if (linha !== tr) linha.tabIndex = -1;
+    });
+    tr.tabIndex = 0;
+  };
+
+  /**
+   * Teclado nas linhas: setas, Home/End e PageUp/PageDown movem o foco;
+   * Enter/Espaço selecionam a linha (mesmo caminho do clique, emite `ui-linha-clique`).
+   */
+  private handleTecladoCorpo = (e: KeyboardEvent) => {
+    const tr = e.target as HTMLElement;
+    // Teclas dentro de controles da célula (input, botão) pertencem ao controle
+    if (tr.parentElement !== this._tbodyElement || !tr.hasAttribute('data-index')) return;
+
+    const atual = Number(tr.getAttribute('data-index'));
+    const ultimo = this.dadosController.getDadosExibicao().length - 1;
+    let destino: number;
+
+    switch (e.key) {
+      case 'ArrowDown': destino = Math.min(ultimo, atual + 1); break;
+      case 'ArrowUp': destino = Math.max(0, atual - 1); break;
+      case 'Home': destino = 0; break;
+      case 'End': destino = ultimo; break;
+      case 'PageDown': destino = Math.min(ultimo, atual + this.linhasPorPagina()); break;
+      case 'PageUp': destino = Math.max(0, atual - this.linhasPorPagina()); break;
+      case 'Enter':
+      case ' ':
+        e.preventDefault();
+        tr.click();
+        return;
+      default:
+        return;
+    }
+
+    e.preventDefault();
+    this.focarLinha(destino);
+  };
+
+  private linhasPorPagina(): number {
+    const visivel = (this._containerElement?.clientHeight ?? 0) - (this._theadElement?.offsetHeight ?? 0);
+    return Math.max(1, Math.floor(visivel / this.getRowHeight()));
+  }
+
+  /** Foca a linha, renderizando a janela virtual se necessário, e a mantém visível abaixo do cabeçalho fixo. */
+  private focarLinha(indice: number) {
+    const container = this._containerElement;
+    const tbody = this._tbodyElement;
+    if (!container || !tbody) return;
+
+    this._indiceAtivo = indice;
+    const seletor = `tr[data-index="${indice}"]`;
+    let tr = tbody.querySelector<HTMLElement>(seletor);
+    if (!tr) {
+      container.scrollTop = Math.max(0, indice * this.getRowHeight() - container.clientHeight / 2);
+      this.renderBody();
+      tr = tbody.querySelector<HTMLElement>(seletor);
+    }
+    if (!tr) return;
+
+    tr.focus({ preventScroll: true });
+    const caixa = container.getBoundingClientRect();
+    const linha = tr.getBoundingClientRect();
+    const topoUtil = caixa.top + (this._theadElement?.offsetHeight ?? 0);
+    if (linha.top < topoUtil) container.scrollTop -= topoUtil - linha.top;
+    else if (linha.bottom > caixa.bottom) container.scrollTop += linha.bottom - caixa.bottom;
   }
 
   private obterContextoRenderizador(): ContextoOrquestradorRender {
@@ -256,6 +354,7 @@ export class UITabela extends SafeHTMLElement {
       chaveId: this.chaveId,
       virtualizar: this._virtualizar,
       rowHeight: this.getRowHeight(),
+      indiceAtivo: this._indiceAtivo,
       headerListeners: this._headerListeners,
       onSetIsResizing: (res: boolean) => { this._isResizing = res; },
       onActiveResizeCleanup: (cleanup: (() => void) | null) => { this._activeResizeCleanup = cleanup; },

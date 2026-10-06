@@ -26,13 +26,13 @@ export function criarTemplateListaFlutuante(): string {
   return `
     <style>${estilos}</style>
     <div class="ui-lista-flutuante__container">
-      <label class="ui-lista-flutuante__label" style="display: none;"></label>
+      <label class="ui-lista-flutuante__label" part="rotulo" style="display: none;"></label>
       <div class="ui-lista-flutuante__backdrop"></div>
-      <button class="ui-lista-flutuante__gatilho" aria-haspopup="listbox" aria-expanded="false" type="button">
-        <span class="ui-lista-flutuante__texto"></span>
-        <span class="ui-lista-flutuante__seta">▼</span>
+      <button class="ui-lista-flutuante__gatilho" part="campo" aria-haspopup="listbox" aria-expanded="false" type="button">
+        <span class="ui-lista-flutuante__texto" part="valor"></span>
+        <span class="ui-lista-flutuante__seta" part="seta">▼</span>
       </button>
-      <div class="ui-lista-flutuante__conteudo" role="listbox" popover="manual">
+      <div class="ui-lista-flutuante__conteudo" part="lista" role="listbox" popover="manual">
         <div class="ui-lista-flutuante__sheet-header">
           <div class="ui-lista-flutuante__handle"></div>
           <div class="ui-lista-flutuante__sheet-title-bar">

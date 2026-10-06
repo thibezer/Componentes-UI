@@ -61,21 +61,21 @@
 /* Foco */
 .ui-campo-texto__wrapper--foco {
   border-color: var(--ui-cor-primaria, #00E08A);
-  box-shadow: 0 0 0 2px rgba(0, 224, 138, 0.18);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 18%, transparent);
   background-color: var(--ui-cor-fundo-menu, #18181c);
 }
 
 /* Erro */
 .ui-campo-texto__wrapper--erro {
   border-color: var(--ui-cor-texto-erro, #ff5555) !important;
-  box-shadow: 0 0 0 2px rgba(255, 85, 85, 0.18) !important;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ui-cor-texto-erro, #ff5555) 18%, transparent) !important;
 }
 
 /* Desabilitado */
 .ui-campo-texto__wrapper--disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  background-color: rgba(255, 255, 255, 0.03);
+  background-color: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 3%, transparent);
 }
 
 .ui-campo-texto__input {

@@ -29,6 +29,13 @@ export function renderizarHeaderTabela(ctx: ContextoHeaderTabela): void {
   // Limpar ouvintes antigos vinculados aos cabeçalhos
   ctx.headerListeners.cleanup();
 
+  // Ordenar recria o cabeçalho: guarda a coluna cujo botão tinha o foco para devolvê-lo
+  const raiz = ctx.theadElement.getRootNode() as Document | ShadowRoot;
+  const focado = raiz.activeElement as HTMLElement | null;
+  const colunaComFoco = focado && ctx.theadElement.contains(focado)
+    ? focado.closest('th')?.getAttribute('data-coluna') ?? null
+    : null;
+
   ctx.theadElement.innerHTML = '';
   ctx.colgroupElement.innerHTML = '';
 
@@ -46,6 +53,9 @@ export function renderizarHeaderTabela(ctx: ContextoHeaderTabela): void {
     const th = document.createElement('th');
     const alignClass = ctx.getAlignmentClass(coluna.alinhamento);
     th.className = alignClass;
+    th.setAttribute('part', 'celula-cabecalho');
+    th.scope = 'col';
+    th.setAttribute('data-coluna', coluna.id);
     th.style.textAlign = ctx.getTextAlign(coluna.alinhamento);
 
     if (coluna.largura !== undefined) {
@@ -66,10 +76,15 @@ export function renderizarHeaderTabela(ctx: ContextoHeaderTabela): void {
       th.title = coluna.tooltip;
     }
 
+    const isSorted = Boolean(coluna.ordenavel) && ctx.colunaOrdenada === coluna.id && ctx.direcaoOrdenacao !== 'original';
+    const isDesc = isSorted && ctx.direcaoOrdenacao === 'desc';
+
     if (coluna.ordenavel) {
       th.classList.add('ui-tabela__th--ordenavel');
+      // O clique no <button> interno (mouse ou Enter/Espaço) sobe até o <th>
       const clickListener = () => ctx.onHeaderClick(coluna);
       ctx.headerListeners.add(th, 'click', clickListener);
+      if (isSorted) th.setAttribute('aria-sort', isDesc ? 'descending' : 'ascending');
     }
 
     const contextMenuListener = (e: Event) => ctx.onHeaderContextMenu(e as MouseEvent, coluna, index, th);
@@ -87,11 +102,11 @@ export function renderizarHeaderTabela(ctx: ContextoHeaderTabela): void {
     sortIconContainer.className = 'ui-tabela__sort-icon';
 
     if (coluna.ordenavel) {
-      const isSorted = ctx.colunaOrdenada === coluna.id && ctx.direcaoOrdenacao !== 'original';
-      const isDesc = isSorted && ctx.direcaoOrdenacao === 'desc';
       const inativoClass = isSorted ? '' : 'ui-tabela__sort-arrow--inativo';
       const descClass = isDesc ? 'ui-tabela__sort-arrow--desc' : '';
 
+      // Decorativo: o estado de ordenação é anunciado pelo aria-sort do <th>
+      sortIconContainer.setAttribute('aria-hidden', 'true');
       sortIconContainer.innerHTML = `
         <svg class="ui-tabela__sort-arrow ${inativoClass} ${descClass}" viewBox="0 0 24 24">
           <path d="M7 14l5-5 5 5H7z"/>
@@ -100,7 +115,18 @@ export function renderizarHeaderTabela(ctx: ContextoHeaderTabela): void {
     }
 
     headerContent.appendChild(sortIconContainer);
-    th.appendChild(headerContent);
+
+    if (coluna.ordenavel) {
+      // Botão nativo: focável por Tab e acionável com Enter/Espaço
+      const botaoOrdenar = document.createElement('button');
+      botaoOrdenar.type = 'button';
+      botaoOrdenar.className = 'ui-tabela__ordenar';
+      botaoOrdenar.setAttribute('part', 'ordenar');
+      botaoOrdenar.appendChild(headerContent);
+      th.appendChild(botaoOrdenar);
+    } else {
+      th.appendChild(headerContent);
+    }
 
     const resizer = document.createElement('div');
     resizer.className = 'ui-tabela__resizer';
@@ -120,4 +146,9 @@ export function renderizarHeaderTabela(ctx: ContextoHeaderTabela): void {
   });
 
   ctx.theadElement.appendChild(trHeader);
+
+  if (colunaComFoco !== null) {
+    const th = Array.from(trHeader.children).find((el) => el.getAttribute('data-coluna') === colunaComFoco);
+    th?.querySelector<HTMLElement>('.ui-tabela__ordenar')?.focus();
+  }
 }

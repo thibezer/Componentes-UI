@@ -1,5 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import './ui-modal';
+import { UIBus } from '../../core/ui-bus';
+import fs from 'fs';
+import path from 'path';
 
 describe('UIModal', () => {
   let modal1: any;
@@ -137,5 +140,153 @@ describe('UIModal', () => {
     expect(mainContent.hasAttribute('inert')).toBe(false);
 
     document.body.removeChild(mainContent);
+  });
+
+  describe('abertura e fechamento pelo atributo', () => {
+    it('deve emitir ui-abrir e ui-fechar uma única vez por transição, por método ou atributo', () => {
+      const eventos: string[] = [];
+      modal1.addEventListener('ui-abrir', () => eventos.push('abrir'));
+      modal1.addEventListener('ui-fechar', () => eventos.push('fechar'));
+
+      modal1.setAttribute('aberto', '');
+      modal1.setAttribute('aberto', '');
+      modal1.removeAttribute('aberto');
+      modal1.abrir();
+      modal1.fechar();
+      modal1.fechar();
+
+      expect(eventos).toEqual(['abrir', 'fechar', 'abrir', 'fechar']);
+    });
+
+    it('deve aplicar inert e bloqueio de rolagem quando aberto pelo atributo', () => {
+      const main = document.createElement('main');
+      document.body.appendChild(main);
+
+      modal1.setAttribute('open', '');
+      expect(main.hasAttribute('inert')).toBe(true);
+      expect(document.body.style.overflow).toBe('hidden');
+
+      modal1.removeAttribute('open');
+      expect(main.hasAttribute('inert')).toBe(false);
+      expect(document.body.style.overflow).toBe('');
+
+      main.remove();
+    });
+
+    it('deve devolver o foco ao gatilho quando fechado pelo atributo', async () => {
+      const gatilho = document.createElement('button');
+      document.body.appendChild(gatilho);
+      gatilho.focus();
+
+      modal1.setAttribute('aberto', '');
+      await new Promise(r => setTimeout(r, 10));
+      modal1.removeAttribute('aberto');
+
+      expect(document.activeElement).toBe(gatilho);
+      gatilho.remove();
+    });
+
+    it('deve aplicar o estado aberto ao ser conectado já com o atributo', () => {
+      const modal = document.createElement('ui-modal') as any;
+      const aoAbrir = vi.fn();
+      modal.addEventListener('ui-abrir', aoAbrir);
+      modal.setAttribute('aberto', '');
+      expect(aoAbrir).not.toHaveBeenCalled();
+
+      document.body.appendChild(modal);
+      expect(aoAbrir).toHaveBeenCalledTimes(1);
+      expect(document.body.style.overflow).toBe('hidden');
+
+      modal.remove();
+      expect(document.body.style.overflow).toBe('');
+    });
+  });
+
+  describe('foco inicial', () => {
+    it('deve focar o primeiro controle do conteúdo, e não o botão fechar', async () => {
+      modal1.innerHTML = '<input id="nome"><button slot="rodape" id="ok">OK</button>';
+      modal1.abrir();
+      await new Promise(r => setTimeout(r, 10));
+
+      expect(document.activeElement).toBe(modal1.querySelector('#nome'));
+    });
+
+    it('deve priorizar o elemento com [autofocus]', async () => {
+      modal1.innerHTML = '<input id="nome"><button slot="rodape" id="ok" autofocus>OK</button>';
+      modal1.abrir();
+      await new Promise(r => setTimeout(r, 10));
+
+      expect(document.activeElement).toBe(modal1.querySelector('#ok'));
+    });
+
+    it('sem controles no conteúdo, deve focar o próprio diálogo', async () => {
+      modal1.innerHTML = '<p>Somente leitura</p>';
+      modal1.abrir();
+      await new Promise(r => setTimeout(r, 10));
+
+      expect(modal1.shadowRoot.activeElement).toBe(modal1.shadowRoot.querySelector('.ui-modal__dialog'));
+    });
+  });
+
+  describe('bloquear-fechamento', () => {
+    it('deve manter o modal aberto, ocultar o botão fechar e não anunciar fechamento no UIBus', () => {
+      modal1.id = 'modal-bloqueado';
+      modal1.setAttribute('bloquear-fechamento', '');
+      modal1.abrir();
+
+      const ouvinte = vi.fn();
+      const cancelar = UIBus.on('modal:fechado', ouvinte);
+
+      expect(UIBus.fecharModal('modal-bloqueado')).toBe(false);
+      expect(modal1.aberto).toBe(true);
+      expect(ouvinte).not.toHaveBeenCalled();
+
+      // O happy-dom não calcula estilos do Shadow DOM: verifica a regra no CSS
+      const css = fs.readFileSync(path.resolve(__dirname, './ui-modal.css'), 'utf-8');
+      expect(css).toMatch(/:host\(\[bloquear-fechamento\]\) \.ui-modal__close \{\s*display: none;/);
+
+      cancelar();
+      modal1.removeAttribute('bloquear-fechamento');
+      expect(UIBus.fecharModal('modal-bloqueado')).toBe(true);
+      expect(modal1.aberto).toBe(false);
+    });
+  });
+
+  describe('modais empilhados', () => {
+    it('o segundo modal aberto (irmão do primeiro) deve continuar interativo', () => {
+      const main = document.createElement('main');
+      document.body.appendChild(main);
+
+      modal1.abrir();
+      expect(modal2.hasAttribute('inert')).toBe(true);
+
+      modal2.abrir();
+      expect(modal2.hasAttribute('inert')).toBe(false);
+      expect(modal1.hasAttribute('inert')).toBe(true);
+      expect(main.hasAttribute('inert')).toBe(true);
+
+      modal2.fechar();
+      expect(modal1.hasAttribute('inert')).toBe(false);
+      expect(main.hasAttribute('inert')).toBe(true);
+      expect(document.body.style.overflow).toBe('hidden');
+
+      modal1.fechar();
+      expect(main.hasAttribute('inert')).toBe(false);
+      expect(modal2.hasAttribute('inert')).toBe(false);
+      expect(document.body.style.overflow).toBe('');
+
+      main.remove();
+    });
+
+    it('Escape deve fechar o último modal aberto, independentemente da ordem no DOM', () => {
+      modal2.abrir();
+      modal1.abrir();
+
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+
+      expect(modal1.aberto).toBe(false);
+      expect(modal2.aberto).toBe(true);
+      modal2.fechar();
+    });
   });
 });
