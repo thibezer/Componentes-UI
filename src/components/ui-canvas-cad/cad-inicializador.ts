@@ -2,7 +2,7 @@ import type { UICanvasCAD } from './ui-canvas-cad';
 import type { GerenciGeoMapaController } from '../../gerencigeo-canvas/mapa_controller';
 import type { GerenciadorToolbarPainel } from './cad-toolbar-painel';
 import type { GerenciadorColecoesDados } from './cad-colecoes-dados';
-import { tratarCliqueMarcador, type ContextoEventosCanvas } from './cad-eventos-canvas';
+import { tratarCliqueMarcador, tratarCliqueSegmento, type ContextoEventosCanvas } from './cad-eventos-canvas';
 
 export interface ContextoInicializadorCAD {
   host: UICanvasCAD;
@@ -73,6 +73,15 @@ export function inicializarCAD(ctx: ContextoInicializadorCAD): void {
       coords,
       prevMarkerClick,
       ctx.colecoesDados.customMarkerClickHandler
+    );
+  };
+
+  ctx.controller.context.onSegmentoClick = (segmentoId, segmento, coords) => {
+    tratarCliqueSegmento(
+      ctx.obterContextoEventos(),
+      segmentoId,
+      segmento,
+      coords
     );
   };
 

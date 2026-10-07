@@ -180,6 +180,10 @@ export function tratarCliqueMarcador(
       console.error('Erro no handler anterior de marker click:', err);
     }
   }
+  if (ctx.controller.context.selectedSegmentoId) {
+    ctx.controller.selectSegmento(null);
+  }
+
   ctx.host.dispatchEvent(new CustomEvent('ui-ponto-selecionado', {
     detail: { selectedIds: [pId], lastSelectedId: pId, isVizinho },
     bubbles: true,
@@ -191,4 +195,59 @@ export function tratarCliqueMarcador(
     composed: true
   }));
 }
+
+export function tratarCliqueSegmento(
+  ctx: ContextoEventosCanvas,
+  segmentoId: string | number,
+  segmento: any,
+  coords?: { lat: number; lon: number },
+  customSegmentoClickHandler?: (segmentoId: string | number, segmento: any) => void
+): void {
+  if (ctx.modoSequencial) {
+    ctx.fecharPopup();
+    return;
+  }
+
+  // Desmarca pontos selecionados e seleciona o segmento ativo
+  ctx.controller.canvasInteracao.ctx.selectedPontoIds = [];
+  ctx.controller.canvasInteracao.ctx.selectedVizinhoPontoIds = [];
+  ctx.controller.canvasInteracao.ctx.lastSelectedPontoId = null;
+  (ctx.controller.context as any).selectedPontoIds = [];
+  ctx.controller.atualizarDestaqueMarcadores();
+
+  ctx.controller.selectSegmento(segmentoId);
+
+  if (customSegmentoClickHandler) {
+    try {
+      customSegmentoClickHandler(segmentoId, segmento);
+    } catch (err) {
+      console.error('Erro no callback de clique de segmento:', err);
+    }
+  }
+
+  // Notifica o host via CustomEvent canônico
+  ctx.host.dispatchEvent(new CustomEvent('ui-segmento-selecionado', {
+    detail: {
+      segmentoId,
+      segmento,
+      pontoInicioId: segmento?.ponto_inicio_id,
+      pontoFimId: segmento?.ponto_fim_id,
+      coordenadas: coords
+    },
+    bubbles: true,
+    composed: true
+  }));
+
+  ctx.host.dispatchEvent(new CustomEvent('ui-elemento-selecionado', {
+    detail: {
+      id: segmentoId,
+      elemento: segmento,
+      tipo: 'segmento',
+      coordenadas: coords
+    },
+    bubbles: true,
+    composed: true
+  }));
+}
+
 

@@ -7,10 +7,7 @@ export type CanvasLayerType = 'tile' | 'wms' | 'vetorial-linhas' | 'vetorial-pon
 export interface LayerStyleDef {
   corPrimaria?: string;
   corSecundaria?: string;
-  /** Espessura em px. Padrão 1 (traço fino estilo CAD); aumente apenas quando desejado */
   espessuraLinha?: number;
-  /** Contorno escuro sob as linhas para contraste sobre satélite (padrão: desligado) */
-  contorno?: boolean;
   tamanhoMarcador?: number;
   estiloMarcador?: 'circle' | 'square' | 'cross' | 'circle-dot' | 'triangle' | 'diamond' | string;
   dashArray?: string;
@@ -121,8 +118,12 @@ export interface Ponto {
 }
 
 export interface Segmento {
+  id?: number | string;
+  matricula_id?: number | string;
   ponto_inicio_id: number;
   ponto_fim_id: number;
+  confrontante_id?: number | string;
+  anuencia_assinada?: number;
   tipo_limite_sigef?: string;
   tipo_limite?: string;
   metodo_posicionamento_sigef?: string;
@@ -181,6 +182,8 @@ export interface CanvasRenderContext {
   chaveGrupo?: string;
   zonaProjecao?: number;
   onMarkerClick?: (pontoId: string | number, isVizinho?: boolean, elemento?: any, coords?: { lat: number; lon: number }) => void;
+  onSegmentoClick?: (segmentoId: string | number, segmento: any, coords?: { lat: number; lon: number }) => void;
+  selectedSegmentoId?: string | number | null;
   onLayerAction?: (action: string, detail: any) => void;
   onPopupAcao?: (acaoId: string, elementoId: string | number, elemento: any) => void;
 }

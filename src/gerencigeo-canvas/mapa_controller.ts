@@ -228,6 +228,12 @@ export class GerenciGeoMapaController {
     atualizarDestaqueMarcadores(this);
   }
 
+  public selectSegmento(segmentoId: string | number | null): void {
+    const parsed = segmentoId != null ? String(segmentoId) : null;
+    this.context.selectedSegmentoId = parsed;
+    this.layerManager.updateContext({ selectedSegmentoId: parsed });
+  }
+
   public fitBounds(pontos?: Ponto[], padding: [number, number] = [40, 40], incluirVizinhos: boolean = false): void {
     if (!this.core.map) return;
     const res = calcularBoundsGeometrias(pontos || this.context.pontos || [], this.context.confrontantes, incluirVizinhos);

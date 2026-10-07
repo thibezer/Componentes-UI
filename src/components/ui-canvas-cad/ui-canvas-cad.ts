@@ -252,6 +252,13 @@ export class UICanvasCAD extends SafeHTMLElement {
     this.controller.atualizarDestaqueMarcadores();
   }
   public atualizarDestaqueMarcadores(): void { this.controller.atualizarDestaqueMarcadores(); }
+  public selectSegmento(id: string | number | null): void { this.controller.selectSegmento(id); }
+  public get segmentoSelecionado(): string | number | null {
+    return this.controller.context.selectedSegmentoId || null;
+  }
+  public set segmentoSelecionado(id: string | number | null) {
+    this.controller.selectSegmento(id);
+  }
   public limparSelecao(): void { this.controller.canvasInteracao.limparSelecao(); }
   public setLayerVisibility(id: string, visivel: boolean): void { this.controller.layerManager.setLayerVisibility(id, visivel); }
   public setLayerOpacity(id: string, opacidade: number): void { this.controller.layerManager.setLayerOpacity(id, opacidade); }

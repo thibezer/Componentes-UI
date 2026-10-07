@@ -243,6 +243,9 @@ export class CanvasInteracao {
   };
 
   public limparSelecao(): void {
+    if (this.ctx.mapaController && this.ctx.mapaController.context.selectedSegmentoId) {
+      this.ctx.mapaController.selectSegmento(null);
+    }
     if (this.ctx.selectedPontoIds.length > 0 || this.ctx.selectedVizinhoPontoIds.length > 0) {
       this.ctx.selectedPontoIds = [];
       this.ctx.selectedVizinhoPontoIds = [];
