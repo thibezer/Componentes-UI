@@ -12,3 +12,13 @@ private/
 
 # Arquivos temporários do Vite
 vite.config.ts.timestamp-*
+
+# Segredos e credenciais (nunca versionar)
+.env
+.env.*
+!.env.example
+google-key.json
+*.pem
+*.key
+uploads/
+persistent_uploads/
