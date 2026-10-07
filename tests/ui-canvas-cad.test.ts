@@ -1074,7 +1074,8 @@ describe('Canvas CAD Engine & <ui-canvas-cad>', () => {
 
       const polylines: L.Polyline[] = [];
       layerInstance.eachLayer(l => {
-        if (l instanceof L.Polyline) polylines.push(l);
+        // Ignora o casing escuro de contraste (interactive: false) desenhado por baixo de cada linha
+        if (l instanceof L.Polyline && l.options.interactive !== false) polylines.push(l);
       });
 
       // Dois grupos com >= 3 pontos e fechamento ativo: devem gerar corpo + fechamento para cada grupo (total 4 polylines)
@@ -1120,7 +1121,8 @@ describe('Canvas CAD Engine & <ui-canvas-cad>', () => {
       const layerInstance = lm.getLayerInstance('polilinha') as L.LayerGroup;
       const polylines: L.Polyline[] = [];
       layerInstance.eachLayer(l => {
-        if (l instanceof L.Polyline) polylines.push(l);
+        // Ignora o casing escuro de contraste (interactive: false) desenhado por baixo de cada linha
+        if (l instanceof L.Polyline && l.options.interactive !== false) polylines.push(l);
       });
 
       // Sem fechamento: 1 polyline para T1 e 1 polyline para T2
@@ -1156,7 +1158,8 @@ describe('Canvas CAD Engine & <ui-canvas-cad>', () => {
       const layerInstance = lm.getLayerInstance('polilinha') as L.LayerGroup;
       const polylines: L.Polyline[] = [];
       layerInstance.eachLayer(l => {
-        if (l instanceof L.Polyline) polylines.push(l);
+        // Ignora o casing escuro de contraste (interactive: false) desenhado por baixo de cada linha
+        if (l instanceof L.Polyline && l.options.interactive !== false) polylines.push(l);
       });
 
       // Apenas o grupo 'dupla' deve gerar polyline (o solitário com 1 ponto não gera linha)
@@ -1187,7 +1190,8 @@ describe('Canvas CAD Engine & <ui-canvas-cad>', () => {
       const layerInstance = lm.getLayerInstance('linhas') as L.LayerGroup;
       const polylines: L.Polyline[] = [];
       layerInstance.eachLayer(l => {
-        if (l instanceof L.Polyline) polylines.push(l);
+        // Ignora o casing escuro de contraste (interactive: false) desenhado por baixo de cada linha
+        if (l instanceof L.Polyline && l.options.interactive !== false) polylines.push(l);
       });
 
       expect(polylines.length).toBe(1);
