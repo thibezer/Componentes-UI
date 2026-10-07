@@ -421,6 +421,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const canvasCad = document.getElementById('demo-canvas-cad') as any;
   const btnCadCarregar = document.getElementById('btn-cad-carregar-dados');
   const btnCadToggleLayers = document.getElementById('btn-cad-toggle-layers');
+  const btnCadPoligonos = document.getElementById('btn-cad-poligonos');
+  const btnCadAltaDensidade = document.getElementById('btn-cad-alta-densidade');
   const btnCadZoomExtents = document.getElementById('btn-cad-zoom-extents');
   const btnCadToggleScale = document.getElementById('btn-cad-toggle-scale');
   const btnCadExportState = document.getElementById('btn-cad-export-state');
@@ -458,13 +460,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (canvasCad) {
     // Carregamento inicial automático
-    setTimeout(() => {
+    // O módulo do canvas é carregado sob demanda (lazy): espera o elemento ser registrado
+    customElements.whenDefined('ui-canvas-cad').then(() => setTimeout(() => {
       canvasCad.pontos = dadosPontosGeodesicos;
       canvasCad.segmentos = dadosSegmentosGeodesicos;
       canvasCad.confrontantes = dadosConfrontantesGeodesicos;
-      canvasCad.fitBounds(dadosPontosGeodesicos);
+      canvasCad.plotarPoligonos(poligonosExemplo, 'vizinhos');
+      canvasCad.fitBounds(dadosPontosGeodesicos, [40, 40], true);
       registrarLog('<ui-canvas-cad> -> Carregado com 7 vértices geodésicos (M-01 Base PPP, B-01 Base Campo, P-01..P-05 Rovers), 5 divisas e confrontante WKT.');
-    }, 400);
+    }, 400));
 
     canvasCad.addEventListener('ui-ponto-selecionado', (e: Event) => {
       const detail = (e as CustomEvent).detail;
@@ -484,6 +488,55 @@ document.addEventListener('DOMContentLoaded', () => {
       canvasCad.confrontantes = dadosConfrontantesGeodesicos;
       canvasCad.fitBounds(dadosPontosGeodesicos);
       registrarLog('<ui-canvas-cad> -> Poligonal Geodésica recarregada e enquadrada na tela.');
+    });
+  }
+
+  // Polígonos de exemplo: sobrepostos (transparência), com furo (anel interno), tracejado e cores distintas
+  const poligonosExemplo = [
+    {
+      id: 'gleba-a', coordenadas: [[-23.7625, -53.3235], [-23.7625, -53.3185], [-23.7660, -53.3185], [-23.7660, -53.3235]],
+      estilo: { cor: '#00f5a0', espessura: 2, dashArray: '1, 0', fillOpacity: 0.12 }
+    },
+    {
+      id: 'gleba-b-sobreposta', coordenadas: [[-23.7645, -53.3210], [-23.7645, -53.3160], [-23.7685, -53.3160], [-23.7685, -53.3210]],
+      estilo: { cor: '#3b82f6', espessura: 2, dashArray: '1, 0', fillOpacity: 0.12 }
+    },
+    {
+      id: 'area-com-furo',
+      coordenadas: [
+        [[-23.7600, -53.3170], [-23.7600, -53.3110], [-23.7640, -53.3110], [-23.7640, -53.3170]],
+        [[-23.7612, -53.3155], [-23.7612, -53.3130], [-23.7628, -53.3130], [-23.7628, -53.3155]]
+      ],
+      estilo: { cor: '#f59e0b', espessura: 2, dashArray: '6, 6', fillOpacity: 0.14 }
+    },
+    {
+      id: 'confrontante-roxo',
+      wkt: 'POLYGON((-53.3260 -23.7650, -53.3240 -23.7640, -53.3225 -23.7675, -53.3255 -23.7685, -53.3260 -23.7650))',
+      estilo: { cor: '#a855f7', espessura: 1.5 }
+    }
+  ];
+
+  if (btnCadPoligonos && canvasCad) {
+    btnCadPoligonos.addEventListener('click', () => {
+      canvasCad.plotarPoligonos(poligonosExemplo, 'vizinhos');
+      canvasCad.fitBounds(dadosPontosGeodesicos, [40, 40], true);
+      registrarLog('<ui-canvas-cad> -> 4 polígonos de exemplo plotados (2 sobrepostos, 1 com furo tracejado, 1 WKT).');
+    });
+  }
+
+  if (btnCadAltaDensidade && canvasCad) {
+    btnCadAltaDensidade.addEventListener('click', () => {
+      const pts = Array.from({ length: 900 }, (_, i) => ({
+        id: 1000 + i,
+        nome_vertice: `D-${i + 1}`,
+        lat: -23.7655 + (Math.random() - 0.5) * 0.0016 + Math.sin(i / 30) * 0.0004,
+        lon: -53.3185 + (Math.random() - 0.5) * 0.0024,
+        tipo_ponto: 'P',
+        tipo: 'P'
+      }));
+      canvasCad.plotarPontos(pts, 'vertices');
+      canvasCad.fitBounds(pts);
+      registrarLog('<ui-canvas-cad> -> 900 pontos plotados (modo compacto de alta densidade).');
     });
   }
 
