@@ -21,7 +21,7 @@ export class VectorPolygonsLayerRenderer implements ILayerRenderer {
     const confrontantes = (poligonosRaw || layerDef.dados?.confrontantes || context.confrontantes || []) as any[];
     const isInteractive = layerDef.interativo && !layerDef.bloqueada;
     const defaultColor = layerDef.estilo.corPrimaria || '#a855f7';
-    const defaultWeight = layerDef.estilo.espessuraLinha || 1.5;
+    const defaultWeight = layerDef.estilo.espessuraLinha || 1;
     const defaultOpacity = layerDef.opacidade !== undefined ? layerDef.opacidade : 0.8;
 
     confrontantes.forEach(c => {

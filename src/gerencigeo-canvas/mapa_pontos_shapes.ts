@@ -6,7 +6,8 @@
  *    legíveis tanto sobre satélite quanto sobre fundo escuro. Traços com `non-scaling-stroke`
  *    (espessura constante em px, independente do tamanho do marcador).
  *  - Sem blur/glow: `drop-shadow` e `box-shadow` borrados eram caros em alta densidade e passavam
- *    aparência "esfumaçada". O destaque é um anel duplo opaco (branco + cor da camada) com halo translúcido.
+ *    aparência "esfumaçada". O destaque de seleção, como no CAD, escurece o símbolo (cor da camada
+ *    misturada com preto) e o recorta com contorno claro, sem anéis ao redor.
  *  - Alta densidade: modo `compacta` reduz contorno e opacidade, de modo que sobreposições
  *    fiquem legíveis (a cor "acumula") em vez de virar uma mancha de contornos escuros.
  */
@@ -100,26 +101,29 @@ export function getPointShapeHtml(
   const cor = attr(extrairCorPonto(bgClass));
   const container = size + 6;
 
-  const fillOpacity = compacta ? 0.72 : 0.9;
-  const contorno = compacta ? 'rgba(0,0,0,0.55)' : 'rgba(0,0,0,0.7)';
-  const larguraContorno = compacta ? 0.8 : 1;
+  // Selecionado: símbolo escurecido (padrão CAD) e opaco, com contorno claro para destacar do fundo
+  const corFill = isSelected ? `color-mix(in srgb, ${cor} 38%, #000000)` : cor;
+  const fillOpacity = isSelected ? 1 : compacta ? 0.72 : 0.9;
+  const contorno = isSelected ? 'rgba(255,255,255,0.95)' : compacta ? 'rgba(0,0,0,0.55)' : 'rgba(0,0,0,0.7)';
+  const larguraContorno = isSelected ? 1.3 : compacta ? 0.8 : 1;
+  const haloTraco = isSelected ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.6)';
   const stroke = (cls: string, c: string, w: number, extra = '') =>
     `class="${cls}" stroke="${c}" stroke-width="${w}" vector-effect="non-scaling-stroke" ${extra}`;
 
   const nucleo = shapeStyle in POLIGONOS
-    ? `<polygon points="${POLIGONOS[shapeStyle]}" fill="${cor}" fill-opacity="${fillOpacity}" stroke-linejoin="round" ${stroke('cad-pt-contorno', contorno, larguraContorno)} />`
+    ? `<polygon points="${POLIGONOS[shapeStyle]}" style="fill:${corFill}" fill-opacity="${fillOpacity}" stroke-linejoin="round" ${stroke('cad-pt-contorno', contorno, larguraContorno)} />`
     : shapeStyle in TRACOS
       ? TRACOS[shapeStyle].map(d =>
           // Traço = halo escuro (contraste sobre satélite) + traço colorido por cima
-          `<path d="${d}" fill="none" stroke-linecap="round" ${stroke('cad-pt-halo', 'rgba(0,0,0,0.6)', compacta ? 2.6 : 3.4)} />` +
-          `<path d="${d}" fill="none" stroke-linecap="round" ${stroke('cad-pt-traco', cor, compacta ? 1.3 : 1.8, `stroke-opacity="${compacta ? 0.9 : 1}"`)} />`
+          `<path d="${d}" fill="none" stroke-linecap="round" ${stroke('cad-pt-halo', haloTraco, compacta ? 2.6 : 3.4)} />` +
+          `<path d="${d}" fill="none" stroke-linecap="round" ${stroke('cad-pt-traco', isSelected ? corFill : cor, compacta ? 1.3 : 1.8, `stroke-opacity="${isSelected ? 1 : compacta ? 0.9 : 1}"`)} />`
         ).join('')
       : shapeStyle === 'square'
-        ? `<rect x="1.2" y="1.2" width="9.6" height="9.6" rx="1.4" fill="${cor}" fill-opacity="${fillOpacity}" ${stroke('cad-pt-contorno', contorno, larguraContorno)} />`
-        : `<circle cx="6" cy="6" r="5.2" fill="${cor}" fill-opacity="${fillOpacity}" ${stroke('cad-pt-contorno', contorno, larguraContorno)} />`;
+        ? `<rect x="1.2" y="1.2" width="9.6" height="9.6" rx="1.4" style="fill:${corFill}" fill-opacity="${fillOpacity}" ${stroke('cad-pt-contorno', contorno, larguraContorno)} />`
+        : `<circle cx="6" cy="6" r="5.2" style="fill:${corFill}" fill-opacity="${fillOpacity}" ${stroke('cad-pt-contorno', contorno, larguraContorno)} />`;
 
   // Aro claro interno: separa a forma do fundo sem borrar (omitido em modo compacto)
-  const aro = !compacta && !(shapeStyle in TRACOS)
+  const aro = !compacta && !isSelected && !(shapeStyle in TRACOS)
     ? shapeStyle in POLIGONOS
       ? ''
       : shapeStyle === 'square'
@@ -131,13 +135,6 @@ export function getPointShapeHtml(
     ? `<circle cx="6" cy="6" r="1.7" fill="#ffffff" stroke="rgba(0,0,0,0.45)" stroke-width="0.6" vector-effect="non-scaling-stroke" />`
     : '';
 
-  // Destaque: halo translúcido + anel branco + anel colorido, ambos opacos e nítidos
-  const destaque = isSelected
-    ? `<circle class="cad-sel-halo" cx="6" cy="6" r="9.2" fill="${cor}" fill-opacity="0.2" />` +
-      `<circle class="cad-sel-anel" cx="6" cy="6" r="8.4" fill="none" stroke="#ffffff" stroke-width="2.6" vector-effect="non-scaling-stroke" />` +
-      `<circle class="cad-sel-anel" cx="6" cy="6" r="8.4" fill="none" stroke="${cor}" stroke-width="1.4" vector-effect="non-scaling-stroke" />`
-    : '';
-
   const classes = `cad-pt ${compacta ? 'cad-pt-compacto' : ''} ${bgClass} ${extraClasses} ${isSelected ? 'ponto-selecionado' : ''}`.replace(/\s+/g, ' ').trim();
   const dim = size;
   const idAttr = id ? `id="${attr(id)}"` : '';
@@ -145,7 +142,7 @@ export function getPointShapeHtml(
   return `
     <div ${idAttr} class="${classes}" style="display:flex; align-items:center; justify-content:center; width:${container}px; height:${container}px; position:relative; pointer-events:auto; background:none !important;">
       <svg width="${dim}" height="${dim}" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg" style="overflow:visible; display:block;">
-        ${destaque}${nucleo}${aro}${miolo}
+        ${nucleo}${aro}${miolo}
       </svg>
     </div>
   `;

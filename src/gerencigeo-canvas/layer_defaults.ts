@@ -57,7 +57,7 @@ export const DEFAULT_LAYERS: CanvasLayerDef[] = [
     bloqueada: false,
     estilo: {
       corPrimaria: '#f59e0b',
-      espessuraLinha: 2,
+      espessuraLinha: 1,
       dashArray: '6, 8',
       scaleMode: 'screen'
     }
@@ -91,7 +91,7 @@ export const DEFAULT_LAYERS: CanvasLayerDef[] = [
     bloqueada: false,
     estilo: {
       corPrimaria: '#00f5a0',
-      espessuraLinha: 2.5,
+      espessuraLinha: 1,
       scaleMode: 'screen',
       dimensaoMetros: 0.3
     }
@@ -108,7 +108,7 @@ export const DEFAULT_LAYERS: CanvasLayerDef[] = [
     bloqueada: false,
     estilo: {
       corPrimaria: '#a855f7',
-      espessuraLinha: 1.5,
+      espessuraLinha: 1,
       dashArray: '4, 6',
       scaleMode: 'screen'
     }

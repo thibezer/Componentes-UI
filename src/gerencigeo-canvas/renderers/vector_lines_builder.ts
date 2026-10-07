@@ -22,7 +22,8 @@ export function calculateLineWeight(layerDef: CanvasLayerDef, map: L.Map, contex
     return Math.max(1, Math.round(px * multiplier));
   }
 
-  return Math.max(1, Math.round(baseWeight * multiplier));
+  // Padrão CAD: traço fino (1px). Espessuras maiores só quando o usuário define estilo.espessuraLinha
+  return Math.max(0.75, Math.round(baseWeight * multiplier * 4) / 4);
 }
 
 function addCasingPolyline(
@@ -32,7 +33,7 @@ function addCasingPolyline(
   paneName: string,
   dashArray?: string
 ): void {
-  const casingWeight = Math.max(Math.round(baseWeight + 3), 4);
+  const casingWeight = baseWeight + 2;
   const casing = L.polyline(coords, {
     color: '#080d0a',
     weight: casingWeight,
@@ -54,6 +55,10 @@ export function rebuildVectorLines(
   paneName: string
 ): void {
   const isHomologadoLayer = layerDef.id === 'homologados';
+  // Contorno escuro sob a linha: opcional (estilo.contorno). Por padrão o traço é fino, como no CAD.
+  const addCasing: typeof addCasingPolyline = (...args) => {
+    if (layerDef.estilo.contorno) addCasingPolyline(...args);
+  };
   const conexoesRaw = layerDef.dados?.conexoes ?? (Array.isArray(layerDef.dados) && layerDef.dados.length > 0 && ('origemId' in layerDef.dados[0]) ? layerDef.dados : null);
   const segmentos = (layerDef.dados?.segmentos || context.segmentos || []) as Segmento[];
   const pontosOriginais = (layerDef.dados?.pontos || (isHomologadoLayer ? (context.bancoPontos || []) : context.pontos) || []) as any[];
@@ -96,7 +101,7 @@ export function rebuildVectorLines(
         const dashArray = isDashed ? '6, 6' : layerDef.estilo.dashArray;
 
         // Casing escuro por baixo para contraste absoluto
-        addCasingPolyline(group, coords, lineWeight, paneName, dashArray);
+        addCasing(group, coords, lineWeight, paneName, dashArray);
 
         const polyline = L.polyline(coords, {
           color,
@@ -149,7 +154,7 @@ export function rebuildVectorLines(
       const latLngs: [number, number][] = sortedPontos.map(p => [p.lat as number, p.lon as number]);
 
       // Casing escuro por baixo para contraste absoluto
-      addCasingPolyline(group, latLngs, weight, paneName, layerDef.estilo.dashArray);
+      addCasing(group, latLngs, weight, paneName, layerDef.estilo.dashArray);
 
       const polylineCorpo = L.polyline(latLngs, {
         color,
@@ -176,7 +181,7 @@ export function rebuildVectorLines(
         const pFirst = latLngs[0];
         const coordsClose = [pLast, pFirst];
 
-        addCasingPolyline(group, coordsClose, weight, paneName, '4, 4');
+        addCasing(group, coordsClose, weight, paneName, '4, 4');
 
         const polylineClose = L.polyline(coordsClose, {
           color,
@@ -207,7 +212,7 @@ export function rebuildVectorLines(
         const dashArray = tipoLim === 'LN1' ? '6, 6' : layerDef.estilo.dashArray;
 
         // Casing escuro por baixo para contraste absoluto
-        addCasingPolyline(group, coords, weight, paneName, dashArray);
+        addCasing(group, coords, weight, paneName, dashArray);
 
         const polyline = L.polyline(coords, {
           color,
@@ -261,7 +266,7 @@ export function rebuildVectorLines(
       const latLngs: [number, number][] = sortedPontos.map(p => [p.lat as number, p.lon as number]);
 
       // Casing escuro por baixo para contraste absoluto
-      addCasingPolyline(group, latLngs, weight, paneName, dashArray);
+      addCasing(group, latLngs, weight, paneName, dashArray);
 
       const polylineCorpo = L.polyline(latLngs, {
         color,
@@ -279,7 +284,7 @@ export function rebuildVectorLines(
         const closeDash = isHomologadoLayer ? '6, 8' : '4, 4';
         const coordsClose = [pLast, pFirst];
 
-        addCasingPolyline(group, coordsClose, weight, paneName, closeDash);
+        addCasing(group, coordsClose, weight, paneName, closeDash);
 
         const polylineClose = L.polyline(coordsClose, {
           color,

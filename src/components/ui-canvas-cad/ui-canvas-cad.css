@@ -556,25 +556,9 @@
   z-index: 2000 !important;
 }
 
-/* Destaque nítido (anéis branco + cor, halo translúcido): entrada única, sem animação infinita
-   nem filtros de blur, para manter fluidez com milhares de pontos selecionados */
-.cad-sel-halo,
-.cad-sel-anel {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: cad-sel-entrada 0.18s ease-out;
-}
-
-@keyframes cad-sel-entrada {
-  from { transform: scale(0.6); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
-}
-
+/* Seleção: símbolo escurecido com contorno claro (desenhado no SVG, sem filtros nem animação) */
 @media (prefers-reduced-motion: reduce) {
-  .cad-sel-halo,
-  .cad-sel-anel,
   .custom-leaflet-marker .cad-pt svg {
-    animation: none;
     transition: none;
   }
 }

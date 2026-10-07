@@ -7,7 +7,10 @@ export type CanvasLayerType = 'tile' | 'wms' | 'vetorial-linhas' | 'vetorial-pon
 export interface LayerStyleDef {
   corPrimaria?: string;
   corSecundaria?: string;
+  /** Espessura em px. Padrão 1 (traço fino estilo CAD); aumente apenas quando desejado */
   espessuraLinha?: number;
+  /** Contorno escuro sob as linhas para contraste sobre satélite (padrão: desligado) */
+  contorno?: boolean;
   tamanhoMarcador?: number;
   estiloMarcador?: 'circle' | 'square' | 'cross' | 'circle-dot' | 'triangle' | 'diamond' | string;
   dashArray?: string;

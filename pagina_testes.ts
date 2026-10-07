@@ -495,11 +495,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const poligonosExemplo = [
     {
       id: 'gleba-a', coordenadas: [[-23.7625, -53.3235], [-23.7625, -53.3185], [-23.7660, -53.3185], [-23.7660, -53.3235]],
-      estilo: { cor: '#00f5a0', espessura: 2, dashArray: '1, 0', fillOpacity: 0.12 }
+      estilo: { cor: '#00f5a0', espessura: 1, dashArray: '1, 0', fillOpacity: 0.12 }
     },
     {
       id: 'gleba-b-sobreposta', coordenadas: [[-23.7645, -53.3210], [-23.7645, -53.3160], [-23.7685, -53.3160], [-23.7685, -53.3210]],
-      estilo: { cor: '#3b82f6', espessura: 2, dashArray: '1, 0', fillOpacity: 0.12 }
+      estilo: { cor: '#3b82f6', espessura: 1, dashArray: '1, 0', fillOpacity: 0.12 }
     },
     {
       id: 'area-com-furo',
@@ -507,12 +507,12 @@ document.addEventListener('DOMContentLoaded', () => {
         [[-23.7600, -53.3170], [-23.7600, -53.3110], [-23.7640, -53.3110], [-23.7640, -53.3170]],
         [[-23.7612, -53.3155], [-23.7612, -53.3130], [-23.7628, -53.3130], [-23.7628, -53.3155]]
       ],
-      estilo: { cor: '#f59e0b', espessura: 2, dashArray: '6, 6', fillOpacity: 0.14 }
+      estilo: { cor: '#f59e0b', espessura: 1, dashArray: '6, 6', fillOpacity: 0.14 }
     },
     {
       id: 'confrontante-roxo',
       wkt: 'POLYGON((-53.3260 -23.7650, -53.3240 -23.7640, -53.3225 -23.7675, -53.3255 -23.7685, -53.3260 -23.7650))',
-      estilo: { cor: '#a855f7', espessura: 1.5 }
+      estilo: { cor: '#a855f7', espessura: 1 }
     }
   ];
 
