@@ -327,10 +327,17 @@
   cursor: pointer;
 }
 
+/* Marcadores: o hover age no SVG interno (o elemento externo é posicionado pelo Leaflet via transform) */
 .custom-leaflet-marker:hover {
-  filter: brightness(1.25);
-  transform: scale(1.15);
-  transition: transform 0.15s ease;
+  z-index: 1800 !important; /* ponto sob o cursor sobe acima dos vizinhos sobrepostos */
+}
+
+.custom-leaflet-marker .cad-pt svg {
+  transition: transform 0.12s ease-out;
+}
+
+.custom-leaflet-marker:hover .cad-pt svg {
+  transform: scale(1.3);
 }
 
 /* Estilos Dark Universais para Popups do Leaflet no Shadow DOM */
@@ -466,7 +473,7 @@
 
 /* ==========================================
    Anel de Destaque Pulsante CAD (destacarElemento)
-   Keyframes: Ping Expansivo & Glow Central
+   Anéis expansivos nítidos (sem glow)
    ========================================== */
 .cad-destaque-marker-container {
   pointer-events: none !important;
@@ -493,13 +500,13 @@
 
 .cad-pulse-core {
   position: absolute;
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
   background-color: var(--cad-pulse-cor, #00f5a0);
-  box-shadow: 0 0 10px var(--cad-pulse-cor, #00f5a0), 0 0 20px var(--cad-pulse-cor, #00f5a0);
+  border: 2px solid #ffffff;
+  box-sizing: border-box;
   pointer-events: none !important;
-  animation: cad-pulse-glow 1.4s ease-in-out infinite alternate;
 }
 
 .cad-pulse-ring {
@@ -507,40 +514,37 @@
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  border: 2.5px solid var(--cad-pulse-cor, #00f5a0);
-  box-shadow: 0 0 10px var(--cad-pulse-cor, #00f5a0);
+  border: 2px solid var(--cad-pulse-cor, #00f5a0);
+  background-color: color-mix(in srgb, var(--cad-pulse-cor, #00f5a0) 14%, transparent);
+  box-sizing: border-box;
   pointer-events: none !important;
   opacity: 0;
   animation: cad-pulse-ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
 .cad-pulse-ring.ring-2 {
-  animation-delay: 0.6s;
+  animation-delay: 0.9s;
 }
 
 @keyframes cad-pulse-ping {
   0% {
-    transform: scale(0.35);
-    opacity: 0.95;
+    transform: scale(0.3);
+    opacity: 0.9;
   }
-  60% {
-    opacity: 0.5;
+  70% {
+    opacity: 0.35;
   }
   100% {
-    transform: scale(2.5);
+    transform: scale(1);
     opacity: 0;
   }
 }
 
-@keyframes cad-pulse-glow {
-  0% {
-    transform: scale(0.85);
-    opacity: 0.8;
-  }
-  100% {
-    transform: scale(1.15);
-    opacity: 1;
-    box-shadow: 0 0 14px var(--cad-pulse-cor, #00f5a0), 0 0 26px var(--cad-pulse-cor, #00f5a0);
+@media (prefers-reduced-motion: reduce) {
+  .cad-pulse-ring {
+    animation: none;
+    opacity: 0.6;
+    transform: scale(0.6);
   }
 }
 
@@ -552,17 +556,26 @@
   z-index: 2000 !important;
 }
 
-.cad-marker-selected > div,
-.ponto-selecionado > div {
-  animation: cad-ponto-pulse 1.8s ease-in-out infinite alternate !important;
+/* Destaque nítido (anéis branco + cor, halo translúcido): entrada única, sem animação infinita
+   nem filtros de blur, para manter fluidez com milhares de pontos selecionados */
+.cad-sel-halo,
+.cad-sel-anel {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: cad-sel-entrada 0.18s ease-out;
 }
 
-@keyframes cad-ponto-pulse {
-  0% {
-    filter: drop-shadow(0 0 3px #ffffff) drop-shadow(0 0 6px #00f5a0);
-  }
-  100% {
-    filter: drop-shadow(0 0 6px #ffffff) drop-shadow(0 0 16px #00f5a0);
+@keyframes cad-sel-entrada {
+  from { transform: scale(0.6); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cad-sel-halo,
+  .cad-sel-anel,
+  .custom-leaflet-marker .cad-pt svg {
+    animation: none;
+    transition: none;
   }
 }
 

@@ -31,7 +31,7 @@ export class VectorPolygonsLayerRenderer implements ILayerRenderer {
       const polyWeight = c.estilo?.espessura || c.estilo?.weight || defaultWeight;
       const polyOpacity = c.estilo?.opacidade ?? defaultOpacity;
       const polyFillColor = c.estilo?.fillColor || polyColor;
-      const polyFillOpacity = c.estilo?.fillOpacity ?? Math.min(0.2, polyOpacity * 0.15);
+      const polyFillOpacity = c.estilo?.fillOpacity ?? Math.min(0.14, polyOpacity * 0.1);
       const polyDash = c.estilo?.dashArray || layerDef.estilo.dashArray || '4, 6';
 
       // 1. Renderiza a partir de coordenadas explícitas (PoligonoCAD: number[][] | [number, number][])
@@ -62,6 +62,7 @@ export class VectorPolygonsLayerRenderer implements ILayerRenderer {
             dashArray: polyDash,
             fillColor: polyFillColor,
             fillOpacity: polyFillOpacity,
+            lineJoin: 'round',
             pane: paneName,
             interactive: isInteractive
           });
@@ -129,6 +130,7 @@ export class VectorPolygonsLayerRenderer implements ILayerRenderer {
               dashArray: polyDash,
               fillColor: polyFillColor,
               fillOpacity: polyFillOpacity,
+              lineJoin: 'round',
               pane: paneName,
               interactive: isInteractive
             });
@@ -169,8 +171,8 @@ export class VectorPolygonsLayerRenderer implements ILayerRenderer {
           const coord = parseCoordenada(p.lat ?? p.latitude ?? p.y, p.lon ?? p.lng ?? p.longitude ?? p.x);
           if (coord) {
             const markerIcon = L.divIcon({
-              html: `<div style="width:8px; height:8px; background:#a855f7; border-radius:50%; border:1px solid #ffffff; box-shadow:0 0 4px rgba(168,85,247,0.8);"></div>`,
-              className: 'custom-leaflet-marker flex items-center justify-center',
+              html: `<div class="cad-pt" style="width:12px; height:12px; display:flex; align-items:center; justify-content:center;"><svg width="8" height="8" viewBox="0 0 12 12" style="overflow:visible; display:block;"><circle cx="6" cy="6" r="5.2" fill="#a855f7" fill-opacity="0.85" stroke="rgba(0,0,0,0.65)" stroke-width="1" vector-effect="non-scaling-stroke" /><circle cx="6" cy="6" r="4.3" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="0.8" vector-effect="non-scaling-stroke" /></svg></div>`,
+              className: 'custom-leaflet-marker',
               iconSize: [12, 12]
             });
             const marker = L.marker([coord.lat, coord.lon], {

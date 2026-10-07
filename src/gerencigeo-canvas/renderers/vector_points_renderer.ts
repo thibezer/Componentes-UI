@@ -2,7 +2,7 @@ import L from 'leaflet';
 import type { ILayerRenderer } from '../layer_renderer_factory';
 import type { CanvasLayerDef, CanvasRenderContext, Ponto } from '../types';
 import { escapeHtml, renderPopupAcoesHtml, bindPopupAcoesEvents } from '../utils';
-import { getPointShapeHtml } from '../mapa_pontos_shapes';
+import { getPointShapeHtml, fatorDensidade, modoDensidade } from '../mapa_pontos_shapes';
 
 export class VectorPointsLayerRenderer implements ILayerRenderer {
   private zoomListenerMap = new WeakMap<L.LayerGroup, () => void>();
@@ -14,29 +14,16 @@ export class VectorPointsLayerRenderer implements ILayerRenderer {
     this.rebuildPoints(layerDef, group, map, context, paneName);
 
     const zoomCallback = () => {
-      if (layerDef.estilo.scaleMode === 'world') {
-        group.eachLayer((marker: any) => {
-          if (marker.setIcon && marker.baseSize && marker.shapeStyle && marker.markerBg && marker.pontoId !== undefined) {
-            const size = this.calculateSize(layerDef, map, context, marker.baseSize);
-            const animClass = context.config.enableAnimations ? 'transition-all duration-150' : '';
-            const markerHtml = getPointShapeHtml(
-              marker.shapeStyle,
-              size,
-              marker.markerBg,
-              animClass,
-              `map-marker-${layerDef.id}-${marker.pontoId}`,
-              !!marker.isSelected
-            );
+      group.eachLayer((marker: any) => {
+        if (!(marker.setIcon && marker.baseSize && marker.shapeStyle && marker.markerBg && marker.pontoId !== undefined)) return;
+        const total = marker.densTotal || 0;
+        if (layerDef.estilo.scaleMode !== 'world' && modoDensidade(total) !== 'compacta') return;
 
-            const customIcon = L.divIcon({
-              html: markerHtml,
-              className: 'custom-leaflet-marker flex items-center justify-center',
-              iconSize: [size + 6, size + 6]
-            });
-            marker.setIcon(customIcon);
-          }
-        });
-      }
+        const size = this.calculateSize(layerDef, map, context, marker.baseSize, total);
+        if (size === marker.tamanhoPx) return;
+        marker.tamanhoPx = size;
+        marker.setIcon(this.criarIcone(layerDef, context, marker.shapeStyle, size, marker.markerBg, marker.pontoId, !!marker.isSelected, total));
+      });
     };
 
     map.on('zoomend', zoomCallback);
@@ -45,7 +32,34 @@ export class VectorPointsLayerRenderer implements ILayerRenderer {
     return group;
   }
 
-  private calculateSize(layerDef: CanvasLayerDef, map: L.Map, context: CanvasRenderContext, baseSize: number): number {
+  private criarIcone(
+    layerDef: CanvasLayerDef,
+    context: CanvasRenderContext,
+    shapeStyle: string,
+    size: number,
+    markerBg: string,
+    pontoId: string | number,
+    isSelected: boolean,
+    total: number
+  ): L.DivIcon {
+    const animClass = context.config.enableAnimations ? 'cad-pt-anim' : '';
+    const html = getPointShapeHtml(
+      shapeStyle,
+      size,
+      markerBg,
+      animClass,
+      `map-marker-${layerDef.id}-${pontoId}`,
+      isSelected,
+      { densidade: modoDensidade(total) }
+    );
+    return L.divIcon({
+      html,
+      className: `custom-leaflet-marker ${isSelected ? 'cad-marker-selected' : ''}`.trim(),
+      iconSize: [size + 6, size + 6]
+    });
+  }
+
+  private calculateSize(layerDef: CanvasLayerDef, map: L.Map, context: CanvasRenderContext, baseSize: number, total: number = 0): number {
     const multiplier = context.graphicScale.markerScaleMultiplier || 1.0;
 
     if (layerDef.estilo.scaleMode === 'world') {
@@ -57,7 +71,8 @@ export class VectorPointsLayerRenderer implements ILayerRenderer {
       return Math.max(3, Math.round(px * multiplier));
     }
 
-    return Math.max(4, Math.round(baseSize * multiplier));
+    const fator = fatorDensidade(total, map.getZoom());
+    return Math.max(fator < 1 ? 5 : 4, Math.round(baseSize * multiplier * fator));
   }
 
   private rebuildPoints(
@@ -76,6 +91,7 @@ export class VectorPointsLayerRenderer implements ILayerRenderer {
     const isHomologadoLayer = layerDef.id === 'homologados' || layerDef.id === 'homologados-pontos';
 
     const selectedIds = ((context as any).selectedPontoIds || []) as (string | number)[];
+    const total = pontos.length;
 
     pontos.forEach(p => {
       const lat = p.lat ?? (p as any).latitude;
@@ -112,22 +128,8 @@ export class VectorPointsLayerRenderer implements ILayerRenderer {
           (selectedIds.length > 0 && (selectedIds.includes(p.id) || selectedIds.includes(String(p.id)) || selectedIds.includes(Number(p.id))))
         );
 
-        const size = this.calculateSize(layerDef, map, context, baseSize);
-        const animClass = context.config.enableAnimations ? 'transition-all duration-150' : '';
-        const markerHtml = getPointShapeHtml(
-          shapeStyle,
-          size,
-          markerBg,
-          animClass,
-          `map-marker-${layerDef.id}-${p.id}`,
-          isSelected
-        );
-
-        const customIcon = L.divIcon({
-          html: markerHtml,
-          className: `custom-leaflet-marker flex items-center justify-center ${isSelected ? 'cad-marker-selected' : ''}`,
-          iconSize: [size + 6, size + 6]
-        });
+        const size = this.calculateSize(layerDef, map, context, baseSize, total);
+        const customIcon = this.criarIcone(layerDef, context, shapeStyle, size, markerBg, p.id, isSelected, total);
 
         const marker = L.marker([Number(lat), Number(lon)], {
           icon: customIcon,
@@ -146,6 +148,8 @@ export class VectorPointsLayerRenderer implements ILayerRenderer {
         (marker as any).shapeStyle = shapeStyle;
         (marker as any).markerBg = markerBg;
         (marker as any).isSelected = isSelected;
+        (marker as any).densTotal = total;
+        (marker as any).tamanhoPx = size;
 
         if (isInteractive) {
           const popupRole = isHomologadoLayer

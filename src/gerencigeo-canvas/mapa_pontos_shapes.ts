@@ -1,9 +1,39 @@
 /**
- * Helper para renderizar elementos HTML/SVG de marcadores no Leaflet Canvas/DOM.
- * Estilos inline 100% autônomos (independentes de Tailwind) e suporte completo a
- * formas geométricas topográficas (circle, circle-dot, square, diamond, cross, x, triangle)
- * com suporte nativo a seleção e destaque visual.
+ * Helper para renderizar marcadores (SVG inline, sem dependência de Tailwind) no Leaflet.
+ *
+ * Princípios visuais:
+ *  - Formas nítidas: preenchimento levemente translúcido + contorno escuro fino + aro claro interno,
+ *    legíveis tanto sobre satélite quanto sobre fundo escuro. Traços com `non-scaling-stroke`
+ *    (espessura constante em px, independente do tamanho do marcador).
+ *  - Sem blur/glow: `drop-shadow` e `box-shadow` borrados eram caros em alta densidade e passavam
+ *    aparência "esfumaçada". O destaque é um anel duplo opaco (branco + cor da camada) com halo translúcido.
+ *  - Alta densidade: modo `compacta` reduz contorno e opacidade, de modo que sobreposições
+ *    fiquem legíveis (a cor "acumula") em vez de virar uma mancha de contornos escuros.
  */
+
+export type DensidadeMarcador = 'normal' | 'compacta';
+
+export interface OpcoesPontoShape {
+  densidade?: DensidadeMarcador;
+}
+
+/** Acima deste total de pontos na camada, os marcadores passam a usar o modo compacto. */
+export const LIMIAR_DENSIDADE_ALTA = 300;
+
+export function modoDensidade(total: number): DensidadeMarcador {
+  return total > LIMIAR_DENSIDADE_ALTA ? 'compacta' : 'normal';
+}
+
+/**
+ * Fator de escala (0.6–1) aplicado ao tamanho dos marcadores em camadas densas.
+ * Diminui com o nº de pontos (log) e com o afastamento do zoom, onde os pontos mais se sobrepõem.
+ */
+export function fatorDensidade(total: number, zoom: number): number {
+  if (total <= LIMIAR_DENSIDADE_ALTA) return 1;
+  const porQuantidade = Math.max(0.7, 1 - 0.3 * Math.log10(total / LIMIAR_DENSIDADE_ALTA));
+  const porZoom = zoom >= 18 ? 1 : zoom >= 16 ? 0.92 : zoom >= 14 ? 0.82 : 0.72;
+  return Math.max(0.6, porQuantidade * porZoom);
+}
 
 export function extrairCorPonto(bgClassOuCor: string): string {
   if (!bgClassOuCor) return '#00f5a0';
@@ -39,109 +69,84 @@ export function extrairCorPonto(bgClassOuCor: string): string {
   return '#00f5a0';
 }
 
+/** Escapa o valor de cor para uso seguro em atributos SVG. */
+function attr(valor: string): string {
+  return valor.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
+}
+
+/** Geometria (viewBox 0..12) das formas fechadas. */
+const POLIGONOS: Record<string, string> = {
+  diamond: '6,0.8 11.2,6 6,11.2 0.8,6',
+  triangle: '6,1 11.4,10.6 0.6,10.6'
+};
+
+/** Geometria (viewBox 0..12) das formas de traço. */
+const TRACOS: Record<string, string[]> = {
+  cross: ['M6 1.2V10.8', 'M1.2 6H10.8'],
+  x: ['M2 2L10 10', 'M10 2L2 10']
+};
+
 export function getPointShapeHtml(
   shapeStyle: string,
   size: number,
   bgClass: string,
   extraClasses: string = '',
   id: string = '',
-  selecionado: boolean = false
+  selecionado: boolean = false,
+  opcoes: OpcoesPontoShape = {}
 ): string {
   const isSelected = selecionado || extraClasses.includes('ponto-selecionado') || extraClasses.includes('cad-marker-selected');
-  const cor = extrairCorPonto(bgClass);
-  const containerSize = size + 6;
-  const innerSize = size;
+  const compacta = opcoes.densidade === 'compacta';
+  const cor = attr(extrairCorPonto(bgClass));
+  const container = size + 6;
 
-  // Estilos de Destaque / Seleção Ativa
-  const sombraBase = isSelected
-    ? `box-shadow: 0 0 0 2px #ffffff, 0 0 0 4.5px ${cor}, 0 0 16px ${cor}; filter: drop-shadow(0 0 4px ${cor});`
-    : `box-shadow: 0 1px 4px rgba(0, 0, 0, 0.65), 0 0 1px rgba(0, 0, 0, 0.9);`;
+  const fillOpacity = compacta ? 0.72 : 0.9;
+  const contorno = compacta ? 'rgba(0,0,0,0.55)' : 'rgba(0,0,0,0.7)';
+  const larguraContorno = compacta ? 0.8 : 1;
+  const stroke = (cls: string, c: string, w: number, extra = '') =>
+    `class="${cls}" stroke="${c}" stroke-width="${w}" vector-effect="non-scaling-stroke" ${extra}`;
 
-  const animTransform = isSelected
-    ? 'transform: scale(1.35); transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);'
-    : 'transition: transform 0.15s ease, filter 0.15s ease;';
+  const nucleo = shapeStyle in POLIGONOS
+    ? `<polygon points="${POLIGONOS[shapeStyle]}" fill="${cor}" fill-opacity="${fillOpacity}" stroke-linejoin="round" ${stroke('cad-pt-contorno', contorno, larguraContorno)} />`
+    : shapeStyle in TRACOS
+      ? TRACOS[shapeStyle].map(d =>
+          // Traço = halo escuro (contraste sobre satélite) + traço colorido por cima
+          `<path d="${d}" fill="none" stroke-linecap="round" ${stroke('cad-pt-halo', 'rgba(0,0,0,0.6)', compacta ? 2.6 : 3.4)} />` +
+          `<path d="${d}" fill="none" stroke-linecap="round" ${stroke('cad-pt-traco', cor, compacta ? 1.3 : 1.8, `stroke-opacity="${compacta ? 0.9 : 1}"`)} />`
+        ).join('')
+      : shapeStyle === 'square'
+        ? `<rect x="1.2" y="1.2" width="9.6" height="9.6" rx="1.4" fill="${cor}" fill-opacity="${fillOpacity}" ${stroke('cad-pt-contorno', contorno, larguraContorno)} />`
+        : `<circle cx="6" cy="6" r="5.2" fill="${cor}" fill-opacity="${fillOpacity}" ${stroke('cad-pt-contorno', contorno, larguraContorno)} />`;
 
-  const containerStyle = `display:flex; align-items:center; justify-content:center; width:${containerSize}px; height:${containerSize}px; position:relative; pointer-events:auto; ${animTransform}`;
-  const classesCompletas = `${bgClass} ${extraClasses} ${isSelected ? 'ponto-selecionado' : ''}`.trim();
+  // Aro claro interno: separa a forma do fundo sem borrar (omitido em modo compacto)
+  const aro = !compacta && !(shapeStyle in TRACOS)
+    ? shapeStyle in POLIGONOS
+      ? ''
+      : shapeStyle === 'square'
+        ? `<rect x="2.2" y="2.2" width="7.6" height="7.6" rx="0.9" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="0.8" vector-effect="non-scaling-stroke" />`
+        : `<circle cx="6" cy="6" r="4.3" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="0.8" vector-effect="non-scaling-stroke" />`
+    : '';
 
-  switch (shapeStyle) {
-    case 'square':
-      return `
-        <div id="${id}" class="${classesCompletas}" style="${containerStyle}">
-          <div style="width:${innerSize}px; height:${innerSize}px; background-color:${cor}; border-radius:2px; border:1px solid rgba(0,0,0,0.4); box-sizing:border-box; ${sombraBase}"></div>
-        </div>
-      `;
+  const miolo = shapeStyle === 'circle-dot'
+    ? `<circle cx="6" cy="6" r="1.7" fill="#ffffff" stroke="rgba(0,0,0,0.45)" stroke-width="0.6" vector-effect="non-scaling-stroke" />`
+    : '';
 
-    case 'circle-dot': {
-      const dotSize = Math.max(3, Math.floor(innerSize / 3));
-      return `
-        <div id="${id}" class="${classesCompletas}" style="${containerStyle}">
-          <div style="width:${innerSize}px; height:${innerSize}px; background-color:${cor}; border-radius:50%; display:flex; align-items:center; justify-content:center; border:1px solid rgba(0,0,0,0.3); box-sizing:border-box; ${sombraBase}">
-            <div style="width:${dotSize}px; height:${dotSize}px; background-color:#ffffff; border-radius:50%; box-shadow:0 0 2px rgba(0,0,0,0.8);"></div>
-          </div>
-        </div>
-      `;
-    }
+  // Destaque: halo translúcido + anel branco + anel colorido, ambos opacos e nítidos
+  const destaque = isSelected
+    ? `<circle class="cad-sel-halo" cx="6" cy="6" r="9.2" fill="${cor}" fill-opacity="0.2" />` +
+      `<circle class="cad-sel-anel" cx="6" cy="6" r="8.4" fill="none" stroke="#ffffff" stroke-width="2.6" vector-effect="non-scaling-stroke" />` +
+      `<circle class="cad-sel-anel" cx="6" cy="6" r="8.4" fill="none" stroke="${cor}" stroke-width="1.4" vector-effect="non-scaling-stroke" />`
+    : '';
 
-    case 'diamond':
-      return `
-        <div id="${id}" class="${classesCompletas}" style="${containerStyle}">
-          <svg width="${innerSize + 2}" height="${innerSize + 2}" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" style="overflow:visible; ${isSelected ? `filter: drop-shadow(0 0 3px #ffffff) drop-shadow(0 0 6px ${cor});` : 'filter: drop-shadow(0 1px 2px rgba(0,0,0,0.7));'}">
-            <polygon points="6,1 11,6 6,11 1,6" fill="${cor}" stroke="#000000" stroke-width="1.2" stroke-linejoin="round" />
-            ${isSelected ? `<polygon points="6,2.5 9.5,6 6,9.5 2.5,6" fill="none" stroke="#ffffff" stroke-width="1" />` : ''}
-          </svg>
-        </div>
-      `;
+  const classes = `cad-pt ${compacta ? 'cad-pt-compacto' : ''} ${bgClass} ${extraClasses} ${isSelected ? 'ponto-selecionado' : ''}`.replace(/\s+/g, ' ').trim();
+  const dim = size;
+  const idAttr = id ? `id="${attr(id)}"` : '';
 
-    case 'cross':
-      // Cruz Ortogonal '+' (AutoCAD PDMODE 2 / Mira topográfica)
-      return `
-        <div id="${id}" class="${classesCompletas}" style="${containerStyle}">
-          <svg width="${innerSize + 4}" height="${innerSize + 4}" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" style="overflow:visible; ${isSelected ? `filter: drop-shadow(0 0 3px #ffffff) drop-shadow(0 0 6px ${cor});` : 'filter: drop-shadow(0 1px 2px rgba(0,0,0,0.7));'}">
-            ${isSelected ? `<circle cx="6" cy="6" r="5.5" stroke="#ffffff" stroke-width="1.2" stroke-dasharray="2 2" fill="none" />` : ''}
-            <!-- Halo escuro de contraste para satélite -->
-            <line x1="6" y1="1" x2="6" y2="11" stroke="#000000" stroke-width="3" stroke-linecap="round" />
-            <line x1="1" y1="6" x2="11" y2="6" stroke="#000000" stroke-width="3" stroke-linecap="round" />
-            <!-- Traço colorido do marcador -->
-            <line x1="6" y1="1" x2="6" y2="11" stroke="${cor}" stroke-width="${isSelected ? '2.2' : '1.6'}" stroke-linecap="round" />
-            <line x1="1" y1="6" x2="11" y2="6" stroke="${cor}" stroke-width="${isSelected ? '2.2' : '1.6'}" stroke-linecap="round" />
-          </svg>
-        </div>
-      `;
-
-    case 'x':
-      // Cruz Diagonal '×' (AutoCAD PDMODE 3 / Vértice de Perímetro)
-      return `
-        <div id="${id}" class="${classesCompletas}" style="${containerStyle}">
-          <svg width="${innerSize + 4}" height="${innerSize + 4}" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" style="overflow:visible; ${isSelected ? `filter: drop-shadow(0 0 3px #ffffff) drop-shadow(0 0 6px ${cor});` : 'filter: drop-shadow(0 1px 2px rgba(0,0,0,0.7));'}">
-            ${isSelected ? `<circle cx="6" cy="6" r="5.5" stroke="#ffffff" stroke-width="1.2" stroke-dasharray="2 2" fill="none" />` : ''}
-            <!-- Halo escuro de contraste para satélite -->
-            <line x1="2" y1="2" x2="10" y2="10" stroke="#000000" stroke-width="3" stroke-linecap="round" />
-            <line x1="10" y1="2" x2="2" y2="10" stroke="#000000" stroke-width="3" stroke-linecap="round" />
-            <!-- Traço colorido do marcador -->
-            <line x1="2" y1="2" x2="10" y2="10" stroke="${cor}" stroke-width="${isSelected ? '2.2' : '1.6'}" stroke-linecap="round" />
-            <line x1="10" y1="2" x2="2" y2="10" stroke="${cor}" stroke-width="${isSelected ? '2.2' : '1.6'}" stroke-linecap="round" />
-          </svg>
-        </div>
-      `;
-
-    case 'triangle':
-      // Triângulo Equilátero SVG com centro perfeitamente balanceado
-      return `
-        <div id="${id}" class="${classesCompletas}" style="${containerStyle}">
-          <svg width="${innerSize + 2}" height="${innerSize + 2}" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" style="overflow:visible; ${isSelected ? `filter: drop-shadow(0 0 3px #ffffff) drop-shadow(0 0 6px ${cor});` : 'filter: drop-shadow(0 1px 2px rgba(0,0,0,0.7));'}">
-            <polygon points="6,1.5 11,10.5 1,10.5" fill="${cor}" stroke="#000000" stroke-width="1.2" stroke-linejoin="round" />
-            ${isSelected ? `<polygon points="6,3.5 9.5,9.5 2.5,9.5" fill="none" stroke="#ffffff" stroke-width="1" />` : ''}
-          </svg>
-        </div>
-      `;
-
-    case 'circle':
-    default:
-      return `
-        <div id="${id}" class="${classesCompletas}" style="${containerStyle}">
-          <div style="width:${innerSize}px; height:${innerSize}px; background-color:${cor}; border-radius:50%; border:1px solid rgba(0,0,0,0.35); box-sizing:border-box; ${sombraBase}"></div>
-        </div>
-      `;
-  }
+  return `
+    <div ${idAttr} class="${classes}" style="display:flex; align-items:center; justify-content:center; width:${container}px; height:${container}px; position:relative; pointer-events:auto; background:none !important;">
+      <svg width="${dim}" height="${dim}" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg" style="overflow:visible; display:block;">
+        ${destaque}${nucleo}${aro}${miolo}
+      </svg>
+    </div>
+  `;
 }

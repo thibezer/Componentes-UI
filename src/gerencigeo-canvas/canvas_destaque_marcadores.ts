@@ -1,5 +1,5 @@
 import L from 'leaflet';
-import { getPointShapeHtml } from './mapa_pontos_shapes';
+import { getPointShapeHtml, fatorDensidade, modoDensidade } from './mapa_pontos_shapes';
 
 /* Destaque visual de marcadores selecionados (z-index, ícone e classes CSS) */
 
@@ -26,24 +26,27 @@ function calcularTamanhoMarcador(controller: any, anyMarker: any): number {
     const px = dimMetros / (metersPerPixel > 0 ? metersPerPixel : 1);
     return Math.max(3, Math.round(px * multiplier));
   }
-  return Math.max(4, Math.round(baseSize * multiplier));
+  const fator = fatorDensidade(anyMarker.densTotal || 0, map?.getZoom() ?? 18);
+  return Math.max(fator < 1 ? 5 : 4, Math.round(baseSize * multiplier * fator));
 }
 
 function recriarIconeMarcador(controller: any, marker: L.Marker, anyMarker: any, pId: any, isSelected: boolean): void {
   const size = calcularTamanhoMarcador(controller, anyMarker);
-  const animClass = controller.context.config.enableAnimations ? 'transition-all duration-150' : '';
+  const animClass = controller.context.config.enableAnimations ? 'cad-pt-anim' : '';
   const markerHtml = getPointShapeHtml(
     anyMarker.shapeStyle,
     size,
     anyMarker.markerBg,
     animClass,
     `map-marker-${anyMarker.layerId || 'pts'}-${pId}`,
-    isSelected
+    isSelected,
+    { densidade: modoDensidade(anyMarker.densTotal || 0) }
   );
+  anyMarker.tamanhoPx = size;
 
   marker.setIcon(L.divIcon({
     html: markerHtml,
-    className: `custom-leaflet-marker flex items-center justify-center ${isSelected ? 'cad-marker-selected ponto-selecionado' : ''}`,
+    className: `custom-leaflet-marker ${isSelected ? 'cad-marker-selected ponto-selecionado' : ''}`,
     iconSize: [size + 6, size + 6]
   }));
 }
