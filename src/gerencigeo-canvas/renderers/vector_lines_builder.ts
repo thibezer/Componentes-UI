@@ -25,6 +25,27 @@ export function calculateLineWeight(layerDef: CanvasLayerDef, map: L.Map, contex
   return Math.max(1, Math.round(baseWeight * multiplier));
 }
 
+function addCasingPolyline(
+  group: L.LayerGroup,
+  coords: any,
+  baseWeight: number,
+  paneName: string,
+  dashArray?: string
+): void {
+  const casingWeight = Math.max(Math.round(baseWeight + 3), 4);
+  const casing = L.polyline(coords, {
+    color: '#080d0a',
+    weight: casingWeight,
+    opacity: 0.85,
+    lineCap: 'round',
+    lineJoin: 'round',
+    dashArray: dashArray,
+    pane: paneName,
+    interactive: false
+  });
+  casing.addTo(group);
+}
+
 export function rebuildVectorLines(
   layerDef: CanvasLayerDef,
   group: L.LayerGroup,
@@ -71,12 +92,17 @@ export function rebuildVectorLines(
         const isDashed = c.tipoLinha === 'tracejada' || c.estilo?.tipoLinha === 'tracejada';
         const color = c.estilo?.cor || c.estilo?.color || layerDef.estilo.corPrimaria || '#00f5a0';
         const lineWeight = c.estilo?.espessura || c.estilo?.weight || weight;
+        const coords = [[pIni.lat, pIni.lon], [pFim.lat, pFim.lon]] as [number, number][];
+        const dashArray = isDashed ? '6, 6' : layerDef.estilo.dashArray;
 
-        const polyline = L.polyline([[pIni.lat, pIni.lon], [pFim.lat, pFim.lon]], {
+        // Casing escuro por baixo para contraste absoluto
+        addCasingPolyline(group, coords, lineWeight, paneName, dashArray);
+
+        const polyline = L.polyline(coords, {
           color,
           weight: lineWeight,
           opacity: c.estilo?.opacidade ?? opacity,
-          dashArray: isDashed ? '6, 6' : layerDef.estilo.dashArray,
+          dashArray,
           pane: paneName,
           interactive: isInteractive
         });
@@ -87,7 +113,7 @@ export function rebuildVectorLines(
           const acoesHtml = renderPopupAcoesHtml(acoes, conexaoId);
 
           polyline.bindPopup(`
-            <div style="font-family:var(--ui-fonte-base, sans-serif); color:rgba(255, 255, 255, 0.9); line-height:1.3;">
+            <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.3;">
               <div style="font-weight:700; font-size:12px; margin-bottom:3px; color:#ffffff;">Conexão ${escapeHtml(String(c.origemId))} ↔ ${escapeHtml(String(c.destinoId))}</div>
               <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">Tipo: ${escapeHtml(c.tipoLinha || 'contínua')}</div>
               ${acoesHtml}
@@ -122,6 +148,9 @@ export function rebuildVectorLines(
 
       const latLngs: [number, number][] = sortedPontos.map(p => [p.lat as number, p.lon as number]);
 
+      // Casing escuro por baixo para contraste absoluto
+      addCasingPolyline(group, latLngs, weight, paneName, layerDef.estilo.dashArray);
+
       const polylineCorpo = L.polyline(latLngs, {
         color,
         weight,
@@ -133,7 +162,7 @@ export function rebuildVectorLines(
 
       if (isInteractive) {
         polylineCorpo.bindPopup(`
-          <div style="font-family:var(--ui-fonte-base, sans-serif); color:rgba(255, 255, 255, 0.9); line-height:1.3;">
+          <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.3;">
             <div style="font-weight:700; font-size:12px; margin-bottom:3px; color:#ffffff;">Polilinha: Grupo ${escapeHtml(grupoKey)}</div>
             <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">Vértices: ${sortedPontos.length}</div>
           </div>
@@ -145,7 +174,11 @@ export function rebuildVectorLines(
       if (fechar && latLngs.length >= 3) {
         const pLast = latLngs[latLngs.length - 1];
         const pFirst = latLngs[0];
-        const polylineClose = L.polyline([pLast, pFirst], {
+        const coordsClose = [pLast, pFirst];
+
+        addCasingPolyline(group, coordsClose, weight, paneName, '4, 4');
+
+        const polylineClose = L.polyline(coordsClose, {
           color,
           weight,
           opacity,
@@ -170,12 +203,17 @@ export function rebuildVectorLines(
         const metodoPos = s.metodo_posicionamento_sigef || s.metodo_posicionamento || '';
         const defaultColor = tipoLim === 'LA1' ? '#10b981' : (tipoLim === 'LN1' ? '#3b82f6' : '#00f5a0');
         const color = layerDef.estilo.corPrimaria || defaultColor;
+        const coords = [[pIni.lat, pIni.lon], [pFim.lat, pFim.lon]] as [number, number][];
+        const dashArray = tipoLim === 'LN1' ? '6, 6' : layerDef.estilo.dashArray;
 
-        const polyline = L.polyline([[pIni.lat, pIni.lon], [pFim.lat, pFim.lon]], {
+        // Casing escuro por baixo para contraste absoluto
+        addCasingPolyline(group, coords, weight, paneName, dashArray);
+
+        const polyline = L.polyline(coords, {
           color,
           weight,
           opacity,
-          dashArray: tipoLim === 'LN1' ? '6, 6' : layerDef.estilo.dashArray,
+          dashArray,
           pane: paneName,
           interactive: isInteractive
         });
@@ -186,7 +224,7 @@ export function rebuildVectorLines(
           const acoesHtml = renderPopupAcoesHtml(acoes, segmentoId);
 
           polyline.bindPopup(`
-            <div style="font-family:var(--ui-fonte-base, sans-serif); color:rgba(255, 255, 255, 0.9); line-height:1.3;">
+            <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.3;">
               <div style="font-weight:700; font-size:12px; margin-bottom:3px; color:#ffffff;">${escapeHtml(pIni.nome_vertice)} ↔ ${escapeHtml(pFim.nome_vertice)}</div>
               <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">Limite: ${escapeHtml(tipoLim || 'N/A')} · ${escapeHtml(metodoPos || 'N/A')}</div>
               ${acoesHtml}
@@ -222,6 +260,9 @@ export function rebuildVectorLines(
 
       const latLngs: [number, number][] = sortedPontos.map(p => [p.lat as number, p.lon as number]);
 
+      // Casing escuro por baixo para contraste absoluto
+      addCasingPolyline(group, latLngs, weight, paneName, dashArray);
+
       const polylineCorpo = L.polyline(latLngs, {
         color,
         weight,
@@ -235,11 +276,16 @@ export function rebuildVectorLines(
       if (latLngs.length >= 3) {
         const pLast = latLngs[latLngs.length - 1];
         const pFirst = latLngs[0];
-        const polylineClose = L.polyline([pLast, pFirst], {
+        const closeDash = isHomologadoLayer ? '6, 8' : '4, 4';
+        const coordsClose = [pLast, pFirst];
+
+        addCasingPolyline(group, coordsClose, weight, paneName, closeDash);
+
+        const polylineClose = L.polyline(coordsClose, {
           color,
           weight,
           opacity,
-          dashArray: isHomologadoLayer ? '6, 8' : '4, 4',
+          dashArray: closeDash,
           pane: paneName,
           interactive: isInteractive
         });

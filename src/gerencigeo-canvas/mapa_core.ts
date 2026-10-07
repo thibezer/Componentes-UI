@@ -71,7 +71,7 @@ export class MapaCore {
     }
     if (!this.map.getPane('perimetroPane')) {
       const p = this.map.createPane('perimetroPane');
-      p.style.zIndex = '450';
+      p.style.zIndex = '520';
     }
     if (!this.map.getPane('verticesPane')) {
       const p = this.map.createPane('verticesPane');

@@ -1,17 +1,146 @@
 import L from 'leaflet';
 import type { CanvasLayerDef, CanvasLayerState, CanvasRenderContext, CanvasGraphicScale } from './types';
-import { DEFAULT_LAYERS } from './layer_defaults';
-import { exportarEstadoCamadas, importarEstadoCamadas, aplicarDadosCamada } from './layer_state_ops';
-import {
-  garantirPanes,
-  aplicarVisibilidadePane,
-  aplicarOpacidadePane,
-  aplicarZIndexPane,
-  aplicarBloqueioPane
-} from './layer_pane_ops';
-import { montarInstancia, destruirInstancia, atualizarInstancia } from './layer_instance_ops';
+import { LayerRendererFactory } from './layer_renderer_factory';
+import { TileLayerRenderer } from './renderers/tile_renderer';
+import { WmsLayerRenderer } from './renderers/wms_renderer';
+import { VectorLinesLayerRenderer } from './renderers/vector_lines_renderer';
+import { VectorPointsLayerRenderer } from './renderers/vector_points_renderer';
+import { VectorPolygonsLayerRenderer } from './renderers/vector_polygons_renderer';
+import { GridLayerRenderer } from './renderers/grid_renderer';
 
-export { DEFAULT_LAYERS };
+// Registra os renderizadores padrão no Factory
+LayerRendererFactory.register('tile', new TileLayerRenderer());
+LayerRendererFactory.register('wms', new WmsLayerRenderer());
+LayerRendererFactory.register('vetorial-linhas', new VectorLinesLayerRenderer());
+LayerRendererFactory.register('vetorial-pontos', new VectorPointsLayerRenderer());
+LayerRendererFactory.register('vetorial-poligonos', new VectorPolygonsLayerRenderer());
+LayerRendererFactory.register('grid', new GridLayerRenderer());
+
+export const DEFAULT_LAYERS: CanvasLayerDef[] = [
+  {
+    id: 'satelite',
+    nome: 'Satélite Google Híbrido',
+    categoria: 'base',
+    tipo: 'tile',
+    visivel: true,
+    opacidade: 1.0,
+    zIndex: 200,
+    interativo: false,
+    bloqueada: false,
+    estilo: { scaleMode: 'screen' }
+  },
+  {
+    id: 'sigef',
+    nome: 'Acervo Fundiário SIGEF (INCRA)',
+    categoria: 'wms',
+    tipo: 'wms',
+    visivel: true,
+    opacidade: 0.85,
+    zIndex: 390,
+    interativo: true,
+    bloqueada: false,
+    estilo: { scaleMode: 'screen' }
+  },
+  {
+    id: 'homologados',
+    nome: 'Poligonal Homologada (Banco)',
+    categoria: 'referencia',
+    tipo: 'vetorial-linhas',
+    visivel: true,
+    opacidade: 0.9,
+    zIndex: 420,
+    interativo: true,
+    bloqueada: false,
+    estilo: {
+      corPrimaria: '#f59e0b',
+      espessuraLinha: 2,
+      dashArray: '6, 8',
+      scaleMode: 'screen'
+    }
+  },
+  {
+    id: 'homologados-pontos',
+    nome: 'Marcos Homologados (Banco)',
+    categoria: 'referencia',
+    tipo: 'vetorial-pontos',
+    visivel: true,
+    opacidade: 1.0,
+    zIndex: 430,
+    interativo: true,
+    bloqueada: false,
+    estilo: {
+      tamanhoMarcador: 8,
+      estiloMarcador: 'circle',
+      scaleMode: 'screen'
+    }
+  },
+  {
+    id: 'perimetro',
+    nome: 'Divisas e Poligonal do Imóvel',
+    categoria: 'levantamento',
+    tipo: 'vetorial-linhas',
+    visivel: true,
+    opacidade: 1.0,
+    zIndex: 520,
+    interativo: true,
+    bloqueada: false,
+    estilo: {
+      corPrimaria: '#00f5a0',
+      espessuraLinha: 2.5,
+      scaleMode: 'screen',
+      dimensaoMetros: 0.3
+    }
+  },
+  {
+    id: 'vizinhos',
+    nome: 'Imóveis Confrontantes (WKT/CSV)',
+    categoria: 'referencia',
+    tipo: 'vetorial-poligonos',
+    visivel: true,
+    opacidade: 0.8,
+    zIndex: 440,
+    interativo: true,
+    bloqueada: false,
+    estilo: {
+      corPrimaria: '#a855f7',
+      espessuraLinha: 1.5,
+      dashArray: '4, 6',
+      scaleMode: 'screen'
+    }
+  },
+  {
+    id: 'vertices',
+    nome: 'Vértices e Marcos do Levantamento',
+    categoria: 'levantamento',
+    tipo: 'vetorial-pontos',
+    visivel: true,
+    opacidade: 1.0,
+    zIndex: 650,
+    interativo: true,
+    bloqueada: false,
+    estilo: {
+      tamanhoMarcador: 8,
+      scaleMode: 'screen',
+      dimensaoMetros: 0.25
+    }
+  },
+  {
+    id: 'grade',
+    nome: 'Grade de Coordenadas UTM',
+    categoria: 'referencia',
+    tipo: 'grid',
+    visivel: true,
+    opacidade: 0.5,
+    zIndex: 700,
+    interativo: false,
+    bloqueada: false,
+    estilo: {
+      corPrimaria: 'rgba(0, 245, 160, 0.18)',
+      espessuraLinha: 0.6,
+      scaleMode: 'screen'
+    }
+  }
+];
 
 export class CanvasLayerManager {
   private layers: CanvasLayerDef[] = [];
@@ -33,16 +162,40 @@ export class CanvasLayerManager {
 
   public ensurePanes(): void {
     if (!this.map) return;
-    garantirPanes(this.map, this.layers);
+
+    this.layers.forEach(layer => {
+      const paneName = `pane-${layer.id}`;
+      let pane = this.map!.getPane(paneName);
+      if (!pane) {
+        pane = this.map!.createPane(paneName);
+      }
+      if (pane) {
+        pane.style.zIndex = String(layer.zIndex);
+        pane.style.pointerEvents = layer.interativo && !layer.bloqueada && layer.visivel ? 'auto' : 'none';
+      }
+    });
   }
 
   public renderAllLayers(): void {
     if (!this.map || !this.context) return;
 
     this.layers.forEach(layer => {
-      destruirInstancia(layer, this.map!, this.layerInstances);
+      if (this.layerInstances.has(layer.id)) {
+        const instance = this.layerInstances.get(layer.id)!;
+        const renderer = LayerRendererFactory.get(layer.tipo);
+        if (renderer) renderer.destroy(instance, this.map!);
+        this.layerInstances.delete(layer.id);
+      }
+
       if (layer.visivel) {
-        montarInstancia(layer, this.map!, this.context!, this.layerInstances);
+        const renderer = LayerRendererFactory.get(layer.tipo);
+        if (renderer) {
+          const instance = renderer.render(layer, this.map!, this.context!);
+          if (instance) {
+            instance.addTo(this.map!);
+            this.layerInstances.set(layer.id, instance);
+          }
+        }
       }
     });
 
@@ -57,14 +210,31 @@ export class CanvasLayerManager {
 
     if (!this.map || !this.context) return;
 
-    aplicarVisibilidadePane(this.map, layer);
+    const paneName = `pane-${layer.id}`;
+    const pane = this.map.getPane(paneName);
+    if (pane) {
+      pane.style.display = visivel ? '' : 'none';
+      pane.style.pointerEvents = layer.visivel && layer.interativo && !layer.bloqueada ? 'auto' : 'none';
+    }
 
     if (visivel) {
       if (!this.layerInstances.has(id)) {
-        montarInstancia(layer, this.map, this.context, this.layerInstances);
+        const renderer = LayerRendererFactory.get(layer.tipo);
+        if (renderer) {
+          const instance = renderer.render(layer, this.map, this.context);
+          if (instance) {
+            instance.addTo(this.map);
+            this.layerInstances.set(id, instance);
+          }
+        }
       }
     } else {
-      destruirInstancia(layer, this.map, this.layerInstances);
+      if (this.layerInstances.has(id)) {
+        const instance = this.layerInstances.get(id)!;
+        const renderer = LayerRendererFactory.get(layer.tipo);
+        if (renderer) renderer.destroy(instance, this.map);
+        this.layerInstances.delete(id);
+      }
     }
 
     this.notifyChange();
@@ -77,9 +247,17 @@ export class CanvasLayerManager {
     layer.opacidade = Math.max(0, Math.min(1, opacidade));
 
     if (this.map) {
-      aplicarOpacidadePane(this.map, layer);
-      if (this.context) {
-        atualizarInstancia(layer, { opacidade: layer.opacidade }, this.map, this.context, this.layerInstances);
+      const pane = this.map.getPane(`pane-${id}`);
+      if (pane) {
+        pane.style.opacity = String(layer.opacidade);
+      }
+    }
+
+    const instance = this.layerInstances.get(id);
+    if (instance && this.map && this.context) {
+      const renderer = LayerRendererFactory.get(layer.tipo);
+      if (renderer) {
+        renderer.update(layer, instance, { opacidade: layer.opacidade }, this.context, this.map);
       }
     }
 
@@ -91,7 +269,12 @@ export class CanvasLayerManager {
     if (!layer) return;
 
     layer.zIndex = zIndex;
-    if (this.map) aplicarZIndexPane(this.map, layer);
+    if (this.map) {
+      const pane = this.map.getPane(`pane-${id}`);
+      if (pane) {
+        pane.style.zIndex = String(zIndex);
+      }
+    }
 
     this.notifyChange();
   }
@@ -101,7 +284,12 @@ export class CanvasLayerManager {
     if (!layer) return;
 
     layer.bloqueada = bloqueada;
-    if (this.map) aplicarBloqueioPane(this.map, layer);
+    if (this.map) {
+      const pane = this.map.getPane(`pane-${id}`);
+      if (pane) {
+        pane.style.pointerEvents = layer.visivel && layer.interativo && !bloqueada ? 'auto' : 'none';
+      }
+    }
 
     this.notifyChange();
   }
@@ -111,8 +299,12 @@ export class CanvasLayerManager {
     if (!layer) return;
 
     layer.estilo.scaleMode = mode;
-    if (this.map && this.context) {
-      atualizarInstancia(layer, { estilo: layer.estilo }, this.map, this.context, this.layerInstances);
+    const instance = this.layerInstances.get(id);
+    if (instance && this.map && this.context) {
+      const renderer = LayerRendererFactory.get(layer.tipo);
+      if (renderer) {
+        renderer.update(layer, instance, { estilo: layer.estilo }, this.context, this.map);
+      }
     }
 
     this.notifyChange();
@@ -144,13 +336,29 @@ export class CanvasLayerManager {
   }
 
   public exportState(): CanvasLayerState[] {
-    return exportarEstadoCamadas(this.layers);
+    return this.layers.map(l => ({
+      id: l.id,
+      visivel: l.visivel,
+      opacidade: l.opacidade,
+      zIndex: l.zIndex,
+      bloqueada: l.bloqueada,
+      estilo: { ...l.estilo }
+    }));
   }
 
   public importState(state: CanvasLayerState[]): void {
     if (!state || !Array.isArray(state)) return;
 
-    importarEstadoCamadas(this.layers, state);
+    state.forEach(saved => {
+      const layer = this.layers.find(l => l.id === saved.id);
+      if (layer) {
+        if (saved.visivel !== undefined) layer.visivel = saved.visivel;
+        if (saved.opacidade !== undefined) layer.opacidade = saved.opacidade;
+        if (saved.zIndex !== undefined) layer.zIndex = saved.zIndex;
+        if (saved.bloqueada !== undefined) layer.bloqueada = saved.bloqueada;
+        if (saved.estilo) layer.estilo = { ...layer.estilo, ...saved.estilo };
+      }
+    });
 
     this.ensurePanes();
     this.renderAllLayers();
@@ -214,8 +422,24 @@ export class CanvasLayerManager {
   public setLayerData(id: string, dados: any): void {
     const layer = this.layers.find(l => l.id === id);
     if (!layer) return;
+    layer.dados = dados;
 
-    aplicarDadosCamada(layer, dados, this.map, this.context, this.layerInstances);
+    const instance = this.layerInstances.get(id);
+    if (instance && this.map && this.context) {
+      const renderer = LayerRendererFactory.get(layer.tipo);
+      if (renderer) {
+        renderer.update(layer, instance, { dados }, this.context, this.map);
+      }
+    } else if (layer.visivel && this.map && this.context) {
+      const renderer = LayerRendererFactory.get(layer.tipo);
+      if (renderer) {
+        const inst = renderer.render(layer, this.map, this.context);
+        if (inst) {
+          inst.addTo(this.map);
+          this.layerInstances.set(id, inst);
+        }
+      }
+    }
 
     this.notifyChange();
   }
@@ -226,10 +450,13 @@ export class CanvasLayerManager {
       : Array.from(this.layerInstances.keys());
 
     toClear.forEach(id => {
-      const layer = this.layers.find(l => l.id === id);
-      if (layer) {
-        destruirInstancia(layer, this.map!, this.layerInstances);
-      } else {
+      if (this.layerInstances.has(id)) {
+        const instance = this.layerInstances.get(id)!;
+        const layer = this.layers.find(l => l.id === id);
+        if (layer) {
+          const renderer = LayerRendererFactory.get(layer.tipo);
+          if (renderer) renderer.destroy(instance, this.map!);
+        }
         this.layerInstances.delete(id);
       }
     });
@@ -239,7 +466,13 @@ export class CanvasLayerManager {
 
   public destroy(): void {
     if (this.map) {
-      this.layers.forEach(layer => destruirInstancia(layer, this.map!, this.layerInstances));
+      this.layerInstances.forEach((instance, layerId) => {
+        const layer = this.layers.find(l => l.id === layerId);
+        if (layer) {
+          const renderer = LayerRendererFactory.get(layer.tipo);
+          if (renderer) renderer.destroy(instance, this.map!);
+        }
+      });
       this.layerInstances.clear();
     }
     this.listeners = [];

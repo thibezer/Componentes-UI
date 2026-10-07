@@ -29,14 +29,29 @@ export class MapaLinhas {
         const color = this.bancoPontosAtivo ? '#94a3b8' : (tipoLim === 'LA1' ? '#10b981' : '#3b82f6');
         const weight = this.core.config.perimetroWeight;
         const opacity = this.bancoPontosAtivo ? 0.4 : 1.0;
-        const polyline = L.polyline([[pIni.lat, pIni.lon], [pFim.lat, pFim.lon]], {
+        const coords = [[pIni.lat, pIni.lon], [pFim.lat, pFim.lon]] as [number, number][];
+
+        // Casing escuro por baixo para contraste absoluto
+        const casing = L.polyline(coords, {
+          color: '#080d0a',
+          weight: weight + 3,
+          opacity: 0.85,
+          lineCap: 'round',
+          lineJoin: 'round',
+          dashArray: tipoLim === 'LN1' ? '6, 6' : undefined,
+          pane: 'perimetroPane',
+          interactive: false
+        }).addTo(this.core.map!);
+        this.polylines.push(casing);
+
+        const polyline = L.polyline(coords, {
           color: color,
           weight: weight,
           opacity: opacity,
           dashArray: tipoLim === 'LN1' ? '6, 6' : undefined,
           pane: 'perimetroPane'
         }).bindPopup(`
-          <div style="font-family:var(--ui-fonte-base, sans-serif); color:rgba(255, 255, 255, 0.9); line-height:1.3;">
+          <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.3;">
             <div style="font-weight:700; font-size:12px; margin-bottom:3px; color:#ffffff;">${escapeHtml(pIni.nome_vertice)} ↔ ${escapeHtml(pFim.nome_vertice)}</div>
             <div style="font-size:11px; color:rgba(255, 255, 255, 0.65);">Limite: ${escapeHtml(tipoLim)} · ${escapeHtml(metodoPos)}</div>
           </div>
@@ -75,7 +90,20 @@ export class MapaLinhas {
       for (let i = 0; i < sortedPontos.length - 1; i++) {
         const pIni = sortedPontos[i];
         const pFim = sortedPontos[i + 1];
-        const polyline = L.polyline([[pIni.lat as number, pIni.lon as number], [pFim.lat as number, pFim.lon as number]], {
+        const coords = [[pIni.lat as number, pIni.lon as number], [pFim.lat as number, pFim.lon as number]] as [number, number][];
+
+        const casing = L.polyline(coords, {
+          color: '#080d0a',
+          weight: weight + 3,
+          opacity: 0.85,
+          lineCap: 'round',
+          lineJoin: 'round',
+          pane: 'perimetroPane',
+          interactive: false
+        }).addTo(this.core.map!);
+        this.polylines.push(casing);
+
+        const polyline = L.polyline(coords, {
           color: color,
           weight: weight,
           opacity: opacity,
@@ -88,7 +116,19 @@ export class MapaLinhas {
       // Fecha o perímetro do grupo: pLast -> pFirst (em linha tracejada)
       const pLast = sortedPontos[sortedPontos.length - 1];
       const pFirst = sortedPontos[0];
-      const polylineClose = L.polyline([[pLast.lat as number, pLast.lon as number], [pFirst.lat as number, pFirst.lon as number]], {
+      const coordsClose = [[pLast.lat as number, pLast.lon as number], [pFirst.lat as number, pFirst.lon as number]] as [number, number][];
+
+      const casingClose = L.polyline(coordsClose, {
+        color: '#080d0a',
+        weight: weight + 2.5,
+        opacity: 0.75,
+        dashArray: '4, 4',
+        pane: 'perimetroPane',
+        interactive: false
+      }).addTo(this.core.map!);
+      this.polylines.push(casingClose);
+
+      const polylineClose = L.polyline(coordsClose, {
         color: color,
         weight: weight,
         opacity: opacity,
@@ -124,11 +164,11 @@ export class MapaLinhas {
       });
 
       const popupContent = `
-        <div style="font-family:var(--ui-fonte-base, sans-serif); color:rgba(255, 255, 255, 0.9); line-height:1.35; min-width:180px;">
+        <div style="font-family:sans-serif; color:rgba(255, 255, 255, 0.9); line-height:1.35; min-width:180px;">
           <div style="font-weight:800; font-size:11px; color:#fbbf24; text-transform:uppercase; letter-spacing:0.5px; border-bottom:1px solid rgba(255, 255, 255, 0.1); padding-bottom:3px; margin-bottom:5px;">Vértice Homologado SIGEF</div>
           <div style="font-weight:700; font-size:13px; margin-bottom:3px; color:#ffffff;">${escapeHtml(p.codigo_completo || p.nome_vertice)}</div>
-          <div style="font-size:11px; color:rgba(255, 255, 255, 0.7); font-family:var(--ui-fonte-codigo, monospace);">Este (E): ${p.este ? p.este.toFixed(2) : 'N/A'} m</div>
-          <div style="font-size:11px; color:rgba(255, 255, 255, 0.7); font-family:var(--ui-fonte-codigo, monospace); margin-bottom:3px;">Norte (N): ${p.norte ? p.norte.toFixed(2) : 'N/A'} m</div>
+          <div style="font-size:11px; color:rgba(255, 255, 255, 0.7); font-family:monospace;">Este (E): ${p.este ? p.este.toFixed(2) : 'N/A'} m</div>
+          <div style="font-size:11px; color:rgba(255, 255, 255, 0.7); font-family:monospace; margin-bottom:3px;">Norte (N): ${p.norte ? p.norte.toFixed(2) : 'N/A'} m</div>
           <div style="font-size:11px; color:rgba(255, 255, 255, 0.7); margin-bottom:2px;">Alt (h): <strong>${p.altitude ? p.altitude.toFixed(2) : 'N/A'} m</strong></div>
           <div style="font-size:10px; color:rgba(255, 255, 255, 0.45);">Método: ${escapeHtml(p.metodo_posicionamento) || 'N/A'} · Limite: ${escapeHtml(p.tipo_limite) || 'N/A'}</div>
           ${p.confrontante_descritivo ? `<div style="font-size:10px; color:rgba(255, 255, 255, 0.65); border-top:1px solid rgba(255, 255, 255, 0.1); padding-top:4px; margin-top:4px; word-break:break-word;"><strong>Conf:</strong> ${escapeHtml(p.confrontante_descritivo)}</div>` : ''}
