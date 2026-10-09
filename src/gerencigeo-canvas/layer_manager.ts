@@ -142,12 +142,20 @@ export const DEFAULT_LAYERS: CanvasLayerDef[] = [
   }
 ];
 
+// Camadas que não leem o contexto de dados (pontos, segmentos, confrontantes...): recriá-las a cada
+// mudança de contexto só baixava de novo os tiles do satélite/SIGEF e redesenhava a grade.
+const TIPOS_INDEPENDENTES_DO_CONTEXTO = new Set(['tile', 'wms', 'grid']);
+
 export class CanvasLayerManager {
   private layers: CanvasLayerDef[] = [];
   private layerInstances = new Map<string, L.Layer | L.LayerGroup>();
   private map: L.Map | null = null;
   private context: CanvasRenderContext | null = null;
   private listeners: Array<(layers: CanvasLayerDef[]) => void> = [];
+  // Um "refresh" do app chama vários plot*/set* seguidos (clearOverlays, plotPontos, plotSegmentos...);
+  // cada um mudava o contexto e recriava todas as camadas. Agora as mudanças de contexto do mesmo tick
+  // viram um único render (em microtask), antecipado por qualquer leitura/alteração das instâncias.
+  private renderPendente = false;
 
   constructor(initialLayers?: CanvasLayerDef[]) {
     this.layers = (initialLayers || DEFAULT_LAYERS).map(l => ({ ...l, estilo: { ...l.estilo } }));
@@ -176,10 +184,16 @@ export class CanvasLayerManager {
     });
   }
 
-  public renderAllLayers(): void {
+  public renderAllLayers(apenasDependentesDoContexto: boolean = false): void {
+    this.renderPendente = false;
     if (!this.map || !this.context) return;
 
     this.layers.forEach(layer => {
+      if (apenasDependentesDoContexto && TIPOS_INDEPENDENTES_DO_CONTEXTO.has(layer.tipo)
+        && layer.visivel && this.layerInstances.has(layer.id)) {
+        return;
+      }
+
       if (this.layerInstances.has(layer.id)) {
         const instance = this.layerInstances.get(layer.id)!;
         const renderer = LayerRendererFactory.get(layer.tipo);
@@ -202,7 +216,19 @@ export class CanvasLayerManager {
     this.notifyChange();
   }
 
+  /** Executa agora o render agendado por updateContext/setGraphicScale, se houver. */
+  public flushRender(): void {
+    if (this.renderPendente) this.renderAllLayers(true);
+  }
+
+  private agendarRender(): void {
+    if (this.renderPendente) return;
+    this.renderPendente = true;
+    queueMicrotask(() => this.flushRender());
+  }
+
   public setLayerVisibility(id: string, visivel: boolean): void {
+    this.flushRender();
     const layer = this.layers.find(l => l.id === id);
     if (!layer || layer.visivel === visivel) return;
 
@@ -241,6 +267,7 @@ export class CanvasLayerManager {
   }
 
   public setLayerOpacity(id: string, opacidade: number): void {
+    this.flushRender();
     const layer = this.layers.find(l => l.id === id);
     if (!layer) return;
 
@@ -295,6 +322,7 @@ export class CanvasLayerManager {
   }
 
   public setLayerScaleMode(id: string, mode: 'screen' | 'world'): void {
+    this.flushRender();
     const layer = this.layers.find(l => l.id === id);
     if (!layer) return;
 
@@ -313,13 +341,13 @@ export class CanvasLayerManager {
   public setGraphicScale(scale: Partial<CanvasGraphicScale>): void {
     if (!this.context) return;
     this.context.graphicScale = { ...this.context.graphicScale, ...scale };
-    this.renderAllLayers();
+    this.agendarRender();
   }
 
   public updateContext(newContext: Partial<CanvasRenderContext>): void {
     if (!this.context) return;
     this.context = { ...this.context, ...newContext };
-    this.renderAllLayers();
+    this.agendarRender();
   }
 
   public getLayers(): CanvasLayerDef[] {
@@ -383,10 +411,12 @@ export class CanvasLayerManager {
   }
 
   public getAllLayerInstances(): (L.Layer | L.LayerGroup)[] {
+    this.flushRender();
     return Array.from(this.layerInstances.values());
   }
 
   public getLayerInstance(id: string): L.Layer | L.LayerGroup | undefined {
+    this.flushRender();
     return this.layerInstances.get(id);
   }
 
@@ -420,6 +450,7 @@ export class CanvasLayerManager {
   }
 
   public setLayerData(id: string, dados: any): void {
+    this.flushRender();
     const layer = this.layers.find(l => l.id === id);
     if (!layer) return;
     layer.dados = dados;
@@ -445,6 +476,7 @@ export class CanvasLayerManager {
   }
 
   public clearLayers(ids?: string[]): void {
+    this.flushRender();
     const toClear = ids && ids.length > 0
       ? ids
       : Array.from(this.layerInstances.keys());
@@ -465,6 +497,7 @@ export class CanvasLayerManager {
   }
 
   public destroy(): void {
+    this.renderPendente = false;
     if (this.map) {
       this.layerInstances.forEach((instance, layerId) => {
         const layer = this.layers.find(l => l.id === layerId);

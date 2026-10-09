@@ -76,6 +76,43 @@ describe('Canvas CAD Engine & <ui-canvas-cad>', () => {
     expect(newHom?.bloqueada).toBe(true);
   });
 
+  it('deve agrupar mudanças de contexto do mesmo tick em um único render, sem recriar tiles', async () => {
+    const div = document.createElement('div');
+    document.body.appendChild(div);
+    const map = L.map(div).setView([-23.5, -51.9], 15);
+    const manager = new CanvasLayerManager();
+    manager.attachMap(map, { config: {} as any, graphicScale: {} as any });
+
+    const vertices = LayerRendererFactory.get('vetorial-pontos')!;
+    const tile = LayerRendererFactory.get('tile')!;
+    const spyVertices = vi.spyOn(vertices, 'render');
+    const spyTile = vi.spyOn(tile, 'render');
+    try {
+      manager.updateContext({ pontos: [] });
+      manager.updateContext({ segmentos: [] });
+      manager.updateContext({ confrontantes: [] });
+      expect(spyVertices).not.toHaveBeenCalled();
+
+      await Promise.resolve();
+      // Uma vez por camada de pontos visível (vertices, homologados-pontos), não três.
+      const chamadasPorRender = spyVertices.mock.calls.length;
+      expect(chamadasPorRender).toBeGreaterThan(0);
+      expect(chamadasPorRender).toBeLessThanOrEqual(2);
+      expect(spyTile).not.toHaveBeenCalled();
+
+      // Uma leitura das instâncias aplica o render pendente na hora.
+      manager.updateContext({ pontos: [] });
+      manager.getAllLayerInstances();
+      expect(spyVertices.mock.calls.length).toBe(chamadasPorRender * 2);
+    } finally {
+      spyVertices.mockRestore();
+      spyTile.mockRestore();
+      manager.destroy();
+      map.remove();
+      div.remove();
+    }
+  });
+
   it('deve registrar e instanciar o Custom Element <ui-canvas-cad>', () => {
     expect(customElements.get('ui-canvas-cad')).toBeDefined();
     const el = document.createElement('ui-canvas-cad') as UICanvasCAD;

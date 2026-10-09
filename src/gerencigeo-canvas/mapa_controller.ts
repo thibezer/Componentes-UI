@@ -230,6 +230,8 @@ export class GerenciGeoMapaController {
 
   public selectSegmento(segmentoId: string | number | null): void {
     const parsed = segmentoId != null ? String(segmentoId) : null;
+    // O app limpa a seleção de segmento a cada clique em vértice; sem mudança não há o que redesenhar.
+    if ((this.context.selectedSegmentoId ?? null) === parsed) return;
     this.context.selectedSegmentoId = parsed;
     this.layerManager.updateContext({ selectedSegmentoId: parsed });
   }

@@ -96,6 +96,8 @@ export function calcularBoundsGeometrias(
 }
 
 export function coletarMarcadoresLeaflet(map: L.Map | null, layerManager: any): L.Marker[] {
+  // O render das camadas é adiado para o fim do tick; o map.eachLayer abaixo precisa vê-lo aplicado.
+  layerManager?.flushRender?.();
   const markers: L.Marker[] = [];
   const seen = new Set<L.Marker>();
 
