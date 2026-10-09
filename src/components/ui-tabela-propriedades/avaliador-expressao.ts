@@ -1,8 +1,30 @@
 /**
  * Avaliador de expressões matemáticas para campos numéricos técnicos (AutoCAD / Revit / Blender).
  * Parser seguro de descida recursiva sem eval(), com suporte a +, -, *, /, ^, parênteses,
- * porcentagens, constantes (pi, e) e funções matemáticas (sqrt, abs, round, floor, ceil, sin, cos, tan).
+ * porcentagens, constantes (pi, e) e funções matemáticas (sqrt, abs, round, floor, ceil, sin, cos, tan,
+ * asin, acos, atan). Trigonometria em GRAUS, como nas calculadoras de CAD: sin(30) = 0.5, atan(1) = 45.
+ * Função desconhecida ou parêntese sem fechamento invalidam a expressão (retorno null).
  */
+const RAD = Math.PI / 180;
+
+/** Remove o ruído de ponto flutuante da trigonometria (ex.: cos(90) = 6e-17 → 0). */
+function arredondarTrig(v: number): number {
+  return Math.abs(v) < 1e-12 ? 0 : Number(v.toPrecision(15));
+}
+
+const FUNCOES: Record<string, (x: number) => number> = {
+  sqrt: Math.sqrt,
+  abs: Math.abs,
+  round: Math.round,
+  floor: Math.floor,
+  ceil: Math.ceil,
+  sin: (x) => arredondarTrig(Math.sin(x * RAD)),
+  cos: (x) => arredondarTrig(Math.cos(x * RAD)),
+  tan: (x) => arredondarTrig(Math.tan(x * RAD)),
+  asin: (x) => arredondarTrig(Math.asin(x) / RAD),
+  acos: (x) => arredondarTrig(Math.acos(x) / RAD),
+  atan: (x) => arredondarTrig(Math.atan(x) / RAD)
+};
 export function avaliarExpressaoMatematica(expr: string): number | null {
   if (!expr || typeof expr !== 'string') return null;
 
@@ -116,9 +138,7 @@ export function avaliarExpressaoMatematica(expr: string): number | null {
       get();
       const val = parseExpression();
       eatSpaces();
-      if (peek() === ')') {
-        get();
-      }
+      if (get() !== ')') throw new Error('Parêntese sem fechamento');
       eatSpaces();
       if (peek() === '%') {
         get();
@@ -127,25 +147,16 @@ export function avaliarExpressaoMatematica(expr: string): number | null {
       return val;
     }
 
-    // Funções matemáticas (sqrt, abs, round, floor, ceil, sin, cos, tan)
+    // Funções matemáticas (ver FUNCOES)
     const funcMatch = s.slice(pos).match(/^([a-zA-Z_]\w*)\s*\(/);
     if (funcMatch) {
-      const fnName = funcMatch[1].toLowerCase();
+      const fn = FUNCOES[funcMatch[1].toLowerCase()];
+      if (!fn) throw new Error('Função desconhecida: ' + funcMatch[1]);
       pos += funcMatch[0].length;
       const arg = parseExpression();
       eatSpaces();
-      if (peek() === ')') get();
-      let res = arg;
-      switch (fnName) {
-        case 'sqrt': res = Math.sqrt(arg); break;
-        case 'abs': res = Math.abs(arg); break;
-        case 'round': res = Math.round(arg); break;
-        case 'floor': res = Math.floor(arg); break;
-        case 'ceil': res = Math.ceil(arg); break;
-        case 'sin': res = Math.sin(arg); break;
-        case 'cos': res = Math.cos(arg); break;
-        case 'tan': res = Math.tan(arg); break;
-      }
+      if (get() !== ')') throw new Error('Parêntese sem fechamento');
+      const res = fn(arg);
       eatSpaces();
       if (peek() === '%') {
         get();

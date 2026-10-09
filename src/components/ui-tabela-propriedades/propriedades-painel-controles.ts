@@ -87,7 +87,8 @@ export function conectarPainelControles(ctx: ContextoPainelControles): void {
 
   const linkAjuda = shadow.getElementById('link-ajuda');
   if (linkAjuda) {
-    listeners.add(linkAjuda, 'click', () => {
+    listeners.add(linkAjuda, 'click', (e: Event) => {
+      e.preventDefault(); // href="#" só existe para o link ser focável pelo teclado
       host.dispatchEvent(new CustomEvent('ui-ajuda', { bubbles: true, composed: true }));
     });
   }

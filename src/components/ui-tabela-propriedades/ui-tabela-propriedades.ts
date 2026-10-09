@@ -141,14 +141,34 @@ export class UITabelaPropriedades extends SafeHTMLElement {
     this.splitterListeners.cleanup();
   }
 
-  attributeChangedCallback(name: string, _oldVal: string | null, newVal: string | null) {
-    if (name === 'largura-rotulo' && newVal) {
-      const pct = parseFloat(newVal);
-      if (!isNaN(pct)) {
-        this._larguraRotuloPorcentagem = this.controladorSplitter.definirLarguraRotulo(pct);
+  /**
+   * Cada atributo atualiza só o que depende dele: redesenhar todas as linhas (ex.: ao trocar o
+   * `titulo`) tiraria o foco de um campo em edição.
+   */
+  attributeChangedCallback(name: string, oldVal: string | null, newVal: string | null) {
+    if (oldVal === newVal) return;
+    switch (name) {
+      case 'largura-rotulo': {
+        const pct = parseFloat(newVal ?? '');
+        if (!isNaN(pct)) this._larguraRotuloPorcentagem = this.controladorSplitter.definirLarguraRotulo(pct);
+        return;
       }
+      case 'estilo-visual':
+        this.renderSeletorTipos();
+        return;
+      case 'filtro':
+        sincronizarPainelControles(this.shadow, this);
+        // Filtro escondido não pode continuar escondendo propriedades
+        if (newVal === null && this._termoBusca) {
+          this._termoBusca = '';
+          const input = this.shadow.getElementById('filtro-input') as HTMLInputElement | null;
+          if (input) input.value = '';
+          this.renderCategorias();
+        }
+        return;
+      default:
+        sincronizarPainelControles(this.shadow, this);
     }
-    this.syncState();
   }
 
   get categorias(): CategoriaPropriedades[] {
@@ -364,8 +384,7 @@ export class UITabelaPropriedades extends SafeHTMLElement {
       onToggleCategoria: (id) => this.toggleCategoria(id),
       linhaCtx: {
         valoresAtuais: this.gerenciadorValores.getValores(),
-        valoresOriginais: {},
-        isDirty: this.gerenciadorValores.isDirty,
+        valoresOriginais: this.gerenciadorValores.getValoresOriginais(),
         onAtualizarCampoVisual: (propId, novoValor) => atualizarCampoVisual(this.shadow, propId, novoValor),
         editorCtx: {
           obterValorAtual: (id: string) => this.gerenciadorValores.obterValor(id),

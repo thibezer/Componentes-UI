@@ -5,6 +5,7 @@
  */
 
 import type { SeletorTipoItem } from './tipos';
+import { higienizarSvg } from '../../core/svg-seguro';
 
 export interface ContextoSeletorTipo {
   tipoContainerElement: HTMLElement | null;
@@ -38,8 +39,10 @@ export function renderizarSeletorTipos(ctx: ContextoSeletorTipo): void {
 
     const miniatura = document.createElement('div');
     miniatura.className = 'ui-prop__tipo-miniatura';
-    if (tipoAtual.iconeSvg) {
-      miniatura.innerHTML = tipoAtual.iconeSvg;
+    // iconeSvg pode vir de dados externos: só entra higienizado (sem script, on*, href externo)
+    const iconeSeguro = tipoAtual.iconeSvg ? higienizarSvg(tipoAtual.iconeSvg) : null;
+    if (iconeSeguro) {
+      miniatura.appendChild(iconeSeguro);
     } else {
       miniatura.innerHTML = `
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

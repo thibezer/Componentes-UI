@@ -1,12 +1,17 @@
 import { ItemPropriedade } from './tipos';
 import { ContextoEditorPropriedade } from './tipos';
 import { avaliarExpressaoMatematica } from './avaliador-expressao';
+import { registrarAtualizadorEditor, sincronizarSelect } from './propriedades-dom-utils';
 
 export function criarEditorReadonly(valorAtual: any): HTMLElement {
   const span = document.createElement('span');
-  const isNumero = typeof valorAtual === 'number' || (typeof valorAtual === 'string' && /^-?\d+(\.\d+)?$/.test(valorAtual.trim()));
-  span.className = `ui-prop__valor-readonly ${isNumero ? 'ui-prop__valor-readonly--numero' : ''}`.trim();
-  span.textContent = valorAtual !== undefined && valorAtual !== null ? String(valorAtual) : '—';
+  const atualizar = (valor: any) => {
+    const isNumero = typeof valor === 'number' || (typeof valor === 'string' && /^-?\d+(\.\d+)?$/.test(valor.trim()));
+    span.className = `ui-prop__valor-readonly ${isNumero ? 'ui-prop__valor-readonly--numero' : ''}`.trim();
+    span.textContent = valor !== undefined && valor !== null ? String(valor) : '—';
+  };
+  atualizar(valorAtual);
+  registrarAtualizadorEditor(span, atualizar);
   return span;
 }
 
@@ -18,26 +23,49 @@ export function criarEditorBooleano(
 ): HTMLElement {
   const container = document.createElement('label');
   container.className = 'ui-prop__editor-booleano';
+  // Checkbox customizado: precisa de papel, foco e teclado próprios
+  container.setAttribute('role', 'checkbox');
+  container.tabIndex = 0;
+  container.setAttribute('aria-label', prop.rotulo);
 
-  const isChecked = Boolean(valorAtual);
   const customCheck = document.createElement('div');
-  customCheck.className = `ui-prop__checkbox-custom ${isChecked ? 'ui-prop__checkbox-custom--marcado' : ''}`;
-  customCheck.textContent = isChecked ? '✓' : '';
+  customCheck.className = 'ui-prop__checkbox-custom';
 
   const rotulo = document.createElement('span');
   rotulo.className = 'ui-prop__booleano-rotulo';
-  rotulo.textContent = isChecked ? 'Sim' : 'Não';
+
+  const atualizar = (valor: any) => {
+    const marcado = Boolean(valor);
+    customCheck.classList.toggle('ui-prop__checkbox-custom--marcado', marcado);
+    customCheck.textContent = marcado ? '✓' : '';
+    rotulo.textContent = marcado ? 'Sim' : 'Não';
+    container.setAttribute('aria-checked', String(marcado));
+  };
+  atualizar(valorAtual);
+  registrarAtualizadorEditor(container, atualizar);
 
   container.appendChild(customCheck);
   container.appendChild(rotulo);
 
-  container.addEventListener('click', (e) => {
-    e.preventDefault();
+  const alternar = () => {
     const novoValor = !Boolean(ctx.obterValorAtual(prop.id));
     ctx.registrarAlteracao(categoriaId, prop.id, novoValor);
-    customCheck.classList.toggle('ui-prop__checkbox-custom--marcado', novoValor);
-    customCheck.textContent = novoValor ? '✓' : '';
-    rotulo.textContent = novoValor ? 'Sim' : 'Não';
+    atualizar(novoValor);
+  };
+
+  container.addEventListener('click', (e) => {
+    e.preventDefault();
+    alternar();
+  });
+
+  container.addEventListener('keydown', (e) => {
+    if (e.key === ' ') {
+      e.preventDefault();
+      alternar();
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      ctx.focarProximoEditor(container);
+    }
   });
 
   return container;
@@ -51,17 +79,23 @@ export function criarEditorSelecao(
 ): HTMLElement {
   const select = document.createElement('select');
   select.className = 'ui-prop__editor-select';
+  select.setAttribute('aria-label', prop.rotulo);
 
   (prop.opcoes || []).forEach(op => {
     const opt = document.createElement('option');
     opt.value = String(op.id);
     opt.textContent = op.rotulo;
-    if (String(op.id) === String(valorAtual)) opt.selected = true;
     select.appendChild(opt);
   });
 
+  sincronizarSelect(select, valorAtual);
+  registrarAtualizadorEditor(select, (valor) => sincronizarSelect(select, valor));
+
   select.addEventListener('change', () => {
-    ctx.registrarAlteracao(categoriaId, prop.id, select.value);
+    // Devolve o id no tipo original da opção (número continua número)
+    const opcao = (prop.opcoes || []).find(op => String(op.id) === select.value);
+    ctx.registrarAlteracao(categoriaId, prop.id, opcao ? opcao.id : select.value);
+    sincronizarSelect(select, ctx.obterValorAtual(prop.id));
   });
 
   select.addEventListener('keydown', (e) => {
@@ -83,17 +117,12 @@ export function criarEditorAcao(
   btn.className = 'ui-prop__btn-acao-inline';
   btn.textContent = prop.rotuloAcao || 'Editar...';
 
+  // Botão nativo já dispara click com Enter/Espaço; não repetir no keydown
   btn.addEventListener('click', () => {
     if (typeof prop.onClickAcao === 'function') {
       prop.onClickAcao(prop);
     }
     ctx.despacharEventoAcao(prop, categoriaId);
-  });
-
-  btn.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      btn.click();
-    }
   });
 
   return btn;
@@ -111,6 +140,7 @@ export function criarEditorNumero(
   input.autocomplete = 'off';
   input.spellcheck = false;
   input.className = 'ui-prop__editor-input ui-prop__editor-input--numero';
+  input.setAttribute('aria-label', prop.rotulo);
   if (prop.placeholder) input.placeholder = prop.placeholder;
 
   const formatarValor = (val: any) => {
@@ -124,6 +154,7 @@ export function criarEditorNumero(
   };
 
   input.value = formatarValor(valorAtual);
+  registrarAtualizadorEditor(input, (valor) => { input.value = formatarValor(valor); });
 
   input.addEventListener('focus', () => {
     input.select();
@@ -139,6 +170,7 @@ export function criarEditorNumero(
     input.classList.remove('ui-prop__editor-input--calculando');
     const raw = input.value.trim();
     if (raw === '') {
+      // O gerenciador ignora valor igual: change + blur não registram null duas vezes
       ctx.registrarAlteracao(categoriaId, prop.id, null);
       return;
     }
@@ -150,9 +182,7 @@ export function criarEditorNumero(
         finalVal = Number(calculado.toFixed(prop.casasDecimais));
       }
       input.value = formatarValor(finalVal);
-      if (finalVal !== ctx.obterValorAtual(prop.id)) {
-        ctx.registrarAlteracao(categoriaId, prop.id, finalVal);
-      }
+      ctx.registrarAlteracao(categoriaId, prop.id, finalVal);
     } else {
       input.value = formatarValor(ctx.obterValorAtual(prop.id));
     }
@@ -171,10 +201,12 @@ export function criarEditorNumero(
       input.blur();
     } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
       e.preventDefault();
-      const atual = parseFloat(input.value) || 0;
+      // Expressão em edição ("10+5") é resolvida antes de incrementar
+      const avaliado = avaliarExpressaoMatematica(input.value);
+      const atual = avaliado ?? (Number(ctx.obterValorAtual(prop.id)) || 0);
       let passo = prop.casasDecimais !== undefined ? Math.pow(10, -prop.casasDecimais) : 1;
       if (e.shiftKey) passo *= 10;
-      else if (e.altKey) passo *= 0.1;
+      else if (e.altKey && prop.casasDecimais === undefined) passo *= 0.1;
 
       let novo = e.key === 'ArrowUp' ? atual + passo : atual - passo;
       if (prop.casasDecimais !== undefined) {
@@ -200,17 +232,17 @@ export function criarEditorTexto(
   const input = document.createElement('input');
   input.type = 'text';
   input.className = 'ui-prop__editor-input';
+  input.setAttribute('aria-label', prop.rotulo);
   if (prop.placeholder) input.placeholder = prop.placeholder;
   input.value = valorAtual != null ? String(valorAtual) : '';
+  registrarAtualizadorEditor(input, (valor) => { input.value = valor != null ? String(valor) : ''; });
 
   input.addEventListener('focus', () => {
     input.select();
   });
 
   const commitTexto = () => {
-    if (input.value !== ctx.obterValorAtual(prop.id)) {
-      ctx.registrarAlteracao(categoriaId, prop.id, input.value);
-    }
+    ctx.registrarAlteracao(categoriaId, prop.id, input.value);
   };
 
   input.addEventListener('change', commitTexto);

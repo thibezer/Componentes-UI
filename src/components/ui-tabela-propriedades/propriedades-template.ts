@@ -89,7 +89,7 @@ export function criarTemplateTabelaPropriedades(): string {
 
       <!-- 5. Rodapé com Ações (Aplicar / Desfazer) -->
       <footer class="ui-prop__footer" id="footer" style="display: none;">
-        <a class="ui-prop__link-ajuda" id="link-ajuda">Ajuda de propriedades</a>
+        <a class="ui-prop__link-ajuda" id="link-ajuda" href="#" role="button">Ajuda de propriedades</a>
         <div class="ui-prop__footer-botoes">
           <button type="button" class="ui-prop__btn-desfazer" id="btn-desfazer" disabled>Desfazer</button>
           <button type="button" class="ui-prop__btn-aplicar" id="btn-aplicar" disabled>Aplicar</button>

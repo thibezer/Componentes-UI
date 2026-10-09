@@ -1,5 +1,17 @@
 import { ItemPropriedade, OpcaoPropriedade } from './tipos';
 import { ContextoEditorPropriedade } from './tipos';
+import { registrarAtualizadorEditor, sincronizarSelect } from './propriedades-dom-utils';
+
+const mesmoTextoSemCaixa = (opcao: string, valor: any) => opcao.toLowerCase() === String(valor ?? '').toLowerCase();
+
+function preencherOpcoes(select: HTMLSelectElement, opcoes: OpcaoPropriedade[]): void {
+  opcoes.forEach(op => {
+    const opt = document.createElement('option');
+    opt.value = String(op.id);
+    opt.textContent = op.rotulo;
+    select.appendChild(opt);
+  });
+}
 
 /**
  * Editor Tipo de Linha CAD (Linetype com preview SVG em tempo real)
@@ -25,24 +37,24 @@ export function criarEditorLinetype(
 
   const aplicarEstiloLinha = (val: string) => {
     const v = String(val || '').toLowerCase();
-    if (v.includes('dash') || v.includes('tracej') || v.includes('hidden')) {
+    if (v.includes('center') || v.includes('eixo') || v.includes('dashdot') || v.includes('traço-ponto')) {
+      lineSvg.setAttribute('stroke-dasharray', '8,3,2,3');
+    } else if (v.includes('dash') || v.includes('tracej') || v.includes('hidden')) {
       lineSvg.setAttribute('stroke-dasharray', '6,3');
     } else if (v.includes('dot') || v.includes('ponto') || v.includes('pontilh')) {
       lineSvg.setAttribute('stroke-dasharray', '2,3');
-    } else if (v.includes('center') || v.includes('eixo')) {
-      lineSvg.setAttribute('stroke-dasharray', '8,3,2,3');
     } else {
       lineSvg.setAttribute('stroke-dasharray', 'none');
     }
   };
 
-  aplicarEstiloLinha(valorAtual);
   svgAmostra.appendChild(lineSvg);
 
   const select = document.createElement('select');
   select.className = 'ui-prop__linha-select';
+  select.setAttribute('aria-label', prop.rotulo);
 
-  const opcoesLinha: OpcaoPropriedade[] = prop.opcoes && prop.opcoes.length > 0 ? prop.opcoes : [
+  preencherOpcoes(select, prop.opcoes && prop.opcoes.length > 0 ? prop.opcoes : [
     { id: 'ByLayer', rotulo: 'ByLayer' },
     { id: 'ByBlock', rotulo: 'ByBlock' },
     { id: 'Continuous', rotulo: 'Continuous' },
@@ -50,19 +62,19 @@ export function criarEditorLinetype(
     { id: 'Hidden', rotulo: 'Hidden' },
     { id: 'Center', rotulo: 'Center' },
     { id: 'Dotted', rotulo: 'Dotted' }
-  ];
+  ]);
 
-  opcoesLinha.forEach(op => {
-    const opt = document.createElement('option');
-    opt.value = String(op.id);
-    opt.textContent = op.rotulo;
-    if (String(op.id).toLowerCase() === String(valorAtual).toLowerCase()) opt.selected = true;
-    select.appendChild(opt);
-  });
+  const atualizar = (valor: any) => {
+    aplicarEstiloLinha(valor);
+    sincronizarSelect(select, valor, mesmoTextoSemCaixa);
+  };
+  atualizar(valorAtual);
+  registrarAtualizadorEditor(container, atualizar);
 
   select.addEventListener('change', () => {
     aplicarEstiloLinha(select.value);
     ctx.registrarAlteracao(categoriaId, prop.id, select.value);
+    sincronizarSelect(select, select.value, mesmoTextoSemCaixa);
   });
 
   select.addEventListener('keydown', (e) => {
@@ -104,13 +116,13 @@ export function criarEditorLineweight(
     return Math.min(8, Math.max(1, num * 8));
   };
 
-  lineSvg.setAttribute('stroke-width', String(calcularStroke(valorAtual)));
   svgAmostra.appendChild(lineSvg);
 
   const select = document.createElement('select');
   select.className = 'ui-prop__espessura-select';
+  select.setAttribute('aria-label', prop.rotulo);
 
-  const opcoesEspessura: OpcaoPropriedade[] = prop.opcoes && prop.opcoes.length > 0 ? prop.opcoes : [
+  preencherOpcoes(select, prop.opcoes && prop.opcoes.length > 0 ? prop.opcoes : [
     { id: 'ByLayer', rotulo: 'ByLayer' },
     { id: 'ByBlock', rotulo: 'ByBlock' },
     { id: '0.00 mm', rotulo: '0.00 mm' },
@@ -130,19 +142,19 @@ export function criarEditorLineweight(
     { id: '1.00 mm', rotulo: '1.00 mm' },
     { id: '1.40 mm', rotulo: '1.40 mm' },
     { id: '2.00 mm', rotulo: '2.00 mm' }
-  ];
+  ]);
 
-  opcoesEspessura.forEach(op => {
-    const opt = document.createElement('option');
-    opt.value = String(op.id);
-    opt.textContent = op.rotulo;
-    if (String(op.id).toLowerCase() === String(valorAtual).toLowerCase()) opt.selected = true;
-    select.appendChild(opt);
-  });
+  const atualizar = (valor: any) => {
+    lineSvg.setAttribute('stroke-width', String(calcularStroke(valor)));
+    sincronizarSelect(select, valor, mesmoTextoSemCaixa);
+  };
+  atualizar(valorAtual);
+  registrarAtualizadorEditor(container, atualizar);
 
   select.addEventListener('change', () => {
     lineSvg.setAttribute('stroke-width', String(calcularStroke(select.value)));
     ctx.registrarAlteracao(categoriaId, prop.id, select.value);
+    sincronizarSelect(select, select.value, mesmoTextoSemCaixa);
   });
 
   select.addEventListener('keydown', (e) => {
@@ -154,6 +166,40 @@ export function criarEditorLineweight(
   container.appendChild(svgAmostra);
   container.appendChild(select);
   return container;
+}
+
+/* ---------- Cores CAD (ACI) ---------- */
+
+const CORES_ACI: { nome: string; indice: number; hex: string }[] = [
+  { nome: 'Red', indice: 1, hex: '#ff0000' },
+  { nome: 'Yellow', indice: 2, hex: '#ffff00' },
+  { nome: 'Green', indice: 3, hex: '#00ff00' },
+  { nome: 'Cyan', indice: 4, hex: '#00ffff' },
+  { nome: 'Blue', indice: 5, hex: '#0000ff' },
+  { nome: 'Magenta', indice: 6, hex: '#ff00ff' },
+  { nome: 'White', indice: 7, hex: '#ffffff' }
+];
+
+const HEX_VALIDO = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i;
+
+/** Normaliza o valor de cor CAD: índice ACI (1–7, número ou texto) vira o nome; demais em minúsculas. */
+function normalizarCorCad(valor: any): string {
+  const v = String(valor ?? '').trim().toLowerCase();
+  const aci = CORES_ACI.find(c => String(c.indice) === v || c.nome.toLowerCase() === v);
+  return aci ? aci.nome.toLowerCase() : v;
+}
+
+function hexDaCorCad(valor: any): string {
+  const v = normalizarCorCad(valor);
+  const aci = CORES_ACI.find(c => c.nome.toLowerCase() === v);
+  if (aci) return aci.hex;
+  if (HEX_VALIDO.test(v)) return v;
+  return '#ffffff'; // ByLayer / ByBlock / desconhecido
+}
+
+/** Expande #rgb para #rrggbb (o input type=color só aceita a forma longa). */
+function hexLongo(hex: string): string {
+  return hex.length === 4 ? '#' + hex.slice(1).split('').map(c => c + c).join('') : hex;
 }
 
 /**
@@ -170,62 +216,61 @@ export function criarEditorCorCad(
 
   const amostra = document.createElement('div');
   amostra.className = 'ui-prop__cor-amostra';
-  const getHexCor = (val: string): string => {
-    const v = String(val).toLowerCase();
-    if (v === 'red' || v === '1') return '#ff0000';
-    if (v === 'yellow' || v === '2') return '#ffff00';
-    if (v === 'green' || v === '3') return '#00ff00';
-    if (v === 'cyan' || v === '4') return '#00ffff';
-    if (v === 'blue' || v === '5') return '#0000ff';
-    if (v === 'magenta' || v === '6') return '#ff00ff';
-    if (v === 'white' || v === '7' || v === 'bylayer' || v === 'byblock') return '#ffffff';
-    if (v.startsWith('#')) return v;
-    return '#ffffff';
-  };
-
-  amostra.style.backgroundColor = getHexCor(valorAtual);
 
   const select = document.createElement('select');
   select.className = 'ui-prop__cor-cad-select';
+  select.setAttribute('aria-label', prop.rotulo);
 
-  const coresCad = [
+  preencherOpcoes(select, [
     { id: 'ByLayer', rotulo: 'ByLayer' },
     { id: 'ByBlock', rotulo: 'ByBlock' },
-    { id: 'Red', rotulo: 'Red (1)' },
-    { id: 'Yellow', rotulo: 'Yellow (2)' },
-    { id: 'Green', rotulo: 'Green (3)' },
-    { id: 'Cyan', rotulo: 'Cyan (4)' },
-    { id: 'Blue', rotulo: 'Blue (5)' },
-    { id: 'Magenta', rotulo: 'Magenta (6)' },
-    { id: 'White', rotulo: 'White (7)' },
-    { id: 'custom', rotulo: 'Selecionar cor...' }
-  ];
-
-  coresCad.forEach(c => {
-    const opt = document.createElement('option');
-    opt.value = c.id;
-    opt.textContent = c.rotulo;
-    if (String(c.id).toLowerCase() === String(valorAtual).toLowerCase()) opt.selected = true;
-    select.appendChild(opt);
-  });
+    ...CORES_ACI.map(c => ({ id: c.nome, rotulo: `${c.nome} (${c.indice})` }))
+  ]);
+  // "Selecionar cor..." é uma ação, não um valor: nunca fica selecionada
+  const optEscolher = document.createElement('option');
+  optEscolher.value = '__escolher';
+  optEscolher.textContent = 'Selecionar cor...';
+  optEscolher.setAttribute('data-acao', '');
+  select.appendChild(optEscolher);
 
   const picker = document.createElement('input');
   picker.type = 'color';
   picker.className = 'ui-prop__cor-picker-oculto';
+  picker.tabIndex = -1;
 
+  const atualizar = (valor: any) => {
+    const hex = hexDaCorCad(valor);
+    amostra.style.backgroundColor = hex;
+    picker.value = hexLongo(hex);
+    sincronizarSelect(
+      select,
+      valor,
+      (opcao, v) => normalizarCorCad(opcao) === normalizarCorCad(v),
+      (v) => (v == null || v === '' ? '—' : String(v))
+    );
+  };
+  atualizar(valorAtual);
+  registrarAtualizadorEditor(container, atualizar);
+
+  // Arrastar no seletor só pré-visualiza; o valor é registrado ao confirmar (change)
   picker.addEventListener('input', () => {
-    const novaCor = picker.value;
-    amostra.style.backgroundColor = novaCor;
-    ctx.registrarAlteracao(categoriaId, prop.id, novaCor);
+    amostra.style.backgroundColor = picker.value;
+  });
+  picker.addEventListener('change', () => {
+    ctx.registrarAlteracao(categoriaId, prop.id, picker.value);
+    atualizar(ctx.obterValorAtual(prop.id));
   });
 
   select.addEventListener('change', () => {
-    if (select.value === 'custom') {
+    if (select.value === '__escolher') {
+      // Volta a exibir o valor atual: cancelar o seletor não deixa o select num estado falso
+      // e escolher a ação de novo sempre dispara change.
+      atualizar(ctx.obterValorAtual(prop.id));
       picker.click();
-    } else {
-      amostra.style.backgroundColor = getHexCor(select.value);
-      ctx.registrarAlteracao(categoriaId, prop.id, select.value);
+      return;
     }
+    ctx.registrarAlteracao(categoriaId, prop.id, select.value);
+    atualizar(ctx.obterValorAtual(prop.id));
   });
 
   select.addEventListener('keydown', (e) => {
@@ -251,29 +296,47 @@ export function criarEditorCorSwatch(
 ): HTMLElement {
   const container = document.createElement('div');
   container.className = 'ui-prop__editor-cor-container';
+  container.setAttribute('role', 'button');
+  container.tabIndex = 0;
 
   const amostra = document.createElement('div');
   amostra.className = 'ui-prop__cor-amostra';
-  amostra.style.backgroundColor = valorAtual || '#ffffff';
 
   const texto = document.createElement('span');
   texto.className = 'ui-prop__cor-texto';
-  texto.textContent = prop.textoAmostra || String(valorAtual || 'ByLayer');
 
   const picker = document.createElement('input');
   picker.type = 'color';
   picker.className = 'ui-prop__cor-picker-oculto';
-  picker.value = (typeof valorAtual === 'string' && valorAtual.startsWith('#')) ? valorAtual : '#ffffff';
+  picker.tabIndex = -1;
+
+  const atualizar = (valor: any) => {
+    const hex = typeof valor === 'string' && HEX_VALIDO.test(valor) ? hexLongo(valor) : null;
+    amostra.style.backgroundColor = valor || '#ffffff';
+    texto.textContent = prop.textoAmostra || String(valor || 'ByLayer');
+    picker.value = hex ?? '#ffffff';
+    container.setAttribute('aria-label', `${prop.rotulo}: ${valor || 'ByLayer'}`);
+  };
+  atualizar(valorAtual);
+  registrarAtualizadorEditor(container, atualizar);
 
   picker.addEventListener('input', () => {
-    const novaCor = picker.value;
-    amostra.style.backgroundColor = novaCor;
-    texto.textContent = novaCor;
-    ctx.registrarAlteracao(categoriaId, prop.id, novaCor);
+    amostra.style.backgroundColor = picker.value;
+    texto.textContent = prop.textoAmostra || picker.value;
+  });
+  picker.addEventListener('change', () => {
+    ctx.registrarAlteracao(categoriaId, prop.id, picker.value);
+    atualizar(ctx.obterValorAtual(prop.id));
   });
 
-  container.addEventListener('click', () => {
-    picker.click();
+  container.addEventListener('click', (e) => {
+    if (e.target !== picker) picker.click();
+  });
+  container.addEventListener('keydown', (e) => {
+    if (e.key === ' ' || e.key === 'Enter') {
+      e.preventDefault();
+      picker.click();
+    }
   });
 
   container.appendChild(amostra);

@@ -9,6 +9,7 @@ export * from './leaflet-loader';
 export * from './ssr-safe';
 export * from './form-validacao';
 export * from './acessibilidade';
+export * from './svg-seguro';
 
 // Inicialização automática das ações declarativas Zero-JS
 import { initZeroJSTriggers } from './zero-js-triggers';

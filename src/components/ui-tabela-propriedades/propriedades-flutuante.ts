@@ -13,28 +13,61 @@ const ALTURA_FLUTUANTE_PADRAO = 480;
  * Aplica ao host o posicionamento flutuante (fixed) ou o restaura ao fluxo normal.
  * Retorna o novo estado (true = flutuante).
  */
+interface GeometriaPainel {
+  /** Largura/altura inline que o painel tinha acoplado (definidas pelo usuário da página). */
+  acoplado: { width: string; height: string };
+  /** Última posição/tamanho no modo flutuante, para reabrir onde estava. */
+  flutuante?: { left: string; top: string; width: string; height: string };
+}
+
+const geometrias = new WeakMap<HTMLElement, GeometriaPainel>();
+
+/**
+ * Aplica ao host o posicionamento flutuante (fixed) ou o restaura ao fluxo normal.
+ * Ao acoplar, devolve a largura/altura originais (o painel não fica preso em 300×480);
+ * ao flutuar de novo, volta à última posição e tamanho flutuantes.
+ * Retorna o novo estado (true = flutuante).
+ */
 export function alternarPosicionamentoFlutuante(host: HTMLElement): boolean {
   const isFlutuante = host.hasAttribute('flutuante');
+  const s = host.style;
   if (isFlutuante) {
+    const geo = geometrias.get(host) ?? { acoplado: { width: '', height: '' } };
+    geo.flutuante = { left: s.left, top: s.top, width: s.width, height: s.height };
+    geometrias.set(host, geo);
+
     host.removeAttribute('flutuante');
-    host.style.left = '';
-    host.style.top = '';
-    host.style.right = '';
-    host.style.bottom = '';
-    host.style.position = '';
-    host.style.zIndex = '';
+    s.left = '';
+    s.top = '';
+    s.right = '';
+    s.bottom = '';
+    s.position = '';
+    s.zIndex = '';
+    s.width = geo.acoplado.width;
+    s.height = geo.acoplado.height;
   } else {
+    const geo: GeometriaPainel = {
+      acoplado: { width: s.width, height: s.height },
+      flutuante: geometrias.get(host)?.flutuante
+    };
+    geometrias.set(host, geo);
+
     host.setAttribute('flutuante', '');
-    host.style.position = 'fixed';
-    if (!host.style.left && !host.style.top) {
+    s.position = 'fixed';
+    if (geo.flutuante?.left || geo.flutuante?.top) {
+      s.left = geo.flutuante.left;
+      s.top = geo.flutuante.top;
+      s.width = geo.flutuante.width;
+      s.height = geo.flutuante.height;
+    } else if (!s.left && !s.top) {
       const left = Math.max(
         20,
         (typeof window !== 'undefined' ? window.innerWidth : 1024) - LARGURA_FLUTUANTE_PADRAO - 30
       );
-      host.style.left = `${left}px`;
-      host.style.top = `70px`;
-      host.style.width = `${LARGURA_FLUTUANTE_PADRAO}px`;
-      host.style.height = `${ALTURA_FLUTUANTE_PADRAO}px`;
+      s.left = `${left}px`;
+      s.top = `70px`;
+      s.width = `${LARGURA_FLUTUANTE_PADRAO}px`;
+      s.height = `${ALTURA_FLUTUANTE_PADRAO}px`;
     }
   }
   return !isFlutuante;

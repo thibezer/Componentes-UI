@@ -1,10 +1,13 @@
 import { ItemPropriedade, CategoriaPropriedades } from './tipos';
 import { criarEditorValor, ContextoEditorPropriedade } from './propriedades-editores';
+import { valoresIguais } from './propriedades-gerenciador-valores';
 
 export interface ContextoLinhaPropriedade {
   valoresAtuais: Record<string, any>;
+  /** Valores do último carregar/aplicar: a linha é marcada como modificada quando difere deles. */
   valoresOriginais: Record<string, any>;
-  isDirty: boolean;
+  /** @deprecated Não é mais usado: o destaque compara cada valor com o original. */
+  isDirty?: boolean;
   editorCtx: ContextoEditorPropriedade;
   onAtualizarCampoVisual: (propId: string, novoValor: any) => void;
 }
@@ -47,14 +50,18 @@ export function renderizarCategoriasETree(opcoes: OpcoesRenderArvore): void {
       return;
     }
 
-    const isAberta = cat.aberto !== false;
+    // Durante a busca as categorias com resultado ficam abertas (sem alterar cat.aberto)
+    const isAberta = Boolean(termoBusca) || cat.aberto !== false;
     const catEl = document.createElement('div');
     catEl.className = `ui-prop__categoria ${isAberta ? 'ui-prop__categoria--aberta' : ''}`;
     catEl.setAttribute('data-cat-id', cat.id);
 
-    // Header da Categoria
+    // Header da Categoria (botão de expandir/recolher acessível por teclado)
     const headerEl = document.createElement('div');
     headerEl.className = 'ui-prop__categoria-header';
+    headerEl.setAttribute('role', 'button');
+    headerEl.tabIndex = 0;
+    headerEl.setAttribute('aria-expanded', String(isAberta));
 
     const tituloBloco = document.createElement('div');
     tituloBloco.className = 'ui-prop__categoria-titulo-bloco';
@@ -76,8 +83,14 @@ export function renderizarCategoriasETree(opcoes: OpcoesRenderArvore): void {
     headerEl.appendChild(tituloBloco);
     headerEl.appendChild(contador);
 
+    // Só click: um duplo clique já gera dois clicks (dblclick extra alternaria 3 vezes)
     headerEl.addEventListener('click', () => onToggleCategoria(cat.id));
-    headerEl.addEventListener('dblclick', () => onToggleCategoria(cat.id));
+    headerEl.addEventListener('keydown', (e: KeyboardEvent) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        onToggleCategoria(cat.id);
+      }
+    });
 
     // Conteúdo da Categoria (Linhas)
     const conteudoEl = document.createElement('div');
@@ -109,9 +122,9 @@ export function criarLinhaPropriedade(
   linha.setAttribute('data-prop-id', prop.id);
 
   const valorAtual = ctx.valoresAtuais[prop.id] !== undefined ? ctx.valoresAtuais[prop.id] : prop.valor;
-  const valorOriginal = ctx.valoresOriginais[prop.id];
+  const valorOriginal = prop.id in ctx.valoresOriginais ? ctx.valoresOriginais[prop.id] : prop.valor;
 
-  if (ctx.isDirty && valorAtual !== valorOriginal) {
+  if (!valoresIguais(valorAtual, valorOriginal)) {
     linha.classList.add('ui-prop__linha--modificada');
   }
 
@@ -175,7 +188,8 @@ function configurarScrubberNumerico(
   colRotulo.addEventListener('pointerdown', (e: PointerEvent) => {
     if (e.button !== 0) return;
     startX = e.clientX;
-    const vAtual = ctx.valoresAtuais[prop.id];
+    // Valor vivo (não o retrato da renderização): cada arrasto continua de onde o anterior parou
+    const vAtual = ctx.editorCtx.obterValorAtual(prop.id);
     valorInicial = typeof vAtual === 'number' ? vAtual : (parseFloat(String(vAtual || 0)) || 0);
     arrastou = false;
 

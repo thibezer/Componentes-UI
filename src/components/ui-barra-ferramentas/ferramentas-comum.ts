@@ -1,5 +1,6 @@
 import '../ui-icone';
 import { ListenerBag } from '../../core/listener-bag';
+import { higienizarSvg } from '../../core/svg-seguro';
 import type { FerramentaItem } from './tipos';
 
 export type VarianteBotaoFerramenta = 'grande' | 'pequeno' | 'paleta';
@@ -8,31 +9,13 @@ export type VarianteBotaoFerramenta = 'grande' | 'pequeno' | 'paleta';
    Ícones
    ========================================== */
 
-/** Remove script, foreignObject e atributos de evento (onclick etc.) ou javascript: de um trecho SVG. */
-function sanitizarSvg(codigo: string): SVGElement | null {
-  const modelo = document.createElement('template');
-  modelo.innerHTML = codigo.trim();
-  const svg = modelo.content.querySelector('svg');
-  if (!svg) return null;
-
-  svg.querySelectorAll('script, foreignObject').forEach(n => n.remove());
-  [svg, ...Array.from(svg.querySelectorAll('*'))].forEach(el => {
-    Array.from(el.attributes).forEach(attr => {
-      if (/^on/i.test(attr.name) || /^\s*javascript:/i.test(attr.value)) {
-        el.removeAttribute(attr.name);
-      }
-    });
-  });
-  return svg;
-}
-
 export function criarIcone(icone: string | undefined, tamanho: number): HTMLElement | null {
   if (!icone) return null;
   const el = document.createElement('ui-icone');
   el.setAttribute('tamanho', String(tamanho));
 
   if (icone.trimStart().startsWith('<')) {
-    const svg = sanitizarSvg(icone);
+    const svg = higienizarSvg(icone);
     if (!svg) return null;
     el.appendChild(svg);
   } else {
