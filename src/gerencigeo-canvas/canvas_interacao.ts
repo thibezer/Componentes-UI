@@ -2,6 +2,7 @@ import L from 'leaflet';
 import type { Ponto } from './types';
 import type { CanvasLayerManager } from './layer_manager';
 import { CanvasSelecaoBox, CAD_INTERACTIVE_PANES } from './canvas_selecao_box';
+import { garantirCanvasSemEventos, resolverCliqueCentral } from './layer_hit_test';
 
 export { CAD_INTERACTIVE_PANES };
 
@@ -45,6 +46,7 @@ export class CanvasInteracao {
   private touchStartDist = 0;
   private isTouchPanning: boolean = false;
 
+  private removerSupressao: (() => void) | null = null;
   public selectionHappened: boolean = false;
   public panHappened: boolean = false;
 
@@ -73,6 +75,8 @@ export class CanvasInteracao {
 
     this.selecaoBox = new CanvasSelecaoBox(this.map, this.mapContainer, this.ctx);
 
+    garantirCanvasSemEventos(this.mapContainer);
+    this.mapContainer.addEventListener('click', this.handleClick);
     this.mapContainer.addEventListener('mousedown', this.handleMouseDown);
     this.mapContainer.addEventListener('mousemove', this.handleMouseMove);
     window.addEventListener('mouseup', this.handleMouseUp);
@@ -87,6 +91,7 @@ export class CanvasInteracao {
 
   public desativar(): void {
     if (this.mapContainer) {
+      this.mapContainer.removeEventListener('click', this.handleClick);
       this.mapContainer.removeEventListener('mousedown', this.handleMouseDown);
       this.mapContainer.removeEventListener('mousemove', this.handleMouseMove);
       this.mapContainer.removeEventListener('contextmenu', this.handleContextMenu);
@@ -97,6 +102,7 @@ export class CanvasInteracao {
     }
     window.removeEventListener('mouseup', this.handleMouseUp);
     window.removeEventListener('keydown', this.handleKeyDown);
+    this.cancelarSupressaoClique();
 
     if (this.selecaoBox) {
       this.selecaoBox.destruir();
@@ -160,8 +166,32 @@ export class CanvasInteracao {
     e.preventDefault();
   };
 
+  private handleClick = (e: MouseEvent): void => {
+    if (!this.map || !this.ctx.layerManager) return;
+    resolverCliqueCentral(this.map, this.ctx.layerManager.getLayers(), e);
+  };
+
+  /** Engole o `click` que o navegador dispara logo após soltar o botão de uma seleção por caixa. */
+  private suprimirProximoClique(): void {
+    this.cancelarSupressaoClique();
+    this.removerSupressao = () => window.removeEventListener('click', engolir, true);
+    const engolir = (ev: Event): void => {
+      ev.stopImmediatePropagation();
+      ev.preventDefault();
+      this.cancelarSupressaoClique();
+    };
+    window.addEventListener('click', engolir, true);
+  }
+
+  private cancelarSupressaoClique(): void {
+    this.removerSupressao?.();
+    this.removerSupressao = null;
+  }
+
   private handleMouseDown = (e: MouseEvent): void => {
     if (!this.map || !this.mapContainer) return;
+    // se o click da seleção anterior nunca chegou (soltou fora da janela), não engole o próximo
+    this.cancelarSupressaoClique();
 
     if (e.button === 1) {
       e.preventDefault();
@@ -224,9 +254,7 @@ export class CanvasInteracao {
       );
       if (selecionou) {
         this.selectionHappened = true;
-        setTimeout(() => {
-          this.selectionHappened = false;
-        }, 120);
+        this.suprimirProximoClique();
       }
     }
   };

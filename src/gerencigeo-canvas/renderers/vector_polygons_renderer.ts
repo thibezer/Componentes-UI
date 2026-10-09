@@ -1,13 +1,13 @@
 import L from 'leaflet';
 import type { ILayerRenderer } from '../layer_renderer_factory';
 import type { CanvasLayerDef, CanvasRenderContext } from '../types';
+import { garantirSubPane } from '../layer_pane_ops';
 import { escapeHtml, parseCoordenada, renderPopupAcoesHtml, bindPopupAcoesEvents } from '../utils';
 
 export class VectorPolygonsLayerRenderer implements ILayerRenderer {
-  public render(layerDef: CanvasLayerDef, _map: L.Map, context: CanvasRenderContext): L.LayerGroup {
+  public render(layerDef: CanvasLayerDef, map: L.Map, context: CanvasRenderContext): L.LayerGroup {
     const group = L.layerGroup();
-    const paneName = `pane-${layerDef.id}`;
-    this.rebuildPolygons(layerDef, group, context, paneName);
+    this.rebuildPolygons(layerDef, group, context, map);
     return group;
   }
 
@@ -15,8 +15,10 @@ export class VectorPolygonsLayerRenderer implements ILayerRenderer {
     layerDef: CanvasLayerDef,
     group: L.LayerGroup,
     context: CanvasRenderContext,
-    paneName: string
+    map: L.Map
   ): void {
+    const paneName = garantirSubPane(map, layerDef.id, 'poligono');
+    const paneNamePontos = garantirSubPane(map, layerDef.id, 'ponto');
     const poligonosRaw = layerDef.dados?.poligonos ?? (Array.isArray(layerDef.dados) ? layerDef.dados : null);
     const confrontantes = (poligonosRaw || layerDef.dados?.confrontantes || context.confrontantes || []) as any[];
     const isInteractive = layerDef.interativo && !layerDef.bloqueada;
@@ -177,7 +179,7 @@ export class VectorPolygonsLayerRenderer implements ILayerRenderer {
             });
             const marker = L.marker([coord.lat, coord.lon], {
               icon: markerIcon,
-              pane: paneName,
+              pane: paneNamePontos,
               interactive: isInteractive
             });
             (marker as any).pontoId = p.id;
@@ -222,7 +224,7 @@ export class VectorPolygonsLayerRenderer implements ILayerRenderer {
     });
   }
 
-  public update(layerDef: CanvasLayerDef, layerInstance: L.LayerGroup, changes: Partial<CanvasLayerDef>, context: CanvasRenderContext): void {
+  public update(layerDef: CanvasLayerDef, layerInstance: L.LayerGroup, changes: Partial<CanvasLayerDef>, context: CanvasRenderContext, map: L.Map): void {
     const onlyOpacity = changes.opacidade !== undefined &&
       changes.estilo === undefined &&
       changes.dados === undefined &&
@@ -236,7 +238,7 @@ export class VectorPolygonsLayerRenderer implements ILayerRenderer {
 
     if (changes.opacidade !== undefined || changes.estilo !== undefined || changes.dados !== undefined || changes.interativo !== undefined || changes.bloqueada !== undefined) {
       layerInstance.clearLayers();
-      this.rebuildPolygons(layerDef, layerInstance, context, `pane-${layerDef.id}`);
+      this.rebuildPolygons(layerDef, layerInstance, context, map);
     }
   }
 

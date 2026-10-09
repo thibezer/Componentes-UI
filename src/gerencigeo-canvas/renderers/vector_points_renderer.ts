@@ -1,4 +1,5 @@
 import L from 'leaflet';
+import { garantirSubPane } from '../layer_pane_ops';
 import type { ILayerRenderer } from '../layer_renderer_factory';
 import type { CanvasLayerDef, CanvasRenderContext, Ponto } from '../types';
 import { escapeHtml, renderPopupAcoesHtml, bindPopupAcoesEvents } from '../utils';
@@ -9,7 +10,7 @@ export class VectorPointsLayerRenderer implements ILayerRenderer {
 
   public render(layerDef: CanvasLayerDef, map: L.Map, context: CanvasRenderContext): L.LayerGroup {
     const group = L.layerGroup();
-    const paneName = `pane-${layerDef.id}`;
+    const paneName = garantirSubPane(map, layerDef.id, 'ponto');
 
     this.rebuildPoints(layerDef, group, map, context, paneName);
 
@@ -198,7 +199,7 @@ export class VectorPointsLayerRenderer implements ILayerRenderer {
   public update(layerDef: CanvasLayerDef, layerInstance: L.LayerGroup, changes: Partial<CanvasLayerDef>, context: CanvasRenderContext, map: L.Map): void {
     if (changes.opacidade !== undefined || changes.estilo !== undefined || changes.dados !== undefined || changes.interativo !== undefined || changes.bloqueada !== undefined) {
       layerInstance.clearLayers();
-      this.rebuildPoints(layerDef, layerInstance, map, context, `pane-${layerDef.id}`);
+      this.rebuildPoints(layerDef, layerInstance, map, context, garantirSubPane(map, layerDef.id, 'ponto'));
     }
   }
 

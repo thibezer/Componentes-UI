@@ -111,14 +111,12 @@ export class CanvasSelecaoBox {
     }
 
     this.map.closePopup();
-    setTimeout(() => {
-      try {
-        this.setPanesPointerEvents('auto');
-        if (this.ctx.layerManager) {
-          this.ctx.layerManager.ensurePanes();
-        }
-      } catch {}
-    }, 80);
+    // O click pós-arrasto é engolido por CanvasInteracao (listener de captura), então os panes
+    // podem voltar a receber eventos já aqui, sem timer.
+    try {
+      this.setPanesPointerEvents('auto');
+      this.ctx.layerManager?.ensurePanes();
+    } catch {}
 
     const rectBounds = this.mapContainer.getBoundingClientRect();
     const currentX = e.clientX - rectBounds.left;
