@@ -98,6 +98,17 @@
   padding: 16px 20px;
 }
 
+/* Altura fixa de linha (atributo altura-linha): sobrepõe o padding da densidade */
+:host([altura-linha]) td,
+:host([row-height]) td {
+  height: var(--ui-tabela-altura-linha);
+  box-sizing: border-box;
+  padding-top: 0;
+  padding-bottom: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
 /* Alinhamento Flexbox no cabeçalho */
 .ui-tabela__header-content {
   display: inline-flex;

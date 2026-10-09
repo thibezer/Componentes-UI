@@ -30,6 +30,21 @@ describe('Web Component: <ui-tabela>', () => {
     expect(tabela.densidade).toBe('relaxada');
   });
 
+  it('altura-linha define a altura fixa das linhas e sobrepõe a densidade', () => {
+    const tabela = document.createElement('ui-tabela') as UITabela;
+    document.body.appendChild(tabela);
+    expect(tabela.alturaLinha).toBeNull();
+
+    tabela.setAttribute('altura-linha', '24');
+    expect(tabela.alturaLinha).toBe(24);
+    expect(tabela.style.getPropertyValue('--ui-tabela-altura-linha')).toBe('24px');
+    expect((tabela as any).getRowHeight()).toBe(24);
+
+    tabela.alturaLinha = null;
+    expect(tabela.hasAttribute('altura-linha')).toBe(false);
+    expect(tabela.style.getPropertyValue('--ui-tabela-altura-linha')).toBe('');
+  });
+
   it('deve executar a ordenação de 3 estados Client-Side (asc -> desc -> original)', () => {
     const tabela = document.createElement('ui-tabela') as UITabela;
     document.body.appendChild(tabela);

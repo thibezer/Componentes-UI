@@ -18,7 +18,7 @@ export type { DensidadeTabela, TabelaColuna, UISortDetail, UIColumnResizeDetail,
 
 export class UITabela extends SafeHTMLElement {
   static get observedAttributes() {
-    return ['texto-vazio', 'empty-text', 'max-height', 'densidade', 'density', 'virtualizar', 'virtualize', 'src', 'carregando', 'loading', 'chave-id', 'id-key', 'aria-label'];
+    return ['texto-vazio', 'empty-text', 'max-height', 'densidade', 'density', 'altura-linha', 'row-height', 'virtualizar', 'virtualize', 'src', 'carregando', 'loading', 'chave-id', 'id-key', 'aria-label'];
   }
 
   private shadow: ShadowRoot;
@@ -73,6 +73,7 @@ export class UITabela extends SafeHTMLElement {
 
   connectedCallback() {
     this.syncAttributes();
+    if (this.alturaLinha) this.style.setProperty('--ui-tabela-altura-linha', `${this.alturaLinha}px`);
     if (!this.hasAttribute('densidade') && !this.hasAttribute('density')) this.setAttribute('densidade', 'normal');
     this.renderTotal();
     if (this._src) this.remotaController.carregar(this._src);
@@ -81,7 +82,8 @@ export class UITabela extends SafeHTMLElement {
   disconnectedCallback() { this.cleanupEventListeners(); }
 
   attributeChangedCallback(name: string, _oldVal: string | null, newVal: string | null) {
-    if (name === 'densidade' || name === 'density') this._alturaLinhaMedida = null;
+    if (name === 'densidade' || name === 'density' || name === 'altura-linha' || name === 'row-height') this._alturaLinhaMedida = null;
+    if (name === 'altura-linha' || name === 'row-height') this.aplicarAlturaLinha();
     if (name === 'chave-id' || name === 'id-key') this.atualizarContextoSelecao();
     tratarMudancaAtributoTabela(name, newVal, this.obterContextoAtributos());
     this.sincronizarAria();
@@ -226,8 +228,27 @@ export class UITabela extends SafeHTMLElement {
     this.dispatchEvent(new CustomEvent<UISortDetail>('ui-sort', { detail: proxima, bubbles: true, composed: true }));
   }
 
-  /** Altura usada na virtualização: a medida no DOM quando disponível, senão a estimativa da densidade. */
-  private getRowHeight(): number { return this._alturaLinhaMedida ?? getRowHeight(this.densidade); }
+  /** Altura fixa das linhas em px (`altura-linha`), sobrepõe a densidade; null = vale a densidade. */
+  get alturaLinha(): number | null {
+    const bruto = this.getAttribute('altura-linha') ?? this.getAttribute('row-height');
+    const n = bruto === null ? NaN : parseFloat(bruto);
+    return Number.isFinite(n) && n > 0 ? n : null;
+  }
+  set alturaLinha(val: number | null) {
+    if (val && val > 0) this.setAttribute('altura-linha', String(val));
+    else { this.removeAttribute('altura-linha'); this.removeAttribute('row-height'); }
+  }
+
+  /** Publica a altura fixa como variável CSS (usada pelo estilo `:host([altura-linha])`). */
+  private aplicarAlturaLinha() {
+    const h = this.alturaLinha;
+    if (h) this.style.setProperty('--ui-tabela-altura-linha', `${h}px`);
+    else this.style.removeProperty('--ui-tabela-altura-linha');
+    this.renderBody();
+  }
+
+  /** Altura usada na virtualização: a fixa (`altura-linha`), a medida no DOM ou a estimativa da densidade. */
+  private getRowHeight(): number { return this.alturaLinha ?? this._alturaLinhaMedida ?? getRowHeight(this.densidade); }
 
   /**
    * Mede a altura real das linhas uma vez por configuração (densidade/colunas): padding, fonte e
