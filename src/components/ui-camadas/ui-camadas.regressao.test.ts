@@ -89,6 +89,14 @@ describe('UICamadas - regressões', () => {
   });
 
   describe('busca e seleção em intervalo', () => {
+    it('selecionarFeicoes atualiza a âncora do Shift', () => {
+      const el = criarPainel(camadasPadrao(), criarFeicoes(5));
+      el.selecionarFeicoes(['f1', 'f2']);
+      expect(el.lastClickedFeatureId).toBe('f2');
+      el.selecionarFeicoes([]);
+      expect(el.lastClickedFeatureId).toBeNull();
+    });
+
     it('encontra feições além do limite de linhas por camada', async () => {
       vi.useFakeTimers();
       const feicoes = criarFeicoes(120);

@@ -603,6 +603,8 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
 
     this.selectedFeatureIds.clear();
     novosIds.forEach((id) => this.selectedFeatureIds.add(id));
+    // A âncora do Shift acompanha a seleção programática (última do lote), senão o intervalo parte de uma âncora velha
+    this.lastClickedFeatureId = novosIds.length > 0 ? novosIds[novosIds.length - 1] : null;
     this.sincronizarSelecaoDOM();
     if (emitirEvento) {
       this.notificarMudancaSelecao();
