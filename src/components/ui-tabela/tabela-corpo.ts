@@ -81,6 +81,8 @@ export function renderizarCorpoTabela(ctx: ContextoCorpoTabela): void {
     tr.setAttribute('data-index', String(rowIndex));
     tr.setAttribute('part', 'linha');
     tr.tabIndex = rowIndex === indiceFocavel ? 0 : -1;
+    // Zebrado pelo índice do dado: :nth-child contaria o espaçador virtual e inverteria as cores ao rolar
+    if (rowIndex % 2 === 1) tr.classList.add('ui-tabela__tr--par');
 
     const chave = ctx.chaveId;
     if (item[chave] !== undefined) {

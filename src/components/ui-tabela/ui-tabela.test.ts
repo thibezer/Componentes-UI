@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import './ui-tabela';
 import { UITabela, TabelaColuna, UISortDetail } from './ui-tabela';
 
@@ -273,6 +273,136 @@ describe('Web Component: <ui-tabela>', () => {
 
       expect(tabela.rolarPara('item-inexistente')).toBe(false);
       expect(tabela.rolarPara(999)).toBe(false);
+    });
+  });
+
+  describe('Regressões de rolarPara e seleção', () => {
+    function criarTabela(dados: Record<string, any>[], colunas: TabelaColuna[] = [{ id: 'nome', rotulo: 'Nome', ordenavel: true }]) {
+      const tabela = document.createElement('ui-tabela') as UITabela;
+      document.body.appendChild(tabela);
+      tabela.colunas = colunas;
+      tabela.dados = dados;
+      return tabela;
+    }
+    const linhaSelecionada = (t: UITabela) => t.shadowRoot!.querySelector('tr.ui-tabela__tr--selecionada');
+
+    it('após ordenar pela propriedade, seleciona e destaca a mesma linha informada no evento', () => {
+      const tabela = criarTabela([{ id: 'c', nome: 'C' }, { id: 'a', nome: 'A' }, { id: 'b', nome: 'B' }]);
+      tabela.colunaOrdenada = 'nome'; // exibição: A, B, C
+
+      let detalhe: any = null;
+      tabela.addEventListener('ui-linha-selecionada', (e) => { detalhe = (e as CustomEvent).detail; });
+      tabela.rolarParaIndice(1, { selecionar: true, comportamento: 'auto' });
+
+      expect(detalhe.item.id).toBe('b');
+      expect(detalhe.indice).toBe(1);
+      expect(linhaSelecionada(tabela)?.getAttribute('data-id')).toBe('b');
+      expect(tabela.indiceSelecionado).toBe(1);
+
+      tabela.direcaoOrdenacao = 'desc'; // exibição: C, B, A — seleção acompanha o item
+      expect(tabela.indiceSelecionado).toBe(1);
+      tabela.direcaoOrdenacao = 'original'; // exibição: C, A, B
+      expect(tabela.indiceSelecionado).toBe(2);
+      expect(linhaSelecionada(tabela)?.getAttribute('data-id')).toBe('b');
+    });
+
+    it('prioriza a chave-id configurada sobre chaves alternativas de outros itens', () => {
+      const tabela = criarTabela([{ matricula: 'X', codigo: '7' }, { matricula: '7', codigo: 'Y' }], [{ id: 'matricula', rotulo: 'M' }]);
+      tabela.setAttribute('chave-id', 'matricula');
+
+      expect(tabela.rolarPara('7', { selecionar: true, comportamento: 'auto' })).toBe(true);
+      expect(tabela.itemSelecionado?.matricula).toBe('7');
+    });
+
+    it('distingue ID numérico de índice com porIndice / rolarParaIndice', () => {
+      const tabela = criarTabela([{ id: 1, nome: 'A' }, { id: 2, nome: 'B' }, { id: 3, nome: 'C' }]);
+
+      tabela.rolarPara(1, { selecionar: true, comportamento: 'auto' });
+      expect(tabela.itemSelecionado?.nome).toBe('A'); // ID 1
+
+      tabela.rolarPara(1, { selecionar: true, porIndice: true, comportamento: 'auto' });
+      expect(tabela.itemSelecionado?.nome).toBe('B'); // índice 1
+
+      expect(tabela.rolarParaIndice(3)).toBe(false);
+    });
+
+    it('mantém a seleção escondida pelo filtro e avisa quando o item sai dos dados', () => {
+      const tabela = criarTabela([{ id: 1, nome: 'Alfa' }, { id: 2, nome: 'Beta' }]);
+      tabela.rolarPara(2, { selecionar: true, comportamento: 'auto' });
+
+      tabela.filtrar('alfa');
+      expect(tabela.itemSelecionado?.id).toBe(2);
+      expect(tabela.indiceSelecionado).toBeNull();
+      expect(linhaSelecionada(tabela)).toBeNull();
+
+      tabela.filtrar('');
+      expect(tabela.indiceSelecionado).toBe(1);
+      expect(linhaSelecionada(tabela)?.getAttribute('data-id')).toBe('2');
+
+      let removido: any = null;
+      tabela.addEventListener('ui-selecao-removida', (e) => { removido = (e as CustomEvent).detail.item; });
+      tabela.dados = [{ id: 1, nome: 'Alfa' }];
+      expect(removido?.id).toBe(2);
+      expect(tabela.itemSelecionado).toBeNull();
+    });
+
+    it('rola só o container (sem scrollIntoView) e desconta o cabeçalho fixo', () => {
+      const tabela = criarTabela([{ id: 1, nome: 'A' }, { id: 2, nome: 'B' }]);
+      const raiz = tabela.shadowRoot!;
+      const container = raiz.querySelector('.ui-tabela-container') as HTMLDivElement;
+      const thead = raiz.querySelector('thead') as HTMLElement;
+      const tr = raiz.querySelector('tr[data-index="1"]') as HTMLElement;
+
+      const espiaoScrollIntoView = vi.fn();
+      tr.scrollIntoView = espiaoScrollIntoView;
+      Object.defineProperty(thead, 'offsetHeight', { configurable: true, value: 40 });
+      Object.defineProperty(container, 'clientHeight', { configurable: true, value: 200 });
+      container.getBoundingClientRect = () => ({ top: 0, bottom: 200 } as DOMRect);
+      // Linha parcialmente coberta pelo cabeçalho (topo em 10, cabeçalho vai até 40)
+      tr.getBoundingClientRect = () => ({ top: 10, bottom: 52, height: 42 } as DOMRect);
+      container.scrollTop = 100;
+
+      tabela.rolarPara(2, { comportamento: 'auto' });
+
+      expect(espiaoScrollIntoView).not.toHaveBeenCalled();
+      expect(container.scrollTop).toBe(70);
+    });
+
+    it('a seleção programática move o foco móvel (tabindex) para a linha', () => {
+      const tabela = criarTabela([{ id: 1, nome: 'A' }, { id: 2, nome: 'B' }, { id: 3, nome: 'C' }]);
+      tabela.rolarPara(3, { selecionar: true, comportamento: 'auto' });
+
+      const focaveis = tabela.shadowRoot!.querySelectorAll('tr[tabindex="0"]');
+      expect(focaveis.length).toBe(1);
+      expect(focaveis[0].getAttribute('data-id')).toBe('3');
+    });
+
+    it('rolagem suave sempre termina com a linha renderizada, mesmo sem animação (aba oculta)', () => {
+      vi.useFakeTimers();
+      try {
+        const dados = Array.from({ length: 500 }, (_, i) => ({ id: i, nome: `N${i}` }));
+        const tabela = criarTabela(dados);
+        const container = tabela.shadowRoot!.querySelector('.ui-tabela-container') as HTMLDivElement;
+        container.scrollTo = () => {}; // simula animação que não acontece
+
+        expect(tabela.rolarPara(400)).toBe(true);
+        expect(tabela.shadowRoot!.querySelector('tr[data-id="400"]')).toBeNull();
+        vi.advanceTimersByTime(800);
+        expect(tabela.shadowRoot!.querySelector('tr[data-id="400"]')).toBeTruthy();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('zebrado segue o índice do dado, não a posição no DOM (espaçador virtual)', () => {
+      const dados = Array.from({ length: 200 }, (_, i) => ({ id: i, nome: `N${i}` }));
+      const tabela = criarTabela(dados);
+      tabela.rolarPara(101, { porIndice: true, comportamento: 'auto' });
+
+      const raiz = tabela.shadowRoot!;
+      expect(raiz.querySelector('tr.ui-tabela__virtual-spacer')).toBeTruthy();
+      expect(raiz.querySelector('tr[data-index="101"]')?.classList.contains('ui-tabela__tr--par')).toBe(true);
+      expect(raiz.querySelector('tr[data-index="100"]')?.classList.contains('ui-tabela__tr--par')).toBe(false);
     });
   });
 });

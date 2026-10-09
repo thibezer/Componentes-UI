@@ -233,7 +233,7 @@
 }
 
 /* Acessibilidade Visual: Zebra-striping & Hover na linha inteira */
-.ui-tabela tbody tr:nth-child(even) {
+.ui-tabela tbody tr.ui-tabela__tr--par {
   background-color: var(--ui-cor-fundo-card, rgba(255, 255, 255, 0.02));
 }
 

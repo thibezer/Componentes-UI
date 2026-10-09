@@ -29,4 +29,11 @@ export interface UIColumnResizeDetail {
 export interface UIRowScrollOptions {
   comportamento?: 'smooth' | 'auto';
   selecionar?: boolean;
+  /** Trata o valor apenas como índice da linha exibida, nunca como ID (evita ambiguidade com IDs numéricos). */
+  porIndice?: boolean;
+}
+
+export interface UISelecaoRemovidaDetail {
+  /** Item que estava selecionado e deixou de existir nos dados. */
+  item: Record<string, any>;
 }

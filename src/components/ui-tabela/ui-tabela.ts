@@ -1,5 +1,5 @@
 import { ListenerBag } from '../../core/listener-bag';
-import type { DensidadeTabela, TabelaColuna, UISortDetail, UIColumnResizeDetail, UIRowScrollOptions } from './tipos';
+import type { DensidadeTabela, TabelaColuna, UISortDetail, UIColumnResizeDetail, UIRowScrollOptions, UISelecaoRemovidaDetail } from './tipos';
 import { TabelaRemotaController } from './tabela-remota';
 import { TabelaSelecaoController } from './tabela-selecao';
 import { TabelaOrquestradorDados } from './tabela-orquestrador-dados';
@@ -14,7 +14,7 @@ import {
 import { sincronizarAtributosTabela, tratarMudancaAtributoTabela } from './tabela-atributos-sync';
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 
-export type { DensidadeTabela, TabelaColuna, UISortDetail, UIColumnResizeDetail, UIRowScrollOptions };
+export type { DensidadeTabela, TabelaColuna, UISortDetail, UIColumnResizeDetail, UIRowScrollOptions, UISelecaoRemovidaDetail };
 
 export class UITabela extends SafeHTMLElement {
   static get observedAttributes() {
@@ -43,6 +43,10 @@ export class UITabela extends SafeHTMLElement {
   private _corpoListeners = new ListenerBag();
   /** Linha com o foco móvel (navegação por teclado); null = primeira linha visível. */
   private _indiceAtivo: number | null = null;
+  /** Altura real das linhas medida no DOM; null = usa a estimativa da densidade. */
+  private _alturaLinhaMedida: number | null = null;
+  /** Cancela a correção pendente de uma rolagem suave anterior. */
+  private _cancelarCorrecaoRolagem: (() => void) | null = null;
 
   private remotaController: TabelaRemotaController;
   private selecaoController: TabelaSelecaoController;
@@ -58,12 +62,12 @@ export class UITabela extends SafeHTMLElement {
     });
     this.selecaoController = new TabelaSelecaoController({
       host: this,
-      tbodyElement: null,
-      containerElement: null,
-      dadosExibicao: this.dadosController.getDadosExibicao(),
-      chaveId: this.chaveId,
-      getRowHeight: () => this.getRowHeight(),
-      onRenderBody: () => this.renderBody()
+      getTbody: () => this._tbodyElement,
+      getDadosExibicao: () => this.dadosController.getDadosExibicao(),
+      getDadosOriginais: () => this.dadosController.getDadosOriginais(),
+      getChaveId: () => this.chaveId,
+      onRolarParaIndice: (indice, comportamento) => this.posicionarLinha(indice, comportamento),
+      onLinhaAtiva: (indice) => this.definirLinhaAtiva(indice)
     });
   }
 
@@ -77,6 +81,8 @@ export class UITabela extends SafeHTMLElement {
   disconnectedCallback() { this.cleanupEventListeners(); }
 
   attributeChangedCallback(name: string, _oldVal: string | null, newVal: string | null) {
+    if (name === 'densidade' || name === 'density') this._alturaLinhaMedida = null;
+    if (name === 'chave-id' || name === 'id-key') this.atualizarContextoSelecao();
     tratarMudancaAtributoTabela(name, newVal, this.obterContextoAtributos());
     this.sincronizarAria();
   }
@@ -126,7 +132,7 @@ export class UITabela extends SafeHTMLElement {
   public async carregarDoEndpoint(url?: string): Promise<void> { await this.remotaController.carregar(url || this._src || ''); }
   public async recarregar(): Promise<void> {
     if (this._src) await this.remotaController.carregar(this._src);
-    else { this.dadosController.aplicarOrdenacao(); this.renderBody(); }
+    else { this.dadosController.aplicarOrdenacao(); this.atualizarContextoSelecao(); this.renderBody(); }
   }
 
   public filtrar(termo: string): void {
@@ -141,13 +147,18 @@ export class UITabela extends SafeHTMLElement {
       this._scrollHandler = null;
     }
     if (this._activeResizeCleanup) { this._activeResizeCleanup(); this._activeResizeCleanup = null; }
+    this._cancelarCorrecaoRolagem?.();
     this.remotaController.abortar();
     this._headerListeners.cleanup();
     this._corpoListeners.cleanup();
   }
 
   get colunas(): TabelaColuna[] { return this._colunas; }
-  set colunas(val: TabelaColuna[]) { this._colunas = Array.isArray(val) ? val : []; this.renderTotal(); }
+  set colunas(val: TabelaColuna[]) {
+    this._colunas = Array.isArray(val) ? val : [];
+    this._alturaLinhaMedida = null;
+    this.renderTotal();
+  }
   get dados(): Record<string, any>[] { return this.dadosController.getDadosOriginais(); }
   set dados(val: Record<string, any>[]) {
     this.dadosController.setDadosOriginais(val);
@@ -189,6 +200,7 @@ export class UITabela extends SafeHTMLElement {
   get colunaOrdenada(): string | null { return this.dadosController.getColunaOrdenada(); }
   set colunaOrdenada(id: string | null) {
     this.dadosController.setColunaOrdenada(id);
+    this.atualizarContextoSelecao();
     this.renderHeader();
     this.renderBody();
   }
@@ -196,6 +208,7 @@ export class UITabela extends SafeHTMLElement {
   get direcaoOrdenacao(): 'asc' | 'desc' | 'original' { return this.dadosController.getDirecaoOrdenacao(); }
   set direcaoOrdenacao(dir: 'asc' | 'desc' | 'original') {
     this.dadosController.setDirecaoOrdenacao(dir);
+    this.atualizarContextoSelecao();
     this.renderHeader();
     this.renderBody();
   }
@@ -213,21 +226,29 @@ export class UITabela extends SafeHTMLElement {
     this.dispatchEvent(new CustomEvent<UISortDetail>('ui-sort', { detail: proxima, bubbles: true, composed: true }));
   }
 
-  private getRowHeight(): number { return getRowHeight(this.densidade); }
+  /** Altura usada na virtualização: a medida no DOM quando disponível, senão a estimativa da densidade. */
+  private getRowHeight(): number { return this._alturaLinhaMedida ?? getRowHeight(this.densidade); }
 
+  /**
+   * Mede a altura real das linhas uma vez por configuração (densidade/colunas): padding, fonte e
+   * renderizadores customizados mudam a altura, e a estimativa fixa desalinharia a janela virtual.
+   * Não remede a cada rolagem para os espaçadores não "pularem" com linhas de alturas diferentes.
+   */
+  private medirAlturaLinha() {
+    if (this._alturaLinhaMedida !== null || !this._tbodyElement) return;
+    const linhas = this._tbodyElement.querySelectorAll<HTMLElement>('tr[data-index]');
+    if (linhas.length === 0) return;
+    let soma = 0;
+    linhas.forEach((linha) => { soma += linha.getBoundingClientRect().height; });
+    const media = soma / linhas.length;
+    if (media <= 0) return; // tabela oculta ou sem layout: mede na próxima renderização
+    this._alturaLinhaMedida = media;
+    if (Math.abs(media - getRowHeight(this.densidade)) > 0.5) this.renderBody();
+  }
+
+  /** Ordenar, filtrar, trocar os dados ou a chave mantém a linha selecionada (se ainda existir). */
   private atualizarContextoSelecao() {
-    const selecaoAnterior = this.selecaoController?.getItemSelecionado() ?? null;
-    this.selecaoController = new TabelaSelecaoController({
-      host: this,
-      tbodyElement: this._tbodyElement,
-      containerElement: this._containerElement,
-      dadosExibicao: this.dadosController.getDadosExibicao(),
-      chaveId: this.chaveId,
-      getRowHeight: () => this.getRowHeight(),
-      onRenderBody: () => this.renderBody()
-    });
-    // Ordenar, filtrar ou trocar os dados mantém a linha selecionada (se ainda existir)
-    if (selecaoAnterior) this.selecaoController.restaurarSelecao(selecaoAnterior);
+    this.selecaoController.reconciliar();
     this._indiceAtivo = this.selecaoController.getIndiceSelecionado();
   }
 
@@ -243,7 +264,6 @@ export class UITabela extends SafeHTMLElement {
       this._tbodyElement = dom.tbodyElement;
       this._emptyElement = dom.emptyElement;
       this._loadingElement = dom.loadingElement;
-      this.atualizarContextoSelecao();
     } else {
       this._containerElement.style.maxHeight = this.getAttribute('max-height') || '';
       if (this._emptyElement) {
@@ -269,12 +289,20 @@ export class UITabela extends SafeHTMLElement {
   private handleFocoLinha = (e: FocusEvent) => {
     const tr = e.target as HTMLElement;
     if (tr.parentElement !== this._tbodyElement || !tr.hasAttribute('data-index')) return;
-    this._indiceAtivo = Number(tr.getAttribute('data-index'));
-    this._tbodyElement!.querySelectorAll<HTMLElement>('tr[tabindex="0"]').forEach((linha) => {
-      if (linha !== tr) linha.tabIndex = -1;
-    });
-    tr.tabIndex = 0;
+    this.definirLinhaAtiva(Number(tr.getAttribute('data-index')));
   };
+
+  private definirLinhaAtiva(indice: number) {
+    this._indiceAtivo = indice;
+    const tbody = this._tbodyElement;
+    // Fora da janela virtual a próxima renderização aplica o tabindex pelo _indiceAtivo
+    const alvo = tbody?.querySelector<HTMLElement>(`tr[data-index="${indice}"]`);
+    if (!tbody || !alvo) return;
+    tbody.querySelectorAll<HTMLElement>('tr[tabindex="0"]').forEach((linha) => {
+      if (linha !== alvo) linha.tabIndex = -1;
+    });
+    alvo.tabIndex = 0;
+  }
 
   /**
    * Teclado nas linhas: setas, Home/End e PageUp/PageDown movem o foco;
@@ -331,11 +359,90 @@ export class UITabela extends SafeHTMLElement {
     if (!tr) return;
 
     tr.focus({ preventScroll: true });
+    const delta = this.deslocamentoAteLinha(tr);
+    if (delta) container.scrollTop += delta;
+  }
+
+  /**
+   * Quanto o container precisa rolar para a linha ficar inteira na área útil: abaixo do cabeçalho
+   * fixo e acima da barra de rolagem horizontal. 0 = já visível. Linha maior que a área alinha pelo topo.
+   */
+  private deslocamentoAteLinha(tr: HTMLElement): number {
+    const container = this._containerElement!;
     const caixa = container.getBoundingClientRect();
     const linha = tr.getBoundingClientRect();
-    const topoUtil = caixa.top + (this._theadElement?.offsetHeight ?? 0);
-    if (linha.top < topoUtil) container.scrollTop -= topoUtil - linha.top;
-    else if (linha.bottom > caixa.bottom) container.scrollTop += linha.bottom - caixa.bottom;
+    const topoUtil = caixa.top + container.clientTop + (this._theadElement?.offsetHeight ?? 0);
+    const baseUtil = caixa.top + container.clientTop + container.clientHeight;
+    if (linha.top < topoUtil) return linha.top - topoUtil;
+    if (linha.bottom > baseUtil) return Math.min(linha.bottom - baseUtil, linha.top - topoUtil);
+    return 0;
+  }
+
+  /** Rola só o container da tabela (nunca a página, ao contrário de `scrollIntoView`). */
+  private rolarContainer(topo: number, comportamento: 'smooth' | 'auto') {
+    const container = this._containerElement!;
+    if (comportamento === 'smooth' && typeof container.scrollTo === 'function') {
+      container.scrollTo({ top: topo, behavior: 'smooth' });
+    } else {
+      container.scrollTop = topo;
+    }
+  }
+
+  /**
+   * Posiciona a linha exibida `indice` na área visível.
+   * Fora da janela virtual, rola até a posição estimada, renderiza a janela e corrige pela posição
+   * real da linha. No modo suave a correção ocorre ao fim da animação (`scrollend`, com timeout de
+   * segurança para navegadores sem o evento ou quando não há rolagem a fazer).
+   */
+  private posicionarLinha(indice: number, comportamento: 'smooth' | 'auto'): boolean {
+    const container = this._containerElement;
+    const tbody = this._tbodyElement;
+    if (!container || !tbody) return false;
+
+    this._cancelarCorrecaoRolagem?.();
+    const buscarLinha = () => tbody.querySelector<HTMLElement>(`tr[data-index="${indice}"]`);
+    const corrigir = (modo: 'smooth' | 'auto') => {
+      const tr = buscarLinha();
+      if (!tr) return;
+      const delta = this.deslocamentoAteLinha(tr);
+      if (delta) this.rolarContainer(container.scrollTop + delta, modo);
+    };
+
+    if (buscarLinha()) {
+      corrigir(comportamento);
+      return true;
+    }
+
+    const saltar = () => {
+      container.scrollTop = Math.max(0, indice * this.getRowHeight());
+      this.renderBody();
+      corrigir('auto');
+      this.renderBody();
+    };
+    if (comportamento === 'auto') {
+      saltar();
+      return true;
+    }
+
+    this.rolarContainer(Math.max(0, indice * this.getRowHeight()), 'smooth');
+    let pendente = true;
+    const finalizar = () => {
+      if (!pendente) return;
+      this._cancelarCorrecaoRolagem?.();
+      this.renderBody();
+      // Animação interrompida ou não executada (aba oculta, outro scroll): garante a chegada
+      if (buscarLinha()) corrigir('smooth');
+      else saltar();
+    };
+    const timer = window.setTimeout(finalizar, 800);
+    container.addEventListener('scrollend', finalizar, { once: true });
+    this._cancelarCorrecaoRolagem = () => {
+      pendente = false;
+      window.clearTimeout(timer);
+      container.removeEventListener('scrollend', finalizar);
+      this._cancelarCorrecaoRolagem = null;
+    };
+    return true;
   }
 
   private obterContextoRenderizador(): ContextoOrquestradorRender {
@@ -363,13 +470,26 @@ export class UITabela extends SafeHTMLElement {
   }
 
   private renderHeader() { executarOrquestracaoHeader(this.obterContextoRenderizador()); }
-  public renderBody() { executarOrquestracaoCorpo(this.obterContextoRenderizador()); }
+  public renderBody() {
+    executarOrquestracaoCorpo(this.obterContextoRenderizador());
+    this.medirAlturaLinha();
+  }
 
+  /**
+   * Rola até um item e opcionalmente o seleciona. Aceita ID (pela `chave-id`, depois `id`, `_id`,
+   * `codigo`, `key`), predicado ou índice. Um número é procurado primeiro como ID; use
+   * `{ porIndice: true }` ou `rolarParaIndice()` para tratá-lo só como índice da linha exibida.
+   */
   public rolarPara(
     idOuIndice: string | number | ((item: any, index: number) => boolean),
     opcoes?: UIRowScrollOptions
   ): boolean {
     return this.selecaoController.rolarPara(idOuIndice, opcoes);
+  }
+
+  /** Rola até a linha exibida de índice `indice` (posição após ordenação/filtro, base 0). */
+  public rolarParaIndice(indice: number, opcoes?: Omit<UIRowScrollOptions, 'porIndice'>): boolean {
+    return this.selecaoController.rolarPara(indice, { ...opcoes, porIndice: true });
   }
 }
 
