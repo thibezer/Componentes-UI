@@ -78,6 +78,9 @@ export function buscarSnap(
       continue;
     }
 
+    // curva em edição: o índice arrastado é de um nó, não dos vértices de apoio, e a própria curva não atrai
+    if (propria && (g.tipo === 'LineString' || g.tipo === 'Polygon') && g.curva) continue;
+
     // trechos: cada parte de uma linha (vértices de todas as partes atraem; o último de uma parte não liga ao primeiro da
     // seguinte) ou o anel externo do polígono (fechado). O vértice em arrasto só existe na edição, que é de uma parte só.
     const trechos: Array<{ pts: LatLonPar[]; fechado: boolean }> =

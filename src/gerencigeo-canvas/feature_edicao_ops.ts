@@ -1,4 +1,5 @@
-import { ehMultilinha, type Feicao, type GeometriaFeicao, type LatLonPar } from './feature_types';
+import { ehMultilinha, type Feicao, type GeometriaFeicao, type LatLonPar, type NoCurva } from './feature_types';
+import { amostrarCurva, controlesDoSegmento, espelhoDaAlca, pontoDaCubica } from './feature_curvas';
 
 /*
  * Operações puras sobre os vértices de uma feição editável (ponto, linha e polígono de um anel).
@@ -79,4 +80,182 @@ export function segmentosDe(g: GeometriaFeicao): Array<[number, number]> {
   for (let i = 0; i < n - 1; i++) pares.push([i, i + 1]);
   if (g.tipo === 'Polygon' && n > 2) pares.push([n - 1, 0]);
   return pares;
+}
+
+// ---- edição de curvas ----
+// Numa feição com `curva` o editor trabalha com os nós (e não com os vértices de apoio amostrados): mover um nó leva
+// as alças junto, inserir divide o segmento sem mudar o desenho (de Casteljau) e a geometria é refeita a partir dos nós.
+
+/** Nós da curva da geometria (linha ou polígono de um anel), ou `null` se ela é uma poligonal comum. */
+export function nosDe(g: GeometriaFeicao): NoCurva[] | null {
+  if ((g.tipo === 'LineString' || g.tipo === 'Polygon') && g.curva && g.curva.length >= minimoVertices(g)) return g.curva;
+  return null;
+}
+
+/** Pontos que o editor mostra como alças: os nós da curva ou, sem curva, os vértices. */
+export function pontosDe(g: GeometriaFeicao): LatLonPar[] {
+  return nosDe(g)?.map((n) => n.ponto) ?? verticesDe(g);
+}
+
+function comNos(g: GeometriaFeicao, nos: NoCurva[]): GeometriaFeicao {
+  const fechada = g.tipo === 'Polygon';
+  const apoio = amostrarCurva(nos, fechada);
+  return fechada ? { tipo: 'Polygon', aneis: [apoio], curva: nos } : { tipo: 'LineString', coordenadas: apoio, curva: nos };
+}
+
+/** Nova geometria com estes pontos. Com o mesmo número de nós, as alças acompanham o nó; senão vira poligonal. */
+export function comPontos(g: GeometriaFeicao, pts: LatLonPar[]): GeometriaFeicao {
+  const nos = nosDe(g);
+  if (!nos || nos.length !== pts.length) return comVertices(g, pts);
+  const novos = nos.map((n, i) => {
+    const dLat = pts[i][0] - n.ponto[0];
+    const dLon = pts[i][1] - n.ponto[1];
+    const desloca = (p: LatLonPar): LatLonPar => [p[0] + dLat, p[1] + dLon];
+    const no: NoCurva = { ponto: pts[i] };
+    if (n.entrada) no.entrada = desloca(n.entrada);
+    if (n.saida) no.saida = desloca(n.saida);
+    return no;
+  });
+  return comNos(g, novos);
+}
+
+function lerp(a: LatLonPar, b: LatLonPar, t: number): LatLonPar {
+  return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+}
+
+/** Parâmetro `t` do segmento `a→b` cujo ponto fica mais perto de `coord`. */
+function tMaisProximo(a: NoCurva, b: NoCurva, coord: LatLonPar): number {
+  const [c1, c2] = controlesDoSegmento(a, b);
+  let melhor = 0.5;
+  let menor = Infinity;
+  for (let k = 1; k < 64; k++) {
+    const t = k / 64;
+    const p = pontoDaCubica(a.ponto, c1, c2, b.ponto, t);
+    const d = (p[0] - coord[0]) ** 2 + (p[1] - coord[1]) ** 2;
+    if (d < menor) {
+      menor = d;
+      melhor = t;
+    }
+  }
+  return melhor;
+}
+
+/** Ponto do segmento `i→j` que o editor oferece para inserir um nó (o meio da curva, não o da corda). */
+export function pontoMedioDoSegmento(g: GeometriaFeicao, i: number, j: number): LatLonPar {
+  const nos = nosDe(g);
+  if (!nos) {
+    const v = verticesDe(g);
+    return pontoMedio(v[i], v[j]);
+  }
+  const [c1, c2] = controlesDoSegmento(nos[i], nos[j]);
+  return pontoDaCubica(nos[i].ponto, c1, c2, nos[j].ponto, 0.5);
+}
+
+/** Pares de índices dos segmentos entre os pontos do editor. */
+export function segmentosDoEditor(g: GeometriaFeicao): Array<[number, number]> {
+  const nos = nosDe(g);
+  if (!nos) return segmentosDe(g);
+  const pares: Array<[number, number]> = [];
+  for (let i = 0; i < nos.length - 1; i++) pares.push([i, i + 1]);
+  if (g.tipo === 'Polygon' && nos.length > 2) pares.push([nos.length - 1, 0]);
+  return pares;
+}
+
+/** Insere um ponto depois de `depoisDe`. Na curva, divide o segmento no ponto mais próximo de `coord` sem alterar o traçado. */
+export function inserirPonto(g: GeometriaFeicao, depoisDe: number, coord: LatLonPar): GeometriaFeicao {
+  const nos = nosDe(g);
+  if (!nos) return inserirVertice(g, depoisDe, coord);
+  if (depoisDe < 0 || depoisDe >= nos.length) return g;
+  const iB = (depoisDe + 1) % nos.length;
+  const a = nos[depoisDe];
+  const b = nos[iB];
+  const reto = a.saida === undefined && b.entrada === undefined;
+  let novo: NoCurva;
+  let a2 = a;
+  let b2 = b;
+  if (reto) {
+    novo = { ponto: coord };
+  } else {
+    const t = tMaisProximo(a, b, coord);
+    const [c1, c2] = controlesDoSegmento(a, b);
+    const p01 = lerp(a.ponto, c1, t);
+    const p12 = lerp(c1, c2, t);
+    const p23 = lerp(c2, b.ponto, t);
+    const p012 = lerp(p01, p12, t);
+    const p123 = lerp(p12, p23, t);
+    novo = { ponto: lerp(p012, p123, t), entrada: p012, saida: p123 };
+    a2 = { ...a, saida: p01 };
+    b2 = { ...b, entrada: p23 };
+  }
+  const lista = nos.slice();
+  lista[depoisDe] = a2;
+  lista[iB] = b2;
+  lista.splice(depoisDe + 1, 0, novo);
+  return comNos(g, lista);
+}
+
+/** Remove um ponto (nó da curva ou vértice); `null` abaixo do mínimo. */
+export function removerPonto(g: GeometriaFeicao, indice: number): GeometriaFeicao | null {
+  const nos = nosDe(g);
+  if (!nos) return removerVertice(g, indice);
+  if (indice < 0 || indice >= nos.length || nos.length <= minimoVertices(g)) return null;
+  return comNos(g, nos.filter((_, i) => i !== indice));
+}
+
+/** Qual alça de um nó. */
+export type QualAlca = 'entrada' | 'saida';
+
+/** Nós de uma linha ou polígono: os da curva ou, sem curva, um nó de canto por vértice. `null` para os demais tipos. */
+function nosOuVertices(g: GeometriaFeicao): NoCurva[] | null {
+  if (g.tipo !== 'LineString' && g.tipo !== 'Polygon') return null;
+  return nosDe(g) ?? verticesDe(g).map((p) => ({ ponto: [p[0], p[1]] as LatLonPar }));
+}
+
+/**
+ * Move uma alça do nó `indice` para `coord`. Com `simetrica` (padrão) a oposta vira o espelho, como na caneta;
+ * sem ela as duas são independentes (o nó deixa de ser suave). Numa linha/polígono comum, converte em curva.
+ */
+export function moverAlca(g: GeometriaFeicao, indice: number, qual: QualAlca, coord: LatLonPar, simetrica = true): GeometriaFeicao {
+  const nos = nosOuVertices(g);
+  if (!nos || indice < 0 || indice >= nos.length) return g;
+  const no: NoCurva = { ...nos[indice], [qual]: coord };
+  if (simetrica) no[qual === 'saida' ? 'entrada' : 'saida'] = espelhoDaAlca(no.ponto, coord);
+  const lista = nos.slice();
+  lista[indice] = no;
+  return comNos(g, lista);
+}
+
+/**
+ * Alterna o nó entre canto (sem alças) e suave. Ao suavizar, as alças seguem a direção entre os vizinhos
+ * (Catmull-Rom: um sexto da corda); nas pontas de uma linha, apontam para o único vizinho. Numa linha/polígono
+ * comum, converte em curva.
+ */
+export function alternarSuavidade(g: GeometriaFeicao, indice: number): GeometriaFeicao {
+  const nos = nosOuVertices(g);
+  if (!nos || indice < 0 || indice >= nos.length) return g;
+  const no = nos[indice];
+  const lista = nos.slice();
+  if (no.entrada || no.saida) {
+    lista[indice] = { ponto: no.ponto };
+    return comNos(g, lista);
+  }
+  const fechada = g.tipo === 'Polygon';
+  const n = nos.length;
+  const ant = indice > 0 ? nos[indice - 1] : fechada ? nos[n - 1] : null;
+  const prox = indice < n - 1 ? nos[indice + 1] : fechada ? nos[0] : null;
+  if (!ant && !prox) return g;
+  const p = no.ponto;
+  let dLat: number;
+  let dLon: number;
+  if (ant && prox) {
+    dLat = (prox.ponto[0] - ant.ponto[0]) / 6;
+    dLon = (prox.ponto[1] - ant.ponto[1]) / 6;
+  } else {
+    const v = (prox ?? ant)!.ponto;
+    const sinal = prox ? 1 : -1; // a alça de saída aponta para frente; na ponta final, a de entrada aponta para trás
+    dLat = ((v[0] - p[0]) / 3) * sinal;
+    dLon = ((v[1] - p[1]) / 3) * sinal;
+  }
+  lista[indice] = { ponto: p, saida: [p[0] + dLat, p[1] + dLon], entrada: [p[0] - dLat, p[1] - dLon] };
+  return comNos(g, lista);
 }

@@ -1,5 +1,6 @@
 import type { Ponto, Segmento, Confrontante } from './types';
-import { criarLinha, type Feicao, type LatLonPar } from './feature_types';
+import { criarLinha, type Feicao, type LatLonPar, type NoCurva } from './feature_types';
+import { amostrarCurva, normalizarNos } from './feature_curvas';
 import { parseCoordenada } from './utils';
 import { statusDe } from './feature_versoes';
 
@@ -112,6 +113,24 @@ export function confrontanteParaFeicao(c: Confrontante, camadaId: string): Feica
   };
 }
 
+/** Nós de uma curva vindos de fora, com as coordenadas normalizadas como as demais; `null` se inválidos ou sem alças. */
+function normalizarCurva(bruta: unknown, opcoes?: OpcoesNormalizacao): NoCurva[] | null {
+  const nos = normalizarNos(bruta);
+  if (!nos) return null;
+  const nova: NoCurva[] = [];
+  for (const n of nos) {
+    const ponto = normalizarCoordenada(n.ponto, opcoes);
+    if (!ponto) return null;
+    const no: NoCurva = { ponto };
+    const entrada = n.entrada && normalizarCoordenada(n.entrada, { ...opcoes, aceitarOrigem: true });
+    const saida = n.saida && normalizarCoordenada(n.saida, { ...opcoes, aceitarOrigem: true });
+    if (entrada) no.entrada = entrada;
+    if (saida) no.saida = saida;
+    nova.push(no);
+  }
+  return nova;
+}
+
 const TIPOS = new Set(['Point', 'LineString', 'Polygon', 'Circle', 'Text']);
 
 /**
@@ -151,11 +170,20 @@ export function normalizarFeicaoEntrada(bruta: unknown, camadaId: string, opcoes
         const pts = Array.isArray(g.coordenadas) ? normalizarLinha(g.coordenadas, opcoes) : null;
         if (pts) geometria = criarLinha([pts]);
       }
+      // curva (Bézier): só vale em linha de uma parte; os vértices de apoio são refeitos a partir dos nós
+      const nosLinha = partes.length <= 1 ? normalizarCurva(g.curva, opcoes) : null;
+      if (geometria && geometria.tipo === 'LineString' && nosLinha && nosLinha.length >= 2) {
+        geometria = { tipo: 'LineString', coordenadas: amostrarCurva(nosLinha, false), curva: nosLinha };
+      }
       break;
     }
     case 'Polygon': {
       const aneis = Array.isArray(g.aneis) ? normalizarPoligono(g.aneis, opcoes) : null;
       if (aneis) geometria = { tipo: 'Polygon', aneis };
+      const nosPoligono = aneis && aneis.length === 1 ? normalizarCurva(g.curva, opcoes) : null;
+      if (geometria && nosPoligono && nosPoligono.length >= 3) {
+        geometria = { tipo: 'Polygon', aneis: [amostrarCurva(nosPoligono, true)], curva: nosPoligono };
+      }
       break;
     }
     case 'Circle': {

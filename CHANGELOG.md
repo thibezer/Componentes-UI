@@ -1,5 +1,16 @@
 # Changelog
 
+## Não lançado
+
+### `<ui-canvas-cad>`: curvas de Bézier de verdade
+
+- A **caneta** deixou de quebrar a curva em trechos retos. Linha e polígono ganham `curva` (lista de nós `{ ponto, entrada?, saida? }`, alças em coordenadas absolutas); o desenho é calculado a cada zoom (`bezierCurveTo` no canvas, comandos `C` no SVG), então a curva continua lisa em qualquer escala.
+- `coordenadas`/`aneis` seguem existindo como vértices de apoio amostrados sobre a curva (24 por segmento): métricas, snap, seleção e exportação continuam funcionando sem mudança.
+- Entrada: `adicionarFeicao`/`definirFeicoes` aceitam `curva` em linha de uma parte e polígono de um anel; nós inválidos são ignorados e a feição vira poligonal.
+- Edição de vértices numa feição curva trabalha com os nós: mover leva as alças junto, inserir divide o segmento sem mudar o traçado (de Casteljau) e excluir remove o nó. A caneta mostra as alças enquanto se arrasta.
+- **Alças editáveis**: em feição curva, o editor mostra uma alça arrastável por alça (com haste até o nó). A oposta espelha; segurar `Shift` solta a simetria. Duplo clique num nó alterna canto ↔ suave; numa linha/polígono comum isso converte em curva.
+- Curvas não são simplificadas por zoom; `deslocarGeometria` move nós e alças.
+
 ## 2.1.0 — 2026-10-11
 
 ### `<ui-canvas-cad>`: feições genéricas (migração do MapEngine)

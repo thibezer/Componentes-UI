@@ -1,5 +1,6 @@
 import { criarLinha, ehMultilinha, partesDaLinha, type Feicao, type GeometriaFeicao, type LatLonPar } from './feature_types';
 import { distanciaMetros } from './feature_metricas';
+import { moverNos } from './feature_curvas';
 
 /*
  * Algoritmos espaciais puros (sem Leaflet): divisão de polígono por linha, junção, buffer,
@@ -374,8 +375,14 @@ export function deslocarGeometria(g: GeometriaFeicao, lesteM: number, norteM: nu
     case 'Point': return { tipo: 'Point', coordenada: mover(g.coordenada) };
     case 'Text': return { ...g, coordenada: mover(g.coordenada) };
     case 'Circle': return { ...g, centro: mover(g.centro) };
-    case 'LineString': return criarLinha(partesDaLinha(g).map((p) => p.map(mover)));
-    case 'Polygon': return { tipo: 'Polygon', aneis: g.aneis.map((a) => a.map(mover)) };
+    case 'LineString': {
+      const linha = criarLinha(partesDaLinha(g).map((p) => p.map(mover)));
+      return g.curva ? { ...linha, curva: moverNos(g.curva, mover) } : linha;
+    }
+    case 'Polygon': {
+      const poligono: GeometriaFeicao = { tipo: 'Polygon', aneis: g.aneis.map((a) => a.map(mover)) };
+      return g.curva ? { ...poligono, curva: moverNos(g.curva, mover) } : poligono;
+    }
   }
 }
 

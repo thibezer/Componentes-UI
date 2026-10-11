@@ -63,7 +63,9 @@ export function simplificarAnel(anel: LatLonPar[], tolerancia: number): LatLonPa
   return s.length >= 3 ? s : anel;
 }
 
+/** Curvas não se simplificam: os vértices de apoio só medem, o desenho é calculado a partir dos nós. */
 export function vertices(g: GeometriaFeicao): number {
+  if ((g.tipo === 'LineString' || g.tipo === 'Polygon') && g.curva) return 0;
   if (g.tipo === 'LineString') return partesDaLinha(g).reduce((s, p) => s + p.length, 0);
   if (g.tipo === 'Polygon') return g.aneis.reduce((s, a) => s + a.length, 0);
   return 0;

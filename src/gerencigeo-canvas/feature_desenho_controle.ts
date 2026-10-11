@@ -7,6 +7,8 @@ import {
 } from './feature_metricas';
 import type { ResultadoSnap } from './feature_snap';
 import { CSS_POSICAO_HUD } from './feature_hud';
+import { criarCamadaCurva } from './curva_leaflet';
+import { espelhoDaAlca } from './feature_curvas';
 
 /*
  * Camada visual das ferramentas de desenho: traduz mouse e teclado em chamadas à `SessaoDesenho`,
@@ -370,6 +372,17 @@ export class ControleDesenho {
     }
     this.marcas.clearLayers();
     const marcados = s.ferramenta === 'caneta' ? s.ancoras.map((a) => a.ponto) : s.pontos;
+    // caneta: mostra as alças (linha entre a de entrada e a de saída) para o usuário ver o que está curvando
+    if (s.ferramenta === 'caneta') {
+      for (const a of s.ancoras) {
+        if (!a.alca) continue;
+        const entrada = espelhoDaAlca(a.ponto, a.alca);
+        this.marcas.addLayer(L.polyline([entrada, a.alca], { pane: PANE, color: COR, weight: 1, opacity: 0.8, interactive: false }));
+        for (const alca of [entrada, a.alca]) {
+          this.marcas.addLayer(L.circleMarker(alca, { pane: PANE, radius: 3, color: COR, weight: 1, fillColor: '#fff', fillOpacity: 1, interactive: false }));
+        }
+      }
+    }
     for (const p of marcados) {
       this.marcas.addLayer(L.circleMarker(p, { pane: PANE, radius: 4, color: '#111', weight: 1, fillColor: COR, fillOpacity: 1, interactive: false }));
     }
@@ -381,6 +394,8 @@ export class ControleDesenho {
       pane: PANE, color: COR, weight: 2, dashArray: provisoria ? '6 4' : undefined,
       fillColor: COR, fillOpacity: 0.15, interactive: false
     };
+    const curva = criarCamadaCurva(g, estilo);
+    if (curva) return curva;
     if (g.tipo === 'Polygon') return L.polygon(g.aneis, estilo);
     if (g.tipo === 'Circle') return L.circle(g.centro, { ...estilo, radius: g.raioMetros });
     if (g.tipo === 'LineString') return L.polyline(g.coordenadas, estilo);

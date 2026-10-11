@@ -6,6 +6,7 @@ import { partesDaLinha, type EstiloFeicao, type Feicao, type LatLonPar } from '.
 import { IndiceEspacial, caixasSeTocam, type CaixaGeo } from '../feature_indice';
 import { MIN_VERTICES_SIMPLIFICAR, ZOOM_SEM_SIMPLIFICACAO, simplificarGeometria, vertices } from '../feature_simplificacao';
 import { entidadeDe, statusDe } from '../feature_versoes';
+import { LinhaCurva, PoligonoCurvo, atualizarCamadaCurva, criarCamadaCurva, nosDaGeometria } from '../curva_leaflet';
 import { AgrupadorCluster, deveAgrupar, type PontoCluster } from '../feature_cluster';
 import { textoRotulo } from '../feature_metricas';
 import { escapeHtml } from '../utils';
@@ -710,7 +711,8 @@ export class FeicoesLayerRenderer implements ILayerRenderer {
   private formaDe(f: Feicao): string {
     const g = f.geometria;
     if (g.tipo === 'Point') return `Point:${f.estilo?.icone && ICONES_FEICAO[f.estilo.icone] ? f.estilo.icone : ''}`;
-    return g.tipo;
+    // a camada Leaflet de uma curva é de outra classe: trocar entre curva e poligonal recria
+    return nosDaGeometria(g) ? `${g.tipo}:curva` : g.tipo;
   }
 
   private paneDe(f: Feicao): TipoGeometriaPane {
@@ -753,6 +755,9 @@ export class FeicoesLayerRenderer implements ILayerRenderer {
     const g = f.geometria;
     const estilo = this.estiloVetor(f, layerDef, interativo, selecionada);
 
+    const curva = criarCamadaCurva(g, { ...estilo, pane });
+    if (curva) return curva;
+
     switch (g.tipo) {
       case 'Polygon':
         return L.polygon(g.aneis.length === 1 ? g.aneis[0] : g.aneis, { ...estilo, pane });
@@ -785,7 +790,10 @@ export class FeicoesLayerRenderer implements ILayerRenderer {
     const g = f.geometria;
     const estilo = this.estiloVetor(f, layerDef, interativo, selecionada);
 
-    if (g.tipo === 'Polygon') {
+    if ((layer instanceof LinhaCurva || layer instanceof PoligonoCurvo) && nosDaGeometria(g)) {
+      atualizarCamadaCurva(layer, g);
+      layer.setStyle(estilo);
+    } else if (g.tipo === 'Polygon') {
       (layer as L.Polygon).setLatLngs(g.aneis.length === 1 ? g.aneis[0] : g.aneis);
       (layer as L.Polygon).setStyle(estilo);
     } else if (g.tipo === 'LineString') {

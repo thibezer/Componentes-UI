@@ -1,7 +1,8 @@
 import L from 'leaflet';
 import type { Feicao, LatLonPar } from './feature_types';
 import {
-  comVertices, inserirVertice, minimoVertices, pontoMedio, removerVertice, segmentosDe, verticesDe
+  alternarSuavidade, comPontos, inserirPonto, minimoVertices, moverAlca, nosDe, pontoMedioDoSegmento, pontosDe,
+  removerPonto, segmentosDoEditor, type QualAlca
 } from './feature_edicao_ops';
 import {
   areaDaGeometria, extensaoDaGeometria, formatarArea, formatarExtensao
@@ -18,6 +19,7 @@ import { CSS_POSICAO_HUD } from './feature_hud';
 export const ID_HUD_EDICAO = 'cm-vertex-edit-hud';
 const PANE_EDICAO = 'cad-edicao-vertices';
 const COR = '#facc15';
+const COR_ALCA = '#f472b6';
 
 export interface DependenciasEditor {
   map: L.Map;
@@ -38,6 +40,8 @@ export class EditorVertices {
   private pts: LatLonPar[] = [];
   private alcas: L.Marker[] = [];
   private fantasmas: Array<{ marker: L.Marker; i: number; j: number }> = [];
+  /** Alças de Bézier (só em feição com curva): marcador + haste até o nó. */
+  private alcasBezier: Array<{ marker: L.Marker; haste: L.Polyline; i: number; qual: QualAlca }> = [];
   private marcadorSnap: L.Marker | null = null;
   private hud: HTMLElement | null = null;
   private grupo: L.LayerGroup | null = null;
@@ -55,7 +59,7 @@ export class EditorVertices {
   public iniciar(f: Feicao): void {
     this.parar();
     this.feicaoAtual = f;
-    this.pts = verticesDe(f.geometria).map((p) => [p[0], p[1]] as LatLonPar);
+    this.pts = pontosDe(f.geometria).map((p) => [p[0], p[1]] as LatLonPar);
     const map = this.dep.map;
     if (!map.getPane(PANE_EDICAO)) {
       const pane = map.createPane(PANE_EDICAO);
@@ -73,6 +77,7 @@ export class EditorVertices {
     this.feicaoAtual = null;
     this.alcas = [];
     this.fantasmas = [];
+    this.alcasBezier = [];
     this.grupo?.remove();
     this.grupo = null;
     this.marcadorSnap = null;
@@ -85,7 +90,7 @@ export class EditorVertices {
   public sincronizar(f: Feicao): void {
     if (!this.feicaoAtual || this.feicaoAtual.id !== f.id) return;
     this.feicaoAtual = f;
-    this.pts = verticesDe(f.geometria).map((p) => [p[0], p[1]] as LatLonPar);
+    this.pts = pontosDe(f.geometria).map((p) => [p[0], p[1]] as LatLonPar);
     this.reconstruir();
   }
 
@@ -98,7 +103,7 @@ export class EditorVertices {
   // ---- construção ----
 
   private geometriaAtual() {
-    return comVertices(this.feicaoAtual!.geometria, this.pts);
+    return comPontos(this.feicaoAtual!.geometria, this.pts);
   }
 
   private feicaoComPontos(): Feicao {
@@ -109,6 +114,7 @@ export class EditorVertices {
     this.grupo?.clearLayers();
     this.alcas = [];
     this.fantasmas = [];
+    this.alcasBezier = [];
     if (!this.feicaoAtual || !this.grupo) return;
 
     const g = this.feicaoAtual.geometria;
@@ -118,8 +124,10 @@ export class EditorVertices {
       this.grupo!.addLayer(alca);
     });
 
+    this.criarAlcasBezier();
+
     if (g.tipo !== 'Point') {
-      for (const [i, j] of segmentosDe(this.geometriaAtual())) {
+      for (const [i, j] of segmentosDoEditor(this.geometriaAtual())) {
         const f = this.criarFantasma(i, j);
         this.fantasmas.push(f);
         this.grupo.addLayer(f.marker);
@@ -154,11 +162,85 @@ export class EditorVertices {
       L.DomEvent.stopPropagation(ev.originalEvent);
       this.excluir(indice);
     });
+    // duplo clique: canto ↔ suave (numa linha/polígono comum, é o que converte em curva)
+    marker.on('dblclick', (ev: L.LeafletMouseEvent) => {
+      L.DomEvent.stopPropagation(ev.originalEvent);
+      this.alternarSuave(indice);
+    });
     return marker;
   }
 
+  // ---- alças de Bézier ----
+
+  private criarAlcasBezier(): void {
+    const nos = this.feicaoAtual && nosDe(this.feicaoAtual.geometria);
+    if (!nos) return;
+    nos.forEach((_, i) => this.completarAlcasDoNo(i));
+  }
+
+  /** Cria os marcadores das alças do nó que ainda não têm (ex.: a oposta que nasceu ao arrastar com simetria). */
+  private completarAlcasDoNo(i: number): void {
+    const no = this.feicaoAtual && nosDe(this.feicaoAtual.geometria)?.[i];
+    if (!no || !this.grupo) return;
+    for (const qual of ['entrada', 'saida'] as const) {
+      const pos = no[qual];
+      if (!pos || this.alcasBezier.some((a) => a.i === i && a.qual === qual)) continue;
+      const haste = L.polyline([no.ponto, pos], { pane: PANE_EDICAO, color: COR_ALCA, weight: 1, opacity: 0.8, interactive: false });
+      const marker = L.marker(pos, {
+        icon: this.icone('cad-bezier-handle', 10, `background:#fff;border:2px solid ${COR_ALCA};border-radius:50%;cursor:move`),
+        draggable: true,
+        pane: PANE_EDICAO,
+        keyboard: false
+      });
+      const entrada = { marker, haste, i, qual };
+      marker.on('drag', (ev: L.LeafletEvent) => {
+        const o = (ev as unknown as { originalEvent?: MouseEvent }).originalEvent;
+        this.aoArrastarAlca(entrada, !o?.shiftKey);
+      });
+      marker.on('dragend', () => this.confirmar(this.feicaoAtual!));
+      this.alcasBezier.push(entrada);
+      this.grupo.addLayer(haste);
+      this.grupo.addLayer(marker);
+    }
+  }
+
+  /** Reposiciona marcadores e hastes de todas as alças conforme a geometria atual. */
+  private sincronizarAlcasBezier(): void {
+    const nos = this.feicaoAtual && nosDe(this.feicaoAtual.geometria);
+    if (!nos) return;
+    for (const a of this.alcasBezier) {
+      const pos = nos[a.i]?.[a.qual];
+      if (!pos) continue;
+      if (a.marker.getLatLng().lat !== pos[0] || a.marker.getLatLng().lng !== pos[1]) a.marker.setLatLng(pos);
+      a.haste.setLatLngs([nos[a.i].ponto, pos]);
+    }
+  }
+
+  private aoArrastarAlca(a: { marker: L.Marker; i: number; qual: QualAlca }, simetrica: boolean): void {
+    const f = this.feicaoAtual;
+    if (!f) return;
+    const { lat, lng } = a.marker.getLatLng();
+    const nova = moverAlca(f.geometria, a.i, a.qual, [lat, lng], simetrica);
+    this.feicaoAtual = { ...f, geometria: nova };
+    this.completarAlcasDoNo(a.i);
+    this.sincronizarAlcasBezier();
+    this.dep.previsualizar(this.feicaoAtual);
+    this.atualizarHud();
+  }
+
+  private alternarSuave(indice: number): void {
+    const f = this.feicaoAtual;
+    if (!f) return;
+    const nova = alternarSuavidade(f.geometria, indice);
+    if (nova === f.geometria) return;
+    this.feicaoAtual = { ...f, geometria: nova };
+    this.reconstruir();
+    this.dep.previsualizar(this.feicaoAtual);
+    this.confirmar(this.feicaoAtual);
+  }
+
   private criarFantasma(i: number, j: number): { marker: L.Marker; i: number; j: number } {
-    const marker = L.marker(pontoMedio(this.pts[i], this.pts[j]), {
+    const marker = L.marker(pontoMedioDoSegmento(this.geometriaAtual(), i, j), {
       icon: this.icone('cad-vertex-ghost', 9, `background:${COR};opacity:.45;border:1px solid #111;border-radius:50%;cursor:copy`),
       pane: PANE_EDICAO,
       keyboard: false
@@ -192,17 +274,31 @@ export class EditorVertices {
     this.pts[indice] = pos;
     // fantasmas vizinhos acompanham o vértice
     for (const fan of this.fantasmas) {
-      if (fan.i === indice || fan.j === indice) fan.marker.setLatLng(pontoMedio(this.pts[fan.i], this.pts[fan.j]));
+      if (fan.i === indice || fan.j === indice) fan.marker.setLatLng(pontoMedioDoSegmento(this.geometriaAtual(), fan.i, fan.j));
     }
     this.dep.previsualizar(this.feicaoComPontos());
+    this.atualizarAlcasDoNo(indice);
     this.atualizarHud();
+  }
+
+  /** Durante o arrasto de um nó, as alças dele acompanham (a geometria só é gravada no fim do gesto). */
+  private atualizarAlcasDoNo(indice: number): void {
+    const nos = nosDe(this.geometriaAtual());
+    if (!nos) return;
+    for (const a of this.alcasBezier) {
+      if (a.i !== indice) continue;
+      const pos = nos[indice][a.qual];
+      if (!pos) continue;
+      a.marker.setLatLng(pos);
+      a.haste.setLatLngs([nos[indice].ponto, pos]);
+    }
   }
 
   private inserir(depoisDe: number, coord: L.LatLng): void {
     const f = this.feicaoAtual;
     if (!f) return;
-    const nova = inserirVertice(this.geometriaAtual(), depoisDe, [coord.lat, coord.lng]);
-    this.pts = verticesDe(nova).map((p) => [p[0], p[1]] as LatLonPar);
+    const nova = inserirPonto(this.geometriaAtual(), depoisDe, [coord.lat, coord.lng]);
+    this.pts = pontosDe(nova).map((p) => [p[0], p[1]] as LatLonPar);
     this.reconstruir();
     const atualizada = this.feicaoComPontos();
     this.dep.previsualizar(atualizada);
@@ -217,9 +313,9 @@ export class EditorVertices {
   private excluir(indice: number): void {
     const f = this.feicaoAtual;
     if (!f) return;
-    const nova = removerVertice(this.geometriaAtual(), indice);
+    const nova = removerPonto(this.geometriaAtual(), indice);
     if (!nova) return; // abaixo do mínimo (3 no polígono, 2 na linha)
-    this.pts = verticesDe(nova).map((p) => [p[0], p[1]] as LatLonPar);
+    this.pts = pontosDe(nova).map((p) => [p[0], p[1]] as LatLonPar);
     this.reconstruir();
     const atualizada = this.feicaoComPontos();
     this.dep.previsualizar(atualizada);
@@ -236,7 +332,7 @@ export class EditorVertices {
   public inserirVerticeApos(indice: number): void {
     if (indice < 0 || indice >= this.pts.length) return;
     const proximo = (indice + 1) % this.pts.length;
-    const m = pontoMedio(this.pts[indice], this.pts[proximo]);
+    const m = pontoMedioDoSegmento(this.geometriaAtual(), indice, proximo);
     this.inserir(indice, L.latLng(m[0], m[1]));
   }
 
@@ -293,7 +389,10 @@ export class EditorVertices {
     botao.textContent = 'Concluir';
     botao.style.cssText = 'padding:3px 10px;border-radius:4px;border:1px solid #facc15;background:#facc15;color:#111;font-weight:600;cursor:pointer';
     botao.addEventListener('click', () => this.parar());
-    hud.append(titulo, campo('nos'), campo('medida'), snap, botao);
+    const dica = campo('dica');
+    dica.style.opacity = '.7';
+    dica.textContent = 'Duplo clique no nó: curva ↔ canto · Alças: Shift solta a simetria';
+    hud.append(titulo, campo('nos'), campo('medida'), snap, dica, botao);
     // não deixa o HUD iniciar caixa de seleção nem pan
     L.DomEvent.disableClickPropagation(hud);
     L.DomEvent.disableScrollPropagation(hud);
@@ -321,6 +420,25 @@ export class EditorVertices {
   /** Para os testes: posição atual dos vértices. */
   public vertices(): LatLonPar[] {
     return this.pts.map((p) => [p[0], p[1]] as LatLonPar);
+  }
+
+  /** Para os testes: quantas alças de Bézier estão na tela. */
+  public get totalAlcasBezier(): number {
+    return this.alcasBezier.length;
+  }
+
+  /** Para os testes/API: arrasta uma alça do nó `indice` até `coord` (`independente` = Shift). */
+  public arrastarAlcaPara(indice: number, qual: QualAlca, coord: LatLonPar, independente = false): void {
+    const a = this.alcasBezier.find((x) => x.i === indice && x.qual === qual);
+    if (!a) return;
+    a.marker.setLatLng(coord);
+    this.aoArrastarAlca(a, !independente);
+    this.confirmar(this.feicaoAtual!);
+  }
+
+  /** Para os testes/API: mesma operação do duplo clique no nó. */
+  public alternarSuavidadeDoNo(indice: number): void {
+    this.alternarSuave(indice);
   }
 
   /** Para os testes: move um vértice como se a alça tivesse sido arrastada até `coord`. */

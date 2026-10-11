@@ -1,4 +1,5 @@
-import type { GeometriaFeicao, LatLonPar } from './feature_types';
+import type { GeometriaFeicao, LatLonPar, NoCurva } from './feature_types';
+import { amostrarCurva, espelhoDaAlca, temAlcas } from './feature_curvas';
 import { comprimentoMetros, distanciaMetros } from './feature_metricas';
 import { gerarElipse, gerarEstrela, gerarPoligonoRegular } from './feature_formas';
 
@@ -32,32 +33,35 @@ export interface AncoraBezier {
   alca?: LatLonPar;
 }
 
-const AMOSTRAS_POR_CURVA = 16;
-
-function espelho(centro: LatLonPar, alca: LatLonPar): LatLonPar {
-  return [2 * centro[0] - alca[0], 2 * centro[1] - alca[1]];
+/** Nós da curva a partir das âncoras da caneta: a alça de saída é a gravada e a de entrada, o espelho dela. */
+export function nosDeAncoras(ancoras: readonly AncoraBezier[]): NoCurva[] {
+  return ancoras.map((a) => {
+    const no: NoCurva = { ponto: a.ponto };
+    if (a.alca) {
+      no.saida = a.alca;
+      no.entrada = espelhoDaAlca(a.ponto, a.alca);
+    }
+    return no;
+  });
 }
 
-/** Amostra a curva cúbica que passa pelas âncoras (sem alça = reta). */
-export function amostrarBezier(ancoras: AncoraBezier[]): LatLonPar[] {
-  if (ancoras.length === 0) return [];
-  const saida: LatLonPar[] = [ancoras[0].ponto];
-  for (let k = 0; k < ancoras.length - 1; k++) {
-    const a = ancoras[k];
-    const b = ancoras[k + 1];
-    const c1 = a.alca ?? a.ponto;
-    const c2 = b.alca ? espelho(b.ponto, b.alca) : b.ponto;
-    for (let s = 1; s <= AMOSTRAS_POR_CURVA; s++) {
-      const t = s / AMOSTRAS_POR_CURVA;
-      const u = 1 - t;
-      const w = [u * u * u, 3 * u * u * t, 3 * u * t * t, t * t * t];
-      saida.push([
-        w[0] * a.ponto[0] + w[1] * c1[0] + w[2] * c2[0] + w[3] * b.ponto[0],
-        w[0] * a.ponto[1] + w[1] * c1[1] + w[2] * c2[1] + w[3] * b.ponto[1]
-      ]);
-    }
+/** Vértices sobre a curva cúbica que passa pelas âncoras (sem alça = reta). Só apoio: o desenho usa os nós. */
+export function amostrarBezier(ancoras: readonly AncoraBezier[]): LatLonPar[] {
+  return amostrarCurva(nosDeAncoras(ancoras), false);
+}
+
+/**
+ * Linha ou polígono da caneta. Com alguma alça, a geometria leva a curva (`curva`) além dos vértices de apoio;
+ * sem nenhuma, é uma poligonal comum.
+ */
+function geometriaDaCaneta(nos: NoCurva[], area: boolean): GeometriaFeicao {
+  const curvo = temAlcas(nos);
+  if (area) {
+    const anel = curvo ? amostrarCurva(nos, true) : nos.map((n) => n.ponto);
+    return curvo ? { tipo: 'Polygon', aneis: [anel], curva: nos } : { tipo: 'Polygon', aneis: [anel] };
   }
-  return saida;
+  const linha = curvo ? amostrarCurva(nos, false) : nos.map((n) => n.ponto);
+  return curvo ? { tipo: 'LineString', coordenadas: linha, curva: nos } : { tipo: 'LineString', coordenadas: linha };
 }
 
 const iguais = (a: LatLonPar, b: LatLonPar): boolean => a[0] === b[0] && a[1] === b[1];
@@ -195,9 +199,9 @@ export class SessaoDesenho {
       }
       case 'caneta': {
         if (this.ancoras.length === 0) return null;
-        const curva = amostrarBezier(cur ? [...this.ancoras, { ponto: cur }] : this.ancoras);
-        if (curva.length < 2) return null;
-        return this.ehArea && curva.length >= 3 ? { tipo: 'Polygon', aneis: [curva] } : { tipo: 'LineString', coordenadas: curva };
+        const nos = nosDeAncoras(cur ? [...this.ancoras, { ponto: cur }] : this.ancoras);
+        if (nos.length < 2) return null;
+        return geometriaDaCaneta(nos, this.ehArea && nos.length >= 3);
       }
       case 'elipse':
       case 'poligono-regular':
@@ -221,6 +225,7 @@ export class SessaoDesenho {
   /** Fecha uma ferramenta sequencial (Enter ou duplo clique). `null` se ainda não há vértices suficientes. */
   public concluir(): GeometriaFeicao | null {
     if (!this.podeConcluir) return null;
+    if (this.ferramenta === 'caneta') return geometriaDaCaneta(nosDeAncoras(this.ancoras), this.ehArea);
     const v = this.vertices();
     return this.ehArea ? { tipo: 'Polygon', aneis: [v] } : { tipo: 'LineString', coordenadas: v };
   }
@@ -228,6 +233,7 @@ export class SessaoDesenho {
   /** Fecha em polígono (clique no primeiro vértice). Na caneta vale mesmo sem a opção `fechar`. */
   public concluirFechando(): GeometriaFeicao | null {
     if (!this.fechaNoPrimeiro) return null;
+    if (this.ferramenta === 'caneta') return geometriaDaCaneta(nosDeAncoras(this.ancoras), true);
     return { tipo: 'Polygon', aneis: [this.vertices()] };
   }
 

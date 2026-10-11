@@ -10,15 +10,29 @@ export type StatusGeometria = 'oficial' | 'previa';
 /** [lat, lon] */
 export type LatLonPar = [number, number];
 
+/**
+ * Nó de uma curva de Bézier cúbica; `entrada`/`saida` são as alças em coordenadas absolutas (sem alça = canto).
+ * Na linha e no polígono, `curva` é a fonte do desenho e `coordenadas`/`aneis` guardam os vértices amostrados
+ * sobre ela, que alimentam métricas, snap e seleção. Veja `feature_curvas.ts`.
+ */
+export interface NoCurva {
+  ponto: LatLonPar;
+  entrada?: LatLonPar;
+  saida?: LatLonPar;
+}
+
 export type GeometriaFeicao =
   | { tipo: 'Point'; coordenada: LatLonPar }
   /**
    * Linha. Multiparte (MultiLineString): `partes` traz todas (2 ou mais) e `coordenadas` repete a primeira, de modo que
    * quem só conhece `coordenadas` continua vendo uma linha válida. Use `partesDaLinha` para ler sempre todas as partes.
    */
-  | { tipo: 'LineString'; coordenadas: LatLonPar[]; partes?: LatLonPar[][] }
-  /** O primeiro anel é o externo; os demais são furos. Anéis ficam abertos (sem repetir o primeiro vértice). */
-  | { tipo: 'Polygon'; aneis: LatLonPar[][] }
+  | { tipo: 'LineString'; coordenadas: LatLonPar[]; partes?: LatLonPar[][]; curva?: NoCurva[] }
+  /**
+   * O primeiro anel é o externo; os demais são furos. Anéis ficam abertos (sem repetir o primeiro vértice).
+   * `curva` (só com um anel) descreve o contorno como Bézier fechada; `aneis[0]` guarda os vértices de apoio.
+   */
+  | { tipo: 'Polygon'; aneis: LatLonPar[][]; curva?: NoCurva[] }
   | { tipo: 'Circle'; centro: LatLonPar; raioMetros: number }
   | { tipo: 'Text'; coordenada: LatLonPar; texto: string };
 
