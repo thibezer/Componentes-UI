@@ -30,7 +30,7 @@ import {
   removerSelecoesInvalidas
 } from './camadas-selecao';
 import { ICONES } from './camadas-icones';
-import { debounce } from './camadas-utils';
+import { debounce, buscarPorAtributo } from './camadas-utils';
 import {
   gerarChaveStorage,
   carregarEstadoPersistido,
@@ -76,6 +76,11 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
   private resizerController!: ControladorResizerCamadas;
   private alturaCustomizada: number | null = null;
   private conectado = false;
+  private profundidadeLote = 0;
+  private renderPendente = false;
+  private camadasRemovidas = new Set<string>();
+  /** Painéis conectados sem `id` nem `storage-key`: dividem a mesma chave de persistência. */
+  private static instanciasChavePadrao = new Set<UICamadas>();
   private origensCamadas = new Map<string, CamadaPropsPersistidas>();
   private salvarLembrancaDebounced = debounce(() => this.salvarLembrancaEstado(), 200);
 
@@ -164,6 +169,15 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
       this.resizerController.definirAltura(this.getAttribute('altura'), false);
     }
 
+    if (this.persistir && !this.storageKey && !this.id) {
+      if (UICamadas.instanciasChavePadrao.size > 0) {
+        console.warn(
+          "[UI-Camadas] Mais de um painel sem 'id' nem 'storage-key' divide a mesma chave de persistência e um sobrescreve o estado do outro. Defina 'storage-key' (ou 'id') em cada um."
+        );
+      }
+      UICamadas.instanciasChavePadrao.add(this);
+    }
+
     this.resizerController.init();
     this.render();
     this.conectarEventosGerais();
@@ -176,6 +190,7 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
 
   disconnectedCallback() {
     this.conectado = false;
+    UICamadas.instanciasChavePadrao.delete(this);
     this.resizerController?.destruir();
     this.listeners.cleanup();
   }
@@ -392,8 +407,10 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
       painelColapsado: this.colapsado,
       mapaBaseAtivo: this.mapaBaseAtivo,
       densidade: this.densidade,
-      altura: this.alturaCustomizada
+      altura: this.alturaCustomizada,
+      camadasRemovidas: this.camadasRemovidas
     });
+    this.camadasRemovidas.clear();
 
     salvarEstadoPersistido(chave, estado);
   }
@@ -468,7 +485,9 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
       this.sincronizarSelecoesComFeicoesValidas();
     }
 
-    if (!this.getAttribute('camada-ativa') && this.camadas.length > 0) {
+    // Sem camada ativa, ou com uma que a nova lista não tem mais: a primeira assume
+    const ativa = this.getAttribute('camada-ativa');
+    if (this.camadas.length > 0 && (!ativa || !this.camadas.some((l) => l.id === ativa))) {
       this.camadaAtivaId = this.camadas[0].id;
     }
 
@@ -534,6 +553,7 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
     this.camadas = this.camadas.filter((l) => l.id !== camadaId);
     this.feicoes = this.feicoes.filter((f) => f.layerId !== camadaId);
     this.origensCamadas.delete(camadaId);
+    this.camadasRemovidas.add(camadaId);
     this.expandedLayers.delete(camadaId);
     if (this.activeSettingsLayerId === camadaId) this.activeSettingsLayerId = null;
     // Remove da seleção as feições que deixaram de existir junto com a camada
@@ -576,8 +596,12 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
     intervalo = false,
     emitirEvento = false
   ): void {
+    const idsVisiveis = obterIdsVisiveisFeicoes(this.camadas, this.feicoes, this.expandedLayers, this.searchQuery);
+    // Feição existente mas fora da tela (camada recolhida, além do limite de linhas): a seleção
+    // programática vale mesmo assim; o clique em intervalo continua ignorando o que ninguém vê
+    const escondida = !intervalo && !idsVisiveis.includes(feicaoId) && this.feicoes.some((f) => f.id === feicaoId);
     const resultado = calcularSelecaoFeicao(
-      obterIdsVisiveisFeicoes(this.camadas, this.feicoes, this.expandedLayers, this.searchQuery),
+      escondida ? [...idsVisiveis, feicaoId] : idsVisiveis,
       this.selectedFeatureIds,
       this.lastClickedFeatureId,
       feicaoId,
@@ -669,7 +693,28 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
   // --- Renderização e Ciclo de Vida ---
 
   public solicitarRenderizacao(): void {
+    if (this.profundidadeLote > 0) {
+      this.renderPendente = true;
+      return;
+    }
     this.render();
+  }
+
+  /**
+   * Agrupa várias mutações (`adicionarFeicao` em laço, por exemplo) em uma só renderização, ao fim de `fn`.
+   * Sem isto, cada chamada redesenha a árvore inteira.
+   */
+  public emLote(fn: () => void): void {
+    this.profundidadeLote++;
+    try {
+      fn();
+    } finally {
+      this.profundidadeLote--;
+      if (this.profundidadeLote === 0 && this.renderPendente) {
+        this.renderPendente = false;
+        this.render();
+      }
+    }
   }
 
   public dispararEvento(nome: string, detalhe: unknown): void {
@@ -713,6 +758,11 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
     const scrollArvore = treeAntes ? treeAntes.scrollTop : 0;
     const focado = this.shadow.activeElement as HTMLInputElement | HTMLElement | null;
     const focoId = focado && this.corpoElement.contains(focado) ? focado.id : '';
+    // Sem id (linhas, botões de ícone), o foco volta pelo primeiro atributo data-* que identifica o controle
+    const focoChave =
+      focado && !focoId && this.corpoElement.contains(focado)
+        ? Array.from(focado.attributes).find((at) => at.name.startsWith('data-') && at.value !== '')
+        : undefined;
     const caret =
       focado && 'selectionStart' in focado ? (focado as HTMLInputElement).selectionStart : null;
 
@@ -738,6 +788,10 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
           }
         }
       }
+    }
+
+    if (!focoId && focoChave) {
+      buscarPorAtributo(this.corpoElement, focoChave.name, focoChave.value)?.focus({ preventScroll: true });
     }
 
     // Roving tabindex: apenas a primeira linha entra na ordem de Tab; as demais usam setas

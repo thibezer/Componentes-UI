@@ -540,6 +540,100 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Feições genéricas: o consumidor decide o que carregar (nada vem pronto)
+  if (canvasCad) {
+    const eventosFeicao = [
+      'cad-selecao', 'cad-feicao-selecionada', 'cad-feicao-criada', 'cad-feicao-atualizada', 'cad-feicao-dividida',
+      'cad-divisao-falhou', 'cad-medicao', 'cad-conta-gotas', 'cad-edicao-iniciada', 'cad-edicao-concluida',
+      'cad-edicao-recusada', 'cad-desenho-recusado', 'cad-previas', 'cad-snap', 'cad-ferramenta'
+    ];
+    for (const nome of eventosFeicao) {
+      canvasCad.addEventListener(nome, (e: Event) => {
+        const d = (e as CustomEvent).detail || {};
+        const resumo = d.feicao?.id ?? d.feicoes?.length ?? d.ferramenta ?? d.motivo ?? d.tipo ?? '';
+        registrarLog(`<ui-canvas-cad> -> ${nome} ${resumo !== '' ? '| ' + resumo : ''}`);
+      });
+    }
+  }
+
+  const btnCadFeicoes = document.getElementById('btn-cad-feicoes');
+  const btnCadFeicoesMassa = document.getElementById('btn-cad-feicoes-massa');
+  const btnCadPrevias = document.getElementById('btn-cad-previas');
+  const btnCadEditar = document.getElementById('btn-cad-editar');
+  const btnCadCursor = document.getElementById('btn-cad-cursor');
+  const btnCadAjustar = document.getElementById('btn-cad-ajustar');
+
+  if (btnCadFeicoes && canvasCad) {
+    btnCadFeicoes.addEventListener('click', () => {
+      const [lat, lon] = [-23.7655, -53.3195];
+      const d = (a: number, b: number): [number, number] => [lat + a, lon + b];
+      const r = canvasCad.definirFeicoes('feicoes-demo', [
+        { id: 'gleba', entidadeId: 'gleba', propriedades: { name: 'Gleba Central', category: 'Rural', autor: 'Demo', data: '2026-10-09' },
+          estilo: { corPreenchimento: '#00f5a0', mostrarRotulo: true, campoRotulo: 'area' },
+          geometria: { tipo: 'Polygon', aneis: [[d(0.0008, -0.0012), d(0.0008, 0.0004), d(-0.0008, 0.0004), d(-0.0008, -0.0012)]] } },
+        { id: 'gleba-previa', entidadeId: 'gleba', status: 'previa', propriedades: { name: 'Gleba Central (proposta)' },
+          estilo: { corTraco: '#f59e0b' },
+          geometria: { tipo: 'Polygon', aneis: [[d(0.0008, -0.0012), d(0.0008, 0.0010), d(-0.0008, 0.0010), d(-0.0008, -0.0012)]] } },
+        { id: 'estrada', propriedades: { name: 'Estrada vicinal' }, estilo: { corTraco: '#3b82f6', espessuraTraco: 3, mostrarRotulo: true, campoRotulo: 'extensao' },
+          geometria: { tipo: 'LineString', coordenadas: [d(-0.0012, -0.0020), d(-0.0004, -0.0006), d(0.0004, 0.0012), d(0.0012, 0.0024)] } },
+        { id: 'raio', propriedades: { name: 'Raio de 80 m' }, estilo: { corTraco: '#a855f7' },
+          geometria: { tipo: 'Circle', centro: d(0.0000, 0.0018), raioMetros: 80 } },
+        { id: 'torre', propriedades: { name: 'Torre de sinal' }, estilo: { icone: 'tower', tamanhoIcone: 28, corTraco: '#ef4444' },
+          geometria: { tipo: 'Point', coordenada: d(0.0012, 0.0016) } },
+        { id: 'rotulo', estilo: { halo: true },
+          geometria: { tipo: 'Text', coordenada: d(-0.0012, -0.0004), texto: 'Gleba Central' } }
+      ], { nome: 'Feições de exemplo', zIndex: 900 });
+      canvasCad.definirCamadaDesenho('desenhos-demo');
+      canvasCad.setAttribute('ferramentas', 'todas');
+      canvasCad.ajustarTudo();
+      registrarLog(`<ui-canvas-cad> -> ${r.aceitas} feições carregadas (clique para selecionar, arraste a caixa, use a barra de ferramentas à esquerda; S = snap, Alt = desliga).`);
+    });
+  }
+
+  if (btnCadFeicoesMassa && canvasCad) {
+    btnCadFeicoesMassa.addEventListener('click', () => {
+      const t0 = performance.now();
+      const pts = Array.from({ length: 100000 }, (_, i) => ({
+        id: `m${i}`,
+        geometria: { tipo: 'Point', coordenada: [-23.7655 + (Math.random() - 0.5) * 0.3, -53.3195 + (Math.random() - 0.5) * 0.3] }
+      }));
+      const r = canvasCad.definirFeicoes('feicoes-massa', pts, { nome: '100 mil pontos', zIndex: 850, estilo: { corPrimaria: '#f43f5e', tamanhoMarcador: 6 } });
+      canvasCad.ajustarCamada('feicoes-massa');
+      registrarLog(`<ui-canvas-cad> -> ${r.aceitas} pontos em ${Math.round(performance.now() - t0)} ms (culling + clusters; aproxime para desagrupar).`);
+    });
+  }
+
+  if (btnCadPrevias && canvasCad) {
+    btnCadPrevias.addEventListener('click', () => {
+      canvasCad.alternarPreviasGlobais();
+      registrarLog(`<ui-canvas-cad> -> Prévias ${canvasCad.previasGlobais ? 'mostradas' : 'escondidas (a oficial prevalece)'}.`);
+    });
+  }
+
+  if (btnCadEditar && canvasCad) {
+    btnCadEditar.addEventListener('click', () => {
+      const f = canvasCad.obterFeicoesSelecionadas()[0];
+      if (!f) { registrarLog('<ui-canvas-cad> -> Selecione uma feição (linha ou polígono) para editar os vértices.'); return; }
+      const r = canvasCad.editarVertices(f.camadaId, f.id);
+      if (!r.ok) registrarLog(`<ui-canvas-cad> -> Edição recusada: ${r.motivo}.`);
+    });
+  }
+
+  if (btnCadCursor && canvasCad) {
+    let passo = 0;
+    btnCadCursor.addEventListener('click', () => {
+      passo++;
+      canvasCad.atualizarCursorRemoto({ id: 'ana', nome: 'Ana (remota)', cor: '#22c55e' }, [-23.7655 + Math.sin(passo) * 0.0006, -53.3195 + passo * 0.0002]);
+      registrarLog('<ui-canvas-cad> -> Cursor remoto de Ana movido.');
+    });
+  }
+
+  if (btnCadAjustar && canvasCad) {
+    btnCadAjustar.addEventListener('click', () => {
+      registrarLog(canvasCad.ajustarTudo() ? '<ui-canvas-cad> -> Enquadrado em todas as feições.' : '<ui-canvas-cad> -> Não há feições para enquadrar.');
+    });
+  }
+
   if (btnCadToggleLayers && canvasCad) {
     btnCadToggleLayers.addEventListener('click', () => {
       canvasCad.toggleLayersPanel();

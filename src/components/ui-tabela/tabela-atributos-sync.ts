@@ -5,6 +5,9 @@ export interface ContextoAtributosTabela {
   loadingElement: HTMLDivElement | null;
   onTextoVazioAlterado: (texto: string) => void;
   onVirtualizarAlterado: (virtualizar: boolean) => void;
+  /** O atributo `src` foi lido (sem buscar nada); `null` = sem atributo. */
+  onSrcLido: (src: string | null) => void;
+  /** O atributo `src` mudou com o elemento conectado: busca os dados. */
   onCarregarSrc: (src: string) => void;
   onCarregandoAlterado: (carregando: boolean) => void;
   onRenderBody: () => void;
@@ -18,10 +21,8 @@ export function sincronizarAtributosTabela(ctx: ContextoAtributosTabela): void {
   const virtAttr = ctx.host.getAttribute('virtualizar') || ctx.host.getAttribute('virtualize');
   if (virtAttr !== null) ctx.onVirtualizarAlterado(virtAttr !== 'false');
 
-  const srcAttr = ctx.host.getAttribute('src');
-  if (srcAttr && ctx.host.isConnected) {
-    ctx.onCarregarSrc(srcAttr);
-  }
+  // Só registra: buscar a cada sincronização refaria o fetch em qualquer atributo e em cada `carregando`
+  ctx.onSrcLido(ctx.host.getAttribute('src'));
 
   const carregando = ctx.host.hasAttribute('carregando') || ctx.host.hasAttribute('loading');
   ctx.onCarregandoAlterado(carregando);
@@ -37,6 +38,10 @@ export function tratarMudancaAtributoTabela(
 ): void {
   sincronizarAtributosTabela(ctx);
 
+  if (name === 'src') {
+    if (newVal && ctx.host.isConnected) ctx.onCarregarSrc(newVal);
+    return;
+  }
   if (name === 'max-height' && ctx.containerElement) {
     ctx.containerElement.style.maxHeight = newVal || '';
     return;

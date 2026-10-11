@@ -106,6 +106,13 @@ export function avaliarExpressaoMatematica(expr: string): number | null {
 
   function parseFactor(): number {
     eatSpaces();
+    // o sinal unário pesa menos que a potência: -2^2 = -(2^2) = -4, como em calculadoras e CAD
+    const sinal = peek();
+    if (sinal === '+' || sinal === '-') {
+      get();
+      const v = parseFactor();
+      return sinal === '-' ? -v : v;
+    }
     let val = parsePrimary();
     eatSpaces();
 

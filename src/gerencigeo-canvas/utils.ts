@@ -31,7 +31,7 @@ export interface CoordenadaGeo {
  * - Filtra valores inválidos, NaN, Null Island (0, 0)
  * - Identifica e rejeita coordenadas planas métricas (UTM/SIRGAS2000 acima de 90°/180°)
  */
-export const parseCoordenada = (rawLat: any, rawLon: any): CoordenadaGeo | null => {
+export const parseCoordenada = (rawLat: any, rawLon: any, opcoes?: { aceitarOrigem?: boolean }): CoordenadaGeo | null => {
   if (rawLat === null || rawLat === undefined || rawLon === null || rawLon === undefined) {
     return null;
   }
@@ -58,8 +58,8 @@ export const parseCoordenada = (rawLat: any, rawLon: any): CoordenadaGeo | null 
     return null;
   }
 
-  // Rejeita coordenadas (0, 0) exatas ("Null Island"), comuns como placeholder de erro
-  if (lat === 0 && lon === 0) {
+  // Rejeita coordenadas (0, 0) exatas ("Null Island"), comuns como placeholder de erro (a menos que `aceitarOrigem`)
+  if (lat === 0 && lon === 0 && !opcoes?.aceitarOrigem) {
     return null;
   }
 

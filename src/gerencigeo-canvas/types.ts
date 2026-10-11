@@ -166,6 +166,7 @@ export interface MapaConfiguracoes {
   preferCanvas: boolean;
   crosshair?: boolean;
   satOpacity?: number;
+  /** @deprecated Sem efeito. O snap agora é do `<ui-canvas-cad>` (`definirSnap`, tecla S, botão). */
   magnetSnap?: boolean;
   scaleMode?: ScaleMode;
 }
@@ -186,4 +187,6 @@ export interface CanvasRenderContext {
   selectedSegmentoId?: string | number | null;
   onLayerAction?: (action: string, detail: any) => void;
   onPopupAcao?: (acaoId: string, elementoId: string | number, elemento: any) => void;
+  /** Regra de oficial × prévia das camadas de feições (uma por componente). */
+  regraVersoes?: import('./feature_versoes').RegraVersoes;
 }

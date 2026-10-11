@@ -700,7 +700,28 @@ window.addEventListener('message', (event) => {
 | `<ui-paleta-ferramentas>` | Paleta de ferramentas (estilo Illustrator / Photoshop): seleção exclusiva, grupos com flyout (clique longo, botão direito ou seta), 1 ou 2 colunas, vertical/horizontal e atalhos de teclado que percorrem o grupo. | `ferramentas`, `valor`, `orientacao`, `colunas`, `tamanho`, `atalhos` | `ui-change`, `ui-selecionar`, `ui-ferramenta` |
 | `<ui-mapa>` | Mapa geográfico interativo com camadas OpenStreetMap. | `lat`, `lng`, `zoom`, `camadas` | - |
 | `<ui-camadas>` | Painel de camadas vetoriais CAD/GIS com hierarquia em árvore, barra de arraste vertical (`redimensionavel`), estabilidade de altura sem colapso, drag-and-drop, métricas geodésicas e persistência no LocalStorage. | `redimensionavel`, `altura`, `min-altura`, `max-altura`, `flutuante`, `colapsado`, `camada-ativa`, `persistir` | `ui-redimensionar-altura`, `ui-camada-selecionada`, `ui-camada-visibilidade`, `ui-camadas-reordenadas`, `ui-acao-massa` |
-| `<ui-canvas-cad>` | Mesa CAD/GIS para poligonais e vértices geodésicos. | `pontos`, `segmentos`, `fitBounds()` | `ui-ponto-selecionado` |
+| `<ui-canvas-cad>` | Mesa CAD/GIS para poligonais, vértices geodésicos e **feições genéricas** (ponto, linha, polígono, círculo, texto) que você cria: seleção por clique e caixa, popup, edição de vértices, snap, 15 ferramentas de desenho/medição, oficial × prévia, cursores remotos e culling/clusters para 100 mil feições. Linha multiparte, feição `oculta`, selo de texto e contorno de ponto. Nenhuma camada vem pronta. Guia: [`docs/guia-migracao-mapengine.md`](docs/guia-migracao-mapengine.md). | `pontos`, `segmentos`, `ferramentas`, `sem-camadas-padrao`, `sem-painel-camadas`, `sem-barra-rapida`, `sem-atalho-snap`, `aceitar-origem`, `inicializarAgora()`, `definirFeicoes()`, `aplicarLote()`, `definirFerramenta()`, `editarVertices()`, `definirMargensHud()`, `definirEstilosExternos()`, `fitBounds()` | `ui-ponto-selecionado`, `cad-selecao`, `cad-feicao-selecionada`, `cad-feicao-criada`, `cad-feicao-atualizada`, `cad-feicao-hover`, `cad-feicao-menu`, `cad-snap`, `cad-previas` e outros (ver `docs/canvas-cad-eventos.md`) |
+
+#### `<ui-canvas-cad>`: montar só com API pública (2.1)
+
+```html
+<ui-canvas-cad id="mesa" sem-camadas-padrao sem-painel-camadas sem-barra-rapida sem-atalho-snap aceitar-origem></ui-canvas-cad>
+```
+```js
+const mapa = mesa.inicializarAgora();                    // L.Map síncrono (idempotente; nunca cria um 2º mapa)
+mesa.definirEstilosExternos([...document.styleSheets]);  // CSS do app dentro do shadow root (string ou folhas)
+mesa.definirMargensHud({ base: 56, direita: 320 });      // HUDs de desenho/edição fora de barras e painéis
+mesa.aplicarLote('glebas', { adicionar, atualizar, remover });  // uma regravação, ordem preservada
+mesa.atualizarFeicao('glebas', 'g1', { propriedades }, { substituirPropriedades: true });
+mesa.definirOpcoesPopup({ copiarParaAreaDeTransferencia: false });
+```
+
+- Camadas de fábrica (satélite, SIGEF, homologados, perímetro, vizinhos, vértices, grade) só somem com `sem-camadas-padrao`; sem
+  o atributo continuam como sempre.
+- `Feicao.oculta` (não desenha nem seleciona, mas existe) ≠ `Feicao.excluida`. Linha multiparte: `geometria.partes`.
+- Tudo, com exemplos: [`docs/guia-migracao-mapengine.md`](docs/guia-migracao-mapengine.md) · eventos e ordem das ferramentas:
+  [`docs/canvas-cad-eventos.md`](docs/canvas-cad-eventos.md) · números de desempenho: [`docs/desempenho-feicoes.md`](docs/desempenho-feicoes.md).
+
 
 ---
 

@@ -36,6 +36,7 @@ export class UIListaFlutuante extends FormAssociatedElement {
   private _itens: ItemLista[] = [];
   private _value: string = '';
   private _defaultValue: string = '';
+  private _defaultCapturado = false;
   private observer!: MutationObserver;
   private posicionamento: ListaFlutuantePosicionamento;
   private teclado: ListaFlutuanteTeclado;
@@ -87,7 +88,11 @@ export class UIListaFlutuante extends FormAssociatedElement {
     this.listeners.add(document, 'click', this.handleClickFora);
     this.listeners.add(this.labelElement, 'click', this.focarGatilho);
     this.listeners.add(this, 'click', this.handleHostClick);
-    this._defaultValue = this.getAttribute('value') || '';
+    // O atributo `value` acompanha a seleção: só a primeira conexão vê o valor inicial (o de formResetCallback)
+    if (!this._defaultCapturado) {
+      this._defaultValue = this.getAttribute('value') || '';
+      this._defaultCapturado = true;
+    }
     this.carregarItensFilhos();
     this.syncState();
 
@@ -249,7 +254,12 @@ export class UIListaFlutuante extends FormAssociatedElement {
 
   private handleKeyDown = (e: KeyboardEvent) => {
     if (this.disabled) return;
-    if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
+    if (e.key === 'Escape' && this.hasAttribute('aberta')) {
+      e.preventDefault();
+      this.fechar();
+      return;
+    }
+    if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown' || e.key === 'ArrowUp') {
       e.preventDefault();
       if (!this.hasAttribute('aberta')) {
         this.abrir();
@@ -367,8 +377,12 @@ export class UIListaFlutuante extends FormAssociatedElement {
   }
 
   private selecionarItem(item: ItemLista) {
+    // Escolhido pelo teclado, o item focado some ao fechar: o foco volta ao gatilho em vez de ir ao <body>
+    const ativo = this.shadowRoot?.activeElement;
+    const focoNaLista = !!ativo && this.content.contains(ativo);
     this.value = item.id;
     this.fechar();
+    if (focoNaLista) this.button.focus();
 
     this.dispatchEvent(
       new CustomEvent('ui-selecionar', {
@@ -378,15 +392,16 @@ export class UIListaFlutuante extends FormAssociatedElement {
       })
     );
 
+    // Mesma ordem do <select> nativo: input antes de change
     this.dispatchEvent(
-      new Event('change', {
+      new Event('input', {
         bubbles: true,
         composed: true
       })
     );
 
     this.dispatchEvent(
-      new Event('input', {
+      new Event('change', {
         bubbles: true,
         composed: true
       })

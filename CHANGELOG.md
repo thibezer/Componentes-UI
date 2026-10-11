@@ -1,5 +1,59 @@
 # Changelog
 
+## 2.1.0 — 2026-10-11
+
+### `<ui-canvas-cad>`: feições genéricas (migração do MapEngine)
+
+Tudo é opt-in: o componente **não cria camadas** de feições sozinho. Pontos, segmentos, vizinhos e SIGEF continuam como antes.
+
+- **Feições**: `definirFeicoes`, `adicionarFeicao`, `atualizarFeicao`, `removerFeicao`, `obterFeicoes`. Point, LineString, Polygon (com furos), Circle (metros) e Text (arrastável), com estilo por feição, ícones SVG, rótulos permanentes (`area`, `extensao`, propriedades) e atualização incremental.
+- **Seleção e popup**: clique, Ctrl/Cmd/Shift, caixa Window (E→D) / Crossing (D→E) com toque geométrico real, popup único (`cad-selecao`, `cad-feicao-selecionada`, `cad-feicao-acao`), hit-test unificado entre camadas empilhadas (tolerância em px, alternância de cliques), `cad-feicao-hover` e `cad-feicao-menu`.
+- **Desempenho**: índice espacial próprio (sem dependências), culling por viewport acima de 300 feições, clusters de pontos (grade de 55 px), simplificação Douglas-Peucker por zoom. Meta: 100 mil feições.
+- **Snap e edição**: snap vértice > ponto médio > aresta (tecla `S`, `Alt` desliga, botão na barra, `definirSnap`); edição de vértices com alças, fantasmas nos pontos médios, exclusão pelo botão direito e HUD ao vivo (`editarVertices`).
+- **Ferramentas**: `ponto`, `linha`, `poligono`, `retangulo`, `elipse`, `poligono-regular` (hexágono), `estrela`, `circulo`, `texto`, `caneta` (Bézier), `medir-distancia`, `medir-area`, `dividir`, `selecao-laco`, `conta-gotas`. Atributo `ferramentas` mostra uma barra opcional; `definirFerramenta(nome, { fechar, iniciarEm })`, `definirCamadaDesenho`, `definirEstiloDesenho`. Clicar no primeiro vértice fecha polígono, laço, medir área e caneta (3+ vértices); o botão direito com ferramenta ativa conclui, desfaz o último vértice ou sai; `selecao-laco` seleciona feições dentro do laço e encerra. Utilitários: `gerarBuffer`, `duplicarFeicao`, `juntarFeicoes`.
+- **Versões e colaboração**: oficial × prévia (`entidadeId`, `definirPreviasGlobais`, `alternarPrevia`, `cad-previas`); cursores remotos (`atualizarCursorRemoto`, nome escapado e cor só `#hex`).
+- **Câmera**: `zoomParaFeicao(s)`, `ajustarTudo`, `ajustarCamada` (ligam camadas e prévias escondidas).
+- Exportados pelo entrypoint `./canvas`: modelo `Feicao`, algoritmos (`dividirPoligonoComLinha`, `gerarBuffer`, `juntarLinhas`, `juntarPoligonos`, `ddParaDms`, `dmsParaDd`, `converterComprimento`, `converterArea`...), índice, snap e editores.
+- Guia de migração: `docs/guia-migracao-mapengine.md`.
+
+### `<ui-canvas-cad>`: pendências da integração com o ConecteMapas
+
+Tudo opt-in: sem os atributos e opções abaixo, o componente se comporta como antes. Detalhes e exemplos em
+`docs/guia-migracao-mapengine.md`; eventos em `docs/canvas-cad-eventos.md`; números em `docs/desempenho-feicoes.md`.
+
+- **Montagem só com API pública**: `inicializarAgora(): L.Map | null` (síncrono, idempotente, cancela o agendamento do `connectedCallback`, nunca cria um 2º mapa); atributos `sem-camadas-padrao` (não cria satélite Google, SIGEF/INCRA, homologados, perímetro, vizinhos, vértices nem grade, e o clique nunca consulta o INCRA), `sem-painel-camadas`, `sem-barra-rapida` e `sem-atalho-snap` (a tecla S não alterna o snap desde o primeiro instante); `definirEstilosExternos(css | CSSStyleSheet[] | null)` injeta CSS do app no shadow root (`adoptedStyleSheets`, com `<style>` de reserva; `destroy()` limpa e a reconexão recoloca). Sem referência a `initCAD`/`initTimeout`.
+- **Posição dos HUDs**: `definirMargensHud({ topo, base, esquerda, direita })` (px) e as propriedades CSS `--cad-hud-topo/-base/-esquerda/-direita`. Os HUDs de desenho e de edição de vértices usam a mesma regra: centralizados na área visível, com largura/altura máximas e quebra de linha. Padrões = posição antiga (`base: 16`).
+- **Linha multiparte (MultiLineString)**: `LineString` aceita `partes: LatLonPar[][]` (ou `coordenadas`). *Decisão:* estender `LineString` em vez de criar um tipo `MultiLineString`, porque quebra menos: `coordenadas` continua existindo (é a 1ª parte) e todo código/consumidor que só lê `coordenadas` segue enxergando uma linha válida; uma parte só normaliza para a linha simples de sempre; nenhum `switch (geometria.tipo)` do consumidor ganha um caso novo. Coberto: normalização, desenho, hit-test (tolerância por parte), caixa Window/Crossing, laço, snap (vértices e arestas de todas as partes, sem aresta entre partes), extensão somada (métricas e rótulo), popup, simplificação por zoom, `obterFeicoes`, `duplicarFeicao`. Recusas com motivo: `editarVertices` → `cad-edicao-recusada` `multiparte`; `juntarFeicoes` → `cad-uniao-falhou` `multiparte`; `dividir` com só multilinhas → `cad-divisao-falhou` `multiparte`; `gerarBuffer` de multilinha devolve `null`. Helpers exportados: `partesDaLinha`, `ehMultilinha`, `criarLinha`.
+- **Lote e ordem**: `aplicarLote(camadaId, { adicionar, atualizar, remover }, opcoes)` faz uma regravação e um `aposDados` e devolve `{ adicionadas, atualizadas, removidas, recusadas }`; `adicionarFeicao`/`atualizarFeicao`/`removerFeicao` passam pelo mesmo caminho. O renderizador recebe só a diferença (índice, loja, oficiais e clusters por célula atualizados item a item) e a busca por id é O(1): com 100 mil feições, uma edição caiu de 60–250 ms para ~0,5 ms (ver `docs/desempenho-feicoes.md`). `atualizarFeicao(camadaId, id, parcial, { substituirPropriedades: true })` (e o mesmo em `aplicarLote`) troca as `propriedades` por inteiro em vez de mesclar.
+- **`Feicao.oculta`**: não desenha, não seleciona (clique, caixa, laço, hit-test, hover, `selecionarFeicoes`), não atrai snap e fica fora de `ajustarTudo`/`ajustarCamada`; segue nos dados, não encerra a edição de vértices em andamento, não conta como excluída e participa da regra oficial × prévia como as demais. `excluida` mantém o significado.
+- **Estilo**: texto com selo (`corFundo`, `corBorda`, `opacidadeFundo`, `raioBorda`; o selo substitui o `halo`) e ponto sem ícone com `corContorno`/`espessuraContorno`, separados do preenchimento. Cores só passam por `corSegura`; números só se finitos.
+- **Ferramentas**: `medir-distancia` com 3+ pontos mostra também área e perímetro no HUD e traz `areaM2`/`perimetroM` em `cad-medicao` (sem criar feição); círculo ignora raio < 2 m; `definirOpcoesPopup({ copiarParaAreaDeTransferencia })` torna opcional a escrita da ação "copiar"; evento cancelável `cad-texto-solicitado` (`preventDefault()` + `detalhe.concluir(texto)`) para usar modal próprio. Teste parametrizado cobre as 15 ferramentas: o ouvinte do evento de conclusão pode desativá-las sem efeito colateral e `cad-selecao` nunca sai com a ferramenta ainda ativa quando a seleção é consequência dela.
+- **Coordenada (0, 0)**: atributo/propriedade `aceitar-origem` / `aceitarOrigem` (padrão `false`) e `{ aceitarOrigem }` nas funções puras de normalização.
+
+### Correções da revisão dos componentes
+
+- **`<ui-tabela src>`**: deixou de refazer o `fetch` a cada mudança de atributo (chegava a dezenas de requisições); busca só ao conectar e quando o `src` muda. Filtro e ordenação passam a valer juntos, e o filtro olha as colunas declaradas (ignora campos fora delas e objetos).
+- **`<ui-camadas>`**: foco do teclado preservado após redesenhar; novo `emLote(fn)` agrupa mutações numa só renderização; `definirCamadas` troca a camada ativa que sumiu; `selecionarFeicao` alcança feições de camadas recolhidas; a ordem enviada pela aplicação vence a ordem salva do usuário quando ela mudou; excluir uma camada apaga o override guardado; aviso no console quando painéis dividem a chave de persistência padrão.
+- **`<ui-lista-flutuante>`**: `formReset` volta ao valor inicial mesmo após mover o elemento; `input` antes de `change`; Esc no gatilho, Tab, Home/End e foco devolvido ao gatilho; abre para cima quando falta espaço embaixo.
+- **`<ui-seletor-mapa-base>`**: `desabilitado` agora funciona; `selecionar` ignora ids fora da lista; setas/Home/End e foco no mapa ativo ao abrir pelo teclado; miniaturas sem `referrer`.
+- **`<ui-canvas-cad>`**: atalhos (`S`, Backspace, Esc) não disparam mais enquanto se digita em campos com shadow DOM; ferramentas funcionam após reconectar o componente; dividir/juntar não perdem a feição original quando o resultado é recusado; `juntarFeicoes` respeita bloqueios; `tamanhoIcone` não numérico não injeta HTML; texto bloqueado e depois liberado persiste o arraste.
+- **`<ui-tabela-propriedades>`**: `-2^2` agora vale -4 (o sinal unário pesa menos que a potência).
+
+### ⚠️ Mudanças de comportamento
+
+- Ctrl/Cmd/Shift + clique no vazio **não limpa mais** a seleção de pontos (modo aditivo).
+- Clique em marcador DOM não é mais repassado às feições do canvas por baixo.
+- `MapaConfiguracoes.magnetSnap` está **obsoleto** e sem efeito (o snap agora é do componente).
+- `adicionarFeicao`/`aplicarLote` com um `id` que já existe **substituem a feição no mesmo lugar**; antes ela ia para o fim da lista (mudava a ordem de empilhamento dentro da camada).
+- **`cad-medicao`** de `medir-distancia` passa a trazer `areaM2` e `perimetroM` quando a régua tem 3 ou mais pontos (antes só `medir-area` trazia). Quem usava `areaM2 !== undefined` para distinguir o tipo deve olhar `tipo`.
+- **Círculo**: o clique que daria raio menor que 2 m é ignorado (antes aceitava qualquer raio > 0). Feições com `Circle` de raio menor continuam válidas na entrada de dados.
+- **`dividir`**: se a feição cortada estava selecionada, a ferramenta encerra antes de a seleção mudar (para `cad-selecao` sair sem ferramenta ativa). Sem seleção envolvida, continua ativa para o próximo corte.
+- **Ordem do aviso nas medições**: `cad-medicao` agora sai depois de a ferramenta estar pronta para a próxima figura; desativar a ferramenta dentro desse evento deixava a sessão "ressuscitar" (corrigido).
+- **HUDs**: ganham `width: max-content`, largura/altura máximas e quebra de linha (o de edição de vértices não quebrava linha). Na posição padrão ficam onde estavam.
+- Valores novos nos `motivo` de `cad-edicao-recusada`, `cad-uniao-falhou` e `cad-divisao-falhou`: `multiparte`. Quem faz `switch` exaustivo precisa tratá-lo.
+- `selecionarFeicoes` e `alternarSelecaoFeicao` ignoram feições `oculta`.
+- `GerenciadorFeicoes.emitir` (uso interno/testes) ganhou um 3º parâmetro opcional `cancelavel` e pode devolver `true` para "cancelado"; o `normalizarFeicaoEntrada`, `normalizarCoordenada` e `parseCoordenada` ganharam um último parâmetro opcional `{ aceitarOrigem }` (compatível).
+
 ## 2.0.0
 
 ### ⚠️ Mudanças que podem exigir ajuste

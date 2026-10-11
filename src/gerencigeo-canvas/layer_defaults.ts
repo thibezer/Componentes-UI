@@ -6,6 +6,7 @@ import { VectorLinesLayerRenderer } from './renderers/vector_lines_renderer';
 import { VectorPointsLayerRenderer } from './renderers/vector_points_renderer';
 import { VectorPolygonsLayerRenderer } from './renderers/vector_polygons_renderer';
 import { GridLayerRenderer } from './renderers/grid_renderer';
+import { FeicoesLayerRenderer } from './renderers/feicoes_renderer';
 
 // Registra os renderizadores padrão no Factory
 export function registrarRenderizadoresPadrao(): void {
@@ -15,6 +16,7 @@ export function registrarRenderizadoresPadrao(): void {
   LayerRendererFactory.register('vetorial-pontos', new VectorPointsLayerRenderer());
   LayerRendererFactory.register('vetorial-poligonos', new VectorPolygonsLayerRenderer());
   LayerRendererFactory.register('grid', new GridLayerRenderer());
+  LayerRendererFactory.register('feicoes', new FeicoesLayerRenderer());
 }
 
 // Execução imediata no carregamento do módulo

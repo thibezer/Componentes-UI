@@ -553,5 +553,82 @@ describe('UICamadas - Painel de Camadas GIS/CAD', () => {
       expect(container).toBeTruthy();
     });
   });
+
+  it('mantém o foco no botão de configurações ao abri-lo pelo teclado (re-render)', () => {
+    painel.definirCamadas(mockCamadas, mockFeicoes);
+    document.body.appendChild(painel);
+    const shadow = painel.shadowRoot!;
+    const btn = shadow.querySelector('[data-layer-settings="camada-1"]') as HTMLElement;
+    btn.focus();
+    btn.click();
+    expect(shadow.getElementById('settings-drawer-camada-1')).not.toBeNull();
+    const ativo = shadow.activeElement as HTMLElement | null;
+    expect(ativo?.getAttribute('data-layer-settings')).toBe('camada-1');
+    expect(ativo?.isConnected).toBe(true);
+  });
+
+  it('emLote agrupa várias mutações em uma única renderização', () => {
+    painel.definirCamadas(mockCamadas, []);
+    const render = vi.spyOn(painel as unknown as { render: () => void }, 'render');
+    painel.emLote(() => {
+      for (let i = 0; i < 20; i++) painel.adicionarFeicao({ id: `n-${i}`, name: `N ${i}`, layerId: 'camada-1', type: 'Point' } as FeicaoItem);
+    });
+    expect(render).toHaveBeenCalledTimes(1);
+    expect(painel.feicoes).toHaveLength(20);
+    painel.adicionarFeicao({ id: 'solta', name: 'S', layerId: 'camada-1', type: 'Point' } as FeicaoItem);
+    expect(render).toHaveBeenCalledTimes(2);
+  });
+
+  it('definirCamadas troca a camada ativa que deixou de existir', () => {
+    painel.definirCamadas(mockCamadas, mockFeicoes);
+    painel.definirCamadaAtiva('camada-2');
+    painel.definirCamadas([{ id: 'nova', name: 'Nova', color: '#fff', visible: true, locked: false }], []);
+    expect(painel.camadaAtivaId).toBe('nova');
+  });
+
+  it('selecionarFeicao seleciona feição de camada recolhida', () => {
+    painel.definirCamadas(mockCamadas, mockFeicoes);
+    painel.colapsarTodas();
+    painel.selecionarFeicao('feat-1');
+    expect(painel.obterFeicoesSelecionadas().map((f) => f.id)).toEqual(['feat-1']);
+    painel.selecionarFeicao('inexistente');
+    expect(painel.obterFeicoesSelecionadas().map((f) => f.id)).toEqual(['feat-1']);
+  });
+
+  it('a ordem da aplicação vence a do usuário quando ela mudou; senão vale a do usuário', async () => {
+    const { reidratarCamadasComOverrides } = await import('./camadas-persistencia');
+    const c = (id: string) => ({ id, name: id, color: '#fff' }) as CamadaItem;
+    const estado = { versao: 1, expandedLayerIds: [], collapsedLayerIds: [], ordemCamadasIds: ['c', 'b', 'a'], ordemOrigemIds: ['a', 'b', 'c'] };
+    const igual = [c('a'), c('b'), c('c')];
+    reidratarCamadasComOverrides(igual, estado, new Set());
+    expect(igual.map((x) => x.id)).toEqual(['c', 'b', 'a']);
+    const reordenada = [c('b'), c('a'), c('c')];
+    reidratarCamadasComOverrides(reordenada, estado, new Set());
+    expect(reordenada.map((x) => x.id)).toEqual(['b', 'a', 'c']);
+    const comNova = [c('a'), c('b'), c('c'), c('d')];
+    reidratarCamadasComOverrides(comNova, estado, new Set());
+    expect(comNova.map((x) => x.id)).toEqual(['c', 'b', 'a', 'd']);
+  });
+
+  it('excluir uma camada apaga o override guardado dela', async () => {
+    const { carregarEstadoPersistido } = await import('./camadas-persistencia');
+    painel.setAttribute('storage-key', 'teste-removidas');
+    painel.definirCamadas(mockCamadas, mockFeicoes);
+    painel.alternarVisibilidadeTodas();
+    expect(Object.keys(carregarEstadoPersistido(painel.obterChaveStorageAtual())!.camadasOverrides!)).toContain('camada-2');
+    painel.removerCamada('camada-2');
+    expect(Object.keys(carregarEstadoPersistido(painel.obterChaveStorageAtual())!.camadasOverrides!)).not.toContain('camada-2');
+    painel.limparLembranca();
+  });
+
+  it('avisa quando dois painéis dividem a chave de persistência padrão', () => {
+    const aviso = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const a = document.createElement('ui-camadas');
+    const b = document.createElement('ui-camadas');
+    const antes = aviso.mock.calls.length;
+    document.body.append(a, b);
+    expect(aviso.mock.calls.slice(antes).some((c) => String(c[0]).includes('storage-key'))).toBe(true);
+    aviso.mockRestore();
+  });
 });
 

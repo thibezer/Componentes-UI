@@ -7,6 +7,7 @@ import { VectorLinesLayerRenderer } from './renderers/vector_lines_renderer';
 import { VectorPointsLayerRenderer } from './renderers/vector_points_renderer';
 import { VectorPolygonsLayerRenderer } from './renderers/vector_polygons_renderer';
 import { GridLayerRenderer } from './renderers/grid_renderer';
+import { FeicoesLayerRenderer } from './renderers/feicoes_renderer';
 
 // Registra os renderizadores padrão no Factory
 LayerRendererFactory.register('tile', new TileLayerRenderer());
@@ -15,6 +16,7 @@ LayerRendererFactory.register('vetorial-linhas', new VectorLinesLayerRenderer())
 LayerRendererFactory.register('vetorial-pontos', new VectorPointsLayerRenderer());
 LayerRendererFactory.register('vetorial-poligonos', new VectorPolygonsLayerRenderer());
 LayerRendererFactory.register('grid', new GridLayerRenderer());
+LayerRendererFactory.register('feicoes', new FeicoesLayerRenderer());
 
 export const DEFAULT_LAYERS: CanvasLayerDef[] = [
   {
@@ -159,6 +161,16 @@ export class CanvasLayerManager {
 
   constructor(initialLayers?: CanvasLayerDef[]) {
     this.layers = (initialLayers || DEFAULT_LAYERS).map(l => ({ ...l, estilo: { ...l.estilo } }));
+  }
+
+  /**
+   * Remove as camadas que o kit traz de fábrica (satélite, SIGEF, homologados, perímetro, vizinhos, vértices, grade).
+   * Só vale antes de o mapa ser anexado: depois disso as instâncias já existem. Camadas criadas pelo consumidor ficam.
+   */
+  public descartarCamadasPadrao(): void {
+    if (this.map) return;
+    const padrao = new Set(DEFAULT_LAYERS.map((l) => l.id));
+    this.layers = this.layers.filter((l) => !padrao.has(l.id) || l.tipo === 'feicoes');
   }
 
   public attachMap(map: L.Map, context: CanvasRenderContext): void {

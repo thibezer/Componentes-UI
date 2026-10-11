@@ -39,6 +39,11 @@ describe('UITabelaPropriedades - Funções de Cálculo Matemático Inline & Spli
 
     // 4. Potências e porcentagens
     expect(avaliarExpressaoMatematica('2 ^ 3')).toBe(8);
+    expect(avaliarExpressaoMatematica('-2^2')).toBe(-4);
+    expect(avaliarExpressaoMatematica('(-2)^2')).toBe(4);
+    expect(avaliarExpressaoMatematica('2^-1')).toBe(0.5);
+    expect(avaliarExpressaoMatematica('2*-3')).toBe(-6);
+    expect(avaliarExpressaoMatematica('2^3^2')).toBe(512);
     expect(avaliarExpressaoMatematica('100 + 10%')).toBe(110);
     expect(avaliarExpressaoMatematica('50 * 20%')).toBe(10);
 

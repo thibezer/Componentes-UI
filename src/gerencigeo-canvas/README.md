@@ -68,8 +68,31 @@ src/gerencigeo-canvas/
 
 ---
 
-## 💡 Próximos Passos (Web Component Shadow DOM)
-Os módulos já estão totalmente desacoplados e prontos para serem encapsulados em `<ui-canvas-cad>` ou integrados ao `<ui-mapa>`, recebendo `pontos` e `segmentos` via atributos/propriedades e disparando `CustomEvents`:
-- `gerencigeo:ponto-selecionado`
-- `gerencigeo:recenter`
-- `gerencigeo:abrir_configuracoes_mapa`
+## Feições genéricas (migração do MapEngine)
+
+Além de pontos/segmentos/vizinhos, o módulo trata **feições genéricas** (`Feicao`: Point, LineString, Polygon, Circle, Text).
+Nada é criado por padrão: o consumidor escolhe as camadas (`definirFeicoes`). Plano, decisões e limitações:
+[`docs/plano-migracao-canvas-cad.md`](../../docs/plano-migracao-canvas-cad.md). Equivalência de API:
+[`docs/guia-migracao-mapengine.md`](../../docs/guia-migracao-mapengine.md). Eventos: [`docs/canvas-cad-eventos.md`](../../docs/canvas-cad-eventos.md).
+
+| Arquivo | Papel |
+|---|---|
+| `feature_types.ts`, `feature_adapters.ts` | Modelo `Feicao`, normalização de coordenadas/anéis e adaptadores dos dados antigos |
+| `renderers/feicoes_renderer.ts` | Desenho, atualização incremental, seleção visual, culling por viewport, clusters, simplificação por zoom |
+| `feature_indice.ts`, `feature_cluster.ts`, `feature_simplificacao.ts` | R-tree (STR) sem dependências, agrupamento por grade de 55 px, Douglas-Peucker |
+| `layer_hit_test.ts`, `feature_amostra.ts` | Hit-test unificado (tolerância em px, prioridade, alternância de cliques); feição sob um ponto |
+| `feature_selecao.ts`, `feature_caixa.ts`, `feature_popup.ts` | Seleção única/múltipla, caixa Window/Crossing com toque geométrico real, popup único |
+| `feature_snap.ts`, `feature_edicao_ops.ts`, `feature_editor_vertices.ts` | Snap (vértice > meio > aresta), operações de vértices, editor com alças e HUD |
+| `feature_desenho.ts`, `feature_desenho_controle.ts`, `feature_algoritmos.ts` | 11 ferramentas, caneta Bézier, medição, divisão/junção/buffer/deslocamento, unidades, DD ⇄ DMS |
+| `feature_versoes.ts`, `feature_cursores.ts`, `feature_metricas.ts` | Oficial × prévia, cursores remotos, áreas/comprimentos/formatação pt-BR |
+
+Limitações conhecidas: contas geométricas em projeção local (glebas, não escala continental); polígonos com furos não são
+editados nem divididos; a junção de polígonos usa ponte (não faz união booleana de áreas sobrepostas); a coordenada (0, 0)
+exata é descartada (placeholder de erro, herdado de `parseCoordenada`).
+
+---
+
+## Web Component
+O módulo é empacotado em `<ui-canvas-cad>` (`src/components/ui-canvas-cad`), que recebe `pontos` e `segmentos` por propriedades
+e dispara `CustomEvent`s: `ui-ponto-selecionado`, `ui-camadas-alteradas` e os eventos `cad-*` das feições.
+O evento global `gerencigeo:ponto-selecionado` (window) continua sendo emitido pela mesa CAD antiga.

@@ -1,3 +1,4 @@
+import { focoEmCampoDeTexto } from '../core/alvo-digitavel';
 import L from 'leaflet';
 import type { Ponto } from './types';
 import type { CanvasLayerManager } from './layer_manager';
@@ -16,6 +17,14 @@ export interface CanvasInteracaoContext {
   containerHost?: HTMLElement | ShadowRoot;
   atualizarDestaqueLinhasTabela?: () => void;
   onSelectionChange?: (selectedIds: number[], selectedVizinhoIds: number[]) => void;
+  /** Chamado ao limpar a seleção (Esc, clique no vazio) para limpar também as feições genéricas. */
+  aoLimparSelecao?: () => void;
+  /** Há uma ferramenta de desenho ativa: cliques e arrastos do mouse são dela, não da seleção. */
+  ferramentaAtiva?: () => boolean;
+  /** Botão direito sobre o mapa (o menu nativo é sempre suprimido). */
+  aoMenuContexto?: (e: MouseEvent) => void;
+  /** Seleção por caixa sobre feições genéricas; `aditivo` = Ctrl/Cmd. */
+  selecionarFeicoesNaCaixa?: (caixa: { x1: number; y1: number; x2: number; y2: number }, modo: 'window' | 'crossing', aditivo: boolean) => void;
 }
 
 /**
@@ -164,10 +173,14 @@ export class CanvasInteracao {
 
   private handleContextMenu = (e: MouseEvent): void => {
     e.preventDefault();
+    this.ctx.aoMenuContexto?.(e);
   };
 
   private handleClick = (e: MouseEvent): void => {
     if (!this.map || !this.ctx.layerManager) return;
+    if (this.ctx.ferramentaAtiva?.()) return;
+    // marcador DOM (ícone/texto): o Leaflet já entregou o clique a ele; não repassa às feições do canvas por baixo
+    if ((e.target as HTMLElement | null)?.closest?.('.leaflet-marker-icon')) return;
     resolverCliqueCentral(this.map, this.ctx.layerManager.getLayers(), e);
   };
 
@@ -210,6 +223,9 @@ export class CanvasInteracao {
     }
 
     if (e.button === 0) {
+      // alças de edição de vértices e o HUD da edição tratam o próprio mouse: não iniciam caixa de seleção
+      if ((e.target as HTMLElement | null)?.closest?.('.cad-vertex-handle, .cad-vertex-ghost, #cm-vertex-edit-hud, #cm-draw-hud')) return;
+      if (this.ctx.ferramentaAtiva?.()) return;
       this.selectionHappened = false;
       if (this.ctx.mapaController && this.ctx.mapaController.modoCliqueSequencialAtivo) {
         return;
@@ -261,16 +277,14 @@ export class CanvasInteracao {
 
   private handleKeyDown = (e: KeyboardEvent): void => {
     if (e.key === 'Escape') {
-      const activeEl = document.activeElement;
-      if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT' || (activeEl as HTMLElement).isContentEditable)) {
-        return;
-      }
+      if (focoEmCampoDeTexto(e)) return;
       this.selecaoBox?.cancelarSelecao();
       this.limparSelecao();
     }
   };
 
   public limparSelecao(): void {
+    this.ctx.aoLimparSelecao?.();
     if (this.ctx.mapaController && this.ctx.mapaController.context.selectedSegmentoId) {
       this.ctx.mapaController.selectSegmento(null);
     }

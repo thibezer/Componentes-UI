@@ -274,6 +274,13 @@
   background: rgba(0, 245, 160, 0.1);
 }
 
+/* Atributos que escondem os padrões do kit */
+:host([sem-painel-camadas]) .qgis-layer-panel,
+:host([sem-painel-camadas]) #btn-toggle-layers,
+:host([sem-barra-rapida]) .cad-quick-toolbar {
+  display: none !important;
+}
+
 /* Toolbar Flutuante do Canvas */
 .cad-quick-toolbar {
   position: absolute;
@@ -620,3 +627,23 @@
 }
 
 
+
+/* Barra opcional de ferramentas de desenho (atributo `ferramentas`) */
+.cad-draw-toolbar {
+  right: auto;
+  left: 12px;
+  max-height: calc(100% - 24px);
+  overflow-y: auto;
+}
+
+.cad-draw-btn {
+  font: 600 11px var(--ui-fonte-base, sans-serif);
+  padding: 5px 9px;
+  white-space: nowrap;
+  justify-content: flex-start;
+}
+
+/* Com uma ferramenta ativa, marcadores DOM não roubam o clique do desenho */
+.cad-ferramenta-ativa .leaflet-marker-icon {
+  pointer-events: none !important;
+}

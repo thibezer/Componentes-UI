@@ -162,6 +162,10 @@ export class UISeletorMapaBase extends SafeHTMLElement {
       this.aplicarEstadoAberto(estaAberto);
     } else if (name === 'compacto') {
       this.triggerBtn.classList.toggle('compacto', newVal !== null && newVal !== 'false');
+    } else if (name === 'desabilitado') {
+      const desabilitado = newVal !== null && newVal !== 'false';
+      this.triggerBtn.disabled = desabilitado;
+      if (desabilitado) this.fechar();
     }
   }
 
@@ -216,6 +220,15 @@ export class UISeletorMapaBase extends SafeHTMLElement {
     }
   }
 
+  public get desabilitado(): boolean {
+    return this.hasAttribute('desabilitado') && this.getAttribute('desabilitado') !== 'false';
+  }
+
+  public set desabilitado(valor: boolean) {
+    if (valor) this.setAttribute('desabilitado', '');
+    else this.removeAttribute('desabilitado');
+  }
+
   public get mapasBase(): MapaBaseItem[] {
     return this._mapasBase;
   }
@@ -231,6 +244,7 @@ export class UISeletorMapaBase extends SafeHTMLElement {
   // --- Ações Públicas ---
 
   public abrir(): void {
+    if (this.desabilitado) return;
     this.aberto = true;
   }
 
@@ -239,7 +253,8 @@ export class UISeletorMapaBase extends SafeHTMLElement {
   }
 
   public alternar(): void {
-    this.aberto = !this.aberto;
+    if (this.aberto) this.fechar();
+    else this.abrir();
   }
 
   public selecionar(mapaBaseId: string): void {
@@ -247,8 +262,9 @@ export class UISeletorMapaBase extends SafeHTMLElement {
       this.fechar();
       return;
     }
-    this.mapaBaseAtivo = mapaBaseId;
     const item = this._mapasBase.find(m => m.id === mapaBaseId);
+    if (!item) return; // id fora da lista: não vira mapa ativo nem dispara evento
+    this.mapaBaseAtivo = mapaBaseId;
 
     const detalhe: DetalheEventoMapaBaseAlterado = { mapaBaseId, item };
     this.dispatchEvent(new CustomEvent('ui-mapa-base-alterado', {
@@ -287,7 +303,7 @@ export class UISeletorMapaBase extends SafeHTMLElement {
       this.triggerBtn.title = `Mapa Base: ${ativo.nome} (${ativo.descricao || ''})`;
 
       if (ativo.thumbnailUrl) {
-        this.thumbEl.innerHTML = `<img class="ui-basemap-thumb-mini" src="${escapeHtml(ativo.thumbnailUrl)}" alt="${escapeHtml(ativo.nome)}" />`;
+        this.thumbEl.innerHTML = `<img class="ui-basemap-thumb-mini" src="${escapeHtml(ativo.thumbnailUrl)}" alt="${escapeHtml(ativo.nome)}" referrerpolicy="no-referrer" decoding="async" />`;
       } else {
         this.thumbEl.innerHTML = `<span class="ui-basemap-thumb-mini fallback">${ICONE_CAD}</span>`;
       }
@@ -308,7 +324,7 @@ export class UISeletorMapaBase extends SafeHTMLElement {
     this.listEl.innerHTML = this._mapasBase.map((item) => {
       const isAtivo = item.id === idAtivo;
       const previewHtml = item.thumbnailUrl
-        ? `<img class="ui-basemap-item-preview" src="${escapeHtml(item.thumbnailUrl)}" alt="${escapeHtml(item.nome)}" loading="lazy" />`
+        ? `<img class="ui-basemap-item-preview" src="${escapeHtml(item.thumbnailUrl)}" alt="${escapeHtml(item.nome)}" loading="lazy" referrerpolicy="no-referrer" decoding="async" />`
         : `<div class="ui-basemap-item-preview-none">${ICONE_CAD}</div>`;
 
       return `
@@ -328,6 +344,21 @@ export class UISeletorMapaBase extends SafeHTMLElement {
     }).join('');
   }
 
+  private focarItem(destino: 'ativo' | 'proximo' | 'anterior' | 'primeiro' | 'ultimo'): void {
+    const itens = Array.from(this.listEl.querySelectorAll<HTMLElement>('.ui-basemap-item'));
+    if (itens.length === 0) return;
+    const atual = itens.indexOf(this.shadow.activeElement as HTMLElement);
+    let alvo: number;
+    switch (destino) {
+      case 'ativo': alvo = Math.max(0, itens.findIndex((i) => i.classList.contains('active'))); break;
+      case 'proximo': alvo = Math.min(itens.length - 1, atual + 1); break;
+      case 'anterior': alvo = Math.max(0, atual - 1); break;
+      case 'primeiro': alvo = 0; break;
+      default: alvo = itens.length - 1;
+    }
+    itens[alvo].focus();
+  }
+
   private atualizarSelecaoVisual(): void {
     const idAtivo = this.mapaBaseAtivo;
     const items = this.listEl.querySelectorAll('.ui-basemap-item');
@@ -344,6 +375,8 @@ export class UISeletorMapaBase extends SafeHTMLElement {
     this.listeners.add(this.triggerBtn, 'click', (e: MouseEvent) => {
       e.stopPropagation();
       this.alternar();
+      // Aberto pelo teclado (Enter/Espaço geram click sem posição): o foco entra na lista, no mapa ativo
+      if (this.aberto && e.detail === 0) this.focarItem('ativo');
     });
 
     // 2. Clique em um item do mapa base
@@ -356,8 +389,16 @@ export class UISeletorMapaBase extends SafeHTMLElement {
       }
     });
 
-    // 3. Suporte a tecla Enter nos itens
+    // 3. Teclado nos itens: setas, Home/End e Enter/Espaço
     this.listeners.add(this.listEl, 'keydown', (e: KeyboardEvent) => {
+      const navegacao: Record<string, 'proximo' | 'anterior' | 'primeiro' | 'ultimo'> = {
+        ArrowDown: 'proximo', ArrowUp: 'anterior', Home: 'primeiro', End: 'ultimo'
+      };
+      if (navegacao[e.key]) {
+        e.preventDefault();
+        this.focarItem(navegacao[e.key]);
+        return;
+      }
       if (e.key === 'Enter' || e.key === ' ') {
         const target = (e.target as HTMLElement).closest('.ui-basemap-item');
         if (target) {
@@ -377,6 +418,12 @@ export class UISeletorMapaBase extends SafeHTMLElement {
       }
     };
     this.listeners.add(document, 'click', handleClickOutside);
+
+    // Tab para fora do seletor fecha o popover (o foco não pode ficar num painel que continua aberto)
+    this.listeners.add(this.wrapperEl, 'focusout', (e: FocusEvent) => {
+      const destino = e.relatedTarget as Node | null;
+      if (this.aberto && destino && !this.shadow.contains(destino) && !this.contains(destino)) this.fechar();
+    });
 
     // 5. Tecla Escape para fechar
     const handleKeyDown = (e: KeyboardEvent) => {

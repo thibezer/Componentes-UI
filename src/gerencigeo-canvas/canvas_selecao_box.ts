@@ -131,7 +131,9 @@ export class CanvasSelecaoBox {
       const target = e.target as HTMLElement;
       if (target && (target.classList?.contains('leaflet-container') || target.id === 'mapa-triagem' || target.closest?.('.leaflet-pane'))) {
         const clicouNoMarcador = target.closest?.('.custom-leaflet-marker') || target.closest?.('.custom-div-icon');
-        if (!clicouNoMarcador) {
+        // Ctrl/Cmd/Shift = modo aditivo: o clique que vem a seguir alterna a feição, não pode zerar a seleção antes
+        const aditivo = e.ctrlKey || e.metaKey || e.shiftKey;
+        if (!clicouNoMarcador && !aditivo) {
           onLimpar();
         }
       }
@@ -146,6 +148,10 @@ export class CanvasSelecaoBox {
       x2: Math.max(this.selectStartPoint.x, endPoint.x),
       y2: Math.max(this.selectStartPoint.y, endPoint.y)
     };
+
+    // Esquerda → direita = window (tudo dentro); direita → esquerda = crossing (basta tocar)
+    const modo = endPoint.x >= this.selectStartPoint.x ? 'window' : 'crossing';
+    this.ctx.selecionarFeicoesNaCaixa?.(rect, modo, e.ctrlKey || e.metaKey);
 
     const markers = (this.ctx.mapaController?.getMarkers() || []) as L.Marker[];
     const vizinhosMarkers = (this.ctx.mapaController?.getVizinhosMarkers() || []) as L.Marker[];

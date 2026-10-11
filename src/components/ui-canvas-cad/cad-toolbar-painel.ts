@@ -8,6 +8,7 @@ export interface ContextoToolbarPainel {
   onCloseCamadas?: () => void;
   onZoomExtents?: () => void;
   onLimparSelecao?: () => void;
+  onToggleSnap?: () => void;
   onTratarCliqueCanvas?: (e: MouseEvent) => void;
   onDispararAcaoPopup?: (acaoId: string, elementoId: string | number) => void;
 }
@@ -62,6 +63,7 @@ export class GerenciadorToolbarPainel {
     const btnCloseLayers = this.contexto.shadow.getElementById('btn-close-layers');
     const btnZoomExtents = this.contexto.shadow.getElementById('btn-zoom-extents');
     const btnClearSelection = this.contexto.shadow.getElementById('btn-clear-selection');
+    const btnToggleSnap = this.contexto.shadow.getElementById('btn-toggle-snap');
 
     this.uiListeners.add(btnToggleLayers, 'click', () => {
       if (this.contexto.onToggleCamadas) {
@@ -85,6 +87,10 @@ export class GerenciadorToolbarPainel {
 
     this.uiListeners.add(btnClearSelection, 'click', () => {
       this.contexto.onLimparSelecao?.();
+    });
+
+    this.uiListeners.add(btnToggleSnap, 'click', () => {
+      this.contexto.onToggleSnap?.();
     });
 
     // Monitora mousedown/mousemove no mapContainer para filtrar arraste/pan vs clique

@@ -29,6 +29,8 @@ export interface EstadoPersistidoCamadas {
   camadaAtivaId?: string | null;
   painelColapsado?: boolean;
   ordemCamadasIds?: string[];
+  /** Ordem em que a aplicação enviou as camadas quando `ordemCamadasIds` foi salva. */
+  ordemOrigemIds?: string[];
   mapaBaseAtivo?: string;
   densidade?: 'compacto' | 'normal';
   altura?: number | null;
@@ -157,8 +159,16 @@ export function reidratarCamadasComOverrides(
     }
   }
 
-  // Restaura a ordem das camadas persistida pelo usuário (arraste/drag-and-drop)
-  if (Array.isArray(estadoPersistido?.ordemCamadasIds) && estadoPersistido!.ordemCamadasIds.length > 0) {
+  // Restaura a ordem das camadas persistida pelo usuário (arraste/drag-and-drop),
+  // a menos que a aplicação tenha mudado a própria ordem desde então: aí a ordem dela vence
+  const idsAtuais = new Set(camadas.map((c) => c.id));
+  const origemSalva = estadoPersistido?.ordemOrigemIds;
+  const aplicacaoReordenou = Array.isArray(origemSalva) && (() => {
+    const salvas = new Set(origemSalva);
+    const comuns = (ids: string[]): string => ids.filter((id) => idsAtuais.has(id) && salvas.has(id)).join('|');
+    return comuns(origemSalva) !== comuns(camadas.map((c) => c.id));
+  })();
+  if (!aplicacaoReordenou && Array.isArray(estadoPersistido?.ordemCamadasIds) && estadoPersistido!.ordemCamadasIds.length > 0) {
     const ordemMap = new Map<string, number>();
     estadoPersistido!.ordemCamadasIds.forEach((id, idx) => ordemMap.set(id, idx));
     camadas.sort((a, b) => {
@@ -179,6 +189,8 @@ export interface EntradaMontagemEstado {
   mapaBaseAtivo: string;
   densidade: 'compacto' | 'normal';
   altura: number | null;
+  /** Camadas excluídas pelo usuário: seus overrides deixam de ser guardados. */
+  camadasRemovidas?: Iterable<string>;
 }
 
 /**
@@ -191,6 +203,7 @@ export function montarEstadoPersistido(entrada: EntradaMontagemEstado): EstadoPe
   let expandedList: string[] = estadoAnterior?.expandedLayerIds || [];
   let collapsedList: string[] = estadoAnterior?.collapsedLayerIds || [];
   let ordemList: string[] = estadoAnterior?.ordemCamadasIds || [];
+  let ordemOrigemList: string[] | undefined = estadoAnterior?.ordemOrigemIds;
   const overrides: Record<string, CamadaOverridePersistido> = {
     ...(estadoAnterior?.camadasOverrides || {})
   };
@@ -199,6 +212,7 @@ export function montarEstadoPersistido(entrada: EntradaMontagemEstado): EstadoPe
     expandedList = [];
     collapsedList = [];
     ordemList = camadas.map((l) => l.id);
+    ordemOrigemList = entrada.origensCamadas ? [...entrada.origensCamadas.keys()] : ordemList;
 
     camadas.forEach((l) => {
       if (expandedLayers.has(l.id)) {
@@ -218,6 +232,8 @@ export function montarEstadoPersistido(entrada: EntradaMontagemEstado): EstadoPe
     });
   }
 
+  for (const id of entrada.camadasRemovidas ?? []) delete overrides[id];
+
   return {
     versao: 1,
     expandedLayerIds: expandedList,
@@ -225,6 +241,7 @@ export function montarEstadoPersistido(entrada: EntradaMontagemEstado): EstadoPe
     camadaAtivaId: entrada.camadaAtivaId,
     painelColapsado: entrada.painelColapsado,
     ordemCamadasIds: ordemList,
+    ordemOrigemIds: ordemOrigemList,
     mapaBaseAtivo: entrada.mapaBaseAtivo,
     densidade: entrada.densidade,
     altura: entrada.altura,

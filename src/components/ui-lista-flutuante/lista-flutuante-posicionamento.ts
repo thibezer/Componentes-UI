@@ -32,7 +32,22 @@ export class ListaFlutuantePosicionamento {
     this.content.style.top = `${Math.round(rect.bottom + 2)}px`;
     this.content.style.left = `${Math.round(rect.left)}px`;
     this.content.style.minWidth = `${Math.round(Math.max(rect.width, 120))}px`;
+    this.ajustarAoViewport(rect);
   };
+
+  /** Com a lista já visível (medida real): abre para cima se faltar espaço embaixo e não deixa sair pela lateral. */
+  private ajustarAoViewport(rect: DOMRect): void {
+    const altura = this.content.offsetHeight;
+    const largura = this.content.offsetWidth;
+    if (altura <= 0 || typeof window === 'undefined') return;
+    const folga = 8;
+    if (rect.bottom + 2 + altura > window.innerHeight - folga && rect.top - 2 - altura >= folga) {
+      this.content.style.top = `${Math.round(rect.top - 2 - altura)}px`;
+    }
+    if (rect.left + largura > window.innerWidth - folga) {
+      this.content.style.left = `${Math.max(folga, Math.round(window.innerWidth - folga - largura))}px`;
+    }
+  }
 
   public ativarAcompanhamento(onFechar: () => void): void {
     this.scrollHandler = onFechar;
@@ -48,6 +63,8 @@ export class ListaFlutuantePosicionamento {
         // Fallback defensivo
       }
     }
+    // Só visível depois do showPopover dá para medir: reposiciona com o tamanho real
+    this.posicionar();
   }
 
   public desativarAcompanhamento(): void {

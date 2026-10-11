@@ -108,7 +108,8 @@ export class UITabela extends SafeHTMLElement {
       loadingElement: this._loadingElement,
       onTextoVazioAlterado: (t: string) => { this._textoVazio = t; },
       onVirtualizarAlterado: (v: boolean) => { this._virtualizar = v; },
-      onCarregarSrc: (s: string) => { this._src = s; this.remotaController.carregar(s); },
+      onSrcLido: (s: string | null) => { this._src = s; },
+      onCarregarSrc: (s: string) => { this.remotaController.carregar(s); },
       onCarregandoAlterado: (c: boolean) => { this._carregando = c; },
       onRenderBody: () => this.renderBody(),
       onRenderTotal: () => this.renderTotal()
@@ -118,7 +119,8 @@ export class UITabela extends SafeHTMLElement {
   get src(): string | null { return this._src; }
   set src(val: string | null) {
     this._src = val;
-    if (val) { this.setAttribute('src', val); this.remotaController.carregar(val); }
+    // o attributeChangedCallback busca os dados (conectado) ou o connectedCallback (ao conectar)
+    if (val) this.setAttribute('src', val);
     else this.removeAttribute('src');
   }
 
@@ -158,6 +160,7 @@ export class UITabela extends SafeHTMLElement {
   get colunas(): TabelaColuna[] { return this._colunas; }
   set colunas(val: TabelaColuna[]) {
     this._colunas = Array.isArray(val) ? val : [];
+    this.dadosController.setColunasFiltro(this._colunas.map((c) => c.id));
     this._alturaLinhaMedida = null;
     this.renderTotal();
   }
