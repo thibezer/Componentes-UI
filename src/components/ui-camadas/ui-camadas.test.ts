@@ -630,5 +630,134 @@ describe('UICamadas - Painel de Camadas GIS/CAD', () => {
     expect(aviso.mock.calls.slice(antes).some((c) => String(c[0]).includes('storage-key'))).toBe(true);
     aviso.mockRestore();
   });
+
+  describe('Métricas Geodésicas e Cálculo de Área com Furos', () => {
+    it('deve calcular área de anel simples e polígono sem furos', () => {
+      // Quadrado de ~0.001 graus em latitude/longitude (~111m x ~102m em SP)
+      const anelExterior = [
+        [-23.550, -46.630],
+        [-23.551, -46.630],
+        [-23.551, -46.631],
+        [-23.550, -46.631],
+        [-23.550, -46.630]
+      ];
+      const areaSimples = calcularAreaPoligono(anelExterior);
+      expect(areaSimples).toBeGreaterThan(10000); // Mais de 10.000 m²
+
+      const areaPolygonUnico = calcularAreaPoligono([anelExterior]);
+      expect(Math.round(areaPolygonUnico)).toBe(Math.round(areaSimples));
+    });
+
+    it('deve abater a área de furos interiores (donut/holes)', () => {
+      const anelExterior = [
+        [-23.550, -46.630],
+        [-23.552, -46.630],
+        [-23.552, -46.632],
+        [-23.550, -46.632],
+        [-23.550, -46.630]
+      ];
+      const anelFuro = [
+        [-23.5505, -46.6305],
+        [-23.5515, -46.6305],
+        [-23.5515, -46.6315],
+        [-23.5505, -46.6315],
+        [-23.5505, -46.6305]
+      ];
+
+      const areaSemFuro = calcularAreaPoligono([anelExterior]);
+      const areaComFuro = calcularAreaPoligono([anelExterior, anelFuro]);
+      const areaApenasFuro = calcularAreaPoligono([anelFuro]);
+
+      expect(areaSemFuro).toBeGreaterThan(areaComFuro);
+      expect(Math.round(areaComFuro)).toBe(Math.round(areaSemFuro - areaApenasFuro));
+    });
+
+    it('deve calcular corretamente a área somada de um MultiPolygon', () => {
+      const poly1 = [
+        [
+          [-23.550, -46.630],
+          [-23.551, -46.630],
+          [-23.551, -46.631],
+          [-23.550, -46.631],
+          [-23.550, -46.630]
+        ]
+      ];
+      const poly2 = [
+        [
+          [-23.560, -46.640],
+          [-23.561, -46.640],
+          [-23.561, -46.641],
+          [-23.560, -46.641],
+          [-23.560, -46.640]
+        ]
+      ];
+
+      const areaP1 = calcularAreaPoligono(poly1);
+      const areaP2 = calcularAreaPoligono(poly2);
+      const areaMulti = calcularAreaPoligono([poly1, poly2]);
+
+      expect(Math.round(areaMulti)).toBe(Math.round(areaP1 + areaP2));
+    });
+  });
+
+  describe('Adaptadores de Compatibilidade (Canvas CAD <-> UI Camadas)', () => {
+    it('deve converter CanvasLayerDef para CamadaItem com mapeamento fiel', async () => {
+      const { converterCanvasLayerParaCamadaItem, converterCamadaItemParaCanvasLayer } = await import('./camadas-adapters');
+      const canvasLayer = {
+        id: 'layer-sigef',
+        nome: 'Acervo Fundiário SIGEF',
+        categoria: 'wms' as const,
+        tipo: 'wms' as const,
+        visivel: true,
+        opacidade: 0.85,
+        zIndex: 390,
+        interativo: true,
+        bloqueada: false,
+        estilo: { corPrimaria: '#f59e0b' }
+      };
+
+      const camadaItem = converterCanvasLayerParaCamadaItem(canvasLayer);
+      expect(camadaItem.id).toBe('layer-sigef');
+      expect(camadaItem.name).toBe('Acervo Fundiário SIGEF');
+      expect(camadaItem.color).toBe('#f59e0b');
+      expect(camadaItem.visible).toBe(true);
+      expect(camadaItem.locked).toBe(false);
+      expect(camadaItem.opacity).toBe(0.85);
+
+      const voltaCanvas = converterCamadaItemParaCanvasLayer(camadaItem);
+      expect(voltaCanvas.id).toBe('layer-sigef');
+      expect(voltaCanvas.nome).toBe('Acervo Fundiário SIGEF');
+      expect(voltaCanvas.visivel).toBe(true);
+      expect(voltaCanvas.bloqueada).toBe(false);
+      expect(voltaCanvas.opacidade).toBe(0.85);
+    });
+
+    it('deve converter feição genérica do Canvas para FeicaoItem', async () => {
+      const { converterFeicaoParaItem } = await import('./camadas-adapters');
+      const feicaoCanvas = {
+        id: 'poly-1',
+        nome: 'Lote 01 Quadra A',
+        camadaId: 'lotes',
+        tipo: 'Polygon',
+        cor: '#00E08A',
+        visivel: true,
+        bloqueada: false,
+        status: 'oficial',
+        coordenadas: [
+          [-23.55, -46.63],
+          [-23.551, -46.63]
+        ]
+      };
+
+      const item = converterFeicaoParaItem(feicaoCanvas);
+      expect(item.id).toBe('poly-1');
+      expect(item.name).toBe('Lote 01 Quadra A');
+      expect(item.layerId).toBe('lotes');
+      expect(item.type).toBe('Polygon');
+      expect(item.color).toBe('#00E08A');
+      expect(item.status).toBe('oficial');
+    });
+  });
 });
+
 

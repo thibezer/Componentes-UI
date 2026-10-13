@@ -51,16 +51,10 @@ export function calcularComprimentoLinha(coords: unknown): number {
 }
 
 /**
- * Calcula a área de um anel poligonal em m² usando fórmula esférica
+ * Calcula a área de um único anel fechado de coordenadas em m² usando fórmula esférica
  */
-export function calcularAreaPoligono(coords: unknown): number {
-  if (!Array.isArray(coords) || coords.length === 0) return 0;
-
-  // Suporte a MultiPolygon ou anéis [ [ [lat,lon], ... ] ]
-  if (Array.isArray(coords[0]) && Array.isArray(coords[0][0])) {
-    return coords.reduce((acc, subRing) => acc + calcularAreaPoligono(subRing), 0);
-  }
-
+export function calcularAreaAnelSimples(coords: unknown): number {
+  if (!Array.isArray(coords)) return 0;
   const len = coords.length;
   if (len < 3) return 0;
 
@@ -81,6 +75,43 @@ export function calcularAreaPoligono(coords: unknown): number {
 
   const area = Math.abs((total * (RAIO_TERRA * RAIO_TERRA)) / 2);
   return isNaN(area) ? 0 : area;
+}
+
+/**
+ * Calcula a área de um polígono em m² com suporte a:
+ * - Anel simples: [ [lat,lon], [lat,lon], ... ]
+ * - Polygon GeoJSON com furos (anel exterior menos furos): [ [exterior], [furo1], [furo2] ]
+ * - MultiPolygon GeoJSON: [ [ [exterior], [furo] ], [ [exterior] ] ]
+ */
+export function calcularAreaPoligono(coords: unknown): number {
+  if (!Array.isArray(coords) || coords.length === 0) return 0;
+
+  // 1. Caso seja anel simples: [ [lat,lon], ... ] onde coords[0] é um par [lat,lon]
+  if (Array.isArray(coords[0]) && typeof coords[0][0] === 'number') {
+    return calcularAreaAnelSimples(coords);
+  }
+
+  // 2. Se coords[0][0] for um array, podemos ter:
+  //    - Polygon: coords[0] é um anel [ [lat,lon], ... ], portanto coords[0][0] é [lat,lon]
+  //    - MultiPolygon: coords[0] é um Polygon [ [ [lat,lon], ... ] ]
+  if (Array.isArray(coords[0]) && Array.isArray(coords[0][0])) {
+    // MultiPolygon detectado: coords[0][0][0] é um par de coordenadas (array)
+    if (Array.isArray(coords[0][0][0])) {
+      return coords.reduce((acc, subPoligono) => acc + calcularAreaPoligono(subPoligono), 0);
+    }
+
+    // Polygon padrão com anéis: [anelExterior, ...furos]
+    // O primeiro anel (índice 0) é o anel exterior; os demais (índices 1..n) são furos/holes
+    const areaExterior = calcularAreaAnelSimples(coords[0]);
+    let areaFuros = 0;
+    for (let i = 1; i < coords.length; i++) {
+      areaFuros += calcularAreaAnelSimples(coords[i]);
+    }
+
+    return Math.max(0, areaExterior - areaFuros);
+  }
+
+  return 0;
 }
 
 /**

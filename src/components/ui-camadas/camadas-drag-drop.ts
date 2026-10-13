@@ -28,6 +28,7 @@ export class CamadasDragDropManager {
   public bindAll(): void {
     this.bindInlineRename();
     this.bindDragAndDrop();
+    this.bindTouchDragAndDrop();
   }
 
   public bindInlineRename(): void {
@@ -359,6 +360,91 @@ export class CamadasDragDropManager {
         draggedFeatId = null;
         draggedLayerId = null;
         clearAllDragClasses();
+      });
+    });
+  }
+
+  /**
+   * Suporte a arraste por toque e ponteiro no handle (.ui-col-drag) para tablets e mobile
+   */
+  public bindTouchDragAndDrop(): void {
+    this.shadow.querySelectorAll('.ui-layer-row .ui-col-drag').forEach((handle) => {
+      const layerRow = handle.closest('.ui-layer-row') as HTMLElement | null;
+      if (!layerRow) return;
+      const layerId = layerRow.getAttribute('data-layer-id');
+      if (!layerId) return;
+
+      handle.addEventListener('pointerdown', (e: Event) => {
+        const pe = e as PointerEvent;
+        // Ignora botão secundário do mouse
+        if (pe.pointerType === 'mouse' && pe.button !== 0) return;
+        if (this.host.editingLayerId || this.host.editingFeatureId) return;
+
+        let activeTargetRow: HTMLElement | null = null;
+        let dropAbove = false;
+        const draggedLayerId = layerId;
+
+        const clearDragVisuals = () => {
+          this.shadow
+            .querySelectorAll('.ui-layer-row, .ui-feat-row, .ui-layer-group')
+            .forEach((el) => el.classList.remove('dragging', 'drop-above', 'drop-below'));
+        };
+
+        const onPointerMove = (me: PointerEvent) => {
+          me.preventDefault();
+          layerRow.classList.add('dragging');
+
+          const elUnder = this.shadow.elementFromPoint(me.clientX, me.clientY) as HTMLElement | null;
+          const targetRow = elUnder ? (elUnder.closest('.ui-layer-row') as HTMLElement | null) : null;
+
+          if (activeTargetRow && activeTargetRow !== targetRow) {
+            activeTargetRow.classList.remove('drop-above', 'drop-below');
+          }
+
+          if (targetRow && targetRow !== layerRow) {
+            activeTargetRow = targetRow;
+            const rect = targetRow.getBoundingClientRect();
+            dropAbove = me.clientY - rect.top < rect.height / 2;
+            targetRow.classList.toggle('drop-above', dropAbove);
+            targetRow.classList.toggle('drop-below', !dropAbove);
+          } else {
+            activeTargetRow = null;
+          }
+        };
+
+        const onPointerUp = () => {
+          window.removeEventListener('pointermove', onPointerMove);
+          window.removeEventListener('pointerup', onPointerUp);
+          window.removeEventListener('pointercancel', onPointerUp);
+
+          if (activeTargetRow) {
+            const targetId = activeTargetRow.getAttribute('data-layer-id');
+            clearDragVisuals();
+            if (targetId && draggedLayerId && targetId !== draggedLayerId) {
+              const srcIdx = this.host.camadas.findIndex((l) => l.id === draggedLayerId);
+              if (srcIdx !== -1) {
+                const [movedLayer] = this.host.camadas.splice(srcIdx, 1);
+                const tgtIdx = this.host.camadas.findIndex((l) => l.id === targetId);
+                if (tgtIdx === -1) {
+                  this.host.camadas.push(movedLayer);
+                } else {
+                  this.host.camadas.splice(dropAbove ? tgtIdx : tgtIdx + 1, 0, movedLayer);
+                }
+                this.host.salvarLembrancaEstado?.();
+                this.host.dispararEvento('ui-camadas-reordenadas', {
+                  camadas: [...this.host.camadas]
+                });
+                this.host.solicitarRenderizacao();
+              }
+            }
+          } else {
+            clearDragVisuals();
+          }
+        };
+
+        window.addEventListener('pointermove', onPointerMove, { passive: false });
+        window.addEventListener('pointerup', onPointerUp);
+        window.addEventListener('pointercancel', onPointerUp);
       });
     });
   }

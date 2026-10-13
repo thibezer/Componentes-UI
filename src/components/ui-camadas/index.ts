@@ -13,3 +13,5 @@ export * from './camadas-persistencia';
 export * from './camadas-host';
 export * from './camadas-selecao';
 export * from './ui-camadas';
+
+export * from './camadas-adapters';

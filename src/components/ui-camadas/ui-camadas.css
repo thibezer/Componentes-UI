@@ -481,6 +481,7 @@
   cursor: grab;
   color: var(--ui-cor-texto-secundario, #888899);
   opacity: 0.35;
+  touch-action: none;
   transition: opacity var(--camada-transicao), color var(--camada-transicao);
 }
 
