@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.2.1 — 2026-10-14
+
+### `<ui-camadas>`: miniatura da feição fiel à geometria
+
+- A miniatura ao lado do nome da feição desenha a geometria real (polígonos com furos, linhas, multi-geometrias), enquadrada com proporção preservada; sem coordenadas, usa o ícone genérico.
+- Miniatura maior (20px; 17px no modo compacto).
+
 ## 2.2.0 — 2026-10-14
 
 ### `<ui-canvas-cad>`: curvas de Bézier de verdade
