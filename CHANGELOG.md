@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.2.2 — 2026-10-14
+
+### `<ui-canvas-cad>`: edição de círculo
+
+- `editarVertices` passa a aceitar `Circle`: alça no centro (move o círculo sem mudar o raio) e alça na borda (define o raio; mínimo 0,5 m). O HUD mostra raio e área ao vivo. `pontosDe`/`comPontos` e `pontoDaBordaDoCirculo` tratam o círculo.
+
+### `<ui-camadas>`: arraste sobre controles
+
+- Clicar e arrastar sobre a coluna de olho, cadeado ou seleção aplica a todos os controles percorridos o estado resultante do primeiro, em vez de reordenar a camada.
+
 ## 2.2.1 — 2026-10-14
 
 ### `<ui-camadas>`: miniatura da feição fiel à geometria
