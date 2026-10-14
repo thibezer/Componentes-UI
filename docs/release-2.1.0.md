@@ -35,13 +35,13 @@ git push origin main --follow-tags
 
 Antes de publicar de verdade, se quiser ver o que iria: `npm publish --dry-run`.
 
-## Atualizar a dependência no app (ConecteMapas)
+## Atualizar a dependência na aplicação consumidora
 
 ```bash
 npm install @thibezer/ui-components-kit@2.1.0
 ```
 
-Depois, no adaptador `CanvasMapEngine`: trocar `host.initCAD()` / `host.initTimeout` por `host.inicializarAgora()`; trocar o
+Depois, no adaptador de mapa da aplicação consumidora: trocar `host.initCAD()` / `host.initTimeout` por `host.inicializarAgora()`; trocar o
 CSS que esconde o painel por `sem-painel-camadas` (e `sem-barra-rapida`, `sem-camadas-padrao`, `sem-atalho-snap`); trocar o
 `bottom: 56px !important` por `definirMargensHud({ base: 56 })`; mapear `visible:false` → `oculta: true` e `is_deleted` →
 `excluida: true`; usar `aplicarLote` no lugar do limite de 20 mudanças incrementais.

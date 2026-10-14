@@ -1,5 +1,5 @@
 /**
- * Utilitários auxiliares para o ecossistema Canvas/Mapa do GerenciGeo
+ * Utilitários auxiliares para o ecossistema de Canvas e Mapas CAD
  */
 
 export const escapeHtml = (unsafe: string | null | undefined): string => {

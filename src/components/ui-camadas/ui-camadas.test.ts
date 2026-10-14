@@ -758,6 +758,175 @@ describe('UICamadas - Painel de Camadas GIS/CAD', () => {
       expect(item.status).toBe('oficial');
     });
   });
+
+  describe('Rodapé Aprimorado e Prevenção de Conflitos Visuais', () => {
+    it('deve exibir modo resumo com botões gerais e ocultar ações em massa quando não há seleção', () => {
+      painel.definirCamadas(mockCamadas, mockFeicoes);
+      const shadow = painel.shadowRoot!;
+
+      const footer = shadow.querySelector('.ui-tree-footer');
+      expect(footer).toBeTruthy();
+      expect(footer?.classList.contains('sem-selecao')).toBe(true);
+
+      const count = shadow.getElementById('footer-count');
+      const label = shadow.getElementById('footer-label');
+      expect(count?.textContent).toBe('2');
+      expect(label?.textContent).toBe('camadas');
+
+      // Botões gerais presentes
+      const btnNewGroup = shadow.getElementById('btn-footer-new-group');
+      const btnNewLayer = shadow.getElementById('btn-footer-new-layer');
+      expect(btnNewGroup).toBeTruthy();
+      expect(btnNewLayer).toBeTruthy();
+
+      // Contêiner de ações gerais visível e de ações em massa oculto
+      const actionsGerais = shadow.querySelector('.ui-footer-actions-gerais') as HTMLElement;
+      const bulkActions = shadow.querySelector('.ui-footer-bulk-actions') as HTMLElement;
+      expect(actionsGerais.style.display).not.toBe('none');
+      expect(bulkActions.style.display).toBe('none');
+    });
+
+    it('deve transicionar para modo ações em massa com preview de cor e seletor hierárquico ao selecionar feições', () => {
+      painel.definirCamadas(mockCamadas, mockFeicoes);
+      const shadow = painel.shadowRoot!;
+
+      painel.selecionarFeicoes(['feat-1']);
+
+      const footer = shadow.querySelector('.ui-tree-footer');
+      expect(footer?.classList.contains('tem-selecao')).toBe(true);
+
+      const count = shadow.getElementById('footer-count');
+      const label = shadow.getElementById('footer-label');
+      expect(count?.textContent).toBe('1');
+      expect(label?.textContent).toBe('selecionado');
+
+      const actionsGerais = shadow.querySelector('.ui-footer-actions-gerais') as HTMLElement;
+      const bulkActions = shadow.querySelector('.ui-footer-bulk-actions') as HTMLElement;
+      expect(actionsGerais.style.display).toBe('none');
+      expect(bulkActions.style.display).toBe('flex');
+
+      const previewColor = shadow.getElementById('preview-footer-color');
+      expect(previewColor).toBeTruthy();
+
+      const clearBtn = shadow.getElementById('btn-footer-clear');
+      expect(clearBtn).toBeTruthy();
+    });
+
+    it('deve disparar evento ui-camada-grupo-adicionar ao clicar no botão de novo grupo', () => {
+      painel.definirCamadas(mockCamadas, mockFeicoes);
+      const shadow = painel.shadowRoot!;
+
+      const spy = vi.fn();
+      painel.addEventListener('ui-camada-grupo-adicionar', spy);
+
+      const btnNewGroup = shadow.getElementById('btn-footer-new-group') as HTMLElement;
+      expect(btnNewGroup).toBeTruthy();
+      btnNewGroup.click();
+
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(spy.mock.calls[0][0].detail.isGroup).toBe(true);
+    });
+  });
+
+  describe('Hierarquia de Camadas (Camadas dentro de outras Camadas)', () => {
+    it('deve renderizar subcamadas aninhadas dentro do container da camada pai', () => {
+      const camadasHierarquicas: CamadaItem[] = [
+        { id: 'grupo-1', name: 'Grupo Urbanismo', isGroup: true, visible: true },
+        { id: 'sub-1', name: 'Loteamento', parentId: 'grupo-1', visible: true },
+        { id: 'sub-2', name: 'Arruamento', parentId: 'grupo-1', visible: true },
+        { id: 'camada-raiz', name: 'Topografia Isolada', visible: true }
+      ];
+
+      painel.definirCamadas(camadasHierarquicas, []);
+      const shadow = painel.shadowRoot!;
+
+      const grupoEl = shadow.querySelector('.ui-layer-group[data-layer-id="grupo-1"]') as HTMLElement;
+      expect(grupoEl).toBeTruthy();
+
+      // As subcamadas devem estar DENTRO do ui-children-container do grupo
+      const childrenContainer = grupoEl.querySelector('.ui-children-container');
+      expect(childrenContainer).toBeTruthy();
+
+      const sub1El = childrenContainer?.querySelector('.ui-layer-group[data-layer-id="sub-1"]');
+      const sub2El = childrenContainer?.querySelector('.ui-layer-group[data-layer-id="sub-2"]');
+      expect(sub1El).toBeTruthy();
+      expect(sub2El).toBeTruthy();
+
+      // Subcamada tem classe is-sublayer
+      const sub1Row = sub1El?.querySelector('.ui-layer-row');
+      expect(sub1Row?.classList.contains('is-sublayer')).toBe(true);
+
+      // Camada raiz está fora do grupo
+      const raizEl = shadow.querySelector('.ui-layer-group[data-layer-id="camada-raiz"]');
+      expect(raizEl).toBeTruthy();
+      expect(grupoEl.contains(raizEl!)).toBe(false);
+    });
+
+    it('deve colapsar subcamadas quando a camada pai é recolhida', () => {
+      const camadasHierarquicas: CamadaItem[] = [
+        { id: 'grupo-1', name: 'Grupo Urbanismo', isGroup: true, visible: true },
+        { id: 'sub-1', name: 'Loteamento', parentId: 'grupo-1', visible: true }
+      ];
+
+      painel.definirCamadas(camadasHierarquicas, []);
+      const shadow = painel.shadowRoot!;
+
+      const grupoEl = shadow.querySelector('.ui-layer-group[data-layer-id="grupo-1"]') as HTMLElement;
+      const expandBtn = grupoEl.querySelector('[data-layer-expand="grupo-1"]') as HTMLElement;
+      const children = grupoEl.querySelector('.ui-children-container') as HTMLElement;
+
+      expect(children.style.display).not.toBe('none');
+
+      // Clica para recolher o grupo
+      expandBtn.click();
+      expect(children.style.display).toBe('none');
+    });
+
+    it('deve emitir ui-camada-mover-hierarquia ao alterar grupo pai pelo drawer', () => {
+      const camadas: CamadaItem[] = [
+        { id: 'grupo-1', name: 'Grupo A', isGroup: true },
+        { id: 'camada-1', name: 'Camada 1' }
+      ];
+
+      painel.definirCamadas(camadas, []);
+      const shadow = painel.shadowRoot!;
+
+      // Abre drawer da camada 1
+      const btnSettings = shadow.querySelector('[data-layer-settings="camada-1"]') as HTMLElement;
+      btnSettings.click();
+
+      const spy = vi.fn();
+      painel.addEventListener('ui-camada-mover-hierarquia', spy);
+
+      const parentSelect = shadow.querySelector('[data-layer-parent-select="camada-1"]') as HTMLSelectElement;
+      expect(parentSelect).toBeTruthy();
+
+      parentSelect.value = 'grupo-1';
+      parentSelect.dispatchEvent(new Event('change'));
+
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(spy.mock.calls[0][0].detail.camadaId).toBe('camada-1');
+      expect(spy.mock.calls[0][0].detail.novoParentId).toBe('grupo-1');
+
+      const camadaAtualizada = painel.camadas.find((c) => c.id === 'camada-1');
+      expect(camadaAtualizada?.parentId).toBe('grupo-1');
+    });
+
+    it('deve promover subcamadas para o nível raiz ao excluir uma camada pai', () => {
+      const camadas: CamadaItem[] = [
+        { id: 'grupo-pai', name: 'Grupo Pai', isGroup: true },
+        { id: 'sub-filha', name: 'Sub Filha', parentId: 'grupo-pai' }
+      ];
+
+      painel.definirCamadas(camadas, []);
+      painel.removerCamada('grupo-pai');
+
+      expect(painel.camadas.some((c) => c.id === 'grupo-pai')).toBe(false);
+      const subFilha = painel.camadas.find((c) => c.id === 'sub-filha');
+      expect(subFilha).toBeTruthy();
+      expect(subFilha?.parentId).toBeNull();
+    });
+  });
 });
 
 

@@ -1123,10 +1123,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // 16. Painel de Camadas GIS / CAD (<ui-camadas>)
   // ----------------------------------------------------
   const mockCamadasGis: CamadaItem[] = [
-    { id: 'camada-zoneamento', name: 'Zoneamento (ZR3 / Comercial)', color: '#00E08A', visible: true, locked: false },
-    { id: 'camada-lotes', name: 'Lotes e Glebas Urbanas', color: '#38bdf8', visible: true, locked: false },
-    { id: 'camada-eixos', name: 'Eixos Viários & Rodovias', color: '#f59e0b', visible: true, locked: false },
-    { id: 'camada-hidro', name: 'Hidrografia & APPs', color: '#06b6d4', visible: true, locked: false },
+    { id: 'grupo-planejamento', name: 'Planejamento Urbano', isGroup: true, visible: true, locked: false },
+    { id: 'camada-zoneamento', name: 'Zoneamento (ZR3 / Comercial)', color: '#00E08A', visible: true, locked: false, parentId: 'grupo-planejamento' },
+    { id: 'camada-lotes', name: 'Lotes e Glebas Urbanas', color: '#38bdf8', visible: true, locked: false, parentId: 'grupo-planejamento' },
+    { id: 'grupo-infra', name: 'Infraestrutura & Meio Ambiente', isGroup: true, visible: true, locked: false },
+    { id: 'camada-eixos', name: 'Eixos Viários & Rodovias', color: '#f59e0b', visible: true, locked: false, parentId: 'grupo-infra' },
+    { id: 'camada-hidro', name: 'Hidrografia & APPs', color: '#06b6d4', visible: true, locked: false, parentId: 'grupo-infra' },
     { id: 'camada-marcos', name: 'Marcos Geodésicos / Vértices', color: '#ec4899', visible: true, locked: false }
   ];
 
@@ -1276,12 +1278,34 @@ document.addEventListener('DOMContentLoaded', () => {
     painel.addEventListener('ui-acao-massa', (e: any) => {
       registrarLog(`[Camadas:${nomePainel}] Ação coletiva: "${e.detail.acao}" em ${e.detail.feicoesIds?.length || 0} feição(ões)`);
     });
-    painel.addEventListener('ui-camada-adicionar', () => {
+    painel.addEventListener('ui-camada-adicionar', (e: any) => {
+      const parentId = e.detail?.parentId || null;
       const novaId = 'camada-auto-' + Date.now();
-      const novaCamada = { id: novaId, name: `Nova Camada ${painel.camadas.length + 1}`, color: '#a855f7', visible: true };
-      painel.definirCamadas([...painel.camadas, novaCamada], painel.feicoes);
-      registrarLog(`[Camadas:${nomePainel}] Nova camada criada: ${novaCamada.name}`);
+      const novaCamada: CamadaItem = {
+        id: novaId,
+        name: parentId ? `Subcamada ${painel.camadas.length + 1}` : `Nova Camada ${painel.camadas.length + 1}`,
+        color: '#a855f7',
+        visible: true,
+        parentId
+      };
+      painel.adicionarCamada(novaCamada);
+      registrarLog(`[Camadas:${nomePainel}] Nova camada criada: ${novaCamada.name}${parentId ? ` (no grupo ${parentId})` : ''}`);
       UIToast.notificar({ tipo: 'sucesso', titulo: 'Nova Camada', mensagem: `Camada "${novaCamada.name}" criada com sucesso.` });
+    });
+    painel.addEventListener('ui-camada-grupo-adicionar', () => {
+      const novoId = 'grupo-auto-' + Date.now();
+      const novoGrupo: CamadaItem = {
+        id: novoId,
+        name: `Novo Grupo ${painel.camadas.filter((c) => c.isGroup).length + 1}`,
+        isGroup: true,
+        visible: true
+      };
+      painel.adicionarCamada(novoGrupo);
+      registrarLog(`[Camadas:${nomePainel}] Novo grupo criado: ${novoGrupo.name}`);
+      UIToast.notificar({ tipo: 'sucesso', titulo: 'Novo Grupo', mensagem: `Grupo "${novoGrupo.name}" criado com sucesso.` });
+    });
+    painel.addEventListener('ui-camada-mover-hierarquia', (e: any) => {
+      registrarLog(`[Camadas:${nomePainel}] Camada "${e.detail.camadaId}" movida para: ${e.detail.novoParentId || '(Nível Raiz)'}`);
     });
   });
 

@@ -37,7 +37,7 @@
   z-index: 1;
 }
 
-/* Painel de Camadas estilo QGIS (Retrátil e Flutuante) */
+/* Painel de Camadas Integrado (Retrátil e Flutuante) */
 .qgis-layer-panel {
   position: absolute;
   top: 12px;

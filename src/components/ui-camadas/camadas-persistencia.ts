@@ -12,6 +12,7 @@ export interface CamadaPropsPersistidas {
   locked?: boolean;
   opacity?: number;
   color?: string;
+  parentId?: string | null;
 }
 
 export interface CamadaOverridePersistido extends CamadaPropsPersistidas {
@@ -105,7 +106,8 @@ export function snapshotCamada(camada: CamadaItem): CamadaPropsPersistidas {
     visible: camada.visible !== false,
     locked: !!camada.locked,
     opacity: typeof camada.opacity === 'number' ? camada.opacity : 1,
-    color: camada.color || '#00E08A'
+    color: camada.color || '#00E08A',
+    parentId: camada.parentId !== undefined ? camada.parentId : null
   };
 }
 
@@ -141,6 +143,7 @@ export function reidratarCamadasComOverrides(
       if (typeof ov.locked === 'boolean' && !aplicacaoAlterou('locked')) camada.locked = ov.locked;
       if (typeof ov.opacity === 'number' && !aplicacaoAlterou('opacity')) camada.opacity = ov.opacity;
       if (typeof ov.color === 'string' && !aplicacaoAlterou('color')) camada.color = ov.color;
+      if (ov.parentId !== undefined && !aplicacaoAlterou('parentId')) camada.parentId = ov.parentId;
     }
 
     // Restaura estado de expansão:

@@ -16,13 +16,13 @@ const TEMPO_PRESSAO_LONGA_MS = 380;
 const TAMANHO_ICONE: Record<string, number> = { sm: 16, md: 18, lg: 22 };
 
 /**
- * <ui-paleta-ferramentas> — paleta de ferramentas (estilo Illustrator / Photoshop).
+ * <ui-paleta-ferramentas> — paleta de ferramentas gráficas com grupos expansíveis.
  *
  * - Itens com `filhos` viram um grupo: mostra a última ferramenta usada e abre um flyout
  *   com clique longo, botão direito ou seta (→ na vertical, ↓ na horizontal).
  * - Ferramentas (`tipo` padrão) são exclusivas; `toggle` liga/desliga; `botao` só dispara ação.
  * - Com o atributo `atalhos`, a tecla `atalho` do item ativa a ferramenta; teclas repetidas
- *   entre itens percorrem o grupo (como Shift+letra no Photoshop).
+ *   entre itens percorrem o grupo.
  *
  * Atributos: valor, orientacao (vertical|horizontal), colunas (1|2), tamanho (sm|md|lg), atalhos
  * Propriedades: ferramentas, valor

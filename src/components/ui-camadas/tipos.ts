@@ -1,6 +1,6 @@
 /* ====================================================
    UI Camadas - Tipos e Interfaces
-   Inspirado no Painel de Camadas GIS/CAD e Adobe Illustrator
+   Painel de Camadas Hierárquico para GIS e CAD
    ==================================================== */
 
 export type TipoGeometriaFeicao = 'Point' | 'LineString' | 'Polygon' | 'MultiPoint' | 'MultiLineString' | 'MultiPolygon' | string;
@@ -56,6 +56,9 @@ export interface CamadaItem {
   order?: number;
   count?: number;
   description?: string;
+  parentId?: string | null;
+  children?: CamadaItem[];
+  isGroup?: boolean;
   [key: string]: unknown;
 }
 
@@ -113,6 +116,12 @@ export interface DetalheEventoCorCamada {
 export interface DetalheEventoRenomearCamada {
   camadaId: string;
   novoNome: string;
+}
+
+export interface DetalheEventoMoverHierarquiaCamada {
+  camadaId: string;
+  novoParentId: string | null;
+  camada?: CamadaItem;
 }
 
 export interface DetalheEventoFeicao {

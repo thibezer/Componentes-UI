@@ -1,7 +1,7 @@
 /* ====================================================
    UI Camadas - Web Component Nativo W3C
    Painel de Camadas GIS/CAD de Alto Desempenho
-   Inspirado no ConecteMapas e Adobe Illustrator
+   Hierarquia Vetorial e Edição Profissional
    ==================================================== */
 
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
@@ -452,8 +452,23 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
     this.definirMapasBase(mapas);
   }
 
+  private achatarCamadas(camadas: CamadaItem[], parentId: string | null = null): CamadaItem[] {
+    const resultado: CamadaItem[] = [];
+    for (const c of camadas) {
+      const item = { ...c };
+      if (parentId && item.parentId === undefined) {
+        item.parentId = parentId;
+      }
+      resultado.push(item);
+      if (Array.isArray(c.children) && c.children.length > 0) {
+        resultado.push(...this.achatarCamadas(c.children, c.id));
+      }
+    }
+    return resultado;
+  }
+
   public definirCamadas(camadas: CamadaItem[], feicoes?: FeicaoItem[]): void {
-    this.camadas = Array.isArray(camadas) ? camadas.map((c) => ({ ...c })) : [];
+    this.camadas = Array.isArray(camadas) ? this.achatarCamadas(camadas) : [];
     this.origensCamadas.clear();
 
     // Reidratação inteligente com suporte à lembrança de estado (expansão, visibilidade, travas, opacidade, cor, ordem)
@@ -545,11 +560,18 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
     this.camadas.push(nova);
     this.origensCamadas.set(nova.id, snapshotCamada(nova));
     this.expandedLayers.add(nova.id);
+    if (nova.parentId) {
+      this.expandedLayers.add(nova.parentId);
+    }
     this.salvarLembrancaEstado();
     this.solicitarRenderizacao();
   }
 
   public removerCamada(camadaId: string): void {
+    // Promover subcamadas para raiz para evitar perda acidental de dados
+    this.camadas.forEach((l) => {
+      if (l.parentId === camadaId) l.parentId = null;
+    });
     this.camadas = this.camadas.filter((l) => l.id !== camadaId);
     this.feicoes = this.feicoes.filter((f) => f.layerId !== camadaId);
     this.origensCamadas.delete(camadaId);

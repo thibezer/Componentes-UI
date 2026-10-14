@@ -88,6 +88,23 @@ export function sincronizarSelecaoDOM(host: CamadasHostCompleto, shadow: ShadowR
     }
   }
 
+  // Alternar modos do rodapé: modo resumo vs modo ações em massa
+  const treeFooter = shadow.querySelector('.ui-tree-footer');
+  if (treeFooter) {
+    treeFooter.classList.toggle('tem-selecao', temSel);
+    treeFooter.classList.toggle('sem-selecao', !temSel);
+  }
+
+  const actionsGerais = shadow.querySelector('.ui-footer-actions-gerais') as HTMLElement | null;
+  if (actionsGerais) {
+    actionsGerais.style.display = temSel ? 'none' : 'flex';
+  }
+
+  const bulkActions = shadow.querySelector('.ui-footer-bulk-actions') as HTMLElement | null;
+  if (bulkActions) {
+    bulkActions.style.display = temSel ? 'flex' : 'none';
+  }
+
   // Habilitar/desabilitar botões do rodapé
   ['btn-footer-vis', 'btn-footer-lock', 'btn-footer-del'].forEach((id) => {
     const btn = shadow.getElementById(id) as HTMLButtonElement | null;
@@ -114,7 +131,7 @@ export function sincronizarSelecaoDOM(host: CamadasHostCompleto, shadow: ShadowR
   if (temSel && !clearBtn && rightFooter) {
     clearBtn = document.createElement('button');
     clearBtn.id = 'btn-footer-clear';
-    clearBtn.className = 'ui-footer-btn';
+    clearBtn.className = 'ui-footer-btn btn-clear-footer';
     clearBtn.title = 'Limpar seleção';
     clearBtn.innerHTML = ICONES.fechar;
     clearBtn.addEventListener('click', () => host.limparSelecao(true));

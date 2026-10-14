@@ -1,6 +1,6 @@
 # 🌐 Componente UI Seletor de Mapa Base (`<ui-seletor-mapa-base>`)
 
-> **Web Component W3C Nativo** para alternância flutuante e discreta de mapas base (satélite, terreno, ruas, CAD) em aplicações GIS/CAD (ex: ConecteMapas, GerenciGeo, Rifa da Sorte).
+> **Web Component W3C Nativo** para alternância flutuante e discreta de mapas base (satélite, terreno, ruas, CAD) em aplicações web modernas de GIS, CAD e dashboards cartográficos.
 
 ---
 

@@ -1,6 +1,6 @@
 /* ====================================================
    UI Camadas - Renderizador da Árvore de Camadas
-   Hierarquia de Camadas e Feições estilo Illustrator/GIS
+   Hierarquia Profissional de Camadas e Feições Vetoriais
    ==================================================== */
 
 import { CamadaItem, FeicaoItem } from './tipos';
@@ -38,6 +38,43 @@ export function renderizarThumbGeometria(tipo: string | undefined, cor: string):
     return `<svg viewBox="0 0 16 16" width="11" height="11"><text x="8" y="12" font-size="12" font-weight="bold" fill="${safeColor}" text-anchor="middle" font-family="sans-serif">T</text></svg>`;
   }
   return `<svg viewBox="0 0 16 16" width="11" height="11"><circle cx="8" cy="8" r="4.2" fill="${safeColor}" stroke="#ffffff" stroke-width="1.2"/></svg>`;
+}
+
+export interface CamadaNodoHierarquico {
+  camada: CamadaItem;
+  depth: number;
+  subcamadas: CamadaNodoHierarquico[];
+}
+
+/**
+ * Organiza a lista de camadas em uma árvore hierárquica de nós baseada em parentId ou children
+ */
+export function construirHierarquiaCamadas(camadas: CamadaItem[]): CamadaNodoHierarquico[] {
+  const mapaCamadas = new Map<string, CamadaItem>();
+  camadas.forEach((l) => mapaCamadas.set(l.id, l));
+
+  const filhasPorPai = new Map<string, CamadaItem[]>();
+  const raizes: CamadaItem[] = [];
+
+  camadas.forEach((l) => {
+    if (l.parentId && mapaCamadas.has(l.parentId) && l.parentId !== l.id) {
+      if (!filhasPorPai.has(l.parentId)) filhasPorPai.set(l.parentId, []);
+      filhasPorPai.get(l.parentId)!.push(l);
+    } else {
+      raizes.push(l);
+    }
+  });
+
+  function montarNodo(camada: CamadaItem, depth: number): CamadaNodoHierarquico {
+    const filhas = filhasPorPai.get(camada.id) || (Array.isArray(camada.children) ? camada.children : []);
+    return {
+      camada,
+      depth,
+      subcamadas: filhas.map((f) => montarNodo(f, depth + 1))
+    };
+  }
+
+  return raizes.map((r) => montarNodo(r, 0));
 }
 
 export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string {
@@ -88,6 +125,9 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
         }">
           <span class="ui-chevron-icon ${allExpanded ? 'open' : ''}">${ICONES.chevronDir}</span>
         </button>
+        <button id="btn-add-group" class="ui-tree-btn-group" title="Criar grupo / pasta de camadas" aria-label="Criar grupo de camadas">
+          ${ICONES.moverPasta} Grupo
+        </button>
         <button id="btn-add-layer" class="ui-tree-btn-new" title="Adicionar nova camada vetorial">
           ${ICONES.mais} Camada
         </button>
@@ -112,222 +152,262 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
     </div>
   `;
 
-  const camadasHtml = camadas
-    .map((layer) => {
-      const safeId = escapeHtml(layer.id);
-      const safeName = escapeHtml(layer.name || 'Camada');
-      const safeColor = sanitizarCorCss(layer.color, '#00E08A');
-      const isVisible = layer.visible !== false;
-      const isLocked = layer.locked === true;
-      const isExpanded = q ? true : expandedLayers.has(layer.id);
-      const isSettingsOpen = activeSettingsLayerId === layer.id;
-      const isActiveLayer = camadaAtivaId === layer.id;
+  // Função recursiva para renderizar um nó e todas as suas subcamadas
+  const renderizarNodo = (nodo: CamadaNodoHierarquico): string => {
+    const layer = nodo.camada;
+    const depth = nodo.depth;
+    const subcamadas = nodo.subcamadas;
+    const isGroup = Boolean(layer.isGroup || subcamadas.length > 0);
 
-      const layerFeats = filtrarFeicoesPorBusca(featsByLayer.get(layer.id) || [], q);
+    const safeId = escapeHtml(layer.id);
+    const safeName = escapeHtml(layer.name || (isGroup ? 'Novo Grupo' : 'Camada'));
+    const safeColor = sanitizarCorCss(layer.color, '#00E08A');
+    const isVisible = layer.visible !== false;
+    const isLocked = layer.locked === true;
+    const isExpanded = q ? true : expandedLayers.has(layer.id);
+    const isSettingsOpen = activeSettingsLayerId === layer.id;
+    const isActiveLayer = camadaAtivaId === layer.id;
 
-      const allFeatsSelected =
-        layerFeats.length > 0 && layerFeats.every((f) => selectedFeatureIds.has(f.id));
-      const someFeatsSelected =
-        !allFeatsSelected && layerFeats.some((f) => selectedFeatureIds.has(f.id));
+    const layerFeats = filtrarFeicoesPorBusca(featsByLayer.get(layer.id) || [], q);
 
-      const visibleFeats = layerFeats.slice(0, limiteFeicoesPorCamada);
-      const hasTruncated = layerFeats.length > limiteFeicoesPorCamada;
+    const allFeatsSelected =
+      layerFeats.length > 0 && layerFeats.every((f) => selectedFeatureIds.has(f.id));
+    const someFeatsSelected =
+      !allFeatsSelected && layerFeats.some((f) => selectedFeatureIds.has(f.id));
 
-      const feicoesHtml = visibleFeats
-        .map((feat) => {
-          const featId = escapeHtml(feat.id);
-          const featName = escapeHtml(feat.name || 'Feição');
-          const featColor = sanitizarCorCss(feat.color, safeColor);
-          const isFeatVisible = feat.visible !== false;
-          const featTravadaPelaCamada = isLocked;
-          const isFeatLocked = feat.locked === true || featTravadaPelaCamada;
-          const tituloLockFeicao = featTravadaPelaCamada
-            ? 'Bloqueada pela camada'
-            : isFeatLocked
-              ? 'Desbloquear Feição'
-              : 'Bloquear Feição';
-          const isFeatSelected = selectedFeatureIds.has(feat.id);
+    const visibleFeats = layerFeats.slice(0, limiteFeicoesPorCamada);
+    const hasTruncated = layerFeats.length > limiteFeicoesPorCamada;
 
-          const status = feat.status;
-          let statusTag = '';
-          if (status === 'oficial') {
-            statusTag = `<span class="ui-geom-tag oficial" title="Geometria Oficial">OFICIAL</span>`;
-          } else if (status === 'previa') {
-            statusTag = `<span class="ui-geom-tag previa" title="Geometria Prévia">PRÉVIA</span>`;
-          }
+    const feicoesHtml = visibleFeats
+      .map((feat) => {
+        const featId = escapeHtml(feat.id);
+        const featName = escapeHtml(feat.name || 'Feição');
+        const featColor = sanitizarCorCss(feat.color, safeColor);
+        const isFeatVisible = feat.visible !== false;
+        const featTravadaPelaCamada = isLocked;
+        const isFeatLocked = feat.locked === true || featTravadaPelaCamada;
+        const tituloLockFeicao = featTravadaPelaCamada
+          ? 'Bloqueada pela camada'
+          : isFeatLocked
+            ? 'Desbloquear Feição'
+            : 'Bloquear Feição';
+        const isFeatSelected = selectedFeatureIds.has(feat.id);
 
-          return `
-            <div class="ui-feat-row ${isFeatSelected ? 'selected-row' : ''} ${
-            !isFeatVisible ? 'hidden-row' : ''
-          }" data-feat-row="${featId}" data-feat-select="${featId}" data-feat-layer="${safeId}" role="treeitem" aria-selected="${isFeatSelected}" tabindex="-1" draggable="true" title="Clique para selecionar | Arraste para reordenar">
-              <div class="ui-col ui-col-eye" data-feat-eye="${featId}" role="button" tabindex="0" aria-label="${
-            isFeatVisible ? 'Ocultar Feição' : 'Exibir Feição'
-          }" title="${
-            isFeatVisible ? 'Ocultar Feição' : 'Exibir Feição'
-          }">
-                ${isFeatVisible ? ICONES.olhoAberto : ICONES.olhoFechado}
-              </div>
+        const status = feat.status;
+        let statusTag = '';
+        if (status === 'oficial') {
+          statusTag = `<span class="ui-geom-tag oficial" title="Geometria Oficial">OFICIAL</span>`;
+        } else if (status === 'previa') {
+          statusTag = `<span class="ui-geom-tag previa" title="Geometria Prévia">PRÉVIA</span>`;
+        }
 
-              <div class="ui-col ui-col-lock ${!isFeatLocked ? 'ui-lock-open' : ''}" data-feat-lock="${featId}" ${
-            featTravadaPelaCamada ? 'data-locked-by-layer="true"' : ''
-          } role="button" tabindex="0" aria-label="${tituloLockFeicao}" title="${tituloLockFeicao}">
-                ${isFeatLocked ? ICONES.cadeadoTrancado : ICONES.cadeadoAberto}
-              </div>
-
-              <div class="ui-col ui-col-colorbar" style="background: ${featColor};"></div>
-              <div class="ui-col ui-col-branch"><span style="opacity: 0.35;">└─</span></div>
-              <div class="ui-col ui-col-thumb">
-                <div class="ui-thumb-box">${renderizarThumbGeometria(feat.type || feat.geometryType, featColor)}</div>
-              </div>
-
-              <div class="ui-col ui-col-name" data-feat-name-trigger="${featId}" title="Duplo clique para renomear">
-                ${
-                  editingFeatureId === feat.id
-                    ? `<input type="text" class="ui-inline-rename-input" data-inline-feat-input="${featId}" value="${featName}" />`
-                    : `<span class="ui-name-text">${featName}</span>${statusTag}`
-                }
-              </div>
-
-              <div class="ui-col ui-col-actions">
-                <button class="ui-micro-btn" data-feat-fit="${featId}" title="Enquadrar no mapa" aria-label="Enquadrar feição no mapa">${ICONES.alvoEnquadrar}</button>
-              </div>
-
-              <div class="ui-col ui-col-target" data-feat-target="${featId}" role="button" tabindex="0" aria-label="Selecionar feição" title="Selecionar feição">
-                <div class="ui-target-circle ${isFeatSelected ? 'selected' : ''}"></div>
-              </div>
-            </div>
-          `;
-        })
-        .join('');
-
-      const truncateNotice = hasTruncated
-        ? `<div style="padding: 4px 10px; font-size: 10px; color: var(--ui-cor-texto-secundario, #888899); font-style: italic; background: rgba(0,0,0,0.2);">Exibindo ${limiteFeicoesPorCamada} de ${layerFeats.length} feições. Use a busca acima para filtrar.</div>`
-        : '';
-
-      const currentOpacity = layer.opacity !== undefined ? layer.opacity : 1;
-      const currentOpacityPct = Math.round(currentOpacity * 100);
-
-      const settingsDrawerHtml = isSettingsOpen
-        ? `
-        <div class="ui-layer-settings-drawer" id="settings-drawer-${safeId}" style="--drawer-cor-camada: ${safeColor};">
-          <div class="ui-drawer-header">
-            <div class="ui-drawer-header-left">
-              <span class="ui-drawer-icon">${ICONES.engrenagem}</span>
-              <span class="ui-drawer-title">Configurações da Camada</span>
-            </div>
-            <button type="button" class="ui-drawer-btn-fechar" data-layer-settings-close="${safeId}" title="Fechar configurações (Esc)" aria-label="Fechar configurações">
-              ${ICONES.fechar}
-            </button>
-          </div>
-
-          <div class="ui-drawer-body">
-            <!-- Cor da Camada -->
-            <div class="ui-drawer-row">
-              <div class="ui-drawer-row-label">
-                <span>Cor do Vetor</span>
-              </div>
-              <div class="ui-drawer-color-group">
-                <label class="ui-drawer-color-pill" title="Clique para alterar a cor da camada">
-                  <span class="ui-drawer-color-sample" id="sample-color-${safeId}" style="background-color: ${safeColor};"></span>
-                  <span class="ui-drawer-color-hex" id="hex-color-${safeId}">${safeColor.toUpperCase()}</span>
-                  <input type="color" aria-label="Cor da camada" data-layer-color-picker="${safeId}" value="${corParaHex(safeColor, '#00e08a')}" class="ui-drawer-color-native" />
-                </label>
-              </div>
+        return `
+          <div class="ui-feat-row ${isFeatSelected ? 'selected-row' : ''} ${
+          !isFeatVisible ? 'hidden-row' : ''
+        }" data-feat-row="${featId}" data-feat-select="${featId}" data-feat-layer="${safeId}" role="treeitem" aria-selected="${isFeatSelected}" tabindex="-1" draggable="true" title="Clique para selecionar | Arraste para reordenar">
+            <div class="ui-col ui-col-eye" data-feat-eye="${featId}" role="button" tabindex="0" aria-label="${
+          isFeatVisible ? 'Ocultar Feição' : 'Exibir Feição'
+        }" title="${
+          isFeatVisible ? 'Ocultar Feição' : 'Exibir Feição'
+        }">
+              ${isFeatVisible ? ICONES.olhoAberto : ICONES.olhoFechado}
             </div>
 
-            <!-- Opacidade da Camada -->
-            <div class="ui-drawer-row">
-              <div class="ui-drawer-row-label">
-                <span>Opacidade</span>
-                <span class="ui-drawer-badge" id="badge-op-${safeId}">${currentOpacityPct}%</span>
-              </div>
-              <div class="ui-drawer-slider-container">
-                <input type="range" aria-label="Opacidade da camada" min="0.05" max="1" step="0.05" value="${Number(currentOpacity) || 0}" data-layer-opacity-slider="${safeId}" class="ui-drawer-slider" />
-              </div>
-            </div>
-          </div>
-
-          <div class="ui-drawer-footer">
-            <div class="ui-drawer-meta-info">
-              <span>${layerFeats.length} ${layerFeats.length === 1 ? 'feição' : 'feições'} nesta camada</span>
-            </div>
-            <div class="ui-drawer-actions">
-              <button type="button" class="ui-drawer-btn-danger" data-delete-layer="${safeId}" title="Excluir esta camada e todas as suas feições">
-                ${ICONES.lixeira}
-                <span class="ui-btn-label">Excluir Camada</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      `
-        : '';
-
-      return `
-        <div class="ui-layer-group" data-layer-id="${safeId}" role="treeitem" aria-expanded="${isExpanded}">
-          <div class="ui-layer-row ${!isVisible ? 'hidden-layer' : ''} ${
-        isActiveLayer ? 'active-drawing-layer' : ''
-      }" data-layer-row="${safeId}" data-layer-id="${safeId}" tabindex="-1" draggable="true" style="--layer-active-color: ${safeColor};">
-            <div class="ui-col ui-col-drag" title="Arrastar para reordenar Z-Index">${ICONES.dragHandle}</div>
-
-            <div class="ui-col ui-col-eye" data-layer-eye="${safeId}" role="button" tabindex="0" aria-label="${
-        isVisible ? 'Ocultar Camada' : 'Exibir Camada'
-      }" title="${
-        isVisible ? 'Ocultar Camada' : 'Exibir Camada'
-      }">
-              ${isVisible ? ICONES.olhoAberto : ICONES.olhoFechado}
+            <div class="ui-col ui-col-lock ${!isFeatLocked ? 'ui-lock-open' : ''}" data-feat-lock="${featId}" ${
+          featTravadaPelaCamada ? 'data-locked-by-layer="true"' : ''
+        } role="button" tabindex="0" aria-label="${tituloLockFeicao}" title="${tituloLockFeicao}">
+              ${isFeatLocked ? ICONES.cadeadoTrancado : ICONES.cadeadoAberto}
             </div>
 
-            <div class="ui-col ui-col-lock ${!isLocked ? 'ui-lock-open' : ''}" data-layer-lock="${safeId}" role="button" tabindex="0" aria-label="${
-        isLocked ? 'Desbloquear Camada' : 'Bloquear Camada'
-      }" title="${
-        isLocked ? 'Desbloquear Camada' : 'Bloquear Camada'
-      }">
-              ${isLocked ? ICONES.cadeadoTrancado : ICONES.cadeadoAberto}
+            <div class="ui-col ui-col-colorbar" style="background: ${featColor};"></div>
+            <div class="ui-col ui-col-branch"><span style="opacity: 0.35;">└─</span></div>
+            <div class="ui-col ui-col-thumb">
+              <div class="ui-thumb-box">${renderizarThumbGeometria(feat.type || feat.geometryType, featColor)}</div>
             </div>
 
-            <div class="ui-col ui-col-colorbar" style="background: ${safeColor};"></div>
-
-            <div class="ui-col ui-col-chevron" data-layer-expand="${safeId}" role="button" tabindex="0" aria-label="${isExpanded ? 'Recolher grupo' : 'Expandir grupo'}">
-              <span class="ui-chevron-icon ${isExpanded ? 'open' : ''}">${ICONES.chevronDir}</span>
-            </div>
-
-            <div class="ui-col ui-col-name" data-layer-name-trigger="${safeId}" title="Clique para ativar camada de desenho | Duplo clique para renomear">
+            <div class="ui-col ui-col-name" data-feat-name-trigger="${featId}" title="Duplo clique para renomear">
               ${
-                editingLayerId === layer.id
-                  ? `<input type="text" class="ui-inline-rename-input" data-inline-layer-input="${safeId}" value="${safeName}" />`
-                  : `<span class="ui-name-text">${safeName}</span>
-                     ${isActiveLayer ? `<span class="ui-active-badge" title="Camada ativa para novos desenhos">✓ Ativa</span>` : ''}
-                     <span class="ui-count-chip">${layerFeats.length}</span>`
+                editingFeatureId === feat.id
+                  ? `<input type="text" class="ui-inline-rename-input" data-inline-feat-input="${featId}" value="${featName}" />`
+                  : `<span class="ui-name-text">${featName}</span>${statusTag}`
               }
             </div>
 
             <div class="ui-col ui-col-actions">
-              <button class="ui-micro-btn" data-layer-fit="${safeId}" title="Enquadrar camada no mapa" aria-label="Enquadrar camada no mapa">${ICONES.alvoEnquadrar}</button>
-              <button class="ui-micro-btn ${isSettingsOpen ? 'active' : ''}" data-layer-settings="${safeId}" title="Ajustar cor, opacidade e excluir" aria-label="Configurações da camada" aria-expanded="${isSettingsOpen}">${ICONES.engrenagem}</button>
+              <button class="ui-micro-btn" data-feat-fit="${featId}" title="Enquadrar no mapa" aria-label="Enquadrar feição no mapa">${ICONES.alvoEnquadrar}</button>
             </div>
 
-            <div class="ui-col ui-col-target" data-layer-target="${safeId}" role="button" tabindex="0" aria-label="Selecionar todas as feições deste grupo" title="Selecionar todas as feições deste grupo">
-              <div class="ui-target-circle ${
-                allFeatsSelected ? 'selected' : someFeatsSelected ? 'partial' : ''
-              }"></div>
+            <div class="ui-col ui-col-target" data-feat-target="${featId}" role="button" tabindex="0" aria-label="Selecionar feição" title="Selecionar feição">
+              <div class="ui-target-circle ${isFeatSelected ? 'selected' : ''}"></div>
+            </div>
+          </div>
+        `;
+      })
+      .join('');
+
+    const truncateNotice = hasTruncated
+      ? `<div style="padding: 4px 10px; font-size: 10px; color: var(--ui-cor-texto-secundario, #888899); font-style: italic; background: rgba(0,0,0,0.2);">Exibindo ${limiteFeicoesPorCamada} de ${layerFeats.length} feições. Use a busca acima para filtrar.</div>`
+      : '';
+
+    const currentOpacity = layer.opacity !== undefined ? layer.opacity : 1;
+    const currentOpacityPct = Math.round(currentOpacity * 100);
+
+    // Opções de outras camadas para selecionar grupo pai no drawer
+    const opcoesOutrosPais = camadas
+      .filter((l) => l.id !== layer.id)
+      .map(
+        (l) =>
+          `<option value="${escapeHtml(l.id)}" ${layer.parentId === l.id ? 'selected' : ''}>${
+            l.isGroup ? '📁 ' : ''
+          }${escapeHtml(l.name)}</option>`
+      )
+      .join('');
+
+    const settingsDrawerHtml = isSettingsOpen
+      ? `
+      <div class="ui-layer-settings-drawer" id="settings-drawer-${safeId}" style="--drawer-cor-camada: ${safeColor};">
+        <div class="ui-drawer-header">
+          <div class="ui-drawer-header-left">
+            <span class="ui-drawer-icon">${ICONES.engrenagem}</span>
+            <span class="ui-drawer-title">Configurações da Camada</span>
+          </div>
+          <button type="button" class="ui-drawer-btn-fechar" data-layer-settings-close="${safeId}" title="Fechar configurações (Esc)" aria-label="Fechar configurações">
+            ${ICONES.fechar}
+          </button>
+        </div>
+
+        <div class="ui-drawer-body">
+          <!-- Cor da Camada -->
+          <div class="ui-drawer-row">
+            <div class="ui-drawer-row-label">
+              <span>Cor do Vetor</span>
+            </div>
+            <div class="ui-drawer-color-group">
+              <label class="ui-drawer-color-pill" title="Clique para alterar a cor da camada">
+                <span class="ui-drawer-color-sample" id="sample-color-${safeId}" style="background-color: ${safeColor};"></span>
+                <span class="ui-drawer-color-hex" id="hex-color-${safeId}">${safeColor.toUpperCase()}</span>
+                <input type="color" aria-label="Cor da camada" data-layer-color-picker="${safeId}" value="${corParaHex(safeColor, '#00e08a')}" class="ui-drawer-color-native" />
+              </label>
             </div>
           </div>
 
-          ${settingsDrawerHtml}
+          <!-- Opacidade da Camada -->
+          <div class="ui-drawer-row">
+            <div class="ui-drawer-row-label">
+              <span>Opacidade</span>
+              <span class="ui-drawer-badge" id="badge-op-${safeId}">${currentOpacityPct}%</span>
+            </div>
+            <div class="ui-drawer-slider-container">
+              <input type="range" aria-label="Opacidade da camada" min="0.05" max="1" step="0.05" value="${Number(currentOpacity) || 0}" data-layer-opacity-slider="${safeId}" class="ui-drawer-slider" />
+            </div>
+          </div>
 
-          <div class="ui-children-container" role="group" style="display: ${isExpanded ? 'block' : 'none'};">
-            ${feicoesHtml}
-            ${truncateNotice}
-            ${
-              layerFeats.length === 0
-                ? `<div class="ui-empty-row"><span>${q ? 'Nenhum item correspondente' : 'Nenhum elemento neste grupo'}</span></div>`
-                : ''
-            }
+          <!-- Hierarquia / Grupo Pai -->
+          <div class="ui-drawer-row">
+            <div class="ui-drawer-row-label">
+              <span>Pertence ao Grupo</span>
+            </div>
+            <div class="ui-drawer-select-wrapper">
+              <select class="ui-drawer-select" data-layer-parent-select="${safeId}" aria-label="Grupo pai da camada">
+                <option value="" ${!layer.parentId ? 'selected' : ''}>(Nenhum - Nível Principal)</option>
+                ${opcoesOutrosPais}
+              </select>
+            </div>
           </div>
         </div>
-      `;
-    })
-    .join('');
+
+        <div class="ui-drawer-footer">
+          <div class="ui-drawer-meta-info">
+            <span>${subcamadas.length > 0 ? `${subcamadas.length} subcamadas · ` : ''}${layerFeats.length} ${layerFeats.length === 1 ? 'feição' : 'feições'}</span>
+          </div>
+          <div class="ui-drawer-actions">
+            <button type="button" class="ui-drawer-btn-sublayer" data-add-sublayer="${safeId}" title="Adicionar nova camada dentro desta">
+              ${ICONES.mais} Subcamada
+            </button>
+            <button type="button" class="ui-drawer-btn-danger" data-delete-layer="${safeId}" title="Excluir esta camada e suas feições">
+              ${ICONES.lixeira}
+              <span class="ui-btn-label">Excluir</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    `
+      : '';
+
+    // Renderiza subcamadas recursivamente
+    const subcamadasHtml = subcamadas.map((sub) => renderizarNodo(sub)).join('');
+
+    return `
+      <div class="ui-layer-group ${depth > 0 ? 'is-sublayer-group' : ''}" data-layer-id="${safeId}" data-layer-depth="${depth}" role="treeitem" aria-expanded="${isExpanded}">
+        <div class="ui-layer-row ${!isVisible ? 'hidden-layer' : ''} ${
+      isActiveLayer ? 'active-drawing-layer' : ''
+    } ${depth > 0 ? 'is-sublayer' : ''} ${isGroup ? 'is-group-row' : ''}" data-layer-row="${safeId}" data-layer-id="${safeId}" tabindex="-1" draggable="true" style="--layer-depth: ${depth}; --layer-active-color: ${safeColor};">
+          <div class="ui-col ui-col-drag" title="Arrastar para reordenar Z-Index">${ICONES.dragHandle}</div>
+
+          <div class="ui-col ui-col-eye" data-layer-eye="${safeId}" role="button" tabindex="0" aria-label="${
+      isVisible ? 'Ocultar Camada' : 'Exibir Camada'
+    }" title="${
+      isVisible ? 'Ocultar Camada' : 'Exibir Camada'
+    }">
+            ${isVisible ? ICONES.olhoAberto : ICONES.olhoFechado}
+          </div>
+
+          <div class="ui-col ui-col-lock ${!isLocked ? 'ui-lock-open' : ''}" data-layer-lock="${safeId}" role="button" tabindex="0" aria-label="${
+      isLocked ? 'Desbloquear Camada' : 'Bloquear Camada'
+    }" title="${
+      isLocked ? 'Desbloquear Camada' : 'Bloquear Camada'
+    }">
+            ${isLocked ? ICONES.cadeadoTrancado : ICONES.cadeadoAberto}
+          </div>
+
+          <div class="ui-col ui-col-colorbar" style="background: ${safeColor};"></div>
+
+          <div class="ui-col ui-col-chevron" data-layer-expand="${safeId}" role="button" tabindex="0" aria-label="${isExpanded ? 'Recolher grupo' : 'Expandir grupo'}">
+            <span class="ui-chevron-icon ${isExpanded ? 'open' : ''}">${ICONES.chevronDir}</span>
+          </div>
+
+          <div class="ui-col ui-col-name" data-layer-name-trigger="${safeId}" title="Clique para ativar camada de desenho | Duplo clique para renomear">
+            ${
+              editingLayerId === layer.id
+                ? `<input type="text" class="ui-inline-rename-input" data-inline-layer-input="${safeId}" value="${safeName}" />`
+                : `${isGroup ? `<span class="ui-group-folder-icon" title="Grupo/Pasta">${ICONES.moverPasta}</span>` : ''}
+                   <span class="ui-name-text">${safeName}</span>
+                   ${isActiveLayer ? `<span class="ui-active-badge" title="Camada ativa para novos desenhos">✓ Ativa</span>` : ''}
+                   ${subcamadas.length > 0 ? `<span class="ui-group-badge" title="${subcamadas.length} subcamadas">${subcamadas.length} sub</span>` : ''}
+                   ${layerFeats.length > 0 || !isGroup ? `<span class="ui-count-chip">${layerFeats.length}</span>` : ''}`
+            }
+          </div>
+
+          <div class="ui-col ui-col-actions">
+            <button class="ui-micro-btn" data-layer-fit="${safeId}" title="Enquadrar camada no mapa" aria-label="Enquadrar camada no mapa">${ICONES.alvoEnquadrar}</button>
+            <button class="ui-micro-btn ${isSettingsOpen ? 'active' : ''}" data-layer-settings="${safeId}" title="Ajustar cor, hierarquia, opacidade e excluir" aria-label="Configurações da camada" aria-expanded="${isSettingsOpen}">${ICONES.engrenagem}</button>
+          </div>
+
+          <div class="ui-col ui-col-target" data-layer-target="${safeId}" role="button" tabindex="0" aria-label="Selecionar todas as feições deste grupo" title="Selecionar todas as feições deste grupo">
+            <div class="ui-target-circle ${
+              allFeatsSelected ? 'selected' : someFeatsSelected ? 'partial' : ''
+            }"></div>
+          </div>
+        </div>
+
+        ${settingsDrawerHtml}
+
+        <div class="ui-children-container ${depth > 0 ? 'is-subchildren' : ''}" role="group" style="display: ${isExpanded ? 'block' : 'none'};">
+          ${subcamadasHtml}
+          ${feicoesHtml}
+          ${truncateNotice}
+          ${
+            subcamadas.length === 0 && layerFeats.length === 0
+              ? `<div class="ui-empty-row"><span>${q ? 'Nenhum item correspondente' : isGroup ? 'Grupo vazio (adicione subcamadas ou feições)' : 'Nenhum elemento neste grupo'}</span></div>`
+              : ''
+          }
+        </div>
+      </div>
+    `;
+  };
+
+  const hierarquia = construirHierarquiaCamadas(camadas);
+  const camadasHtml = hierarquia.map((nodo) => renderizarNodo(nodo)).join('');
 
   return `
     ${toolbarHtml}

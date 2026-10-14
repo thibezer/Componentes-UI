@@ -53,7 +53,7 @@
   border-radius: var(--ui-paleta-btn-raio);
 }
 
-/* Ferramenta ativa: preenchimento sólido, como em Illustrator/Photoshop */
+/* Ferramenta ativa: preenchimento sólido de destaque */
 .ui-paleta .ui-ferr-btn--ativo {
   background: var(--ui-cor-primaria, #00E08A);
   border-color: transparent;

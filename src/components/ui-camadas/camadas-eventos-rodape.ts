@@ -47,9 +47,16 @@ export function conectarEventosRodape(host: CamadasHostCompleto, shadow: ShadowR
 
   // Cor coletiva
   const inputFooterColor = shadow.getElementById('input-footer-color') as HTMLInputElement | null;
+  const previewFooterColor = shadow.getElementById('preview-footer-color') as HTMLElement | null;
   if (inputFooterColor) {
+    inputFooterColor.addEventListener('input', (e) => {
+      const cor = (e.target as HTMLInputElement).value;
+      if (previewFooterColor) previewFooterColor.style.backgroundColor = cor;
+    });
+
     inputFooterColor.addEventListener('change', (e) => {
       const cor = (e.target as HTMLInputElement).value;
+      if (previewFooterColor) previewFooterColor.style.backgroundColor = cor;
       const selFeats = host.feicoes.filter((f) => host.selectedFeatureIds.has(f.id));
       if (selFeats.length === 0) return;
       selFeats.forEach((f) => {
@@ -101,6 +108,14 @@ export function conectarEventosRodape(host: CamadasHostCompleto, shadow: ShadowR
   if (btnFooterNewLayer) {
     btnFooterNewLayer.addEventListener('click', () => {
       host.dispararEvento('ui-camada-adicionar', {});
+    });
+  }
+
+  // Novo grupo de camadas
+  const btnFooterNewGroup = shadow.getElementById('btn-footer-new-group');
+  if (btnFooterNewGroup) {
+    btnFooterNewGroup.addEventListener('click', () => {
+      host.dispararEvento('ui-camada-grupo-adicionar', { isGroup: true });
     });
   }
 

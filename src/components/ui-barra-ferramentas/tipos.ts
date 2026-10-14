@@ -1,7 +1,7 @@
 /**
  * Tipos compartilhados pelos componentes de barra de ferramentas:
- *  - <ui-ribbon>              → abas + grupos (estilo AutoCAD / Word / Excel)
- *  - <ui-paleta-ferramentas>  → paleta com flyouts (estilo Illustrator / Photoshop)
+ *  - <ui-ribbon>              → barra contextual com abas e grupos
+ *  - <ui-paleta-ferramentas>  → paleta de ferramentas com flyouts expansíveis
  */
 
 /**

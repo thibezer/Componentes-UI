@@ -16,6 +16,20 @@ export interface UICamadasHost {
   salvarLembrancaEstado?(): void;
 }
 
+/** Evita ciclos hierárquicos ao mover uma camada para dentro de outra */
+function ehDescendente(
+  camadas: CamadaItem[],
+  possivelDescendenteId: string,
+  ancestralId: string
+): boolean {
+  let atual = camadas.find((c) => c.id === possivelDescendenteId);
+  while (atual && atual.parentId) {
+    if (atual.parentId === ancestralId) return true;
+    atual = camadas.find((c) => c.id === atual?.parentId);
+  }
+  return false;
+}
+
 export class CamadasDragDropManager {
   private host: UICamadasHost;
   private shadow: ShadowRoot;
@@ -189,9 +203,18 @@ export class CamadasDragDropManager {
         if (draggedType === 'layer') {
           if (draggedLayerId === layerId) return;
           const rect = layerRow.getBoundingClientRect();
-          const isTop = de.clientY - rect.top < rect.height / 2;
-          layerRow.classList.toggle('drop-above', isTop);
-          layerRow.classList.toggle('drop-below', !isTop);
+          const relY = (de.clientY - rect.top) / rect.height;
+          if (relY < 0.25) {
+            layerRow.classList.add('drop-above');
+            layerRow.classList.remove('drop-below', 'drop-into');
+          } else if (relY > 0.75) {
+            layerRow.classList.add('drop-below');
+            layerRow.classList.remove('drop-above', 'drop-into');
+          } else {
+            // Zona central: soltar para dentro como subcamada
+            layerRow.classList.add('drop-into');
+            layerRow.classList.remove('drop-above', 'drop-below');
+          }
         } else if (draggedType === 'feature') {
           layerRow.classList.add('drop-into');
         }
@@ -209,19 +232,40 @@ export class CamadasDragDropManager {
         de.preventDefault();
         de.stopPropagation();
         const dropAbove = layerRow.classList.contains('drop-above');
+        const dropInto = layerRow.classList.contains('drop-into');
         clearAllDragClasses();
 
         if (draggedType === 'layer') {
           if (!draggedLayerId || draggedLayerId === layerId) return;
-          const srcIdx = this.host.camadas.findIndex((l) => l.id === draggedLayerId);
-          if (srcIdx === -1) return;
+          const movedLayer = this.host.camadas.find((l) => l.id === draggedLayerId);
+          const targetLayer = this.host.camadas.find((l) => l.id === layerId);
+          if (!movedLayer || !targetLayer) return;
 
-          const [movedLayer] = this.host.camadas.splice(srcIdx, 1);
-          const tgtIdx = this.host.camadas.findIndex((l) => l.id === layerId);
-          if (tgtIdx === -1) {
-            this.host.camadas.push(movedLayer);
+          if (dropInto) {
+            // Soltar DENTRO como subcamada (evitando ciclos)
+            if (!ehDescendente(this.host.camadas, targetLayer.id, movedLayer.id)) {
+              movedLayer.parentId = targetLayer.id;
+              if ('expandedLayers' in this.host && (this.host as any).expandedLayers) {
+                (this.host as any).expandedLayers.add(targetLayer.id);
+              }
+              this.host.dispararEvento('ui-camada-mover-hierarquia', {
+                camadaId: movedLayer.id,
+                novoParentId: targetLayer.id,
+                camada: movedLayer
+              });
+            }
           } else {
-            this.host.camadas.splice(dropAbove ? tgtIdx : tgtIdx + 1, 0, movedLayer);
+            // Reordenação na árvore
+            const srcIdx = this.host.camadas.findIndex((l) => l.id === draggedLayerId);
+            if (srcIdx === -1) return;
+            this.host.camadas.splice(srcIdx, 1);
+            const tgtIdx = this.host.camadas.findIndex((l) => l.id === layerId);
+            if (tgtIdx === -1) {
+              this.host.camadas.push(movedLayer);
+            } else {
+              this.host.camadas.splice(dropAbove ? tgtIdx : tgtIdx + 1, 0, movedLayer);
+            }
+            movedLayer.parentId = targetLayer.parentId ?? null;
           }
 
           this.host.salvarLembrancaEstado?.();

@@ -217,9 +217,42 @@ export function conectarEventosCamadas(host: CamadasHostCompleto, shadow: Shadow
         if (confirmTimeout) clearTimeout(confirmTimeout);
         host.dispararEvento('ui-camada-excluida', { camadaId: layerId });
         const selecionadasAntes = host.selectedFeatureIds.size;
+        // Promover subcamadas para raiz para evitar perda acidental de dados
+        host.camadas.forEach((c) => {
+          if (c.parentId === layerId) c.parentId = null;
+        });
         host.removerCamada(layerId);
         if (host.selectedFeatureIds.size !== selecionadasAntes) host.notificarMudancaSelecao();
       }
+    });
+  });
+
+  // Mudar grupo pai da camada no drawer de configurações
+  shadow.querySelectorAll('[data-layer-parent-select]').forEach((sel) => {
+    sel.addEventListener('change', (e) => {
+      const selectEl = e.target as HTMLSelectElement;
+      const layerId = selectEl.getAttribute('data-layer-parent-select');
+      const novoParentId = selectEl.value || null;
+      const layer = host.camadas.find((l) => l.id === layerId);
+      if (layer) {
+        layer.parentId = novoParentId;
+        host.salvarLembrancaEstado();
+        host.dispararEvento('ui-camada-mover-hierarquia', {
+          camadaId: layer.id,
+          novoParentId,
+          camada: layer
+        });
+        host.solicitarRenderizacao();
+      }
+    });
+  });
+
+  // Adicionar subcamada dentro de uma camada
+  shadow.querySelectorAll('[data-add-sublayer]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const parentId = btn.getAttribute('data-add-sublayer');
+      host.dispararEvento('ui-camada-adicionar', { parentId });
     });
   });
 

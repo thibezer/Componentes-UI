@@ -40,6 +40,14 @@ function conectarToolbarEBusca(host: CamadasHostCompleto, shadow: ShadowRoot): v
     });
   }
 
+  // 3.1 Botão + Grupo
+  const btnAddGroup = shadow.getElementById('btn-add-group');
+  if (btnAddGroup) {
+    btnAddGroup.addEventListener('click', () => {
+      host.dispararEvento('ui-camada-grupo-adicionar', { isGroup: true });
+    });
+  }
+
   // 4. Botão de recolher o painel (renderizado apenas no modo flutuante)
   const btnColapsar = shadow.getElementById('btn-colapsar');
   if (btnColapsar) {

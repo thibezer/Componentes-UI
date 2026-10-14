@@ -1,13 +1,16 @@
 # 📚 Componente UI Camadas (`<ui-camadas>`)
 
-> **Web Component W3C Nativo** para visualização, gerenciamento hierárquico e edição de camadas vetoriais e feições geográficas em aplicações CAD/GIS (ex: ConecteMapas, GerenciGeo, Rifa da Sorte).
+> **Web Component W3C Nativo** para visualização, gerenciamento hierárquico e edição de camadas vetoriais e feições geográficas em aplicações web de CAD, GIS, mapeamento e análise espacial.
 
 ---
 
 ## 🚀 Características Principais
 
 - **Zero Dependências Externas**: Criado puramente com Web Standards W3C (Custom Elements v1, Shadow DOM, CSS Variables).
-- **Hierarquia Estilo Illustrator / ArcGIS Pro**: Visualização de camadas em árvore com feições filhas agrupadas por tipo geométrico (Polígono, Linha, Ponto).
+- **Hierarquia Profissional em Árvore (Camadas e Subcamadas)**: Suporte completo a camadas dentro de camadas (pastas/grupos com profundidade arbitrária, guias tracejadas, badge de contagem de subcamadas e arraste hierárquico `drop-into`).
+- **Rodapé Ergonômico Dual-Mode**:
+  - **Modo Resumo**: Exibe contagem limpa e elegante (`X camadas`) com botões de criação rápida `+ Grupo` e `+ Camada`, sem sobreposições visuais.
+  - **Modo Ações em Massa**: Habilita dinamicamente operações em lote (visibilidade, trava, exclusão, preview de cor circular com aro brilhante e migração hierárquica) apenas quando há itens selecionados.
 - **Estabilidade de Altura Profissional**: O componente mantém a altura exata definida pelo layout ou barra de arraste sem colapsar nem retrair quando há poucas ou nenhuma camada.
 - **Barra de Arraste de Altura (Splitter / Resizer)**:
   - Suporte a redimensionamento vertical nativo com arraste por ponteiro (mouse/touch) via atributo `redimensionavel`.
@@ -15,14 +18,14 @@
   - Compatibilidade total com splitters externos (divisores flex/grid entre painéis).
   - Persistência automática da altura no `LocalStorage`.
 - **Performance de 60 FPS**: Atualizações in-place cirúrgicas para visibilidade, travas, opacidade e cores (sem repaints pesados).
-- **Drag & Drop Nativo (HTML5)**:
-  - Reordenação da ordem de desenho / Z-Index das camadas.
-  - Reordenação de feições internas.
-  - Transferência de feições entre camadas distintas arrastando sobre o grupo.
+- **Drag & Drop Híbrido (HTML5 + Pointer/Touch)**:
+  - Reordenação da ordem de desenho / Z-Index das camadas (suporte a mouse e toque no handle de arraste).
+  - Aninhamento de camadas ao soltar no centro de outra camada (`drop-into`) com proteção contra ciclos.
+  - Reordenação de feições internas e transferência de feições entre camadas distintas arrastando sobre o grupo.
 - **Edição Inline de Nomes**: Duplo-clique no nome da camada ou feição para editar (`Enter` para confirmar, `Esc` para cancelar).
-- **Drawer de Configurações**: Ajuste contínuo de opacidade, seletor de cor HEX/nativo e exclusão com confirmação em 2 passos.
-- **Cálculo Geodésico Automático (WGS84)**: Cálculo de área em hectares/m² e comprimento em metros/km com base esférica precisa.
-- **Rodapé de Ações em Massa**: Seleção com `Shift` e `Ctrl` para visibilidade, trava, cor, migração de camada ou exclusão em lote com isolamento visual quando sem seleção.
+- **Drawer de Configurações**: Ajuste contínuo de opacidade, seletor de cor HEX/nativo, definição de camada pai (`parentId`), botão de adicionar subcamada e exclusão com confirmação em 2 passos.
+- **Cálculo Geodésico Automático (WGS84)**: Cálculo de área em hectares/m² com desconto de furos/ilhas interiores (*donut polygons*) e comprimento em metros/km com base esférica precisa.
+- **Adaptadores de Compatibilidade**: Utilitários prontos (`converterCanvasLayerParaCamadaItem`, `converterCamadaItemParaCanvasLayer`, `converterFeicaoParaItem`) para interoperabilidade direta com o `<ui-canvas-cad>` e motores cartográficos.
 - **Seletor de Mapas Base 100% Offline**: Previews vetoriais autônomos sem requisições a servidores externos de imagens.
 
 ---
@@ -74,6 +77,50 @@ painel.layers = camadas;
 painel.features = feicoes;
 painel.basemaps = mapasBase;
 ```
+
+---
+
+## 📂 Hierarquia de Camadas e Grupos (Subcamadas)
+
+O `<ui-camadas>` suporta estruturação hierárquica em múltiplos níveis (pastas, grupos e subcamadas). Há suporte a duas formas de alimentação de dados 100% interoperáveis:
+
+### 1. Formato Plano com `parentId` (Recomendado para Bancos de Dados)
+
+```typescript
+painel.definirCamadas([
+  // Pasta ou Grupo Pai
+  { id: 'grupo-planejamento', name: 'Planejamento Urbano', isGroup: true, visible: true },
+  
+  // Subcamadas vinculadas ao grupo pai via parentId
+  { id: 'camada-zoneamento', parentId: 'grupo-planejamento', name: 'Zoneamento', color: '#8B5CF6' },
+  { id: 'camada-lotes', parentId: 'grupo-planejamento', name: 'Lotes Cadastrais', color: '#10B981' },
+  
+  // Camada Raiz Independente
+  { id: 'camada-limite', name: 'Perímetro Municipal', color: '#F59E0B' }
+]);
+```
+
+### 2. Formato Aninhado com `children` (Estrutura em Árvore JSON)
+
+```typescript
+painel.definirCamadas([
+  {
+    id: 'grupo-infra',
+    name: 'Infraestrutura',
+    isGroup: true,
+    children: [
+      { id: 'camada-drenagem', name: 'Rede de Drenagem', color: '#06B6D4' },
+      { id: 'camada-iluminacao', name: 'Postes e Iluminação', color: '#EAB308' }
+    ]
+  }
+]);
+```
+
+### 3. Recursos de UX da Hierarquia:
+- **Arraste Hierárquico (`drop-into`)**: Arraste uma camada sobre a área central de outra para aninhá-la automaticamente como subcamada. O sistema previne loops/ciclos (não permite soltar um elemento pai dentro de seus próprios filhos).
+- **Ajuste via Drawer de Configurações**: O drawer lateral permite alterar a camada pai diretamente por um menu suspenso ou clicar em `+ Subcamada`.
+- **Criação Rápida de Grupos**: Clique no botão de pasta na toolbar superior ou no botão `+ Grupo` no rodapé limpo para criar uma pasta organizada.
+- **Cascata e Proteção**: Colapsar a camada pai oculta todas as suas subcamadas e feições. Ao excluir uma pasta pai, as subcamadas filhas são preservadas e promovidas ao nível raiz (`parentId: null`).
 
 ---
 
@@ -203,6 +250,8 @@ Todos os eventos disparam com `{ bubbles: true, composed: true }`.
 | `ui-camada-renomeada` | `{ camadaId, novoNome }` | Camada renomeada via duplo-clique |
 | `ui-camada-excluida` | `{ camadaId }` | Camada removida pelo usuário |
 | `ui-camadas-reordenadas`| `{ camadas }` | Nova ordem das camadas pós Drag & Drop |
+| `ui-camada-grupo-adicionar` | `{ grupoId, nome }` | Novo grupo/pasta de camadas criado pelo usuário |
+| `ui-camada-mover-hierarquia` | `{ camadaId, novoParentId, parentAnteriorId }` | Camada movida para dentro de outra ou para raiz |
 | `ui-feicao-selecionada` | `{ feicaoId, feicao }` | Feição individual selecionada |
 | `ui-feicoes-selecionadas`| `{ feicoesIds, feicoes }`| Conjunto de feições selecionadas |
 | `ui-feicao-movida` | `{ feicaoId, camadaOrigemId, camadaDestinoId }` | Feição transferida de camada via DnD |

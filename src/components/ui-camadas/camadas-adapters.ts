@@ -1,7 +1,7 @@
 /* ====================================================
    UI Camadas - Adaptadores de Compatibilidade
-   Converte modelos entre gerencigeo-canvas / ui-canvas-cad
-   e o componente nativo <ui-camadas>
+   Converte modelos entre motores Canvas CAD e o
+   componente nativo <ui-camadas>
    ==================================================== */
 
 import { CamadaItem, FeicaoItem } from './tipos';

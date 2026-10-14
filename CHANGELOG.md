@@ -1,6 +1,6 @@
 # Changelog
 
-## Não lançado
+## 2.2.0 — 2026-10-14
 
 ### `<ui-canvas-cad>`: curvas de Bézier de verdade
 
@@ -10,6 +10,19 @@
 - Edição de vértices numa feição curva trabalha com os nós: mover leva as alças junto, inserir divide o segmento sem mudar o traçado (de Casteljau) e excluir remove o nó. A caneta mostra as alças enquanto se arrasta.
 - **Alças editáveis**: em feição curva, o editor mostra uma alça arrastável por alça (com haste até o nó). A oposta espelha; segurar `Shift` solta a simetria. Duplo clique num nó alterna canto ↔ suave; numa linha/polígono comum isso converte em curva.
 - Curvas não são simplificadas por zoom; `deslocarGeometria` move nós e alças.
+
+### `<ui-camadas>`: aprimoramento do rodapé e hierarquia de camadas (subcamadas e grupos)
+
+- **Rodapé Redesenhado e Dual-Mode**:
+  - Resolução dos conflitos e sobreposição de controles visuais (o contador de camadas não colide mais com o botão de visibilidade nem com o seletor de movimentação).
+  - **Modo Resumo (sem seleção)**: Exibe contagem limpa e elegante (`X camadas`), tipografia tabular e botões rápidos `+ Grupo` e `+ Camada`.
+  - **Modo Ações em Massa (com seleção ativa)**: Habilita barra contextual com botões de visibilidade, trava, exclusão, preview circular moderno de cor em lote com aro brilhante (substituindo o input retangular nativo) e seletor compacto de destino com recuo hierárquico e truncamento seguro.
+- **Hierarquia de Camadas e Subcamadas**:
+  - Suporte completo a camadas dentro de outras camadas através de `parentId?: string | null`, `children?: CamadaItem[]` e flag `isGroup?: boolean`. Suporte tanto a arrays planos quanto a árvores aninhadas (com achatamento inteligente e reversão automática).
+  - **Arrastar e Soltar Hierárquico**: Arraste de camadas para dentro de outras camadas (`drop-into`) na área central da linha para transformar em subcamada, com prevenção automática de ciclos (não permite arrastar um pai para dentro de seus próprios filhos).
+  - **Drawer e Ferramentas**: Seletor de camada pai e botão `+ Subcamada` integrados no drawer de configurações; botão `Novo Grupo` na toolbar superior.
+  - **Proteção e Cascata**: Colapsar uma pasta/camada pai recolhe todas as suas subcamadas e feições; excluir um grupo promove automaticamente suas subcamadas para o nível raiz para evitar perda de dados.
+  - Novos eventos públicos disparados por ação do usuário: `ui-camada-grupo-adicionar` e `ui-camada-mover-hierarquia`.
 
 ## 2.1.0 — 2026-10-11
 
@@ -27,7 +40,7 @@ Tudo é opt-in: o componente **não cria camadas** de feições sozinho. Pontos,
 - Exportados pelo entrypoint `./canvas`: modelo `Feicao`, algoritmos (`dividirPoligonoComLinha`, `gerarBuffer`, `juntarLinhas`, `juntarPoligonos`, `ddParaDms`, `dmsParaDd`, `converterComprimento`, `converterArea`...), índice, snap e editores.
 - Guia de migração: `docs/guia-migracao-mapengine.md`.
 
-### `<ui-canvas-cad>`: pendências da integração com o ConecteMapas
+### `<ui-canvas-cad>`: opções para integração agnóstica com aplicações externas
 
 Tudo opt-in: sem os atributos e opções abaixo, o componente se comporta como antes. Detalhes e exemplos em
 `docs/guia-migracao-mapengine.md`; eventos em `docs/canvas-cad-eventos.md`; números em `docs/desempenho-feicoes.md`.

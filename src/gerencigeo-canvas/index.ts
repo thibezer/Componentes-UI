@@ -1,5 +1,5 @@
 /* ====================================================
-   GerenciGeo CAD Canvas - Módulo Cartográfico Avançado
+   Canvas CAD - Módulo Cartográfico Avançado
    ==================================================== */
 
 export * from './types';
