@@ -72,6 +72,7 @@ export default defineConfig({
         'card': './src/card.ts',
         'camadas': './src/camadas.ts',
         'seletor-mapa-base': './src/seletor-mapa-base.ts',
+        'cores': './src/cores.ts',
       },
       name: 'UIComponentsKit',
       formats: ['es', 'cjs'],

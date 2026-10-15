@@ -31,6 +31,7 @@ import './components/ui-tabela';
 import './components/ui-stat';
 import './components/ui-tabela-propriedades';
 import './components/ui-barra-ferramentas';
+import './components/ui-cores';
 
 export { isBrowser };
 

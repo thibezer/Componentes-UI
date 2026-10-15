@@ -9,6 +9,7 @@ import { ICONES } from './camadas-icones';
 import { debounce, definirRotuloControle } from './camadas-utils';
 import { conectarEventosCamadas } from './camadas-eventos-camadas';
 import { conectarEventosRodape } from './camadas-eventos-rodape';
+import { conectarArrasteControles } from './camadas-arraste-controles';
 
 function conectarToolbarEBusca(host: CamadasHostCompleto, shadow: ShadowRoot): void {
   // 1. Visibilidade de todas as camadas
@@ -209,4 +210,5 @@ export function conectarEventosArvore(host: CamadasHostCompleto, shadow: ShadowR
   conectarEventosFeicoes(host, shadow);
   conectarEventosMapasBase(host, shadow);
   conectarEventosRodape(host, shadow);
+  conectarArrasteControles(host, shadow);
 }

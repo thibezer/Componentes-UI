@@ -2,7 +2,7 @@ import { describe, it, expect, afterEach, vi } from 'vitest';
 import L from 'leaflet';
 import {
   verificarEditavel, removerVertice, inserirVertice, moverVertice, minimoVertices, segmentosDe, pontoMedio,
-  MAX_VERTICES_EDICAO
+  MAX_VERTICES_EDICAO, pontosDe, comPontos, removerPonto, pontoDaBordaDoCirculo, RAIO_MINIMO_EDICAO_CIRCULO_M
 } from '../src/gerencigeo-canvas/feature_edicao_ops';
 import { buscarSnap } from '../src/gerencigeo-canvas/feature_snap';
 import { ControleSnap } from '../src/components/ui-canvas-cad/cad-snap';
@@ -26,12 +26,28 @@ describe('operações de vértices', () => {
     expect(verificarEditavel(ponto())).toBeNull();
     expect(verificarEditavel({ ...quadrado(), bloqueada: true })).toBe('bloqueada');
     expect(verificarEditavel(quadrado(), true)).toBe('bloqueada');
-    expect(verificarEditavel(F('c', { tipo: 'Circle', centro: [-23.5, -46.6], raioMetros: 10 }))).toBe('tipo-nao-suportado');
+    expect(verificarEditavel(F('c', { tipo: 'Circle', centro: [-23.5, -46.6], raioMetros: 10 }))).toBeNull();
     expect(verificarEditavel(F('t', { tipo: 'Text', coordenada: [-23.5, -46.6], texto: 'x' }))).toBe('tipo-nao-suportado');
     const comFuro = F('f', { tipo: 'Polygon', aneis: [[[-23.5, -46.6], [-23.5, -46.59], [-23.51, -46.59]], [[-23.505, -46.598], [-23.505, -46.595], [-23.507, -46.595]]] });
     expect(verificarEditavel(comFuro)).toBe('poligono-com-furos');
     const gigante: LatLonPar[] = Array.from({ length: MAX_VERTICES_EDICAO + 1 }, (_, i) => [-23.5 + i * 1e-6, -46.6 + (i % 2) * 1e-6]);
     expect(verificarEditavel(F('g', { tipo: 'LineString', coordenadas: gigante }))).toBe('muitos-vertices');
+  });
+
+  it('círculo: alças de centro e borda; a borda define o raio, o centro não o altera', () => {
+    const g = F('c', { tipo: 'Circle', centro: [-23.5, -46.6], raioMetros: 500 }).geometria;
+    const pts = pontosDe(g);
+    expect(pts).toHaveLength(2);
+    expect(pts[0]).toEqual([-23.5, -46.6]);
+    const ida = comPontos(g, pts) as { raioMetros: number };
+    expect(ida.raioMetros).toBeCloseTo(500, 0);
+    const maior = comPontos(g, [pts[0], pontoDaBordaDoCirculo(pts[0], 1200)]) as { raioMetros: number };
+    expect(maior.raioMetros).toBeCloseTo(1200, 0);
+    const movido = comPontos(g, [[-23.6, -46.5], [pts[1][0] - 0.1, pts[1][1] + 0.1]]) as { centro: LatLonPar; raioMetros: number };
+    expect(movido.centro).toEqual([-23.6, -46.5]);
+    expect(movido.raioMetros).toBeCloseTo(500, 0);
+    expect(removerPonto(g, 0)).toBeNull();
+    expect((comPontos(g, [pts[0], pts[0]]) as { raioMetros: number }).raioMetros).toBe(RAIO_MINIMO_EDICAO_CIRCULO_M);
   });
 
   it('mínimos: 3 no polígono, 2 na linha', () => {

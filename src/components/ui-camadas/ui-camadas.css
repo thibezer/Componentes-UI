@@ -16,13 +16,13 @@
   min-height: var(--ui-camadas-min-altura, 140px);
   position: relative;
   --camada-linha-altura: 25px;
-  --camada-thumb-tamanho: 15px;
+  --camada-thumb-tamanho: 20px;
   --camada-transicao: 0.16s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 :host([densidade="compacto"]) {
   --camada-linha-altura: 22px;
-  --camada-thumb-tamanho: 13px;
+  --camada-thumb-tamanho: 17px;
   font-size: 10px;
 }
 
@@ -594,7 +594,7 @@
 }
 
 .ui-col-thumb {
-  width: 18px;
+  width: calc(var(--camada-thumb-tamanho) + 3px);
   margin-right: 4px;
   display: flex;
   align-items: center;
@@ -605,8 +605,10 @@
   width: var(--camada-thumb-tamanho);
   height: var(--camada-thumb-tamanho);
   border: 1px solid color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 15%, transparent);
-  border-radius: 2.5px;
+  border-radius: 3px;
   background: var(--ui-cor-fundo, #0d0d10);
+  box-sizing: border-box;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;

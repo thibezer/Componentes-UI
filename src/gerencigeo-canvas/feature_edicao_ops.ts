@@ -1,8 +1,9 @@
 import { ehMultilinha, type Feicao, type GeometriaFeicao, type LatLonPar, type NoCurva } from './feature_types';
 import { amostrarCurva, controlesDoSegmento, espelhoDaAlca, pontoDaCubica } from './feature_curvas';
+import { distanciaMetros } from './feature_metricas';
 
 /*
- * Operações puras sobre os vértices de uma feição editável (ponto, linha e polígono de um anel).
+ * Operações puras sobre os vértices de uma feição editável (ponto, linha, polígono de um anel e círculo).
  * Sem Leaflet: o editor visual (`feature_editor_vertices.ts`) só desenha e chama estas funções.
  */
 
@@ -22,7 +23,7 @@ export function minimoVertices(g: GeometriaFeicao): number {
 export function verificarEditavel(f: Feicao, camadaBloqueada = false): MotivoRecusaEdicao | null {
   if (f.bloqueada || camadaBloqueada) return 'bloqueada';
   const g = f.geometria;
-  if (g.tipo !== 'Point' && g.tipo !== 'LineString' && g.tipo !== 'Polygon') return 'tipo-nao-suportado';
+  if (g.tipo !== 'Point' && g.tipo !== 'LineString' && g.tipo !== 'Polygon' && g.tipo !== 'Circle') return 'tipo-nao-suportado';
   if (g.tipo === 'Polygon' && g.aneis.length !== 1) return 'poligono-com-furos';
   if (ehMultilinha(g)) return 'multiparte';
   if (verticesDe(g).length > MAX_VERTICES_EDICAO) return 'muitos-vertices';
@@ -92,8 +93,20 @@ export function nosDe(g: GeometriaFeicao): NoCurva[] | null {
   return null;
 }
 
-/** Pontos que o editor mostra como alças: os nós da curva ou, sem curva, os vértices. */
+// mesma esfera de distanciaMetros, para a alça de borda reproduzir exatamente o raio
+const METROS_POR_GRAU = (6371008.8 * Math.PI) / 180;
+/** Menor raio que a alça de borda pode definir (evita círculo degenerado). */
+export const RAIO_MINIMO_EDICAO_CIRCULO_M = 0.5;
+
+/** Alça da borda do círculo: o ponto a leste do centro, a `raioMetros` de distância. */
+export function pontoDaBordaDoCirculo(centro: LatLonPar, raioMetros: number): LatLonPar {
+  const cos = Math.max(0.01, Math.cos((centro[0] * Math.PI) / 180));
+  return [centro[0], centro[1] + raioMetros / (METROS_POR_GRAU * cos)];
+}
+
+/** Pontos que o editor mostra como alças: os nós da curva ou, sem curva, os vértices. Círculo: centro e borda. */
 export function pontosDe(g: GeometriaFeicao): LatLonPar[] {
+  if (g.tipo === 'Circle') return [g.centro, pontoDaBordaDoCirculo(g.centro, g.raioMetros)];
   return nosDe(g)?.map((n) => n.ponto) ?? verticesDe(g);
 }
 
@@ -105,6 +118,10 @@ function comNos(g: GeometriaFeicao, nos: NoCurva[]): GeometriaFeicao {
 
 /** Nova geometria com estes pontos. Com o mesmo número de nós, as alças acompanham o nó; senão vira poligonal. */
 export function comPontos(g: GeometriaFeicao, pts: LatLonPar[]): GeometriaFeicao {
+  if (g.tipo === 'Circle') {
+    if (pts.length < 2) return g;
+    return { ...g, centro: pts[0], raioMetros: Math.max(RAIO_MINIMO_EDICAO_CIRCULO_M, distanciaMetros(pts[0], pts[1])) };
+  }
   const nos = nosDe(g);
   if (!nos || nos.length !== pts.length) return comVertices(g, pts);
   const novos = nos.map((n, i) => {

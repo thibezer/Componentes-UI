@@ -1,5 +1,32 @@
 # Changelog
 
+## 2.3.0 — 2026-10-14
+
+### Novos: `<ui-controle-cores>` e `<ui-seletor-cor>` (entrada `@thibezer/ui-components-kit/cores`)
+
+- **`<ui-controle-cores>`**: par de cores de desenho no estilo Illustrator. Preenchimento na frente, traço atrás; clique na amostra de trás a ativa, clique no alvo ativo (ou duplo clique, Enter, Espaço) abre o seletor. Botões de canto para inverter, "sem cor" no alvo ativo e restaurar o padrão (`padrao-preenchimento`/`padrao-traco`). Estado misto (`definirMisto()`, mostra `?`) e `so-traco` (esmaece o preenchimento).
+- Ações do usuário emitem `ui-cores-change` com `{ preenchimento, traco, opacidade, alvo, confirmado, alterados, origem }` (`origem`: `seletor`, `inverter`, `sem-cor` ou `padrao`): `confirmado: false` é pré-visualização com o seletor aberto; na confirmação, `alterados` lista o que mudou desde a abertura. `definirCores()`, `definirAlvo()` e `definirMisto()` não emitem eventos.
+- O kit não registra atalhos de teclado: a aplicação chama `alternarAlvo()`, `inverter()`, `semCor()` e `restaurarPadrao()` e pode mostrar as teclas nas dicas com `atalhos`.
+- **`<ui-seletor-cor>`** + **`abrirSeletorCor({ ancora, ... })`**: painel flutuante com abas Preenchimento/Traço (modo `duplo`) ou cor única (`simples`), prévia antes × depois, hexadecimal, seletor do sistema, opacidade do preenchimento, cores do projeto, paleta padrão e "sem cor". Um aberto por vez; Concluir, ✕, Enter no hexadecimal, Esc e clique fora confirmam; **Cancelar restaura todas as cores iniciais** (preenchimento, traço e opacidade); `X` alterna o alvo.
+- Utilitários: `normalizarCor()`, `normalizarOpacidade()`, `coresUnicas()`, `PALETA_CORES_PADRAO`.
+
+## 2.2.2 — 2026-10-14
+
+### `<ui-canvas-cad>`: edição de círculo
+
+- `editarVertices` passa a aceitar `Circle`: alça no centro (move o círculo sem mudar o raio) e alça na borda (define o raio; mínimo 0,5 m). O HUD mostra raio e área ao vivo. `pontosDe`/`comPontos` e `pontoDaBordaDoCirculo` tratam o círculo.
+
+### `<ui-camadas>`: arraste sobre controles
+
+- Clicar e arrastar sobre a coluna de olho, cadeado ou seleção aplica a todos os controles percorridos o estado resultante do primeiro, em vez de reordenar a camada.
+
+## 2.2.1 — 2026-10-14
+
+### `<ui-camadas>`: miniatura da feição fiel à geometria
+
+- A miniatura ao lado do nome da feição desenha a geometria real (polígonos com furos, linhas, multi-geometrias), enquadrada com proporção preservada; sem coordenadas, usa o ícone genérico.
+- Miniatura maior (20px; 17px no modo compacto).
+
 ## 2.2.0 — 2026-10-14
 
 ### `<ui-canvas-cad>`: curvas de Bézier de verdade

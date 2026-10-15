@@ -52,6 +52,10 @@ export class EditorVertices {
     return this.feicaoAtual !== null;
   }
 
+  private get ehCirculo(): boolean {
+    return this.feicaoAtual?.geometria.tipo === 'Circle';
+  }
+
   public get feicao(): Feicao | null {
     return this.feicaoAtual;
   }
@@ -146,7 +150,7 @@ export class EditorVertices {
 
   private criarAlca(p: LatLonPar, indice: number): L.Marker {
     const marker = L.marker(p, {
-      icon: this.icone('cad-vertex-handle', 12, `background:${COR};border:2px solid #111;border-radius:2px;cursor:move`),
+      icon: this.icone('cad-vertex-handle', 12, `background:${COR};border:2px solid #111;border-radius:${this.ehCirculo && indice === 1 ? '50%' : '2px'};cursor:${this.ehCirculo && indice === 1 ? 'ew-resize' : 'move'}`),
       draggable: true,
       pane: PANE_EDICAO,
       keyboard: false
@@ -271,6 +275,13 @@ export class EditorVertices {
       this.esconderSnap();
     }
 
+    if (f.geometria.tipo === 'Circle' && indice === 0) {
+      // mover o centro leva a alça da borda junto: o raio não muda
+      const dLat = pos[0] - this.pts[0][0];
+      const dLon = pos[1] - this.pts[0][1];
+      this.pts[1] = [this.pts[1][0] + dLat, this.pts[1][1] + dLon];
+      this.alcas[1]?.setLatLng(this.pts[1]);
+    }
     this.pts[indice] = pos;
     // fantasmas vizinhos acompanham o vértice
     for (const fan of this.fantasmas) {
@@ -379,7 +390,7 @@ export class EditorVertices {
       return s;
     };
     const titulo = document.createElement('strong');
-    titulo.textContent = 'Editando vértices';
+    titulo.textContent = this.ehCirculo ? 'Editando círculo' : 'Editando vértices';
     const snap = campo('snap');
     snap.style.cursor = 'pointer';
     snap.title = 'Alternar snap (S). Alt desliga temporariamente.';
@@ -406,7 +417,7 @@ export class EditorVertices {
     const g = this.geometriaAtual();
     const nos = this.hud.querySelector('[data-campo="nos"]');
     const medida = this.hud.querySelector('[data-campo="medida"]');
-    if (nos) nos.textContent = `Nós: ${this.pts.length} (mín. ${minimoVertices(g)})`;
+    if (nos) nos.textContent = g.tipo === 'Circle' ? 'Centro move · borda muda o raio' : `Nós: ${this.pts.length} (mín. ${minimoVertices(g)})`;
     if (!medida) return;
     if (g.tipo === 'Polygon') {
       medida.textContent = `Área: ${formatarArea(areaDaGeometria(g) ?? 0)} · Perímetro: ${formatarExtensao(extensaoDaGeometria(g) ?? 0)}`;
@@ -414,6 +425,8 @@ export class EditorVertices {
       medida.textContent = `Extensão: ${formatarExtensao(extensaoDaGeometria(g) ?? 0)}`;
     } else if (g.tipo === 'Point') {
       medida.textContent = `${g.coordenada[0].toFixed(6)}, ${g.coordenada[1].toFixed(6)}`;
+    } else if (g.tipo === 'Circle') {
+      medida.textContent = `Raio: ${formatarExtensao(g.raioMetros)} · Área: ${formatarArea(areaDaGeometria(g) ?? 0)}`;
     }
   }
 
