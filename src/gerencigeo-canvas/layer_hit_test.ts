@@ -179,6 +179,13 @@ function escolherComAlternancia(map: L.Map, ponto: L.Point, candidatos: Candidat
   return candidatos[indice];
 }
 
+function escolhidaPeloUltimoClique(map: L.Map, ponto: L.Point, candidatos: CandidatoHit[]): CandidatoHit {
+  const anterior = ultimoClique.get(map);
+  const mesmoLugar = !!anterior && Math.hypot(anterior.x - ponto.x, anterior.y - ponto.y) <= REPETICAO_PX
+    && anterior.ids.length === candidatos.length;
+  return candidatos[mesmoLugar ? anterior!.indice : 0] ?? candidatos[0];
+}
+
 /**
  * Resolve o clique entre todas as camadas, da mais alta para a mais baixa.
  * Dispara o evento só na feição vencedora e devolve `true` se houve acerto.
@@ -195,7 +202,10 @@ export function resolverCliqueCentral(
     return false;
   }
 
-  const alvo = escolherComAlternancia(map, ponto, candidatos).alvo;
+  // duplo clique: fica com a feição escolhida pelo clique anterior (alternar de novo trocaria a feição no meio do gesto)
+  const alvo = e.type === 'dblclick'
+    ? escolhidaPeloUltimoClique(map, ponto, candidatos).alvo
+    : escolherComAlternancia(map, ponto, candidatos).alvo;
   alvo.fire(
     e.type,
     {
