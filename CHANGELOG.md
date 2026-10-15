@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.3.1 — 2026-10-15
+
+### `<ui-canvas-cad>`: correções nos modos de edição de formas
+
+- **Alça de Bézier**: arrastá-la não inicia mais uma caixa de seleção (que, ao soltar, esvaziava a seleção e encerrava a edição).
+- **Círculo**: o popup passa a oferecer o botão **Editar** (ação `vertices`), que abre a edição de centro e borda.
+- **Fantasma de inserção**: o duplo clique insere um vértice e não o converte mais em curva (o 2º clique cai na alça recém-criada; `dblclick` até 600 ms depois da inserção é ignorado).
+- **Camada ou feição fechada durante a edição**: ocultar ou bloquear a camada, removê-la, ou bloquear a feição pela API encerra a edição (`cad-edicao-concluida`) e tira alças e HUD.
+- **Caneta**: o arraste da alça termina com o `mouseup` na janela; soltar o botão fora do mapa não deixa mais a alça seguindo o cursor.
+- **Snap em curvas**: feição com `curva` atrai pelos nós (vértice) e pelo meio do trecho curvo; os vértices de apoio amostrados só valem como aresta.
+
 ## 2.3.0 — 2026-10-14
 
 ### Novos: `<ui-controle-cores>` e `<ui-seletor-cor>` (entrada `@thibezer/ui-components-kit/cores`)

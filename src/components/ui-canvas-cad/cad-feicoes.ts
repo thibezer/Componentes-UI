@@ -109,6 +109,7 @@ export class GerenciadorFeicoes {
   private selecao: SelecaoFeicoes;
   private popup: FeicaoPopup;
   private editor: EditorVertices | null = null;
+  private vigiaCamadaEmEdicao: (() => void) | null = null;
   private snap: ControleSnap;
   private desenho: ControleDesenho | null = null;
   private camadaDesenho: string | null = null;
@@ -173,7 +174,7 @@ export class GerenciadorFeicoes {
     if (this.editor?.ativo) {
       const ed = this.editor.feicao!;
       const atualEd = this.buscar(ed.camadaId, ed.id);
-      if (!atualEd || atualEd.excluida) this.editor.parar();
+      if (!atualEd || atualEd.excluida || atualEd.bloqueada) this.editor.parar();
       else if (atualEd !== ed) this.editor.sincronizar(atualEd);
     }
     const aberta = this.popup.aberto;
@@ -845,6 +846,7 @@ export class GerenciadorFeicoes {
       },
       aoEncerrar: (ultima) => {
         this.editor = null;
+        this.pararDeVigiarCamadaEmEdicao();
         const atual = this.buscar(ultima.camadaId, ultima.id) ?? ultima;
         this.contexto.emitir('cad-edicao-concluida', { feicao: atual });
         // restaura o popup da seleção (ele ficou fechado durante a edição)
@@ -854,8 +856,20 @@ export class GerenciadorFeicoes {
     });
     this.editor = editor;
     editor.iniciar(f);
+    // camada ocultada ou bloqueada no meio da edição: as alças ficariam soltas na tela, gravando numa camada que não aceita edição
+    this.vigiaCamadaEmEdicao = lm.onChange(() => {
+      const ed = this.editor?.feicao;
+      if (!ed) return;
+      const def = lm.getLayerDef(ed.camadaId);
+      if (!def || !def.visivel || def.bloqueada) this.editor?.parar();
+    });
     this.contexto.emitir('cad-edicao-iniciada', { feicao: f });
     return { ok: true };
+  }
+
+  private pararDeVigiarCamadaEmEdicao(): void {
+    this.vigiaCamadaEmEdicao?.();
+    this.vigiaCamadaEmEdicao = null;
   }
 
   public pararEdicao(): void {

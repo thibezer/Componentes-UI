@@ -20,6 +20,8 @@ export const ID_HUD_EDICAO = 'cm-vertex-edit-hud';
 const PANE_EDICAO = 'cad-edicao-vertices';
 const COR = '#facc15';
 const COR_ALCA = '#f472b6';
+/** Um duplo clique que começou inserindo um vértice (no fantasma) não converte o nó novo em curva dentro deste prazo. */
+const JANELA_DUPLO_CLIQUE_MS = 600;
 
 export interface DependenciasEditor {
   map: L.Map;
@@ -45,6 +47,7 @@ export class EditorVertices {
   private marcadorSnap: L.Marker | null = null;
   private hud: HTMLElement | null = null;
   private grupo: L.LayerGroup | null = null;
+  private ultimaInsercao = 0;
 
   constructor(private dep: DependenciasEditor) {}
 
@@ -169,6 +172,8 @@ export class EditorVertices {
     // duplo clique: canto ↔ suave (numa linha/polígono comum, é o que converte em curva)
     marker.on('dblclick', (ev: L.LeafletMouseEvent) => {
       L.DomEvent.stopPropagation(ev.originalEvent);
+      // duplo clique num fantasma: o 1º clique inseriu o vértice e o 2º caiu na alça nova; não é pedido de curva
+      if (Date.now() - this.ultimaInsercao < JANELA_DUPLO_CLIQUE_MS) return;
       this.alternarSuave(indice);
     });
     return marker;
@@ -252,6 +257,7 @@ export class EditorVertices {
     // o editor reconstrói tudo a cada inserção/exclusão, então `i` nunca fica desatualizado
     marker.on('click', (ev: L.LeafletMouseEvent) => {
       L.DomEvent.stopPropagation(ev.originalEvent);
+      this.ultimaInsercao = Date.now();
       this.inserir(i, marker.getLatLng());
     });
     return { marker, i, j };

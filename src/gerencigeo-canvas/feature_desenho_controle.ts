@@ -126,7 +126,8 @@ export class ControleDesenho {
     map.on('dblclick', this.aoDuploClique);
     map.on('mousemove', this.aoMover);
     map.on('mousedown', this.aoPressionar);
-    map.on('mouseup', this.aoSoltar);
+    // na window (e não no mapa): soltar o botão fora do mapa também termina o arraste da alça
+    window.addEventListener('mouseup', this.aoSoltar);
     window.addEventListener('keydown', this.aoTecla);
     this.montarHud();
     this.atualizar();
@@ -151,7 +152,7 @@ export class ControleDesenho {
     map.off('dblclick', this.aoDuploClique);
     map.off('mousemove', this.aoMover);
     map.off('mousedown', this.aoPressionar);
-    map.off('mouseup', this.aoSoltar);
+    window.removeEventListener('mouseup', this.aoSoltar);
     window.removeEventListener('keydown', this.aoTecla);
     const c = map.getContainer();
     c.classList.remove(CLASSE_FERRAMENTA_ATIVA);

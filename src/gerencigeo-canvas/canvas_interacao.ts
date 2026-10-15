@@ -223,8 +223,8 @@ export class CanvasInteracao {
     }
 
     if (e.button === 0) {
-      // alças de edição de vértices e o HUD da edição tratam o próprio mouse: não iniciam caixa de seleção
-      if ((e.target as HTMLElement | null)?.closest?.('.cad-vertex-handle, .cad-vertex-ghost, #cm-vertex-edit-hud, #cm-draw-hud')) return;
+      // alças de edição de vértices (e as de Bézier) e o HUD da edição tratam o próprio mouse: não iniciam caixa de seleção
+      if ((e.target as HTMLElement | null)?.closest?.('.cad-vertex-handle, .cad-vertex-ghost, .cad-bezier-handle, #cm-vertex-edit-hud, #cm-draw-hud')) return;
       if (this.ctx.ferramentaAtiva?.()) return;
       this.selectionHappened = false;
       if (this.ctx.mapaController && this.ctx.mapaController.modoCliqueSequencialAtivo) {
