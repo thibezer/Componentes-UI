@@ -72,6 +72,8 @@ export interface DetalheControleCores {
   confirmado: boolean;
   /** Quais valores mudaram. */
   alterados: Array<'preenchimento' | 'traco' | 'opacidade'>;
+  /** O que gerou a mudança. */
+  origem: 'seletor' | 'inverter' | 'sem-cor' | 'padrao';
 }
 
 /** Textos de atalho exibidos nas dicas dos botões (o kit não registra os atalhos; quem usa decide). */

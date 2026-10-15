@@ -277,14 +277,14 @@ describe('<ui-controle-cores>', () => {
 
   it('inverter, sem cor e padrão emitem ui-cores-change confirmado', () => {
     botao('inverter').click();
-    expect(ultimo(eventos)).toMatchObject({ preenchimento: '#3b82f6', traco: '#10b981', confirmado: true, alterados: ['preenchimento', 'traco'] });
+    expect(ultimo(eventos)).toMatchObject({ preenchimento: '#3b82f6', traco: '#10b981', confirmado: true, alterados: ['preenchimento', 'traco'], origem: 'inverter' });
 
     el.definirAlvo('traco');
     botao('sem-cor').click();
-    expect(ultimo(eventos)).toMatchObject({ traco: 'none', confirmado: true, alterados: ['traco'] });
+    expect(ultimo(eventos)).toMatchObject({ traco: 'none', confirmado: true, alterados: ['traco'], origem: 'sem-cor' });
 
     botao('padrao').click();
-    expect(ultimo(eventos)).toMatchObject({ preenchimento: '#10b981', traco: '#ffffff', confirmado: true });
+    expect(ultimo(eventos)).toMatchObject({ preenchimento: '#10b981', traco: '#ffffff', confirmado: true, origem: 'padrao' });
   });
 
   it('semCor aceita o alvo explícito', () => {
@@ -332,7 +332,7 @@ describe('<ui-controle-cores>', () => {
     el.abrirSeletor('preenchimento');
     const seletor = seletorNoDom()!;
     seletor.definirCor('#000000');
-    expect(ultimo(eventos)).toMatchObject({ preenchimento: '#000000', confirmado: false, alterados: ['preenchimento'] });
+    expect(ultimo(eventos)).toMatchObject({ preenchimento: '#000000', confirmado: false, alterados: ['preenchimento'], origem: 'seletor' });
     expect(el.preenchimento).toBe('#000000');
 
     seletor.trocarAlvo('traco');
@@ -340,7 +340,7 @@ describe('<ui-controle-cores>', () => {
     expect(alvos).toEqual(['traco']);
 
     seletor.confirmar();
-    expect(ultimo(eventos)).toMatchObject({ preenchimento: '#000000', traco: '#3b82f6', confirmado: true, alterados: ['preenchimento'] });
+    expect(ultimo(eventos)).toMatchObject({ preenchimento: '#000000', traco: '#3b82f6', confirmado: true, alterados: ['preenchimento'], origem: 'seletor' });
     expect(el.seletorAberto).toBe(false);
   });
 

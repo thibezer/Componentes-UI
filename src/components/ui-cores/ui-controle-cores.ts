@@ -13,6 +13,7 @@ import type {
 } from './tipos';
 
 type Alterado = DetalheControleCores['alterados'][number];
+type Origem = DetalheControleCores['origem'];
 
 /**
  * <ui-controle-cores> — par de cores de desenho no estilo Illustrator: preenchimento na frente,
@@ -162,7 +163,7 @@ export class UIControleCores extends SafeHTMLElement {
     this._traco = p;
     this._misto = { preenchimento: this._misto.traco, traco: this._misto.preenchimento };
     this.atualizar();
-    this.emitirCores(true, ['preenchimento', 'traco']);
+    this.emitirCores(true, ['preenchimento', 'traco'], 'inverter');
   }
 
   /** "Sem cor" no alvo indicado (padrão: o ativo); emite `ui-cores-change` confirmado. */
@@ -172,7 +173,7 @@ export class UIControleCores extends SafeHTMLElement {
     else this._preenchimento = 'none';
     this._misto[chave] = false;
     this.atualizar();
-    this.emitirCores(true, [chave]);
+    this.emitirCores(true, [chave], 'sem-cor');
   }
 
   /** Volta às cores de `padrao-preenchimento` e `padrao-traco`; emite `ui-cores-change` confirmado. */
@@ -181,7 +182,7 @@ export class UIControleCores extends SafeHTMLElement {
     this._traco = this._padrao.traco;
     this._misto = { preenchimento: false, traco: false };
     this.atualizar();
-    this.emitirCores(true, ['preenchimento', 'traco']);
+    this.emitirCores(true, ['preenchimento', 'traco'], 'padrao');
   }
 
   /** Abre o seletor de cor ancorado na amostra do alvo (que passa a ser o ativo). */
@@ -253,16 +254,16 @@ export class UIControleCores extends SafeHTMLElement {
     this.atualizar();
 
     if (!confirmado) {
-      if (desdeUltimo.length) this.emitirCores(false, desdeUltimo);
+      if (desdeUltimo.length) this.emitirCores(false, desdeUltimo, 'seletor');
       return;
     }
     // A confirmação sempre emite; `alterados` diz o que mudou desde que o seletor abriu
-    this.emitirCores(true, this.estadoAoAbrir ? diferenca(this.estadoAoAbrir) : desdeUltimo);
+    this.emitirCores(true, this.estadoAoAbrir ? diferenca(this.estadoAoAbrir) : desdeUltimo, 'seletor');
     this.estadoAoAbrir = null;
   }
 
-  private emitirCores(confirmado: boolean, alterados: Alterado[]) {
-    const detail: DetalheControleCores = { ...this.obterCores(), confirmado, alterados };
+  private emitirCores(confirmado: boolean, alterados: Alterado[], origem: Origem) {
+    const detail: DetalheControleCores = { ...this.obterCores(), confirmado, alterados, origem };
     this.dispatchEvent(new CustomEvent('ui-cores-change', { detail, bubbles: true, composed: true }));
   }
 
