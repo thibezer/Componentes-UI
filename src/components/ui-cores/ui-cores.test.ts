@@ -202,6 +202,30 @@ describe('<ui-seletor-cor>', () => {
     expect(seletorNoDom()).toBeNull();
   });
 
+  it('posiciona ao lado da âncora sem sair da janela (usa o tamanho de layout, não o da animação)', () => {
+    const proto = UISeletorCor.prototype as any;
+    Object.defineProperty(proto, 'offsetWidth', { configurable: true, get: () => 260 });
+    Object.defineProperty(proto, 'offsetHeight', { configurable: true, get: () => 480 });
+    try {
+      const rect = (left: number, top: number, w: number, h: number) =>
+        ({ left, top, right: left + w, bottom: top + h, width: w, height: h, x: left, y: top, toJSON() {} }) as DOMRect;
+
+      ancora.getBoundingClientRect = () => rect(40, 100, 20, 20);
+      abrirSeletorCor({ ancora, cor: '#fff' });
+      expect(seletorNoDom()!.style.left).toBe('70px');
+      expect(seletorNoDom()!.style.top).toBe('100px');
+
+      // Perto da borda de baixo: sobe até caber; perto da direita: vai para a esquerda da âncora
+      ancora.getBoundingClientRect = () => rect(window.innerWidth - 30, window.innerHeight - 40, 20, 20);
+      abrirSeletorCor({ ancora, cor: '#fff' });
+      expect(seletorNoDom()!.style.top).toBe(`${window.innerHeight - 480 - 10}px`);
+      expect(seletorNoDom()!.style.left).toBe(`${window.innerWidth - 30 - 260 - 10}px`);
+    } finally {
+      delete proto.offsetWidth;
+      delete proto.offsetHeight;
+    }
+  });
+
   it('abrir outro seletor descarta o anterior sem confirmar', () => {
     let confirmacoes = 0;
     abrirSeletorCor({ ancora, preenchimento: '#10b981', traco: '#ffffff', aoConfirmar: () => confirmacoes++ });

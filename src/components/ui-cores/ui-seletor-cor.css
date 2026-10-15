@@ -7,6 +7,8 @@
   z-index: var(--ui-seletor-cor-z, 10000);
   display: block;
   width: 260px;
+  max-height: calc(100vh - 20px);
+  overflow-y: auto;
   box-sizing: border-box;
   padding: 12px;
   background: var(--ui-seletor-cor-fundo, rgba(18, 18, 24, 0.95));

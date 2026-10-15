@@ -432,11 +432,13 @@ export function fecharSeletorCor(confirmar = true) {
 function posicionar(el: HTMLElement, ancora: Element) {
   const margem = 10;
   const a = ancora.getBoundingClientRect();
-  const p = el.getBoundingClientRect();
+  // Tamanho de layout: getBoundingClientRect() pegaria a escala da animação de entrada
+  const largura = el.offsetWidth;
+  const altura = el.offsetHeight;
   let left = a.right + margem;
-  if (left + p.width > window.innerWidth - margem) left = Math.max(margem, a.left - p.width - margem);
+  if (left + largura > window.innerWidth - margem) left = Math.max(margem, a.left - largura - margem);
   let top = a.top;
-  if (top + p.height > window.innerHeight - margem) top = Math.max(margem, window.innerHeight - p.height - margem);
+  if (top + altura > window.innerHeight - margem) top = Math.max(margem, window.innerHeight - altura - margem);
   el.style.left = `${Math.round(left)}px`;
   el.style.top = `${Math.round(top)}px`;
 }
