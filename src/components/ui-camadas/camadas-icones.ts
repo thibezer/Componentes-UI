@@ -46,7 +46,7 @@ export const ICONES = {
     <polyline points="9 18 15 12 9 6"></polyline>
   </svg>`,
 
-  dragHandle: `<svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+  dragHandle: `<svg viewBox="5 3 14 18" width="7" height="9" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
     <line x1="8" y1="6" x2="8" y2="6.01"></line>
     <line x1="16" y1="6" x2="16" y2="6.01"></line>
     <line x1="8" y1="12" x2="8" y2="12.01"></line>

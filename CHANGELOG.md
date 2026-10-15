@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.3.1 — 2026-10-15
+
+### `<ui-camadas>`: painel de camadas no estilo Adobe
+
+- **Cor da camada editável**: clicar (ou Enter/Espaço) na barra de cor da linha abre o `<ui-seletor-cor>` ao lado, com prévia ao vivo, "cores do projeto" e Cancelar que restaura. Emite `ui-camada-cor` como antes.
+- **Destaque de seleção na cor da camada**: a camada ativa, as feições selecionadas e o alvo de seleção usam a cor da camada (variável `--layer-active-color`, agora definida no grupo e herdada pelas feições).
+- **Menos selos**: removidos "✓ Ativa", "N SUB" e "OFICIAL"; a camada ativa é indicada pelo destaque da linha (`aria-current`), a contagem vira um número discreto (a dica traz feições e subcamadas) e só a geometria prévia ganha um marcador.
+- Alça de arraste mais estreita (8px, antes 14px).
+- Colunas fixas (alça, olho, cadeado, barra de cor) alinhadas à esquerda em camadas, subcamadas e feições; só seta, miniatura e nome recuam com a profundidade, como no Illustrator. A barra de cor não se expande mais ao passar o mouse.
+
 ## 2.3.0 — 2026-10-14
 
 ### Novos: `<ui-controle-cores>` e `<ui-seletor-cor>` (entrada `@thibezer/ui-components-kit/cores`)
