@@ -31,6 +31,7 @@ export * from './components/ui-stat';
 export * from './components/ui-skeleton';
 export * from './components/ui-tabela-propriedades';
 export * from './components/ui-barra-ferramentas';
+export * from './components/ui-cores';
 export * from './components/ui-camadas';
 export { UISeletorMapaBase, UIMapaBase } from './components/ui-seletor-mapa-base';
 export type {
@@ -110,6 +111,7 @@ import type { UITabelaPropriedades } from './components/ui-tabela-propriedades';
 import type { UIRibbon, UIPaletaFerramentas } from './components/ui-barra-ferramentas';
 import type { UICamadas, UIPainelCamadas, UILayerPanel } from './components/ui-camadas';
 import type { UISeletorMapaBase } from './components/ui-seletor-mapa-base';
+import type { UIControleCores, UISeletorCor } from './components/ui-cores';
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -162,6 +164,8 @@ declare global {
     'ui-layer-panel': UILayerPanel;
     'ui-seletor-mapa-base': UISeletorMapaBase;
     'ui-mapa-base': UISeletorMapaBase;
+    'ui-controle-cores': UIControleCores;
+    'ui-seletor-cor': UISeletorCor;
   }
 }
 

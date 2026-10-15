@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.3.0 — 2026-10-14
+
+### Novos: `<ui-controle-cores>` e `<ui-seletor-cor>` (entrada `@thibezer/ui-components-kit/cores`)
+
+- **`<ui-controle-cores>`**: par de cores de desenho no estilo Illustrator. Preenchimento na frente, traço atrás; clique na amostra de trás a ativa, clique no alvo ativo (ou duplo clique, Enter, Espaço) abre o seletor. Botões de canto para inverter, "sem cor" no alvo ativo e restaurar o padrão (`padrao-preenchimento`/`padrao-traco`). Estado misto (`definirMisto()`, mostra `?`) e `so-traco` (esmaece o preenchimento).
+- Ações do usuário emitem `ui-cores-change` com `{ preenchimento, traco, opacidade, alvo, confirmado, alterados }`: `confirmado: false` é pré-visualização com o seletor aberto; na confirmação, `alterados` lista o que mudou desde a abertura. `definirCores()`, `definirAlvo()` e `definirMisto()` não emitem eventos.
+- O kit não registra atalhos de teclado: a aplicação chama `alternarAlvo()`, `inverter()`, `semCor()` e `restaurarPadrao()` e pode mostrar as teclas nas dicas com `atalhos`.
+- **`<ui-seletor-cor>`** + **`abrirSeletorCor({ ancora, ... })`**: painel flutuante com abas Preenchimento/Traço (modo `duplo`) ou cor única (`simples`), prévia antes × depois, hexadecimal, seletor do sistema, opacidade do preenchimento, cores do projeto, paleta padrão e "sem cor". Um aberto por vez; Concluir, ✕, Enter no hexadecimal, Esc e clique fora confirmam; **Cancelar restaura todas as cores iniciais** (preenchimento, traço e opacidade); `X` alterna o alvo.
+- Utilitários: `normalizarCor()`, `normalizarOpacidade()`, `coresUnicas()`, `PALETA_CORES_PADRAO`.
+
 ## 2.2.2 — 2026-10-14
 
 ### `<ui-canvas-cad>`: edição de círculo

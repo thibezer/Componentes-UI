@@ -80,6 +80,11 @@ describe('SSR Safety (Node.js runtime sem DOM)', () => {
     expect(tools.UIRibbon).toBeDefined();
     expect(tools.UIPaletaFerramentas).toBeDefined();
 
+    const cores = await import('../src/cores');
+    expect(cores.UIControleCores).toBeDefined();
+    expect(cores.UISeletorCor).toBeDefined();
+    expect(cores.abrirSeletorCor).toBeDefined();
+
     const index = await import('../src/index');
     expect(index).toBeDefined();
 
