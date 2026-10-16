@@ -2,7 +2,7 @@ import estilos from './ui-controle-cores.css?inline';
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 import { ListenerBag } from '../../core/listener-bag';
 import { coresUnicas, normalizarCor, normalizarOpacidade } from './cores-utils';
-import { abrirSeletorCor } from './ui-seletor-cor';
+import { abrirSeletorCor, type UISeletorCor } from './ui-seletor-cor';
 import type {
   AlvoCor,
   AtalhosControleCores,
@@ -35,7 +35,7 @@ type Origem = DetalheControleCores['origem'];
  */
 export class UIControleCores extends SafeHTMLElement {
   static get observedAttributes() {
-    return ['preenchimento', 'traco', 'opacidade', 'alvo', 'padrao-preenchimento', 'padrao-traco'];
+    return ['preenchimento', 'traco', 'opacidade', 'alvo', 'padrao-preenchimento', 'padrao-traco', 'desabilitado'];
   }
 
   private raiz: ShadowRoot;
@@ -72,7 +72,14 @@ export class UIControleCores extends SafeHTMLElement {
   }
 
   attributeChangedCallback(nome: string, antigo: string | null, valor: string | null) {
-    if (antigo === valor || valor === null) return;
+    if (antigo === valor) return;
+    if (nome === 'desabilitado') {
+      // Atributo booleano: remover também conta
+      if (this.hasAttribute('desabilitado')) this.fecharSeletor(false);
+      this.atualizar();
+      return;
+    }
+    if (valor === null) return;
     if (nome === 'preenchimento') this.definirCores({ preenchimento: valor });
     else if (nome === 'traco') this.definirCores({ traco: valor });
     else if (nome === 'opacidade') this.definirCores({ opacidade: Number(valor) });
@@ -141,6 +148,7 @@ export class UIControleCores extends SafeHTMLElement {
   definirAlvo(alvo: AlvoCor) {
     this._alvo = alvo === 'traco' ? 'traco' : 'preenchimento';
     this.atualizar();
+    this.sincronizarSeletor();
   }
 
   /** Mostra "?" nas amostras cujas cores divergem na seleção atual. */
@@ -185,8 +193,8 @@ export class UIControleCores extends SafeHTMLElement {
     this.emitirCores(true, ['preenchimento', 'traco'], 'padrao');
   }
 
-  /** Abre o seletor de cor ancorado na amostra do alvo (que passa a ser o ativo). */
-  abrirSeletor(alvo: AlvoCor = this._alvo) {
+  /** Abre o seletor de cor ancorado na amostra do alvo (que passa a ser o ativo). Com `focar`, leva o foco do teclado para o painel. */
+  abrirSeletor(alvo: AlvoCor = this._alvo, focar = false) {
     if (this.hasAttribute('desabilitado')) return;
     this.mudarAlvo(alvo === 'traco' ? 'traco' : 'preenchimento');
     if (this.seletorAberto) return;
@@ -203,6 +211,7 @@ export class UIControleCores extends SafeHTMLElement {
       opacidade: this._opacidade,
       misto: this._misto[this._alvo],
       coresProjeto: this._coresProjeto,
+      focar,
       aoAlterar: (d) => this.aplicarDoSeletor(d, false),
       aoConfirmar: (d) => {
         this.seletor = null;
@@ -216,16 +225,15 @@ export class UIControleCores extends SafeHTMLElement {
     });
   }
 
-  /** Fecha o seletor aberto por este controle (confirmando, por padrão). */
+  /**
+   * Fecha o seletor aberto por este controle. Com `confirmar` (padrão), grava o que foi editado;
+   * sem ele, cancela: as cores iniciais voltam (com um `ui-cores-change` não confirmado) e nada é confirmado.
+   */
   fecharSeletor(confirmar = true) {
     const s = this.seletor;
     if (!s) return;
-    if (confirmar) {
-      s.fechar(true);
-    } else {
-      this.seletor = null;
-      s.fechar(false);
-    }
+    if (confirmar) s.fechar(true);
+    else (s.elemento as UISeletorCor).cancelar();
   }
 
   /* ---------- Interno ---------- */
@@ -234,7 +242,13 @@ export class UIControleCores extends SafeHTMLElement {
     if (alvo === this._alvo) return;
     this._alvo = alvo;
     this.atualizar();
+    this.sincronizarSeletor();
     this.dispatchEvent(new CustomEvent('ui-alvo-change', { detail: { alvo }, bubbles: true, composed: true }));
+  }
+
+  /** Mantém a aba do seletor aberto igual ao alvo do controle. */
+  private sincronizarSeletor() {
+    (this.seletor?.elemento as UISeletorCor | undefined)?.trocarAlvo(this._alvo);
   }
 
   private aplicarDoSeletor(d: DetalheSeletorCor, confirmado: boolean) {
@@ -274,28 +288,34 @@ export class UIControleCores extends SafeHTMLElement {
   private renderizar() {
     this.raiz.innerHTML = `
       <style>${estilos}</style>
-      <div class="pilha" part="pilha">
-        <button type="button" class="amostra amostra--traco" data-alvo="traco" part="amostra amostra-traco">
-          <span class="face face--traco"></span>
-        </button>
-        <button type="button" class="amostra amostra--preenchimento" data-alvo="preenchimento" part="amostra amostra-preenchimento">
-          <span class="face face--preenchimento"></span>
-        </button>
-        <button type="button" class="canto canto--inverter" data-acao="inverter" aria-label="Inverter preenchimento e traço">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/>
-          </svg>
-        </button>
-        <button type="button" class="canto canto--sem-cor" data-acao="sem-cor" aria-label="Sem cor">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.4" stroke-linecap="round" aria-hidden="true">
-            <circle cx="12" cy="12" r="8" stroke="currentColor"/>
-            <line x1="6.5" y1="6.5" x2="17.5" y2="17.5" stroke="#ef4444"/>
-          </svg>
-        </button>
-        <button type="button" class="canto canto--padrao" data-acao="padrao" aria-label="Restaurar cores padrão">
-          <span class="ponto ponto--preenchimento"></span>
-          <span class="ponto ponto--traco"></span>
-        </button>
+      <div class="pilha" part="pilha" role="group" aria-label="Cores de desenho">
+        <div class="amostras" part="amostras">
+          <button type="button" class="amostra amostra--traco" data-alvo="traco" part="amostra amostra-traco">
+            <span class="face face--traco"></span>
+          </button>
+          <button type="button" class="amostra amostra--preenchimento" data-alvo="preenchimento" part="amostra amostra-preenchimento">
+            <span class="face face--preenchimento"></span>
+          </button>
+        </div>
+        <div class="acoes" part="acoes">
+          <button type="button" class="acao acao--inverter" data-acao="inverter" part="acao acao-inverter" aria-label="Inverter preenchimento e traço">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/>
+            </svg>
+          </button>
+          <button type="button" class="acao acao--sem-cor" data-acao="sem-cor" part="acao acao-sem-cor" aria-label="Sem cor">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="8" stroke="currentColor"/>
+              <line x1="6.5" y1="6.5" x2="17.5" y2="17.5" stroke="#ef4444"/>
+            </svg>
+          </button>
+          <button type="button" class="acao acao--padrao" data-acao="padrao" part="acao acao-padrao" aria-label="Restaurar cores padrão">
+            <span class="icone-padrao" aria-hidden="true">
+              <span class="ponto ponto--preenchimento"></span>
+              <span class="ponto ponto--traco"></span>
+            </span>
+          </button>
+        </div>
       </div>
     `;
     this.renderizado = true;
@@ -316,10 +336,15 @@ export class UIControleCores extends SafeHTMLElement {
         this.abrirSeletor(alvo);
       });
       this.listeners.add<KeyboardEvent>(amostra, 'keydown', (e: KeyboardEvent) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          this.abrirSeletor(alvo);
-        }
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        e.preventDefault();
+        // Mesmo comportamento do clique no alvo ativo: abre, ou fecha se já estiver aberto
+        if (alvo === this._alvo && this.seletorAberto) this.fecharSeletor(true);
+        else this.abrirSeletor(alvo, true);
+      });
+      // Em alguns navegadores o Espaço só vira clique ao soltar a tecla; sem isto o clique fecharia o seletor recém-aberto
+      this.listeners.add<KeyboardEvent>(amostra, 'keyup', (e: KeyboardEvent) => {
+        if (e.key === ' ') e.preventDefault();
       });
     });
 
@@ -338,29 +363,34 @@ export class UIControleCores extends SafeHTMLElement {
     if (!this.renderizado) return;
     const r = this.raiz;
     const a = this._atalhos;
+    const desabilitado = this.hasAttribute('desabilitado');
     const descrever = (cor: ValorCor, misto: boolean) => (misto ? 'Misto (?) [várias cores na seleção]' : cor === 'none' ? 'Sem cor' : cor);
 
-    const pintar = (alvo: AlvoCor, cor: ValorCor, misto: boolean, rotulo: string) => {
-      const amostra = r.querySelector<HTMLElement>(`[data-alvo="${alvo}"]`);
+    const pintar = (alvo: AlvoCor, cor: ValorCor, misto: boolean, rotulo: string, extra = '') => {
+      const amostra = r.querySelector<HTMLButtonElement>(`[data-alvo="${alvo}"]`);
       const face = amostra?.querySelector<HTMLElement>('.face');
       if (!amostra || !face) return;
       const ativa = this._alvo === alvo;
       amostra.classList.toggle('amostra--ativa', ativa);
       amostra.setAttribute('aria-pressed', String(ativa));
+      amostra.disabled = desabilitado;
       face.classList.toggle('face--misto', misto);
       face.classList.toggle('face--sem-cor', !misto && cor === 'none');
       const prop = alvo === 'traco' ? 'borderColor' : 'backgroundColor';
       face.style[prop] = misto || cor === 'none' ? '' : cor;
-      const descricao = `${rotulo}: ${descrever(cor, misto)}`;
+      const descricao = `${rotulo}: ${descrever(cor, misto)}${extra}`;
       amostra.title = this.dica(`${descricao} — clique para ativar, clique de novo para editar`, a.alternar);
       amostra.setAttribute('aria-label', descricao);
     };
-    pintar('preenchimento', this._preenchimento, this._misto.preenchimento, 'Preenchimento');
+    const opacidade = this._preenchimento === 'none' || this._misto.preenchimento ? '' : `, opacidade ${Math.round(this._opacidade * 100)}%`;
+    pintar('preenchimento', this._preenchimento, this._misto.preenchimento, 'Preenchimento', opacidade);
     pintar('traco', this._traco, this._misto.traco, 'Traço / contorno');
 
     const titulo = (acao: string, texto: string) => {
-      const b = r.querySelector<HTMLElement>(`[data-acao="${acao}"]`);
-      if (b) b.title = texto;
+      const b = r.querySelector<HTMLButtonElement>(`[data-acao="${acao}"]`);
+      if (!b) return;
+      b.title = texto;
+      b.disabled = desabilitado;
     };
     titulo('inverter', this.dica('Inverter preenchimento e traço', a.inverter));
     titulo('sem-cor', this.dica('Sem cor no alvo ativo', a.semCor));
