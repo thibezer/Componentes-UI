@@ -1,6 +1,6 @@
 {
   "name": "@thibezer/ui-components-kit",
-  "version": "2.4.0",
+  "version": "2.5.0",
   "description": "Web Components nativos (W3C Custom Elements + Shadow DOM) para interfaces densas de GIS, CAD e formulários, sem dependência de framework.",
   "keywords": [
     "web-components",

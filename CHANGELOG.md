@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.4.0
+## 2.5.0
 
 ### `<ui-tabela>`: robustez, modo remoto e ordenação
 
