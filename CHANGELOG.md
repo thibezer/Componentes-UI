@@ -1,5 +1,55 @@
 # Changelog
 
+## 2.4.1 — 2026-10-15
+
+### `<ui-controle-cores>` e `<ui-seletor-cor>`: revisão de erros e visual
+
+**Correções**
+
+- O botão "sem cor" ficava por cima da amostra do traço e roubava os cliques da metade inferior esquerda dela. As ações (inverter, sem cor, restaurar padrão) agora ficam numa coluna ao lado das amostras, cada uma com a própria área de clique, sem sobreposição.
+- `desabilitado` agora desativa todos os botões (antes só bloqueava o mouse: Tab + Enter ainda inverter/limpar/restaurar) e fecha um seletor aberto; remover o atributo reativa o controle.
+- Trocar o alvo pelo controle (`alternarAlvo()`, `definirAlvo()`, clique na outra amostra) agora acompanha a aba do seletor aberto, em vez de deixá-las divergentes.
+- `fecharSeletor(false)` agora cancela de verdade: as cores iniciais voltam (com um `ui-cores-change` não confirmado) em vez de ficar a pré-visualização aplicada sem nenhuma confirmação.
+- `ui-alvo-change` não é mais emitido em duplicidade no documento (o painel do seletor deixou de repassá-lo ao abrir pelo popover; use `aoTrocarAlvo`).
+- Espaço/Enter na amostra ativa com o seletor aberto fecham como o clique, e o Espaço não fecha mais o painel recém-aberto em navegadores que disparam o clique ao soltar a tecla.
+
+**Acessibilidade**
+
+- `abrirSeletorCor({ focar: true })` leva o foco ao painel (o controle usa ao abrir por teclado); ao fechar, o foco volta para a âncora. O painel ganha `aria-label` e as amostras da paleta `aria-pressed`.
+- O grupo de amostras é anunciado como "Cores de desenho"; a dica/`aria-label` do preenchimento informa a opacidade.
+
+**Visual**
+
+- Amostras maiores (`--ui-controle-cores-amostra`, padrão 26px), coluna de ações alinhada, ícone "padrão" refeito e anel de foco visível.
+- Ambos os componentes passam a usar os tokens do kit (`--ui-cor-texto`, `--ui-cor-borda`, `--ui-cor-primaria`…) e acompanham o tema claro; antes eram fixos no escuro.
+- Seletor: trilha da opacidade preenchida até o valor, rótulos ORIGINAL/NOVA sempre legíveis, diagonal de "sem cor" igual à do controle, aba de preenchimento "sem cor" com a diagonal vermelha, `prefers-reduced-motion` respeitado e painel reposicionado ao redimensionar a janela.
+## 2.4.0 — 2026-10-15
+
+### `<ui-canvas-cad>`: modos de edição de formas revisados
+
+**Correções**
+
+- **Alça de Bézier**: arrastá-la não inicia mais uma caixa de seleção (que, ao soltar, esvaziava a seleção e encerrava a edição).
+- **Círculo**: o popup passa a oferecer o botão **Editar**; a alça da borda fica onde foi solta (antes voltava para o leste do centro).
+- **Fantasma de inserção**: o duplo clique insere um vértice e não o converte mais em curva (`dblclick` até 600 ms depois da inserção é ignorado).
+- **Camada ou feição fechada durante a edição**: ocultar, bloquear ou remover a camada, ou bloquear a feição, encerra a edição (`cad-edicao-concluida`) e tira alças e HUD.
+- **Caneta**: o arraste da alça termina com o `mouseup` na janela; soltar o botão fora do mapa não deixa mais a alça seguindo o cursor.
+- **Snap em curvas**: feição com `curva` atrai pelos nós (vértice) e pelo meio do trecho curvo; os vértices de apoio amostrados só valem como aresta.
+- **Mudança externa no meio do arraste** (outro operador, API): a alça arrastada não é destruída; o gesto em curso vence ao soltar.
+- **Toque**: arrastar uma alça de edição move a alça, não o mapa.
+- **Tecla S** (e Enter) com vários canvases na página só valem no que está sob o mouse ou com foco. Com um único canvas nada muda.
+
+**Novidades**
+
+- **Desfazer/refazer/cancelar na edição**: Ctrl+Z, Ctrl+Shift+Z / Ctrl+Y e botões no HUD (100 gestos); **Cancelar** volta à geometria de quando a edição começou. Mudar a geometria por fora recomeça o histórico.
+- **Nó selecionado**: clique na alça destaca o nó; Delete/Backspace ou "Excluir nó" o exclui. Recusas (mínimo de nós, ponto, círculo) avisam no HUD.
+- **Mais formas de entrar na edição**: duplo clique na feição (novo `cad-feicao-duplo-clique`, cancelável), Enter com uma feição selecionada e botão **Editar** na barra (`ferramentas="editar"` ou `"todas"`). `cad-edicao-recusada` ganha o motivo `sem-selecao`.
+- **Retângulo**: arrastar um canto de um retângulo alinhado aos eixos mantém o retângulo (Shift solta).
+- **Fantasmas** não aparecem em segmentos com menos de 24 px na tela e voltam ao aproximar o zoom.
+- **Ferramentas de desenho avisam no HUD** quando recusam o clique (círculo abaixo de 2 m, cantos alinhados, centro repetido) ou quando Enter/duplo clique chega com pontos de menos.
+- A dica do HUD de edição cita Shift (que precisa ser apertado **durante** o arraste).
+- O HUD de edição passa a ter vários botões (Desfazer, Refazer, Excluir nó, Cancelar, Concluir): quem buscava o botão pelo seletor `#cm-vertex-edit-hud button` deve usar `[data-acao="concluir"]`.
+
 ## 2.3.0 — 2026-10-14
 
 ### Novos: `<ui-controle-cores>` e `<ui-seletor-cor>` (entrada `@thibezer/ui-components-kit/cores`)

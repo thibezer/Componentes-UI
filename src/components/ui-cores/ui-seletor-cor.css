@@ -1,6 +1,17 @@
 /* <ui-seletor-cor>: painel flutuante de cor (preenchimento/traço, opacidade, paletas e "sem cor") */
 
 :host {
+  /* Paleta local derivada dos tokens do kit (tema escuro por padrão, acompanha o claro) */
+  --_t: var(--ui-cor-texto, #e1e1e6);
+  --_t2: var(--ui-cor-texto-secundario, #9696a6);
+  --_linha: var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
+  --_realce: color-mix(in srgb, var(--_t) 8%, transparent);
+  --_realce-forte: color-mix(in srgb, var(--_t) 16%, transparent);
+  --_campo: color-mix(in srgb, var(--ui-cor-fundo, #0b0b0d) 70%, transparent);
+  --_destaque: var(--ui-cor-primaria, #00e08a);
+  --_sobre-destaque: var(--ui-cor-texto-sobre-primaria, #000000);
+  --_vermelho: #ef4444;
+
   position: fixed;
   top: 0;
   left: 0;
@@ -11,13 +22,13 @@
   overflow-y: auto;
   box-sizing: border-box;
   padding: 12px;
-  background: var(--ui-seletor-cor-fundo, rgba(18, 18, 24, 0.95));
+  background: var(--ui-seletor-cor-fundo, color-mix(in srgb, var(--ui-cor-fundo-menu, #18181c) 95%, transparent));
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid var(--_linha);
   border-radius: 12px;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7), 0 2px 8px rgba(0, 0, 0, 0.4);
-  color: #f1f5f9;
+  box-shadow: var(--ui-sombra-lg, 0 16px 40px rgba(0, 0, 0, 0.6)), 0 2px 8px rgba(0, 0, 0, 0.25);
+  color: var(--_t);
   font-family: var(--ui-fonte-base, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
   font-size: 12px;
   user-select: none;
@@ -26,6 +37,11 @@
 
 :host([hidden]) {
   display: none;
+}
+
+/* O foco inicial vai para o painel quando ele abre pelo teclado; o anel não precisa aparecer no contêiner */
+:host(:focus) {
+  outline: none;
 }
 
 *,
@@ -55,7 +71,7 @@ button {
   justify-content: space-between;
   margin-bottom: 10px;
   padding-bottom: 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--_linha);
 }
 
 .titulo {
@@ -64,7 +80,7 @@ button {
   gap: 6px;
   font-weight: 600;
   font-size: 12.5px;
-  color: #ffffff;
+  color: var(--_t);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -72,6 +88,7 @@ button {
 
 .titulo svg {
   flex-shrink: 0;
+  color: var(--_destaque);
 }
 
 .fechar {
@@ -85,15 +102,15 @@ button {
   background: transparent;
   border: none;
   border-radius: 4px;
-  color: #94a3b8;
+  color: var(--_t2);
   font-size: 14px;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .fechar:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
+  background: var(--_realce-forte);
+  color: var(--_t);
 }
 
 /* Abas Preenchimento x Traço */
@@ -102,9 +119,9 @@ button {
   gap: 2px;
   margin-bottom: 10px;
   padding: 2px;
-  background: rgba(0, 0, 0, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 7px;
+  background: var(--_campo);
+  border: 1px solid var(--_linha);
+  border-radius: 8px;
 }
 
 .aba {
@@ -112,12 +129,12 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
+  gap: 6px;
   padding: 5px 6px;
   background: transparent;
   border: none;
-  border-radius: 5px;
-  color: #94a3b8;
+  border-radius: 6px;
+  color: var(--_t2);
   font-size: 11px;
   font-weight: 600;
   cursor: pointer;
@@ -125,37 +142,43 @@ button {
 }
 
 .aba:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: #ffffff;
+  background: var(--_realce);
+  color: var(--_t);
 }
 
 .aba[aria-selected='true'] {
-  background: rgba(255, 255, 255, 0.14);
-  color: #ffffff;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  background: var(--_realce-forte);
+  color: var(--_t);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
 }
 
 .aba-amostra {
-  width: 10px;
-  height: 10px;
-  border-radius: 2px;
+  width: 11px;
+  height: 11px;
+  border: 1px solid var(--_linha);
+  border-radius: 2.5px;
+}
+
+/* Preenchimento "sem cor": quadradinho com a diagonal vermelha */
+.aba-amostra--sem-cor {
+  background: linear-gradient(to top right, transparent calc(50% - 1px), var(--_vermelho) calc(50% - 1px), var(--_vermelho) calc(50% + 1px), transparent calc(50% + 1px)), var(--_realce-forte);
 }
 
 .aba-amostra--traco {
-  border: 2px solid #ffffff;
+  border: 2.5px solid #ffffff;
   background: transparent;
 }
 
 /* Antes x depois */
 .previa {
   display: flex;
-  height: 32px;
+  height: 34px;
   margin-bottom: 10px;
   overflow: hidden;
-  background: #1e1e24;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 6px;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+  background: var(--_campo);
+  border: 1px solid var(--_linha);
+  border-radius: 7px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.25);
 }
 
 .previa-metade {
@@ -164,12 +187,11 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-image: linear-gradient(45deg, #2a2a33 25%, transparent 25%),
-    linear-gradient(-45deg, #2a2a33 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, #2a2a33 75%),
-    linear-gradient(-45deg, transparent 75%, #2a2a33 75%);
-  background-size: 10px 10px;
-  background-position: 0 0, 0 5px, 5px -5px, -5px 0;
+  background: repeating-conic-gradient(var(--_realce-forte) 0% 25%, transparent 0% 50%) 50% / 10px 10px;
+}
+
+.previa-metade + .previa-metade {
+  border-left: 1px solid var(--_linha);
 }
 
 .previa-cor {
@@ -180,26 +202,27 @@ button {
 
 .previa-cor--sem-cor {
   background: transparent !important;
+  overflow: hidden;
 }
 
 .previa-cor--sem-cor::after {
   content: '';
   position: absolute;
-  top: 50%;
-  left: 10%;
-  width: 80%;
-  height: 2px;
-  background: #ef4444;
-  transform: rotate(-30deg);
+  inset: 0;
+  background: linear-gradient(to top right, transparent calc(50% - 1px), var(--_vermelho) calc(50% - 1px), var(--_vermelho) calc(50% + 1px), transparent calc(50% + 1px));
 }
 
+/* Rótulos sempre legíveis, qualquer que seja a cor de fundo */
 .previa-metade span {
   position: relative;
   z-index: 2;
+  padding: 1px 5px;
+  background: rgba(0, 0, 0, 0.55);
+  border-radius: 3px;
   font-size: 9.5px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.85);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+  letter-spacing: 0.3px;
+  color: #ffffff;
 }
 
 /* Hexadecimal + seletor do sistema */
@@ -219,29 +242,41 @@ button {
 
 .hex-prefixo {
   position: absolute;
-  left: 8px;
-  color: #64748b;
+  left: 9px;
+  color: var(--_t2);
   font-weight: 600;
   pointer-events: none;
 }
 
 .hex input {
   width: 100%;
-  padding: 5px 8px 5px 20px;
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  height: 28px;
+  padding: 0 8px 0 21px;
+  background: var(--_campo);
+  border: 1px solid var(--_linha);
   border-radius: 6px;
   outline: none;
-  color: #ffffff;
-  font-family: var(--ui-fonte-codigo, monospace);
+  color: var(--_t);
+  font-family: var(--ui-fonte-codigo, ui-monospace, 'Cascadia Mono', Consolas, monospace);
   font-size: 12px;
+  letter-spacing: 0.5px;
   text-transform: uppercase;
   user-select: text;
-  transition: border-color 0.15s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.hex input::placeholder {
+  color: var(--_t2);
+  opacity: 0.7;
+}
+
+.hex input:hover {
+  border-color: color-mix(in srgb, var(--_t) 35%, transparent);
 }
 
 .hex input:focus {
-  border-color: var(--ui-cor-primaria, #00e08a);
+  border-color: var(--_destaque);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--_destaque) 25%, transparent);
 }
 
 .nativo {
@@ -253,15 +288,18 @@ button {
   height: 28px;
   flex-shrink: 0;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--_realce);
+  border: 1px solid var(--_linha);
   border-radius: 6px;
-  color: #cbd5e1;
+  color: var(--_t2);
   cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
 }
 
-.nativo:hover {
-  border-color: rgba(255, 255, 255, 0.5);
+.nativo:hover,
+.nativo:focus-within {
+  border-color: color-mix(in srgb, var(--_t) 45%, transparent);
+  color: var(--_t);
 }
 
 .nativo input {
@@ -277,8 +315,8 @@ button {
 .opacidade {
   margin-bottom: 10px;
   padding: 8px;
-  background: rgba(0, 0, 0, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--_campo);
+  border: 1px solid var(--_linha);
   border-radius: 8px;
 }
 
@@ -290,62 +328,83 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 6px;
-  color: #cbd5e1;
+  margin-bottom: 7px;
+  color: var(--_t2);
   font-size: 11px;
 }
 
 .opacidade-valor {
   font-weight: 700;
-  color: var(--ui-cor-primaria, #00e08a);
+  font-variant-numeric: tabular-nums;
+  color: var(--_destaque);
 }
 
+/* A parte já percorrida da trilha é preenchida via --pct (definida pelo componente) */
 .opacidade input[type='range'] {
   width: 100%;
-  height: 6px;
+  height: 14px;
   margin: 0;
-  background: rgba(255, 255, 255, 0.18);
-  border-radius: 3px;
+  background: transparent;
   outline: none;
   cursor: pointer;
   -webkit-appearance: none;
   appearance: none;
 }
 
+.opacidade input[type='range']::-webkit-slider-runnable-track {
+  height: 6px;
+  background: linear-gradient(to right, var(--_destaque) var(--pct, 0%), var(--_realce-forte) var(--pct, 0%));
+  border-radius: 3px;
+}
+
+.opacidade input[type='range']::-moz-range-track {
+  height: 6px;
+  background: var(--_realce-forte);
+  border-radius: 3px;
+}
+
+.opacidade input[type='range']::-moz-range-progress {
+  height: 6px;
+  background: var(--_destaque);
+  border-radius: 3px;
+}
+
 .opacidade input[type='range']::-webkit-slider-thumb {
   width: 14px;
   height: 14px;
+  margin-top: -4px;
   background: #ffffff;
-  border: 2px solid var(--ui-cor-primaria, #00e08a);
+  border: 2px solid var(--_destaque);
   border-radius: 50%;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
   cursor: pointer;
   -webkit-appearance: none;
   appearance: none;
 }
 
 .opacidade input[type='range']::-moz-range-thumb {
-  width: 12px;
-  height: 12px;
+  width: 11px;
+  height: 11px;
   background: #ffffff;
-  border: 2px solid var(--ui-cor-primaria, #00e08a);
+  border: 2px solid var(--_destaque);
   border-radius: 50%;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
   cursor: pointer;
 }
 
 .opacidade-atalhos {
   display: flex;
   gap: 4px;
-  margin-top: 6px;
+  margin-top: 7px;
 }
 
 .opacidade-atalhos button {
   flex: 1;
-  padding: 2px 0;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 3px 0;
+  background: var(--_realce);
+  border: 1px solid var(--_linha);
   border-radius: 4px;
-  color: #94a3b8;
+  color: var(--_t2);
   font-size: 10px;
   text-align: center;
   cursor: pointer;
@@ -353,22 +412,22 @@ button {
 }
 
 .opacidade-atalhos button:hover {
-  background: rgba(255, 255, 255, 0.14);
-  color: #ffffff;
+  background: var(--_realce-forte);
+  color: var(--_t);
 }
 
 .opacidade-atalhos button.ativo {
-  background: var(--ui-cor-primaria, #00e08a);
-  border-color: var(--ui-cor-primaria, #00e08a);
-  color: #0f172a;
+  background: var(--_destaque);
+  border-color: var(--_destaque);
+  color: var(--_sobre-destaque);
   font-weight: 700;
 }
 
 /* Amostras */
 .rotulo-secao {
   margin: 8px 0 5px;
-  color: #94a3b8;
-  font-size: 11px;
+  color: var(--_t2);
+  font-size: 10.5px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -385,21 +444,22 @@ button {
   position: relative;
   aspect-ratio: 1;
   padding: 0;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 4px;
+  border: 1px solid color-mix(in srgb, var(--_t) 25%, transparent);
+  border-radius: 5px;
   cursor: pointer;
   transition: transform 0.12s ease, border-color 0.12s ease;
 }
 
 .amostra:hover {
   z-index: 2;
-  border-color: #ffffff;
+  border-color: var(--_t);
   transform: scale(1.15);
 }
 
 .amostra.ativo {
+  z-index: 1;
   border: 2px solid #ffffff;
-  box-shadow: 0 0 0 1.5px var(--ui-cor-primaria, #00e08a);
+  box-shadow: 0 0 0 2px var(--_destaque), 0 1px 4px rgba(0, 0, 0, 0.4);
 }
 
 /* Sem cor */
@@ -411,10 +471,10 @@ button {
   width: 100%;
   margin-top: 6px;
   padding: 6px;
-  background: rgba(239, 68, 68, 0.12);
+  background: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.35);
   border-radius: 6px;
-  color: #fca5a5;
+  color: var(--ui-cor-texto-erro, #fca5a5);
   font-size: 11.5px;
   font-weight: 600;
   cursor: pointer;
@@ -422,14 +482,13 @@ button {
 }
 
 .sem-cor:hover {
-  background: rgba(239, 68, 68, 0.22);
-  border-color: #ef4444;
-  color: #ffffff;
+  background: rgba(239, 68, 68, 0.2);
+  border-color: var(--_vermelho);
 }
 
 .sem-cor.ativo {
-  background: #ef4444;
-  border-color: #ef4444;
+  background: var(--_vermelho);
+  border-color: var(--_vermelho);
   color: #ffffff;
 }
 
@@ -440,13 +499,13 @@ button {
   gap: 6px;
   margin-top: 10px;
   padding-top: 8px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid var(--_linha);
 }
 
 .rodape button {
-  padding: 4px 10px;
+  padding: 5px 12px;
   border: none;
-  border-radius: 5px;
+  border-radius: 6px;
   font-size: 11.5px;
   font-weight: 600;
   cursor: pointer;
@@ -454,8 +513,8 @@ button {
 }
 
 .botao-concluir {
-  background: var(--ui-cor-primaria, #00e08a);
-  color: #0f172a;
+  background: var(--_destaque);
+  color: var(--_sobre-destaque);
 }
 
 .botao-concluir:hover {
@@ -463,17 +522,35 @@ button {
 }
 
 .botao-cancelar {
-  background: rgba(255, 255, 255, 0.08);
-  color: #94a3b8;
+  background: var(--_realce);
+  color: var(--_t2);
 }
 
 .botao-cancelar:hover {
-  background: rgba(255, 255, 255, 0.15);
-  color: #ffffff;
+  background: var(--_realce-forte);
+  color: var(--_t);
 }
 
 button:focus-visible,
-input:focus-visible {
-  outline: 2px solid var(--ui-cor-primaria, #00e08a);
+input:focus-visible,
+.nativo:focus-within {
+  outline: 2px solid var(--_destaque);
   outline-offset: 1px;
+}
+
+/* O campo hexadecimal já tem o próprio destaque de foco */
+.hex input:focus-visible {
+  outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :host {
+    animation: none;
+  }
+
+  .amostra,
+  .amostra:hover {
+    transition: none;
+    transform: none;
+  }
 }

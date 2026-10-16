@@ -910,6 +910,11 @@ export class FeicoesLayerRenderer implements ILayerRenderer {
       });
     });
 
+    layer.on('dblclick', () => {
+      const entrada = mapa.get(id);
+      if (entrada) context.onLayerAction?.('feicao-duplo-clique', { camadaId: layerDef.id, feicao: entrada.feicao });
+    });
+
     // sem checar `draggable` aqui: o texto pode nascer bloqueado e ser liberado depois (remendar liga o arraste)
     if (layer instanceof L.Marker) {
       layer.on('dragend', () => {

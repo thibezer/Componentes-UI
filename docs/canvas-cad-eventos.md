@@ -7,12 +7,13 @@ Nomes novos usam o prefixo `cad-`; os eventos já existentes no componente não 
 |---|---|---|---|
 | `onFeaturesSelected(lista)` | `cad-selecao` | `{ feicoes: Feicao[] }` (sempre que a seleção muda) | Fase 3 |
 | `onFeatureSelected(feat \| null)` | `cad-feicao-selecionada` | `{ feicao: Feicao \| null }` (só com ≤ 1 feição) | Fase 3 |
-| `onFeatureUpdated` | `cad-feicao-atualizada` | `{ camadaId, feicao }` (texto arrastado; fim de cada gesto de edição de vértices) | Fase 2/5 |
+| `onFeatureUpdated` | `cad-feicao-atualizada` | `{ camadaId, feicao }` (texto arrastado; fim de cada gesto de edição de vértices; também ao desfazer, refazer e cancelar a edição) | Fase 2/5 / 2.4.0 |
 | `onFeatureAction` | `cad-feicao-acao` | `{ acao: 'inspecionar' \| 'zoom' \| 'vertices' \| 'copiar', feicao }` (com `definirOpcoesPopup({ copiarParaAreaDeTransferencia: false })` o componente não escreve na área de transferência; o evento sai igual) | Fase 3 / 2.1.0 |
 | (clique numa feição) | `cad-feicao-clique` | `{ camadaId, feicao, aditivo }` | Fase 2 |
+| (duplo clique numa feição) | `cad-feicao-duplo-clique` (**cancelável**) | `{ camadaId, feicao }` — sem `preventDefault()` o componente abre a edição de vértices (se a feição for editável) | 2.4.0 |
 | `onSnappingChange` | `cad-snap` | `{ ativo, ligado, temporario }` (`ativo` = ligado e sem Alt) | Fase 5 |
 | (edição de vértices) | `cad-edicao-iniciada` / `cad-edicao-concluida` | `{ feicao }` | Fase 5 |
-| (edição recusada) | `cad-edicao-recusada` | `{ motivo: 'bloqueada' \| 'tipo-nao-suportado' \| 'poligono-com-furos' \| 'multiparte' \| 'muitos-vertices', feicao }` | Fase 5 / 2.1.0 |
+| (edição recusada) | `cad-edicao-recusada` | `{ motivo: 'bloqueada' \| 'tipo-nao-suportado' \| 'poligono-com-furos' \| 'multiparte' \| 'muitos-vertices' \| 'sem-selecao', feicao }` (`sem-selecao`, do botão Editar da barra, vem com `feicao: null`) | Fase 5 / 2.1.0 / 2.4.0 |
 | `onSplitFailed` | `cad-divisao-falhou` | `{ motivo: 'nenhum-poligono' \| 'sem-intersecao' \| 'bloqueada' \| 'poligono-com-furos' \| 'multiparte' \| 'geometria-invalida' }` | Fase 6 / 2.1.0 |
 | `onFeatureSplit` | `cad-feicao-dividida` | `{ origem: Feicao, partes: Feicao[] }` | Fase 6 |
 | `onEyedropperSampled` | `cad-conta-gotas` | `{ cor: string, feicao: Feicao \| null, estilo }` (`cor` vazia e `feicao` nula se clicou no vazio) | Fase 6 |
@@ -66,3 +67,30 @@ mesa.addEventListener('cad-texto-solicitado', (e) => {
 `multiparte` aparece em `cad-edicao-recusada` (linha multiparte não tem edição de vértices), `cad-uniao-falhou`
 (`juntarFeicoes` com multilinha) e `cad-divisao-falhou` (só havia multilinhas na seleção). Quem faz `switch` exaustivo
 nos motivos precisa tratar o valor novo.
+
+## Edição de vértices (2.4.0)
+
+**Como entrar:** botão "Vértices" (ou "Editar", no círculo) do popup, duplo clique sobre a feição (evento
+`cad-feicao-duplo-clique`, cancelável), **Enter** com uma só feição editável selecionada, botão **Editar** da barra
+(`ferramentas="editar"` ou `"todas"`) e `editarVertices(camadaId, id)`.
+
+**Dentro da edição:**
+
+| Gesto | Efeito |
+|---|---|
+| Arrastar alça | move o nó (com snap; Alt desliga; S alterna). Num **retângulo** alinhado aos eixos, o canto arrastado leva os vizinhos e o oposto fica fixo; segurar **Shift durante o arraste** solta os cantos |
+| Clique no nó | seleciona (destacado); **Delete**/**Backspace** ou o botão "Excluir nó" o exclui |
+| Botão direito no nó | exclui (abaixo do mínimo, 3 no polígono e 2 na linha, o HUD avisa) |
+| Clique no ponto fantasma | insere um nó (fica selecionado). Segmentos com menos de 24 px na tela não têm fantasma; aproxime o zoom |
+| Duplo clique no nó | alterna canto ↔ curva |
+| Alças de Bézier | **Shift durante o arraste** deixa as duas alças independentes (o Leaflet ignora um arraste que começa com Shift apertado) |
+| **Ctrl+Z** / **Ctrl+Shift+Z** ou **Ctrl+Y** | desfaz / refaz o último gesto (até 100); também há botões no HUD |
+| **Cancelar** (HUD) | volta à geometria de quando a edição começou e encerra |
+| **Enter**, **Esc** ou **Concluir** | encerra mantendo as alterações |
+
+O histórico recomeça quando outro operador (ou a API) troca a **geometria** da feição durante a edição; mudar só estilo ou
+propriedades não o apaga. Se a camada é ocultada, bloqueada ou removida, ou a feição é bloqueada, a edição encerra
+(`cad-edicao-concluida`). Elipse, hexágono e estrela são polígonos comuns depois de criados: mover um nó os deforma.
+
+**Atalhos com vários canvases:** com mais de um `<ui-canvas-cad>` na página, **S** (snap) e **Enter** (editar) valem só no
+canvas sob o mouse ou com foco; com um único canvas valem em qualquer lugar da página, como antes.

@@ -9,7 +9,7 @@ const OPACIDADES_RAPIDAS = [0.25, 0.35, 0.5, 0.75, 1];
 /** Configuração aceita por `UISeletorCor.configurar()` (as opções de `abrirSeletorCor` sem âncora e callbacks). */
 export type ConfiguracaoSeletorCor = Omit<
   OpcoesSeletorCor,
-  'ancora' | 'aoAlterar' | 'aoConfirmar' | 'aoCancelar' | 'aoTrocarAlvo'
+  'ancora' | 'focar' | 'aoAlterar' | 'aoConfirmar' | 'aoCancelar' | 'aoTrocarAlvo'
 >;
 
 /**
@@ -49,6 +49,7 @@ export class UISeletorCor extends SafeHTMLElement {
 
   connectedCallback() {
     if (!this.hasAttribute('role')) this.setAttribute('role', 'dialog');
+    if (!this.hasAttribute('tabindex')) this.setAttribute('tabindex', '-1');
     this.renderizar();
   }
 
@@ -150,8 +151,9 @@ export class UISeletorCor extends SafeHTMLElement {
 
   private renderizar() {
     this.listeners.cleanup();
+    this.setAttribute('aria-label', this._titulo);
     const amostras = (cores: string[]) => cores.map((c) => `
-      <button type="button" class="amostra" data-cor="${c}" style="background-color: ${c};" title="${c.toUpperCase()}" aria-label="Cor ${c.toUpperCase()}"></button>
+      <button type="button" class="amostra" data-cor="${c}" style="background-color: ${c};" title="${c.toUpperCase()}" aria-label="Cor ${c.toUpperCase()}" aria-pressed="false"></button>
     `).join('');
 
     this.raiz.innerHTML = `
@@ -225,7 +227,7 @@ export class UISeletorCor extends SafeHTMLElement {
         <div class="amostras">${amostras(this._paleta)}</div>
       ` : ''}
 
-      <button type="button" class="sem-cor" data-cor="none" title="Sem cor (vazado / transparente)">
+      <button type="button" class="sem-cor" data-cor="none" aria-pressed="false" title="Sem cor (vazado / transparente)">
         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
           <circle cx="12" cy="12" r="9"/>
           <line x1="5.5" y1="5.5" x2="18.5" y2="18.5"/>
@@ -252,7 +254,10 @@ export class UISeletorCor extends SafeHTMLElement {
       aba.setAttribute('aria-selected', String(aba.dataset.alvo === this._alvo));
     });
     const amostraPreench = q<HTMLElement>('.aba-amostra--preenchimento');
-    if (amostraPreench) amostraPreench.style.backgroundColor = this._preenchimento === 'none' ? 'transparent' : this._preenchimento;
+    if (amostraPreench) {
+      amostraPreench.classList.toggle('aba-amostra--sem-cor', this._preenchimento === 'none');
+      amostraPreench.style.backgroundColor = this._preenchimento === 'none' ? '' : this._preenchimento;
+    }
     const amostraTraco = q<HTMLElement>('.aba-amostra--traco');
     if (amostraTraco) amostraTraco.style.borderColor = this._traco === 'none' ? '#ef4444' : this._traco;
 
@@ -274,7 +279,7 @@ export class UISeletorCor extends SafeHTMLElement {
     if (rotuloNova) rotuloNova.textContent = this._misto ? 'MISTO (?)' : 'NOVA';
 
     const hex = q<HTMLInputElement>('.hex-entrada');
-    if (hex && this.raiz.activeElement !== hex) {
+    if (hex && !this.campoEmFoco(hex)) {
       hex.value = semCor ? '' : cor.slice(1).toUpperCase();
       hex.placeholder = semCor ? 'NENHUM' : '00E08A';
     }
@@ -283,7 +288,11 @@ export class UISeletorCor extends SafeHTMLElement {
 
     const pct = Math.round(this._opacidade * 100);
     const faixa = q<HTMLInputElement>('.opacidade-entrada');
-    if (faixa) faixa.value = String(pct);
+    if (faixa) {
+      faixa.value = String(pct);
+      faixa.style.setProperty('--pct', `${pct}%`);
+      faixa.setAttribute('aria-valuetext', `${pct}%`);
+    }
     const valor = q<HTMLElement>('.opacidade-valor');
     if (valor) valor.textContent = `${pct}%`;
     this.raiz.querySelectorAll<HTMLElement>('[data-opacidade]').forEach((b) => {
@@ -291,9 +300,22 @@ export class UISeletorCor extends SafeHTMLElement {
     });
 
     this.raiz.querySelectorAll<HTMLElement>('.amostra').forEach((a) => {
-      a.classList.toggle('ativo', a.dataset.cor === cor);
+      const ativa = a.dataset.cor === cor;
+      a.classList.toggle('ativo', ativa);
+      a.setAttribute('aria-pressed', String(ativa));
     });
-    q<HTMLElement>('.sem-cor')?.classList.toggle('ativo', semCor);
+    const botaoSemCor = q<HTMLElement>('.sem-cor');
+    botaoSemCor?.classList.toggle('ativo', semCor);
+    botaoSemCor?.setAttribute('aria-pressed', String(semCor));
+  }
+
+  /** `activeElement` lança em alguns DOMs simulados quando o foco está em outra árvore de sombra. */
+  private campoEmFoco(campo: Element): boolean {
+    try {
+      return this.raiz.activeElement === campo;
+    } catch {
+      return false;
+    }
   }
 
   private vincularEventos() {
@@ -359,7 +381,7 @@ export function abrirSeletorCor(opcoes: OpcoesSeletorCor): SeletorCorAberto {
   seletorAtivo?.descartar();
 
   const el = document.createElement('ui-seletor-cor') as UISeletorCor;
-  const { ancora, aoAlterar, aoConfirmar, aoCancelar, aoTrocarAlvo, ...config } = opcoes;
+  const { ancora, focar, aoAlterar, aoConfirmar, aoCancelar, aoTrocarAlvo, ...config } = opcoes;
   el.configurar(config);
 
   const bag = new ListenerBag();
@@ -369,7 +391,10 @@ export function abrirSeletorCor(opcoes: OpcoesSeletorCor): SeletorCorAberto {
     if (!aberto) return false;
     aberto = false;
     bag.cleanup();
+    // Quem estava com o foco dentro do painel (teclado) volta para a âncora em vez de cair no <body>
+    const tinhaFoco = document.activeElement === el;
     el.remove();
+    if (tinhaFoco && ancora instanceof HTMLElement && ancora.isConnected) ancora.focus({ preventScroll: true });
     if (seletorAtivo === controle) seletorAtivo = null;
     return true;
   };
@@ -391,7 +416,11 @@ export function abrirSeletorCor(opcoes: OpcoesSeletorCor): SeletorCorAberto {
   bag.add<CustomEvent<DetalheSeletorCor>>(el, 'ui-cor-cancelar', (e: CustomEvent<DetalheSeletorCor>) => {
     if (encerrar()) aoCancelar?.(e.detail);
   });
-  bag.add<CustomEvent<{ alvo: AlvoCor }>>(el, 'ui-alvo-change', (e: CustomEvent<{ alvo: AlvoCor }>) => aoTrocarAlvo?.(e.detail.alvo));
+  bag.add<CustomEvent<{ alvo: AlvoCor }>>(el, 'ui-alvo-change', (e: CustomEvent<{ alvo: AlvoCor }>) => {
+    // Quem abre pelo popover escuta `aoTrocarAlvo`; o evento não sobe para não duplicar o `ui-alvo-change` do controle
+    e.stopPropagation();
+    aoTrocarAlvo?.(e.detail.alvo);
+  });
 
   // Cliques dentro do painel não vazam para o mapa/documento
   bag.add(el, 'pointerdown', (e: Event) => e.stopPropagation());
@@ -400,6 +429,10 @@ export function abrirSeletorCor(opcoes: OpcoesSeletorCor): SeletorCorAberto {
   document.body.appendChild(el);
   posicionar(el, ancora);
   seletorAtivo = controle;
+  if (focar) el.focus({ preventScroll: true });
+
+  // Mantém o painel encostado na âncora (e dentro da janela) se a janela for redimensionada
+  bag.add(window, 'resize', () => posicionar(el, ancora));
 
   // Registrado depois do clique que abriu o seletor, para ele não se fechar na mesma interação
   bag.add<PointerEvent>(window, 'pointerdown', (e: PointerEvent) => {
