@@ -27,9 +27,10 @@ export class TabelaSelecaoController {
   /** Mesmo objeto ou mesmo valor na chave configurada. */
   private indiceDoItem(dados: Record<string, any>[], item: Record<string, any>): number {
     const chave = this.ctx.getChaveId();
-    return dados.findIndex(
-      (d) => d === item || (item[chave] !== undefined && d?.[chave] !== undefined && String(d[chave]) === String(item[chave]))
-    );
+    const idx = dados.indexOf(item);
+    if (idx >= 0) return idx; // identidade primeiro: chaves repetidas não desviam a seleção
+    if (item[chave] == null) return -1; // sem chave (undefined/null) só vale a identidade
+    return dados.findIndex((d) => d?.[chave] != null && String(d[chave]) === String(item[chave]));
   }
 
   public getItemSelecionado(): Record<string, any> | null {
@@ -70,20 +71,29 @@ export class TabelaSelecaoController {
     const exibidos = this.ctx.getDadosExibicao();
     const indice = this.indiceDoItem(exibidos, item);
     if (indice >= 0) {
-      this.itemSelecionado = exibidos[indice];
       this.indiceSelecionado = indice;
+      this.substituirReferencia(item, exibidos[indice]);
       return;
     }
     this.indiceSelecionado = null;
     const originais = this.ctx.getDadosOriginais();
     const indiceOriginal = this.indiceDoItem(originais, item);
     if (indiceOriginal >= 0) {
-      this.itemSelecionado = originais[indiceOriginal];
+      this.substituirReferencia(item, originais[indiceOriginal]);
       return;
     }
     this.itemSelecionado = null;
     this.ctx.host.dispatchEvent(
       new CustomEvent<UISelecaoRemovidaDetail>('ui-selecao-removida', { bubbles: true, composed: true, detail: { item } })
+    );
+  }
+
+  /** Mesmo registro com outro objeto (dados recarregados): atualiza a referência e avisa. */
+  private substituirReferencia(antigo: Record<string, any>, novo: Record<string, any>): void {
+    this.itemSelecionado = novo;
+    if (antigo === novo) return;
+    this.ctx.host.dispatchEvent(
+      new CustomEvent('ui-selecao-atualizada', { bubbles: true, composed: true, detail: { item: novo, anterior: antigo } })
     );
   }
 
@@ -97,10 +107,10 @@ export class TabelaSelecaoController {
     if (this.itemSelecionado) {
       if (this.itemSelecionado === item) return true;
       const chave = this.ctx.getChaveId();
-      if (item[chave] !== undefined && this.itemSelecionado[chave] !== undefined) {
+      if (item[chave] != null && this.itemSelecionado[chave] != null) {
         return String(item[chave]) === String(this.itemSelecionado[chave]);
       }
-      if (item.id !== undefined && this.itemSelecionado.id !== undefined) {
+      if (item.id != null && this.itemSelecionado.id != null) {
         return String(item.id) === String(this.itemSelecionado.id);
       }
     }
@@ -126,9 +136,11 @@ export class TabelaSelecaoController {
       if (isSelected) {
         tr.setAttribute('data-selecionada', 'true');
         tr.setAttribute('aria-current', 'true');
+        tr.setAttribute('aria-selected', 'true');
       } else {
         tr.removeAttribute('data-selecionada');
         tr.removeAttribute('aria-current');
+        tr.setAttribute('aria-selected', 'false');
       }
     });
   }

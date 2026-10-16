@@ -11,6 +11,7 @@ import {
 } from './tabela-dom';
 import {
   executarRedimensionamentoColuna,
+  executarRedimensionamentoTeclado,
   abrirPopoverRedimensionamento
 } from './tabela-interacao';
 import { TabelaOrquestradorDados } from './tabela-orquestrador-dados';
@@ -33,6 +34,8 @@ export interface ContextoOrquestradorRender {
   virtualizar: boolean;
   rowHeight: number;
   indiceAtivo: number | null;
+  textoVazio?: string;
+  textoSemResultados?: string;
   onSetIsResizing: (resizing: boolean) => void;
   onActiveResizeCleanup: (cleanup: (() => void) | null) => void;
   onHeaderClick: (col: TabelaColuna) => void;
@@ -67,6 +70,14 @@ export function executarOrquestracaoHeader(ctx: ContextoOrquestradorRender): voi
       });
       ctx.onActiveResizeCleanup(cleanup);
     },
+    onResizeTeclado: (delta, col, _idx, th, colEl) => {
+      executarRedimensionamentoTeclado(delta, col, th, colEl, {
+        host: ctx.host,
+        colgroupElement: ctx.colgroupElement,
+        shadow: ctx.shadow,
+        onSetIsResizing: ctx.onSetIsResizing
+      });
+    },
     onColumnAutoFit: (col, th, colEl) => {
       col.largura = undefined;
       th.style.width = '';
@@ -94,6 +105,9 @@ export function executarOrquestracaoCorpo(ctx: ContextoOrquestradorRender): void
     virtualizar: ctx.virtualizar,
     rowHeight: ctx.rowHeight,
     indiceAtivo: ctx.indiceAtivo,
+    filtroAtivo: ctx.dadosController.temFiltro(),
+    textoVazio: ctx.textoVazio,
+    textoSemResultados: ctx.textoSemResultados,
     isItemSelecionado: (item, idx) => ctx.selecaoController.isItemSelecionado(item, idx),
     onLinhaClique: (item, idx) => {
       ctx.selecaoController.setItemSelecionado(item);
@@ -119,8 +133,8 @@ export function inicializarScrollVirtualizacao(
   const handler = () => {
     if (!ticking) {
       window.requestAnimationFrame(() => {
-        onRenderBody();
-        ticking = false;
+        // finally: uma exceção de render não pode deixar o scroll virtual travado
+        try { onRenderBody(); } finally { ticking = false; }
       });
       ticking = true;
     }

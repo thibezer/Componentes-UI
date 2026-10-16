@@ -1,5 +1,10 @@
 /* ====================================================
    UI Components Kit - <ui-tabela>
+
+   Tokens públicos (todos opcionais):
+   --ui-tabela-max-height, --ui-tabela-altura-linha,
+   --ui-tabela-zebra, --ui-tabela-hover, --ui-tabela-selecionada, --ui-tabela-selecionada-hover,
+   --ui-tabela-cor-foco, --ui-tabela-th-gap, --ui-tabela-th-icone
    ==================================================== */
 
 :host {
@@ -20,7 +25,6 @@
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
-  touch-action: pan-x pan-y;
   border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
   border-radius: var(--ui-raio-borda, 6px);
   background-color: var(--ui-cor-superficie, #141417);
@@ -34,13 +38,13 @@
   border-spacing: 0;
   text-align: left;
   font-size: 14px;
+  font-family: var(--ui-fonte-base, inherit);
+  /* dígitos de largura fixa: colunas numéricas (áreas, coordenadas) alinham */
+  font-variant-numeric: tabular-nums;
 }
 
-/* Cabeçalho Fixo (Sticky Header) */
+/* Cabeçalho Fixo: o sticky fica só nos <th> (o thead sticky duplicava o empilhamento) */
 .ui-tabela thead {
-  position: sticky;
-  top: 0;
-  z-index: 10;
   background-color: var(--ui-cor-fundo-elevado, #1a1a1e);
 }
 
@@ -50,30 +54,43 @@
   z-index: 10;
   padding: 10px 16px;
   background-color: var(--ui-cor-fundo-elevado, #1a1a1e);
-  color: var(--ui-cor-texto, #e1e1e6);
+  color: var(--ui-cor-texto-secundario, #9696a6);
+  font-size: 13px;
   font-weight: 600;
+  letter-spacing: 0.02em;
   border-bottom: 2px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
   white-space: nowrap;
   user-select: none;
   box-sizing: border-box;
 }
 
-/* Alça de Redimensionamento Tipo Excel (Column Resizer Handle) */
+/* Coluna ordenada ganha o texto pleno: o estado é visível além da seta */
+.ui-tabela th[aria-sort="ascending"],
+.ui-tabela th[aria-sort="descending"] {
+  color: var(--ui-cor-texto, #e1e1e6);
+}
+
+/* Alça de redimensionamento: traço sutil em repouso, destaque no hover/foco/arraste.
+   touch-action: none permite arrastar com o dedo sem rolar o container. */
 .ui-tabela__resizer {
   position: absolute;
   top: 0;
   right: 0;
-  width: 6px;
+  width: 8px;
   height: 100%;
   cursor: col-resize;
   user-select: none;
+  touch-action: none;
   z-index: 20;
+  background: linear-gradient(var(--ui-cor-borda, rgba(255, 255, 255, 0.12)), var(--ui-cor-borda, rgba(255, 255, 255, 0.12))) center / 1px 60% no-repeat;
   transition: background-color 0.15s ease;
 }
 
 .ui-tabela__resizer:hover,
+.ui-tabela__resizer:focus-visible,
 .ui-tabela__resizer--ativo {
-  background-color: var(--ui-cor-primaria, #00E08A);
+  background: var(--ui-cor-primaria, #00E08A);
+  outline: none;
 }
 
 /* Densidades Visuais (Padding das Células th e td) */
@@ -118,23 +135,22 @@
   box-sizing: border-box;
 }
 
-/* Especificações Absolutas de Design:
-   a distância do texto deve ficar em 90px e o espaço da seta em 70px */
+/* Texto + seta: o vão é configurável (--ui-tabela-th-gap) e o texto trunca em coluna estreita */
 .ui-tabela__header-text {
-  margin-right: 90px;
-  display: inline-flex;
-  align-items: center;
+  margin-right: var(--ui-tabela-th-gap, 6px);
+  display: inline-block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.ui-tabela__sort-icon,
-.ui-tabela__header-icon {
-  width: 70px;
-  min-width: 70px;
-  max-width: 70px;
+.ui-tabela__sort-icon {
+  width: var(--ui-tabela-th-icone, 16px);
+  min-width: var(--ui-tabela-th-icone, 16px);
+  flex: none;
   display: inline-flex;
   justify-content: center;
   align-items: center;
-  transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
 /* Cabeçalhos Ordenáveis */
@@ -142,8 +158,11 @@
   cursor: pointer;
 }
 
-.ui-tabela th.ui-tabela__th--ordenavel:hover {
-  background-color: var(--ui-cor-hover-menu, rgba(255, 255, 255, 0.08));
+@media (hover: hover) {
+  .ui-tabela th.ui-tabela__th--ordenavel:hover {
+    background-color: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 8%, var(--ui-cor-fundo-elevado, #1a1a1e));
+    color: var(--ui-cor-texto, #e1e1e6);
+  }
 }
 
 /* Botão de ordenação: herda a aparência do cabeçalho, ganha foco de teclado */
@@ -164,40 +183,49 @@
   border-radius: var(--ui-raio-sm, 4px);
 }
 
-/* Foco de teclado na linha (navegação com setas) */
+/* Foco de teclado na linha (setas): anel na cor do texto, distinto da seleção (primária) */
 .ui-tabela tbody tr:focus {
   outline: none;
 }
 
 .ui-tabela tbody tr:focus-visible {
-  outline: 2px solid var(--ui-cor-primaria, #00E08A);
+  outline: 2px solid var(--ui-tabela-cor-foco, var(--ui-cor-texto, #e1e1e6));
   outline-offset: -2px;
+  background-color: var(--ui-tabela-hover, color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 8%, transparent));
 }
 
-/* Seta de Ordenação SVG */
+/* Seta de ordenação: dois chevrons; o ativo fica pleno e o outro esmaece (inativa: ambos apagados) */
 .ui-tabela__sort-arrow {
   display: inline-block;
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   vertical-align: middle;
   shape-rendering: geometricPrecision;
-  transition: transform 0.2s ease, fill 0.2s ease;
   fill: var(--ui-cor-primaria, #00E08A);
 }
 
-.ui-tabela__sort-arrow--desc {
-  transform: rotate(180deg);
+.ui-tabela__sort-arrow path {
+  transition: opacity 0.15s ease;
+  opacity: 0.35;
+}
+
+.ui-tabela__sort-arrow--asc .seta-cima,
+.ui-tabela__sort-arrow--desc .seta-baixo {
+  opacity: 1;
 }
 
 .ui-tabela__sort-arrow--inativo {
-  opacity: 0.3;
-  fill: var(--ui-cor-texto-secundario, #888899);
+  fill: var(--ui-cor-texto-secundario, #9696a6);
+}
+
+.ui-tabela__sort-arrow--inativo path {
+  opacity: 0.6;
 }
 
 /* Células TD */
 .ui-tabela td {
   padding: 10px 16px;
-  border-bottom: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.06));
+  border-bottom: 1px solid color-mix(in srgb, var(--ui-cor-borda, rgba(255, 255, 255, 0.12)) 60%, transparent);
   white-space: nowrap;
   vertical-align: middle;
   color: var(--ui-cor-texto, #e1e1e6);
@@ -243,25 +271,47 @@
   justify-content: flex-end;
 }
 
-/* Acessibilidade Visual: Zebra-striping & Hover na linha inteira */
+/* Zebra, hover e seleção: tokens públicos --ui-tabela-zebra / -hover / -selecionada.
+   O zebrado é um véu translúcido da cor do texto, visível nos temas claro e escuro. */
+.ui-tabela tbody tr[data-index] {
+  cursor: pointer;
+}
+
 .ui-tabela tbody tr.ui-tabela__tr--par {
-  background-color: var(--ui-cor-fundo-card, rgba(255, 255, 255, 0.02));
+  background-color: var(--ui-tabela-zebra, color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 4%, transparent));
 }
 
-.ui-tabela tbody tr:hover {
-  background-color: var(--ui-cor-hover-menu, rgba(255, 255, 255, 0.08));
+@media (hover: hover) {
+  .ui-tabela tbody tr[data-index]:hover {
+    background-color: var(--ui-tabela-hover, color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 8%, transparent));
+  }
 }
 
-/* Linha Selecionada */
+.ui-tabela tbody tr[data-index]:active {
+  background-color: var(--ui-tabela-hover, color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 12%, transparent));
+}
+
+/* O clique na linha não seleciona o texto das células (opt-in: atributo selecionar-texto) */
+:host(:not([selecionar-texto])) .ui-tabela tbody td {
+  user-select: none;
+}
+
+/* Linha Selecionada: a barra lateral vai na 1ª célula (box-shadow em <tr> não é pintado em todos os navegadores) */
 .ui-tabela tbody tr.ui-tabela__tr--selecionada,
 .ui-tabela tbody tr[data-selecionada="true"] {
-  background-color: var(--ui-cor-linha-selecionada, color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 14%, transparent));
+  background-color: var(--ui-tabela-selecionada, var(--ui-cor-linha-selecionada, color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 14%, transparent)));
+}
+
+.ui-tabela tbody tr.ui-tabela__tr--selecionada td:first-child,
+.ui-tabela tbody tr[data-selecionada="true"] td:first-child {
   box-shadow: inset 3px 0 0 var(--ui-cor-primaria, #00E08A);
 }
 
-.ui-tabela tbody tr.ui-tabela__tr--selecionada:hover,
-.ui-tabela tbody tr[data-selecionada="true"]:hover {
-  background-color: var(--ui-cor-linha-selecionada-hover, color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 22%, transparent));
+@media (hover: hover) {
+  .ui-tabela tbody tr.ui-tabela__tr--selecionada:hover,
+  .ui-tabela tbody tr[data-selecionada="true"]:hover {
+    background-color: var(--ui-tabela-selecionada-hover, var(--ui-cor-linha-selecionada-hover, color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 22%, transparent)));
+  }
 }
 
 /* Linhas Espaçadoras da Virtualização (Windowing) */
@@ -272,15 +322,11 @@
   background: transparent !important;
 }
 
-/* Estado de Empty State (Tabela Vazia) */
+/* Estado vazio: o cabeçalho continua visível acima; a mensagem ocupa o lugar das linhas */
 .ui-tabela__empty {
-  padding: 48px 24px;
+  padding: 40px 24px;
   text-align: center;
-  border: 2px dashed var(--ui-cor-borda, rgba(255, 255, 255, 0.2));
-  border-radius: var(--ui-raio-borda, 6px);
-  margin: 16px;
-  color: var(--ui-cor-texto-secundario, #888899);
-  background-color: var(--ui-cor-fundo, #0b0b0d);
+  color: var(--ui-cor-texto-secundario, #9696a6);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -299,17 +345,83 @@
 .ui-tabela__empty-text {
   font-size: 14px;
   font-weight: 500;
-  color: var(--ui-cor-texto-secundario, #888899);
+  color: var(--ui-cor-texto-secundario, #9696a6);
 }
 
-/* Estado de Carregamento Assíncrono (Loading State) */
+/* Erro de carregamento remoto */
+.ui-tabela__erro {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--ui-cor-texto-erro, #ff5555);
+  border-left-width: 4px;
+  border-radius: var(--ui-raio-borda, 6px);
+  background: color-mix(in srgb, var(--ui-cor-texto-erro, #ff5555) 10%, transparent);
+  color: var(--ui-cor-texto, #e1e1e6);
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.ui-tabela__erro-texto {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+.ui-tabela__erro-detalhe {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--ui-cor-texto-secundario, #9696a6);
+  overflow-wrap: anywhere;
+}
+
+.ui-tabela__erro-acao,
+.ui-tabela__prompt-actions button {
+  background: var(--ui-cor-botao-secundario-fundo, rgba(255, 255, 255, 0.12));
+  color: var(--ui-cor-texto, #e1e1e6);
+  border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
+  padding: 6px 12px;
+  border-radius: var(--ui-raio-sm, 4px);
+  font: inherit;
+  cursor: pointer;
+}
+
+.ui-tabela__erro-acao:hover,
+.ui-tabela__prompt-actions button:hover {
+  background: var(--ui-cor-botao-secundario-hover, rgba(255, 255, 255, 0.2));
+}
+
+.ui-tabela__erro-acao:focus-visible,
+.ui-tabela__prompt-actions button:focus-visible,
+.ui-tabela__prompt-dialog input:focus-visible {
+  outline: 2px solid var(--ui-cor-primaria, #00E08A);
+  outline-offset: 2px;
+}
+
+/* Texto só para leitores de tela (anúncio de resultado do filtro) */
+.ui-tabela__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Estado de Carregamento Assíncrono: véu na cor da superfície do tema */
 .ui-tabela__loading {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(11, 11, 13, 0.7);
+  background-color: color-mix(in srgb, var(--ui-cor-superficie, #141417) 72%, transparent);
   backdrop-filter: blur(2px);
   display: flex;
   flex-direction: column;
@@ -317,7 +429,7 @@
   justify-content: center;
   gap: 12px;
   z-index: 50;
-  color: var(--ui-cor-primaria, #00E08A);
+  color: var(--ui-cor-texto, #e1e1e6);
   font-size: 14px;
 }
 
@@ -336,43 +448,10 @@
   }
 }
 
-
-/* Context Menu de Largura Exata (Botão Direito no Cabeçalho) */
-.ui-tabela__context-menu {
-  position: absolute;
-  z-index: var(--ui-z-popover, 1050);
-  background-color: var(--ui-cor-fundo-elevado, #1a1a1e);
-  border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.2));
-  border-radius: var(--ui-raio-borda, 6px);
-  box-shadow: var(--ui-sombra-md, 0 4px 20px rgba(0, 0, 0, 0.6));
-  padding: 6px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 200px;
-  font-size: 13px;
-  color: var(--ui-cor-texto, #e1e1e6);
-}
-
-.ui-tabela__context-item {
-  padding: 8px 12px;
-  border-radius: var(--ui-raio-sm, 4px);
-  cursor: pointer;
-  color: var(--ui-cor-texto, #e1e1e6);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  transition: background-color 0.15s ease;
-}
-
-.ui-tabela__context-item:hover {
-  background-color: var(--ui-cor-hover-menu, rgba(255, 255, 255, 0.08));
-  color: var(--ui-cor-primaria, #00E08A);
-}
-
-/* Prompt Dialog Customizado */
+/* Diálogo de largura da coluna */
 .ui-tabela__prompt-dialog {
+  margin: 0;
+  max-width: calc(100vw - 16px);
   border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.2));
   border-radius: var(--ui-raio-borda, 6px);
   background-color: var(--ui-cor-fundo-elevado, #1a1a1e);
@@ -386,6 +465,7 @@
   background: rgba(0, 0, 0, 0.3);
 }
 .ui-tabela__prompt-title {
+  display: block;
   margin-bottom: 8px;
   font-weight: 500;
 }
@@ -396,31 +476,45 @@
   border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.2));
   background: var(--ui-cor-superficie, #141417);
   color: var(--ui-cor-texto, #e1e1e6);
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   box-sizing: border-box;
+  font: inherit;
+}
+.ui-tabela__prompt-dialog input[aria-invalid="true"] {
+  border-color: var(--ui-cor-texto-erro, #ff5555);
+}
+.ui-tabela__prompt-erro {
+  min-height: 1.2em;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: var(--ui-cor-texto-erro, #ff5555);
 }
 .ui-tabela__prompt-actions {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
 }
-.ui-tabela__prompt-actions button {
-  background: var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
-  color: var(--ui-cor-texto, #e1e1e6);
-  border: none;
-  padding: 6px 12px;
-  border-radius: var(--ui-raio-sm, 4px);
-  cursor: pointer;
-}
 .ui-tabela__prompt-actions button:last-child {
   background: var(--ui-cor-primaria, #00E08A);
-  color: #000;
+  border-color: transparent;
+  color: var(--ui-cor-texto-sobre-primaria, #000000);
   font-weight: 600;
 }
+.ui-tabela__prompt-actions button:last-child:hover {
+  background: color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 85%, var(--ui-cor-texto, #e1e1e6));
+}
 
-/* ==========================================
-   Refinamento Mobile & Touch Ergonomics
-   ========================================== */
+/* Alvos de toque maiores em ponteiro grosso (a linha só cresce se a altura não for fixa) */
+@media (pointer: coarse) {
+  .ui-tabela__resizer {
+    width: 16px;
+  }
+  :host(:not([altura-linha]):not([row-height])) .ui-tabela tbody tr[data-index] {
+    height: 44px;
+  }
+}
+
+/* Refinamento Mobile */
 @media (max-width: 640px) {
   .ui-tabela th {
     padding: 8px 10px;
@@ -431,20 +525,15 @@
     padding: 8px 10px;
     font-size: 13px;
   }
-
-  .ui-tabela__header-text {
-    margin-right: 16px;
-  }
-
-  .ui-tabela__sort-icon,
-  .ui-tabela__header-icon {
-    width: 24px;
-    min-width: 24px;
-    max-width: 24px;
-  }
-
-  .ui-tabela__resizer {
-    width: 14px; /* Área de toque ampliada para facilitar arraste no mobile */
-  }
 }
 
+/* Movimento reduzido: sem transições; o spinner gira devagar (continua indicando atividade) */
+@media (prefers-reduced-motion: reduce) {
+  .ui-tabela__resizer,
+  .ui-tabela__sort-arrow path {
+    transition: none;
+  }
+  .ui-tabela__spinner {
+    animation-duration: 2.4s;
+  }
+}

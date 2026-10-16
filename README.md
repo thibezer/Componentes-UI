@@ -453,6 +453,35 @@ tabela.filtrar('M-01'); // Filtra instantaneamente em todas as colunas
 tabela.recarregar();   // Recarrega os dados da API remota
 ```
 
+**Autenticação e opções do `fetch`** (o `src` sozinho faz um `GET` sem headers):
+
+```javascript
+tabela.fetchOpcoes = { headers: { Authorization: `Bearer ${token}` }, credentials: 'include' };
+// ou troque a função de busca (renovação de token, mocks):
+tabela.fetcher = (url, init) => meuFetchAutenticado(url, init);
+
+const ok = await tabela.carregarDoEndpoint('/api/v1/vertices'); // true em sucesso; nunca rejeita
+```
+
+**Ordenação no servidor**: `<ui-tabela ordenacao-remota>` (ou `tabela.ordenacaoRemota = true`) atualiza o indicador e emite `ui-sort`, mas não reordena; busque os dados já ordenados. Sem o atributo, chame `evento.preventDefault()` em `ui-sort` para recusar a ordenação.
+
+**Eventos de `<ui-tabela>`** (todos `bubbles` e `composed`; só `ui-sort` é cancelável):
+
+| Evento | `detail` | Quando |
+|---|---|---|
+| `ui-sort` (cancelável) | `{ idColuna, direcao }` | Clique no cabeçalho ordenável. `direcao: 'original'` com `idColuna: null` = ordenação removida |
+| `ui-column-resize` | `{ idColuna, largura }` (`"120px"` ou `"auto"`) | Fim do arraste, popover ou duplo clique; não dispara em clique sem arrastar |
+| `ui-linha-clique` | `{ item, indice }` | Clique/Enter/Espaço numa linha. `indice` é a posição **exibida** (após ordenar/filtrar): use `item` |
+| `ui-linha-selecionada` | `{ item, indice }` | `rolarPara(..., { selecionar: true })` |
+| `ui-selecao-removida` | `{ item }` | O item selecionado saiu dos `dados` |
+| `ui-selecao-atualizada` | `{ item, anterior }` | Os dados foram recarregados e o registro selecionado agora é outro objeto |
+| `ui-fetch-start` | `{ url }` | Início da requisição do `src` |
+| `ui-fetch-sucesso` | `{ url, total, dados }` | Dados recebidos |
+| `ui-fetch-erro` | `{ url, erro, origem, status? }` | Falha. `origem`: `rede`, `http` (com `status`), `json` ou `render` |
+| `ui-fetch-cancelado` | `{ url }` | Requisição abortada ou substituída (fecha o par do `ui-fetch-start`) |
+
+Boas práticas: trate `dados` como imutável (atribua sempre um array novo), mantenha `chave-id` única e não nula, memorize `colunas` (atribuí-las de novo refaz a tabela) e coloque controles interativos das células com `data-prevent-select` se não quiser que o clique selecione a linha. `render` devolvendo `string` vira texto (não HTML); devolva um `HTMLElement` novo por chamada.
+
 ---
 
 ## 💻 Exemplos de Uso por Tecnologia
@@ -694,7 +723,7 @@ window.addEventListener('message', (event) => {
 | `<ui-tooltip>` | Dica contextual inteligente (Hover PC / Toque Mobile). O texto vira `aria-description` do gatilho (lido pelo leitor de tela, também repassado pelo `<ui-botao>`); **Esc** fecha sem mover o foco; o balão não some ao levar o ponteiro até ele. | `texto`, `posicao`, `gatilho` | - |
 | `<ui-skeleton>` | Placeholder de carregamento animado com pulsos. | `tipo`, `largura`, `altura`, `animado` | - |
 | `<ui-stat>` | Cartão KPI de estatísticas, métricas e tendências. | `rotulo`, `valor`, `variacao`, `tendencia` (`alta`, `baixa`, `neutro`) | - |
-| `<ui-tabela>` | Tabela orientada a dados, virtualizada tipo Excel. **Teclado**: cabeçalhos ordenáveis são botões (Tab + Enter/Espaço, com `aria-sort`); nas linhas, ↑/↓, Home/End e PageUp/PageDown movem o foco e Enter/Espaço selecionam (`aria-current`). A seleção é mantida ao ordenar e filtrar. Nome acessível via `aria-label`. | `colunas`, `dados`, `src`, `densidade`, `aria-label` | `ui-sort`, `ui-column-resize`, `ui-linha-clique` |
+| `<ui-tabela>` | Tabela orientada a dados, virtualizada tipo Excel. **Teclado**: cabeçalhos ordenáveis são botões (Tab + Enter/Espaço, com `aria-sort`); nas linhas, ↑/↓, Home/End e PageUp/PageDown movem o foco e Enter/Espaço selecionam (`aria-current`). A seleção é mantida ao ordenar e filtrar. Nome acessível via `aria-label`. | `colunas`, `dados`, `src`, `densidade`, `aria-label` | `ui-sort`, `ui-column-resize`, `ui-linha-clique` (demais eventos: ver seção 4) |
 | `<ui-tabela-propriedades>` | Inspetor de propriedades técnicas padrão AutoCAD & Revit com cálculos matemáticos inline (+, -, *, /, ^, %), arraste de valor contínuo (scrubbing), splitter redimensionável e editores CAD. | `categorias`, `tipo-objeto`, `splitter-pos`, `modo-aplicar`, `filtro` | `ui-propriedade-alterada`, `ui-aplicar`, `ui-desfazer`, `ui-editar-tipo`, `ui-acao-clique`, `ui-quick-select`, `ui-calculadora` |
 | `<ui-ribbon>` | Barra de ferramentas em abas e grupos (estilo AutoCAD / Word / Excel): botões grandes e pequenos em colunas de 3, toggles, menus suspensos, abas contextuais, modo recolhido (duplo clique na aba) e navegação por teclado (roving tabindex). | `abas`, `aba-ativa`, `recolhido`, `compacto` | `ui-ferramenta`, `ui-aba-change` |
 | `<ui-paleta-ferramentas>` | Paleta de ferramentas (estilo Illustrator / Photoshop): seleção exclusiva, grupos com flyout (clique longo, botão direito ou seta), 1 ou 2 colunas, vertical/horizontal e atalhos de teclado que percorrem o grupo. | `ferramentas`, `valor`, `orientacao`, `colunas`, `tamanho`, `atalhos` | `ui-change`, `ui-selecionar`, `ui-ferramenta` |

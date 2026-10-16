@@ -1,5 +1,29 @@
 # Changelog
 
+## 2.4.0
+
+### `<ui-tabela>`: robustez, modo remoto e ordenação
+
+- **Render protegido**: exceção em `coluna.render` deixa só a célula vazia (com `console.error`); o scroll virtual não trava mais após um erro de render.
+- **Modo remoto**: `fetchOpcoes` (headers, credentials...), `fetcher` (substitui o `fetch`), `carregarDoEndpoint()`/`recarregar()` resolvem `true`/`false` (antes `void`; nunca rejeitam) e `carregarDoEndpoint(url)` passa a guardar a URL como `src`. `ui-fetch-erro` ganha `origem` (`rede`, `http`, `json`, `render`) e `status`. Novo evento `ui-fetch-cancelado`. Abortar (desconexão ou nova requisição) libera `carregando`; mesma URL em andamento é reaproveitada (sem requisição duplicada ao registrar o elemento depois do HTML).
+- **Ordenação**: `ui-sort` agora é cancelável (`preventDefault()` desfaz); atributo/propriedade `ordenacao-remota` para ordenar no servidor. `TabelaColuna.tipo` (`numero`, `data`, `booleano`, `texto`) e `TabelaColuna.comparador`. `Date`, `dd/mm/aaaa` (com `tipo: 'data'`) e booleanos ordenam pelo valor; `Intl.Collator` reutilizado; **nulos ficam sempre no fim** (antes iam para o início em `desc`).
+- **Filtro**: ignora acentos; datas entram na busca; `TabelaColuna.textoFiltro` torna pesquisável o texto formatado por `render`; filtra antes de ordenar (mais rápido).
+- **Dados do consumidor**: `colunas` é copiado (redimensionar não altera nem falha com objetos congelados/reativos/compartilhados; `tabela.colunas` devolve a cópia interna); entradas `null`/`undefined` em `dados` são descartadas.
+- **Seleção**: `id` nulo não marca várias linhas; a identidade do objeto tem prioridade sobre a chave; novo `ui-selecao-atualizada` quando os dados recarregados trazem outro objeto do mesmo registro.
+- **Cliques**: botões dentro do shadow DOM de custom elements na célula não selecionam a linha (`composedPath`).
+- **Redimensionamento**: clique na alça sem arrastar não emite `ui-column-resize` (antes `"undefined"`); desconectar durante o arraste não bloqueia mais a ordenação; o popover só emite se a largura mudou.
+- Eventos do `<ui-tabela>` documentados no README.
+
+### `<ui-tabela>`: estética, usabilidade e acessibilidade
+
+- **Cabeçalho**: sem as larguras fixas de 90px/70px; o vão texto-seta vem de `--ui-tabela-th-gap` (6px) e a seta de `--ui-tabela-th-icone` (16px). Só colunas ordenáveis têm ícone (dois chevrons, o ativo em destaque); `aria-sort="none"` nas ordenáveis inativas. O `sticky` ficou só nos `<th>`.
+- **Tokens**: `--ui-tabela-zebra`, `--ui-tabela-hover`, `--ui-tabela-selecionada(-hover)`, `--ui-tabela-cor-foco`. Zebrado visível nos dois temas; texto do botão "Aplicar" usa `--ui-cor-texto-sobre-primaria`. `tabular-nums` e `--ui-fonte-base`.
+- **Estados**: erro de carregamento visível (`part="erro"`, `role="alert"`, "Tentar novamente"; atributo `texto-erro`); overlay de carregamento com a cor do tema, `role="status"` e `texto-carregando`; vazio mantém o cabeçalho e o filtro sem resultado usa `texto-sem-resultados` (também anunciado a leitores de tela).
+- **Linhas**: `cursor: pointer`, hover só com `(hover: hover)`, foco de teclado (cor do texto) distinto da seleção (primária), texto das células não é selecionado ao clicar (opt-in: `selecionar-texto`).
+- **ARIA**: `role="grid"`, `aria-rowcount/colcount`, `aria-rowindex`, `aria-selected` (mantém `aria-current`), espaçadores `aria-hidden`, contêiner `role="region"` com o `aria-label`.
+- **Redimensionamento**: toque/caneta (Pointer Events), traço visível em repouso, alça focável (`role="separator"`; ←/→ ajustam, Shift = passo maior, Enter abre o diálogo) e clique na alça não ordena. Diálogo de largura com rótulo, campo numérico, validação inline, posição dentro da janela e retorno do foco.
+- `prefers-reduced-motion` (sem transições; spinner lento) e alvos de toque maiores com `pointer: coarse`. Removido o CSS morto do menu de contexto.
+
 ## 2.3.0 — 2026-10-14
 
 ### Novos: `<ui-controle-cores>` e `<ui-seletor-cor>` (entrada `@thibezer/ui-components-kit/cores`)

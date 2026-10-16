@@ -1,5 +1,5 @@
 import { ListenerBag } from '../../core/listener-bag';
-import type { DensidadeTabela, TabelaColuna, UISortDetail, UIColumnResizeDetail, UIRowScrollOptions, UISelecaoRemovidaDetail } from './tipos';
+import type { DensidadeTabela, TabelaColuna, TabelaFetcher, UISortDetail, UIColumnResizeDetail, UIRowScrollOptions, UISelecaoRemovidaDetail, UIFetchErroDetail } from './tipos';
 import { TabelaRemotaController } from './tabela-remota';
 import { TabelaSelecaoController } from './tabela-selecao';
 import { TabelaOrquestradorDados } from './tabela-orquestrador-dados';
@@ -14,11 +14,11 @@ import {
 import { sincronizarAtributosTabela, tratarMudancaAtributoTabela } from './tabela-atributos-sync';
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 
-export type { DensidadeTabela, TabelaColuna, UISortDetail, UIColumnResizeDetail, UIRowScrollOptions, UISelecaoRemovidaDetail };
+export type { DensidadeTabela, TabelaColuna, TabelaFetcher, UISortDetail, UIColumnResizeDetail, UIRowScrollOptions, UISelecaoRemovidaDetail, UIFetchErroDetail };
 
 export class UITabela extends SafeHTMLElement {
   static get observedAttributes() {
-    return ['texto-vazio', 'empty-text', 'max-height', 'densidade', 'density', 'altura-linha', 'row-height', 'virtualizar', 'virtualize', 'src', 'carregando', 'loading', 'chave-id', 'id-key', 'aria-label'];
+    return ['texto-vazio', 'empty-text', 'max-height', 'densidade', 'density', 'altura-linha', 'row-height', 'virtualizar', 'virtualize', 'src', 'carregando', 'loading', 'chave-id', 'id-key', 'aria-label', 'ordenacao-remota', 'texto-erro', 'texto-sem-resultados', 'texto-carregando'];
   }
 
   private shadow: ShadowRoot;
@@ -28,6 +28,8 @@ export class UITabela extends SafeHTMLElement {
   private _isResizing: boolean = false;
   private _carregando: boolean = false;
   private _src: string | null = null;
+  private _fetchOpcoes: RequestInit | null = null;
+  private _fetcher: TabelaFetcher | null = null;
 
   private _containerElement: HTMLDivElement | null = null;
   private _tableElement: HTMLTableElement | null = null;
@@ -36,6 +38,10 @@ export class UITabela extends SafeHTMLElement {
   private _colgroupElement: HTMLTableColElement | null = null;
   private _emptyElement: HTMLDivElement | null = null;
   private _loadingElement: HTMLDivElement | null = null;
+  private _erroElement: HTMLDivElement | null = null;
+  private _anuncioElement: HTMLDivElement | null = null;
+  /** Último erro de carregamento remoto (null = sem erro). */
+  private _erro: UIFetchErroDetail | null = null;
 
   private _scrollHandler: ((e: Event) => void) | null = null;
   private _activeResizeCleanup: (() => void) | null = null;
@@ -58,7 +64,9 @@ export class UITabela extends SafeHTMLElement {
     this.remotaController = new TabelaRemotaController({
       host: this,
       onCarregandoAlterado: (c) => { this.carregando = c; },
-      onDadosRecebidos: (d) => { this.dados = d; }
+      onDadosRecebidos: (d) => { this.dados = d; },
+      getOpcoes: () => this._fetchOpcoes,
+      getFetcher: () => this._fetcher
     });
     this.selecaoController = new TabelaSelecaoController({
       host: this,
@@ -69,6 +77,10 @@ export class UITabela extends SafeHTMLElement {
       onRolarParaIndice: (indice, comportamento) => this.posicionarLinha(indice, comportamento),
       onLinhaAtiva: (indice) => this.definirLinhaAtiva(indice)
     });
+    // Estado de erro visível: acompanha os eventos do carregamento remoto
+    this.addEventListener('ui-fetch-erro', (e) => this.mostrarErro((e as CustomEvent<UIFetchErroDetail>).detail));
+    this.addEventListener('ui-fetch-start', () => this.mostrarErro(null));
+    this.addEventListener('ui-fetch-sucesso', () => this.mostrarErro(null));
   }
 
   connectedCallback() {
@@ -82,6 +94,10 @@ export class UITabela extends SafeHTMLElement {
   disconnectedCallback() { this.cleanupEventListeners(); }
 
   attributeChangedCallback(name: string, _oldVal: string | null, newVal: string | null) {
+    if (name === 'ordenacao-remota') {
+      this.dadosController.setOrdenacaoRemota(newVal !== null);
+      this.atualizarContextoSelecao();
+    }
     if (name === 'densidade' || name === 'density' || name === 'altura-linha' || name === 'row-height') this._alturaLinhaMedida = null;
     if (name === 'altura-linha' || name === 'row-height') this.aplicarAlturaLinha();
     if (name === 'chave-id' || name === 'id-key') this.atualizarContextoSelecao();
@@ -96,6 +112,58 @@ export class UITabela extends SafeHTMLElement {
     if (rotulo) this._tableElement.setAttribute('aria-label', rotulo);
     else this._tableElement.removeAttribute('aria-label');
     this._tableElement.setAttribute('aria-busy', String(this._carregando));
+    // Região rolável nomeada: leitores de tela anunciam o contêiner e o teclado alcança a rolagem
+    if (this._containerElement) {
+      if (rotulo) {
+        this._containerElement.setAttribute('role', 'region');
+        this._containerElement.setAttribute('aria-label', rotulo);
+      } else {
+        this._containerElement.removeAttribute('role');
+        this._containerElement.removeAttribute('aria-label');
+      }
+    }
+    this.atualizarTextosEstado();
+  }
+
+  /** Textos de estado configuráveis por atributo (carregando, sem resultados, erro). */
+  private atualizarTextosEstado() {
+    const carregando = this._loadingElement?.querySelector('.ui-tabela__loading-texto');
+    if (carregando) carregando.textContent = this.getAttribute('texto-carregando') || 'Carregando dados...';
+    this.renderizarErro();
+  }
+
+  /** Mostra (ou oculta, com null) o aviso de erro de carregamento com a ação "Tentar novamente". */
+  private mostrarErro(detalhe: UIFetchErroDetail | null) {
+    this._erro = detalhe;
+    this.renderizarErro();
+  }
+
+  private renderizarErro() {
+    const el = this._erroElement;
+    if (!el) return;
+    if (!this._erro) { el.style.display = 'none'; return; }
+    const msg = this.getAttribute('texto-erro') || 'Não foi possível carregar os dados.';
+    const mensagem = el.querySelector('.ui-tabela__erro-mensagem');
+    const detalhe = el.querySelector('.ui-tabela__erro-detalhe');
+    if (mensagem) mensagem.textContent = msg;
+    if (detalhe) detalhe.textContent = this._erro.erro || '';
+    // sem URL para repetir, a ação não faz sentido
+    const acao = el.querySelector<HTMLElement>('.ui-tabela__erro-acao');
+    if (acao) acao.style.display = this._src ? '' : 'none';
+    el.style.display = 'flex';
+  }
+
+  /** Anuncia ao leitor de tela o resultado do filtro (a região é limpa sem filtro ativo). */
+  private anunciarResultado() {
+    if (!this._anuncioElement) return;
+    const n = this.dadosController.getDadosExibicao().length;
+    this._anuncioElement.textContent = this.dadosController.temFiltro()
+      ? (n === 0 ? this._textoSemResultados() : `${n} ${n === 1 ? 'registro encontrado' : 'registros encontrados'}`)
+      : '';
+  }
+
+  private _textoSemResultados(): string {
+    return this.getAttribute('texto-sem-resultados') || 'Nenhum resultado para o filtro';
   }
 
   private syncAttributes() { sincronizarAtributosTabela(this.obterContextoAtributos()); }
@@ -133,10 +201,26 @@ export class UITabela extends SafeHTMLElement {
     this.sincronizarAria();
   }
 
-  public async carregarDoEndpoint(url?: string): Promise<void> { await this.remotaController.carregar(url || this._src || ''); }
-  public async recarregar(): Promise<void> {
-    if (this._src) await this.remotaController.carregar(this._src);
-    else { this.dadosController.aplicarOrdenacao(); this.atualizarContextoSelecao(); this.renderBody(); }
+  /** Opções do `fetch` do modo remoto (headers, credentials, method, body...); o `signal` é da tabela. */
+  get fetchOpcoes(): RequestInit | null { return this._fetchOpcoes; }
+  set fetchOpcoes(val: RequestInit | null) { this._fetchOpcoes = val ?? null; }
+
+  /** Função de busca alternativa ao `fetch` (autenticação, renovação de token, mocks). */
+  get fetcher(): TabelaFetcher | null { return this._fetcher; }
+  set fetcher(val: TabelaFetcher | null) { this._fetcher = typeof val === 'function' ? val : null; }
+
+  /** Ordenação feita pelo servidor: o clique no cabeçalho atualiza o indicador e emite `ui-sort`, mas não reordena. */
+  get ordenacaoRemota(): boolean { return this.hasAttribute('ordenacao-remota'); }
+  set ordenacaoRemota(val: boolean) { this.toggleAttribute('ordenacao-remota', Boolean(val)); }
+
+  /** Busca a URL (guardada como `src`, para `recarregar()`). Resolve `true` em sucesso; falhas vão em `ui-fetch-erro`. */
+  public async carregarDoEndpoint(url?: string): Promise<boolean> {
+    if (url && url !== this._src) this.src = url;
+    return this.remotaController.carregar(url || this._src || '');
+  }
+  public async recarregar(): Promise<boolean> {
+    if (this._src) return this.remotaController.carregar(this._src);
+    else { this.dadosController.aplicarOrdenacao(); this.atualizarContextoSelecao(); this.renderBody(); return true; }
   }
 
   public filtrar(termo: string): void {
@@ -150,7 +234,7 @@ export class UITabela extends SafeHTMLElement {
       this._containerElement.removeEventListener('scroll', this._scrollHandler);
       this._scrollHandler = null;
     }
-    if (this._activeResizeCleanup) { this._activeResizeCleanup(); this._activeResizeCleanup = null; }
+    if (this._activeResizeCleanup) { this._activeResizeCleanup(); this._activeResizeCleanup = null; this._isResizing = false; }
     this._cancelarCorrecaoRolagem?.();
     this.remotaController.abortar();
     this._headerListeners.cleanup();
@@ -159,7 +243,9 @@ export class UITabela extends SafeHTMLElement {
 
   get colunas(): TabelaColuna[] { return this._colunas; }
   set colunas(val: TabelaColuna[]) {
-    this._colunas = Array.isArray(val) ? val : [];
+    // cópia: redimensionar não altera (nem falha com) objetos congelados/reativos/compartilhados do consumidor
+    this._colunas = Array.isArray(val) ? val.filter((c) => c != null).map((c) => ({ ...c })) : [];
+    this.dadosController.setColunas(this._colunas);
     this.dadosController.setColunasFiltro(this._colunas.map((c) => c.id));
     this._alturaLinhaMedida = null;
     this.renderTotal();
@@ -223,12 +309,22 @@ export class UITabela extends SafeHTMLElement {
 
   private handleHeaderClick(coluna: TabelaColuna) {
     if (!coluna.ordenavel || this._isResizing) return;
+    const colAnterior = this.dadosController.getColunaOrdenada();
+    const dirAnterior = this.dadosController.getDirecaoOrdenacao();
     const proxima = this.dadosController.alternarOrdenacaoColuna(coluna);
     if (!proxima) return;
     this.atualizarContextoSelecao();
     this.renderHeader();
     this.renderBody();
-    this.dispatchEvent(new CustomEvent<UISortDetail>('ui-sort', { detail: proxima, bubbles: true, composed: true }));
+    const evento = new CustomEvent<UISortDetail>('ui-sort', { detail: proxima, bubbles: true, composed: true, cancelable: true });
+    this.dispatchEvent(evento);
+    if (evento.defaultPrevented) {
+      // preventDefault(): o sistema recusou a ordenação, volta ao estado anterior
+      this.dadosController.restaurarOrdenacao(colAnterior, dirAnterior);
+      this.atualizarContextoSelecao();
+      this.renderHeader();
+      this.renderBody();
+    }
   }
 
   /** Altura fixa das linhas em px (`altura-linha`), sobrepõe a densidade; null = vale a densidade. */
@@ -288,6 +384,9 @@ export class UITabela extends SafeHTMLElement {
       this._tbodyElement = dom.tbodyElement;
       this._emptyElement = dom.emptyElement;
       this._loadingElement = dom.loadingElement;
+      this._erroElement = dom.erroElement;
+      this._anuncioElement = dom.anuncioElement;
+      dom.erroElement.querySelector('.ui-tabela__erro-acao')?.addEventListener('click', () => { void this.recarregar(); });
     } else {
       this._containerElement.style.maxHeight = this.getAttribute('max-height') || '';
       if (this._emptyElement) {
@@ -486,6 +585,8 @@ export class UITabela extends SafeHTMLElement {
       virtualizar: this._virtualizar,
       rowHeight: this.getRowHeight(),
       indiceAtivo: this._indiceAtivo,
+      textoVazio: this._textoVazio,
+      textoSemResultados: this._textoSemResultados(),
       headerListeners: this._headerListeners,
       onSetIsResizing: (res: boolean) => { this._isResizing = res; },
       onActiveResizeCleanup: (cleanup: (() => void) | null) => { this._activeResizeCleanup = cleanup; },
@@ -496,6 +597,7 @@ export class UITabela extends SafeHTMLElement {
   private renderHeader() { executarOrquestracaoHeader(this.obterContextoRenderizador()); }
   public renderBody() {
     executarOrquestracaoCorpo(this.obterContextoRenderizador());
+    this.anunciarResultado();
     this.medirAlturaLinha();
   }
 

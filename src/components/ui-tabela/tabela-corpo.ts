@@ -18,6 +18,10 @@ export interface ContextoCorpoTabela {
   rowHeight: number;
   /** Linha que recebe tabindex=0 (foco móvel); fora da janela renderizada, vale a primeira visível. */
   indiceAtivo?: number | null;
+  /** Há filtro de texto ativo: o vazio vira "sem resultados" (mensagem distinta). */
+  filtroAtivo?: boolean;
+  textoVazio?: string;
+  textoSemResultados?: string;
   isItemSelecionado: (item: Record<string, any>, index: number) => boolean;
   onLinhaClique: (item: Record<string, any>, index: number) => void;
   formatWidth: (largura?: string | number) => string;
@@ -25,17 +29,38 @@ export interface ContextoCorpoTabela {
   getTextAlign: (alinhamento?: string) => string;
 }
 
+const SELETOR_CONTROLE = 'button, input, select, textarea, a, summary, [role="button"], [data-prevent-select]';
+
+/** O clique veio de um controle da célula (inclusive dentro do shadow DOM de um custom element)? */
+function cliqueEmControle(e: Event, tr: HTMLElement): boolean {
+  for (const no of e.composedPath()) {
+    if (no === tr) return false;
+    if (no instanceof Element && no.matches(SELETOR_CONTROLE)) return true;
+  }
+  return false;
+}
+
 export function renderizarCorpoTabela(ctx: ContextoCorpoTabela): void {
   if (!ctx.tbodyElement || !ctx.tableElement || !ctx.emptyElement || !ctx.containerElement) return;
 
+  ctx.tableElement.setAttribute('aria-colcount', String(ctx.colunas.length));
+
   if (!ctx.dadosExibicao || ctx.dadosExibicao.length === 0) {
+    // O cabeçalho continua visível (contexto das colunas); a mensagem ocupa o lugar das linhas
+    ctx.tbodyElement.innerHTML = '';
+    ctx.tableElement.setAttribute('aria-rowcount', '1');
+    ctx.tableElement.style.display = ctx.colunas.length > 0 ? 'table' : 'none';
     ctx.emptyElement.style.display = 'flex';
-    ctx.tableElement.style.display = 'none';
+    const texto = ctx.emptyElement.querySelector('.ui-tabela__empty-text');
+    const mensagem = ctx.filtroAtivo ? ctx.textoSemResultados : ctx.textoVazio;
+    if (texto && mensagem !== undefined) texto.textContent = mensagem;
     return;
   }
 
   ctx.emptyElement.style.display = 'none';
   ctx.tableElement.style.display = 'table';
+  // Com virtualização só parte das linhas está no DOM: o total e a posição vão por ARIA (cabeçalho = linha 1)
+  ctx.tableElement.setAttribute('aria-rowcount', String(ctx.dadosExibicao.length + 1));
 
   const totalLinhas = ctx.dadosExibicao.length;
   const rowHeight = ctx.rowHeight;
@@ -68,6 +93,7 @@ export function renderizarCorpoTabela(ctx: ContextoCorpoTabela): void {
   if (usarVirtualizacao && startIndex > 0) {
     const topSpacerRow = document.createElement('tr');
     topSpacerRow.className = 'ui-tabela__virtual-spacer';
+    topSpacerRow.setAttribute('aria-hidden', 'true');
     topSpacerRow.style.height = `${startIndex * rowHeight}px`;
     const tdSpacer = document.createElement('td');
     tdSpacer.colSpan = ctx.colunas.length || 1;
@@ -80,6 +106,8 @@ export function renderizarCorpoTabela(ctx: ContextoCorpoTabela): void {
     const tr = document.createElement('tr');
     tr.setAttribute('data-index', String(rowIndex));
     tr.setAttribute('part', 'linha');
+    tr.setAttribute('aria-rowindex', String(rowIndex + 2));
+    tr.setAttribute('aria-selected', 'false');
     tr.tabIndex = rowIndex === indiceFocavel ? 0 : -1;
     // Zebrado pelo índice do dado: :nth-child contaria o espaçador virtual e inverteria as cores ao rolar
     if (rowIndex % 2 === 1) tr.classList.add('ui-tabela__tr--par');
@@ -97,14 +125,12 @@ export function renderizarCorpoTabela(ctx: ContextoCorpoTabela): void {
       tr.classList.add('ui-tabela__tr--selecionada');
       tr.setAttribute('part', 'linha linha-selecionada');
       tr.setAttribute('aria-current', 'true');
+      tr.setAttribute('aria-selected', 'true');
       tr.setAttribute('data-selecionada', 'true');
     }
 
     tr.addEventListener('click', (e: MouseEvent) => {
-      const target = e.target as HTMLElement | null;
-      if (target && target.closest('button, input, select, textarea, a, [data-prevent-select]')) {
-        return;
-      }
+      if (cliqueEmControle(e, tr)) return;
       ctx.onLinhaClique(item, rowIndex);
     });
 
@@ -132,12 +158,18 @@ export function renderizarCorpoTabela(ctx: ContextoCorpoTabela): void {
       const valor = item[coluna.id];
 
       if (typeof coluna.render === 'function') {
-        const resultado = coluna.render(valor, item, rowIndex);
-        if (resultado instanceof Node) {
-          cellContent.appendChild(resultado);
-        } else {
-          // XSS protection
-          cellContent.textContent = String(resultado ?? '');
+        try {
+          const resultado = coluna.render(valor, item, rowIndex);
+          if (resultado instanceof Node) {
+            cellContent.appendChild(resultado);
+          } else {
+            // XSS protection
+            cellContent.textContent = String(resultado ?? '');
+          }
+        } catch (erro) {
+          // um renderizador com defeito não pode derrubar a tabela inteira
+          console.error(`[ui-tabela] Erro no render da coluna "${coluna.id}" (linha ${rowIndex}):`, erro);
+          cellContent.textContent = '';
         }
       } else if (valor instanceof Node) {
         cellContent.appendChild(valor);
@@ -160,6 +192,7 @@ export function renderizarCorpoTabela(ctx: ContextoCorpoTabela): void {
   if (usarVirtualizacao && endIndex < totalLinhas) {
     const bottomSpacerRow = document.createElement('tr');
     bottomSpacerRow.className = 'ui-tabela__virtual-spacer';
+    bottomSpacerRow.setAttribute('aria-hidden', 'true');
     bottomSpacerRow.style.height = `${(totalLinhas - endIndex) * rowHeight}px`;
     const tdSpacer = document.createElement('td');
     tdSpacer.colSpan = ctx.colunas.length || 1;

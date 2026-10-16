@@ -1,5 +1,6 @@
 import type { TabelaColuna, UIColumnResizeDetail } from './tipos';
 import {
+  redimensionarColunaPorDelta,
   iniciarRedimensionamentoColuna,
   exibirPromptPopoverRedimensionamento
 } from './tabela-redimensionamento';
@@ -12,7 +13,7 @@ export interface ContextoTabelaInteracao {
 }
 
 export function executarRedimensionamentoColuna(
-  e: MouseEvent,
+  e: MouseEvent | PointerEvent,
   coluna: TabelaColuna,
   colIndex: number,
   thElement: HTMLTableCellElement,
@@ -27,6 +28,7 @@ export function executarRedimensionamentoColuna(
     resizer,
     colgroupElement: ctx.colgroupElement,
     onResizeStart: () => ctx.onSetIsResizing(true),
+    onResizeCancel: () => { setTimeout(() => ctx.onSetIsResizing(false), 50); },
     onResizeEnd: (larguraFinal) => {
       setTimeout(() => ctx.onSetIsResizing(false), 50);
       ctx.host.dispatchEvent(
@@ -66,4 +68,22 @@ export function abrirPopoverRedimensionamento(
       );
     }
   });
+}
+
+/** Redimensionamento por teclado (setas na alça): ajusta a largura e emite ui-column-resize. */
+export function executarRedimensionamentoTeclado(
+  delta: number,
+  coluna: TabelaColuna,
+  thElement: HTMLTableCellElement,
+  colElement: HTMLTableColElement | undefined,
+  ctx: ContextoTabelaInteracao
+): void {
+  const largura = redimensionarColunaPorDelta(coluna, thElement, colElement, delta);
+  ctx.host.dispatchEvent(
+    new CustomEvent<UIColumnResizeDetail>('ui-column-resize', {
+      detail: { idColuna: coluna.id, largura },
+      bubbles: true,
+      composed: true
+    })
+  );
 }

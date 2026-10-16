@@ -87,7 +87,7 @@ describe('ui-tabela: o filtro olha as colunas declaradas', () => {
     t.colunas = [{ id: 'n', rotulo: 'Nome' }];
     document.body.appendChild(t);
     t.dados = [{ id: 1, n: 'cedro', interno: 'segredo', obj: { a: 1 } }, { id: 2, n: 'ipê', interno: 'cedro' }];
-    const vazio = () => (t.shadowRoot!.querySelector('table') as HTMLElement).style.display === 'none';
+    const vazio = () => (t.shadowRoot!.querySelector('.ui-tabela__empty') as HTMLElement).style.display === 'flex';
     t.filtrar('segredo');
     expect(vazio()).toBe(true);
     t.filtrar('object');

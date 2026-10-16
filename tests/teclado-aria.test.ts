@@ -48,7 +48,7 @@ describe('<ui-tabela>: cabeçalho ordenável acessível', () => {
     const th = () => raiz(tabela).querySelector('th')!;
     const botao = () => th().querySelector('button')!;
 
-    expect(th().hasAttribute('aria-sort')).toBe(false);
+    expect(th().getAttribute('aria-sort')).toBe('none');
 
     botao().click();
     expect(ordenacoes).toHaveBeenCalledTimes(1);
@@ -58,7 +58,7 @@ describe('<ui-tabela>: cabeçalho ordenável acessível', () => {
     expect(th().getAttribute('aria-sort')).toBe('descending');
 
     botao().click();
-    expect(th().hasAttribute('aria-sort')).toBe(false);
+    expect(th().getAttribute('aria-sort')).toBe('none');
   });
 
   it('o foco deve permanecer no botão da coluna após ordenar (o cabeçalho é recriado)', () => {
