@@ -7,6 +7,9 @@ import { garantirCanvasSemEventos, resolverCliqueCentral } from './layer_hit_tes
 
 export { CAD_INTERACTIVE_PANES };
 
+/** Alças e HUDs da edição/desenho: tratam o próprio ponteiro (não iniciam caixa de seleção nem pan). */
+const SELETOR_CONTROLES_EDICAO = '.cad-vertex-handle, .cad-vertex-ghost, .cad-bezier-handle, #cm-vertex-edit-hud, #cm-draw-hud';
+
 export interface CanvasInteracaoContext {
   mapaController?: any;
   layerManager?: CanvasLayerManager;
@@ -86,6 +89,7 @@ export class CanvasInteracao {
 
     garantirCanvasSemEventos(this.mapContainer);
     this.mapContainer.addEventListener('click', this.handleClick);
+    this.mapContainer.addEventListener('dblclick', this.handleDblClick);
     this.mapContainer.addEventListener('mousedown', this.handleMouseDown);
     this.mapContainer.addEventListener('mousemove', this.handleMouseMove);
     window.addEventListener('mouseup', this.handleMouseUp);
@@ -101,6 +105,7 @@ export class CanvasInteracao {
   public desativar(): void {
     if (this.mapContainer) {
       this.mapContainer.removeEventListener('click', this.handleClick);
+      this.mapContainer.removeEventListener('dblclick', this.handleDblClick);
       this.mapContainer.removeEventListener('mousedown', this.handleMouseDown);
       this.mapContainer.removeEventListener('mousemove', this.handleMouseMove);
       this.mapContainer.removeEventListener('contextmenu', this.handleContextMenu);
@@ -127,7 +132,8 @@ export class CanvasInteracao {
   private handleTouchStart = (e: TouchEvent): void => {
     if (!this.map || !this.mapContainer) return;
     if (e.touches.length === 1) {
-      this.isTouchPanning = true;
+      // arrastar uma alça de edição move a alça, não o mapa
+      this.isTouchPanning = !(e.target as HTMLElement | null)?.closest?.(SELETOR_CONTROLES_EDICAO);
       this.touchStartPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
     } else if (e.touches.length === 2) {
       this.isTouchPanning = false;
@@ -184,6 +190,14 @@ export class CanvasInteracao {
     resolverCliqueCentral(this.map, this.ctx.layerManager.getLayers(), e);
   };
 
+  /** Duplo clique sobre uma feição: vai para a feição (a escolhida pelo último clique), que decide o que fazer (editar). */
+  private handleDblClick = (e: MouseEvent): void => {
+    if (!this.map || !this.ctx.layerManager) return;
+    if (this.ctx.ferramentaAtiva?.()) return;
+    if ((e.target as HTMLElement | null)?.closest?.(`.leaflet-marker-icon, ${SELETOR_CONTROLES_EDICAO}`)) return;
+    resolverCliqueCentral(this.map, this.ctx.layerManager.getLayers(), e);
+  };
+
   /** Engole o `click` que o navegador dispara logo após soltar o botão de uma seleção por caixa. */
   private suprimirProximoClique(): void {
     this.cancelarSupressaoClique();
@@ -223,8 +237,8 @@ export class CanvasInteracao {
     }
 
     if (e.button === 0) {
-      // alças de edição de vértices e o HUD da edição tratam o próprio mouse: não iniciam caixa de seleção
-      if ((e.target as HTMLElement | null)?.closest?.('.cad-vertex-handle, .cad-vertex-ghost, #cm-vertex-edit-hud, #cm-draw-hud')) return;
+      // alças de edição de vértices (e as de Bézier) e o HUD da edição tratam o próprio mouse: não iniciam caixa de seleção
+      if ((e.target as HTMLElement | null)?.closest?.(SELETOR_CONTROLES_EDICAO)) return;
       if (this.ctx.ferramentaAtiva?.()) return;
       this.selectionHappened = false;
       if (this.ctx.mapaController && this.ctx.mapaController.modoCliqueSequencialAtivo) {

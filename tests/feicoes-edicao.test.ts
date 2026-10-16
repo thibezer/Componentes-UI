@@ -252,7 +252,7 @@ describe('edição de vértices integrada', () => {
     expect(hud.textContent).toContain('Nós: 4');
     expect(hud.textContent).toMatch(/Área: .* ha/);
     expect(hud.textContent).toContain('Snap: ligado');
-    expect(hud.querySelector('button')?.textContent).toBe('Concluir');
+    expect(hud.querySelector('[data-acao="concluir"]')?.textContent).toBe('Concluir');
     expect(document.querySelector('.cad-feicao-popup')).toBeNull();
     expect(nomes()).toContain('cad-edicao-iniciada');
   });
@@ -336,7 +336,7 @@ describe('edição de vértices integrada', () => {
     carregar(g, [quadrado()]);
     g.selecionarFeicoes([{ camadaId: 'c', id: 'q' }]);
     g.iniciarEdicao('c', 'q');
-    (el.querySelector('#cm-vertex-edit-hud button') as HTMLButtonElement).click();
+    (el.querySelector('#cm-vertex-edit-hud [data-acao="concluir"]') as HTMLButtonElement).click();
     expect(g.editando).toBe(false);
     expect(el.querySelector('#cm-vertex-edit-hud')).toBeNull();
     expect(document.querySelectorAll('.cad-vertex-handle')).toHaveLength(0);

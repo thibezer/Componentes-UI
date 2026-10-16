@@ -24,6 +24,7 @@ import {
 import { feicaoNoPonto } from '../../gerencigeo-canvas/feature_amostra';
 import { criarLinha, ehMultilinha, type EstiloFeicao, type LatLonPar } from '../../gerencigeo-canvas/feature_types';
 import { aplicarMargensHud, type MargensHud } from '../../gerencigeo-canvas/feature_hud';
+import { focoEmCampoDeTexto } from '../../core/alvo-digitavel';
 
 /*
  * Camadas de feições genéricas. Nada é criado sozinho: a camada só passa a existir quando o
@@ -84,6 +85,13 @@ interface Contexto {
   aoFerramenta?: (ferramenta: Ferramenta | null) => void;
   /** Regra de oficial × prévia compartilhada com o renderizador (o componente a põe no contexto de renderização). */
   regra?: RegraVersoes;
+  /** A edição de vértices começou (`true`) ou terminou (`false`), para refletir no botão da barra. */
+  aoEdicao?: (ativa: boolean) => void;
+  /**
+   * Os atalhos de teclado do canvas (S do snap, Enter para editar) valem agora? O componente responde que sim com o mouse
+   * sobre ele ou o foco dentro dele; sem esta função, valem sempre (a edição e as ferramentas em andamento também sempre valem).
+   */
+  atalhoValido?: () => boolean;
 }
 
 /** Opções do popup da feição. */
@@ -102,13 +110,14 @@ const FERRAMENTAS_DE_CRIACAO = new Set<Ferramenta>(['ponto', 'linha', 'poligono'
 
 export interface ResultadoEdicao {
   ok: boolean;
-  motivo?: MotivoRecusaEdicao | 'inexistente' | 'sem-mapa';
+  motivo?: MotivoRecusaEdicao | 'inexistente' | 'sem-mapa' | 'sem-selecao';
 }
 
 export class GerenciadorFeicoes {
   private selecao: SelecaoFeicoes;
   private popup: FeicaoPopup;
   private editor: EditorVertices | null = null;
+  private vigiaCamadaEmEdicao: (() => void) | null = null;
   private snap: ControleSnap;
   private desenho: ControleDesenho | null = null;
   private camadaDesenho: string | null = null;
@@ -130,6 +139,7 @@ export class GerenciadorFeicoes {
     this.regra = contexto.regra ?? new RegraVersoes();
     this.cursores = new CursoresRemotos(() => this.contexto.obterMapa());
     this.snap = new ControleSnap({
+      aplica: () => this.atalhosValem(),
       aoMudar: (estado) => {
         this.contexto.emitir('cad-snap', estado);
         this.editor?.atualizarSnapNoHud();
@@ -173,7 +183,7 @@ export class GerenciadorFeicoes {
     if (this.editor?.ativo) {
       const ed = this.editor.feicao!;
       const atualEd = this.buscar(ed.camadaId, ed.id);
-      if (!atualEd || atualEd.excluida) this.editor.parar();
+      if (!atualEd || atualEd.excluida || atualEd.bloqueada) this.editor.parar();
       else if (atualEd !== ed) this.editor.sincronizar(atualEd);
     }
     const aberta = this.popup.aberto;
@@ -395,6 +405,17 @@ export class GerenciadorFeicoes {
     if (acao === 'feicao-movida') {
       this.substituir(detalhe.camadaId, detalhe.feicao);
       return 'cad-feicao-atualizada';
+    }
+    if (acao === 'feicao-duplo-clique') {
+      if (this.desenho?.ativo) return null;
+      const camada = this.contexto.obterLayerManager().getLayerDef(detalhe.camadaId);
+      // o consumidor pode assumir o duplo clique (ex.: abrir o próprio editor) com preventDefault()
+      const assumido = this.contexto.emitir('cad-feicao-duplo-clique', { camadaId: detalhe.camadaId, feicao: detalhe.feicao }, true) === true;
+      // sem recusa por evento aqui: duplo clique em texto, bloqueada etc. simplesmente não edita
+      if (!assumido && !this.editando && verificarEditavel(detalhe.feicao, !!camada?.bloqueada) === null) {
+        this.iniciarEdicao(detalhe.camadaId, detalhe.feicao.id);
+      }
+      return null;
     }
     if (acao === 'feicao-clique') {
       if (this.desenho?.ativo) return null; // com uma ferramenta ativa, o clique é do desenho
@@ -766,10 +787,45 @@ export class GerenciadorFeicoes {
 
   public conectarTeclado(): void {
     this.snap.conectar();
+    window.addEventListener('keydown', this.aoTeclaEdicao);
   }
 
   public desconectarTeclado(): void {
     this.snap.desconectar();
+    window.removeEventListener('keydown', this.aoTeclaEdicao);
+  }
+
+  private atalhosValem(): boolean {
+    return !!this.editor?.ativo || !!this.desenho?.ativo || (this.contexto.atalhoValido?.() ?? true);
+  }
+
+  /** Enter com uma só feição selecionada (e nada em andamento) abre a edição de vértices. */
+  private aoTeclaEdicao = (e: KeyboardEvent): void => {
+    if (e.key !== 'Enter' || e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return;
+    if (this.editor?.ativo || this.desenho?.ativo || focoEmCampoDeTexto(e)) return;
+    if (!this.atalhosValem()) return;
+    // um botão ou link em foco tem o Enter dele
+    const alvo = (e.composedPath?.()[0] ?? e.target) as HTMLElement | null;
+    if (alvo?.closest?.('button, a, summary, select, [role="button"]')) return;
+    const selecionadas = this.selecao.obter();
+    if (selecionadas.length !== 1) return;
+    const camada = this.contexto.obterLayerManager().getLayerDef(selecionadas[0].camadaId);
+    if (verificarEditavel(selecionadas[0], !!camada?.bloqueada) !== null) return;
+    if (this.iniciarEdicao(selecionadas[0].camadaId, selecionadas[0].id).ok) e.preventDefault();
+  };
+
+  /** Botão "Editar" da barra: encerra a edição em curso ou edita a feição selecionada (uma só). */
+  public alternarEdicaoDaSelecao(): ResultadoEdicao {
+    if (this.editor?.ativo) {
+      this.editor.parar();
+      return { ok: true };
+    }
+    const selecionadas = this.selecao.obter();
+    if (selecionadas.length !== 1) {
+      this.contexto.emitir('cad-edicao-recusada', { motivo: 'sem-selecao', feicao: null });
+      return { ok: false, motivo: 'sem-selecao' };
+    }
+    return this.iniciarEdicao(selecionadas[0].camadaId, selecionadas[0].id);
   }
 
   /** Feições visíveis das camadas de feições cujo envelope toca um quadrado de `tolPx` px em volta de `coord`. */
@@ -845,6 +901,8 @@ export class GerenciadorFeicoes {
       },
       aoEncerrar: (ultima) => {
         this.editor = null;
+        this.pararDeVigiarCamadaEmEdicao();
+        this.contexto.aoEdicao?.(false);
         const atual = this.buscar(ultima.camadaId, ultima.id) ?? ultima;
         this.contexto.emitir('cad-edicao-concluida', { feicao: atual });
         // restaura o popup da seleção (ele ficou fechado durante a edição)
@@ -854,8 +912,21 @@ export class GerenciadorFeicoes {
     });
     this.editor = editor;
     editor.iniciar(f);
+    this.contexto.aoEdicao?.(true);
+    // camada ocultada ou bloqueada no meio da edição: as alças ficariam soltas na tela, gravando numa camada que não aceita edição
+    this.vigiaCamadaEmEdicao = lm.onChange(() => {
+      const ed = this.editor?.feicao;
+      if (!ed) return;
+      const def = lm.getLayerDef(ed.camadaId);
+      if (!def || !def.visivel || def.bloqueada) this.editor?.parar();
+    });
     this.contexto.emitir('cad-edicao-iniciada', { feicao: f });
     return { ok: true };
+  }
+
+  private pararDeVigiarCamadaEmEdicao(): void {
+    this.vigiaCamadaEmEdicao?.();
+    this.vigiaCamadaEmEdicao = null;
   }
 
   public pararEdicao(): void {
