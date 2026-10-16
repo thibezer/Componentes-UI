@@ -411,6 +411,62 @@ describe('<ui-controle-cores>', () => {
     expect(ultimo(eventos)).toMatchObject({ preenchimento: '#000000', confirmado: true });
   });
 
+  it('trocar o alvo no controle acompanha a aba do seletor aberto, sem eventos duplicados', () => {
+    const naRaiz: string[] = [];
+    document.addEventListener('ui-alvo-change', (e) => naRaiz.push((e.target as Element).tagName));
+    el.abrirSeletor('preenchimento');
+    el.alternarAlvo();
+    expect(seletorNoDom()!.alvo).toBe('traco');
+    el.definirAlvo('preenchimento');
+    expect(seletorNoDom()!.alvo).toBe('preenchimento');
+    seletorNoDom()!.trocarAlvo('traco');
+    expect(el.alvo).toBe('traco');
+    // Um evento por troca feita pelo controle ou pelo seletor; o do painel não sobe até o documento
+    expect(naRaiz.every((t) => t === 'UI-CONTROLE-CORES')).toBe(true);
+  });
+
+  it('fecharSeletor(false) cancela: restaura as cores e não confirma', () => {
+    el.abrirSeletor();
+    seletorNoDom()!.definirCor('#000000');
+    el.fecharSeletor(false);
+    expect(el.seletorAberto).toBe(false);
+    expect(el.preenchimento).toBe('#10b981');
+    expect(eventos.every((e) => e.confirmado === false)).toBe(true);
+    expect(ultimo(eventos)).toMatchObject({ preenchimento: '#10b981' });
+  });
+
+  it('abrir pelo teclado leva o foco ao painel e Esc devolve à amostra', () => {
+    const botaoPreench = amostra('preenchimento');
+    botaoPreench.focus();
+    botaoPreench.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    expect(document.activeElement).toBe(seletorNoDom());
+    tecla('Escape');
+    expect(seletorNoDom()).toBeNull();
+    expect(sr(el).activeElement).toBe(botaoPreench);
+  });
+
+  it('Enter na amostra ativa com o seletor aberto fecha (como o clique)', () => {
+    amostra('preenchimento').dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    expect(el.seletorAberto).toBe(true);
+    amostra('preenchimento').dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    expect(el.seletorAberto).toBe(false);
+  });
+
+  it('desabilitado desativa todos os botões (inclusive pelo teclado) e fecha o seletor aberto', () => {
+    el.abrirSeletor();
+    el.setAttribute('desabilitado', '');
+    expect(el.seletorAberto).toBe(false);
+    expect([...sr(el).querySelectorAll('button')].every((b) => b.disabled)).toBe(true);
+    el.removeAttribute('desabilitado');
+    expect([...sr(el).querySelectorAll('button')].some((b) => b.disabled)).toBe(false);
+  });
+
+  it('a dica do preenchimento informa a opacidade', () => {
+    el.definirCores({ opacidade: 0.5 });
+    expect(amostra('preenchimento').getAttribute('aria-label')).toContain('opacidade 50%');
+    expect(amostra('traco').getAttribute('aria-label')).not.toContain('opacidade');
+  });
+
   it('atalhos aparecem nas dicas', () => {
     el.atalhos = { inverter: 'Shift+X', semCor: '/', padrao: 'D', alternar: 'X' };
     expect(botao('inverter').title).toBe('Inverter preenchimento e traço [Shift+X]');

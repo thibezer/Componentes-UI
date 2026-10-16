@@ -44,6 +44,8 @@ export interface OpcoesSeletorCor {
   coresProjeto?: ValorCor[];
   /** Substitui a paleta padrão. */
   paleta?: ValorCor[];
+  /** Leva o foco do teclado para o painel ao abrir (ao fechar, o foco volta para a âncora). Padrão: `false`. */
+  focar?: boolean;
   /** Cada alteração (pré-visualização, ainda não confirmada). */
   aoAlterar?: (detalhe: DetalheSeletorCor) => void;
   /** Ao fechar confirmando: Concluir, ✕, Enter no hexadecimal, Esc ou clique fora. */
