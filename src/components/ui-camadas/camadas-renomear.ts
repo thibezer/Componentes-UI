@@ -25,7 +25,9 @@ interface Alvo {
   input: string;
   marcarEditando(id: string | null): void;
   /** Aplica o novo nome; devolve o que deve ser emitido, ou `null` se nada mudou. */
-  aplicar(id: string, novoNome: string): { evento: string; detalhe: unknown; salvar: boolean } | null;
+  aplicar(id: string, novoNome: string): { detalhe: unknown; salvar: boolean } | null;
+  /** Emite o evento do alvo. Os nomes ficam literais aqui para o manifesto (custom-elements.json) continuar listando-os. */
+  emitir(detalhe: unknown): void;
 }
 
 function alvos(host: HostRenomear): Alvo[] {
@@ -38,8 +40,9 @@ function alvos(host: HostRenomear): Alvo[] {
         const camada = host.camadas.find((l) => l.id === id);
         if (!novoNome || !camada || camada.name === novoNome) return null;
         camada.name = novoNome;
-        return { evento: 'ui-camada-renomeada', detalhe: { camadaId: id, novoNome, camada }, salvar: true };
-      }
+        return { detalhe: { camadaId: id, novoNome, camada }, salvar: true };
+      },
+      emitir: (detalhe) => host.dispararEvento('ui-camada-renomeada', detalhe)
     },
     {
       gatilho: 'data-feat-name-trigger',
@@ -49,8 +52,9 @@ function alvos(host: HostRenomear): Alvo[] {
         const feicao = host.feicoes.find((f) => f.id === id);
         if (!novoNome || !feicao || feicao.name === novoNome) return null;
         feicao.name = novoNome;
-        return { evento: 'ui-feicao-renomeada', detalhe: { feicaoId: id, novoNome, feicao }, salvar: false };
-      }
+        return { detalhe: { feicaoId: id, novoNome, feicao }, salvar: false };
+      },
+      emitir: (detalhe) => host.dispararEvento('ui-feicao-renomeada', detalhe)
     }
   ];
 }
@@ -80,7 +84,7 @@ export function vincularRenomearInline(host: HostRenomear, shadow: ShadowRoot): 
             const resultado = alvo.aplicar(id, input.value.trim());
             if (resultado) {
               if (resultado.salvar) host.salvarLembrancaEstado?.();
-              host.dispararEvento(resultado.evento, resultado.detalhe);
+              alvo.emitir(resultado.detalhe);
             }
           }
           host.solicitarRenderizacao();
