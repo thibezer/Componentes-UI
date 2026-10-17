@@ -8,6 +8,10 @@
 - **Mudança de comportamento:** quem importar apenas `core/ui-bus` sem carregar `ui-alerta` (ou o pacote principal) passa a ter `UIBus.notificar()` como no-op, sem erro. Exceções do provedor são capturadas (`console.error`).
 - Contratos `UIToastOpcoes`/`UIToastAcao` movidos para `src/core/tipos-toast.ts` e reexportados por `ui-alerta` (nomes públicos inalterados).
 
+### `<ui-ribbon>`, `<ui-paleta-ferramentas>` e `<ui-tabela>`: organização interna
+
+- **Sem mudança de comportamento nem de API.** Teclado, renderização, clique longo, atalhos, rolagem de linhas e estados (erro, anúncio do filtro, aria) passam a viver em módulos próprios com testes unitários.
+
 ### Componentes simples e de formulário: robustez e acessibilidade
 
 - **`<ui-skeleton>`:** `linhas` é limitado a 100 (um valor enorme derrubava a página). Decorativo por padrão (`aria-hidden`); com `aria-label` vira `role="status"`.

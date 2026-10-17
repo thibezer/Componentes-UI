@@ -135,9 +135,13 @@ Pré-requisito das demais fases: sem isso `npm run gate` falha.
   8. **`<ui-radio>`:** `name` definido por `setAttribute` depois de conectado não formava grupo; mudar o `name` deixava o radio no grupo antigo; **remover um radio de um `<form>` o deixava registrado** (as setas levavam o foco a um radio fora do DOM); se o primeiro radio estava desabilitado, nenhum entrava na ordem de Tab; ao selecionar outro, o primeiro continuava com `tabindex=0`.
   9. **`focus()` no host de `ui-checkbox` e `ui-switch` não fazia nada** (só o radio tinha o override); `ui-checkbox` e `ui-radio` ignoravam `<label for>`/`<label>` envolvente/`aria-label` (só o switch tinha).
 
-### Fase 6 — Divisões oportunistas (monitorar)
-- [ ] `ui-ribbon.ts` e `ui-paleta-ferramentas.ts`: extrair o que for comum para `ferramentas-comum.ts` e o que for específico para módulos próprios.
-- [ ] `ui-tabela.ts` (635): conferir se há responsabilidades ainda embutidas além do orquestrador.
+### Fase 6 — Divisões oportunistas — concluída em 2026-10-17
+- [x] **`ui-ribbon.ts` 552 → 490**: `ribbon-render.ts` (botão de aba e grupo, com colunas de até 3 botões pequenos) e `ribbon-teclado.ts` (tecla → ação nas abas, com RTL).
+- [x] **`ui-paleta-ferramentas.ts` 548 → 490**: `paleta-pressao-longa.ts` (clique longo: temporizadores, limiar de movimento e supressão do `click` residual) e `paleta-atalhos.ts` (quando a letra não deve ser capturada e qual ferramenta ela ativa).
+- [x] **`ui-tabela.ts` 635 → 498**: `tabela-teclado.ts` (tecla → mover/ativar), `tabela-rolagem.ts` (`RolagemLinhas`: foco e posicionamento com janela virtual, rolagem suave com tempo limite) e `tabela-estados.ts` (erro, anúncio do filtro, aria).
+- [x] **Testes:** `barra-modulos.test.ts` (18) e `tabela-modulos.test.ts` (22); suíte 92 arquivos / 1395 testes. Os testes existentes dos três componentes passaram sem alteração.
+- **Exceção ao gatilho de ~400 linhas, justificada:** o que resta em cada casca são os acessores públicos, os controladores de menu/dados e a fiação de eventos. Dividir mais separaria o que muda junto.
+- Nenhum defeito novo foi encontrado nesses três componentes (já tinham testes de robustez e regressão, como o plano antecipou).
 
 ## Definição de pronto (por fase)
 
@@ -164,7 +168,7 @@ Pré-requisito das demais fases: sem isso `npm run gate` falha.
 | 3 | `ui-mapa`: adaptador, SRP, ARIA e 4 defeitos (inclui injeção via `cor`) | feito | 2026-10-17 | | +51 testes; suíte 77 arquivos / 1134 testes; `any` em produção: 275 → 266 |
 | 4 | `ui-tooltip` e `ui-modal`: SRP, ListenerBag, sem `any`, 5 defeitos (clique engolido, foco escapando no Shift+Tab) | feito | 2026-10-17 | | +39 testes; suíte 82 arquivos / 1220 testes; `any` em produção: 264 → 255 |
 | 5 | Componentes simples e de formulário: 9 defeitos (inclui queda por `linhas` enorme e classes injetáveis), núcleo `opcoes`/`rotulo-controle` | feito | 2026-10-17 | | +9 arquivos de regressão; suíte 90 arquivos / 1355 testes |
-| 6 | Divisões oportunistas | pendente | | | |
+| 6 | Divisões: ribbon 552→490, paleta 548→490, tabela 635→498, com 7 módulos novos | feito | 2026-10-17 | | +40 testes; suíte 92 arquivos / 1395 testes |
 
 ## Riscos e cuidados
 
