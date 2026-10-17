@@ -3,6 +3,7 @@ import type { GerenciGeoMapaController } from '../../gerencigeo-canvas/mapa_cont
 import type { GerenciadorToolbarPainel } from './cad-toolbar-painel';
 import type { GerenciadorColecoesDados } from './cad-colecoes-dados';
 import { tratarCliqueMarcador, tratarCliqueSegmento, type ContextoEventosCanvas } from './cad-eventos-canvas';
+import { liberarContainerLeaflet } from './cad-leaflet-adaptador';
 
 export interface ContextoInicializadorCAD {
   host: UICanvasCAD;
@@ -21,13 +22,7 @@ export interface ContextoInicializadorCAD {
 export function inicializarCAD(ctx: ContextoInicializadorCAD): void {
   if (!ctx.mapContainer) return;
 
-  if ((ctx.mapContainer as any)._leaflet_id && !ctx.controller.getMap()) {
-    try {
-      delete (ctx.mapContainer as any)._leaflet_id;
-    } catch {
-      (ctx.mapContainer as any)._leaflet_id = undefined;
-    }
-  }
+  if (!ctx.controller.getMap()) liberarContainerLeaflet(ctx.mapContainer);
 
   ctx.controller.init(ctx.mapContainer, ctx.shadow);
   ctx.toolbarPainel.vincularEventos();

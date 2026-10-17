@@ -1,77 +1,49 @@
 import type { CanvasLayerManager } from '../../gerencigeo-canvas/layer_manager';
-import type { LayerStyleDef } from '../../gerencigeo-canvas/types';
 import type { Feicao } from '../../gerencigeo-canvas/feature_types';
 import { normalizarFeicaoEntrada, normalizarCoordenada } from '../../gerencigeo-canvas/feature_adapters';
-import { RegraVersoes, entidadeDe } from '../../gerencigeo-canvas/feature_versoes';
+import { RegraVersoes } from '../../gerencigeo-canvas/feature_versoes';
 import { CursoresRemotos, type UsuarioRemoto } from '../../gerencigeo-canvas/feature_cursores';
 import { LayerRendererFactory } from '../../gerencigeo-canvas/layer_renderer_factory';
 import type { FeicoesLayerRenderer, DeltaFeicoes } from '../../gerencigeo-canvas/renderers/feicoes_renderer';
 import { SelecaoFeicoes, type RefFeicao } from '../../gerencigeo-canvas/feature_selecao';
 import { feicaoNaCaixa, feicaoNoLaco, type CaixaPx, type ModoCaixa } from '../../gerencigeo-canvas/feature_caixa';
 import { FeicaoPopup, coordenadaDeReferencia, type AcaoFeicao, type MargensPopup } from '../../gerencigeo-canvas/feature_popup';
-import { limitesDaGeometria } from '../../gerencigeo-canvas/feature_metricas';
 import L from 'leaflet';
 import type { CaixaGeo } from '../../gerencigeo-canvas/feature_indice';
 import { EditorVertices } from '../../gerencigeo-canvas/feature_editor_vertices';
-import { verificarEditavel, type MotivoRecusaEdicao } from '../../gerencigeo-canvas/feature_edicao_ops';
+import { verificarEditavel } from '../../gerencigeo-canvas/feature_edicao_ops';
 import { buscarSnap, TOLERANCIA_SNAP_PX, type ExcluirSnap } from '../../gerencigeo-canvas/feature_snap';
 import { ControleSnap } from './cad-snap';
-import { ControleDesenho } from '../../gerencigeo-canvas/feature_desenho_controle';
-import { ehFerramenta, type Ferramenta } from '../../gerencigeo-canvas/feature_desenho';
-import {
-  clonarFeicao, deslocarGeometria, dividirPoligonoComLinha, gerarBuffer as gerarBufferGeo, juntarLinhas, juntarPoligonos
-} from '../../gerencigeo-canvas/feature_algoritmos';
+import { OperacoesFeicoes } from './cad-feicoes-operacoes';
+import { VersoesFeicoes } from './cad-feicoes-versoes';
+import { CameraFeicoes } from './cad-feicoes-camera';
+import { FerramentasDesenho } from './cad-feicoes-desenho';
+import type { ControleDesenho } from '../../gerencigeo-canvas/feature_desenho_controle';
+import type { Ferramenta } from '../../gerencigeo-canvas/feature_desenho';
 import { feicaoNoPonto } from '../../gerencigeo-canvas/feature_amostra';
-import { criarLinha, ehMultilinha, type EstiloFeicao, type LatLonPar } from '../../gerencigeo-canvas/feature_types';
+import type { EstiloFeicao, LatLonPar } from '../../gerencigeo-canvas/feature_types';
 import { aplicarMargensHud, type MargensHud } from '../../gerencigeo-canvas/feature_hud';
+
+import {
+  TIPO_CAMADA_FEICOES,
+  type OpcoesCamadaFeicoes, type OpcoesLote, type AtualizacaoFeicao, type LoteFeicoes, type ResultadoLote,
+  type ResultadoFeicoes, type OpcoesPopup, type ResultadoFerramenta, type ResultadoEdicao
+} from './cad-feicoes-tipos';
+
+export { TIPO_CAMADA_FEICOES };
+export type { OpcoesCamadaFeicoes, OpcoesLote, AtualizacaoFeicao, LoteFeicoes, ResultadoLote, ResultadoFeicoes, OpcoesPopup, ResultadoFerramenta, ResultadoEdicao };
 
 /*
  * Camadas de feições genéricas. Nada é criado sozinho: a camada só passa a existir quando o
  * consumidor chama definirFeicoes/adicionarFeicao. Os dados ficam em `CanvasLayerDef.dados.feicoes`.
  */
 
-export const TIPO_CAMADA_FEICOES = 'feicoes';
 
-export interface OpcoesCamadaFeicoes {
-  nome?: string;
-  zIndex?: number;
-  opacidade?: number;
-  interativo?: boolean;
-  estilo?: Partial<LayerStyleDef>;
-}
 
-/** Opções de `aplicarLote` / `atualizarFeicao`. */
-export interface OpcoesLote extends OpcoesCamadaFeicoes {
-  /**
-   * Em atualizações, `propriedades` informadas SUBSTITUEM as atuais (o padrão é mesclar, e chaves apagadas
-   * pelo consumidor ficam para trás). Sem `propriedades` no item, nada muda.
-   */
-  substituirPropriedades?: boolean;
-}
 
-/** Itens de atualização: `id` aponta a feição; o resto é mesclado como em `atualizarFeicao`. */
-export type AtualizacaoFeicao = Record<string, any> & { id: string };
 
-export interface LoteFeicoes {
-  adicionar?: unknown[];
-  atualizar?: AtualizacaoFeicao[];
-  remover?: string[];
-}
 
-export interface ResultadoLote {
-  adicionadas: number;
-  atualizadas: number;
-  removidas: number;
-  /** Ids (ou posições, quando não há id) recusados: geometria inválida, feição inexistente numa atualização, camada que não é de feições. */
-  recusadas: string[];
-}
 
-export interface ResultadoFeicoes {
-  /** Quantas feições entraram na camada. */
-  aceitas: number;
-  /** Ids (ou posições, quando não há id) das feições recusadas por geometria inválida. */
-  recusadas: string[];
-}
 
 interface Contexto {
   obterLayerManager: () => CanvasLayerManager;
@@ -86,36 +58,18 @@ interface Contexto {
   regra?: RegraVersoes;
 }
 
-/** Opções do popup da feição. */
-export interface OpcoesPopup {
-  /** A ação "copiar" grava as coordenadas na área de transferência (padrão `true`); `cad-feicao-acao` sai de qualquer jeito. */
-  copiarParaAreaDeTransferencia?: boolean;
-}
 
-export interface ResultadoFerramenta {
-  ok: boolean;
-  motivo?: 'ferramenta-invalida' | 'sem-mapa' | 'sem-camada' | 'camada-invalida' | 'camada-bloqueada';
-}
 
-/** Ferramentas que criam feições na camada de desenho. */
-const FERRAMENTAS_DE_CRIACAO = new Set<Ferramenta>(['ponto', 'linha', 'poligono', 'retangulo', 'elipse', 'poligono-regular', 'estrela', 'circulo', 'texto', 'caneta']);
-
-export interface ResultadoEdicao {
-  ok: boolean;
-  motivo?: MotivoRecusaEdicao | 'inexistente' | 'sem-mapa';
-}
 
 export class GerenciadorFeicoes {
+  private operacoes: OperacoesFeicoes;
   private selecao: SelecaoFeicoes;
   private popup: FeicaoPopup;
   private editor: EditorVertices | null = null;
   private snap: ControleSnap;
-  private desenho: ControleDesenho | null = null;
-  private camadaDesenho: string | null = null;
-  private estiloDesenho: EstiloFeicao = {};
-  private sequenciaId = 0;
-  private regra: RegraVersoes;
-  private cacheOficiais = new WeakMap<Feicao[], Set<string>>();
+  private ferramentas: FerramentasDesenho;
+  private versoes: VersoesFeicoes;
+  private camera: CameraFeicoes;
   /** id -> posição na lista da camada (válido enquanto `lista` for a lista atual); evita varrer a camada a cada consulta. */
   private posicoes = new Map<string, { lista: Feicao[]; pos: Map<string, number> }>();
   private cursores: CursoresRemotos;
@@ -127,7 +81,50 @@ export class GerenciadorFeicoes {
   private opcoesPopup: Required<OpcoesPopup> = { copiarParaAreaDeTransferencia: true };
 
   constructor(private contexto: Contexto) {
-    this.regra = contexto.regra ?? new RegraVersoes();
+    this.versoes = new VersoesFeicoes({
+      obterLayerManager: () => this.contexto.obterLayerManager(),
+      emitir: (evento, detalhe) => this.contexto.emitir(evento, detalhe),
+      buscar: (c, i) => this.buscar(c, i),
+      lista: (c) => this.lista(c),
+      aposDados: () => this.aposDados()
+    }, contexto.regra ?? new RegraVersoes());
+    this.ferramentas = new FerramentasDesenho({
+      obterMapa: () => this.contexto.obterMapa(),
+      obterLayerManager: () => this.contexto.obterLayerManager(),
+      emitir: (evento, detalhe, cancelavel) => this.contexto.emitir(evento, detalhe, cancelavel),
+      aoFerramenta: (f) => this.contexto.aoFerramenta?.(f),
+      lista: (c) => this.lista(c),
+      adicionarFeicao: (c, b) => this.adicionarFeicao(c, b),
+      buscarSnapEm: (coord) => this.buscarSnapEm(coord),
+      snapAtivo: () => this.snap.ativo,
+      prepararDesenho: () => { this.editor?.parar(); this.popup.fechar(); this.aplicarMargensHud(); },
+      normalizarCoordenada: (b) => normalizarCoordenada(b, this.opcoesNormalizacao()),
+      dividirComLinha: (l) => this.dividirComLinha(l),
+      selecionarNoLaco: (l) => this.selecionarNoLaco(l),
+      candidatasEm: (c, t) => this.candidatasEm(c, t)
+    });
+    this.camera = new CameraFeicoes({
+      obterMapa: () => this.contexto.obterMapa(),
+      obterLayerManager: () => this.contexto.obterLayerManager(),
+      buscar: (c, i) => this.buscar(c, i),
+      lista: (c) => this.lista(c),
+      desenhada: (f) => this.desenhada(f),
+      garantirVisivel: (f) => this.versoes.garantirVisivel(f)
+    });
+    this.operacoes = new OperacoesFeicoes({
+      emitir: (evento, detalhe) => this.contexto.emitir(evento, detalhe),
+      obterLayerManager: () => this.contexto.obterLayerManager(),
+      buscar: (c, i) => this.buscar(c, i),
+      lista: (c) => this.lista(c),
+      desenhada: (f) => this.desenhada(f),
+      idLivre: (c, b) => this.idLivre(c, b),
+      adicionarFeicao: (c, b) => this.adicionarFeicao(c, b),
+      removerFeicao: (c, i) => this.removerFeicao(c, i),
+      selecionadas: () => this.selecao.obter(),
+      estaSelecionada: (r) => this.selecao.contem(r),
+      divisaoAtiva: () => this.ferramentas.ferramentaAtiva === 'dividir',
+      encerrarDesenho: () => this.ferramentas.desativarFerramenta()
+    });
     this.cursores = new CursoresRemotos(() => this.contexto.obterMapa());
     this.snap = new ControleSnap({
       aoMudar: (estado) => {
@@ -397,7 +394,7 @@ export class GerenciadorFeicoes {
       return 'cad-feicao-atualizada';
     }
     if (acao === 'feicao-clique') {
-      if (this.desenho?.ativo) return null; // com uma ferramenta ativa, o clique é do desenho
+      if (this.ferramentas.ativo) return null; // com uma ferramenta ativa, o clique é do desenho
       const ref = { camadaId: detalhe.camadaId, id: detalhe.feicao.id };
       if (detalhe.aditivo) this.selecao.alternar(ref);
       else this.selecao.selecionar([ref]);
@@ -422,7 +419,7 @@ export class GerenciadorFeicoes {
 
   /** Esc ou clique no vazio: durante a edição só encerra a edição; fora dela, limpa a seleção. */
   public aoPedirLimpeza(): void {
-    if (this.desenho?.ativo) return; // Esc é tratado pela própria ferramenta
+    if (this.ferramentas.ativo) return; // Esc é tratado pela própria ferramenta
     if (this.editor?.ativo) this.editor.parar();
     else this.selecao.limpar();
   }
@@ -441,7 +438,7 @@ export class GerenciadorFeicoes {
       }
     }
     // encerra a ferramenta ANTES de selecionar: quem escuta `cad-selecao` já vê o mapa sem ferramenta ativa
-    this.desenho?.desativar();
+    this.ferramentas.desativarFerramenta();
     this.selecao.selecionar(refs);
   }
 
@@ -496,32 +493,20 @@ export class GerenciadorFeicoes {
 
   // ---- versões (oficial × prévia) ----
 
-  public get regraVersoes(): RegraVersoes {
-    return this.regra;
-  }
+  // ---- versões (oficial × prévia) ----
 
-  private oficiaisDe(camadaId: string): Set<string> {
-    const lista = this.lista(camadaId);
-    let s = this.cacheOficiais.get(lista);
-    if (!s) {
-      s = RegraVersoes.oficiais(lista);
-      this.cacheOficiais.set(lista, s);
-    }
-    return s;
+  public get regraVersoes(): RegraVersoes {
+    return this.versoes.regra;
   }
 
   /** Aparece segundo a regra de oficial × prévia? */
   public visivelPorVersao(f: Feicao): boolean {
-    // com a camada desenhada, o renderizador já mantém as entidades oficiais em dia (sem varrer a camada)
-    const instancia = this.contexto.obterLayerManager().getLayerInstance(f.camadaId);
-    const renderer = LayerRendererFactory.get(TIPO_CAMADA_FEICOES) as FeicoesLayerRenderer | undefined;
-    if (instancia && renderer) return renderer.feicaoVisivel(instancia as L.LayerGroup, f);
-    return this.regra.visivel(f, this.oficiaisDe(f.camadaId));
+    return this.versoes.visivelPorVersao(f);
   }
 
   /** Vai para a tela e responde a clique, caixa, laço, snap e hover: não excluída, não oculta e visível pela regra de versões. */
   public desenhada(f: Feicao): boolean {
-    return !f.excluida && !f.oculta && this.visivelPorVersao(f);
+    return this.versoes.desenhada(f);
   }
 
   /** Regra da seleção: a feição em edição continua selecionada mesmo se for ocultada no meio da edição. */
@@ -531,49 +516,27 @@ export class GerenciadorFeicoes {
     return !f.oculta && this.visivelPorVersao(f);
   }
 
-  private aplicarVersoes(): void {
-    const lm = this.contexto.obterLayerManager();
-    const renderer = LayerRendererFactory.get(TIPO_CAMADA_FEICOES) as FeicoesLayerRenderer | undefined;
-    for (const camada of lm.getLayers()) {
-      if (camada.tipo !== TIPO_CAMADA_FEICOES) continue;
-      const instancia = lm.getLayerInstance(camada.id);
-      if (instancia && renderer) renderer.reavaliarVersoes(instancia as L.LayerGroup);
-    }
-    this.aposDados();
-  }
-
   public get previasGlobais(): boolean {
-    return this.regra.global;
+    return this.versoes.previasGlobais;
   }
 
   /** Mostra (ou esconde) as prévias de todas as entidades. Prévias de entidades sem oficial aparecem sempre. */
   public definirPreviasGlobais(ligado: boolean): void {
-    const v = !!ligado;
-    if (this.regra.global === v) return;
-    this.regra.global = v;
-    this.aplicarVersoes();
-    this.contexto.emitir('cad-previas', { global: v });
+    this.versoes.definirPreviasGlobais(ligado);
   }
 
   public alternarPreviasGlobais(): void {
-    this.definirPreviasGlobais(!this.regra.global);
+    this.versoes.alternarPreviasGlobais();
   }
 
   /** Liga/desliga a prévia da entidade a que a feição pertence. Devolve o novo estado, ou `null` se a feição não existe. */
   public alternarPrevia(camadaId: string, id: string): boolean | null {
-    const f = this.buscar(camadaId, id);
-    if (!f) return null;
-    const entidade = entidadeDe(f);
-    const ativa = this.regra.alternarIndividual(camadaId, entidade);
-    this.aplicarVersoes();
-    this.contexto.emitir('cad-previas', { camadaId, entidadeId: entidade, ativa });
-    return ativa;
+    return this.versoes.alternarPrevia(camadaId, id);
   }
 
   /** A prévia da feição está sendo mostrada por pedido (global ou individual)? */
   public previaSolicitada(camadaId: string, id: string): boolean {
-    const f = this.buscar(camadaId, id);
-    return !!f && this.regra.previaSolicitada(f);
+    return this.versoes.previaSolicitada(camadaId, id);
   }
 
   // ---- cursores de outros operadores ----
@@ -597,81 +560,23 @@ export class GerenciadorFeicoes {
 
   // ---- câmera ----
 
-  /** Mostra o que estava escondido (camada oculta, prévia não solicitada) para a feição poder ser vista. */
-  private garantirVisivel(f: Feicao): void {
-    const lm = this.contexto.obterLayerManager();
-    const camada = lm.getLayerDef(f.camadaId);
-    if (camada && !camada.visivel) lm.setLayerVisibility(f.camadaId, true);
-    if (!this.visivelPorVersao(f)) {
-      const entidade = entidadeDe(f);
-      this.regra.definirIndividual(f.camadaId, entidade, true);
-      this.aplicarVersoes();
-      this.contexto.emitir('cad-previas', { camadaId: f.camadaId, entidadeId: entidade, ativa: true });
-    }
-  }
-
-  private limitesDe(fs: Feicao[]): [[number, number], [number, number]] | null {
-    let s = Infinity;
-    let w = Infinity;
-    let n = -Infinity;
-    let e = -Infinity;
-    for (const f of fs) {
-      const [[a, b], [c, d]] = limitesDaGeometria(f.geometria);
-      if (a < s) s = a;
-      if (b < w) w = b;
-      if (c > n) n = c;
-      if (d > e) e = d;
-    }
-    return Number.isFinite(s) ? [[s, w], [n, e]] : null;
-  }
-
-  private enquadrar(fs: Feicao[]): boolean {
-    const map = this.contexto.obterMapa();
-    const lim = this.limitesDe(fs);
-    if (!map || !lim) return false;
-    const ponto = lim[0][0] === lim[1][0] && lim[0][1] === lim[1][1];
-    if (ponto) map.flyTo([lim[0][0], lim[0][1]], Math.max(map.getZoom(), 17));
-    else map.fitBounds(lim, { padding: [60, 60], maxZoom: 18 });
-    return true;
-  }
-
   /** Aproxima da feição; liga a camada e a prévia, se estiverem escondidas. Ponto: voa até z ≥ 17. */
   public zoomParaFeicao(camadaId: string, id: string): boolean {
-    const f = this.buscar(camadaId, id);
-    if (!f || f.excluida) return false;
-    this.garantirVisivel(f);
-    return this.enquadrar([f]);
+    return this.camera.zoomParaFeicao(camadaId, id);
   }
 
   public zoomParaFeicoes(refs: RefFeicao[]): boolean {
-    const fs: Feicao[] = [];
-    for (const r of Array.isArray(refs) ? refs : []) {
-      const f = this.buscar(r.camadaId, r.id);
-      if (f && !f.excluida) {
-        this.garantirVisivel(f);
-        fs.push(f);
-      }
-    }
-    return fs.length > 0 && this.enquadrar(fs);
+    return this.camera.zoomParaFeicoes(refs);
   }
 
   /** Enquadra todas as feições das camadas de feições visíveis (que aparecem pela regra de versões). */
   public ajustarTudo(): boolean {
-    const fs: Feicao[] = [];
-    for (const camada of this.contexto.obterLayerManager().getLayers()) {
-      if (camada.tipo !== TIPO_CAMADA_FEICOES || !camada.visivel) continue;
-      fs.push(...this.lista(camada.id).filter((f) => this.desenhada(f)));
-    }
-    return this.enquadrar(fs);
+    return this.camera.ajustarTudo();
   }
 
   /** Enquadra a camada inteira; se estava oculta, torna-a visível. */
   public ajustarCamada(camadaId: string): boolean {
-    const lm = this.contexto.obterLayerManager();
-    const camada = lm.getLayerDef(camadaId);
-    if (!camada || camada.tipo !== TIPO_CAMADA_FEICOES) return false;
-    if (!camada.visivel) lm.setLayerVisibility(camadaId, true);
-    return this.enquadrar(this.lista(camadaId).filter((f) => this.desenhada(f)));
+    return this.camera.ajustarCamada(camadaId);
   }
 
   // ---- hover e menu de contexto ----
@@ -689,7 +594,7 @@ export class GerenciadorFeicoes {
 
   /** Emite `cad-feicao-hover` quando a feição sob o mouse muda (uma checagem por quadro). */
   public aoMoverMouse(e: MouseEvent): void {
-    const parado = e.buttons !== 0 || !!this.desenho?.ativo || !!this.editor?.ativo;
+    const parado = e.buttons !== 0 || !!this.ferramentas.ativo || !!this.editor?.ativo;
     if (parado) {
       if (this.hoverId !== null) {
         this.hoverId = null;
@@ -719,8 +624,8 @@ export class GerenciadorFeicoes {
   /** Botão direito: emite `cad-feicao-menu` com a feição sob o cursor (ou `null`), para o consumidor abrir o próprio menu. */
   public menuContexto(e: MouseEvent): void {
     // ferramenta ativa: o botão direito conclui, desfaz o último vértice ou sai (não abre menu)
-    if (this.desenho?.ativo) {
-      this.desenho.botaoDireito();
+    if (this.ferramentas.ativo) {
+      this.ferramentas.botaoDireito();
       return;
     }
     const r = this.feicaoSob(e.clientX, e.clientY);
@@ -730,8 +635,7 @@ export class GerenciadorFeicoes {
 
   public destruir(): void {
     // o controle guarda o mapa; depois de reconectar o componente o mapa é outro
-    this.desenho?.desativar();
-    this.desenho = null;
+    this.ferramentas.destruir();
     this.cursores.limpar();
     this.hoverId = null;
   }
@@ -822,7 +726,7 @@ export class GerenciadorFeicoes {
     const map = this.contexto.obterMapa();
     if (!map) return { ok: false, motivo: 'sem-mapa' };
 
-    this.desenho?.desativar();
+    this.ferramentas.desativarFerramenta();
     this.editor?.parar();
     this.aplicarMargensHud();
     this.selecao.selecionar([{ camadaId, id }]);
@@ -864,114 +768,66 @@ export class GerenciadorFeicoes {
 
   // ---- ferramentas de desenho ----
 
+  /** @internal Controle de desenho (usado pelos testes de caracterização). */
+  public get desenho(): ControleDesenho | null {
+    return this.ferramentas.controle;
+  }
+
+  /** @internal Conta-gotas (usado pelos testes de caracterização). */
+  public amostrarEstilo(coord: LatLonPar): void {
+    this.ferramentas.amostrarEstilo(coord);
+  }
+
   public get ferramentaAtiva(): Ferramenta | null {
-    return this.desenho?.ferramenta ?? null;
+    return this.ferramentas.ferramentaAtiva;
   }
 
   /** Camada que recebe o que for desenhado. Não existe camada padrão: o consumidor escolhe. */
   public definirCamadaDesenho(camadaId: string | null): void {
-    this.camadaDesenho = camadaId || null;
+    this.ferramentas.definirCamadaDesenho(camadaId);
   }
 
   public get camadaDeDesenho(): string | null {
-    return this.camadaDesenho;
+    return this.ferramentas.camadaDeDesenho;
   }
 
   /** Estilo aplicado às feições desenhadas daqui para frente (o conta-gotas também o altera). */
   public definirEstiloDesenho(estilo: EstiloFeicao): void {
-    this.estiloDesenho = { ...estilo };
+    this.ferramentas.definirEstiloDesenho(estilo);
   }
 
   public obterEstiloDesenho(): EstiloFeicao {
-    return { ...this.estiloDesenho };
+    return this.ferramentas.obterEstiloDesenho();
   }
 
   public alternarFerramenta(nome: string): ResultadoFerramenta {
-    if (this.desenho?.ferramenta === nome) {
-      this.desenho.desativar();
-      return { ok: true };
-    }
-    return this.ativarFerramenta(nome);
+    return this.ferramentas.alternarFerramenta(nome);
   }
 
   public ativarFerramenta(nome: string, opcoes: { fechar?: boolean; iniciarEm?: LatLonPar } = {}): ResultadoFerramenta {
-    if (!ehFerramenta(nome)) return { ok: false, motivo: 'ferramenta-invalida' };
-    const map = this.contexto.obterMapa();
-    if (!map) return { ok: false, motivo: 'sem-mapa' };
-
-    if (FERRAMENTAS_DE_CRIACAO.has(nome)) {
-      const motivo = this.motivoCamadaDesenhoInvalida();
-      if (motivo) {
-        this.contexto.emitir('cad-desenho-recusado', { ferramenta: nome, motivo });
-        return { ok: false, motivo };
-      }
-    }
-
-    this.editor?.parar();
-    this.popup.fechar();
-    this.aplicarMargensHud();
-    if (!this.desenho) {
-      this.desenho = new ControleDesenho({
-        map,
-        buscarSnap: (coord) => this.buscarSnapEm(coord),
-        snapAtivo: () => this.snap.ativo,
-        aoGeometria: (f, g) => this.concluirFerramenta(f, g),
-        aoMedir: (info) => this.contexto.emitir('cad-medicao', info),
-        aoAmostrar: (coord) => this.amostrarEstilo(coord),
-        aoSolicitarTexto: (coord) => this.solicitarTexto(coord),
-        aoDesativar: () => {
-          this.contexto.emitir('cad-ferramenta', { ferramenta: null });
-          this.contexto.aoFerramenta?.(null);
-        }
-      });
-    }
-    this.desenho.ativar(nome, opcoes);
-    this.contexto.emitir('cad-ferramenta', { ferramenta: nome });
-    this.contexto.aoFerramenta?.(nome);
-    // "começar aqui": registra o primeiro clique na coordenada pedida (ex.: menu de contexto)
-    const inicio = opcoes.iniciarEm ? normalizarCoordenada(opcoes.iniciarEm, this.opcoesNormalizacao()) : null;
-    if (inicio) this.desenho.clicarEm(inicio);
-    return { ok: true };
+    return this.ferramentas.ativarFerramenta(nome, opcoes);
   }
 
   public desativarFerramenta(): void {
-    this.desenho?.desativar();
+    this.ferramentas.desativarFerramenta();
   }
 
   public limparMedicao(): void {
-    this.desenho?.limparMedicao();
+    this.ferramentas.limparMedicao();
   }
 
   /** Vértices já colocados na figura em andamento (0 sem ferramenta ou sem figura). */
   public get nosDesenho(): number {
-    return this.desenho?.nos ?? 0;
+    return this.ferramentas.nosDesenho;
   }
 
   public desfazerVerticeDesenho(): boolean {
-    return this.desenho?.desfazerVertice() ?? false;
+    return this.ferramentas.desfazerVerticeDesenho();
   }
 
   /** Liga/desliga a tecla S do snap (o botão e `definirSnap` continuam valendo). */
   public definirAtalhoSnap(ligado: boolean): void {
     this.snap.atalhoS = ligado;
-  }
-
-  private motivoCamadaDesenhoInvalida(): ResultadoFerramenta['motivo'] | null {
-    if (!this.camadaDesenho) return 'sem-camada';
-    const existente = this.contexto.obterLayerManager().getLayerDef(this.camadaDesenho);
-    if (existente && existente.tipo !== TIPO_CAMADA_FEICOES) return 'camada-invalida';
-    if (existente?.bloqueada) return 'camada-bloqueada';
-    return null;
-  }
-
-  private novoId(prefixo: string, camadaId: string): string {
-    const existentes = new Set(this.lista(camadaId).map((f) => f.id));
-    let id: string;
-    do {
-      this.sequenciaId++;
-      id = `${prefixo}-${Date.now().toString(36)}${this.sequenciaId.toString(36)}`;
-    } while (existentes.has(id));
-    return id;
   }
 
   private idLivre(camadaId: string, base: string): string {
@@ -982,198 +838,23 @@ export class GerenciadorFeicoes {
     return `${base}_${n}`;
   }
 
-  /**
-   * Clique da ferramenta texto: emite `cad-texto-solicitado` (cancelável). Com `preventDefault()` o consumidor assume a
-   * entrada do texto e depois chama `detalhe.concluir(texto)` (cria na camada de desenho, com o estilo de desenho) ou
-   * simplesmente não faz nada para cancelar. Sem `preventDefault()`, aparece o campo inline.
-   */
-  private solicitarTexto(coord: LatLonPar): boolean {
-    const detalhe = {
-      coordenada: coord,
-      camadaId: this.camadaDesenho,
-      concluir: (texto: string): Feicao | null => {
-        const t = typeof texto === 'string' ? texto.trim() : '';
-        if (!t) return null;
-        return this.concluirFerramenta('texto', { tipo: 'Text', coordenada: coord, texto: t });
-      }
-    };
-    return this.contexto.emitir('cad-texto-solicitado', detalhe, true) === true;
-  }
-
-  private concluirFerramenta(ferramenta: Ferramenta, g: import('../../gerencigeo-canvas/feature_types').GeometriaFeicao): Feicao | null {
-    if (ferramenta === 'dividir') {
-      if (g.tipo === 'LineString') this.dividirComLinha(g.coordenadas);
-      return null;
-    }
-    if (ferramenta === 'medir-distancia' || ferramenta === 'medir-area') return null; // só mede; nada é criado
-    if (ferramenta === 'selecao-laco') {
-      if (g.tipo === 'Polygon') this.selecionarNoLaco(g.aneis[0]);
-      return null;
-    }
-    const camadaId = this.camadaDesenho;
-    if (!camadaId) return null;
-    const tem = Object.keys(this.estiloDesenho).length > 0;
-    const feicao = this.adicionarFeicao(camadaId, {
-      id: this.novoId(ferramenta, camadaId),
-      geometria: g,
-      estilo: tem ? { ...this.estiloDesenho } : undefined,
-      propriedades: {}
-    });
-    if (feicao) this.contexto.emitir('cad-feicao-criada', { camadaId, feicao });
-    else this.contexto.emitir('cad-desenho-recusado', { ferramenta, motivo: 'geometria-invalida' });
-    return feicao;
-  }
-
-  /** Conta-gotas: copia o estilo da feição sob o clique para o estilo de desenho. */
-  private amostrarEstilo(coord: LatLonPar): void {
-    const map = this.contexto.obterMapa();
-    if (!map) return;
-    const px = map.latLngToContainerPoint(coord);
-    const candidatas = this.candidatasEm(coord, 8);
-    const f = feicaoNoPonto({ x: px.x, y: px.y }, candidatas, (p) => map.latLngToContainerPoint(p));
-    if (!f) {
-      this.contexto.emitir('cad-conta-gotas', { cor: '', feicao: null, estilo: {} });
-      return;
-    }
-    const camada = this.contexto.obterLayerManager().getLayerDef(f.camadaId);
-    const e = f.estilo ?? {};
-    const amostrado: EstiloFeicao = {};
-    const traco = e.corTraco ?? camada?.estilo.corPrimaria;
-    if (traco) amostrado.corTraco = traco;
-    if (e.corPreenchimento) amostrado.corPreenchimento = e.corPreenchimento;
-    if (e.espessuraTraco !== undefined) amostrado.espessuraTraco = e.espessuraTraco;
-    if (e.opacidadePreenchimento !== undefined) amostrado.opacidadePreenchimento = e.opacidadePreenchimento;
-    if (e.dashArray) amostrado.dashArray = e.dashArray;
-    this.estiloDesenho = { ...this.estiloDesenho, ...amostrado };
-    this.contexto.emitir('cad-conta-gotas', { cor: traco ?? e.corPreenchimento ?? '', feicao: f, estilo: amostrado });
-  }
-
-  /**
-   * Divide polígonos pela linha de corte. Alvos: os polígonos selecionados; sem seleção, o primeiro
-   * polígono (de camada visível, interativa e desbloqueada) que a linha corta.
-   */
+  /** Divide polígonos pela linha de corte (selecionados; sem seleção, o primeiro cortado). Ver `OperacoesFeicoes`. */
   public dividirComLinha(linha: LatLonPar[]): boolean {
-    const lm = this.contexto.obterLayerManager();
-    const falhar = (motivo: string): boolean => {
-      this.contexto.emitir('cad-divisao-falhou', { motivo });
-      return false;
-    };
-
-    const selecionados = this.selecao.obter().filter((f) => f.geometria.tipo === 'Polygon');
-    let candidatos: Feicao[] = selecionados;
-    if (candidatos.length === 0) {
-      candidatos = [];
-      for (const camada of lm.getActiveSelectableLayers()) {
-        if (camada.tipo !== TIPO_CAMADA_FEICOES) continue;
-        candidatos.push(...this.lista(camada.id).filter((f) => f.geometria.tipo === 'Polygon' && this.desenhada(f)));
-      }
-    }
-    if (candidatos.length === 0) return falhar(selecionados.length === 0 && this.selecao.obter().some((f) => ehMultilinha(f.geometria)) ? 'multiparte' : 'nenhum-poligono');
-
-    const bloqueada = (f: Feicao): boolean => !!f.bloqueada || !!lm.getLayerDef(f.camadaId)?.bloqueada;
-    const livres = candidatos.filter((f) => !bloqueada(f) && f.geometria.tipo === 'Polygon' && f.geometria.aneis.length === 1);
-    if (livres.length === 0) return falhar(candidatos.some(bloqueada) ? 'bloqueada' : 'poligono-com-furos');
-
-    let dividiu = false;
-    for (const f of livres) {
-      if (f.geometria.tipo !== 'Polygon') continue;
-      const partes = dividirPoligonoComLinha(f.geometria.aneis[0], linha);
-      if (!partes) continue;
-
-      // o corte vai mudar a seleção (a original sai): a ferramenta encerra ANTES, para `cad-selecao` já sair sem ferramenta ativa
-      if (this.desenho?.ferramenta === 'dividir' && this.selecao.contem({ camadaId: f.camadaId, id: f.id })) this.desenho.desativar();
-      this.removerFeicao(f.camadaId, f.id);
-      const criadas: Feicao[] = [];
-      partes.forEach((anel, i) => {
-        const nova = clonarFeicao(f, this.idLivre(f.camadaId, `${f.id}-${i + 1}`), { tipo: 'Polygon', aneis: [anel] });
-        const ok = this.adicionarFeicao(f.camadaId, nova);
-        if (ok) criadas.push(ok);
-      });
-      if (criadas.length !== partes.length) {
-        // parte recusada: desfaz tudo, a feição original não pode se perder
-        for (const c of criadas) this.removerFeicao(c.camadaId, c.id);
-        this.adicionarFeicao(f.camadaId, f);
-        return falhar('geometria-invalida');
-      }
-      this.contexto.emitir('cad-feicao-dividida', { origem: f, partes: criadas });
-      dividiu = true;
-      if (selecionados.length === 0) break;
-    }
-    return dividiu || falhar('sem-intersecao');
+    return this.operacoes.dividirComLinha(linha);
   }
-
-  // ---- utilitários geométricos ----
 
   /** Cria um polígono de buffer ao redor da feição (na camada dela, ou em `camadaDestino`). */
   public gerarBuffer(camadaId: string, id: string, metros: number, opcoes: { camadaDestino?: string; id?: string } = {}): Feicao | null {
-    const f = this.buscar(camadaId, id);
-    if (!f) return null;
-    const anel = gerarBufferGeo(f.geometria, metros);
-    if (!anel) return null;
-    const destino = opcoes.camadaDestino ?? camadaId;
-    const criada = this.adicionarFeicao(destino, {
-      id: opcoes.id ?? this.idLivre(destino, `${id}-buffer`),
-      geometria: { tipo: 'Polygon', aneis: [anel] },
-      estilo: f.estilo ? { ...f.estilo } : undefined,
-      propriedades: { ...f.propriedades, origem: id }
-    });
-    if (criada) this.contexto.emitir('cad-feicao-criada', { camadaId: destino, feicao: criada });
-    return criada;
+    return this.operacoes.gerarBuffer(camadaId, id, metros, opcoes);
   }
 
   /** Copia a feição deslocada (em metros para leste/norte). */
   public duplicarFeicao(camadaId: string, id: string, deslocamento: { lesteM?: number; norteM?: number } = {}, opcoes: { id?: string } = {}): Feicao | null {
-    const f = this.buscar(camadaId, id);
-    if (!f) return null;
-    const geometria = deslocarGeometria(f.geometria, deslocamento.lesteM ?? 0, deslocamento.norteM ?? 0);
-    const criada = this.adicionarFeicao(camadaId, clonarFeicao(f, opcoes.id ?? this.idLivre(camadaId, `${id}-copia`), geometria));
-    if (criada) this.contexto.emitir('cad-feicao-criada', { camadaId, feicao: criada });
-    return criada;
+    return this.operacoes.duplicarFeicao(camadaId, id, deslocamento, opcoes);
   }
 
-  /**
-   * Junta linhas (encadeando pontas) ou dois polígonos (por uma ponte) numa feição só; as originais saem.
-   * Linhas com pontas a até `toleranciaM` se ligam; polígonos precisam estar a até `toleranciaM` e
-   * não podem ter bordas que se cruzam.
-   */
+  /** Junta linhas (encadeando pontas) ou dois polígonos numa feição só; as originais saem. Ver `OperacoesFeicoes`. */
   public juntarFeicoes(camadaId: string, ids: string[], opcoes: { toleranciaM?: number; id?: string } = {}): Feicao | null {
-    const falhar = (motivo: string): null => {
-      this.contexto.emitir('cad-uniao-falhou', { motivo });
-      return null;
-    };
-    const fs = ids.map((i) => this.buscar(camadaId, i));
-    if (fs.length < 2 || fs.some((f) => !f)) return falhar('feicoes-insuficientes');
-    const origem = fs as Feicao[];
-    if (new Set(origem.map((f) => f.id)).size !== origem.length) return falhar('feicoes-insuficientes');
-    const lm = this.contexto.obterLayerManager();
-    if (origem.some((f) => f.excluida || f.bloqueada || lm.getLayerDef(f.camadaId)?.bloqueada)) return falhar('bloqueada');
-    const tol = opcoes.toleranciaM ?? 0;
-
-    let geometria: import('../../gerencigeo-canvas/feature_types').GeometriaFeicao | null = null;
-    if (origem.every((f) => f.geometria.tipo === 'LineString')) {
-      if (origem.some((f) => ehMultilinha(f.geometria))) return falhar('multiparte');
-      const linhas = origem.map((f) => (f.geometria as { coordenadas: LatLonPar[] }).coordenadas);
-      const r = juntarLinhas(linhas, tol);
-      if (r) geometria = criarLinha([r]);
-    } else if (origem.every((f) => f.geometria.tipo === 'Polygon' && f.geometria.aneis.length === 1)) {
-      let anel: LatLonPar[] | null = (origem[0].geometria as { aneis: LatLonPar[][] }).aneis[0];
-      for (const f of origem.slice(1)) {
-        anel = anel ? juntarPoligonos(anel, (f.geometria as { aneis: LatLonPar[][] }).aneis[0], tol) : null;
-      }
-      if (anel) geometria = { tipo: 'Polygon', aneis: [anel] };
-    } else {
-      return falhar('tipos-incompativeis');
-    }
-    if (!geometria) return falhar('sem-ligacao');
-
-    for (const f of origem) this.removerFeicao(camadaId, f.id);
-    const resultado = this.adicionarFeicao(camadaId, clonarFeicao(origem[0], opcoes.id ?? this.idLivre(camadaId, `${origem[0].id}-uniao`), geometria));
-    if (!resultado) {
-      // geometria recusada: devolve as originais em vez de perdê-las
-      for (const f of origem) this.adicionarFeicao(camadaId, f);
-      return falhar('geometria-invalida');
-    }
-    this.contexto.emitir('cad-feicao-unida', { origens: origem, resultado });
-    return resultado;
+    return this.operacoes.juntarFeicoes(camadaId, ids, opcoes);
   }
 }

@@ -72,7 +72,7 @@ export class GerenciadorBroadcastConfig {
     // 3. Atualizar opacidades de outras camadas se fornecidas
     if (config.opacidades && typeof config.opacidades === 'object') {
       Object.entries(config.opacidades).forEach(([camadaId, opVal]) => {
-        const op = parseFloat(opVal as any);
+        const op = parseFloat(String(opVal));
         if (!isNaN(op)) {
           this.contexto.setLayerOpacity(camadaId, op);
         }

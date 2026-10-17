@@ -17,6 +17,8 @@ import { GerenciadorColecoesDados } from './cad-colecoes-dados';
 import { obterTemplateCanvasCAD } from './cad-template';
 import { sincronizarAtributoCAD } from './cad-atributos-sync';
 import { inicializarCAD } from './cad-inicializador';
+import { liberarContainerLeaflet } from './cad-leaflet-adaptador';
+import { lerPontosSelecionados, gravarPontosSelecionados } from './cad-selecao-pontos';
 import { GerenciadorFeicoes, OpcoesCamadaFeicoes, OpcoesLote, LoteFeicoes, ResultadoLote, ResultadoFeicoes, ResultadoEdicao, ResultadoFerramenta } from './cad-feicoes';
 import { BarraFerramentas, interpretarFerramentas } from './cad-ferramentas-barra';
 import type { EstiloFeicao } from '../../gerencigeo-canvas/feature_types';
@@ -162,13 +164,7 @@ export class UICanvasCAD extends SafeHTMLElement {
     this.layerItemListeners.cleanup();
     this.controller.destroy();
 
-    if (this.mapContainer && (this.mapContainer as any)._leaflet_id) {
-      try {
-        delete (this.mapContainer as any)._leaflet_id;
-      } catch {
-        (this.mapContainer as any)._leaflet_id = undefined;
-      }
-    }
+    liberarContainerLeaflet(this.mapContainer);
   }
 
   disconnectedCallback() { this.destroy(); }
@@ -359,12 +355,11 @@ export class UICanvasCAD extends SafeHTMLElement {
   public selectPonto(id: string | number, zoomLevel?: number): void { this.controller.selectPonto(id, zoomLevel); }
   public selecionarPonto(id: string | number, zoomLevel?: number): void { this.controller.selectPonto(id, zoomLevel); }
   public get pontosSelecionados(): (string | number)[] {
-    return (this.controller.context as any).selectedPontoIds || this.controller.canvasInteracao.ctx.selectedPontoIds || [];
+    return lerPontosSelecionados(this.controller);
   }
   public set pontosSelecionados(ids: (string | number)[]) {
     const safeIds = Array.isArray(ids) ? ids : [];
-    this.controller.canvasInteracao.ctx.selectedPontoIds = safeIds as any;
-    (this.controller.context as any).selectedPontoIds = [...safeIds];
+    gravarPontosSelecionados(this.controller, safeIds);
     this.controller.atualizarDestaqueMarcadores();
   }
   public atualizarDestaqueMarcadores(): void { this.controller.atualizarDestaqueMarcadores(); }
