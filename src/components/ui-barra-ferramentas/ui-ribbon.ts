@@ -1,7 +1,7 @@
 import estilos from './ui-ribbon.css?inline';
 import estilosComuns from './ferramentas-comum.css?inline';
 import { ListenerBag } from '../../core/listener-bag';
-import type { FerramentaItem, RibbonAba, RibbonGrupo } from './tipos';
+import type { FerramentaItem, RibbonAba } from './tipos';
 import {
   abrirMenu,
   acharItem,
@@ -16,6 +16,8 @@ import {
   type MenuHandle
 } from './ferramentas-comum';
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
+import { criarBotaoAba, criarGrupoRibbon } from './ribbon-render';
+import { acaoDaTeclaAba } from './ribbon-teclado';
 
 /**
  * <ui-ribbon> — barra de ferramentas em abas com grupos (estilo AutoCAD / Word / Excel).
@@ -308,20 +310,12 @@ export class UIRibbon extends SafeHTMLElement {
   private renderizarAbas() {
     this.abasElement.innerHTML = '';
     this.abasVisiveis().forEach(aba => {
-      const ativa = aba.id === this._abaAtiva;
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'ui-ribbon__aba';
-      btn.setAttribute('role', 'tab');
-      btn.dataset.id = aba.id;
-      btn.id = this.idAba(aba.id);
-      if (ativa) btn.setAttribute('aria-controls', this.painelElement.id);
-      btn.textContent = aba.rotulo;
-      btn.tabIndex = ativa ? 0 : -1;
-      btn.setAttribute('aria-selected', String(ativa));
-      btn.classList.toggle('ui-ribbon__aba--ativa', ativa);
-      btn.classList.toggle('ui-ribbon__aba--contextual', !!aba.contextual);
-      this.abasElement.appendChild(btn);
+      this.abasElement.appendChild(criarBotaoAba({
+        aba,
+        ativa: aba.id === this._abaAtiva,
+        idBotao: this.idAba(aba.id),
+        idPainel: this.painelElement.id
+      }));
     });
   }
 
@@ -339,57 +333,8 @@ export class UIRibbon extends SafeHTMLElement {
     }
     this.painelElement.setAttribute('aria-labelledby', this.idAba(aba.id));
 
-    aba.grupos.forEach(grupo => this.gruposElement.appendChild(this.criarGrupo(grupo)));
+    aba.grupos.forEach(grupo => this.gruposElement.appendChild(criarGrupoRibbon(grupo, (item, variante, icone) => this.criarBotao(item, variante, icone))));
     definirRoving(this.botoesPainel());
-  }
-
-  private criarGrupo(grupo: RibbonGrupo): HTMLElement {
-    const el = document.createElement('div');
-    el.className = 'ui-ribbon__grupo';
-    el.setAttribute('role', 'group');
-    el.setAttribute('aria-label', grupo.rotulo);
-    el.dataset.id = grupo.id;
-
-    const itens = document.createElement('div');
-    itens.className = 'ui-ribbon__grupo-itens';
-
-    // Botões pequenos consecutivos são agrupados em colunas de até 3 (padrão Office/CAD)
-    let coluna: HTMLElement | null = null;
-    let naColuna = 0;
-    const fecharColuna = () => {
-      if (coluna) itens.appendChild(coluna);
-      coluna = null;
-      naColuna = 0;
-    };
-
-    grupo.itens.forEach(item => {
-      if (item.tipo === 'separador') {
-        fecharColuna();
-        const sep = document.createElement('div');
-        sep.className = 'ui-ribbon__separador';
-        sep.setAttribute('role', 'separator');
-        itens.appendChild(sep);
-      } else if (item.tamanho === 'grande') {
-        fecharColuna();
-        itens.appendChild(this.criarBotao(item, 'grande', 24));
-      } else {
-        if (!coluna) {
-          coluna = document.createElement('div');
-          coluna.className = 'ui-ribbon__coluna';
-        }
-        coluna.appendChild(this.criarBotao(item, 'pequeno', 16));
-        if (++naColuna === 3) fecharColuna();
-      }
-    });
-    fecharColuna();
-
-    const rotulo = document.createElement('div');
-    rotulo.className = 'ui-ribbon__grupo-rotulo';
-    rotulo.textContent = grupo.rotulo;
-
-    el.appendChild(itens);
-    el.appendChild(rotulo);
-    return el;
   }
 
   private criarBotao(item: FerramentaItem, variante: 'grande' | 'pequeno', icone: number): HTMLButtonElement {
@@ -424,25 +369,18 @@ export class UIRibbon extends SafeHTMLElement {
 
   private handleKeyDownAbas = (e: KeyboardEvent) => {
     const tabs = Array.from(this.abasElement.querySelectorAll<HTMLButtonElement>('.ui-ribbon__aba'));
-    const atual = tabs.findIndex(t => t === e.target);
-    if (atual < 0) return;
+    const acao = acaoDaTeclaAba(e.key, tabs.findIndex(t => t === e.target), tabs.length, this.rtl);
+    if (!acao) return;
 
-    let destino = atual;
-    const [teclaProx, teclaAnt] = this.rtl ? ['ArrowLeft', 'ArrowRight'] : ['ArrowRight', 'ArrowLeft'];
-    if (e.key === teclaProx) destino = (atual + 1) % tabs.length;
-    else if (e.key === teclaAnt) destino = (atual - 1 + tabs.length) % tabs.length;
-    else if (e.key === 'Home') destino = 0;
-    else if (e.key === 'End') destino = tabs.length - 1;
-    else if (e.key === 'ArrowDown') {
-      e.preventDefault();
+    e.preventDefault();
+    if (acao.tipo === 'descer') {
       // faixa recolhida: abre o painel flutuante antes de focar o primeiro botão
       if (this.recolhido) this.rootElement.classList.add('ui-ribbon--aberto');
       this.botoesPainel().find(b => !b.disabled)?.focus();
       return;
-    } else return;
+    }
 
-    e.preventDefault();
-    const id = tabs[destino].dataset.id;
+    const id = tabs[acao.indice].dataset.id;
     if (id) this.selecionarAba(id);
     this.abasElement.querySelector<HTMLButtonElement>(`.ui-ribbon__aba[data-id="${CSS.escape(id ?? '')}"]`)?.focus();
   };

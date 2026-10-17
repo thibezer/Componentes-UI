@@ -1,6 +1,9 @@
 import estilos from './ui-skeleton.css?inline';
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 
+/** Limite de linhas: um atributo hostil (`linhas="100000000"`) não pode criar milhões de nós. */
+const MAX_LINHAS = 100;
+
 export type VarianteSkeleton = 'texto' | 'circular' | 'retangular' | 'card';
 export type AnimacaoSkeleton = 'shimmer' | 'pulso' | 'nenhum';
 
@@ -19,31 +22,62 @@ export class UISkeleton extends SafeHTMLElement {
       'lines',
       'count',
       'animado',
-      'animated'
+      'animated',
+      'aria-label'
     ];
   }
 
   private rootElement: HTMLDivElement;
+  /** O que este componente escreveu em aria-hidden / role (para não sobrescrever o consumidor). */
+  private _ocultoAuto = false;
+  private _papelAuto = false;
+  private _sincronizando = false;
 
   constructor() {
     super();
     const shadow = this.attachShadow({ mode: 'open' });
     shadow.innerHTML = `
       <style>${estilos}</style>
-      <div class="ui-skeleton-container" role="status" aria-label="Carregando..."></div>
+      <div class="ui-skeleton-container"></div>
     `;
     this.rootElement = shadow.querySelector('.ui-skeleton-container')!;
   }
 
   connectedCallback() {
-    if (!this.hasAttribute('aria-hidden')) {
-      this.setAttribute('aria-hidden', 'true');
-    }
+    this.sincronizarAcessibilidade();
     this.syncState();
   }
 
   attributeChangedCallback(_name: string, _old: string | null, _value: string | null) {
+    if (this._sincronizando) return;
+    this.sincronizarAcessibilidade();
     this.syncState();
+  }
+
+  /**
+   * Decorativo por padrão (`aria-hidden`). Com `aria-label` vira uma região de status anunciável
+   * ("Carregando tabela"). O que o consumidor definiu em aria-hidden/role é preservado.
+   */
+  private sincronizarAcessibilidade() {
+    this._sincronizando = true;
+    const rotulado = !!this.getAttribute('aria-label');
+    const ocultoDoConsumidor = this.hasAttribute('aria-hidden') && !this._ocultoAuto;
+    if (rotulado) {
+      if (this._ocultoAuto) this.removeAttribute('aria-hidden');
+      this._ocultoAuto = false;
+      if (!this.hasAttribute('role')) {
+        this.setAttribute('role', 'status');
+        this._papelAuto = true;
+      }
+    } else {
+      if (this._papelAuto) this.removeAttribute('role');
+      this._papelAuto = false;
+      if (!ocultoDoConsumidor) {
+        this.setAttribute('aria-hidden', 'true');
+        this._ocultoAuto = true;
+      }
+    }
+    this._sincronizando = false;
   }
 
   get variante(): VarianteSkeleton {
@@ -71,7 +105,7 @@ export class UISkeleton extends SafeHTMLElement {
 
   get linhas(): number {
     const l = parseInt(this.getAttribute('linhas') || this.getAttribute('lines') || this.getAttribute('count') || '1', 10);
-    return isNaN(l) || l < 1 ? 1 : l;
+    return isNaN(l) || l < 1 ? 1 : Math.min(l, MAX_LINHAS);
   }
 
   set linhas(val: number) {

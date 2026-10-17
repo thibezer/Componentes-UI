@@ -6,6 +6,9 @@
 
 import L from 'leaflet';
 import type { GerenciGeoMapaController } from '../../gerencigeo-canvas/mapa_controller';
+import { gravarPontosSelecionados } from './cad-selecao-pontos';
+import type { EventoMapaCad, ElementoComCoordenadas, LatLngEvento } from './tipos';
+import { alvoDoEvento, eventoOriginalDe, latLngDe, pontoPixelDe, type PontoPixel } from './cad-evento-coordenadas';
 
 export interface ContextoEventosCanvas {
   host: HTMLElement;
@@ -19,9 +22,9 @@ export interface ContextoEventosCanvas {
 
 export function processarCliqueLivreCanvas(
   ctx: ContextoEventosCanvas,
-  e: MouseEvent | any,
-  latLngParam?: { lat: number; lng?: number; lon?: number },
-  containerPointParam?: { x: number; y: number }
+  e: MouseEvent | EventoMapaCad,
+  latLngParam?: LatLngEvento,
+  containerPointParam?: PontoPixel
 ): boolean {
   // 1. Condição: O modo-sequencial deve estar desligado
   if (ctx.modoSequencial) return false;
@@ -33,9 +36,8 @@ export function processarCliqueLivreCanvas(
   if (ctx.controller.canvasInteracao.panHappened || ctx.mouseMovedSinceDown) return false;
 
   // 4. Captura cliques fora de marcadores e vetores
-  const origEvt = (e as any)?.originalEvent || e;
-  const path = typeof origEvt?.composedPath === 'function' ? origEvt.composedPath() : [];
-  const target = (path.length > 0 ? path[0] : (origEvt?.target || (e as any)?.target)) as HTMLElement | null;
+  const origEvt = eventoOriginalDe(e);
+  const target = alvoDoEvento(e);
   if (target) {
     const interactiveSelector = '.custom-leaflet-marker, .leaflet-marker-icon, .leaflet-interactive, .compact-popup, .leaflet-popup, .ui-popup-btn, .cad-btn-tool, .qgis-layer-panel, [class*="leaflet-marker"], [class*="leaflet-popup"]';
     const isInteractive = target.matches?.(interactiveSelector) || target.closest?.(interactiveSelector);
@@ -45,39 +47,13 @@ export function processarCliqueLivreCanvas(
   const map = ctx.controller.getMap();
   if (!map || !ctx.mapContainer) return false;
 
-  // Calcula ponto pixel relativo ao container de forma segura
-  let pontoPixelX: number;
-  let pontoPixelY: number;
+  const pontoPixel = pontoPixelDe(e, containerPointParam, ctx.mapContainer.getBoundingClientRect());
 
-  if (containerPointParam) {
-    pontoPixelX = Math.round(containerPointParam.x);
-    pontoPixelY = Math.round(containerPointParam.y);
-  } else if ((e as any)?.containerPoint || (e as any)?.layerPoint) {
-    pontoPixelX = Math.round((e as any).containerPoint?.x ?? (e as any).layerPoint?.x ?? 0);
-    pontoPixelY = Math.round((e as any).containerPoint?.y ?? (e as any).layerPoint?.y ?? 0);
-  } else {
-    const rect = ctx.mapContainer.getBoundingClientRect();
-    const clientX = origEvt?.clientX ?? 0;
-    const clientY = origEvt?.clientY ?? 0;
-    pontoPixelX = Math.round(clientX - rect.left);
-    pontoPixelY = Math.round(clientY - rect.top);
-  }
-
-  const pontoPixel = { x: pontoPixelX, y: pontoPixelY };
-
-  // Calcula coordenadas geográficas normalizadas
-  let lat: number;
-  let lng: number;
-
-  const latlngSource = latLngParam || (e as any)?.latlng;
-  if (latlngSource && typeof latlngSource.lat === 'number') {
-    lat = latlngSource.lat;
-    lng = latlngSource.lng ?? (latlngSource as any).lon ?? 0;
-  } else {
-    const latlng = map.containerPointToLatLng(L.point(pontoPixel.x, pontoPixel.y));
-    lat = latlng.lat;
-    lng = latlng.lng;
-  }
+  // Coordenadas geográficas normalizadas: do evento/parâmetro ou convertidas do pixel
+  const explicitas = latLngDe(e, latLngParam);
+  const latlng = explicitas ?? map.containerPointToLatLng(L.point(pontoPixel.x, pontoPixel.y));
+  const lat = latlng.lat;
+  const lng = latlng.lng;
 
   // Lista de camadas ativas (visíveis)
   const camadasAtivas = ctx.controller.layerManager
@@ -141,8 +117,9 @@ export function tratarCliqueMarcador(
 
   let safeCoords = coords;
   if (!safeCoords && safeElemento) {
-    const rawLat = safeElemento.lat ?? (safeElemento as any).latitude ?? 0;
-    const rawLon = safeElemento.lon ?? safeElemento.lng ?? (safeElemento as any).longitude ?? 0;
+    const el = safeElemento as ElementoComCoordenadas;
+    const rawLat = el.lat ?? el.latitude ?? 0;
+    const rawLon = el.lon ?? el.lng ?? el.longitude ?? 0;
     safeCoords = { lat: Number(rawLat), lon: Number(rawLon) };
   }
   if (!safeCoords) {
@@ -168,7 +145,7 @@ export function tratarCliqueMarcador(
       const parsedId = (pId !== undefined && pId !== null && !isNaN(Number(pId)) && String(pId).trim() !== '')
         ? Number(pId)
         : pId;
-      customMarkerClickHandler(parsedId as any, isVizinho);
+      customMarkerClickHandler(parsedId as number, isVizinho);
     } catch (err) {
       console.error('Erro no callback de clique de marcador:', err);
     }
@@ -212,7 +189,7 @@ export function tratarCliqueSegmento(
   ctx.controller.canvasInteracao.ctx.selectedPontoIds = [];
   ctx.controller.canvasInteracao.ctx.selectedVizinhoPontoIds = [];
   ctx.controller.canvasInteracao.ctx.lastSelectedPontoId = null;
-  (ctx.controller.context as any).selectedPontoIds = [];
+  gravarPontosSelecionados(ctx.controller, []);
   ctx.controller.atualizarDestaqueMarcadores();
 
   ctx.controller.selectSegmento(segmentoId);

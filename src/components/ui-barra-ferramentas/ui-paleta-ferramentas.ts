@@ -16,10 +16,9 @@ import {
   type MenuHandle
 } from './ferramentas-comum';
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
+import { PressaoLonga } from './paleta-pressao-longa';
+import { atalhoBloqueadoPeloContexto, resolverAtalho } from './paleta-atalhos';
 
-const TEMPO_PRESSAO_LONGA_MS = 380;
-const DISTANCIA_CANCELA_PRESSAO_PX = 8;
-const TEMPO_LIMPA_SUPRESSAO_MS = 50;
 const TAMANHO_ICONE: Record<string, number> = { sm: 16, md: 18, lg: 22 };
 
 /**
@@ -51,10 +50,7 @@ export class UIPaletaFerramentas extends SafeHTMLElement {
   private _pendente = '';
   private visiveis = new Map<string, string>(); // id do grupo → id do filho exibido
   private menu: MenuHandle | null = null;
-  private timerPressao: number | undefined;
-  private timerSupressao: number | undefined;
-  private inicioPressao: { x: number; y: number } | null = null;
-  private suprimirClique = false;
+  private pressao = new PressaoLonga();
   private listeners = new ListenerBag();
 
   constructor() {
@@ -87,9 +83,7 @@ export class UIPaletaFerramentas extends SafeHTMLElement {
   }
 
   disconnectedCallback() {
-    this.cancelarPressao();
-    window.clearTimeout(this.timerSupressao);
-    this.suprimirClique = false;
+    this.pressao.destruir();
     this.fecharMenu();
     this.listeners.cleanup();
   }
@@ -394,11 +388,7 @@ export class UIPaletaFerramentas extends SafeHTMLElement {
   }
 
   private handleClick = (e: Event) => {
-    if (this.suprimirClique) {
-      this.suprimirClique = false;
-      window.clearTimeout(this.timerSupressao);
-      return;
-    }
+    if (this.pressao.consumirSupressao()) return;
     const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('.ui-ferr-btn');
     const item = btn?.dataset.id ? acharItem(this._ferramentas, btn.dataset.id) : undefined;
     if (!btn || !item) return;
@@ -413,49 +403,21 @@ export class UIPaletaFerramentas extends SafeHTMLElement {
     if (pe.pointerType === 'mouse' && pe.button !== 0) return;
     const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('.ui-ferr-btn--grupo');
     if (!btn || btn.disabled) return;
-
-    this.cancelarPressao();
-    window.clearTimeout(this.timerSupressao);
-    this.inicioPressao = { x: pe.clientX ?? 0, y: pe.clientY ?? 0 };
-    this.timerPressao = window.setTimeout(() => {
-      this.suprimirClique = true;
-      this.abrirFlyout(btn, false);
-    }, TEMPO_PRESSAO_LONGA_MS);
+    this.pressao.iniciar(pe.clientX ?? 0, pe.clientY ?? 0, () => this.abrirFlyout(btn, false));
   };
 
-  /** Arrastar/rolar com o dedo cancela o clique longo. */
   private handlePointerMove = (e: Event) => {
-    if (this.timerPressao === undefined || !this.inicioPressao) return;
     const pe = e as PointerEvent;
-    const dx = (pe.clientX ?? 0) - this.inicioPressao.x;
-    const dy = (pe.clientY ?? 0) - this.inicioPressao.y;
-    if (Math.hypot(dx, dy) > DISTANCIA_CANCELA_PRESSAO_PX) this.cancelarPressao();
+    this.pressao.mover(pe.clientX ?? 0, pe.clientY ?? 0);
   };
 
-  /** Fim do gesto: cancela o timer e, se o flyout abriu, descarta a supressão logo após o `click` residual. */
-  private handlePointerFim = () => {
-    this.cancelarPressao();
-    if (this.suprimirClique) {
-      window.clearTimeout(this.timerSupressao);
-      this.timerSupressao = window.setTimeout(() => {
-        this.suprimirClique = false;
-      }, TEMPO_LIMPA_SUPRESSAO_MS);
-    }
-  };
-
-  private cancelarPressao = () => {
-    if (this.timerPressao !== undefined) {
-      window.clearTimeout(this.timerPressao);
-      this.timerPressao = undefined;
-    }
-    this.inicioPressao = null;
-  };
+  private handlePointerFim = () => this.pressao.fim();
 
   private handleContextMenu = (e: Event) => {
     const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('.ui-ferr-btn--grupo');
     if (!btn) return;
     e.preventDefault();
-    this.cancelarPressao();
+    this.pressao.cancelar();
     this.abrirFlyout(btn, false);
   };
 
@@ -477,33 +439,13 @@ export class UIPaletaFerramentas extends SafeHTMLElement {
 
   private handleAtalho = (e: KeyboardEvent) => {
     if (!this.hasAttribute('atalhos') || e.ctrlKey || e.metaKey || e.altKey || e.defaultPrevented) return;
-    const caminho = e.composedPath() as HTMLElement[];
-    const origem = caminho[0];
-    if (origem && (/^(INPUT|TEXTAREA|SELECT)$/.test(origem.tagName) || origem.isContentEditable)) return;
-    // não sequestra teclas em campos customizados nem dentro de diálogos modais
-    const bloqueia = caminho.some(el => {
-      const role = el.getAttribute?.('role');
-      return (
-        el.getAttribute?.('aria-modal') === 'true' ||
-        role === 'textbox' || role === 'searchbox' || role === 'combobox' || role === 'spinbutton'
-      );
-    });
-    if (bloqueia) return;
+    if (atalhoBloqueadoPeloContexto(e.composedPath())) return;
 
-    const tecla = (e.key || '').toUpperCase();
-    if (tecla.length !== 1) return;
-
-    const candidatos = this.todasFerramentas().filter(f => !f.disabled && f.atalho?.toUpperCase() === tecla);
-    if (!candidatos.length) return;
+    const resolvido = resolverAtalho(e.key, this.todasFerramentas(), this._ferramentas, this._ativo);
+    if (!resolvido) return;
 
     e.preventDefault();
-    let alvo = candidatos[0];
-    if (candidatos.length > 1) {
-      const i = candidatos.findIndex(c => c.id === this._ativo);
-      alvo = candidatos[(i + 1) % candidatos.length];
-    }
-    const pai = this._ferramentas.find(g => g.filhos?.some(f => f.id === alvo.id));
-    this.acionar(alvo, pai);
+    this.acionar(resolvido.alvo, resolvido.pai);
   };
 
   private abrirFlyout(btn: HTMLButtonElement, focar: boolean) {

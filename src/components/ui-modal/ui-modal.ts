@@ -1,17 +1,8 @@
 import estilos from './ui-modal.css?inline';
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
+import { ListenerBag } from '../../core/listener-bag';
 import { empilharModal, desempilharModal, ehModalDoTopo } from './modal-pilha';
-
-const SELETORES_FOCAVEIS = 'a[href], button, input, textarea, select, details, [tabindex]:not([tabindex="-1"]), ui-campo-texto, ui-input, ui-botao, ui-botao-primario, ui-checkbox, ui-switch, ui-lista-flutuante, ui-radio, ui-select, ui-segmented';
-
-/** Elemento realmente focado, atravessando Shadow DOMs (ex.: o <button> interno de um <ui-botao>). */
-function elementoAtivoProfundo(): HTMLElement | null {
-  let ativo = document.activeElement as HTMLElement | null;
-  while (ativo?.shadowRoot?.activeElement) {
-    ativo = ativo.shadowRoot.activeElement as HTMLElement;
-  }
-  return ativo;
-}
+import { elementoAtivoProfundo, focarConteudoInicial, prenderTab } from './modal-foco';
 
 export class UIModal extends SafeHTMLElement {
   static get observedAttributes() {
@@ -32,8 +23,8 @@ export class UIModal extends SafeHTMLElement {
   private dialogElement: HTMLDivElement;
   private tituloElement: HTMLHeadingElement;
   private closeElement: HTMLButtonElement;
+  private ouvintes = new ListenerBag();
   private _elementoGatilho: HTMLElement | null = null;
-  private _focables: HTMLElement[] = [];
   private _tituloId: string;
   /** Estado já aplicado (pilha, inert, scroll, eventos); difere de `aberto` durante uma transição. */
   private _estaAberto = false;
@@ -68,27 +59,19 @@ export class UIModal extends SafeHTMLElement {
   }
 
   connectedCallback() {
-    this.backdropElement.addEventListener('click', this.handleBackdropClick);
-    this.closeElement.addEventListener('click', this.handleCloseClick);
-    window.addEventListener('keydown', this.handleKeyDown);
-
-    const slotElements = this.shadowRoot!.querySelectorAll('slot');
-    slotElements.forEach(slot => {
-      slot.addEventListener('slotchange', this.handleSlotChange);
+    this.ouvintes.cleanup();
+    this.ouvintes.add(this.backdropElement, 'click', this.handleBackdropClick);
+    this.ouvintes.add(this.closeElement, 'click', this.handleCloseClick);
+    this.ouvintes.add(window, 'keydown', this.handleKeyDown);
+    this.shadowRoot!.querySelectorAll('slot').forEach((slot) => {
+      this.ouvintes.add(slot, 'slotchange', this.handleSlotChange);
     });
 
     this.syncState();
   }
 
   disconnectedCallback() {
-    this.backdropElement.removeEventListener('click', this.handleBackdropClick);
-    this.closeElement.removeEventListener('click', this.handleCloseClick);
-    window.removeEventListener('keydown', this.handleKeyDown);
-
-    const slotElements = this.shadowRoot!.querySelectorAll('slot');
-    slotElements.forEach(slot => {
-      slot.removeEventListener('slotchange', this.handleSlotChange);
-    });
+    this.ouvintes.cleanup();
 
     if (this._estaAberto) {
       this._estaAberto = false;
@@ -141,7 +124,7 @@ export class UIModal extends SafeHTMLElement {
 
     // Aguarda o slot ser renderizado para localizar o conteúdo focável
     setTimeout(() => {
-      if (this._estaAberto) this.focarConteudoInicial();
+      if (this._estaAberto) focarConteudoInicial(this.shadowRoot!, this.dialogElement);
     }, 0);
   }
 
@@ -158,23 +141,6 @@ export class UIModal extends SafeHTMLElement {
     if (gatilho?.isConnected && focoPerdido) {
       gatilho.focus();
     }
-  }
-
-  /**
-   * Foco inicial: `[autofocus]`, senão o primeiro controle do conteúdo/rodapé.
-   * O botão "✕" não recebe o foco inicial, evitando fechar o modal com um Enter acidental;
-   * sem controles, o próprio diálogo é focado para que o leitor de tela anuncie o título.
-   */
-  private focarConteudoInicial() {
-    const conteudo = this.obterFocaveisDoConteudo();
-    const comAutofocus = conteudo.filter((el) => el.hasAttribute('autofocus'));
-
-    for (const candidato of [...comAutofocus, ...conteudo]) {
-      candidato.focus();
-      const ativo = document.activeElement;
-      if (ativo === candidato || candidato.contains(ativo)) return;
-    }
-    this.dialogElement.focus();
   }
 
   private syncState() {
@@ -233,31 +199,6 @@ export class UIModal extends SafeHTMLElement {
     this.fechar();
   };
 
-  private static ehFocavel(el: HTMLElement): boolean {
-    return !el.hasAttribute('disabled') && el.getAttribute('aria-hidden') !== 'true';
-  }
-
-  /** Focáveis do conteúdo projetado (corpo e rodapé), na ordem dos slots. */
-  private obterFocaveisDoConteudo(): HTMLElement[] {
-    const focaveis: HTMLElement[] = [];
-    this.shadowRoot!.querySelectorAll('slot').forEach(slot => {
-      slot.assignedElements({ flatten: true }).forEach(node => {
-        if (!(node instanceof HTMLElement)) return;
-        if (node.matches(SELETORES_FOCAVEIS)) focaveis.push(node);
-        focaveis.push(...Array.from(node.querySelectorAll<HTMLElement>(SELETORES_FOCAVEIS)));
-      });
-    });
-    return focaveis.filter(UIModal.ehFocavel);
-  }
-
-  private _atualizarFocables() {
-    // Focáveis do próprio Shadow DOM (botão fechar), exceto os ocultos
-    const shadowFocables = Array.from(this.shadowRoot!.querySelectorAll<HTMLElement>(SELETORES_FOCAVEIS))
-      .filter(el => window.getComputedStyle(el).display !== 'none' && UIModal.ehFocavel(el));
-
-    this._focables = [...shadowFocables, ...this.obterFocaveisDoConteudo()];
-  }
-
   private handleKeyDown = (e: KeyboardEvent) => {
     if (!this._estaAberto) return;
 
@@ -268,29 +209,7 @@ export class UIModal extends SafeHTMLElement {
       this.fechar();
       e.stopImmediatePropagation();
     } else if (e.key === 'Tab') {
-      this._atualizarFocables();
-      if (this._focables.length === 0) {
-        e.preventDefault();
-        return;
-      }
-
-      const firstFocable = this._focables[0];
-      const lastFocable = this._focables[this._focables.length - 1];
-
-      // Pegar elemento ativo considerando Light e Shadow DOM
-      const activeEl = (this.getRootNode() as Document | ShadowRoot).activeElement;
-
-      if (e.shiftKey) {
-        if (activeEl === firstFocable || !this.contains(activeEl as Node) && !this.shadowRoot?.contains(activeEl as Node)) {
-          e.preventDefault();
-          lastFocable.focus();
-        }
-      } else {
-        if (activeEl === lastFocable || !this.contains(activeEl as Node) && !this.shadowRoot?.contains(activeEl as Node)) {
-          e.preventDefault();
-          firstFocable.focus();
-        }
-      }
+      prenderTab(e, this, this.shadowRoot!);
     }
   };
 }

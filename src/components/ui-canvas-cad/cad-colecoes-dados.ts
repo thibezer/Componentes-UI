@@ -89,7 +89,7 @@ export class GerenciadorColecoesDados {
   ): void {
     const safePontos = pontos || [];
     if (camadaId === 'vertices') {
-      this._pontos = safePontos as any[];
+      this._pontos = safePontos as unknown as Ponto[];
     }
     this.contexto.obterController().plotarPontos(safePontos, camadaId, onClique);
   }
@@ -110,7 +110,7 @@ export class GerenciadorColecoesDados {
   ): void {
     const safePontos = pontos || [];
     if (camadaId === 'polilinha' || camadaId === 'perimetro') {
-      this._pontos = safePontos as any[];
+      this._pontos = safePontos as unknown as Ponto[];
       this._segmentos = [];
     }
     const resolvedChave = chaveGrupo ?? this.contexto.obterChaveGrupo();

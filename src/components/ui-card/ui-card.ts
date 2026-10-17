@@ -1,6 +1,9 @@
 import estilos from './ui-card.css?inline';
 import { ListenerBag } from '../../core/listener-bag';
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
+import { escolherOpcao, escolherOpcaoOpcional } from '../../core/opcoes';
+
+const ELEVACOES = ['plano', 'elevado', 'destaque'] as const;
 
 export class UICard extends SafeHTMLElement {
   static get observedAttributes() {
@@ -96,8 +99,8 @@ export class UICard extends SafeHTMLElement {
   }
 
   private syncState() {
-    const elevacao = this.getAttribute('elevacao') || this.getAttribute('elevation') || 'plano';
-    const variante = this.getAttribute('variante') || this.getAttribute('variant');
+    const elevacao = escolherOpcao(this.getAttribute('elevacao') || this.getAttribute('elevation'), ELEVACOES, 'plano');
+    const variante = escolherOpcaoOpcional(this.getAttribute('variante') || this.getAttribute('variant'), ELEVACOES);
     const isClicavel = this.clicavel;
     const isCompacto = this.hasAttribute('compacto') || this.hasAttribute('compact');
     const isDisabled = this.disabled;
@@ -110,10 +113,15 @@ export class UICard extends SafeHTMLElement {
 
     if (isClicavel) {
       this.cardElement.classList.add('ui-card--clicavel');
-      this.cardElement.setAttribute('tabindex', '0');
+      // um card clicável é um botão: precisa de papel para ser anunciado e de tabindex só quando habilitado
+      this.cardElement.setAttribute('role', 'button');
+      this.cardElement.setAttribute('tabindex', isDisabled ? '-1' : '0');
     } else {
+      this.cardElement.removeAttribute('role');
       this.cardElement.removeAttribute('tabindex');
     }
+    if (isDisabled) this.cardElement.setAttribute('aria-disabled', 'true');
+    else this.cardElement.removeAttribute('aria-disabled');
 
     if (isCompacto) {
       this.cardElement.classList.add('ui-card--compacto');
@@ -153,7 +161,9 @@ export class UICard extends SafeHTMLElement {
   private handleClick = (e?: Event) => {
     if (this.disabled) return;
     if (e && e.target && e.target instanceof HTMLElement) {
-      if (e.target.closest('button, a, input, select, textarea, ui-botao, ui-switch, ui-checkbox, ui-radio, [role="button"]')) {
+      // controles internos têm o próprio clique; o `role=button` do card em si não conta como controle interno
+      const interno = e.target.closest('button, a, input, select, textarea, ui-botao, ui-switch, ui-checkbox, ui-radio, [role="button"]');
+      if (interno && interno !== this.cardElement) {
         return;
       }
     }

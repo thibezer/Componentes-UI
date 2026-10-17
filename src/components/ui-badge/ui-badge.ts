@@ -1,6 +1,10 @@
 import estilos from './ui-badge.css?inline';
 import { ListenerBag } from '../../core/listener-bag';
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
+import { escolherOpcao } from '../../core/opcoes';
+
+const VARIANTES = ['neutro', 'primaria', 'sucesso', 'erro', 'alerta', 'info'] as const;
+const ESTILOS = ['suave', 'solido', 'contornado'] as const;
 
 export class UIBadge extends SafeHTMLElement {
   static get observedAttributes() {
@@ -44,7 +48,7 @@ export class UIBadge extends SafeHTMLElement {
     this.listeners.add(this.closeElement, 'keydown', (e: KeyboardEvent) => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
-        this.handleRemove(e as any);
+        this.handleRemove(e);
       }
     });
     this.syncState();
@@ -72,8 +76,8 @@ export class UIBadge extends SafeHTMLElement {
   }
 
   private syncState() {
-    const variante = this.getAttribute('variante') || this.getAttribute('variant') || 'neutro';
-    const estilo = this.getAttribute('estilo') || 'suave';
+    const variante = escolherOpcao(this.getAttribute('variante') || this.getAttribute('variant'), VARIANTES, 'neutro');
+    const estilo = escolherOpcao(this.getAttribute('estilo'), ESTILOS, 'suave');
     const labelText = this.getAttribute('label');
     const isRemovivel = this.removivel;
 
@@ -93,13 +97,33 @@ export class UIBadge extends SafeHTMLElement {
     // Botão de fechar/remover
     if (isRemovivel) {
       this.closeElement.style.display = 'inline-flex';
+      // o nome identifica o item removido; desabilitado sai da ordem de Tab
+      const alvo = labelText || this.getAttribute('value') || this.textContent?.trim() || '';
+      this.closeElement.setAttribute('aria-label', alvo ? `Remover ${alvo}` : 'Remover');
+      if (this.disabled) {
+        this.closeElement.setAttribute('tabindex', '-1');
+        this.closeElement.setAttribute('aria-disabled', 'true');
+      } else {
+        this.closeElement.setAttribute('tabindex', '0');
+        this.closeElement.removeAttribute('aria-disabled');
+      }
     } else {
       this.closeElement.style.display = 'none';
     }
   }
 
-  private handleRemove = (e: MouseEvent) => {
+  get disabled(): boolean {
+    return this.hasAttribute('disabled');
+  }
+
+  set disabled(val: boolean) {
+    if (val) this.setAttribute('disabled', '');
+    else this.removeAttribute('disabled');
+  }
+
+  private handleRemove = (e: Event) => {
     e.stopPropagation();
+    if (this.disabled) return;
     this.dispatchEvent(
       new CustomEvent('ui-remove', {
         detail: {

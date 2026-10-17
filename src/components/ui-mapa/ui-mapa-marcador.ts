@@ -1,72 +1,60 @@
 import type L from 'leaflet';
-import { obterLeafletSincrono } from '../../core/leaflet-loader';
-import { UIMapa } from './ui-mapa';
 import { parseCoordenada } from '../../gerencigeo-canvas/utils';
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
+import { obterLeaflet } from './mapa-leaflet';
+import { COR_MARCADOR_PADRAO, corSegura } from './mapa-atributos';
+import { criarIconeMarcador } from './mapa-icones';
+import { VinculoMapaPai } from './mapa-vinculo-pai';
+import type { FormatoMarcador } from './tipos';
 
+/**
+ * Marcador dentro de um `<ui-mapa>`.
+ *
+ * @attr {number} lat - Latitude (inválida: o marcador não é criado).
+ * @attr {number} lng - Longitude.
+ * @attr {string} titulo - Texto do popup e nome acessível do marcador (aria-label e title).
+ * @attr {string} cor - Cor do ícone (hex, rgb/hsl ou nome; outro valor usa a cor padrão).
+ * @attr {'pin'|'circle'} formato - Forma do ícone (padrão `pin`).
+ */
 export class UIMapaMarcador extends SafeHTMLElement {
   static get observedAttributes() {
     return ['lat', 'lng', 'titulo', 'cor', 'formato'];
   }
-  
+
   private marker: L.Marker | null = null;
-  private _initTimer: any = null;
-  private _retryCount: number = 0;
-  private _parentMap: HTMLElement | null = null;
-  
+  private vinculo = new VinculoMapaPai(this, {
+    rotulo: 'ui-mapa-marcador',
+    aoMapa: (mapa) => this.criarMarcador(mapa),
+    aoPerderMapa: () => this.removerMarcador()
+  });
+
   connectedCallback() {
-    this._parentMap = this.closest('ui-mapa');
-    if (this._parentMap) {
-      this._parentMap.addEventListener('ui-mapa-pronto', this.handleMapReady);
-    }
-    // Aguarda o próximo ciclo para garantir que o `<ui-mapa>` pai já foi inicializado
-    this._initTimer = setTimeout(() => this.initMarker(), 0);
+    this.vinculo.conectar();
   }
 
   disconnectedCallback() {
-    if (this._initTimer) {
-      clearTimeout(this._initTimer);
-      this._initTimer = null;
-    }
-    if (this._parentMap) {
-      this._parentMap.removeEventListener('ui-mapa-pronto', this.handleMapReady);
-      this._parentMap = null;
-    }
-    if (this.marker) {
-      this.marker.remove();
-      this.marker = null;
+    this.vinculo.desconectar();
+    this.removerMarcador();
+  }
+
+  attributeChangedCallback(name: string, oldVal: string | null, newVal: string | null) {
+    if (oldVal === newVal || !this.marker) return;
+    if (name === 'lat' || name === 'lng') {
+      const coord = parseCoordenada(this.getAttribute('lat'), this.getAttribute('lng'));
+      if (coord) this.marker.setLatLng([coord.lat, coord.lon]);
+    } else if (name === 'titulo') {
+      this.marker.unbindPopup();
+      if (newVal) this.marker.bindPopup(this.createPopupContent(newVal));
+      this.aplicarNomeAcessivel();
+    } else if (name === 'cor' || name === 'formato') {
+      const L = obterLeaflet();
+      if (L) this.marker.setIcon(this.createIcon(L));
     }
   }
 
-  private handleMapReady = () => {
-    if (this.marker) {
-      this.marker.remove();
-      this.marker = null;
-    }
-    this.initMarker();
-  };
-
-  attributeChangedCallback(name: string, oldVal: string, newVal: string) {
-    if (oldVal !== newVal && this.marker) {
-      if (name === 'lat' || name === 'lng') {
-        const coord = parseCoordenada(this.getAttribute('lat'), this.getAttribute('lng'));
-        if (coord) {
-          this.marker.setLatLng([coord.lat, coord.lon]);
-        }
-      }
-      if (name === 'titulo') {
-        this.marker.unbindPopup();
-        if (newVal) {
-          this.marker.bindPopup(this.createPopupContent(newVal));
-        }
-      }
-      if (name === 'cor' || name === 'formato') {
-        const L = obterLeafletSincrono() || (window as any).L;
-        if (L) {
-          this.marker.setIcon(this.createIcon(L));
-        }
-      }
-    }
+  private removerMarcador(): void {
+    this.marker?.remove();
+    this.marker = null;
   }
 
   private createPopupContent(titulo: string): HTMLElement {
@@ -76,73 +64,38 @@ export class UIMapaMarcador extends SafeHTMLElement {
     return container;
   }
 
-  private createIcon(L: any): any {
-    const cor = this.getAttribute('cor') || '#00f5a0';
-    const formato = this.getAttribute('formato') || 'pin';
-
-    if (formato === 'circle') {
-      const html = `<div style="width:14px; height:14px; background-color:${cor}; border-radius:50%; border:2px solid #ffffff; box-shadow:0 1px 4px rgba(0,0,0,0.6);"></div>`;
-      return L.divIcon({
-        className: 'ui-mapa-div-marker',
-        html,
-        iconSize: [14, 14],
-        iconAnchor: [7, 7]
-      });
-    }
-
-    const html = `
-      <svg width="24" height="32" viewBox="0 0 24 32" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.45));">
-        <path d="M12 0C5.372 0 0 5.372 0 12C0 21 12 32 12 32C12 32 24 21 24 12C24 5.372 18.628 0 12 0Z" fill="${cor}"/>
-        <circle cx="12" cy="11" r="4.5" fill="#ffffff"/>
-      </svg>
-    `;
-    return L.divIcon({
-      className: 'ui-mapa-svg-pin',
-      html,
-      iconSize: [24, 32],
-      iconAnchor: [12, 32],
-      popupAnchor: [0, -30]
-    });
+  private createIcon(L: NonNullable<ReturnType<typeof obterLeaflet>>): L.DivIcon {
+    const formato: FormatoMarcador = this.getAttribute('formato') === 'circle' ? 'circle' : 'pin';
+    return criarIconeMarcador(L, corSegura(this.getAttribute('cor'), COR_MARCADOR_PADRAO), formato);
   }
-  
-  private initMarker() {
-    const parentMapElement = (this._parentMap || this.closest('ui-mapa')) as UIMapa;
-    if (!parentMapElement) {
-      console.warn('<ui-mapa-marcador> deve estar dentro de um elemento <ui-mapa>');
-      return;
+
+  /** O ícone é um `div`: o nome acessível vai em `aria-label` (o Leaflet já põe `role=button` e `tabindex=0`). */
+  private aplicarNomeAcessivel(): void {
+    const icone = this.marker?.getElement();
+    if (!icone) return;
+    const titulo = this.getAttribute('titulo');
+    if (titulo) {
+      icone.setAttribute('aria-label', titulo);
+      icone.setAttribute('title', titulo);
+    } else {
+      icone.removeAttribute('aria-label');
+      icone.removeAttribute('title');
     }
-    
-    const map = parentMapElement.getMap();
-    if (!map) {
-      const MAX_RETRIES = 30;
-      if (this._retryCount >= MAX_RETRIES) {
-        console.warn('<ui-mapa-marcador> Tempo limite esgotado aguardando inicialização do mapa pai.');
-        return;
-      }
-      this._retryCount++;
-      // Se o mapa ainda não estiver pronto, tenta novamente em breve
-      this._initTimer = setTimeout(() => this.initMarker(), 50);
-      return;
-    }
-    
-    this._retryCount = 0;
-    
+  }
+
+  private criarMarcador(mapa: L.Map): void {
+    this.removerMarcador();
     const coord = parseCoordenada(this.getAttribute('lat'), this.getAttribute('lng'));
     if (!coord) return;
-
-    const titulo = this.getAttribute('titulo');
-    const L = obterLeafletSincrono() || (window as any).L;
+    const L = obterLeaflet();
     if (!L) return;
 
-    this.marker = L.marker([coord.lat, coord.lon], {
-      icon: this.createIcon(L)
-    });
-    if (this.marker) {
-      if (titulo) {
-        this.marker.bindPopup(this.createPopupContent(titulo));
-      }
-      this.marker.addTo(map);
-    }
+    const titulo = this.getAttribute('titulo');
+    const marcador = L.marker([coord.lat, coord.lon], { icon: this.createIcon(L), keyboard: true, title: titulo || undefined });
+    if (titulo) marcador.bindPopup(this.createPopupContent(titulo));
+    marcador.addTo(mapa);
+    this.marker = marcador;
+    this.aplicarNomeAcessivel();
   }
 }
 

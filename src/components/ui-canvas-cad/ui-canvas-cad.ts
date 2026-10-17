@@ -17,6 +17,11 @@ import { GerenciadorColecoesDados } from './cad-colecoes-dados';
 import { obterTemplateCanvasCAD } from './cad-template';
 import { sincronizarAtributoCAD } from './cad-atributos-sync';
 import { inicializarCAD } from './cad-inicializador';
+import { nomearBotoesDaBarra, marcarSnap, conectarAnuncios } from './cad-acessibilidade';
+import type { EventoMapaCad, LatLngEvento } from './tipos';
+import type { PontoPixel } from './cad-evento-coordenadas';
+import { liberarContainerLeaflet } from './cad-leaflet-adaptador';
+import { lerPontosSelecionados, gravarPontosSelecionados } from './cad-selecao-pontos';
 import { GerenciadorFeicoes, OpcoesCamadaFeicoes, OpcoesLote, LoteFeicoes, ResultadoLote, ResultadoFeicoes, ResultadoEdicao, ResultadoFerramenta } from './cad-feicoes';
 import { BarraFerramentas, interpretarFerramentas } from './cad-ferramentas-barra';
 import type { EstiloFeicao } from '../../gerencigeo-canvas/feature_types';
@@ -40,6 +45,7 @@ export class UICanvasCAD extends SafeHTMLElement {
   private feicoes: GerenciadorFeicoes;
   private barraFerramentas: BarraFerramentas;
   private hoverListeners = new ListenerBag();
+  private desligarAnuncios: (() => void) | null = null;
   private layerItemListeners = new ListenerBag();
   private initTimeout?: number;
   private estilosExternos: EstilosExternosShadow;
@@ -95,7 +101,7 @@ export class UICanvasCAD extends SafeHTMLElement {
       obterMapa: () => this.controller.getMap(),
       regra: regraVersoes,
       aoFerramenta: (f) => { this.barraFerramentas.marcar(f); },
-      aoSnapMudar: (ligado) => { this.shadow.getElementById('btn-toggle-snap')?.classList.toggle('active', ligado); },
+      aoSnapMudar: (ligado) => { marcarSnap(this.shadow, ligado); },
       emitir: (evento, detalhe, cancelavel) => {
         const ev = new CustomEvent(evento, { detail: detalhe, bubbles: true, composed: true, cancelable: !!cancelavel });
         this.dispatchEvent(ev);
@@ -120,7 +126,8 @@ export class UICanvasCAD extends SafeHTMLElement {
       selecionarFeicoesNaCaixa: (caixa: { x1: number; y1: number; x2: number; y2: number }, modo: 'window' | 'crossing', aditivo: boolean) =>
         this.feicoes.selecionarNaCaixa(caixa, modo, aditivo)
     });
-    this.shadow.getElementById('btn-toggle-snap')?.classList.add('active');
+    nomearBotoesDaBarra(this.shadow);
+    marcarSnap(this.shadow, true);
   }
 
   connectedCallback() {
@@ -139,6 +146,8 @@ export class UICanvasCAD extends SafeHTMLElement {
     if (this.mapContainer) this.hoverListeners.add(this.mapContainer, 'mousemove', (e: MouseEvent) => this.feicoes.aoMoverMouse(e));
     this.barraFerramentas.montar(interpretarFerramentas(this.getAttribute('ferramentas')));
     this.broadcastConfig.conectar();
+    this.desligarAnuncios?.();
+    this.desligarAnuncios = conectarAnuncios(this, this.shadow);
     this.estilosExternos.aplicar();
     this.initTimeout = window.setTimeout(() => { this.initTimeout = undefined; this.inicializarAgora(); }, 0);
   }
@@ -156,19 +165,15 @@ export class UICanvasCAD extends SafeHTMLElement {
     this.feicoes.desconectarTeclado();
     this.feicoes.destruir();
     this.hoverListeners.cleanup();
+    this.desligarAnuncios?.();
+    this.desligarAnuncios = null;
     this.broadcastConfig.desconectar();
     this.limparDestaque();
     this.toolbarPainel.limpar();
     this.layerItemListeners.cleanup();
     this.controller.destroy();
 
-    if (this.mapContainer && (this.mapContainer as any)._leaflet_id) {
-      try {
-        delete (this.mapContainer as any)._leaflet_id;
-      } catch {
-        (this.mapContainer as any)._leaflet_id = undefined;
-      }
-    }
+    liberarContainerLeaflet(this.mapContainer);
   }
 
   disconnectedCallback() { this.destroy(); }
@@ -263,7 +268,7 @@ export class UICanvasCAD extends SafeHTMLElement {
     };
   }
 
-  public tratarCliqueLivreCanvas(e: MouseEvent | any, latLng?: any, pt?: any): void {
+  public tratarCliqueLivreCanvas(e: MouseEvent | EventoMapaCad, latLng?: LatLngEvento, pt?: PontoPixel): void {
     const agora = Date.now();
     if (agora - this.lastCanvasClickTime < 50) return;
     this.lastCanvasClickTime = agora;
@@ -359,12 +364,11 @@ export class UICanvasCAD extends SafeHTMLElement {
   public selectPonto(id: string | number, zoomLevel?: number): void { this.controller.selectPonto(id, zoomLevel); }
   public selecionarPonto(id: string | number, zoomLevel?: number): void { this.controller.selectPonto(id, zoomLevel); }
   public get pontosSelecionados(): (string | number)[] {
-    return (this.controller.context as any).selectedPontoIds || this.controller.canvasInteracao.ctx.selectedPontoIds || [];
+    return lerPontosSelecionados(this.controller);
   }
   public set pontosSelecionados(ids: (string | number)[]) {
     const safeIds = Array.isArray(ids) ? ids : [];
-    this.controller.canvasInteracao.ctx.selectedPontoIds = safeIds as any;
-    (this.controller.context as any).selectedPontoIds = [...safeIds];
+    gravarPontosSelecionados(this.controller, safeIds);
     this.controller.atualizarDestaqueMarcadores();
   }
   public atualizarDestaqueMarcadores(): void { this.controller.atualizarDestaqueMarcadores(); }

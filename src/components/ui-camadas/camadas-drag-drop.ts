@@ -1,38 +1,39 @@
 /* ====================================================
-   UI Camadas - Drag & Drop e Edição Inline
-   Reordenação de Camadas / Feições e Renomeação Rápida
+   UI Camadas - Arrastar e soltar
+   Responsabilidade única: ligar os eventos de arraste (mouse/HTML5 e toque/ponteiro) às regras puras de
+   camadas-drop-ops.ts, emitir os eventos de reordenação e pedir a nova renderização.
+   O renomear inline mora em camadas-renomear.ts.
    ==================================================== */
 
 import { CamadaItem, FeicaoItem } from './tipos';
-import { buscarPorAtributo } from './camadas-utils';
+import { vincularRenomearInline } from './camadas-renomear';
+import {
+  zonaDeDropCamada,
+  moverCamada,
+  reordenarCamada,
+  moverFeicaoParaCamada,
+  reordenarFeicao
+} from './camadas-drop-ops';
 
 export interface UICamadasHost {
   camadas: CamadaItem[];
   feicoes: FeicaoItem[];
   editingLayerId: string | null;
   editingFeatureId: string | null;
+  /** Camadas expandidas; ao aninhar uma camada, o pai se expande. */
+  expandedLayers?: Set<string>;
   solicitarRenderizacao(): void;
   dispararEvento(nome: string, detalhe: unknown): void;
   salvarLembrancaEstado?(): void;
 }
 
-/** Evita ciclos hierárquicos ao mover uma camada para dentro de outra */
-function ehDescendente(
-  camadas: CamadaItem[],
-  possivelDescendenteId: string,
-  ancestralId: string
-): boolean {
-  let atual = camadas.find((c) => c.id === possivelDescendenteId);
-  while (atual && atual.parentId) {
-    if (atual.parentId === ancestralId) return true;
-    atual = camadas.find((c) => c.id === atual?.parentId);
-  }
-  return false;
-}
+const CLASSES_DROP = ['dragging', 'drop-above', 'drop-below', 'drop-into'];
 
 export class CamadasDragDropManager {
   private host: UICamadasHost;
   private shadow: ShadowRoot;
+  /** Cancela um arraste por toque em andamento (remove os ouvintes de `window`). */
+  private cancelarToque: (() => void) | null = null;
 
   constructor(host: UICamadasHost, shadow: ShadowRoot) {
     this.host = host;
@@ -45,378 +46,214 @@ export class CamadasDragDropManager {
     this.bindTouchDragAndDrop();
   }
 
+  /** Solta o que ficou em `window` (arraste por toque interrompido pela desconexão do componente). */
+  public destruir(): void {
+    this.cancelarToque?.();
+    this.cancelarToque = null;
+  }
+
   public bindInlineRename(): void {
-    // 1. Edição inline do nome da camada
-    this.shadow.querySelectorAll('[data-layer-name-trigger]').forEach((nameElem) => {
-      nameElem.addEventListener('dblclick', (e) => {
-        e.stopPropagation();
-        const layerId = nameElem.getAttribute('data-layer-name-trigger');
-        if (!layerId) return;
+    vincularRenomearInline(this.host, this.shadow);
+  }
 
-        this.host.editingLayerId = layerId;
-        this.host.solicitarRenderizacao();
-
-        const input = buscarPorAtributo(
-          this.shadow,
-          'data-inline-layer-input',
-          layerId
-        ) as HTMLInputElement | null;
-        if (input) {
-          input.focus();
-          input.select();
-          let committed = false;
-
-          const finishEdit = (save: boolean) => {
-            if (committed) return;
-            committed = true;
-            this.host.editingLayerId = null;
-            if (save) {
-              const newName = input.value.trim();
-              const layer = this.host.camadas.find((l) => l.id === layerId);
-              if (newName && layer && layer.name !== newName) {
-                layer.name = newName;
-                this.host.salvarLembrancaEstado?.();
-                this.host.dispararEvento('ui-camada-renomeada', {
-                  camadaId: layerId,
-                  novoNome: newName,
-                  camada: layer
-                });
-              }
-            }
-            this.host.solicitarRenderizacao();
-          };
-
-          input.addEventListener('keydown', (ke) => {
-            if (ke.key === 'Enter') {
-              ke.preventDefault();
-              finishEdit(true);
-            } else if (ke.key === 'Escape') {
-              ke.preventDefault();
-              finishEdit(false);
-            }
-          });
-          input.addEventListener('blur', () => finishEdit(true));
-        }
-      });
-    });
-
-    // 2. Edição inline do nome da feição
-    this.shadow.querySelectorAll('[data-feat-name-trigger]').forEach((nameElem) => {
-      nameElem.addEventListener('dblclick', (e) => {
-        e.stopPropagation();
-        const featId = nameElem.getAttribute('data-feat-name-trigger');
-        if (!featId) return;
-
-        this.host.editingFeatureId = featId;
-        this.host.solicitarRenderizacao();
-
-        const input = buscarPorAtributo(
-          this.shadow,
-          'data-inline-feat-input',
-          featId
-        ) as HTMLInputElement | null;
-        if (input) {
-          input.focus();
-          input.select();
-          let committed = false;
-
-          const finishEdit = (save: boolean) => {
-            if (committed) return;
-            committed = true;
-            this.host.editingFeatureId = null;
-            if (save) {
-              const newName = input.value.trim();
-              const feat = this.host.feicoes.find((f) => f.id === featId);
-              if (newName && feat && feat.name !== newName) {
-                feat.name = newName;
-                this.host.dispararEvento('ui-feicao-renomeada', {
-                  feicaoId: featId,
-                  novoNome: newName,
-                  feicao: feat
-                });
-              }
-            }
-            this.host.solicitarRenderizacao();
-          };
-
-          input.addEventListener('keydown', (ke) => {
-            if (ke.key === 'Enter') {
-              ke.preventDefault();
-              finishEdit(true);
-            } else if (ke.key === 'Escape') {
-              ke.preventDefault();
-              finishEdit(false);
-            }
-          });
-          input.addEventListener('blur', () => finishEdit(true));
-        }
-      });
+  private limparClassesDeArraste(): void {
+    this.shadow.querySelectorAll('.ui-layer-row, .ui-feat-row, .ui-layer-group').forEach((el) => {
+      el.classList.remove(...CLASSES_DROP);
     });
   }
 
+  /** Depois de qualquer mudança na ordem/hierarquia de camadas. */
+  private aposReordenarCamadas(): void {
+    this.host.salvarLembrancaEstado?.();
+    this.host.dispararEvento('ui-camadas-reordenadas', { camadas: [...this.host.camadas] });
+    this.host.solicitarRenderizacao();
+  }
+
+  private emitirFeicaoMovida(r: { feicao: FeicaoItem; camadaOrigemId: string | undefined; camadaDestinoId: string | undefined }): void {
+    this.host.dispararEvento('ui-feicao-movida', {
+      feicaoId: r.feicao.id,
+      camadaOrigemId: r.camadaOrigemId,
+      camadaDestinoId: r.camadaDestinoId,
+      feicao: r.feicao
+    });
+  }
+
+  private arrasteBloqueado(alvo: HTMLElement): boolean {
+    return !!alvo.closest('input, button, select') || !!this.host.editingLayerId || !!this.host.editingFeatureId;
+  }
+
   public bindDragAndDrop(): void {
-    let draggedType: 'layer' | 'feature' | null = null;
-    let draggedLayerId: string | null = null;
-    let draggedFeatId: string | null = null;
-
-    const clearAllDragClasses = () => {
-      this.shadow
-        .querySelectorAll('.ui-layer-row, .ui-feat-row, .ui-layer-group')
-        .forEach((el) => {
-          el.classList.remove('dragging', 'drop-above', 'drop-below', 'drop-into');
-        });
-    };
+    let tipoArrastado: 'layer' | 'feature' | null = null;
+    let camadaArrastadaId: string | null = null;
+    let feicaoArrastadaId: string | null = null;
 
     // -------------------------------------------------------------
-    // 1. Drag & Drop de Camadas (Reordenação de Z-Index)
+    // 1. Drag & Drop de Camadas (Reordenação de Z-Index e aninhamento)
     // -------------------------------------------------------------
-    this.shadow.querySelectorAll('.ui-layer-row[draggable="true"]').forEach((layerRow) => {
-      const layerId = layerRow.getAttribute('data-layer-id');
-      if (!layerId) return;
+    this.shadow.querySelectorAll('.ui-layer-row[draggable="true"]').forEach((linha) => {
+      const camadaId = linha.getAttribute('data-layer-id');
+      if (!camadaId) return;
 
-      layerRow.addEventListener('dragstart', (e: Event) => {
+      linha.addEventListener('dragstart', (e: Event) => {
         const de = e as DragEvent;
-        const target = de.target as HTMLElement;
-        if (
-          target.closest('input, button, select') ||
-          this.host.editingLayerId ||
-          this.host.editingFeatureId
-        ) {
+        if (this.arrasteBloqueado(de.target as HTMLElement)) {
           de.preventDefault();
           return;
         }
-        draggedType = 'layer';
-        draggedLayerId = layerId;
+        tipoArrastado = 'layer';
+        camadaArrastadaId = camadaId;
         if (de.dataTransfer) {
-          de.dataTransfer.setData('text/plain', JSON.stringify({ type: 'layer', id: layerId }));
+          de.dataTransfer.setData('text/plain', JSON.stringify({ type: 'layer', id: camadaId }));
           de.dataTransfer.effectAllowed = 'move';
         }
-        layerRow.classList.add('dragging');
+        linha.classList.add('dragging');
       });
 
-      layerRow.addEventListener('dragover', (e: Event) => {
+      linha.addEventListener('dragover', (e: Event) => {
         const de = e as DragEvent;
         de.preventDefault();
         de.stopPropagation();
         if (de.dataTransfer) de.dataTransfer.dropEffect = 'move';
 
-        if (draggedType === 'layer') {
-          if (draggedLayerId === layerId) return;
-          const rect = layerRow.getBoundingClientRect();
-          const relY = (de.clientY - rect.top) / rect.height;
-          if (relY < 0.25) {
-            layerRow.classList.add('drop-above');
-            layerRow.classList.remove('drop-below', 'drop-into');
-          } else if (relY > 0.75) {
-            layerRow.classList.add('drop-below');
-            layerRow.classList.remove('drop-above', 'drop-into');
-          } else {
-            // Zona central: soltar para dentro como subcamada
-            layerRow.classList.add('drop-into');
-            layerRow.classList.remove('drop-above', 'drop-below');
-          }
-        } else if (draggedType === 'feature') {
-          layerRow.classList.add('drop-into');
+        if (tipoArrastado === 'layer') {
+          if (camadaArrastadaId === camadaId) return;
+          const rect = linha.getBoundingClientRect();
+          const zona = zonaDeDropCamada((de.clientY - rect.top) / rect.height);
+          linha.classList.toggle('drop-above', zona === 'acima');
+          linha.classList.toggle('drop-below', zona === 'abaixo');
+          // Zona central: soltar para dentro como subcamada
+          linha.classList.toggle('drop-into', zona === 'dentro');
+        } else if (tipoArrastado === 'feature') {
+          linha.classList.add('drop-into');
         }
       });
 
-      layerRow.addEventListener('dragleave', (e: Event) => {
+      linha.addEventListener('dragleave', (e: Event) => {
         // Passar sobre um elemento filho dispara dragleave no pai: só limpa ao sair de fato da linha
         const destino = (e as DragEvent).relatedTarget as Node | null;
-        if (destino && layerRow.contains(destino)) return;
-        layerRow.classList.remove('drop-above', 'drop-below', 'drop-into');
+        if (destino && linha.contains(destino)) return;
+        linha.classList.remove('drop-above', 'drop-below', 'drop-into');
       });
 
-      layerRow.addEventListener('drop', (e: Event) => {
+      linha.addEventListener('drop', (e: Event) => {
         const de = e as DragEvent;
         de.preventDefault();
         de.stopPropagation();
-        const dropAbove = layerRow.classList.contains('drop-above');
-        const dropInto = layerRow.classList.contains('drop-into');
-        clearAllDragClasses();
+        const zona = linha.classList.contains('drop-into') ? 'dentro' : linha.classList.contains('drop-above') ? 'acima' : 'abaixo';
+        this.limparClassesDeArraste();
 
-        if (draggedType === 'layer') {
-          if (!draggedLayerId || draggedLayerId === layerId) return;
-          const movedLayer = this.host.camadas.find((l) => l.id === draggedLayerId);
-          const targetLayer = this.host.camadas.find((l) => l.id === layerId);
-          if (!movedLayer || !targetLayer) return;
+        if (tipoArrastado === 'layer') {
+          if (!camadaArrastadaId || camadaArrastadaId === camadaId) return;
+          if (!this.host.camadas.some((l) => l.id === camadaArrastadaId) || !this.host.camadas.some((l) => l.id === camadaId)) return;
 
-          if (dropInto) {
-            // Soltar DENTRO como subcamada (evitando ciclos)
-            if (!ehDescendente(this.host.camadas, targetLayer.id, movedLayer.id)) {
-              movedLayer.parentId = targetLayer.id;
-              if ('expandedLayers' in this.host && (this.host as any).expandedLayers) {
-                (this.host as any).expandedLayers.add(targetLayer.id);
-              }
-              this.host.dispararEvento('ui-camada-mover-hierarquia', {
-                camadaId: movedLayer.id,
-                novoParentId: targetLayer.id,
-                camada: movedLayer
-              });
-            }
-          } else {
-            // Reordenação na árvore
-            const srcIdx = this.host.camadas.findIndex((l) => l.id === draggedLayerId);
-            if (srcIdx === -1) return;
-            this.host.camadas.splice(srcIdx, 1);
-            const tgtIdx = this.host.camadas.findIndex((l) => l.id === layerId);
-            if (tgtIdx === -1) {
-              this.host.camadas.push(movedLayer);
-            } else {
-              this.host.camadas.splice(dropAbove ? tgtIdx : tgtIdx + 1, 0, movedLayer);
-            }
-            movedLayer.parentId = targetLayer.parentId ?? null;
-          }
-
-          this.host.salvarLembrancaEstado?.();
-          this.host.dispararEvento('ui-camadas-reordenadas', {
-            camadas: [...this.host.camadas]
-          });
-          this.host.solicitarRenderizacao();
-        } else if (draggedType === 'feature') {
-          if (!draggedFeatId) return;
-          const feat = this.host.feicoes.find((f) => f.id === draggedFeatId);
-          const targetLayer = this.host.camadas.find((l) => l.id === layerId);
-          if (feat && targetLayer && feat.layerId !== layerId) {
-            const origemId = feat.layerId;
-            feat.layerId = layerId;
-            this.host.dispararEvento('ui-feicao-movida', {
-              feicaoId: feat.id,
-              camadaOrigemId: origemId,
-              camadaDestinoId: layerId,
-              feicao: feat
+          const resultado = moverCamada(this.host.camadas, camadaArrastadaId, camadaId, zona);
+          if (resultado?.tipo === 'hierarquia') {
+            this.host.expandedLayers?.add(resultado.novoParentId);
+            this.host.dispararEvento('ui-camada-mover-hierarquia', {
+              camadaId: resultado.camada.id,
+              novoParentId: resultado.novoParentId,
+              camada: resultado.camada
             });
+          }
+          this.aposReordenarCamadas();
+        } else if (tipoArrastado === 'feature') {
+          if (!feicaoArrastadaId) return;
+          const movida = moverFeicaoParaCamada(this.host.feicoes, this.host.camadas, feicaoArrastadaId, camadaId);
+          if (movida) {
+            this.emitirFeicaoMovida(movida);
             this.host.solicitarRenderizacao();
           }
         }
       });
 
-      layerRow.addEventListener('dragend', () => {
-        draggedType = null;
-        draggedLayerId = null;
-        draggedFeatId = null;
-        clearAllDragClasses();
+      linha.addEventListener('dragend', () => {
+        tipoArrastado = null;
+        camadaArrastadaId = null;
+        feicaoArrastadaId = null;
+        this.limparClassesDeArraste();
       });
     });
 
     // -------------------------------------------------------------
     // 2. Drag & Drop de Feições (Reordenação interna e entre camadas)
     // -------------------------------------------------------------
-    this.shadow.querySelectorAll('.ui-feat-row[draggable="true"]').forEach((featRow) => {
-      const featId = featRow.getAttribute('data-feat-row');
-      const featLayerId = featRow.getAttribute('data-feat-layer');
-      if (!featId) return;
+    this.shadow.querySelectorAll('.ui-feat-row[draggable="true"]').forEach((linha) => {
+      const feicaoId = linha.getAttribute('data-feat-row');
+      const camadaDaFeicaoId = linha.getAttribute('data-feat-layer');
+      if (!feicaoId) return;
 
-      featRow.addEventListener('dragstart', (e: Event) => {
+      linha.addEventListener('dragstart', (e: Event) => {
         const de = e as DragEvent;
-        const target = de.target as HTMLElement;
-        if (
-          target.closest('input, button, select') ||
-          this.host.editingLayerId ||
-          this.host.editingFeatureId
-        ) {
+        if (this.arrasteBloqueado(de.target as HTMLElement)) {
           de.preventDefault();
           return;
         }
         de.stopPropagation();
-        draggedType = 'feature';
-        draggedFeatId = featId;
-        draggedLayerId = featLayerId;
+        tipoArrastado = 'feature';
+        feicaoArrastadaId = feicaoId;
+        camadaArrastadaId = camadaDaFeicaoId;
         if (de.dataTransfer) {
-          de.dataTransfer.setData(
-            'text/plain',
-            JSON.stringify({ type: 'feature', id: featId, layerId: featLayerId })
-          );
+          de.dataTransfer.setData('text/plain', JSON.stringify({ type: 'feature', id: feicaoId, layerId: camadaDaFeicaoId }));
           de.dataTransfer.effectAllowed = 'move';
         }
-        featRow.classList.add('dragging');
+        linha.classList.add('dragging');
       });
 
-      featRow.addEventListener('dragover', (e: Event) => {
+      linha.addEventListener('dragover', (e: Event) => {
         const de = e as DragEvent;
-        if (draggedType !== 'feature' || draggedFeatId === featId) return;
+        if (tipoArrastado !== 'feature' || feicaoArrastadaId === feicaoId) return;
         de.preventDefault();
         de.stopPropagation();
         if (de.dataTransfer) de.dataTransfer.dropEffect = 'move';
 
-        const rect = featRow.getBoundingClientRect();
-        const isTop = de.clientY - rect.top < rect.height / 2;
-        featRow.classList.toggle('drop-above', isTop);
-        featRow.classList.toggle('drop-below', !isTop);
+        const rect = linha.getBoundingClientRect();
+        const acima = de.clientY - rect.top < rect.height / 2;
+        linha.classList.toggle('drop-above', acima);
+        linha.classList.toggle('drop-below', !acima);
       });
 
-      featRow.addEventListener('dragleave', (e: Event) => {
+      linha.addEventListener('dragleave', (e: Event) => {
         const destino = (e as DragEvent).relatedTarget as Node | null;
-        if (destino && featRow.contains(destino)) return;
-        featRow.classList.remove('drop-above', 'drop-below');
+        if (destino && linha.contains(destino)) return;
+        linha.classList.remove('drop-above', 'drop-below');
       });
 
-      featRow.addEventListener('drop', (e: Event) => {
+      linha.addEventListener('drop', (e: Event) => {
         const de = e as DragEvent;
-        if (draggedType !== 'feature' || !draggedFeatId || draggedFeatId === featId) return;
+        if (tipoArrastado !== 'feature' || !feicaoArrastadaId || feicaoArrastadaId === feicaoId) return;
         de.preventDefault();
         de.stopPropagation();
 
-        const dropAbove = featRow.classList.contains('drop-above');
-        clearAllDragClasses();
+        const acima = linha.classList.contains('drop-above');
+        this.limparClassesDeArraste();
 
-        const srcIdx = this.host.feicoes.findIndex((f) => f.id === draggedFeatId);
-        if (srcIdx === -1) return;
-
-        const targetFeat = this.host.feicoes.find((f) => f.id === featId);
-        if (!targetFeat) return;
-
-        const [movedFeat] = this.host.feicoes.splice(srcIdx, 1);
-        const originalLayerId = movedFeat.layerId;
-        const targetLayerId = targetFeat.layerId;
-        const layerChanged = originalLayerId !== targetLayerId;
-
-        if (layerChanged) {
-          movedFeat.layerId = targetLayerId;
-        }
-
-        const targetIdx = this.host.feicoes.findIndex((f) => f.id === featId);
-        if (targetIdx === -1) {
-          this.host.feicoes.push(movedFeat);
-        } else {
-          this.host.feicoes.splice(dropAbove ? targetIdx : targetIdx + 1, 0, movedFeat);
-        }
-
-        if (layerChanged) {
-          this.host.dispararEvento('ui-feicao-movida', {
-            feicaoId: movedFeat.id,
-            camadaOrigemId: originalLayerId,
-            camadaDestinoId: targetLayerId,
-            feicao: movedFeat
-          });
-        }
-
-        this.host.dispararEvento('ui-feicoes-reordenadas', {
-          feicoes: [...this.host.feicoes]
-        });
-
+        const resultado = reordenarFeicao(this.host.feicoes, feicaoArrastadaId, feicaoId, acima);
+        if (!resultado) return;
+        if (resultado.mudouDeCamada) this.emitirFeicaoMovida(resultado);
+        this.host.dispararEvento('ui-feicoes-reordenadas', { feicoes: [...this.host.feicoes] });
         this.host.solicitarRenderizacao();
       });
 
-      featRow.addEventListener('dragend', (e: Event) => {
+      linha.addEventListener('dragend', (e: Event) => {
         e.stopPropagation();
-        draggedType = null;
-        draggedFeatId = null;
-        draggedLayerId = null;
-        clearAllDragClasses();
+        tipoArrastado = null;
+        feicaoArrastadaId = null;
+        camadaArrastadaId = null;
+        this.limparClassesDeArraste();
       });
     });
   }
 
   /**
-   * Suporte a arraste por toque e ponteiro no handle (.ui-col-drag) para tablets e mobile
+   * Suporte a arraste por toque e ponteiro no handle (.ui-col-drag) para tablets e mobile.
+   * Os ouvintes de `window` existem só durante o gesto e são soltos em `destruir()`.
    */
   public bindTouchDragAndDrop(): void {
     this.shadow.querySelectorAll('.ui-layer-row .ui-col-drag').forEach((handle) => {
-      const layerRow = handle.closest('.ui-layer-row') as HTMLElement | null;
-      if (!layerRow) return;
-      const layerId = layerRow.getAttribute('data-layer-id');
-      if (!layerId) return;
+      const linhaOrigem = handle.closest('.ui-layer-row') as HTMLElement | null;
+      if (!linhaOrigem) return;
+      const camadaId = linhaOrigem.getAttribute('data-layer-id');
+      if (!camadaId) return;
 
       handle.addEventListener('pointerdown', (e: Event) => {
         const pe = e as PointerEvent;
@@ -424,71 +261,53 @@ export class CamadasDragDropManager {
         if (pe.pointerType === 'mouse' && pe.button !== 0) return;
         if (this.host.editingLayerId || this.host.editingFeatureId) return;
 
-        let activeTargetRow: HTMLElement | null = null;
-        let dropAbove = false;
-        const draggedLayerId = layerId;
+        this.cancelarToque?.();
+        let linhaAlvo: HTMLElement | null = null;
+        let acima = false;
 
-        const clearDragVisuals = () => {
-          this.shadow
-            .querySelectorAll('.ui-layer-row, .ui-feat-row, .ui-layer-group')
-            .forEach((el) => el.classList.remove('dragging', 'drop-above', 'drop-below'));
-        };
-
-        const onPointerMove = (me: PointerEvent) => {
+        const aoMover = (me: PointerEvent): void => {
           me.preventDefault();
-          layerRow.classList.add('dragging');
+          linhaOrigem.classList.add('dragging');
 
-          const elUnder = this.shadow.elementFromPoint(me.clientX, me.clientY) as HTMLElement | null;
-          const targetRow = elUnder ? (elUnder.closest('.ui-layer-row') as HTMLElement | null) : null;
+          const sob = this.shadow.elementFromPoint(me.clientX, me.clientY) as HTMLElement | null;
+          const alvo = sob ? (sob.closest('.ui-layer-row') as HTMLElement | null) : null;
 
-          if (activeTargetRow && activeTargetRow !== targetRow) {
-            activeTargetRow.classList.remove('drop-above', 'drop-below');
-          }
+          if (linhaAlvo && linhaAlvo !== alvo) linhaAlvo.classList.remove('drop-above', 'drop-below');
 
-          if (targetRow && targetRow !== layerRow) {
-            activeTargetRow = targetRow;
-            const rect = targetRow.getBoundingClientRect();
-            dropAbove = me.clientY - rect.top < rect.height / 2;
-            targetRow.classList.toggle('drop-above', dropAbove);
-            targetRow.classList.toggle('drop-below', !dropAbove);
+          if (alvo && alvo !== linhaOrigem) {
+            linhaAlvo = alvo;
+            const rect = alvo.getBoundingClientRect();
+            acima = me.clientY - rect.top < rect.height / 2;
+            alvo.classList.toggle('drop-above', acima);
+            alvo.classList.toggle('drop-below', !acima);
           } else {
-            activeTargetRow = null;
+            linhaAlvo = null;
           }
         };
 
-        const onPointerUp = () => {
-          window.removeEventListener('pointermove', onPointerMove);
-          window.removeEventListener('pointerup', onPointerUp);
-          window.removeEventListener('pointercancel', onPointerUp);
+        const encerrar = (): void => {
+          window.removeEventListener('pointermove', aoMover);
+          window.removeEventListener('pointerup', aoSoltar);
+          window.removeEventListener('pointercancel', aoSoltar);
+          this.cancelarToque = null;
+        };
 
-          if (activeTargetRow) {
-            const targetId = activeTargetRow.getAttribute('data-layer-id');
-            clearDragVisuals();
-            if (targetId && draggedLayerId && targetId !== draggedLayerId) {
-              const srcIdx = this.host.camadas.findIndex((l) => l.id === draggedLayerId);
-              if (srcIdx !== -1) {
-                const [movedLayer] = this.host.camadas.splice(srcIdx, 1);
-                const tgtIdx = this.host.camadas.findIndex((l) => l.id === targetId);
-                if (tgtIdx === -1) {
-                  this.host.camadas.push(movedLayer);
-                } else {
-                  this.host.camadas.splice(dropAbove ? tgtIdx : tgtIdx + 1, 0, movedLayer);
-                }
-                this.host.salvarLembrancaEstado?.();
-                this.host.dispararEvento('ui-camadas-reordenadas', {
-                  camadas: [...this.host.camadas]
-                });
-                this.host.solicitarRenderizacao();
-              }
-            }
-          } else {
-            clearDragVisuals();
+        const aoSoltar = (): void => {
+          encerrar();
+          const alvoId = linhaAlvo?.getAttribute('data-layer-id');
+          this.limparClassesDeArraste();
+          if (alvoId && reordenarCamada(this.host.camadas, camadaId, alvoId, acima)) {
+            this.aposReordenarCamadas();
           }
         };
 
-        window.addEventListener('pointermove', onPointerMove, { passive: false });
-        window.addEventListener('pointerup', onPointerUp);
-        window.addEventListener('pointercancel', onPointerUp);
+        this.cancelarToque = () => {
+          encerrar();
+          this.limparClassesDeArraste();
+        };
+        window.addEventListener('pointermove', aoMover, { passive: false });
+        window.addEventListener('pointerup', aoSoltar);
+        window.addEventListener('pointercancel', aoSoltar);
       });
     });
   }

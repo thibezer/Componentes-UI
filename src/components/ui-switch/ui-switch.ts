@@ -2,7 +2,8 @@ import estilos from './ui-switch.css?inline';
 import { ListenerBag } from '../../core/listener-bag';
 import { definirCustomElement } from '../../core/ssr-safe';
 import { FormAssociatedElement } from '../../core/form-associated-element';
-import { gerarIdUnico, obterRotuloExterno, cliqueVeioDeRotuloExterno } from '../../core/acessibilidade';
+import { gerarIdUnico, cliqueVeioDeRotuloExterno } from '../../core/acessibilidade';
+import { sincronizarRotuloControle } from '../../core/rotulo-controle';
 
 export class UISwitch extends FormAssociatedElement {
   static get observedAttributes() {
@@ -151,6 +152,11 @@ export class UISwitch extends FormAssociatedElement {
     this.internals.setValidity({});
   }
 
+  /** `focus()` no host leva o foco ao controle interno (necessário para o foco de validação do formulário). */
+  public override focus(options?: FocusOptions): void {
+    this.containerElement.focus(options);
+  }
+
   public alternar() {
     if (this.disabled) return;
     this.ativo = !this.ativo;
@@ -217,21 +223,13 @@ export class UISwitch extends FormAssociatedElement {
     }
 
     // Rótulo (visível via atributo `label` ou externo via aria-label / <label for> / <label> envolvente)
-    if (labelText) {
-      this.labelElement.textContent = labelText;
-      this.labelElement.style.display = 'inline';
-      this.containerElement.setAttribute('aria-labelledby', this.labelId);
-      this.containerElement.removeAttribute('aria-label');
-    } else {
-      this.labelElement.style.display = 'none';
-      this.containerElement.removeAttribute('aria-labelledby');
-      const rotuloExterno = obterRotuloExterno(this, this.internals);
-      if (rotuloExterno) {
-        this.containerElement.setAttribute('aria-label', rotuloExterno);
-      } else {
-        this.containerElement.removeAttribute('aria-label');
-      }
-    }
+    sincronizarRotuloControle({
+      host: this,
+      internals: this.internals,
+      controle: this.containerElement,
+      rotulo: this.labelElement,
+      texto: labelText
+    });
 
     if (isChecked) {
       this.internals.setFormValue(this.getAttribute('value') || 'on');
@@ -248,7 +246,7 @@ export class UISwitch extends FormAssociatedElement {
     this.syncState();
   }
 
-  public formStateRestoreCallback(state: any, _mode: 'restore' | 'autocomplete'): void {
+  public formStateRestoreCallback(state: unknown, _mode: 'restore' | 'autocomplete'): void {
     if (typeof state === 'string') {
       this.ativo = state === (this.getAttribute('value') || 'on');
     } else if (typeof state === 'boolean') {

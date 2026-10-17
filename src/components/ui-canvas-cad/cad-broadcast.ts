@@ -35,8 +35,11 @@ export class GerenciadorBroadcastConfig {
     }
   }
 
-  public processarMensagem(data: any): void {
-    if (!data || typeof data !== 'object') return;
+  public processarMensagem(entrada: unknown): void {
+    if (!entrada || typeof entrada !== 'object') return;
+    // payload vindo de outra aba: o formato é validado campo a campo abaixo
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const data = entrada as any;
 
     const tipo = data.tipo || 'ESTILOS_ALTERADOS';
     const config = data.configuracoes || data;
@@ -72,7 +75,7 @@ export class GerenciadorBroadcastConfig {
     // 3. Atualizar opacidades de outras camadas se fornecidas
     if (config.opacidades && typeof config.opacidades === 'object') {
       Object.entries(config.opacidades).forEach(([camadaId, opVal]) => {
-        const op = parseFloat(opVal as any);
+        const op = parseFloat(String(opVal));
         if (!isNaN(op)) {
           this.contexto.setLayerOpacity(camadaId, op);
         }

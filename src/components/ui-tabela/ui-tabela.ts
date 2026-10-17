@@ -12,6 +12,9 @@ import {
   ContextoOrquestradorRender
 } from './tabela-renderizador';
 import { sincronizarAtributosTabela, tratarMudancaAtributoTabela } from './tabela-atributos-sync';
+import { acaoDaTeclaLinha } from './tabela-teclado';
+import { renderizarErroTabela, anunciarResultadoFiltro, sincronizarAriaTabela, TEXTO_SEM_RESULTADOS_PADRAO } from './tabela-estados';
+import { RolagemLinhas } from './tabela-rolagem';
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 
 export type { DensidadeTabela, TabelaColuna, TabelaFetcher, UISortDetail, UIColumnResizeDetail, UIRowScrollOptions, UISelecaoRemovidaDetail, UIFetchErroDetail };
@@ -51,8 +54,14 @@ export class UITabela extends SafeHTMLElement {
   private _indiceAtivo: number | null = null;
   /** Altura real das linhas medida no DOM; null = usa a estimativa da densidade. */
   private _alturaLinhaMedida: number | null = null;
-  /** Cancela a correção pendente de uma rolagem suave anterior. */
-  private _cancelarCorrecaoRolagem: (() => void) | null = null;
+  private rolagem = new RolagemLinhas({
+    container: () => this._containerElement,
+    tbody: () => this._tbodyElement,
+    cabecalho: () => this._theadElement,
+    alturaLinha: () => this.getRowHeight(),
+    renderizarCorpo: () => this.renderBody(),
+    aoLinhaAtiva: (indice) => { this._indiceAtivo = indice; }
+  });
 
   private remotaController: TabelaRemotaController;
   private selecaoController: TabelaSelecaoController;
@@ -74,7 +83,7 @@ export class UITabela extends SafeHTMLElement {
       getDadosExibicao: () => this.dadosController.getDadosExibicao(),
       getDadosOriginais: () => this.dadosController.getDadosOriginais(),
       getChaveId: () => this.chaveId,
-      onRolarParaIndice: (indice, comportamento) => this.posicionarLinha(indice, comportamento),
+      onRolarParaIndice: (indice, comportamento) => this.rolagem.posicionar(indice, comportamento),
       onLinhaAtiva: (indice) => this.definirLinhaAtiva(indice)
     });
     // Estado de erro visível: acompanha os eventos do carregamento remoto
@@ -108,20 +117,7 @@ export class UITabela extends SafeHTMLElement {
   /** Nome acessível vem do host (`aria-label`); `aria-busy` acompanha o carregamento remoto. */
   private sincronizarAria() {
     if (!this._tableElement) return;
-    const rotulo = this.getAttribute('aria-label');
-    if (rotulo) this._tableElement.setAttribute('aria-label', rotulo);
-    else this._tableElement.removeAttribute('aria-label');
-    this._tableElement.setAttribute('aria-busy', String(this._carregando));
-    // Região rolável nomeada: leitores de tela anunciam o contêiner e o teclado alcança a rolagem
-    if (this._containerElement) {
-      if (rotulo) {
-        this._containerElement.setAttribute('role', 'region');
-        this._containerElement.setAttribute('aria-label', rotulo);
-      } else {
-        this._containerElement.removeAttribute('role');
-        this._containerElement.removeAttribute('aria-label');
-      }
-    }
+    sincronizarAriaTabela({ tabela: this._tableElement, container: this._containerElement }, this.getAttribute('aria-label'), this._carregando);
     this.atualizarTextosEstado();
   }
 
@@ -139,31 +135,21 @@ export class UITabela extends SafeHTMLElement {
   }
 
   private renderizarErro() {
-    const el = this._erroElement;
-    if (!el) return;
-    if (!this._erro) { el.style.display = 'none'; return; }
-    const msg = this.getAttribute('texto-erro') || 'Não foi possível carregar os dados.';
-    const mensagem = el.querySelector('.ui-tabela__erro-mensagem');
-    const detalhe = el.querySelector('.ui-tabela__erro-detalhe');
-    if (mensagem) mensagem.textContent = msg;
-    if (detalhe) detalhe.textContent = this._erro.erro || '';
-    // sem URL para repetir, a ação não faz sentido
-    const acao = el.querySelector<HTMLElement>('.ui-tabela__erro-acao');
-    if (acao) acao.style.display = this._src ? '' : 'none';
-    el.style.display = 'flex';
+    renderizarErroTabela(this._erroElement, this._erro, this.getAttribute('texto-erro'), !!this._src);
   }
 
   /** Anuncia ao leitor de tela o resultado do filtro (a região é limpa sem filtro ativo). */
   private anunciarResultado() {
-    if (!this._anuncioElement) return;
-    const n = this.dadosController.getDadosExibicao().length;
-    this._anuncioElement.textContent = this.dadosController.temFiltro()
-      ? (n === 0 ? this._textoSemResultados() : `${n} ${n === 1 ? 'registro encontrado' : 'registros encontrados'}`)
-      : '';
+    anunciarResultadoFiltro(
+      this._anuncioElement,
+      this.dadosController.getDadosExibicao().length,
+      this.dadosController.temFiltro(),
+      this._textoSemResultados()
+    );
   }
 
   private _textoSemResultados(): string {
-    return this.getAttribute('texto-sem-resultados') || 'Nenhum resultado para o filtro';
+    return this.getAttribute('texto-sem-resultados') || TEXTO_SEM_RESULTADOS_PADRAO;
   }
 
   private syncAttributes() { sincronizarAtributosTabela(this.obterContextoAtributos()); }
@@ -235,7 +221,7 @@ export class UITabela extends SafeHTMLElement {
       this._scrollHandler = null;
     }
     if (this._activeResizeCleanup) { this._activeResizeCleanup(); this._activeResizeCleanup = null; this._isResizing = false; }
-    this._cancelarCorrecaoRolagem?.();
+    this.rolagem.cancelar();
     this.remotaController.abortar();
     this._headerListeners.cleanup();
     this._corpoListeners.cleanup();
@@ -436,137 +422,14 @@ export class UITabela extends SafeHTMLElement {
     // Teclas dentro de controles da célula (input, botão) pertencem ao controle
     if (tr.parentElement !== this._tbodyElement || !tr.hasAttribute('data-index')) return;
 
-    const atual = Number(tr.getAttribute('data-index'));
     const ultimo = this.dadosController.getDadosExibicao().length - 1;
-    let destino: number;
-
-    switch (e.key) {
-      case 'ArrowDown': destino = Math.min(ultimo, atual + 1); break;
-      case 'ArrowUp': destino = Math.max(0, atual - 1); break;
-      case 'Home': destino = 0; break;
-      case 'End': destino = ultimo; break;
-      case 'PageDown': destino = Math.min(ultimo, atual + this.linhasPorPagina()); break;
-      case 'PageUp': destino = Math.max(0, atual - this.linhasPorPagina()); break;
-      case 'Enter':
-      case ' ':
-        e.preventDefault();
-        tr.click();
-        return;
-      default:
-        return;
-    }
+    const acao = acaoDaTeclaLinha(e.key, Number(tr.getAttribute('data-index')), ultimo, this.rolagem.linhasPorPagina());
+    if (!acao) return;
 
     e.preventDefault();
-    this.focarLinha(destino);
+    if (acao.tipo === 'ativar') tr.click();
+    else this.rolagem.focar(acao.indice);
   };
-
-  private linhasPorPagina(): number {
-    const visivel = (this._containerElement?.clientHeight ?? 0) - (this._theadElement?.offsetHeight ?? 0);
-    return Math.max(1, Math.floor(visivel / this.getRowHeight()));
-  }
-
-  /** Foca a linha, renderizando a janela virtual se necessário, e a mantém visível abaixo do cabeçalho fixo. */
-  private focarLinha(indice: number) {
-    const container = this._containerElement;
-    const tbody = this._tbodyElement;
-    if (!container || !tbody) return;
-
-    this._indiceAtivo = indice;
-    const seletor = `tr[data-index="${indice}"]`;
-    let tr = tbody.querySelector<HTMLElement>(seletor);
-    if (!tr) {
-      container.scrollTop = Math.max(0, indice * this.getRowHeight() - container.clientHeight / 2);
-      this.renderBody();
-      tr = tbody.querySelector<HTMLElement>(seletor);
-    }
-    if (!tr) return;
-
-    tr.focus({ preventScroll: true });
-    const delta = this.deslocamentoAteLinha(tr);
-    if (delta) container.scrollTop += delta;
-  }
-
-  /**
-   * Quanto o container precisa rolar para a linha ficar inteira na área útil: abaixo do cabeçalho
-   * fixo e acima da barra de rolagem horizontal. 0 = já visível. Linha maior que a área alinha pelo topo.
-   */
-  private deslocamentoAteLinha(tr: HTMLElement): number {
-    const container = this._containerElement!;
-    const caixa = container.getBoundingClientRect();
-    const linha = tr.getBoundingClientRect();
-    const topoUtil = caixa.top + container.clientTop + (this._theadElement?.offsetHeight ?? 0);
-    const baseUtil = caixa.top + container.clientTop + container.clientHeight;
-    if (linha.top < topoUtil) return linha.top - topoUtil;
-    if (linha.bottom > baseUtil) return Math.min(linha.bottom - baseUtil, linha.top - topoUtil);
-    return 0;
-  }
-
-  /** Rola só o container da tabela (nunca a página, ao contrário de `scrollIntoView`). */
-  private rolarContainer(topo: number, comportamento: 'smooth' | 'auto') {
-    const container = this._containerElement!;
-    if (comportamento === 'smooth' && typeof container.scrollTo === 'function') {
-      container.scrollTo({ top: topo, behavior: 'smooth' });
-    } else {
-      container.scrollTop = topo;
-    }
-  }
-
-  /**
-   * Posiciona a linha exibida `indice` na área visível.
-   * Fora da janela virtual, rola até a posição estimada, renderiza a janela e corrige pela posição
-   * real da linha. No modo suave a correção ocorre ao fim da animação (`scrollend`, com timeout de
-   * segurança para navegadores sem o evento ou quando não há rolagem a fazer).
-   */
-  private posicionarLinha(indice: number, comportamento: 'smooth' | 'auto'): boolean {
-    const container = this._containerElement;
-    const tbody = this._tbodyElement;
-    if (!container || !tbody) return false;
-
-    this._cancelarCorrecaoRolagem?.();
-    const buscarLinha = () => tbody.querySelector<HTMLElement>(`tr[data-index="${indice}"]`);
-    const corrigir = (modo: 'smooth' | 'auto') => {
-      const tr = buscarLinha();
-      if (!tr) return;
-      const delta = this.deslocamentoAteLinha(tr);
-      if (delta) this.rolarContainer(container.scrollTop + delta, modo);
-    };
-
-    if (buscarLinha()) {
-      corrigir(comportamento);
-      return true;
-    }
-
-    const saltar = () => {
-      container.scrollTop = Math.max(0, indice * this.getRowHeight());
-      this.renderBody();
-      corrigir('auto');
-      this.renderBody();
-    };
-    if (comportamento === 'auto') {
-      saltar();
-      return true;
-    }
-
-    this.rolarContainer(Math.max(0, indice * this.getRowHeight()), 'smooth');
-    let pendente = true;
-    const finalizar = () => {
-      if (!pendente) return;
-      this._cancelarCorrecaoRolagem?.();
-      this.renderBody();
-      // Animação interrompida ou não executada (aba oculta, outro scroll): garante a chegada
-      if (buscarLinha()) corrigir('smooth');
-      else saltar();
-    };
-    const timer = window.setTimeout(finalizar, 800);
-    container.addEventListener('scrollend', finalizar, { once: true });
-    this._cancelarCorrecaoRolagem = () => {
-      pendente = false;
-      window.clearTimeout(timer);
-      container.removeEventListener('scrollend', finalizar);
-      this._cancelarCorrecaoRolagem = null;
-    };
-    return true;
-  }
 
   private obterContextoRenderizador(): ContextoOrquestradorRender {
     return {

@@ -1,92 +1,60 @@
 import type L from 'leaflet';
-import { obterLeafletSincrono } from '../../core/leaflet-loader';
-import { UIMapa } from './ui-mapa';
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
+import { obterLeaflet } from './mapa-leaflet';
+import { COR_LINHA_PADRAO, ESPESSURA_PADRAO, corSegura, lerInteiroPositivo, lerPontos } from './mapa-atributos';
+import { VinculoMapaPai } from './mapa-vinculo-pai';
 
+/**
+ * Polilinha dentro de um `<ui-mapa>`.
+ *
+ * @attr {string} pontos - JSON `[[lat, lng], ...]`; pares inválidos são ignorados.
+ * @attr {string} cor - Cor do traço (hex, rgb/hsl ou nome; outro valor usa a cor padrão).
+ * @attr {number} espessura - Espessura em pixels (inteiro positivo; padrão 3).
+ */
 export class UIMapaLinha extends SafeHTMLElement {
   static get observedAttributes() {
     return ['pontos', 'cor', 'espessura'];
   }
-  
+
   private polyline: L.Polyline | null = null;
-  private _initTimer: any = null;
-  private _retryCount: number = 0;
+  private vinculo = new VinculoMapaPai(this, {
+    rotulo: 'ui-mapa-linha',
+    aoMapa: (mapa) => this.criarLinha(mapa),
+    aoPerderMapa: () => this.removerLinha()
+  });
 
   connectedCallback() {
-    this._initTimer = setTimeout(() => this.initLinha(), 0);
+    this.vinculo.conectar();
   }
 
   disconnectedCallback() {
-    if (this._initTimer) {
-      clearTimeout(this._initTimer);
-      this._initTimer = null;
-    }
-    if (this.polyline) {
-      this.polyline.remove();
-      this.polyline = null;
-    }
-  }
-  
-  attributeChangedCallback(name: string, oldVal: string, newVal: string) {
-    if (oldVal !== newVal && this.polyline) {
-      if (name === 'pontos') {
-        this.polyline.setLatLngs(this.getPontos());
-      } else if (name === 'cor' || name === 'espessura') {
-        this.polyline.setStyle({
-          color: this.getAttribute('cor') || '#3388ff',
-          weight: parseInt(this.getAttribute('espessura') || '3', 10)
-        });
-      }
-    }
-  }
-  
-  private getPontos(): L.LatLngExpression[] {
-    try {
-      const pontosStr = this.getAttribute('pontos');
-      if (pontosStr) {
-        // Espera um JSON string com array de coordenadas, ex: "[[lat, lng], [lat, lng]]"
-        return JSON.parse(pontosStr);
-      }
-    } catch(e) {
-      console.error('Formato inválido para atributo pontos no <ui-mapa-linha>. Deve ser um JSON array, ex: "[[lat, lng], ...]"', e);
-    }
-    return [];
+    this.vinculo.desconectar();
+    this.removerLinha();
   }
 
-  private initLinha() {
-    const parentMapElement = this.closest('ui-mapa') as UIMapa;
-    if (!parentMapElement) {
-      console.warn('<ui-mapa-linha> deve estar dentro de um elemento <ui-mapa>');
-      return;
-    }
-    
-    const map = parentMapElement.getMap();
-    if (!map) {
-      const MAX_RETRIES = 30;
-      if (this._retryCount >= MAX_RETRIES) {
-        console.warn('<ui-mapa-linha> Tempo limite esgotado aguardando inicialização do mapa pai.');
-        return;
-      }
-      this._retryCount++;
-      this._initTimer = setTimeout(() => this.initLinha(), 50);
-      return;
-    }
-    
-    this._retryCount = 0;
-    
-    const cor = this.getAttribute('cor') || '#3388ff';
-    const espessura = parseInt(this.getAttribute('espessura') || '3', 10);
-    const L = obterLeafletSincrono() || (window as any).L;
+  attributeChangedCallback(name: string, oldVal: string | null, newVal: string | null) {
+    if (oldVal === newVal || !this.polyline) return;
+    if (name === 'pontos') this.polyline.setLatLngs(lerPontos(this.getAttribute('pontos')));
+    else this.polyline.setStyle(this.estilo());
+  }
+
+  private estilo(): L.PathOptions {
+    return {
+      color: corSegura(this.getAttribute('cor'), COR_LINHA_PADRAO),
+      weight: lerInteiroPositivo(this.getAttribute('espessura'), ESPESSURA_PADRAO)
+    };
+  }
+
+  private removerLinha(): void {
+    this.polyline?.remove();
+    this.polyline = null;
+  }
+
+  private criarLinha(mapa: L.Map): void {
+    this.removerLinha();
+    const L = obterLeaflet();
     if (!L) return;
-
-    this.polyline = L.polyline(this.getPontos(), {
-      color: cor,
-      weight: espessura
-    });
-    
-    if (this.polyline) {
-      this.polyline.addTo(map);
-    }
+    this.polyline = L.polyline(lerPontos(this.getAttribute('pontos')), this.estilo()).addTo(mapa);
   }
 }
 

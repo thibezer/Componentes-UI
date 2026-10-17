@@ -1,6 +1,6 @@
 {
   "name": "@thibezer/ui-components-kit",
-  "version": "2.6.0",
+  "version": "2.7.0",
   "description": "Web Components nativos (W3C Custom Elements + Shadow DOM) para interfaces densas de GIS, CAD e formulários, sem dependência de framework.",
   "keywords": [
     "web-components",
@@ -143,7 +143,14 @@
     "preview": "vite preview",
     "prepublishOnly": "npm test && npm run build && npm run test:tipos",
     "manifesto": "cem analyze --config custom-elements-manifest.config.mjs",
-    "test:tipos": "tsc -p tests/tipos/tsconfig.json"
+    "test:tipos": "tsc -p tests/tipos/tsconfig.json",
+    "check:types": "tsc --noEmit",
+    "check:framework-types": "tsc -p tests/tipos/tsconfig.json --noEmit",
+    "check:layers": "node scripts/check-layers.mjs",
+    "test:run": "vitest run",
+    "test:ssr": "vitest run tests/ssr-safety.test.ts",
+    "gate": "npm run check:layers && npm run check:types && npm run test:run",
+    "gate:full": "npm run gate && npm run build && npm run check:framework-types"
   },
   "peerDependencies": {
     "leaflet": "^1.9.4"
