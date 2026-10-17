@@ -1,3 +1,4 @@
+import type { ScaleMode } from '../../gerencigeo-canvas/types';
 import type { UICanvasCAD } from './ui-canvas-cad';
 import type { GerenciadorBroadcastConfig } from './cad-broadcast';
 import type { GerenciGeoMapaController } from '../../gerencigeo-canvas/mapa_controller';
@@ -8,7 +9,7 @@ export interface ContextoAtributosCAD {
   mapContainer: HTMLDivElement | null;
   broadcastConfig: GerenciadorBroadcastConfig;
   setLayerOpacity: (id: string, op: number) => void;
-  setLayerScaleMode: (id: string, mode: any) => void;
+  setLayerScaleMode: (id: string, mode: ScaleMode) => void;
   atualizarZonaProjecao: (zona: number) => void;
 }
 

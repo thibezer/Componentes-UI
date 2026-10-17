@@ -3,6 +3,9 @@ import type { GerenciGeoMapaController } from '../../gerencigeo-canvas/mapa_cont
 import type { GerenciadorToolbarPainel } from './cad-toolbar-painel';
 import type { GerenciadorColecoesDados } from './cad-colecoes-dados';
 import { tratarCliqueMarcador, tratarCliqueSegmento, type ContextoEventosCanvas } from './cad-eventos-canvas';
+import type L from 'leaflet';
+import type { EventoMapaCad, LatLngEvento } from './tipos';
+import type { PontoPixel } from './cad-evento-coordenadas';
 import { liberarContainerLeaflet } from './cad-leaflet-adaptador';
 
 export interface ContextoInicializadorCAD {
@@ -15,7 +18,7 @@ export interface ContextoInicializadorCAD {
   obterContextoEventos: () => ContextoEventosCanvas;
   renderLayersUI: () => void;
   invalidateSizeSafely: () => void;
-  tratarCliqueLivreCanvas: (e: any, latlng?: any, containerPoint?: any) => void;
+  tratarCliqueLivreCanvas: (e: MouseEvent | EventoMapaCad, latlng?: LatLngEvento, containerPoint?: PontoPixel) => void;
   dispararAcaoPopup: (acaoId: string, elementoId: string | number, elemento?: any) => void;
 }
 
@@ -86,7 +89,7 @@ export function inicializarCAD(ctx: ContextoInicializadorCAD): void {
 
   const map = ctx.controller.getMap();
   if (map) {
-    map.on('click', (e: any) => {
+    map.on('click', (e: L.LeafletMouseEvent) => {
       if (ctx.toolbarPainel.houveMovimentoMouse) return;
       ctx.tratarCliqueLivreCanvas(e, e.latlng, e.containerPoint);
     });
