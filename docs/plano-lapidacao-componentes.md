@@ -62,10 +62,10 @@ Rodei `scripts/check-layers.mjs` e cruzei o `AGENTS.md` com o código real (nada
 
 Cada fase é independente e termina com `npx tsc --noEmit`, `npx vitest run` e `npm run build` verdes, em commit próprio.
 
-### Fase 0 — Rede de segurança (pré-requisito, Camadas A/B do AGENTS)
+### Fase 0 — Rede de segurança (pré-requisito, Camadas A/B do AGENTS) — concluída em 2026-10-17
 - [x] Testes de caracterização do `ui-canvas-cad`. **Correção do diagnóstico:** o componente já tinha ~7.000 linhas de teste em `tests/` (a contagem inicial só olhou `src/`). A Fase 0 virou preencher lacunas: `tests/cad-eventos-canvas.test.ts` (24 testes) e `tests/cad-atributos-tamanho.test.ts` (13 testes).
-- [ ] Lacunas restantes: `cad-colecoes-dados`, `cad-inicializador`, `cad-toolbar-painel`, `cad-template` (só cobertos indiretamente).
-- [ ] Mesmo para o fluxo de `ui-mapa` e `ui-tooltip` (Camada B: ciclo de vida, atributos, eventos, limpeza no `disconnectedCallback`).
+- [x] Lacunas fechadas: `tests/cad-colecoes-toolbar.test.ts` (21: coleções, toolbar e template) e `tests/cad-inicializador.test.ts` (11).
+- [x] `ui-mapa` e `ui-tooltip` (Camada B: ciclo de vida, atributos, eventos, limpeza no `disconnectedCallback`) foram cobertos nas Fases 3 e 4, escrevendo os testes antes das correções.
 - Critério: comportamento atual congelado; refatoração subsequente não pode quebrá-los.
 
 ### Fase 0.5 — Higiene arquitetural (gate verde)
@@ -160,7 +160,7 @@ Pré-requisito das demais fases: sem isso `npm run gate` falha.
 |---|---|---|---|---|---|
 | 0.5 | `ui-bus` sem importar `ui-alerta` (A1) | feito | 2026-10-17 | | provedor de toast registrável; +5 testes |
 | 0.5 | `check-layers` ampliado (A2), A3 (parcial) e A7 | feito | 2026-10-17 | | +8 testes; pendente A9 (ordem do `gate`) |
-| 0 | Testes de caracterização `ui-canvas-cad` (eventos, atributos, redimensionamento) | feito (parcial) | 2026-10-17 | | 37 testes novos; faltam colecoes-dados, inicializador, toolbar-painel. Nota: contagem de testes do diagnóstico ignorava `tests/` |
+| 0 | Testes de caracterização `ui-canvas-cad` (eventos, atributos, redimensionamento, coleções, toolbar, template, inicializador) | feito | 2026-10-17 | | +69 testes. Nota: a contagem de testes do diagnóstico ignorava `tests/` |
 | 1 | Tipos Leaflet, adaptador e acessor de seleção | feito | 2026-10-17 | | `tipos.ts`, `cad-leaflet-adaptador.ts`, `cad-selecao-pontos.ts`; `any` no diretório: 23+ → 10 (os restantes são payloads de domínio opacos: `elemento`/`segmento`, `Record<string, any>` de atualização parcial e o payload do BroadcastChannel) |
 | 1 | Divisão de `cad-feicoes.ts` | feito | 2026-10-17 | | 1.179 → ~625 linhas, 10 módulos; fachada justificada |
 | 1 | Extração de `cad-evento-coordenadas`, regressão/robustez e ARIA | feito | 2026-10-17 | | +5, +23 testes; suíte: 75 arquivos, 1085 testes; `any` em produção: 301 → 275 |
@@ -169,6 +169,33 @@ Pré-requisito das demais fases: sem isso `npm run gate` falha.
 | 4 | `ui-tooltip` e `ui-modal`: SRP, ListenerBag, sem `any`, 5 defeitos (clique engolido, foco escapando no Shift+Tab) | feito | 2026-10-17 | | +39 testes; suíte 82 arquivos / 1220 testes; `any` em produção: 264 → 255 |
 | 5 | Componentes simples e de formulário: 9 defeitos (inclui queda por `linhas` enorme e classes injetáveis), núcleo `opcoes`/`rotulo-controle` | feito | 2026-10-17 | | +9 arquivos de regressão; suíte 90 arquivos / 1355 testes |
 | 6 | Divisões: ribbon 552→490, paleta 548→490, tabela 635→498, com 7 módulos novos | feito | 2026-10-17 | | +40 testes; suíte 92 arquivos / 1395 testes |
+
+## Resumo final (2026-10-17)
+
+Todas as fases (0, 0.5, 1, 2, 3, 4, 5 e 6) foram concluídas. Verificação final: `npm run gate:full` verde (camadas, `tsc`, 94 arquivos / 1.427 testes, build e tipos React/Vue).
+
+| Métrica | Antes | Depois |
+|---|---|---|
+| Violações de camada (`check:layers`) | 1 (`ui-bus` → `ui-alerta`), e o script cobria só L0–L2 | 0, com regras L0–L5 e testes do próprio script |
+| Testes | 861 (v2.1.0) / 1.0xx no início da revisão | 1.427 em 94 arquivos |
+| `any` em código de produção | 301 | 251 (zero em canvas-cad parcial, mapa, tooltip, modal e camadas) |
+| `cad-feicoes.ts` | 1.179 linhas | 625 (fachada) + 10 módulos |
+| `ui-camadas.ts` / renderer / drag-drop | 878 / 510 / 495 | 647 / 370 / 314 |
+| `ui-ribbon` / `ui-paleta-ferramentas` / `ui-tabela` | 552 / 548 / 635 | 490 / 490 / 498 |
+
+**Defeitos reais corrigidos (cada um com teste que falhava antes), por gravidade:**
+1. Segurança: `cor` do `<ui-mapa-marcador>` era interpolada em HTML (injeção de atributo); classes CSS arbitrárias por atributo em `ui-texto`, `ui-stat`, `ui-badge` e `ui-card`.
+2. Queda: `<ui-skeleton linhas="100000000">` esgotava a memória do processo.
+3. Acessibilidade: foco escapando do `<ui-modal>` no Shift+Tab; avatar, stat, card clicável e skeleton sem papel/nome corretos; `focus()` inoperante em checkbox/switch; checkbox e radio sem rótulo externo.
+4. Vazamentos/estado preso: `user-select: none` ficava no `body` ao desconectar `<ui-camadas>` durante um arraste; ouvintes de `window` pendentes; grupos de `<ui-radio>` com membros fantasmas após remoção do formulário.
+5. Comportamento: o tooltip engolia o clique do gatilho; `disabled` ignorado em tooltip aberto e em `ui-badge`; `lat`/`lng`/`zoom` inválidos lançavam no mapa; mapa órfão ao desconectar cedo.
+
+**Decisões que ficam com você**
+- Mudanças de contrato registradas no `CHANGELOG.md` (seção "Não lançado"): `UIBus.notificar()` vira no-op sem `ui-alerta` carregado; `alt` da imagem do `ui-avatar` agora é vazio (o nome fica no host).
+- `avaliador-expressao.ts` e `cores-utils.ts` continuam fisicamente fora de `gerencigeo-canvas/` (tratados como L2 pelo `check-layers`); mover muda caminhos públicos.
+- Cascas ainda acima de ~400 linhas, com exceção justificada: `cad-feicoes.ts`, `ui-camadas.ts`, `ui-ribbon.ts`, `ui-paleta-ferramentas.ts`, `ui-tabela.ts` (acessores públicos e delegadores).
+- Restam 251 `any` em produção fora destes componentes (backlog para uma próxima rodada).
+- Nada foi enviado ao remoto e nenhuma versão foi publicada; a versão do `package.json` continua 2.6.0.
 
 ## Riscos e cuidados
 
