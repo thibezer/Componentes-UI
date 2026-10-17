@@ -14,7 +14,7 @@
   background: transparent;
   color: var(--ui-cor-texto, #e1e1e6);
   font-family: var(--ui-fonte-base, 'Inter', sans-serif);
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1;
   cursor: pointer;
   user-select: none;
@@ -32,7 +32,8 @@
 }
 
 .ui-ferr-btn:focus-visible {
-  outline: none;
+  outline: 2px solid transparent; /* visível em modo de alto contraste (forced-colors) */
+  outline-offset: 2px;
   box-shadow: 0 0 0 2px var(--ui-cor-fundo, #0b0b0d), 0 0 0 4px var(--ui-cor-primaria, #00E08A);
 }
 
@@ -44,6 +45,21 @@
 .ui-ferr-btn--ativo {
   background: color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 18%, transparent);
   border-color: color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 55%, transparent);
+}
+
+/* Mantém o estado "ativo" visível em hover/pressionado (maior especificidade que o hover genérico) */
+.ui-ferr-btn.ui-ferr-btn--ativo:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 28%, transparent);
+}
+
+.ui-ferr-btn.ui-ferr-btn--ativo:active:not(:disabled) {
+  background: color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 36%, transparent);
+}
+
+/* Desabilitado + ativo: sem destaque de cor (evita parecer clicável) */
+.ui-ferr-btn.ui-ferr-btn--ativo:disabled {
+  background: var(--ui-cor-hover-menu, rgba(255, 255, 255, 0.08));
+  border-color: var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
 }
 
 .ui-ferr-btn__icone {
@@ -77,6 +93,8 @@
   flex-direction: column;
   gap: 1px;
   min-width: 180px;
+  max-height: calc(100vh - 8px);
+  overflow-y: auto;
   padding: 4px;
   box-sizing: border-box;
   background: var(--ui-cor-fundo-menu, #18181c);
@@ -88,6 +106,7 @@
 }
 
 .ui-ferr-menu__item {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -100,14 +119,18 @@
   background: transparent;
   color: inherit;
   font: inherit;
-  font-size: 12px;
-  text-align: left;
+  font-size: 0.75rem;
+  text-align: start;
   cursor: pointer;
 }
 
-.ui-ferr-menu__item:hover:not(:disabled),
+.ui-ferr-menu__item:hover:not(:disabled) {
+  background: var(--ui-cor-hover-menu, rgba(255, 255, 255, 0.08));
+}
+
 .ui-ferr-menu__item:focus-visible {
-  outline: none;
+  outline: 2px solid var(--ui-cor-primaria, #00E08A);
+  outline-offset: -2px;
   background: var(--ui-cor-hover-menu, rgba(255, 255, 255, 0.08));
 }
 
@@ -116,8 +139,23 @@
   cursor: not-allowed;
 }
 
-.ui-ferr-menu__item--ativo {
+.ui-ferr-menu__item--ativo,
+.ui-ferr-menu__item[aria-checked="true"] {
   color: var(--ui-cor-primaria, #00E08A);
+  font-weight: 600;
+}
+
+/* Marcador não dependente de cor: check no fim do item */
+.ui-ferr-menu__item--ativo::after,
+.ui-ferr-menu__item[aria-checked="true"]::after {
+  content: '';
+  flex-shrink: 0;
+  width: 4px;
+  height: 8px;
+  margin-inline-start: 4px;
+  border: solid currentColor;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg) translateY(-1px);
 }
 
 .ui-ferr-menu__icone {
@@ -131,12 +169,64 @@
 }
 
 .ui-ferr-menu__atalho {
+  margin-inline-start: 16px;
   color: var(--ui-cor-texto-secundario, #888899);
-  font-size: 11px;
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .ui-ferr-menu__sep {
   height: 1px;
   margin: 3px 2px;
   background: var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
+}
+
+/* ==========================================
+   Alvos maiores em dispositivos de toque
+   ========================================== */
+@media (pointer: coarse) {
+  .ui-ferr-menu__item {
+    height: 36px;
+  }
+}
+
+/* ==========================================
+   Movimento reduzido
+   ========================================== */
+@media (prefers-reduced-motion: reduce) {
+  .ui-ferr-btn {
+    transition: none;
+  }
+}
+
+/* ==========================================
+   Alto contraste (forced-colors)
+   ========================================== */
+@media (forced-colors: active) {
+  .ui-ferr-btn:focus-visible,
+  .ui-ferr-menu__item:focus-visible {
+    outline: 2px solid Highlight;
+  }
+
+  .ui-ferr-btn--ativo {
+    background: Highlight;
+    color: HighlightText;
+    border-color: ButtonText;
+    forced-color-adjust: none;
+  }
+
+  .ui-ferr-btn:disabled,
+  .ui-ferr-menu__item:disabled {
+    opacity: 1;
+    color: GrayText;
+  }
+
+  .ui-ferr-menu {
+    border-color: CanvasText;
+  }
+
+  .ui-ferr-menu__item:hover:not(:disabled) {
+    background: Highlight;
+    color: HighlightText;
+  }
 }

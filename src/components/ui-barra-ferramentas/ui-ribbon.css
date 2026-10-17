@@ -14,17 +14,32 @@
   user-select: none;
 }
 
-/* ---------- Abas ---------- */
+/* ---------- Cabeçalho (abas + fixar/recolher) ---------- */
+.ui-ribbon__cabecalho {
+  display: flex;
+  align-items: stretch;
+  height: 30px;
+  box-sizing: border-box;
+  /* linha sob as abas; a aba ativa cobre este trecho para "fundir" com o painel */
+  box-shadow: inset 0 -1px 0 var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
+}
+
 .ui-ribbon__abas {
   display: flex;
+  flex: 1;
+  min-width: 0;
   align-items: flex-end;
   gap: 2px;
-  height: 30px;
   padding: 0 8px;
   box-sizing: border-box;
   overflow-x: auto;
   scrollbar-width: none;
-  border-bottom: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
+  /* sombras nas bordas indicam abas fora da área visível ("scrolling shadows") */
+  background:
+    linear-gradient(to right, var(--ui-cor-superficie, #141417) 20px, transparent) left top / 28px calc(100% - 1px) no-repeat local,
+    linear-gradient(to left, var(--ui-cor-superficie, #141417) 20px, transparent) right top / 28px calc(100% - 1px) no-repeat local,
+    linear-gradient(to right, rgba(0, 0, 0, 0.35), transparent) left top / 14px calc(100% - 1px) no-repeat scroll,
+    linear-gradient(to left, rgba(0, 0, 0, 0.35), transparent) right top / 14px calc(100% - 1px) no-repeat scroll;
 }
 
 .ui-ribbon__abas::-webkit-scrollbar {
@@ -35,38 +50,47 @@
   position: relative;
   flex-shrink: 0;
   height: 28px;
+  margin-bottom: 1px;
   padding: 0 14px;
   border: 0;
   border-radius: 6px 6px 0 0;
   background: transparent;
   color: var(--ui-cor-texto-secundario, #888899);
   font: inherit;
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
+  transition: background-color 0.12s ease, color 0.12s ease;
 }
 
 .ui-ribbon__aba:hover {
   color: var(--ui-cor-texto, #e1e1e6);
+  background: var(--ui-cor-hover-menu, rgba(255, 255, 255, 0.08));
 }
 
 .ui-ribbon__aba:focus-visible {
-  outline: none;
-  box-shadow: inset 0 0 0 2px var(--ui-cor-primaria, #00E08A);
+  outline: 2px solid var(--ui-cor-primaria, #00E08A);
+  outline-offset: -2px;
 }
 
-.ui-ribbon__aba--ativa {
+.ui-ribbon__aba--ativa,
+.ui-ribbon__aba--ativa:hover {
+  height: 30px;
+  margin-bottom: 0;
   color: var(--ui-cor-texto, #e1e1e6);
   background: var(--ui-cor-fundo-elevado, #1a1a1e);
+  box-shadow:
+    inset 1px 0 0 var(--ui-cor-borda, rgba(255, 255, 255, 0.12)),
+    inset -1px 0 0 var(--ui-cor-borda, rgba(255, 255, 255, 0.12)),
+    inset 0 1px 0 var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
 }
 
 .ui-ribbon__aba--ativa::after {
   content: '';
   position: absolute;
-  left: 8px;
-  right: 8px;
-  bottom: 0;
+  inset-inline: 8px;
+  bottom: 1px;
   height: 2px;
   border-radius: 2px 2px 0 0;
   background: var(--ui-cor-primaria, #00E08A);
@@ -76,16 +100,74 @@
   color: var(--ui-cor-primaria, #00E08A);
 }
 
+/* Faixa superior destaca a aba contextual (não depende só da cor do texto) */
+.ui-ribbon__aba--contextual::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 2px;
+  border-radius: 6px 6px 0 0;
+  background: var(--ui-cor-primaria, #00E08A);
+}
+
+/* Botão fixar / recolher a faixa */
+.ui-ribbon__fixar {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  width: 28px;
+  height: 24px;
+  margin-inline: 2px 6px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--ui-raio-sm, 4px);
+  background: transparent;
+  color: var(--ui-cor-texto-secundario, #888899);
+  cursor: pointer;
+}
+
+.ui-ribbon__fixar:hover {
+  color: var(--ui-cor-texto, #e1e1e6);
+  background: var(--ui-cor-hover-menu, rgba(255, 255, 255, 0.08));
+}
+
+.ui-ribbon__fixar:focus-visible {
+  outline: 2px solid var(--ui-cor-primaria, #00E08A);
+  outline-offset: -2px;
+}
+
+/* chevron: ^ (recolher) quando expandido, v (expandir) quando recolhido */
+.ui-ribbon__fixar::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border: solid currentColor;
+  border-width: 2px 0 0 2px;
+  transform: translateY(2px) rotate(45deg);
+}
+
+:host([recolhido]) .ui-ribbon__fixar::before {
+  transform: translateY(-2px) rotate(225deg);
+}
+
 /* ---------- Painel de grupos ---------- */
 .ui-ribbon__painel {
   background: var(--ui-cor-fundo-elevado, #1a1a1e);
   overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ui-cor-borda, rgba(255, 255, 255, 0.2)) transparent;
 }
 
 .ui-ribbon__grupos {
   display: flex;
   align-items: stretch;
-  min-height: 84px;
+  /* grupos não encolhem: o painel rola na horizontal quando não cabem */
+  width: max-content;
+  min-width: 100%;
+  min-height: 92px;
   padding: 4px 8px;
   box-sizing: border-box;
 }
@@ -95,11 +177,11 @@
   flex-direction: column;
   flex-shrink: 0;
   padding: 0 8px;
-  border-right: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
+  border-inline-end: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
 }
 
 .ui-ribbon__grupo:last-child {
-  border-right: 0;
+  border-inline-end: 0;
 }
 
 .ui-ribbon__grupo-itens {
@@ -110,9 +192,10 @@
 }
 
 .ui-ribbon__grupo-rotulo {
-  padding-top: 2px;
+  padding: 3px 0 1px;
   color: var(--ui-cor-texto-secundario, #888899);
-  font-size: 11px;
+  font-size: 0.6875rem;
+  line-height: 1.2;
   text-align: center;
   white-space: nowrap;
 }
@@ -121,7 +204,7 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 1px;
+  gap: 0;
 }
 
 .ui-ribbon__separador {
@@ -138,8 +221,17 @@
   gap: 3px;
 }
 
+/* Rótulo do botão grande pode quebrar em 2 linhas (padrão Office) */
+.ui-ferr-btn--grande .ui-ferr-btn__rotulo {
+  max-width: 72px;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
 .ui-ferr-btn--pequeno {
-  height: 22px;
+  height: 24px;
   padding: 0 6px;
   justify-content: flex-start;
 }
@@ -150,13 +242,19 @@
   justify-content: center;
 }
 
-/* ---------- Recolhido (duplo clique na aba) ---------- */
+/* Foco por dentro (não é cortado pelo overflow do painel nem coberto pelo botão vizinho) */
+.ui-ribbon__grupos .ui-ferr-btn:focus-visible {
+  outline: 2px solid var(--ui-cor-primaria, #00E08A);
+  outline-offset: -2px;
+  box-shadow: none;
+}
+
+/* ---------- Recolhido (duplo clique na aba / botão fixar) ---------- */
 :host([recolhido]) .ui-ribbon__painel {
   display: none;
   position: absolute;
   top: 100%;
-  left: 0;
-  right: 0;
+  inset-inline: 0;
   z-index: var(--ui-z-docked-bar, 600);
   border-bottom: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
   box-shadow: var(--ui-sombra-lg, 0 8px 24px rgba(0, 0, 0, 0.35));
@@ -172,9 +270,85 @@
 
 /* ---------- Compacto ---------- */
 :host([compacto]) .ui-ribbon__grupos {
-  min-height: 64px;
+  min-height: 0;
+  padding-block: 2px;
+}
+
+:host([compacto]) .ui-ribbon__grupo-rotulo {
+  display: none;
 }
 
 :host([compacto]) .ui-ferr-btn--grande {
   min-width: 44px;
+}
+
+/* ---------- Telas estreitas: botões pequenos só com ícone ---------- */
+@media (max-width: 720px) {
+  .ui-ferr-btn--pequeno:has(.ui-ferr-btn__icone) .ui-ferr-btn__rotulo {
+    display: none;
+  }
+
+  .ui-ferr-btn--pequeno:has(.ui-ferr-btn__icone) {
+    min-width: 28px;
+    justify-content: center;
+    padding: 0 4px;
+  }
+}
+
+/* ---------- Toque ---------- */
+@media (pointer: coarse) {
+  .ui-ribbon__cabecalho {
+    height: 38px;
+  }
+
+  .ui-ribbon__aba {
+    height: 36px;
+  }
+
+  .ui-ribbon__aba--ativa,
+  .ui-ribbon__aba--ativa:hover {
+    height: 38px;
+  }
+
+  .ui-ferr-btn--pequeno {
+    height: 32px;
+  }
+
+  .ui-ferr-btn--pequeno.ui-ferr-btn--so-icone {
+    width: 32px;
+  }
+
+  .ui-ribbon__fixar {
+    width: 36px;
+    height: 32px;
+  }
+}
+
+/* ---------- Movimento reduzido ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .ui-ribbon__aba {
+    transition: none;
+  }
+}
+
+/* ---------- Alto contraste ---------- */
+@media (forced-colors: active) {
+  .ui-ribbon__aba--ativa::after,
+  .ui-ribbon__aba--contextual::before {
+    background: Highlight;
+    forced-color-adjust: none;
+  }
+
+  .ui-ribbon__aba--ativa,
+  .ui-ribbon__aba--ativa:hover {
+    box-shadow: none;
+    border: 1px solid CanvasText;
+    border-bottom-color: Canvas;
+  }
+
+  .ui-ribbon__aba:focus-visible,
+  .ui-ribbon__fixar:focus-visible,
+  .ui-ribbon__grupos .ui-ferr-btn:focus-visible {
+    outline-color: Highlight;
+  }
 }

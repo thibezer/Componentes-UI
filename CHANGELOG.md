@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.6.0 — 2026-10-17
+
+### `<ui-ribbon>` e `<ui-paleta-ferramentas>`: contrato com o consumidor
+
+- **Valor inicial pendente**: `aba-ativa` / `valor` definidos antes de `abas` / `ferramentas` são aplicados quando os dados chegam; `aba-ativa` reflete a aba realmente ativa.
+- **`valor = ''` / `limpar()`** removem a seleção da paleta (`ui-change` com `item: null`). Novas propriedades `orientacao`, `colunas`, `tamanho` (paleta) e `compacto` (ribbon); `valor` reflete no atributo usado (`valor` ou `value`).
+- **Eventos**: `ui-ferramenta` agora é cancelável (`preventDefault()` reverte toggle/seleção); `definirAbaVisivel` emite `ui-aba-change` quando a aba ativa muda; novo `ui-recolhido-change`; tipos dos eventos no `HTMLElementEventMap` (`FerramentaDetail`, `AbaChangeDetail`, `PaletaChangeDetail`, `RecolhidoChangeDetail`).
+- **Foco e roving tabindex**: re-renderizações preservam o foco; o tabindex acompanha o botão focado; `atualizarItem` não recria o DOM para mudanças de estado (paleta) nem para itens de outra aba (ribbon).
+- **Menu/flyout**: `menuitemcheckbox`/`menuitemradio` com `aria-checked`, `aria-controls`, foco devolvido ao botão, fecha ao rolar, `ArrowDown` com menu aberto foca o primeiro item.
+- **ARIA**: abas/painel ligados (`aria-controls`/`aria-labelledby`), `aria-label` e `rotulo-abas` configuráveis, `FerramentaItem.rotuloAcessivel`, `aria-keyshortcuts`; o nome acessível não cai mais no `id` quando há `rotulo` ou ícone nomeado.
+- **Paleta**: grupo pula filho desabilitado/separador; clique longo cancelado ao arrastar; `suprimirClique` não prende mais o clique seguinte; atalhos ignoram `role=textbox` e `aria-modal`.
+- `console.warn` para ids duplicados, `ativar()`/`atualizarItem()`/`selecionarAba()` com id inválido.
+
 ## 2.5.0
 
 ### `<ui-tabela>`: robustez, modo remoto e ordenação

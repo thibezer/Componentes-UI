@@ -24,9 +24,44 @@ export function criarIcone(icone: string | undefined, tamanho: number): HTMLElem
   return el;
 }
 
+/**
+ * Nome acessível do item: `rotuloAcessivel` -> `rotulo` -> nome do ícone -> `id` (último recurso,
+ * com aviso no console, pois o id costuma ser um identificador técnico).
+ */
+const avisados = new Set<string>();
+export function nomeAcessivel(item: FerramentaItem): string {
+  if (item.rotuloAcessivel) return item.rotuloAcessivel;
+  if (item.rotulo) return item.rotulo;
+  if (item.icone && !item.icone.trimStart().startsWith('<')) return item.icone;
+  if (!avisados.has(item.id)) {
+    avisados.add(item.id);
+    console.warn(`[ui-barra-ferramentas] O item "${item.id}" não tem "rotulo" nem "rotuloAcessivel": o id será usado como nome acessível.`);
+  }
+  return item.id;
+}
+
 export function textoTooltip(item: FerramentaItem): string {
-  const base = item.rotulo || item.id;
+  const base = nomeAcessivel(item);
   return item.atalho ? `${base} (${item.atalho})` : base;
+}
+
+/** Avisa (console.warn) sobre ids repetidos. */
+export function avisarIdsDuplicados(ids: string[], contexto: string): void {
+  const vistos = new Set<string>();
+  const dup = new Set<string>();
+  ids.forEach(id => (vistos.has(id) ? dup.add(id) : vistos.add(id)));
+  if (dup.size) {
+    console.warn(`[ui-barra-ferramentas] ${contexto}: ids duplicados (${[...dup].join(', ')}). Use ids únicos, senão atualizarItem() e os eventos podem atingir o item errado.`);
+  }
+}
+
+export function coletarIds(itens: FerramentaItem[], saida: string[] = []): string[] {
+  for (const it of itens) {
+    if (it.tipo === 'separador') continue;
+    saida.push(it.id);
+    if (it.filhos) coletarIds(it.filhos, saida);
+  }
+  return saida;
 }
 
 /* ==========================================
@@ -55,7 +90,8 @@ export function criarBotaoFerramenta(
   btn.className = `ui-ferr-btn ui-ferr-btn--${variante}`;
   btn.dataset.id = item.id;
   btn.tabIndex = -1;
-  btn.setAttribute('aria-label', item.rotulo || item.id);
+  btn.setAttribute('aria-label', nomeAcessivel(item));
+  if (item.atalho) btn.setAttribute('aria-keyshortcuts', item.atalho);
   btn.title = textoTooltip(item);
 
   const icone = criarIcone(item.icone, tamanhoIcone);
@@ -118,6 +154,25 @@ export function definirRoving(botoes: HTMLButtonElement[]): void {
   if (habilitados.length) habilitados[0].tabIndex = 0;
 }
 
+/** Garante um único botão com tabindex 0, preservando o atual se ainda estiver habilitado. */
+export function atualizarRoving(botoes: HTMLButtonElement[]): void {
+  const atual = botoes.find(b => b.tabIndex === 0 && !b.disabled);
+  if (atual) {
+    botoes.forEach(b => {
+      if (b !== atual) b.tabIndex = -1;
+    });
+  } else {
+    definirRoving(botoes);
+  }
+}
+
+/** O roving tabindex acompanha o botão que recebeu foco (clique, Tab ou programático). */
+export function seguirFoco(botoes: HTMLButtonElement[], alvo: EventTarget | null): void {
+  const btn = botoes.find(b => b === alvo || b.contains(alvo as Node));
+  if (!btn || btn.disabled) return;
+  botoes.forEach(b => (b.tabIndex = b === btn ? 0 : -1));
+}
+
 /** Move o foco entre botões com as setas informadas. Retorna true se tratou a tecla. */
 export function navegarRoving(
   e: KeyboardEvent,
@@ -152,6 +207,8 @@ export interface OpcoesMenu {
   lado?: 'baixo' | 'direita';
   /** Foca o primeiro item ao abrir (abertura por teclado). */
   focar?: boolean;
+  /** Papel dos itens sem `tipo`: ribbon = botao (menuitem), paleta = ferramenta (menuitemradio). */
+  tipoPadrao?: 'botao' | 'ferramenta';
   onFechar?: () => void;
 }
 
@@ -159,7 +216,11 @@ export interface MenuHandle {
   elemento: HTMLElement;
   ancora: HTMLElement;
   fechar(): void;
+  /** Move o foco para o primeiro item habilitado. */
+  focarPrimeiro(): void;
 }
+
+let contadorMenu = 0;
 
 export function abrirMenu(
   raiz: ShadowRoot,
@@ -173,6 +234,9 @@ export function abrirMenu(
   const menu = document.createElement('div');
   menu.className = 'ui-ferr-menu';
   menu.setAttribute('role', 'menu');
+  menu.id = `ui-ferr-menu-${++contadorMenu}`;
+  menu.setAttribute('aria-label', ancora.getAttribute('aria-label') || 'Menu');
+  ancora.setAttribute('aria-controls', menu.id);
 
   const botoes: HTMLButtonElement[] = [];
   let fechado = false;
@@ -180,6 +244,7 @@ export function abrirMenu(
   const fechar = () => {
     if (fechado) return;
     fechado = true;
+    ancora.removeAttribute('aria-controls');
     listeners.cleanup();
     menu.remove();
     opcoes.onFechar?.();
@@ -197,9 +262,19 @@ export function abrirMenu(
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'ui-ferr-menu__item';
-    b.setAttribute('role', 'menuitem');
+    const tipoItem = item.tipo ?? opcoes.tipoPadrao ?? 'botao';
+    if (tipoItem === 'toggle') {
+      b.setAttribute('role', 'menuitemcheckbox');
+      b.setAttribute('aria-checked', String(!!item.ativo));
+    } else if (tipoItem === 'ferramenta') {
+      b.setAttribute('role', 'menuitemradio');
+      b.setAttribute('aria-checked', String(!!item.ativo));
+    } else {
+      b.setAttribute('role', 'menuitem');
+    }
     b.dataset.id = item.id;
     b.disabled = !!item.disabled;
+    if (item.atalho) b.setAttribute('aria-keyshortcuts', item.atalho);
     if (item.ativo) b.classList.add('ui-ferr-menu__item--ativo');
 
     const slotIcone = document.createElement('span');
@@ -210,7 +285,7 @@ export function abrirMenu(
 
     const rotulo = document.createElement('span');
     rotulo.className = 'ui-ferr-menu__rotulo';
-    rotulo.textContent = item.rotulo || item.id;
+    rotulo.textContent = nomeAcessivel(item);
     b.appendChild(rotulo);
 
     if (item.atalho) {
@@ -223,6 +298,7 @@ export function abrirMenu(
     b.addEventListener('click', e => {
       e.stopPropagation();
       fechar();
+      ancora.focus();
       onEscolher(item);
     });
 
@@ -234,10 +310,13 @@ export function abrirMenu(
 
   // Posicionamento (fixed → não é cortado por overflow do ribbon)
   const r = ancora.getBoundingClientRect();
-  let top = lado === 'direita' ? r.top : r.bottom + 2;
-  let left = lado === 'direita' ? r.right + 4 : r.left;
+  const rtl = getComputedStyle(ancora).direction === 'rtl';
   const m = menu.getBoundingClientRect();
+  let top = lado === 'direita' ? r.top : r.bottom + 2;
+  // RTL: o flyout lateral abre para a esquerda e o menu suspenso alinha à borda direita da âncora
+  let left = lado === 'direita' ? (rtl ? r.left - m.width - 4 : r.right + 4) : rtl ? r.right - m.width : r.left;
   if (m.width && left + m.width > window.innerWidth - 4) left = Math.max(4, window.innerWidth - m.width - 4);
+  if (left < 4) left = 4;
   if (m.height && top + m.height > window.innerHeight - 4) top = Math.max(4, window.innerHeight - m.height - 4);
   menu.style.top = `${top}px`;
   menu.style.left = `${left}px`;
@@ -272,9 +351,14 @@ export function abrirMenu(
     if (!caminho.includes(menu) && !caminho.includes(ancora)) fechar();
   }, true);
   listeners.add(window, 'resize', fechar);
+  // Rolagem de um ancestral desalinha o menu (position: fixed): fecha, exceto a rolagem do próprio menu
+  listeners.add(window, 'scroll', (e: Event) => {
+    if (e.target instanceof Node && menu.contains(e.target)) return;
+    fechar();
+  }, true);
   listeners.add(window, 'blur', fechar);
 
   if (opcoes.focar) habilitados()[0]?.focus();
 
-  return { elemento: menu, ancora, fechar };
+  return { elemento: menu, ancora, fechar, focarPrimeiro: () => habilitados()[0]?.focus() };
 }

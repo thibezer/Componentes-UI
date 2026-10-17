@@ -6,6 +6,10 @@ import {
   abrirMenu,
   acharItem,
   aplicarEstadoBotao,
+  atualizarRoving,
+  avisarIdsDuplicados,
+  coletarIds,
+  seguirFoco,
   criarBotaoFerramenta,
   definirRoving,
   navegarRoving,
@@ -16,19 +20,29 @@ import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 /**
  * <ui-ribbon> — barra de ferramentas em abas com grupos (estilo AutoCAD / Word / Excel).
  *
- * Atributos: aba-ativa, recolhido, compacto
- * Propriedades: abas, abaAtiva, recolhido
+ * Atributos: aba-ativa, recolhido, compacto, aria-label (rótulo da toolbar), rotulo-abas (rótulo do tablist)
+ * Propriedades: abas, abaAtiva, recolhido, compacto
  * Métodos: atualizarItem(id, parcial), definirAbaVisivel(id, visivel), selecionarAba(id)
- * Eventos: ui-ferramenta { id, item, pai?, ativo?, origem, aba }, ui-aba-change { id, aba }
+ * Eventos: ui-ferramenta { id, item, pai?, ativo?, origem, aba } (cancelável: preventDefault reverte o toggle),
+ *          ui-aba-change { id, aba }, ui-recolhido-change { recolhido }
+ *
+ * `aba-ativa` pode ser definido antes de `abas`: o valor fica pendente até a aba existir/ficar visível.
  */
+let contadorRibbon = 0;
+
 export class UIRibbon extends SafeHTMLElement {
   static get observedAttributes() {
-    return ['aba-ativa', 'recolhido'];
+    return ['aba-ativa', 'recolhido', 'compacto', 'aria-label', 'rotulo-abas', 'rotulo-fixar', 'rotulo-expandir'];
   }
 
   private rootElement: HTMLDivElement;
   private abasElement: HTMLDivElement;
   private gruposElement: HTMLDivElement;
+  private painelElement: HTMLDivElement;
+  private fixarElement: HTMLButtonElement;
+  private readonly uid = `ui-ribbon-${++contadorRibbon}`;
+  private _abaPendente = '';
+  private _pronto = false;
 
   private _abas: RibbonAba[] = [];
   private _abaAtiva = '';
@@ -41,7 +55,10 @@ export class UIRibbon extends SafeHTMLElement {
     shadow.innerHTML = `
       <style>${estilosComuns}${estilos}</style>
       <div class="ui-ribbon">
-        <div class="ui-ribbon__abas" role="tablist"></div>
+        <div class="ui-ribbon__cabecalho">
+          <div class="ui-ribbon__abas" role="tablist"></div>
+          <button type="button" class="ui-ribbon__fixar"></button>
+        </div>
         <div class="ui-ribbon__painel" role="tabpanel">
           <div class="ui-ribbon__grupos" role="toolbar" aria-label="Ferramentas"></div>
         </div>
@@ -50,35 +67,77 @@ export class UIRibbon extends SafeHTMLElement {
     this.rootElement = shadow.querySelector('.ui-ribbon')!;
     this.abasElement = shadow.querySelector('.ui-ribbon__abas')!;
     this.gruposElement = shadow.querySelector('.ui-ribbon__grupos')!;
+    this.painelElement = shadow.querySelector('.ui-ribbon__painel')!;
+    this.fixarElement = shadow.querySelector('.ui-ribbon__fixar')!;
+    this.painelElement.id = `${this.uid}-painel`;
   }
 
   connectedCallback() {
     this.listeners.cleanup();
     this.listeners.add(this.abasElement, 'click', this.handleClickAbas);
+    this.listeners.add(this.fixarElement, 'click', this.handleClickFixar);
     this.listeners.add(this.abasElement, 'dblclick', this.handleDblClickAbas);
     this.listeners.add(this.abasElement, 'keydown', this.handleKeyDownAbas);
     this.listeners.add(this.gruposElement, 'click', this.handleClickGrupos);
     this.listeners.add(this.gruposElement, 'keydown', this.handleKeyDownGrupos);
     this.listeners.add(document, 'pointerdown', this.handlePointerDownFora, true);
     this.listeners.add(this.rootElement, 'keydown', this.handleEscape);
+    this.listeners.add(this.gruposElement, 'focusin', this.handleFocusInGrupos);
 
     const inicial = this.getAttribute('aba-ativa');
-    if (inicial && !this._abaAtiva) this._abaAtiva = inicial;
+    if (inicial && !this._abaAtiva) this._abaPendente = inicial;
+    this.aplicarRotulos();
     this.renderizar();
+    this._pronto = true;
   }
 
   disconnectedCallback() {
+    this._pronto = false;
     this.fecharMenu();
     this.listeners.cleanup();
   }
 
   attributeChangedCallback(name: string, old: string | null, value: string | null) {
     if (old === value) return;
-    if (name === 'aba-ativa' && value && value !== this._abaAtiva) {
-      this.selecionarAba(value, false);
+    if (name === 'aba-ativa') {
+      if (!value || value === this._abaAtiva) return;
+      if (this._abas.some(a => a.id === value && !a.oculta)) {
+        this._abaPendente = '';
+        this.selecionarAba(value, false);
+      } else {
+        // abas ainda não carregadas (ou aba oculta): aplica quando existir
+        this._abaPendente = value;
+        if (this.abasVisiveis().length) this.renderizar();
+      }
     } else if (name === 'recolhido') {
       this.rootElement.classList.remove('ui-ribbon--aberto');
+      this.aplicarRotulos();
+      if (this._pronto && (old === null) !== (value === null)) {
+        this.dispatchEvent(
+          new CustomEvent('ui-recolhido-change', {
+            detail: { recolhido: value !== null },
+            bubbles: true,
+            composed: true
+          })
+        );
+      }
+    } else if (name === 'aria-label' || name === 'rotulo-abas' || name === 'rotulo-fixar' || name === 'rotulo-expandir') {
+      this.aplicarRotulos();
     }
+  }
+
+  private aplicarRotulos() {
+    this.gruposElement.setAttribute('aria-label', this.getAttribute('aria-label') || 'Ferramentas');
+    this.abasElement.setAttribute('aria-label', this.getAttribute('rotulo-abas') || 'Abas');
+    // Botão fixar/recolher: o rótulo descreve a ação e aria-expanded o estado da faixa
+    const recolhido = this.hasAttribute('recolhido');
+    const rotulo = recolhido
+      ? this.getAttribute('rotulo-expandir') || 'Fixar faixa de opções'
+      : this.getAttribute('rotulo-fixar') || 'Recolher faixa de opções';
+    this.fixarElement.setAttribute('aria-label', rotulo);
+    this.fixarElement.title = rotulo;
+    this.fixarElement.setAttribute('aria-expanded', String(!recolhido));
+    this.fixarElement.setAttribute('aria-controls', this.painelElement.id);
   }
 
   /* ---------- API pública ---------- */
@@ -89,6 +148,11 @@ export class UIRibbon extends SafeHTMLElement {
 
   set abas(val: RibbonAba[]) {
     this._abas = Array.isArray(val) ? val : [];
+    avisarIdsDuplicados(this._abas.map(a => a.id), '<ui-ribbon> abas');
+    avisarIdsDuplicados(
+      this._abas.flatMap(a => a.grupos.flatMap(g => coletarIds(g.itens))),
+      '<ui-ribbon> itens'
+    );
     this.renderizar();
   }
 
@@ -109,9 +173,23 @@ export class UIRibbon extends SafeHTMLElement {
     else this.removeAttribute('recolhido');
   }
 
+  get compacto(): boolean {
+    return this.hasAttribute('compacto');
+  }
+
+  set compacto(val: boolean) {
+    if (val) this.setAttribute('compacto', '');
+    else this.removeAttribute('compacto');
+  }
+
   public selecionarAba(id: string, emitir: boolean = true) {
     const aba = this._abas.find(a => a.id === id && !a.oculta);
-    if (!aba || aba.id === this._abaAtiva) return;
+    if (!aba) {
+      if (id && this._abas.length) console.warn(`[ui-ribbon] selecionarAba("${id}"): aba inexistente ou oculta.`);
+      return;
+    }
+    if (aba.id === this._abaAtiva) return;
+    this._abaPendente = '';
 
     this.fecharMenu();
     this._abaAtiva = aba.id;
@@ -132,23 +210,70 @@ export class UIRibbon extends SafeHTMLElement {
   public definirAbaVisivel(id: string, visivel: boolean) {
     const aba = this._abas.find(a => a.id === id);
     if (!aba) return;
+    const antes = this._abaAtiva;
     aba.oculta = !visivel;
-    if (!visivel && this._abaAtiva === id) this._abaAtiva = '';
+    if (!visivel && antes === id) this._abaAtiva = '';
     this.renderizar();
+
+    // A aba ativa foi ocultada e outra assumiu: avisa o consumidor
+    const nova = this._abas.find(a => a.id === this._abaAtiva);
+    if (!visivel && antes === id && nova) {
+      this.dispatchEvent(
+        new CustomEvent('ui-aba-change', { detail: { id: nova.id, aba: nova }, bubbles: true, composed: true })
+      );
+    }
   }
 
   /** Atualiza um item (estado ou aparência) sem precisar recriar as abas. */
   public atualizarItem(id: string, parcial: Partial<FerramentaItem>) {
     const todos = this._abas.flatMap(a => a.grupos.flatMap(g => g.itens));
     const item = acharItem(todos, id);
-    if (!item) return;
+    if (!item) {
+      console.warn(`[ui-ribbon] atualizarItem("${id}"): item não encontrado.`);
+      return;
+    }
     Object.assign(item, parcial);
+
+    // Item de outra aba: nada visível muda; a aba será montada com o estado novo ao ser aberta
+    const aba = this._abas.find(a => a.id === this._abaAtiva);
+    if (!aba || !acharItem(aba.grupos.flatMap(g => g.itens), id)) return;
 
     const soEstado = Object.keys(parcial).every(k => k === 'ativo' || k === 'disabled');
     const btn = this.gruposElement.querySelector<HTMLButtonElement>(`.ui-ferr-btn[data-id="${CSS.escape(id)}"]`);
-    if (soEstado && btn) aplicarEstadoBotao(btn, item);
-    else this.renderizarPainel();
+    if (soEstado) {
+      // filho de menu não tem botão no painel: o estado aparece quando o menu for aberto
+      if (btn) {
+        aplicarEstadoBotao(btn, this.efetivo(item));
+        atualizarRoving(this.botoesPainel());
+      }
+    } else {
+      this.comFoco(() => this.renderizarPainel());
+    }
   }
+
+  private efetivo(item: FerramentaItem): FerramentaItem {
+    return item.filhos?.length ? { ...item, tipo: 'menu' } : item;
+  }
+
+  /* ---------- Foco preservado em re-renderizações ---------- */
+
+  private capturarFoco(): { seletor: string; id: string } | null {
+    const ativo = this.shadowRoot?.activeElement as HTMLElement | null;
+    if (!ativo?.dataset?.id) return null;
+    if (ativo.classList.contains('ui-ribbon__aba')) return { seletor: '.ui-ribbon__aba', id: ativo.dataset.id };
+    if (ativo.classList.contains('ui-ferr-btn')) return { seletor: '.ui-ferr-btn', id: ativo.dataset.id };
+    return null;
+  }
+
+  private comFoco(fn: () => void) {
+    const foco = this.capturarFoco();
+    fn();
+    if (!foco) return;
+    const alvo = this.shadowRoot!.querySelector<HTMLButtonElement>(`${foco.seletor}[data-id="${CSS.escape(foco.id)}"]`);
+    if (alvo && !alvo.disabled) alvo.focus();
+  }
+
+  private handleFocusInGrupos = (e: Event) => seguirFoco(this.botoesPainel(), e.target);
 
   /* ---------- Renderização ---------- */
 
@@ -158,11 +283,26 @@ export class UIRibbon extends SafeHTMLElement {
 
   private renderizar() {
     const visiveis = this.abasVisiveis();
+    if (this._abaPendente && visiveis.length) {
+      if (visiveis.some(a => a.id === this._abaPendente)) {
+        this._abaAtiva = this._abaPendente;
+        this._abaPendente = '';
+      } else if (!this._abas.some(a => a.id === this._abaPendente)) {
+        console.warn(`[ui-ribbon] aba-ativa="${this._abaPendente}" não existe em "abas".`);
+        this._abaPendente = '';
+      }
+      // aba existente porém oculta: continua pendente até definirAbaVisivel(id, true)
+    }
     if (!visiveis.some(a => a.id === this._abaAtiva)) {
       this._abaAtiva = visiveis[0]?.id ?? '';
     }
-    this.renderizarAbas();
-    this.renderizarPainel();
+    if (this._abaAtiva && !this._abaPendente && this.getAttribute('aba-ativa') !== this._abaAtiva) {
+      this.setAttribute('aba-ativa', this._abaAtiva);
+    }
+    this.comFoco(() => {
+      this.renderizarAbas();
+      this.renderizarPainel();
+    });
   }
 
   private renderizarAbas() {
@@ -174,6 +314,8 @@ export class UIRibbon extends SafeHTMLElement {
       btn.className = 'ui-ribbon__aba';
       btn.setAttribute('role', 'tab');
       btn.dataset.id = aba.id;
+      btn.id = this.idAba(aba.id);
+      if (ativa) btn.setAttribute('aria-controls', this.painelElement.id);
       btn.textContent = aba.rotulo;
       btn.tabIndex = ativa ? 0 : -1;
       btn.setAttribute('aria-selected', String(ativa));
@@ -183,11 +325,19 @@ export class UIRibbon extends SafeHTMLElement {
     });
   }
 
+  private idAba(id: string): string {
+    return `${this.uid}-aba-${id.replace(/\s+/g, '_')}`;
+  }
+
   private renderizarPainel() {
     this.fecharMenu();
     this.gruposElement.innerHTML = '';
     const aba = this._abas.find(a => a.id === this._abaAtiva);
-    if (!aba) return;
+    if (!aba) {
+      this.painelElement.removeAttribute('aria-labelledby');
+      return;
+    }
+    this.painelElement.setAttribute('aria-labelledby', this.idAba(aba.id));
 
     aba.grupos.forEach(grupo => this.gruposElement.appendChild(this.criarGrupo(grupo)));
     definirRoving(this.botoesPainel());
@@ -243,8 +393,7 @@ export class UIRibbon extends SafeHTMLElement {
   }
 
   private criarBotao(item: FerramentaItem, variante: 'grande' | 'pequeno', icone: number): HTMLButtonElement {
-    const efetivo: FerramentaItem = item.filhos?.length ? { ...item, tipo: 'menu' } : item;
-    return criarBotaoFerramenta(efetivo, variante, icone);
+    return criarBotaoFerramenta(this.efetivo(item), variante, icone);
   }
 
   private botoesPainel(): HTMLButtonElement[] {
@@ -260,6 +409,14 @@ export class UIRibbon extends SafeHTMLElement {
     if (this.recolhido) this.rootElement.classList.toggle('ui-ribbon--aberto');
   };
 
+  private handleClickFixar = () => {
+    this.recolhido = !this.recolhido;
+  };
+
+  private get rtl(): boolean {
+    return getComputedStyle(this).direction === 'rtl';
+  }
+
   private handleDblClickAbas = (e: Event) => {
     if (!(e.target as HTMLElement).closest('.ui-ribbon__aba')) return;
     this.recolhido = !this.recolhido;
@@ -271,12 +428,15 @@ export class UIRibbon extends SafeHTMLElement {
     if (atual < 0) return;
 
     let destino = atual;
-    if (e.key === 'ArrowRight') destino = (atual + 1) % tabs.length;
-    else if (e.key === 'ArrowLeft') destino = (atual - 1 + tabs.length) % tabs.length;
+    const [teclaProx, teclaAnt] = this.rtl ? ['ArrowLeft', 'ArrowRight'] : ['ArrowRight', 'ArrowLeft'];
+    if (e.key === teclaProx) destino = (atual + 1) % tabs.length;
+    else if (e.key === teclaAnt) destino = (atual - 1 + tabs.length) % tabs.length;
     else if (e.key === 'Home') destino = 0;
     else if (e.key === 'End') destino = tabs.length - 1;
     else if (e.key === 'ArrowDown') {
       e.preventDefault();
+      // faixa recolhida: abre o painel flutuante antes de focar o primeiro botão
+      if (this.recolhido) this.rootElement.classList.add('ui-ribbon--aberto');
       this.botoesPainel().find(b => !b.disabled)?.focus();
       return;
     } else return;
@@ -290,17 +450,19 @@ export class UIRibbon extends SafeHTMLElement {
   private handleClickGrupos = (e: Event) => {
     const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('.ui-ferr-btn');
     if (!btn?.dataset.id) return;
-    this.acionar(btn, false);
+    // detail === 0: ativação por teclado (Enter/Espaço) → foca o primeiro item do menu
+    this.acionar(btn, (e as MouseEvent).detail === 0);
   };
 
   private handleKeyDownGrupos = (e: KeyboardEvent) => {
     const botoes = this.botoesPainel();
-    if (navegarRoving(e, botoes, ['ArrowLeft'], ['ArrowRight'])) return;
+    if (this.rtl ? navegarRoving(e, botoes, ['ArrowRight'], ['ArrowLeft']) : navegarRoving(e, botoes, ['ArrowLeft'], ['ArrowRight'])) return;
 
     const btn = e.target instanceof HTMLButtonElement ? e.target : null;
     if (btn?.getAttribute('aria-haspopup') === 'menu' && e.key === 'ArrowDown') {
       e.preventDefault();
-      this.acionar(btn, true);
+      if (this.menu?.ancora === btn) this.menu.focarPrimeiro();
+      else this.acionar(btn, true);
     }
   };
 
@@ -324,10 +486,17 @@ export class UIRibbon extends SafeHTMLElement {
     }
 
     if (item.tipo === 'toggle') {
-      item.ativo = !item.ativo;
+      const antes = item.ativo;
+      item.ativo = !antes;
       aplicarEstadoBotao(btn, item);
+      if (!this.emitir(item)) {
+        // consumidor vetou (preventDefault): reverte
+        item.ativo = antes;
+        aplicarEstadoBotao(btn, item);
+      }
+    } else {
+      this.emitir(item);
     }
-    this.emitir(item);
     this.rootElement.classList.remove('ui-ribbon--aberto');
   }
 
@@ -342,8 +511,13 @@ export class UIRibbon extends SafeHTMLElement {
       btn,
       item.filhos!,
       filho => {
-        if (filho.tipo === 'toggle') filho.ativo = !filho.ativo;
-        this.emitir(filho, item);
+        if (filho.tipo === 'toggle') {
+          const antes = filho.ativo;
+          filho.ativo = !antes;
+          if (!this.emitir(filho, item)) filho.ativo = antes;
+        } else {
+          this.emitir(filho, item);
+        }
         this.rootElement.classList.remove('ui-ribbon--aberto');
       },
       {
@@ -362,12 +536,14 @@ export class UIRibbon extends SafeHTMLElement {
     this.menu = null;
   }
 
-  private emitir(item: FerramentaItem, pai?: FerramentaItem) {
-    this.dispatchEvent(
+  /** Retorna false se o consumidor cancelou o evento (preventDefault). */
+  private emitir(item: FerramentaItem, pai?: FerramentaItem): boolean {
+    return this.dispatchEvent(
       new CustomEvent('ui-ferramenta', {
         detail: { id: item.id, item, pai, ativo: item.ativo, origem: 'ribbon', aba: this._abaAtiva },
         bubbles: true,
-        composed: true
+        composed: true,
+        cancelable: true
       })
     );
   }

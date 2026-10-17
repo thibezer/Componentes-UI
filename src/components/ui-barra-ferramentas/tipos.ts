@@ -23,6 +23,11 @@ export interface FerramentaItem {
   tipo?: TipoFerramenta;
   ativo?: boolean;
   disabled?: boolean;
+  /**
+   * Nome acessível (leitor de tela) quando não há `rotulo` visível (ex.: botões só de ícone).
+   * Sem ele e sem `rotulo`, usa-se o nome do ícone e, por último, o `id`.
+   */
+  rotuloAcessivel?: string;
   /** Apenas ribbon: botão grande (ícone sobre o rótulo) ou pequeno (em colunas de 3). Padrão: 'pequeno'. */
   tamanho?: 'grande' | 'pequeno';
   /** Apenas ribbon: oculta o rótulo em botões pequenos. */
@@ -57,4 +62,33 @@ export interface FerramentaDetail {
   origem: 'ribbon' | 'paleta';
   /** Apenas ribbon: id da aba ativa no momento do disparo. */
   aba?: string;
+}
+
+/** `detail` de `ui-aba-change`. */
+export interface AbaChangeDetail {
+  id: string;
+  aba: RibbonAba;
+}
+
+/** `detail` de `ui-change` / `ui-selecionar` da paleta. `item` é `null` quando a seleção é limpa (`valor = ''`). */
+export interface PaletaChangeDetail {
+  valor: string;
+  item: FerramentaItem | null;
+  anterior: string;
+}
+
+/** `detail` de `ui-recolhido-change` do ribbon. */
+export interface RecolhidoChangeDetail {
+  recolhido: boolean;
+}
+
+declare global {
+  interface HTMLElementEventMap {
+    /** Cancelável: `preventDefault()` reverte o toggle / a seleção feita pelo clique. */
+    'ui-ferramenta': CustomEvent<FerramentaDetail>;
+    'ui-aba-change': CustomEvent<AbaChangeDetail>;
+    'ui-recolhido-change': CustomEvent<RecolhidoChangeDetail>;
+    'ui-change': CustomEvent<PaletaChangeDetail>;
+    'ui-selecionar': CustomEvent<PaletaChangeDetail>;
+  }
 }

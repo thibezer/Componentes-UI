@@ -1,5 +1,10 @@
 :host {
-  display: inline-block;
+  /* flex: a paleta encolhe e rola quando o contêiner é menor que ela (max-height/max-width do host) */
+  display: inline-flex;
+  flex-direction: column;
+  max-width: 100%;
+  max-height: 100%;
+  vertical-align: top;
   box-sizing: border-box;
   font-family: var(--ui-fonte-base, 'Inter', sans-serif);
   color: var(--ui-cor-texto, #e1e1e6);
@@ -20,6 +25,11 @@
   border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
   border-radius: var(--ui-paleta-raio);
   user-select: none;
+  min-width: 0;
+  min-height: 0;
+  max-width: 100%;
+  overflow: auto;
+  scrollbar-width: thin;
 }
 
 .ui-paleta--horizontal {
@@ -54,10 +64,80 @@
 }
 
 /* Ferramenta ativa: preenchimento sólido de destaque */
-.ui-paleta .ui-ferr-btn--ativo {
+.ui-paleta .ui-ferr-btn.ui-ferr-btn--ativo,
+.ui-paleta .ui-ferr-btn.ui-ferr-btn--ativo:hover:not(:disabled),
+.ui-paleta .ui-ferr-btn.ui-ferr-btn--ativo:active:not(:disabled) {
   background: var(--ui-cor-primaria, #00E08A);
   border-color: transparent;
   color: var(--ui-cor-texto-sobre-primaria, #000000);
+}
+
+.ui-paleta .ui-ferr-btn.ui-ferr-btn--ativo:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 86%, #fff);
+}
+
+.ui-paleta .ui-ferr-btn.ui-ferr-btn--ativo:active:not(:disabled) {
+  background: color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 80%, #000);
+}
+
+.ui-paleta .ui-ferr-btn.ui-ferr-btn--ativo:disabled {
+  background: var(--ui-cor-hover-menu, rgba(255, 255, 255, 0.08));
+  color: inherit;
+}
+
+/* Triângulo no canto = grupo com flyout (espelha em RTL) */
+.ui-ferr-btn--grupo::after {
+  content: '';
+  position: absolute;
+  inset-inline-end: 3px;
+  bottom: 3px;
+  width: 0;
+  height: 0;
+  border-inline-start: 6px solid transparent;
+  border-bottom: 6px solid currentColor;
+  opacity: 0.8;
+  pointer-events: none;
+  transition: opacity 0.12s ease, transform 0.12s ease;
+}
+
+.ui-ferr-btn--grupo:hover::after,
+.ui-ferr-btn--grupo:focus-visible::after,
+.ui-ferr-btn--grupo[aria-expanded="true"]::after {
+  opacity: 1;
+  transform: scale(1.2);
+  transform-origin: bottom right;
+}
+
+.ui-paleta__sep {
+  grid-column: 1 / -1;
+}
+
+.ui-paleta .ui-ferr-btn {
+  width: var(--ui-paleta-btn);
+  height: var(--ui-paleta-btn);
+  border-radius: var(--ui-paleta-btn-raio);
+}
+
+/* Ferramenta ativa: preenchimento sólido de destaque */
+.ui-paleta .ui-ferr-btn.ui-ferr-btn--ativo,
+.ui-paleta .ui-ferr-btn.ui-ferr-btn--ativo:hover:not(:disabled),
+.ui-paleta .ui-ferr-btn.ui-ferr-btn--ativo:active:not(:disabled) {
+  background: var(--ui-cor-primaria, #00E08A);
+  border-color: transparent;
+  color: var(--ui-cor-texto-sobre-primaria, #000000);
+}
+
+.ui-paleta .ui-ferr-btn.ui-ferr-btn--ativo:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 86%, #fff);
+}
+
+.ui-paleta .ui-ferr-btn.ui-ferr-btn--ativo:active:not(:disabled) {
+  background: color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 80%, #000);
+}
+
+.ui-paleta .ui-ferr-btn.ui-ferr-btn--ativo:disabled {
+  background: var(--ui-cor-hover-menu, rgba(255, 255, 255, 0.08));
+  color: inherit;
 }
 
 /* Triângulo no canto = grupo com flyout */
@@ -85,4 +165,45 @@
   width: 1px;
   height: 70%;
   margin: 0 3px;
+}
+
+/* ---------- Toque: alvos maiores ---------- */
+@media (pointer: coarse) {
+  .ui-paleta {
+    --ui-paleta-btn: 40px;
+  }
+
+  .ui-paleta--sm {
+    --ui-paleta-btn: 36px;
+  }
+
+  .ui-paleta--lg {
+    --ui-paleta-btn: 48px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-ferr-btn--grupo::after {
+    transition: none;
+  }
+}
+
+/* ---------- Alto contraste ---------- */
+@media (forced-colors: active) {
+  .ui-paleta {
+    border-color: CanvasText;
+  }
+
+  .ui-paleta .ui-ferr-btn.ui-ferr-btn--ativo,
+  .ui-paleta .ui-ferr-btn.ui-ferr-btn--ativo:hover:not(:disabled),
+  .ui-paleta .ui-ferr-btn.ui-ferr-btn--ativo:active:not(:disabled) {
+    background: Highlight;
+    color: HighlightText;
+    border-color: ButtonText;
+    forced-color-adjust: none;
+  }
+
+  .ui-paleta__sep {
+    background: CanvasText;
+  }
 }
