@@ -8,6 +8,12 @@
 - **Mudança de comportamento:** quem importar apenas `core/ui-bus` sem carregar `ui-alerta` (ou o pacote principal) passa a ter `UIBus.notificar()` como no-op, sem erro. Exceções do provedor são capturadas (`console.error`).
 - Contratos `UIToastOpcoes`/`UIToastAcao` movidos para `src/core/tipos-toast.ts` e reexportados por `ui-alerta` (nomes públicos inalterados).
 
+### `<ui-tooltip>` e `<ui-modal>`: correções de comportamento
+
+- **`<ui-tooltip>`:** o clique no gatilho deixa de ser interrompido (`stopPropagation`) e volta a chegar aos ouvintes de ancestrais; `disabled` fecha o balão aberto (e `aberto` + `disabled` não o mostra); ambientes sem `matchMedia` não lançam; o quadro de animação do posicionamento é cancelado ao fechar/desconectar.
+- **`<ui-modal>`:** `Shift+Tab` no botão de fechar agora leva ao último controle do conteúdo (antes o foco escapava do modal); `Tab` no último controle volta ao primeiro. O foco real é lido atravessando Shadow DOMs.
+- Ouvintes globais de ambos passam a ser gerenciados por `ListenerBag`. Sem mudança de API.
+
 ### `<ui-camadas>`: arrastos interrompidos e organização interna
 
 - Desconectar o painel durante a pintura de controles (olho, cadeado, seleção) deixava `user-select: none` no `body` da página e ouvintes em `window`; o gesto agora é cancelado. O mesmo vale para o arraste por toque de camadas.

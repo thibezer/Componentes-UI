@@ -110,9 +110,16 @@ Pré-requisito das demais fases: sem isso `npm run gate` falha.
   3. Desconectar antes do Leaflet carregar criava um mapa órfão (vazamento); agora há checagem de `isConnected` após o `await`.
   4. `<ui-mapa-linha>` não reaparecia quando o mapa era recriado ao reconectar (só o marcador ouvia `ui-mapa-pronto`), e `pontos` que não fossem um array de pares lançavam; agora pares inválidos são descartados.
 
-### Fase 4 — `ui-tooltip` e `ui-modal` (P2)
-- [ ] **tooltip**: extrair posicionamento (`tooltip-posicionamento.ts`) e API de popover (`tooltip-popover.ts` com detecção de suporte tipada); tratar erros em vez de `catch(_e) {}`; garantir `aria-describedby`, Esc e foco/hover/teclado.
-- [ ] **modal**: remover os 7 `any`; testar focus trap, restauração de foco, pilha de modais e Esc.
+### Fase 4 — `ui-tooltip` e `ui-modal` (P2) — concluída em 2026-10-17
+- [x] **`ui-tooltip`**: `tooltip-posicionamento.ts` (lado normalizado + posição do balão, puro) e `tooltip-popover.ts` (Popover API tipada; só ignora `InvalidStateError`, o resto vira `console.warn`); ouvintes via `ListenerBag` (host enquanto conectado, globais só com o balão aberto); `requestAnimationFrame` cancelado ao fechar/desconectar; JSDoc de atributos/slots/parts para o manifesto. `any` e `catch {}` mudos removidos.
+- [x] **`ui-modal`**: `modal-foco.ts` (focáveis, foco inicial e armadilha de Tab) e `modal-acessibilidade.ts` sem duplicação de laço e sem casts (`inert` já é tipado no TS 5.9); ouvintes via `ListenerBag`; `ui-modal.ts` 301 → 220 linhas.
+- [x] **Testes**: `ui-tooltip.regressao.test.ts` (23), `ui-modal.regressao.test.ts` (16), `tooltip-posicionamento.test.ts` e `modal-foco.test.ts`; suíte 82 arquivos / 1220 testes.
+- **Defeitos encontrados e corrigidos** (cada um com teste que falhava antes):
+  1. `<ui-tooltip>`: o clique no gatilho chamava `stopPropagation()` e **escondia o clique de ancestrais** (delegação de eventos, analytics); o "clicar fora" já ignora cliques dentro do host, então a chamada era desnecessária.
+  2. `<ui-tooltip>`: `window.matchMedia` ausente lançava no clique.
+  3. `<ui-tooltip>`: `disabled` com o balão aberto (ou `aberto` + `disabled` iniciais) deixava o balão visível.
+  4. `<ui-tooltip>`: o `requestAnimationFrame` de posicionamento ficava pendente após desconectar.
+  5. `<ui-modal>`: **Shift+Tab no botão de fechar não voltava para o último controle** e o foco escapava do modal: a comparação usava o elemento retargeted pelo Shadow DOM em vez do foco real.
 
 ### Fase 5 — Componentes simples e de formulário (P3)
 - [ ] `ui-avatar`: sem nome, imagem decorativa (`alt=""`/`aria-hidden`); `ui-texto`: papéis/semântica.
@@ -147,7 +154,7 @@ Pré-requisito das demais fases: sem isso `npm run gate` falha.
 | 1 | Extração de `cad-evento-coordenadas`, regressão/robustez e ARIA | feito | 2026-10-17 | | +5, +23 testes; suíte: 75 arquivos, 1085 testes; `any` em produção: 301 → 275 |
 | 2 | `ui-camadas`: divisão em 9 módulos, 3 defeitos (estado preso no `body`, ouvintes em `window`, laço em `ehDescendente`) | feito | 2026-10-17 | | `ui-camadas.ts` 878→647, renderer 510→370, drag-drop 495→314; `any` em produção: 266 → 264 |
 | 3 | `ui-mapa`: adaptador, SRP, ARIA e 4 defeitos (inclui injeção via `cor`) | feito | 2026-10-17 | | +51 testes; suíte 77 arquivos / 1134 testes; `any` em produção: 275 → 266 |
-| 4 | `ui-tooltip` e `ui-modal` | pendente | | | |
+| 4 | `ui-tooltip` e `ui-modal`: SRP, ListenerBag, sem `any`, 5 defeitos (clique engolido, foco escapando no Shift+Tab) | feito | 2026-10-17 | | +39 testes; suíte 82 arquivos / 1220 testes; `any` em produção: 264 → 255 |
 | 5 | A11y e testes dos componentes simples | pendente | | | |
 | 6 | Divisões oportunistas | pendente | | | |
 
