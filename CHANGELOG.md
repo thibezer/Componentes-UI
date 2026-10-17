@@ -8,6 +8,12 @@
 - **Mudança de comportamento:** quem importar apenas `core/ui-bus` sem carregar `ui-alerta` (ou o pacote principal) passa a ter `UIBus.notificar()` como no-op, sem erro. Exceções do provedor são capturadas (`console.error`).
 - Contratos `UIToastOpcoes`/`UIToastAcao` movidos para `src/core/tipos-toast.ts` e reexportados por `ui-alerta` (nomes públicos inalterados).
 
+### `<ui-camadas>`: arrastos interrompidos e organização interna
+
+- Desconectar o painel durante a pintura de controles (olho, cadeado, seleção) deixava `user-select: none` no `body` da página e ouvintes em `window`; o gesto agora é cancelado. O mesmo vale para o arraste por toque de camadas.
+- Dados com ciclo de `parentId` não travam mais a verificação de descendência ao aninhar camadas por arraste.
+- **Sem mudança de API.** Código dividido em módulos de responsabilidade única (renderização, seleção, lembrança, coleções, regras de soltar, renomear, miniaturas e hierarquia).
+
 ### `<ui-mapa>`, `<ui-mapa-marcador>` e `<ui-mapa-linha>`: robustez e acessibilidade
 
 - **Segurança:** `cor` do `<ui-mapa-marcador>` era interpolada em HTML/estilo do ícone (injeção de atributo). O ícone agora é montado com DOM e `cor` só aceita hex, `rgb()`/`hsl()` ou nome de cor; outro valor usa a cor padrão (`#00f5a0`; `#3388ff` na linha).

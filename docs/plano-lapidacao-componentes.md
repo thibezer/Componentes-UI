@@ -87,12 +87,17 @@ Pré-requisito das demais fases: sem isso `npm run gate` falha.
 - [x] **Seleção**: `selectedPontoIds` ganhou acessor único em `cad-selecao-pontos.ts` (`lerPontosSelecionados`/`gravarPontosSelecionados`), usado por `ui-canvas-cad.ts` e `cad-eventos-canvas.ts`. (O motor L2, `canvas_interacao.ts`, ainda tem seus próprios `as any` no mesmo campo; tipar `context.selectedPontoIds` lá elimina o cast restante.)
 - [x] **ARIA** (`cad-acessibilidade.ts`): raiz `role=region` "Mapa CAD", barra rápida `role=toolbar`, botões só-ícone com `aria-label`, `aria-pressed` do snap sincronizado e região viva (`role=status`) anunciando seleção e ferramenta. A barra de ferramentas de desenho já tinha `role=toolbar` e `aria-pressed`.
 
-### Fase 2 — `ui-camadas` (P1)
-- [ ] `ui-camadas.ts` (878): extrair o que não for ciclo de vida/atributos para módulos existentes (`camadas-*`); alvo < 400 linhas.
-- [ ] `camadas-arvore-renderer.ts`: separar construção de nó, estado (expandido/selecionado) e atualização incremental.
-- [ ] `camadas-drag-drop.ts`: separar cálculo de alvo/posição de soltura (puro) da manipulação de DOM.
-- [ ] Eliminar os 8 `any`/TODO; ampliar `ui-camadas.test.ts` e `ui-camadas.regressao.test.ts` para os módulos novos.
-- [ ] Auditar `camadas-resizer.ts` quanto à Regra #2 (A6).
+### Fase 2 — `ui-camadas` (P1) — concluída em 2026-10-17
+- [x] **`ui-camadas.ts` 878 → 647 linhas** (casca com ~35 propriedades públicas espelhadas em atributos, ciclo de vida e delegadores). Extraídos: `camadas-render.ts` (montagem do corpo preservando scroll/foco), `camadas-selecao-api.ts` (seleção e eventos de seleção), `camadas-lembranca.ts` (`LembrancaCamadas`: origens, remoções, debounce e storage) e `camadas-colecao.ts` (definir/adicionar/remover camadas e feições). **Exceção justificada ao gatilho de ~400 linhas:** o que resta são os acessores públicos (API) e os delegadores de uma linha.
+- [x] **`camadas-arvore-renderer.ts` 510 → 370**: `camadas-thumb.ts` (miniaturas SVG, pura) e `camadas-hierarquia.ts` (árvore a partir de parentId, pura); nomes públicos reexportados.
+- [x] **`camadas-drag-drop.ts` 495 → 314**: regras puras em `camadas-drop-ops.ts` (zona de drop, mover/reordenar camada, mover/reordenar feição) e renomear inline deduplicado em `camadas-renomear.ts` (camada e feição usavam o mesmo código duplicado).
+- [x] **`any`:** o `(this.host as any).expandedLayers` virou campo opcional tipado em `UICamadasHost`; resta 1 `any` (genérico de `debounce`, idiomático). Antes: 8.
+- [x] **Regra #2 (A6) auditada**: o resizer já limpava a `window` ao desconectar; os outros dois gestos não.
+- **Defeitos encontrados e corrigidos** (testes em `ui-camadas.regressao.test.ts`):
+  1. Desconectar o painel durante a **pintura de controles** (olho/cadeado/seleção) deixava `user-select: none` preso no `body` da página e ouvintes em `window`; agora o gesto é cancelado ao desconectar (`cancelarArrasteControles`) e um gesto novo substitui o anterior.
+  2. O **arraste por toque** da camada deixava `pointermove`/`pointerup` em `window` se o componente saísse do DOM no meio do gesto, e `pointerdown` repetido empilhava ouvintes; agora `CamadasDragDropManager.destruir()` os solta.
+  3. `ehDescendente` podia entrar em laço infinito com dados que já tinham um ciclo de `parentId`; agora detecta e trata como descendência.
+- **Testes novos:** `camadas-drop-ops.test.ts` (22) e 3 casos de regressão; suíte total 78 arquivos / 1159 testes.
 
 ### Fase 3 — `ui-mapa` (P1) — concluída em 2026-10-17
 - [x] **Adaptador Leaflet**: `mapa-leaflet.ts` (`obterLeaflet`/`carregarLeafletTipado`) e `tipos.ts` (`LeafletModulo`); `window.L as any` e `L: any` removidos (0 `any` no diretório).
@@ -140,7 +145,7 @@ Pré-requisito das demais fases: sem isso `npm run gate` falha.
 | 1 | Tipos Leaflet, adaptador e acessor de seleção | feito | 2026-10-17 | | `tipos.ts`, `cad-leaflet-adaptador.ts`, `cad-selecao-pontos.ts`; `any` no diretório: 23+ → 10 (os restantes são payloads de domínio opacos: `elemento`/`segmento`, `Record<string, any>` de atualização parcial e o payload do BroadcastChannel) |
 | 1 | Divisão de `cad-feicoes.ts` | feito | 2026-10-17 | | 1.179 → ~625 linhas, 10 módulos; fachada justificada |
 | 1 | Extração de `cad-evento-coordenadas`, regressão/robustez e ARIA | feito | 2026-10-17 | | +5, +23 testes; suíte: 75 arquivos, 1085 testes; `any` em produção: 301 → 275 |
-| 2 | Divisão de `ui-camadas.ts` | pendente | | | |
+| 2 | `ui-camadas`: divisão em 9 módulos, 3 defeitos (estado preso no `body`, ouvintes em `window`, laço em `ehDescendente`) | feito | 2026-10-17 | | `ui-camadas.ts` 878→647, renderer 510→370, drag-drop 495→314; `any` em produção: 266 → 264 |
 | 3 | `ui-mapa`: adaptador, SRP, ARIA e 4 defeitos (inclui injeção via `cor`) | feito | 2026-10-17 | | +51 testes; suíte 77 arquivos / 1134 testes; `any` em produção: 275 → 266 |
 | 4 | `ui-tooltip` e `ui-modal` | pendente | | | |
 | 5 | A11y e testes dos componentes simples | pendente | | | |
