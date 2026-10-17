@@ -1,6 +1,6 @@
 import estilos from './ui-texto.css?inline';
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
-import { escolherOpcao, escolherOpcaoOpcional } from '../../core/opcoes';
+import { escolherInteiro, escolherOpcao, escolherOpcaoOpcional } from '../../core/opcoes';
 
 export type VarianteTexto = 
   | 'h1' 
@@ -28,27 +28,45 @@ const TAGS_PERMITIDAS = new Set([
   'small', 'code', 'strong', 'em', 'label', 'blockquote', 'pre', 'b', 'i'
 ]);
 
+const LINHAS_MAXIMO = 50;
+
+/**
+ * Tipografia semântica do kit. Texto longo: `linhas` limita o bloco a N linhas com reticências
+ * e o conteúdo quebra palavras muito compridas em vez de estourar o contêiner.
+ *
+ * @element ui-texto
+ *
+ * @attr {string} variante - `h1`–`h6`, `corpo` (padrão), `corpo-sm`, `caption`, `codigo`.
+ * @attr {string} tag - Tag semântica do elemento interno (somente tags de texto permitidas).
+ * @attr {string} cor - `primaria`, `secundaria`, `destaque`, `erro`, `sucesso`, `alerta`.
+ * @attr {string} peso - `normal`, `medio`, `seminegrito`, `negrito`.
+ * @attr {string} alinhamento - `esquerda`, `centro`, `direita`, `justificado`.
+ * @attr {boolean} truncar - Uma linha com reticências.
+ * @attr {number} linhas - Limita a N linhas (1–50) com reticências; `truncar` tem prioridade.
+ *
+ * @csspart base - O elemento de texto interno.
+ */
 export class UITexto extends SafeHTMLElement {
   static get observedAttributes() {
-    return ['variante', 'tag', 'cor', 'peso', 'alinhamento', 'truncar'];
+    return ['variante', 'tag', 'cor', 'peso', 'alinhamento', 'truncar', 'linhas'];
   }
 
-  private container: HTMLElement;
-  private shadow: ShadowRoot;
+  private container: HTMLElement | null = null;
+  private shadow: ShadowRoot | null = null;
 
   constructor() {
     super();
+    // Em SSR/ambientes sem DOM o elemento fica inerte: nenhum método abaixo é executado
     if (typeof this.attachShadow === 'function' && typeof document !== 'undefined') {
       this.shadow = this.attachShadow({ mode: 'open' });
-      this.container = document.createElement('p');
-      this.container.className = 'ui-texto ui-texto--corpo';
-      this.container.appendChild(document.createElement('slot'));
+      const container = document.createElement('p');
+      container.className = 'ui-texto ui-texto--corpo';
+      container.setAttribute('part', 'base');
+      container.appendChild(document.createElement('slot'));
+      this.container = container;
 
       this.shadow.innerHTML = `<style>${estilos}</style>`;
-      this.shadow.appendChild(this.container);
-    } else {
-      this.shadow = null as any;
-      this.container = null as any;
+      this.shadow.appendChild(container);
     }
   }
 
@@ -91,19 +109,25 @@ export class UITexto extends SafeHTMLElement {
   }
 
   private render() {
+    const { container, shadow } = this;
+    if (!container || !shadow) return;
+
     const tagName = this.resolveTag();
     const variante = escolherOpcao(this.getAttribute('variante'), VARIANTES, 'corpo');
     const cor = escolherOpcaoOpcional(this.getAttribute('cor'), CORES);
     const peso = escolherOpcaoOpcional(this.getAttribute('peso'), PESOS);
     const alinhamento = escolherOpcaoOpcional(this.getAttribute('alinhamento'), ALINHAMENTOS);
     const truncar = this.hasAttribute('truncar');
+    const linhas = truncar ? 0 : escolherInteiro(this.getAttribute('linhas'), 1, LINHAS_MAXIMO, 0);
 
     // Re-criar o elemento semântico se a tag mudar
-    if (this.container.tagName.toLowerCase() !== tagName) {
-      const novoelemento = document.createElement(tagName);
-      novoelemento.appendChild(document.createElement('slot'));
-      this.shadow.replaceChild(novoelemento, this.container);
-      this.container = novoelemento;
+    let alvo = container;
+    if (container.tagName.toLowerCase() !== tagName) {
+      alvo = document.createElement(tagName);
+      alvo.setAttribute('part', 'base');
+      alvo.appendChild(document.createElement('slot'));
+      shadow.replaceChild(alvo, container);
+      this.container = alvo;
     }
 
     const classes = ['ui-texto', `ui-texto--${variante}`];
@@ -112,8 +136,11 @@ export class UITexto extends SafeHTMLElement {
     if (peso) classes.push(`ui-texto--peso-${peso}`);
     if (alinhamento) classes.push(`ui-texto--alinhamento-${alinhamento}`);
     if (truncar) classes.push('ui-texto--truncar');
+    if (linhas > 0) classes.push('ui-texto--linhas');
 
-    this.container.className = classes.join(' ');
+    alvo.className = classes.join(' ');
+    if (linhas > 0) alvo.style.setProperty('--ui-texto-linhas', String(linhas));
+    else alvo.style.removeProperty('--ui-texto-linhas');
   }
 }
 

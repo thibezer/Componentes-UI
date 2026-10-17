@@ -1,5 +1,32 @@
 # Changelog
 
+## 2.8.0 — 2026-10-17
+
+### Novo: `<ui-area-texto>` (alias `<ui-textarea>`) para textos grandes
+
+- Área de texto de várias linhas, form-associated (`name`, `value`, `required`, `minlength`/`maxlength`, `setCustomValidity`, `form.reset()`), com rótulo, ajuda/erro e os mesmos eventos do `<ui-campo-texto>` (`ui-input`, `ui-change`, `input`, `change`).
+- `linhas` (1–50, padrão 4), `auto-altura` (cresce com o conteúdo, sem pular a rolagem da página) com `linhas-max` como teto, `redimensionar` (`nenhum`|`vertical`|`horizontal`|`ambos`) e `contador` (usa `maxlength` como limite).
+- **Enter insere quebra de linha** e não submete o formulário. **Ctrl/Cmd + Enter** emite `ui-enviar` (`detail: { value }`).
+- Acessibilidade: nome acessível pelo `label`, `aria-label` do host, `<label for>` ou `<label>` envolvente; `aria-required`; `aria-describedby` só com a ajuda visível; o contador avisa leitores de tela apenas quando muda de nível (perto do limite, atingido, excedido), não a cada tecla.
+- API programática: `focus()`, `blur()`, `select()`, `setSelectionRange()`, `limpar()`, `readOnly`, `minLength`, `maxLength`.
+- Parts: `rotulo`, `campo`, `input`, `rodape`, `ajuda`, `contador`. Exportado por `index`, `register` e `forms`.
+
+### `<ui-texto>`: texto longo e lapidação
+
+- **Novo `linhas`:** limita o texto a N linhas (1–50) com reticências; `truncar` continua tendo prioridade. Valores inválidos são ignorados.
+- Palavras e URLs muito compridas passam a quebrar (`overflow-wrap`) em vez de estourar o contêiner; `alinhamento="justificado"` usa hifenização.
+- O elemento interno expõe `part="base"`. Sem DOM (SSR) o componente fica inerte, sem casts `any`.
+
+### `<ui-campo-texto>`: lapidação
+
+- **`minlength`/`maxlength` inválidos** (`abc`, vazio, negativo) eram repassados ao `<input>` como `NaN`; agora são ignorados, e os getters `minLength`/`maxLength` devolvem `-1` em vez de `NaN`.
+- Acessibilidade: `aria-required` no campo obrigatório; `aria-describedby` só referencia a ajuda enquanto ela está visível; a ajuda/erro é uma região `aria-live="polite"`, então mensagens de erro passam a ser anunciadas.
+- Ouvintes via `ListenerBag` e temporizador de sincronização cancelado ao desconectar/reconectar (sem `any`).
+
+### Núcleo
+
+- `core/opcoes`: `escolherInteiro` e `inteiroOuNulo` convertem atributos numéricos hostis (`NaN`, `Infinity`, texto, fora da faixa) em inteiros seguros. `sincronizarFeedbackErro` aceita `<textarea>` e um prefixo de classe opcional (padrão inalterado).
+
 ## 2.7.0 — 2026-10-17
 
 ### `UIBus`: independente do componente de toast

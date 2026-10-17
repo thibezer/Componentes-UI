@@ -47,6 +47,6 @@ export function criarTemplateCampoTexto(): string {
         </span>
       </div>
     </div>
-    <div class="ui-campo-texto__helper" part="ajuda" style="display: none;"></div>
+    <div class="ui-campo-texto__helper" part="ajuda" aria-live="polite" style="display: none;"></div>
   `;
 }

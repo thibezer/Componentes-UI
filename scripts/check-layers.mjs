@@ -15,7 +15,7 @@ const em = (...partes) => norm(path.join(SRC_DIR, ...partes));
 
 const ATOMICOS_L3 = [
     'ui-botao', 'ui-icone', 'ui-texto', 'ui-badge', 'ui-avatar', 'ui-skeleton', 'ui-stat', 'ui-card',
-    'ui-campo-texto', 'ui-checkbox', 'ui-radio', 'ui-switch', 'ui-segmented', 'ui-alerta', 'ui-tooltip',
+    'ui-campo-texto', 'ui-area-texto', 'ui-checkbox', 'ui-radio', 'ui-switch', 'ui-segmented', 'ui-alerta', 'ui-tooltip',
     'ui-modal', 'ui-drawer', 'ui-lista-flutuante', 'ui-cores'
 ];
 const WORKSTATION_L4 = [

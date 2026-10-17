@@ -65,3 +65,61 @@ describe('entradas hostis', () => {
     expect(el.shadowRoot!.querySelector('img')).toBeNull();
   });
 });
+
+describe('texto longo: atributo linhas', () => {
+  it('linhas válido aplica a classe e publica a variável CSS no elemento interno', () => {
+    const el = montar({ linhas: '3' });
+    expect(alvo(el).classList.contains('ui-texto--linhas')).toBe(true);
+    expect(alvo(el).style.getPropertyValue('--ui-texto-linhas')).toBe('3');
+  });
+
+  it.each(['abc', '', '0', '-2', 'NaN', 'Infinity', '3; color: red'])('linhas="%s" é ignorado sem lançar', (linhas) => {
+    const el = montar({ linhas });
+    // "0" e negativos são limitados a 1; o restante cai em "sem limite"
+    const limitado = alvo(el).classList.contains('ui-texto--linhas');
+    if (['0', '-2'].includes(linhas)) {
+      expect(limitado).toBe(true);
+      expect(alvo(el).style.getPropertyValue('--ui-texto-linhas')).toBe('1');
+    } else {
+      expect(limitado).toBe(false);
+      expect(alvo(el).style.getPropertyValue('--ui-texto-linhas')).toBe('');
+    }
+  });
+
+  it('valores enormes são limitados a 50', () => {
+    expect(alvo(montar({ linhas: '99999' })).style.getPropertyValue('--ui-texto-linhas')).toBe('50');
+  });
+
+  it('truncar tem prioridade sobre linhas', () => {
+    const el = montar({ truncar: '', linhas: '4' });
+    expect(alvo(el).classList.contains('ui-texto--truncar')).toBe(true);
+    expect(alvo(el).classList.contains('ui-texto--linhas')).toBe(false);
+  });
+
+  it('remover linhas limpa a classe e a variável; trocar a tag mantém o limite', () => {
+    const el = montar({ linhas: '2' });
+    el.setAttribute('tag', 'blockquote');
+    expect(alvo(el).tagName).toBe('BLOCKQUOTE');
+    expect(alvo(el).style.getPropertyValue('--ui-texto-linhas')).toBe('2');
+    el.removeAttribute('linhas');
+    expect(alvo(el).classList.contains('ui-texto--linhas')).toBe(false);
+    expect(alvo(el).style.getPropertyValue('--ui-texto-linhas')).toBe('');
+  });
+});
+
+describe('estrutura', () => {
+  it('o elemento interno expõe part="base", inclusive depois de trocar a tag', () => {
+    const el = montar();
+    expect(alvo(el).getAttribute('part')).toBe('base');
+    el.setAttribute('variante', 'h3');
+    expect(alvo(el).getAttribute('part')).toBe('base');
+  });
+
+  it('reconectar não duplica o conteúdo interno', () => {
+    const el = montar({ variante: 'h2' });
+    el.remove();
+    document.body.appendChild(el);
+    expect(el.shadowRoot!.querySelectorAll('.ui-texto').length).toBe(1);
+    expect(el.shadowRoot!.querySelectorAll('slot').length).toBe(1);
+  });
+});

@@ -5,6 +5,8 @@ import {
   sincronizarFeedbackErro
 } from './campo-texto-estados';
 import { definirCustomElement } from '../../core/ssr-safe';
+import { ListenerBag } from '../../core/listener-bag';
+import { inteiroOuNulo } from '../../core/opcoes';
 import { gerarIdUnico, obterRotuloExterno, cliqueVeioDeRotuloExterno } from '../../core/acessibilidade';
 import { FormAssociatedElement } from '../../core/form-associated-element';
 import { validarRestricoesCampoTexto, aplicarValidadeInternals } from '../../core/form-validacao';
@@ -23,7 +25,8 @@ export class UICampoTexto extends FormAssociatedElement {
   private leftSlotElement: HTMLSlotElement;
 
   private _senhaVisivel: boolean = false;
-  private _checkTimer: any = null;
+  private listeners = new ListenerBag();
+  private _checkTimer: ReturnType<typeof setTimeout> | null = null;
   private _focado: boolean = false;
   private _inputId: string;
   private _defaultValue: string = '';
@@ -45,7 +48,6 @@ export class UICampoTexto extends FormAssociatedElement {
     this.inputElement.id = this._inputId;
     this.labelElement.htmlFor = this._inputId;
     this.helperElement.id = `${this._inputId}-helper`;
-    this.inputElement.setAttribute('aria-describedby', `${this._inputId}-helper`);
   }
 
   public override focus(options?: FocusOptions) {
@@ -57,15 +59,16 @@ export class UICampoTexto extends FormAssociatedElement {
   }
 
   connectedCallback() {
-    this.inputElement.addEventListener('input', this.handleInput);
-    this.inputElement.addEventListener('change', this.handleChange);
-    this.inputElement.addEventListener('focus', this.handleFocus);
-    this.inputElement.addEventListener('blur', this.handleBlur);
-    this.inputElement.addEventListener('keydown', this.handleKeyDown);
-    this.rightIconContainer.addEventListener('click', this.handleRightIconClick);
-    this.rightIconContainer.addEventListener('keydown', this.handleRightIconKeyDown);
-    this.leftSlotElement.addEventListener('slotchange', this.handleSlotChange);
-    this.addEventListener('click', this.handleHostClick);
+    this.listeners.cleanup();
+    this.listeners.add(this.inputElement, 'input', this.handleInput);
+    this.listeners.add(this.inputElement, 'change', this.handleChange);
+    this.listeners.add(this.inputElement, 'focus', this.handleFocus);
+    this.listeners.add(this.inputElement, 'blur', this.handleBlur);
+    this.listeners.add(this.inputElement, 'keydown', this.handleKeyDown);
+    this.listeners.add(this.rightIconContainer, 'click', this.handleRightIconClick);
+    this.listeners.add(this.rightIconContainer, 'keydown', this.handleRightIconKeyDown);
+    this.listeners.add(this.leftSlotElement, 'slotchange', this.handleSlotChange);
+    this.listeners.add(this, 'click', this.handleHostClick);
 
     this._defaultValue = this.getAttribute('value') || '';
     if (this.hasAttribute('value') && !this.inputElement.value) {
@@ -73,21 +76,14 @@ export class UICampoTexto extends FormAssociatedElement {
     }
 
     this.syncState();
+    if (this._checkTimer) clearTimeout(this._checkTimer);
     this._checkTimer = setTimeout(() => this.syncState(), 100);
   }
 
   disconnectedCallback() {
-    this.inputElement.removeEventListener('input', this.handleInput);
-    this.inputElement.removeEventListener('change', this.handleChange);
-    this.inputElement.removeEventListener('focus', this.handleFocus);
-    this.inputElement.removeEventListener('blur', this.handleBlur);
-    this.inputElement.removeEventListener('keydown', this.handleKeyDown);
-    this.rightIconContainer.removeEventListener('click', this.handleRightIconClick);
-    this.rightIconContainer.removeEventListener('keydown', this.handleRightIconKeyDown);
-    this.leftSlotElement.removeEventListener('slotchange', this.handleSlotChange);
-    this.removeEventListener('click', this.handleHostClick);
-
+    this.listeners.cleanup();
     if (this._checkTimer) clearTimeout(this._checkTimer);
+    this._checkTimer = null;
   }
 
   attributeChangedCallback(name: string, _old: string | null, value: string | null) {
@@ -148,8 +144,7 @@ export class UICampoTexto extends FormAssociatedElement {
   }
 
   get minLength(): number {
-    const val = this.getAttribute('minlength') ?? this.getAttribute('min-length');
-    return val ? parseInt(val, 10) : -1;
+    return inteiroOuNulo(this.getAttribute('minlength') ?? this.getAttribute('min-length')) ?? -1;
   }
 
   set minLength(val: number) {
@@ -159,8 +154,7 @@ export class UICampoTexto extends FormAssociatedElement {
   }
 
   get maxLength(): number {
-    const val = this.getAttribute('maxlength') ?? this.getAttribute('max-length');
-    return val ? parseInt(val, 10) : -1;
+    return inteiroOuNulo(this.getAttribute('maxlength') ?? this.getAttribute('max-length')) ?? -1;
   }
 
   set maxLength(val: number) {
@@ -180,8 +174,6 @@ export class UICampoTexto extends FormAssociatedElement {
   }
 
   public atualizarValidade(): void {
-    const minLenStr = this.getAttribute('minlength') ?? this.getAttribute('min-length');
-    const maxLenStr = this.getAttribute('maxlength') ?? this.getAttribute('max-length');
     const minStr = this.getAttribute('min');
     const maxStr = this.getAttribute('max');
 
@@ -196,8 +188,8 @@ export class UICampoTexto extends FormAssociatedElement {
       disabled: this.disabled,
       required: this.required,
       tipo: this.type,
-      minlength: minLenStr !== null ? parseInt(minLenStr, 10) : null,
-      maxlength: maxLenStr !== null ? parseInt(maxLenStr, 10) : null,
+      minlength: this.minLength >= 0 ? this.minLength : null,
+      maxlength: this.maxLength >= 0 ? this.maxLength : null,
       min: minStr !== null ? parseFloat(minStr) : null,
       max: maxStr !== null ? parseFloat(maxStr) : null,
       step: this.getAttribute('step'),
@@ -274,12 +266,10 @@ export class UICampoTexto extends FormAssociatedElement {
       }
     }
 
-    const minLen = this.getAttribute('minlength') ?? this.getAttribute('min-length');
-    if (minLen !== null) this.inputElement.minLength = parseInt(minLen, 10);
+    if (this.minLength >= 0) this.inputElement.minLength = this.minLength;
     else this.inputElement.removeAttribute('minlength');
 
-    const maxLen = this.getAttribute('maxlength') ?? this.getAttribute('max-length');
-    if (maxLen !== null) this.inputElement.maxLength = parseInt(maxLen, 10);
+    if (this.maxLength >= 0) this.inputElement.maxLength = this.maxLength;
     else this.inputElement.removeAttribute('maxlength');
 
     const patternVal = this.getAttribute('pattern');
@@ -311,6 +301,12 @@ export class UICampoTexto extends FormAssociatedElement {
       this.getAttribute('mensagem-erro'),
       this.getAttribute('helper-text')
     );
+    // Só referencia a ajuda quando ela está visível
+    if (this.helperElement.style.display === 'none') this.inputElement.removeAttribute('aria-describedby');
+    else this.inputElement.setAttribute('aria-describedby', this.helperElement.id);
+
+    if (this.required) this.inputElement.setAttribute('aria-required', 'true');
+    else this.inputElement.removeAttribute('aria-required');
 
     this.atualizarValidade();
   }
