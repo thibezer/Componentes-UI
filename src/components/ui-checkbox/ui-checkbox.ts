@@ -2,6 +2,8 @@ import estilos from './ui-checkbox.css?inline';
 import { ListenerBag } from '../../core/listener-bag';
 import { definirCustomElement } from '../../core/ssr-safe';
 import { FormAssociatedElement } from '../../core/form-associated-element';
+import { gerarIdUnico, cliqueVeioDeRotuloExterno } from '../../core/acessibilidade';
+import { sincronizarRotuloControle } from '../../core/rotulo-controle';
 
 export class UICheckbox extends FormAssociatedElement {
   static get observedAttributes() {
@@ -44,6 +46,8 @@ export class UICheckbox extends FormAssociatedElement {
     this.containerElement = shadow.querySelector('.ui-checkbox')!;
     this.markElement = shadow.querySelector('.ui-checkbox__mark')!;
     this.labelElement = shadow.querySelector('.ui-checkbox__label')!;
+    // Associação rótulo ↔ controle gerada internamente: o consumidor não gerencia IDs
+    this.labelElement.id = gerarIdUnico('ui-checkbox-label');
   }
 
   connectedCallback() {
@@ -52,6 +56,7 @@ export class UICheckbox extends FormAssociatedElement {
     this.listeners.add(this.containerElement, 'keydown', this.handleKeyDown);
     this.listeners.add(this.containerElement, 'focus', this.handleFocus);
     this.listeners.add(this.containerElement, 'blur', this.handleBlur);
+    this.listeners.add(this, 'click', this.handleHostClick);
     this._defaultChecked = this.hasAttribute('marcado') || this.hasAttribute('checked');
     this._defaultIndeterminate = this.hasAttribute('indeterminado') || this.hasAttribute('indeterminate');
     this.syncState();
@@ -159,6 +164,11 @@ export class UICheckbox extends FormAssociatedElement {
     this.internals.setValidity({});
   }
 
+  /** `focus()` no host leva o foco ao controle interno (necessário para o foco de validação do formulário). */
+  public override focus(options?: FocusOptions): void {
+    this.containerElement.focus(options);
+  }
+
   public alternar() {
     if (this.disabled) return;
     if (this.indeterminado) {
@@ -247,13 +257,14 @@ export class UICheckbox extends FormAssociatedElement {
       this.markElement.innerHTML = '';
     }
 
-    // Rótulo
-    if (labelText) {
-      this.labelElement.textContent = labelText;
-      this.labelElement.style.display = 'inline';
-    } else {
-      this.labelElement.style.display = 'none';
-    }
+    // Rótulo (visível via atributo `label` ou externo via aria-label / <label for> / <label> envolvente)
+    sincronizarRotuloControle({
+      host: this,
+      internals: this.internals,
+      controle: this.containerElement,
+      rotulo: this.labelElement,
+      texto: labelText
+    });
 
     if (isChecked) {
       this.internals.setFormValue(this.getAttribute('value') || 'on');
@@ -271,7 +282,7 @@ export class UICheckbox extends FormAssociatedElement {
     this.syncState();
   }
 
-  public formStateRestoreCallback(state: any, _mode: 'restore' | 'autocomplete'): void {
+  public formStateRestoreCallback(state: unknown, _mode: 'restore' | 'autocomplete'): void {
     if (typeof state === 'string') {
       this.marcado = state === (this.getAttribute('value') || 'on');
     } else if (typeof state === 'boolean') {
@@ -283,6 +294,14 @@ export class UICheckbox extends FormAssociatedElement {
   private handleClick = (e: MouseEvent) => {
     e.preventDefault();
     this.alternar();
+  };
+
+  private handleHostClick = (e: MouseEvent) => {
+    // Clique em <label> externo associado ao host: alterna como um checkbox nativo
+    if (cliqueVeioDeRotuloExterno(this, e)) {
+      this.alternar();
+      this.containerElement.focus();
+    }
   };
 
   private handleKeyDown = (e: KeyboardEvent) => {

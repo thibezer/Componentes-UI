@@ -1,57 +1,67 @@
 import type { UIRadio } from './ui-radio';
 
+interface Registro {
+  scope: Node;
+  nome: string;
+}
+
+/**
+ * Grupos de radios por nome, dentro do escopo do formulário (ou da raiz, sem formulário).
+ * O registro de cada radio é guardado ao registrar: assim o cancelamento usa o nome e o escopo de ANTES,
+ * mesmo que o radio já tenha saído do formulário (disconnectedCallback roda depois da remoção) ou mudado de nome.
+ */
 export class RadioGrupoRegistry {
   private static registry = new WeakMap<Node, Map<string, Set<UIRadio>>>();
+  private static registros = new WeakMap<UIRadio, Registro>();
 
   public static getScopeNode(radio: HTMLElement): Node {
     return radio.closest('form') || radio.getRootNode() || document;
   }
 
+  /** Registra (ou re-registra, se o nome ou o escopo mudaram) o radio no grupo do seu nome atual. */
   public static registrar(radio: UIRadio): void {
+    this.desregistrar(radio);
     const nome = radio.name;
-    if (nome) {
-      const scope = this.getScopeNode(radio);
-      if (!this.registry.has(scope)) {
-        this.registry.set(scope, new Map());
-      }
-      const scopeMap = this.registry.get(scope)!;
-      if (!scopeMap.has(nome)) {
-        scopeMap.set(nome, new Set());
-      }
-      scopeMap.get(nome)!.add(radio);
+    if (!nome) return;
+
+    const scope = this.getScopeNode(radio);
+    let porNome = this.registry.get(scope);
+    if (!porNome) {
+      porNome = new Map();
+      this.registry.set(scope, porNome);
     }
+    let grupo = porNome.get(nome);
+    if (!grupo) {
+      grupo = new Set();
+      porNome.set(nome, grupo);
+    }
+    grupo.add(radio);
+    this.registros.set(radio, { scope, nome });
   }
 
   public static desregistrar(radio: UIRadio): void {
-    const nome = radio.name;
-    if (nome) {
-      const scope = this.getScopeNode(radio);
-      const scopeMap = this.registry.get(scope);
-      if (scopeMap && scopeMap.has(nome)) {
-        const group = scopeMap.get(nome)!;
-        group.delete(radio);
-        if (group.size === 0) {
-          scopeMap.delete(nome);
-        }
-        if (scopeMap.size === 0) {
-          this.registry.delete(scope);
-        }
-      }
-    }
+    const anterior = this.registros.get(radio);
+    if (!anterior) return;
+    this.registros.delete(radio);
+
+    const porNome = this.registry.get(anterior.scope);
+    const grupo = porNome?.get(anterior.nome);
+    if (!porNome || !grupo) return;
+    grupo.delete(radio);
+    if (grupo.size === 0) porNome.delete(anterior.nome);
+    if (porNome.size === 0) this.registry.delete(anterior.scope);
   }
 
+  /** Radios do mesmo grupo que `radio`, usando o registro (não o nome atual, que pode ainda não ter sido registrado). */
   public static obterRadiosDoGrupo(radio: UIRadio): UIRadio[] {
-    const nome = radio.name;
-    if (!nome) return [];
-    const scope = this.getScopeNode(radio);
-    const scopeMap = this.registry.get(scope);
-    if (!scopeMap || !scopeMap.has(nome)) return [];
-    return Array.from(scopeMap.get(nome)!);
+    const registro = this.registros.get(radio);
+    if (!registro) return [];
+    const grupo = this.registry.get(registro.scope)?.get(registro.nome);
+    return grupo ? Array.from(grupo) : [];
   }
 
   public static desmarcarOutros(radio: UIRadio): void {
-    const grupo = this.obterRadiosDoGrupo(radio);
-    grupo.forEach(el => {
+    this.obterRadiosDoGrupo(radio).forEach((el) => {
       if (el !== radio) {
         el.removeAttribute('marcado');
         el.removeAttribute('checked');
@@ -60,27 +70,24 @@ export class RadioGrupoRegistry {
     });
   }
 
+  /** Reavalia o tabindex (roving) dos radios; use depois de entrar, sair ou mudar de grupo. */
+  public static atualizarGrupo(radios: UIRadio[]): void {
+    radios.forEach((r) => r.atualizarTabindex());
+  }
+
   public static tratarNavegacaoTeclado(e: KeyboardEvent, radioAtual: UIRadio): void {
-    if (['ArrowDown', 'ArrowRight', 'ArrowUp', 'ArrowLeft'].includes(e.key)) {
-      e.preventDefault();
-      const radios = this.obterRadiosDoGrupo(radioAtual);
-      const enabledRadios = radios.filter(r => !r.disabled);
-      if (enabledRadios.length <= 1) return;
+    if (!['ArrowDown', 'ArrowRight', 'ArrowUp', 'ArrowLeft'].includes(e.key)) return;
+    e.preventDefault();
+    const habilitados = this.obterRadiosDoGrupo(radioAtual).filter((r) => !r.disabled && r.isConnected);
+    if (habilitados.length <= 1) return;
 
-      const currentIndex = enabledRadios.indexOf(radioAtual);
-      let nextIndex = currentIndex;
-
-      if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
-        nextIndex = (currentIndex + 1) % enabledRadios.length;
-      } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
-        nextIndex = (currentIndex - 1 + enabledRadios.length) % enabledRadios.length;
-      }
-
-      if (nextIndex !== currentIndex && nextIndex >= 0 && nextIndex < enabledRadios.length) {
-        const nextRadio = enabledRadios[nextIndex];
-        nextRadio.selecionar();
-        nextRadio.focus();
-      }
+    const atual = habilitados.indexOf(radioAtual);
+    const avanca = e.key === 'ArrowDown' || e.key === 'ArrowRight';
+    const proximo = (atual + (avanca ? 1 : -1) + habilitados.length) % habilitados.length;
+    if (proximo !== atual) {
+      const alvo = habilitados[proximo];
+      alvo.selecionar();
+      alvo.focus();
     }
   }
 }

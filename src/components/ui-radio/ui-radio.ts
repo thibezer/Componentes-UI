@@ -2,6 +2,9 @@ import estilos from './ui-radio.css?inline';
 import { RadioGrupoRegistry } from './radio-grupo-registry';
 import { definirCustomElement } from '../../core/ssr-safe';
 import { FormAssociatedElement } from '../../core/form-associated-element';
+import { ListenerBag } from '../../core/listener-bag';
+import { gerarIdUnico, cliqueVeioDeRotuloExterno } from '../../core/acessibilidade';
+import { sincronizarRotuloControle } from '../../core/rotulo-controle';
 
 export class UIRadio extends FormAssociatedElement {
   static get observedAttributes() {
@@ -22,6 +25,7 @@ export class UIRadio extends FormAssociatedElement {
 
   public containerElement: HTMLDivElement;
   private labelElement: HTMLSpanElement;
+  private listeners = new ListenerBag();
   private _defaultChecked: boolean = false;
 
   constructor() {
@@ -39,27 +43,40 @@ export class UIRadio extends FormAssociatedElement {
 
     this.containerElement = shadow.querySelector('.ui-radio')!;
     this.labelElement = shadow.querySelector('.ui-radio__label')!;
+    // Associação rótulo ↔ controle gerada internamente: o consumidor não gerencia IDs
+    this.labelElement.id = gerarIdUnico('ui-radio-label');
   }
 
   connectedCallback() {
-    this.containerElement.addEventListener('click', this.handleClick);
-    this.containerElement.addEventListener('keydown', this.handleKeyDown);
-    this.containerElement.addEventListener('focus', this.handleFocus);
-    this.containerElement.addEventListener('blur', this.handleBlur);
+    this.listeners.cleanup();
+    this.listeners.add(this.containerElement, 'click', this.handleClick);
+    this.listeners.add(this.containerElement, 'keydown', this.handleKeyDown);
+    this.listeners.add(this.containerElement, 'focus', this.handleFocus);
+    this.listeners.add(this.containerElement, 'blur', this.handleBlur);
+    this.listeners.add(this, 'click', this.handleHostClick);
     this._defaultChecked = this.hasAttribute('marcado') || this.hasAttribute('checked');
     RadioGrupoRegistry.registrar(this);
     this.syncState();
+    // quem já estava no grupo precisa reavaliar o tabindex (roving)
+    RadioGrupoRegistry.atualizarGrupo(RadioGrupoRegistry.obterRadiosDoGrupo(this).filter((r) => r !== this));
   }
 
   disconnectedCallback() {
-    this.containerElement.removeEventListener('click', this.handleClick);
-    this.containerElement.removeEventListener('keydown', this.handleKeyDown);
-    this.containerElement.removeEventListener('focus', this.handleFocus);
-    this.containerElement.removeEventListener('blur', this.handleBlur);
+    this.listeners.cleanup();
+    const restantes = RadioGrupoRegistry.obterRadiosDoGrupo(this).filter((r) => r !== this && r.isConnected);
     RadioGrupoRegistry.desregistrar(this);
+    RadioGrupoRegistry.atualizarGrupo(restantes);
   }
 
-  attributeChangedCallback(_name: string, _old: string | null, _value: string | null) {
+  attributeChangedCallback(nome: string, _old: string | null, _value: string | null) {
+    // mudar o nome depois de conectado move o radio de grupo (setAttribute não passa pelo setter `name`)
+    if ((nome === 'name' || nome === 'nome') && this.isConnected) {
+      const antigos = RadioGrupoRegistry.obterRadiosDoGrupo(this).filter((r) => r !== this);
+      RadioGrupoRegistry.registrar(this);
+      this.syncState();
+      RadioGrupoRegistry.atualizarGrupo([...antigos, ...RadioGrupoRegistry.obterRadiosDoGrupo(this).filter((r) => r !== this)]);
+      return;
+    }
     this.syncState();
   }
 
@@ -81,10 +98,8 @@ export class UIRadio extends FormAssociatedElement {
   }
 
   set name(val: string) {
-    RadioGrupoRegistry.desregistrar(this);
+    // o attributeChangedCallback re-registra no novo grupo
     this.setAttribute('name', val);
-    RadioGrupoRegistry.registrar(this);
-    this.syncState();
   }
 
   get disabled(): boolean {
@@ -139,8 +154,8 @@ export class UIRadio extends FormAssociatedElement {
   public selecionar() {
     if (this.disabled || this.marcado) return;
 
-    RadioGrupoRegistry.desmarcarOutros(this);
     this.marcado = true;
+    RadioGrupoRegistry.desmarcarOutros(this);
 
     this.dispatchEvent(
       new CustomEvent('ui-change', {
@@ -164,6 +179,29 @@ export class UIRadio extends FormAssociatedElement {
     RadioGrupoRegistry.obterRadiosDoGrupo(this).forEach(r => r.atualizarValidade());
   }
 
+  /**
+   * Roving tabindex: só um radio do grupo entra na ordem de Tab (o marcado; sem marcado, o primeiro habilitado).
+   * Isolado de `syncState` para reavaliar os vizinhos sem mexer no valor/validade do formulário.
+   */
+  public atualizarTabindex(): void {
+    if (this.disabled) {
+      this.containerElement.setAttribute('tabindex', '-1');
+      return;
+    }
+    const radios = RadioGrupoRegistry.obterRadiosDoGrupo(this).filter((r) => r.isConnected || r === this);
+    if (radios.length === 0) {
+      this.containerElement.setAttribute('tabindex', '0');
+      return;
+    }
+    if (radios.some((r) => r.marcado)) {
+      this.containerElement.setAttribute('tabindex', this.marcado ? '0' : '-1');
+    } else {
+      // ninguém marcado: o primeiro radio HABILITADO entra na ordem de Tab
+      const primeiro = radios.find((r) => !r.disabled);
+      this.containerElement.setAttribute('tabindex', primeiro === this ? '0' : '-1');
+    }
+  }
+
   public syncState() {
     const isChecked = this.marcado;
     const isDisabled = this.disabled;
@@ -172,25 +210,13 @@ export class UIRadio extends FormAssociatedElement {
 
     this.containerElement.setAttribute('aria-checked', String(isChecked));
 
+    this.atualizarTabindex();
     if (isDisabled) {
       this.containerElement.classList.add('ui-radio--disabled');
-      this.containerElement.setAttribute('tabindex', '-1');
       this.containerElement.setAttribute('aria-disabled', 'true');
     } else {
       this.containerElement.classList.remove('ui-radio--disabled');
       this.containerElement.removeAttribute('aria-disabled');
-
-      const radios = RadioGrupoRegistry.obterRadiosDoGrupo(this);
-      if (radios.length > 0) {
-        const hasChecked = radios.some(r => r.marcado);
-        if (hasChecked) {
-          this.containerElement.setAttribute('tabindex', isChecked ? '0' : '-1');
-        } else {
-          this.containerElement.setAttribute('tabindex', radios[0] === this ? '0' : '-1');
-        }
-      } else {
-        this.containerElement.setAttribute('tabindex', '0');
-      }
     }
 
     if (isChecked) {
@@ -205,12 +231,14 @@ export class UIRadio extends FormAssociatedElement {
       this.containerElement.classList.remove('ui-radio--label-esquerda');
     }
 
-    if (labelText) {
-      this.labelElement.textContent = labelText;
-      this.labelElement.style.display = 'inline';
-    } else {
-      this.labelElement.style.display = 'none';
-    }
+    // Rótulo (visível via atributo `label` ou externo via aria-label / <label for> / <label> envolvente)
+    sincronizarRotuloControle({
+      host: this,
+      internals: this.internals,
+      controle: this.containerElement,
+      rotulo: this.labelElement,
+      texto: labelText
+    });
 
     if (isChecked) {
       this.internals.setFormValue(this.getAttribute('value') || 'on');
@@ -232,7 +260,7 @@ export class UIRadio extends FormAssociatedElement {
     this.atualizarValidade();
   }
 
-  public formStateRestoreCallback(state: any, _mode: 'restore' | 'autocomplete'): void {
+  public formStateRestoreCallback(state: unknown, _mode: 'restore' | 'autocomplete'): void {
     if (typeof state === 'string') {
       this.marcado = state === (this.getAttribute('value') || 'on');
     } else if (typeof state === 'boolean') {
@@ -245,6 +273,14 @@ export class UIRadio extends FormAssociatedElement {
     e.preventDefault();
     this.selecionar();
     this.containerElement.focus();
+  };
+
+  private handleHostClick = (e: MouseEvent) => {
+    // Clique em <label> externo associado ao host: seleciona como um radio nativo
+    if (cliqueVeioDeRotuloExterno(this, e)) {
+      this.selecionar();
+      this.containerElement.focus();
+    }
   };
 
   private handleKeyDown = (e: KeyboardEvent) => {
