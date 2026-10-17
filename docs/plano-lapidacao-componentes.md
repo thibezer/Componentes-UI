@@ -177,8 +177,8 @@ Todas as fases (0, 0.5, 1, 2, 3, 4, 5 e 6) foram concluídas. Verificação fina
 | Métrica | Antes | Depois |
 |---|---|---|
 | Violações de camada (`check:layers`) | 1 (`ui-bus` → `ui-alerta`), e o script cobria só L0–L2 | 0, com regras L0–L5 e testes do próprio script |
-| Testes | 861 (v2.1.0) / 1.0xx no início da revisão | 1.427 em 94 arquivos |
-| `any` em código de produção | 301 | 251 (zero em canvas-cad parcial, mapa, tooltip, modal e camadas) |
+| Testes | ~1.000 no início da revisão | 1.427 em 94 arquivos |
+| `any` em código de produção | 301 | 251 (0 em mapa, tooltip e modal; 1 em camadas; 10 em canvas-cad) |
 | `cad-feicoes.ts` | 1.179 linhas | 625 (fachada) + 10 módulos |
 | `ui-camadas.ts` / renderer / drag-drop | 878 / 510 / 495 | 647 / 370 / 314 |
 | `ui-ribbon` / `ui-paleta-ferramentas` / `ui-tabela` | 552 / 548 / 635 | 490 / 490 / 498 |
