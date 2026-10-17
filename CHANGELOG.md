@@ -1,5 +1,16 @@
 # Changelog
 
+## Não lançado
+
+### `<ui-card>`: lapidação
+
+- **Teclado:** Enter/Espaço vindos de um campo ou botão dentro do card não o ativam mais nem têm o `preventDefault` aplicado (antes era impossível digitar espaço num `<input>` dentro de um card `clicavel`). Tecla mantida (`repeat`) e atalhos com Ctrl/Alt/Meta não ativam.
+- **Cliques internos:** o clique num ícone SVG dentro de um botão (alvo `<path>`) passou a ser reconhecido como de controle interno; `label`, `summary`, conteúdo editável, `ui-campo-texto` e `ui-segmented` também. Um `<a>`/`<label>` que *envolve* o card não o bloqueia mais.
+- **Acessibilidade:** `aria-label` do host dá nome ao card clicável; `focus()` no host foca o card; anel de foco visível (`:focus-visible`, contorno que sobrevive ao modo de alto contraste).
+- **Estilo:** o atributo `hidden` passa a esconder o card (o `display: block` do host o anulava); o realce de hover vale só com `(hover: hover)`; `prefers-reduced-motion` desliga transições e deslocamento.
+- **Seções:** `[slot="cabecalho|rodape|midia"]` aninhado em um descendente não revela mais a seção do card (só filhos diretos).
+- Lógica extraída para `card-interacao.ts` e `card-secoes.ts`; JSDoc de atributos, slots, parts e evento para o manifesto. API pública inalterada (novo observado: `aria-label`).
+
 ## 2.7.0 — 2026-10-17
 
 ### `UIBus`: independente do componente de toast
