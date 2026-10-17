@@ -121,11 +121,19 @@ Pré-requisito das demais fases: sem isso `npm run gate` falha.
   4. `<ui-tooltip>`: o `requestAnimationFrame` de posicionamento ficava pendente após desconectar.
   5. `<ui-modal>`: **Shift+Tab no botão de fechar não voltava para o último controle** e o foco escapava do modal: a comparação usava o elemento retargeted pelo Shadow DOM em vez do foco real.
 
-### Fase 5 — Componentes simples e de formulário (P3)
-- [ ] `ui-avatar`: sem nome, imagem decorativa (`alt=""`/`aria-hidden`); `ui-texto`: papéis/semântica.
-- [ ] `ui-skeleton`: `aria-busy`; `ui-stat`: papel e rótulos.
-- [ ] `ui-switch`/`ui-checkbox`/`ui-radio`: validação (`required`), `reset`, valor no `FormData`, `disabled` em `fieldset`.
-- [ ] Ampliar testes de `ui-badge`, `ui-card`.
+### Fase 5 — Componentes simples e de formulário (P3) — concluída em 2026-10-17
+- [x] **Núcleo compartilhado (L1):** `core/opcoes.ts` (`escolherOpcao`: atributo → valor de um conjunto conhecido) e `core/rotulo-controle.ts` (rótulo por atributo ou externo para switch/checkbox/radio, antes só no switch).
+- [x] **Testes:** um `*.regressao.test.ts` por componente (avatar, skeleton, stat, badge, card, texto, radio, checkbox+switch); suíte 90 arquivos / 1355 testes; `any` em produção 255 → 251.
+- **Defeitos encontrados e corrigidos** (cada um com teste que falhava antes):
+  1. **`<ui-skeleton linhas="100000000">` derrubava o processo** (criava milhões de nós): agora há teto de 100 linhas.
+  2. **Classes CSS injetáveis por atributo** em `ui-texto`, `ui-stat`, `ui-badge` e `ui-card` (`variante="erro x"` adicionava a classe `x`): agora só valores de um conjunto conhecido.
+  3. **`<ui-avatar>`:** sem papel nem nome (as iniciais eram lidas como texto) e `alt="Avatar"` genérico. Agora o host é `role=img` com `aria-label` ("Ana, online") ou decorativo (`aria-hidden`) sem nome; respeita `aria-label`/`aria-hidden` do consumidor. Também: iniciais não cortam emoji/pares substitutos, tamanho numérico limitado a 8–512 px, e o fallback da imagem usa o nome atual.
+  4. **`<ui-skeleton>`:** `role=status` dentro de um host `aria-hidden` era contraditório; agora decorativo por padrão e `role=status` quando há `aria-label`.
+  5. **`<ui-stat>`:** `aria-label` em `div` sem papel não era anunciado; o indicador é `role=img` e o conjunto, `role=group` rotulado pelo rótulo.
+  6. **`<ui-badge>`:** o atributo `disabled` era observado e ignorado; o ✕ agora respeita (sem remover, `tabindex=-1`, `aria-disabled`) e seu nome identifica o item ("Remover Urgente").
+  7. **`<ui-card clicavel>`:** `tabindex` sem papel e sem `aria-disabled`; agora `role=button`, `aria-disabled` e `tabindex=-1` quando desabilitado.
+  8. **`<ui-radio>`:** `name` definido por `setAttribute` depois de conectado não formava grupo; mudar o `name` deixava o radio no grupo antigo; **remover um radio de um `<form>` o deixava registrado** (as setas levavam o foco a um radio fora do DOM); se o primeiro radio estava desabilitado, nenhum entrava na ordem de Tab; ao selecionar outro, o primeiro continuava com `tabindex=0`.
+  9. **`focus()` no host de `ui-checkbox` e `ui-switch` não fazia nada** (só o radio tinha o override); `ui-checkbox` e `ui-radio` ignoravam `<label for>`/`<label>` envolvente/`aria-label` (só o switch tinha).
 
 ### Fase 6 — Divisões oportunistas (monitorar)
 - [ ] `ui-ribbon.ts` e `ui-paleta-ferramentas.ts`: extrair o que for comum para `ferramentas-comum.ts` e o que for específico para módulos próprios.
@@ -155,7 +163,7 @@ Pré-requisito das demais fases: sem isso `npm run gate` falha.
 | 2 | `ui-camadas`: divisão em 9 módulos, 3 defeitos (estado preso no `body`, ouvintes em `window`, laço em `ehDescendente`) | feito | 2026-10-17 | | `ui-camadas.ts` 878→647, renderer 510→370, drag-drop 495→314; `any` em produção: 266 → 264 |
 | 3 | `ui-mapa`: adaptador, SRP, ARIA e 4 defeitos (inclui injeção via `cor`) | feito | 2026-10-17 | | +51 testes; suíte 77 arquivos / 1134 testes; `any` em produção: 275 → 266 |
 | 4 | `ui-tooltip` e `ui-modal`: SRP, ListenerBag, sem `any`, 5 defeitos (clique engolido, foco escapando no Shift+Tab) | feito | 2026-10-17 | | +39 testes; suíte 82 arquivos / 1220 testes; `any` em produção: 264 → 255 |
-| 5 | A11y e testes dos componentes simples | pendente | | | |
+| 5 | Componentes simples e de formulário: 9 defeitos (inclui queda por `linhas` enorme e classes injetáveis), núcleo `opcoes`/`rotulo-controle` | feito | 2026-10-17 | | +9 arquivos de regressão; suíte 90 arquivos / 1355 testes |
 | 6 | Divisões oportunistas | pendente | | | |
 
 ## Riscos e cuidados

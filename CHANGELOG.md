@@ -8,6 +8,15 @@
 - **Mudança de comportamento:** quem importar apenas `core/ui-bus` sem carregar `ui-alerta` (ou o pacote principal) passa a ter `UIBus.notificar()` como no-op, sem erro. Exceções do provedor são capturadas (`console.error`).
 - Contratos `UIToastOpcoes`/`UIToastAcao` movidos para `src/core/tipos-toast.ts` e reexportados por `ui-alerta` (nomes públicos inalterados).
 
+### Componentes simples e de formulário: robustez e acessibilidade
+
+- **`<ui-skeleton>`:** `linhas` é limitado a 100 (um valor enorme derrubava a página). Decorativo por padrão (`aria-hidden`); com `aria-label` vira `role="status"`.
+- **Classes por atributo:** `variante`, `cor`, `peso`, `alinhamento` (`ui-texto`), `elevacao` (`ui-stat`, `ui-card`), `variante`/`estilo` (`ui-badge`) só aceitam valores conhecidos; qualquer outro usa o padrão (antes, o texto virava classes CSS arbitrárias).
+- **`<ui-avatar>`:** host com `role="img"` e `aria-label` (nome, e o status quando houver) ou `aria-hidden` sem nome; **a imagem interna agora tem `alt=""`** (antes `alt` = nome ou "Avatar"). `aria-label`/`aria-hidden` do consumidor são respeitados. Tamanho numérico aceito entre 8 e 512 px.
+- **`<ui-stat>`:** grupo rotulado e indicador de variação como imagem nomeada. **`<ui-card clicavel>`:** `role="button"`, `aria-disabled`. **`<ui-badge>`:** `disabled` desativa o ✕; nome acessível "Remover …".
+- **`<ui-radio>`:** o grupo agora acompanha `setAttribute('name')` depois de conectado, mudança de nome e remoção do formulário; o primeiro radio habilitado entra na ordem de Tab.
+- **`<ui-checkbox>`, `<ui-switch>`, `<ui-radio>`:** `focus()` no host foca o controle; checkbox e radio passam a respeitar `<label for>`, `<label>` envolvente e `aria-label` (como o switch).
+
 ### `<ui-tooltip>` e `<ui-modal>`: correções de comportamento
 
 - **`<ui-tooltip>`:** o clique no gatilho deixa de ser interrompido (`stopPropagation`) e volta a chegar aos ouvintes de ancestrais; `disabled` fecha o balão aberto (e `aberto` + `disabled` não o mostra); ambientes sem `matchMedia` não lançam; o quadro de animação do posicionamento é cancelado ao fechar/desconectar.
