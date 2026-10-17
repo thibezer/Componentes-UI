@@ -1,22 +1,10 @@
 import { UIAlerta } from './ui-alerta-base';
 import { definirCustomElement } from '../../core/ssr-safe';
 
-export interface UIToastAcao {
-  rotulo: string;
-  onClick: (e: MouseEvent) => void;
-  tipo?: 'primario' | 'secundario' | 'destrutivo';
-}
+import type { UIToastAcao, UIToastOpcoes } from '../../core/tipos-toast';
+import { UIBus } from '../../core/ui-bus';
 
-export interface UIToastOpcoes {
-  tipo?: 'sucesso' | 'erro' | 'alerta' | 'info';
-  titulo?: string;
-  mensagem: string;
-  duracao?: number;
-  posicao?: 'bottom-right' | 'top-right' | 'bottom-left' | 'top-left' | 'bottom-center' | 'top-center';
-  acao?: UIToastAcao;
-  fechavel?: boolean;
-  pausarNoHover?: boolean;
-}
+export type { UIToastAcao, UIToastOpcoes };
 
 export class UIToast extends UIAlerta {
   private timerId: any = null;
@@ -203,3 +191,10 @@ export class UIToast extends UIAlerta {
 }
 
 definirCustomElement('ui-toast', UIToast);
+
+/** Registra o `UIToast` como provedor de `UIBus.notificar` (idempotente). */
+export function registrarToastNoBus(): void {
+  UIBus.registrarProvedorToast((opcoes) => { UIToast.notificar(opcoes); });
+}
+
+registrarToastNoBus();

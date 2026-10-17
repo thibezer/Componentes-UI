@@ -1,5 +1,17 @@
 # Changelog
 
+## Não lançado
+
+### `UIBus`: independente do componente de toast
+
+- `src/core/ui-bus.ts` (L1) deixou de importar `ui-alerta` (L3). Novo `UIBus.registrarProvedorToast(fn | null)`; o `ui-toast` se registra sozinho ao ser carregado (`registrarToastNoBus()`).
+- **Mudança de comportamento:** quem importar apenas `core/ui-bus` sem carregar `ui-alerta` (ou o pacote principal) passa a ter `UIBus.notificar()` como no-op, sem erro. Exceções do provedor são capturadas (`console.error`).
+- Contratos `UIToastOpcoes`/`UIToastAcao` movidos para `src/core/tipos-toast.ts` e reexportados por `ui-alerta` (nomes públicos inalterados).
+
+### Ferramentas de arquitetura
+
+- `scripts/check-layers.mjs` verifica o DAG L0→L5 resolvendo imports (estáticos, de efeito colateral, re-exports e dinâmicos); `npm run gate` / `gate:full` agrupam as verificações.
+
 ## 2.6.0 — 2026-10-17
 
 ### `<ui-ribbon>` e `<ui-paleta-ferramentas>`: contrato com o consumidor
