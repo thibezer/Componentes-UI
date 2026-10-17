@@ -1,6 +1,6 @@
 # Changelog
 
-## Não lançado
+## 2.7.0 — 2026-10-17
 
 ### `UIBus`: independente do componente de toast
 
@@ -48,6 +48,30 @@
 ### Ferramentas de arquitetura
 
 - `scripts/check-layers.mjs` verifica o DAG L0→L5 resolvendo imports (estáticos, de efeito colateral, re-exports e dinâmicos); `npm run gate` / `gate:full` agrupam as verificações.
+
+## 2.6.1 — 2026-10-17
+
+### `<ui-controle-cores>` e `<ui-seletor-cor>`: revisão de erros e visual
+
+**Correções**
+
+- O botão "sem cor" ficava por cima da amostra do traço e roubava os cliques da metade inferior esquerda dela. As ações (inverter, sem cor, restaurar padrão) agora ficam numa coluna ao lado das amostras, cada uma com a própria área de clique, sem sobreposição.
+- `desabilitado` agora desativa todos os botões (antes só bloqueava o mouse: Tab + Enter ainda inverter/limpar/restaurar) e fecha um seletor aberto; remover o atributo reativa o controle.
+- Trocar o alvo pelo controle (`alternarAlvo()`, `definirAlvo()`, clique na outra amostra) agora acompanha a aba do seletor aberto, em vez de deixá-las divergentes.
+- `fecharSeletor(false)` agora cancela de verdade: as cores iniciais voltam (com um `ui-cores-change` não confirmado) em vez de ficar a pré-visualização aplicada sem nenhuma confirmação.
+- `ui-alvo-change` não é mais emitido em duplicidade no documento (o painel do seletor deixou de repassá-lo ao abrir pelo popover; use `aoTrocarAlvo`).
+- Espaço/Enter na amostra ativa com o seletor aberto fecham como o clique, e o Espaço não fecha mais o painel recém-aberto em navegadores que disparam o clique ao soltar a tecla.
+
+**Acessibilidade**
+
+- `abrirSeletorCor({ focar: true })` leva o foco ao painel (o controle usa ao abrir por teclado); ao fechar, o foco volta para a âncora. O painel ganha `aria-label` e as amostras da paleta `aria-pressed`.
+- O grupo de amostras é anunciado como "Cores de desenho"; a dica/`aria-label` do preenchimento informa a opacidade.
+
+**Visual**
+
+- Amostras maiores (`--ui-controle-cores-amostra`, padrão 26px), coluna de ações alinhada, ícone "padrão" refeito e anel de foco visível.
+- Ambos os componentes passam a usar os tokens do kit (`--ui-cor-texto`, `--ui-cor-borda`, `--ui-cor-primaria`…) e acompanham o tema claro; antes eram fixos no escuro.
+- Seletor: trilha da opacidade preenchida até o valor, rótulos ORIGINAL/NOVA sempre legíveis, diagonal de "sem cor" igual à do controle, aba de preenchimento "sem cor" com a diagonal vermelha, `prefers-reduced-motion` respeitado e painel reposicionado ao redimensionar a janela.
 
 ## 2.6.0 — 2026-10-17
 
