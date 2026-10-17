@@ -1,9 +1,26 @@
 import estilos from './ui-tooltip.css?inline';
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
+import { ListenerBag } from '../../core/listener-bag';
+import { normalizarPosicao, calcularPosicaoBalao } from './tooltip-posicionamento';
+import { mostrarPopover, ocultarPopover } from './tooltip-popover';
 
 /** Tempo para levar o ponteiro do gatilho até o balão sem que ele feche (WCAG 1.4.13). */
 const ATRASO_OCULTAR_MS = 120;
 
+/**
+ * Dica contextual (e popover) ao redor de um gatilho.
+ *
+ * @attr {string} texto - Texto do balão (alias `text`); também vira `aria-description` do gatilho.
+ * @attr {'topo'|'baixo'|'esquerda'|'direita'} posicao - Lado do balão (alias `position`, aceita top/bottom/left/right).
+ * @attr {'hover'|'clique'} gatilho - Como abre (alias `trigger`); em telas de toque o toque sempre alterna.
+ * @attr {boolean} aberto - Balão visível (alias `open`).
+ * @attr {boolean} disabled - Desativa o tooltip; fecha se estiver aberto.
+ * @slot - Elemento gatilho.
+ * @slot conteudo - Conteúdo rico do balão.
+ * @csspart balao - O balão.
+ * @csspart texto - O texto do balão.
+ * @csspart seta - A seta do balão.
+ */
 export class UITooltip extends SafeHTMLElement {
   static get observedAttributes() {
     return [
@@ -21,8 +38,12 @@ export class UITooltip extends SafeHTMLElement {
 
   private containerElement: HTMLDivElement;
   private bubbleElement: HTMLDivElement;
-  private _posicionamentoAtivo: boolean = false;
+  /** Ouvintes do host: valem enquanto o elemento está conectado. */
+  private ouvintesHost = new ListenerBag();
+  /** Ouvintes globais (documento/janela): valem só enquanto o balão está aberto. */
+  private ouvintesAberto = new ListenerBag();
   private _timerOcultar: ReturnType<typeof setTimeout> | null = null;
+  private _quadro: number | null = null;
   /** Gatilho que recebeu `aria-description` deste tooltip (para remover depois). */
   private _gatilhoDescrito: HTMLElement | null = null;
 
@@ -47,30 +68,21 @@ export class UITooltip extends SafeHTMLElement {
   }
 
   connectedCallback() {
-    this.addEventListener('mouseenter', this.handleMouseEnter);
-    this.addEventListener('mouseleave', this.handleMouseLeave);
-    this.addEventListener('focusin', this.handleMouseEnter);
-    this.addEventListener('focusout', this.handleMouseLeave);
-    this.addEventListener('click', this.handleClick);
+    this.ouvintesHost.cleanup();
+    this.ouvintesHost.add(this, 'mouseenter', this.handleMouseEnter);
+    this.ouvintesHost.add(this, 'mouseleave', this.handleMouseLeave);
+    this.ouvintesHost.add(this, 'focusin', this.handleMouseEnter);
+    this.ouvintesHost.add(this, 'focusout', this.handleMouseLeave);
+    this.ouvintesHost.add(this, 'click', this.handleClick);
     this.syncState();
   }
 
   disconnectedCallback() {
-    this.removeEventListener('mouseenter', this.handleMouseEnter);
-    this.removeEventListener('mouseleave', this.handleMouseLeave);
-    this.removeEventListener('focusin', this.handleMouseEnter);
-    this.removeEventListener('focusout', this.handleMouseLeave);
-    this.removeEventListener('click', this.handleClick);
-    document.removeEventListener('click', this.handleClickOutside);
-    document.removeEventListener('keydown', this.handleEscape, true);
+    this.ouvintesHost.cleanup();
+    this.ouvintesAberto.cleanup();
     this.cancelarOcultar();
+    this.cancelarQuadro();
     this.removerDescricao();
-
-    if (this._posicionamentoAtivo) {
-      this._posicionamentoAtivo = false;
-      window.removeEventListener('scroll', this.posicionarBubble, { capture: true });
-      window.removeEventListener('resize', this.posicionarBubble);
-    }
     this.ocultar();
   }
 
@@ -114,105 +126,81 @@ export class UITooltip extends SafeHTMLElement {
     this.aberto = false;
   }
 
+  private lerGatilho(): string {
+    return this.getAttribute('gatilho') || this.getAttribute('trigger') || 'hover';
+  }
+
   private posicionarBubble = () => {
     if (!this.aberto) return;
-
-    const hostRect = this.getBoundingClientRect();
-    const bubbleRect = this.bubbleElement.getBoundingClientRect();
-    const posicaoRaw = this.getAttribute('posicao') || this.getAttribute('position') || 'topo';
-
-    let posicao = 'topo';
-    if (['topo', 'top'].includes(posicaoRaw)) posicao = 'topo';
-    else if (['baixo', 'bottom'].includes(posicaoRaw)) posicao = 'baixo';
-    else if (['esquerda', 'left'].includes(posicaoRaw)) posicao = 'esquerda';
-    else if (['direita', 'right'].includes(posicaoRaw)) posicao = 'direita';
-
-    let top = 0;
-    let left = 0;
-    const offset = 8; // tooltip arrow + margin
-
-    if (posicao === 'topo') {
-      top = hostRect.top - bubbleRect.height - offset;
-      left = hostRect.left + (hostRect.width / 2) - (bubbleRect.width / 2);
-    } else if (posicao === 'baixo') {
-      top = hostRect.bottom + offset;
-      left = hostRect.left + (hostRect.width / 2) - (bubbleRect.width / 2);
-    } else if (posicao === 'esquerda') {
-      top = hostRect.top + (hostRect.height / 2) - (bubbleRect.height / 2);
-      left = hostRect.left - bubbleRect.width - offset;
-    } else if (posicao === 'direita') {
-      top = hostRect.top + (hostRect.height / 2) - (bubbleRect.height / 2);
-      left = hostRect.right + offset;
-    }
-
-    // fallback bounds (não vazar da tela)
-    left = Math.max(8, Math.min(left, window.innerWidth - bubbleRect.width - 8));
-    top = Math.max(8, Math.min(top, window.innerHeight - bubbleRect.height - 8));
-    
-    this.bubbleElement.style.top = `${Math.round(top)}px`;
-    this.bubbleElement.style.left = `${Math.round(left)}px`;
+    const posicao = normalizarPosicao(this.getAttribute('posicao') || this.getAttribute('position'));
+    const { top, left } = calcularPosicaoBalao(
+      this.getBoundingClientRect(),
+      this.bubbleElement.getBoundingClientRect(),
+      posicao,
+      { largura: window.innerWidth, altura: window.innerHeight }
+    );
+    this.bubbleElement.style.top = `${top}px`;
+    this.bubbleElement.style.left = `${left}px`;
   };
 
-  private syncState() {
-    const isAberto = this.aberto;
-    const posicaoRaw = this.getAttribute('posicao') || this.getAttribute('position') || 'topo';
-    const textoText = this.getAttribute('texto') || this.getAttribute('text') || '';
-    const textoSpan = this.shadowRoot?.querySelector('.ui-tooltip__texto') as HTMLElement | null;
+  private cancelarQuadro() {
+    if (this._quadro !== null) {
+      cancelAnimationFrame(this._quadro);
+      this._quadro = null;
+    }
+  }
 
-    let posicao = 'topo';
-    if (['topo', 'top'].includes(posicaoRaw)) posicao = 'topo';
-    else if (['baixo', 'bottom'].includes(posicaoRaw)) posicao = 'baixo';
-    else if (['esquerda', 'left'].includes(posicaoRaw)) posicao = 'esquerda';
-    else if (['direita', 'right'].includes(posicaoRaw)) posicao = 'direita';
+  private syncState() {
+    // desabilitado nunca fica visível, mesmo com `aberto` declarado ou definido antes de desabilitar
+    const visivel = this.aberto && !this.disabled;
+    const posicao = normalizarPosicao(this.getAttribute('posicao') || this.getAttribute('position'));
+    const texto = this.getAttribute('texto') || this.getAttribute('text') || '';
+    const textoSpan = this.shadowRoot?.querySelector('.ui-tooltip__texto') as HTMLElement | null;
 
     this.containerElement.className = `ui-tooltip ui-tooltip--${posicao}`;
 
     if (textoSpan) {
-      if (textoText) {
-        textoSpan.textContent = textoText;
-        textoSpan.style.display = 'inline';
-      } else {
-        textoSpan.style.display = 'none';
-      }
+      textoSpan.textContent = texto;
+      textoSpan.style.display = texto ? 'inline' : 'none';
     }
 
     this.sincronizarDescricao();
 
-    if (isAberto) {
-      document.addEventListener('click', this.handleClickOutside);
-      document.addEventListener('keydown', this.handleEscape, true);
-      if (typeof (this.bubbleElement as any).showPopover === 'function') {
-        try { (this.bubbleElement as any).showPopover(); } catch(_e) {}
-      }
-      this.containerElement.classList.add('ui-tooltip--visivel');
-      
-      // Calculate layout after the element is displayed
-      requestAnimationFrame(() => {
-        this.posicionarBubble();
-      });
-
-      if (!this._posicionamentoAtivo) {
-        this._posicionamentoAtivo = true;
-        window.addEventListener('scroll', this.posicionarBubble, { capture: true, passive: true });
-        window.addEventListener('resize', this.posicionarBubble, { passive: true });
-      }
+    if (visivel) {
+      this.abrirBalao();
     } else {
-      document.removeEventListener('click', this.handleClickOutside);
-      document.removeEventListener('keydown', this.handleEscape, true);
-      if (typeof (this.bubbleElement as any).hidePopover === 'function') {
-        try { (this.bubbleElement as any).hidePopover(); } catch(_e) {}
-      }
-      this.containerElement.classList.remove('ui-tooltip--visivel');
-      if (this._posicionamentoAtivo) {
-        this._posicionamentoAtivo = false;
-        window.removeEventListener('scroll', this.posicionarBubble, { capture: true });
-        window.removeEventListener('resize', this.posicionarBubble);
-      }
+      this.fecharBalao();
     }
   }
 
+  private abrirBalao() {
+    // idempotente: só registra os ouvintes globais na transição fechado → aberto
+    if (this.ouvintesAberto.size === 0) {
+      this.ouvintesAberto.add(document, 'click', this.handleClickOutside);
+      this.ouvintesAberto.add(document, 'keydown', this.handleEscape, true);
+      this.ouvintesAberto.add(window, 'scroll', this.posicionarBubble, { capture: true, passive: true });
+      this.ouvintesAberto.add(window, 'resize', this.posicionarBubble, { passive: true });
+    }
+    mostrarPopover(this.bubbleElement);
+    this.containerElement.classList.add('ui-tooltip--visivel');
+
+    // o layout só existe depois de exibido
+    this.cancelarQuadro();
+    this._quadro = requestAnimationFrame(() => {
+      this._quadro = null;
+      this.posicionarBubble();
+    });
+  }
+
+  private fecharBalao() {
+    this.ouvintesAberto.cleanup();
+    this.cancelarQuadro();
+    ocultarPopover(this.bubbleElement);
+    this.containerElement.classList.remove('ui-tooltip--visivel');
+  }
+
   private handleMouseEnter = () => {
-    const gatilho = this.getAttribute('gatilho') || this.getAttribute('trigger') || 'hover';
+    const gatilho = this.lerGatilho();
     if (gatilho === 'hover' || gatilho === 'passar-mouse') {
       this.cancelarOcultar();
       this.mostrar();
@@ -220,7 +208,7 @@ export class UITooltip extends SafeHTMLElement {
   };
 
   private handleMouseLeave = () => {
-    const gatilho = this.getAttribute('gatilho') || this.getAttribute('trigger') || 'hover';
+    const gatilho = this.lerGatilho();
     if (gatilho === 'hover' || gatilho === 'passar-mouse') {
       // Atraso: atravessar o espaço até o balão não o fecha (o balão está no Shadow DOM do host)
       this.cancelarOcultar();
@@ -284,19 +272,17 @@ export class UITooltip extends SafeHTMLElement {
     this._gatilhoDescrito = null;
   }
 
-  private handleClick = (e: MouseEvent) => {
-    const gatilho = this.getAttribute('gatilho') || this.getAttribute('trigger') || 'hover';
-    const isTouch = window.matchMedia('(pointer: coarse)').matches;
-
-    if (gatilho === 'clique' || gatilho === 'click' || isTouch) {
-      e.stopPropagation();
+  /** O clique do gatilho continua chegando aos ancestrais: o "clicar fora" já ignora cliques dentro do host. */
+  private handleClick = () => {
+    const toque = typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches;
+    const gatilho = this.lerGatilho();
+    if (gatilho === 'clique' || gatilho === 'click' || toque) {
       this.aberto = !this.aberto;
     }
   };
 
   private handleClickOutside = (e: MouseEvent) => {
-    const path = e.composedPath();
-    if (!path.includes(this)) {
+    if (!e.composedPath().includes(this)) {
       this.ocultar();
     }
   };
