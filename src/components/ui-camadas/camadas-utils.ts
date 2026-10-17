@@ -98,6 +98,7 @@ export function buscarPorAtributo(
 /**
  * Cria uma função com debounce para limitar disparos de alta frequência (ex: busca rápida)
  */
+// `any[]` é o idioma do genérico de debounce: preserva a assinatura de qualquer callback via Parameters<T>
 export function debounce<T extends (...args: any[]) => void>(fn: T, delayMs = 80): (...args: Parameters<T>) => void {
   let timer: ReturnType<typeof setTimeout> | null = null;
   return (...args: Parameters<T>) => {

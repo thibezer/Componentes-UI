@@ -512,4 +512,65 @@ describe('UICamadas - regressões', () => {
       expect(linha.classList.contains('drop-above')).toBe(true);
     });
   });
+
+  describe('arrastos interrompidos pela desconexão (Regra #2)', () => {
+    /** Conta, por tipo, os listeners de `window` que ficaram adicionados e não removidos. */
+    function saldoWindow() {
+      const saldo = new Map<string, number>();
+      const marcar = (t: string, d: number) => saldo.set(t, (saldo.get(t) ?? 0) + d);
+      const add = vi.spyOn(window, 'addEventListener').mockImplementation(((t: string) => { marcar(t, 1); }) as never);
+      const rem = vi.spyOn(window, 'removeEventListener').mockImplementation(((t: string) => { marcar(t, -1); }) as never);
+      return {
+        saldo,
+        restaurar: () => { add.mockRestore(); rem.mockRestore(); }
+      };
+    }
+
+    it('desconectar durante o arraste por toque da camada não deixa pointermove/pointerup em window (falhava antes)', () => {
+      const el = criarPainel(camadasPadrao(), []);
+      const handle = sr(el).querySelector('.ui-layer-row .ui-col-drag') as HTMLElement;
+      expect(handle).not.toBeNull();
+      const w = saldoWindow();
+      handle.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, button: 0 }));
+      expect(w.saldo.get('pointermove')).toBe(1);
+      el.remove();
+      expect(w.saldo.get('pointermove')).toBe(0);
+      expect(w.saldo.get('pointerup')).toBe(0);
+      expect(w.saldo.get('pointercancel')).toBe(0);
+      w.restaurar();
+    });
+
+    it('um novo pointerdown de toque cancela o anterior em vez de empilhar listeners', () => {
+      const el = criarPainel(camadasPadrao(), []);
+      const handle = sr(el).querySelector('.ui-layer-row .ui-col-drag') as HTMLElement;
+      const w = saldoWindow();
+      handle.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, button: 0 }));
+      handle.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, button: 0 }));
+      expect(w.saldo.get('pointermove')).toBe(1);
+      w.restaurar();
+    });
+
+    it('desconectar durante a pintura de controles devolve user-select ao body e solta a window (falhava antes)', () => {
+      const el = criarPainel(camadasPadrao(), []);
+      const olhos = sr(el).querySelectorAll('[data-layer-eye]');
+      expect(olhos.length).toBeGreaterThan(1);
+      const w = saldoWindow();
+      // happy-dom não implementa elementFromPoint no shadow root
+      Object.defineProperty(sr(el), 'elementFromPoint', { value: () => olhos[1], configurable: true });
+
+      olhos[0].dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, button: 0, clientX: 0, clientY: 0 }));
+      expect(w.saldo.get('pointermove')).toBe(1);
+      const mover = new MouseEvent('pointermove', { clientX: 40, clientY: 40, cancelable: true });
+      // dispara o handler real: os spies de window não registram, então chama via mock de calls
+      const handlers = (window.addEventListener as unknown as { mock: { calls: unknown[][] } }).mock.calls.filter((c) => c[0] === 'pointermove');
+      (handlers[0][1] as (e: Event) => void)(mover);
+      expect(document.body.style.userSelect).toBe('none');
+
+      el.remove();
+      expect(document.body.style.userSelect).toBe('');
+      expect(w.saldo.get('pointermove')).toBe(0);
+      expect(w.saldo.get('dragstart')).toBe(0);
+      w.restaurar();
+    });
+  });
 });

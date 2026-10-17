@@ -85,6 +85,14 @@ function acionar(el: Element, acumular: boolean, intervalo = false): void {
   );
 }
 
+/** Gesto em andamento (só existe um por vez): permite cancelá-lo se o painel sair do DOM no meio do arraste. */
+let gestoAtivo: { host: CamadasHostCompleto; cancelar: () => void } | null = null;
+
+/** Cancela o gesto do `host`, soltando os ouvintes de `window` e devolvendo `user-select` ao `body`. */
+export function cancelarArrasteControles(host: CamadasHostCompleto): void {
+  if (gestoAtivo?.host === host) gestoAtivo.cancelar();
+}
+
 export function conectarArrasteControles(host: CamadasHostCompleto, shadow: ShadowRoot): void {
   (Object.keys(SELETOR_POR_TIPO) as TipoControle[]).forEach((tipo) => {
     shadow.querySelectorAll(SELETOR_POR_TIPO[tipo]).forEach((origem) => {
@@ -103,6 +111,9 @@ function iniciarGesto(
   if (inicio.pointerType === 'mouse' && inicio.button !== 0) return;
   if (host.editingLayerId || host.editingFeatureId) return;
   if (estadoDoControle(host, origem) === null) return;
+
+  // um gesto novo substitui o anterior (um pointercancel perdido não pode empilhar ouvintes)
+  gestoAtivo?.cancelar();
 
   const seletor = SELETOR_POR_TIPO[tipo];
   const acumularInicial = inicio.ctrlKey || inicio.metaKey;
@@ -166,22 +177,28 @@ function iniciarGesto(
     ultimoY = me.clientY;
   };
 
-  const encerrar = () => {
+  const encerrar = (cancelado = false) => {
+    if (gestoAtivo?.cancelar === cancelar) gestoAtivo = null;
     window.removeEventListener('pointermove', onMove);
-    window.removeEventListener('pointerup', encerrar);
-    window.removeEventListener('pointercancel', encerrar);
+    window.removeEventListener('pointerup', aoSoltar);
+    window.removeEventListener('pointercancel', aoSoltar);
     window.removeEventListener('dragstart', bloquearDragStart, true);
     shadow.removeEventListener('selectstart', bloquearSelecao);
     if (pintando) {
       document.body.style.userSelect = '';
-      // Remove o bloqueio do clique logo após o evento de clique (se houver) ser entregue
-      window.addEventListener('click', engolirClique, { capture: true, once: true });
-      setTimeout(() => window.removeEventListener('click', engolirClique, true), 0);
+      if (!cancelado) {
+        // Remove o bloqueio do clique logo após o evento de clique (se houver) ser entregue
+        window.addEventListener('click', engolirClique, { capture: true, once: true });
+        setTimeout(() => window.removeEventListener('click', engolirClique, true), 0);
+      }
     }
   };
+  const aoSoltar = () => encerrar();
+  const cancelar = () => encerrar(true);
+  gestoAtivo = { host, cancelar };
 
   window.addEventListener('dragstart', bloquearDragStart, true);
   window.addEventListener('pointermove', onMove, { passive: false });
-  window.addEventListener('pointerup', encerrar);
-  window.addEventListener('pointercancel', encerrar);
+  window.addEventListener('pointerup', aoSoltar);
+  window.addEventListener('pointercancel', aoSoltar);
 }
