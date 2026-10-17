@@ -1,7 +1,11 @@
 import estilos from './ui-stat.css?inline';
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
+import { escolherOpcao } from '../../core/opcoes';
+import { gerarIdUnico } from '../../core/acessibilidade';
 
 export type TendenciaStat = 'alta' | 'positivo' | 'baixa' | 'negativo' | 'neutro';
+
+const ELEVACOES = ['baixa', 'media', 'alta'] as const;
 
 export class UIStat extends SafeHTMLElement {
   static get observedAttributes() {
@@ -34,7 +38,7 @@ export class UIStat extends SafeHTMLElement {
     const shadow = this.attachShadow({ mode: 'open' });
     shadow.innerHTML = `
       <style>${estilos}</style>
-      <div class="ui-stat">
+      <div class="ui-stat" role="group">
         <div class="ui-stat__cabecalho">
           <span class="ui-stat__rotulo"></span>
           <div class="ui-stat__icone-slot"><slot name="icone"></slot></div>
@@ -56,6 +60,7 @@ export class UIStat extends SafeHTMLElement {
 
     this.statElement = shadow.querySelector('.ui-stat')!;
     this.rotuloElement = shadow.querySelector('.ui-stat__rotulo')!;
+    this.rotuloElement.id = gerarIdUnico('ui-stat-rotulo');
     this.valorElement = shadow.querySelector('.ui-stat__valor')!;
     this.indicadorElement = shadow.querySelector('.ui-stat__indicador')!;
     this.setaElement = shadow.querySelector('.ui-stat__seta')!;
@@ -120,10 +125,14 @@ export class UIStat extends SafeHTMLElement {
     const variacaoText = this.variacao;
     const tendenciaVal = this.tendencia;
     const descricaoText = this.descricao;
-    const elevacao = this.getAttribute('elevacao') || this.getAttribute('elevation') || 'baixa';
+    const elevacao = escolherOpcao(this.getAttribute('elevacao') || this.getAttribute('elevation'), ELEVACOES, 'baixa');
 
     // Classes de elevação
     this.statElement.className = `ui-stat ui-stat--${elevacao}`;
+
+    // O grupo é nomeado pelo rótulo; sem rótulo, não aponta para um elemento vazio
+    if (rotuloText) this.statElement.setAttribute('aria-labelledby', this.rotuloElement.id);
+    else this.statElement.removeAttribute('aria-labelledby');
 
     // Rótulo e Valor (seguro com textContent)
     this.rotuloElement.textContent = rotuloText;
@@ -133,6 +142,8 @@ export class UIStat extends SafeHTMLElement {
     if (variacaoText) {
       this.variacaoElement.textContent = variacaoText;
       this.indicadorElement.style.display = 'inline-flex';
+      // imagem nomeada: aria-label em um div genérico não é anunciado
+      this.indicadorElement.setAttribute('role', 'img');
 
       if (tendenciaVal === 'baixa') {
         this.indicadorElement.className = 'ui-stat__indicador ui-stat__indicador--negativo';

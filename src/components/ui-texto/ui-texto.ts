@@ -1,5 +1,6 @@
 import estilos from './ui-texto.css?inline';
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
+import { escolherOpcao, escolherOpcaoOpcional } from '../../core/opcoes';
 
 export type VarianteTexto = 
   | 'h1' 
@@ -16,6 +17,11 @@ export type VarianteTexto =
 export type CorTexto = 'primaria' | 'secundaria' | 'destaque' | 'erro' | 'sucesso' | 'alerta';
 export type PesoTexto = 'normal' | 'medio' | 'seminegrito' | 'negrito';
 export type AlinhamentoTexto = 'esquerda' | 'centro' | 'direita' | 'justificado';
+
+const VARIANTES: readonly VarianteTexto[] = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'corpo', 'corpo-sm', 'caption', 'codigo'];
+const CORES: readonly CorTexto[] = ['primaria', 'secundaria', 'destaque', 'erro', 'sucesso', 'alerta'];
+const PESOS: readonly PesoTexto[] = ['normal', 'medio', 'seminegrito', 'negrito'];
+const ALINHAMENTOS: readonly AlinhamentoTexto[] = ['esquerda', 'centro', 'direita', 'justificado'];
 
 const TAGS_PERMITIDAS = new Set([
   'p', 'span', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
@@ -64,7 +70,7 @@ export class UITexto extends SafeHTMLElement {
       console.warn(`[ui-texto] Tag "${customTag}" não permitida ou inválida. Utilizando fallback semântico.`);
     }
 
-    const variante = (this.getAttribute('variante') || 'corpo').toLowerCase();
+    const variante = escolherOpcao(this.getAttribute('variante'), VARIANTES, 'corpo');
     switch (variante) {
       case 'h1':
       case 'h2':
@@ -86,10 +92,10 @@ export class UITexto extends SafeHTMLElement {
 
   private render() {
     const tagName = this.resolveTag();
-    const variante = this.getAttribute('variante') || 'corpo';
-    const cor = this.getAttribute('cor');
-    const peso = this.getAttribute('peso');
-    const alinhamento = this.getAttribute('alinhamento');
+    const variante = escolherOpcao(this.getAttribute('variante'), VARIANTES, 'corpo');
+    const cor = escolherOpcaoOpcional(this.getAttribute('cor'), CORES);
+    const peso = escolherOpcaoOpcional(this.getAttribute('peso'), PESOS);
+    const alinhamento = escolherOpcaoOpcional(this.getAttribute('alinhamento'), ALINHAMENTOS);
     const truncar = this.hasAttribute('truncar');
 
     // Re-criar o elemento semântico se a tag mudar

@@ -26,8 +26,9 @@ describe('UIAvatar', () => {
 
     const img = element.shadowRoot.querySelector('img');
     expect(img).not.toBeNull();
-    // The alt attribute must safely equal the raw payload string without spawning rogue elements
-    expect(img.alt).toBe(xssPayload);
+    // O nome acessível fica no host (role=img) como valor de atributo, sem gerar elementos; a imagem é decorativa
+    expect(element.getAttribute('aria-label')).toBe(xssPayload);
+    expect(img.alt).toBe('');
     // Check that no extra img elements or rogue script tags exist in shadow DOM
     const allImages = element.shadowRoot.querySelectorAll('img');
     expect(allImages.length).toBe(1);
