@@ -590,6 +590,39 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  const btnCadCurvas = document.getElementById('btn-cad-curvas');
+  const btnCadCaneta = document.getElementById('btn-cad-caneta');
+  if (btnCadCurvas && canvasCad) {
+    btnCadCurvas.addEventListener('click', () => {
+      const [lat, lon] = [-23.7655, -53.3195];
+      const d = (a: number, b: number): [number, number] => [lat + a, lon + b];
+      canvasCad.definirFeicoes('curvas-demo', [
+        { id: 'reta', propriedades: { name: 'Linha reta' }, estilo: { corTraco: '#3b82f6', espessuraTraco: 3 },
+          geometria: { tipo: 'LineString', coordenadas: [d(-0.0006, -0.0020), d(0.0002, -0.0008), d(-0.0006, 0.0004)] } },
+        { id: 'curva', propriedades: { name: 'Linha curva' }, estilo: { corTraco: '#f59e0b', espessuraTraco: 3 },
+          geometria: { tipo: 'LineString', coordenadas: [d(0.0006, -0.0020), d(0.0006, 0.0004)], curva: [
+            { ponto: d(0.0006, -0.0020), saida: d(0.0016, -0.0012) }, { ponto: d(0.0006, 0.0004), entrada: d(-0.0004, -0.0004) }
+          ] } },
+        { id: 'poligono', propriedades: { name: 'Polígono reto' }, estilo: { corPreenchimento: '#00f5a0' },
+          geometria: { tipo: 'Polygon', aneis: [[d(0.0008, 0.0012), d(0.0008, 0.0026), d(-0.0006, 0.0026), d(-0.0006, 0.0012)]] } }
+      ], { nome: 'Curvas de exemplo', zIndex: 900 });
+      canvasCad.definirCamadaDesenho('desenhos-demo');
+      canvasCad.setAttribute('ferramentas', 'todas');
+      canvasCad.ajustarCamada('curvas-demo');
+      canvasCad.selecionarFeicao('curvas-demo', 'reta');
+      canvasCad.editarVertices('curvas-demo', 'reta');
+      registrarLog('<ui-canvas-cad> -> Editando a linha reta: as alças pontilhadas já estão lá; arraste uma para curvar (Shift solta a simetria). Para outra feição: selecione e use "Editar Vértices".');
+    });
+  }
+  if (btnCadCaneta && canvasCad) {
+    btnCadCaneta.addEventListener('click', () => {
+      canvasCad.setAttribute('ferramentas', 'todas');
+      canvasCad.definirCamadaDesenho('desenhos-demo');
+      const r = canvasCad.definirFerramenta('caneta');
+      registrarLog(r?.ok === false ? `<ui-canvas-cad> -> Caneta recusada: ${r.motivo}.` : '<ui-canvas-cad> -> Caneta: clique = reta, arraste = curva; depois arraste as alças dos pontos já colocados para ajustar. Enter conclui.');
+    });
+  }
+
   if (btnCadFeicoesMassa && canvasCad) {
     btnCadFeicoesMassa.addEventListener('click', () => {
       const t0 = performance.now();

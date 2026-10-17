@@ -249,9 +249,9 @@ describe('edição de vértices integrada', () => {
     expect(document.querySelectorAll('.cad-vertex-handle')).toHaveLength(4);
     expect(document.querySelectorAll('.cad-vertex-ghost')).toHaveLength(4);
     const hud = el.querySelector('#cm-vertex-edit-hud') as HTMLElement;
-    expect(hud.textContent).toContain('Nós: 4');
-    expect(hud.textContent).toMatch(/Área: .* ha/);
-    expect(hud.textContent).toContain('Snap: ligado');
+    expect(hud.textContent).toContain('4 nós');
+    expect(hud.textContent).toMatch(/Área .* ha/);
+    expect(hud.textContent).toContain('Snap on');
     expect(hud.querySelector('button')?.textContent).toBe('Concluir');
     expect(document.querySelector('.cad-feicao-popup')).toBeNull();
     expect(nomes()).toContain('cad-edicao-iniciada');
@@ -266,7 +266,7 @@ describe('edição de vértices integrada', () => {
     const geo = g.obterFeicoes('c')[0].geometria as { aneis: LatLonPar[][] };
     expect(geo.aneis[0][0]).toEqual([-23.495, -46.605]);
     expect(eventos.filter(([e]) => e === 'cad-feicao-atualizada')).toHaveLength(1);
-    expect(el.querySelector('#cm-vertex-edit-hud')?.textContent).toContain('Nós: 4');
+    expect(el.querySelector('#cm-vertex-edit-hud')?.textContent).toContain('4 nós');
   });
 
   it('snap durante o arrasto cola no vértice de outra feição', () => {
@@ -384,7 +384,7 @@ describe('edição de vértices integrada', () => {
     carregar(g, [quadrado()]);
     g.iniciarEdicao('c', 'q');
     g.alternarSnap();
-    expect(el.querySelector('#cm-vertex-edit-hud')?.textContent).toContain('Snap: desligado');
+    expect(el.querySelector('#cm-vertex-edit-hud')?.textContent).toContain('Snap off');
     expect(nomes()).toContain('cad-snap');
   });
 });

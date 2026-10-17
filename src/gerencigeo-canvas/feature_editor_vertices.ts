@@ -1,7 +1,7 @@
 import L from 'leaflet';
-import type { Feicao, LatLonPar } from './feature_types';
+import type { Feicao, GeometriaFeicao, LatLonPar } from './feature_types';
 import {
-  alternarSuavidade, comPontos, inserirPonto, minimoVertices, moverAlca, nosDe, pontoMedioDoSegmento, pontosDe,
+  alcaLatente, alternarSuavidade, comPontos, MAX_NOS_COM_ALCA_LATENTE, inserirPonto, moverAlca, nosDe, nosOuVertices, pontoMedioDoSegmento, pontosDe,
   removerPonto, segmentosDoEditor, type QualAlca
 } from './feature_edicao_ops';
 import {
@@ -41,7 +41,7 @@ export class EditorVertices {
   private alcas: L.Marker[] = [];
   private fantasmas: Array<{ marker: L.Marker; i: number; j: number }> = [];
   /** Alças de Bézier (só em feição com curva): marcador + haste até o nó. */
-  private alcasBezier: Array<{ marker: L.Marker; haste: L.Polyline; i: number; qual: QualAlca }> = [];
+  private alcasBezier: Array<{ marker: L.Marker; haste: L.Polyline; i: number; qual: QualAlca; latente: boolean }> = [];
   private marcadorSnap: L.Marker | null = null;
   private hud: HTMLElement | null = null;
   private grupo: L.LayerGroup | null = null;
@@ -101,7 +101,7 @@ export class EditorVertices {
   /** Atualiza o texto "Snap" do HUD quando o snap é ligado/desligado. */
   public atualizarSnapNoHud(): void {
     const el = this.hud?.querySelector('[data-campo="snap"]');
-    if (el) el.textContent = `Snap: ${this.dep.snapLigado() ? 'ligado' : 'desligado'} (S)`;
+    if (el) el.textContent = `Snap ${this.dep.snapLigado() ? 'on' : 'off'} (S)`;
   }
 
   // ---- construção ----
@@ -177,26 +177,42 @@ export class EditorVertices {
   // ---- alças de Bézier ----
 
   private criarAlcasBezier(): void {
-    const nos = this.feicaoAtual && nosDe(this.feicaoAtual.geometria);
-    if (!nos) return;
-    nos.forEach((_, i) => this.completarAlcasDoNo(i));
+    const g = this.feicaoAtual?.geometria;
+    if (!g || (g.tipo !== 'LineString' && g.tipo !== 'Polygon')) return;
+    this.pts.forEach((_, i) => this.completarAlcasDoNo(i));
   }
 
-  /** Cria os marcadores das alças do nó que ainda não têm (ex.: a oposta que nasceu ao arrastar com simetria). */
+  /** Posição da alça: a real do nó ou, se o nó é de canto, a latente (sempre à mão para curvar). */
+  private posicaoDaAlca(g: GeometriaFeicao, i: number, qual: QualAlca): { pos: LatLonPar; latente: boolean } | null {
+    const real = nosDe(g)?.[i]?.[qual];
+    if (real) return { pos: real, latente: false };
+    if (this.pts.length > MAX_NOS_COM_ALCA_LATENTE) return null;
+    const pos = alcaLatente(g, i, qual);
+    return pos ? { pos, latente: true } : null;
+  }
+
+  private iconeDaAlca(latente: boolean): L.DivIcon {
+    return this.icone(
+      'cad-bezier-handle', 10,
+      latente
+        ? `background:transparent;border:2px dashed ${COR_ALCA};opacity:.6;border-radius:50%;cursor:move`
+        : `background:#fff;border:2px solid ${COR_ALCA};border-radius:50%;cursor:move`
+    );
+  }
+
+  /** Cria os marcadores das alças do nó que ainda não têm (reais, ou latentes nos nós de canto e nas poligonais). */
   private completarAlcasDoNo(i: number): void {
-    const no = this.feicaoAtual && nosDe(this.feicaoAtual.geometria)?.[i];
-    if (!no || !this.grupo) return;
+    const g = this.feicaoAtual && this.geometriaAtual();
+    const no = g && nosOuVertices(g)?.[i];
+    if (!g || !no || !this.grupo) return;
     for (const qual of ['entrada', 'saida'] as const) {
-      const pos = no[qual];
-      if (!pos || this.alcasBezier.some((a) => a.i === i && a.qual === qual)) continue;
-      const haste = L.polyline([no.ponto, pos], { pane: PANE_EDICAO, color: COR_ALCA, weight: 1, opacity: 0.8, interactive: false });
-      const marker = L.marker(pos, {
-        icon: this.icone('cad-bezier-handle', 10, `background:#fff;border:2px solid ${COR_ALCA};border-radius:50%;cursor:move`),
-        draggable: true,
-        pane: PANE_EDICAO,
-        keyboard: false
+      const p = this.posicaoDaAlca(g, i, qual);
+      if (!p || this.alcasBezier.some((a) => a.i === i && a.qual === qual)) continue;
+      const haste = L.polyline([no.ponto, p.pos], {
+        pane: PANE_EDICAO, color: COR_ALCA, weight: 1, opacity: p.latente ? 0.35 : 0.8, dashArray: p.latente ? '3 3' : undefined, interactive: false
       });
-      const entrada = { marker, haste, i, qual };
+      const marker = L.marker(p.pos, { icon: this.iconeDaAlca(p.latente), draggable: true, pane: PANE_EDICAO, keyboard: false });
+      const entrada = { marker, haste, i, qual, latente: p.latente };
       marker.on('drag', (ev: L.LeafletEvent) => {
         const o = (ev as unknown as { originalEvent?: MouseEvent }).originalEvent;
         this.aoArrastarAlca(entrada, !o?.shiftKey);
@@ -210,13 +226,20 @@ export class EditorVertices {
 
   /** Reposiciona marcadores e hastes de todas as alças conforme a geometria atual. */
   private sincronizarAlcasBezier(): void {
-    const nos = this.feicaoAtual && nosDe(this.feicaoAtual.geometria);
-    if (!nos) return;
+    const g = this.feicaoAtual && this.geometriaAtual();
+    const nos = g && nosOuVertices(g);
+    if (!g || !nos) return;
     for (const a of this.alcasBezier) {
-      const pos = nos[a.i]?.[a.qual];
-      if (!pos) continue;
-      if (a.marker.getLatLng().lat !== pos[0] || a.marker.getLatLng().lng !== pos[1]) a.marker.setLatLng(pos);
-      a.haste.setLatLngs([nos[a.i].ponto, pos]);
+      const p = this.posicaoDaAlca(g, a.i, a.qual);
+      if (!p || !nos[a.i]) continue;
+      const { lat, lng } = a.marker.getLatLng();
+      if (lat !== p.pos[0] || lng !== p.pos[1]) a.marker.setLatLng(p.pos);
+      a.haste.setLatLngs([nos[a.i].ponto, p.pos]);
+      if (a.latente !== p.latente) {
+        a.latente = p.latente;
+        a.marker.setIcon(this.iconeDaAlca(p.latente));
+        a.haste.setStyle({ opacity: p.latente ? 0.35 : 0.8, dashArray: p.latente ? '3 3' : undefined });
+      }
     }
   }
 
@@ -292,17 +315,9 @@ export class EditorVertices {
     this.atualizarHud();
   }
 
-  /** Durante o arrasto de um nó, as alças dele acompanham (a geometria só é gravada no fim do gesto). */
-  private atualizarAlcasDoNo(indice: number): void {
-    const nos = nosDe(this.geometriaAtual());
-    if (!nos) return;
-    for (const a of this.alcasBezier) {
-      if (a.i !== indice) continue;
-      const pos = nos[indice][a.qual];
-      if (!pos) continue;
-      a.marker.setLatLng(pos);
-      a.haste.setLatLngs([nos[indice].ponto, pos]);
-    }
+  /** Durante o arrasto de um nó, as alças dele (e as latentes dos vizinhos) acompanham; a geometria só é gravada no fim. */
+  private atualizarAlcasDoNo(_indice: number): void {
+    this.sincronizarAlcasBezier();
   }
 
   private inserir(depoisDe: number, coord: L.LatLng): void {
@@ -381,8 +396,8 @@ export class EditorVertices {
     const hud = document.createElement('div');
     hud.id = ID_HUD_EDICAO;
     hud.style.cssText =
-      CSS_POSICAO_HUD + 'gap:12px;align-items:center;' +
-      'padding:6px 12px;border-radius:8px;background:rgba(15,23,42,.92);color:#fff;font:12px var(--ui-fonte-base,sans-serif);' +
+      CSS_POSICAO_HUD + 'gap:8px;align-items:center;' +
+      'padding:4px 10px;border-radius:8px;background:rgba(15,23,42,.92);color:#fff;font:11px var(--ui-fonte-base,sans-serif);' +
       'border:1px solid rgba(255,255,255,.2);pointer-events:auto';
     const campo = (nome: string): HTMLElement => {
       const s = document.createElement('span');
@@ -390,19 +405,23 @@ export class EditorVertices {
       return s;
     };
     const titulo = document.createElement('strong');
-    titulo.textContent = this.ehCirculo ? 'Editando círculo' : 'Editando vértices';
+    titulo.textContent = this.ehCirculo ? 'Círculo' : 'Editando';
     const snap = campo('snap');
     snap.style.cursor = 'pointer';
+    snap.style.whiteSpace = 'nowrap';
     snap.title = 'Alternar snap (S). Alt desliga temporariamente.';
+    snap.style.opacity = '.85';
     snap.addEventListener('click', () => this.dep.alternarSnap());
     const botao = document.createElement('button');
     botao.type = 'button';
     botao.textContent = 'Concluir';
-    botao.style.cssText = 'padding:3px 10px;border-radius:4px;border:1px solid #facc15;background:#facc15;color:#111;font-weight:600;cursor:pointer';
+    botao.style.cssText = 'padding:2px 8px;font-size:11px;border-radius:4px;border:1px solid #facc15;background:#facc15;color:#111;font-weight:600;cursor:pointer';
     botao.addEventListener('click', () => this.parar());
     const dica = campo('dica');
     dica.style.opacity = '.7';
-    dica.textContent = 'Duplo clique no nó: curva ↔ canto · Alças: Shift solta a simetria';
+    dica.textContent = this.ehCirculo ? '' : 'Arraste ○ p/ curvar · 2× clique no nó: curva/canto · Shift: alça livre';
+    dica.title = 'Alças pontilhadas ainda são retas. Esc ou Concluir sai; clicar fora não sai.';
+    dica.style.fontSize = '10px';
     hud.append(titulo, campo('nos'), campo('medida'), snap, dica, botao);
     // não deixa o HUD iniciar caixa de seleção nem pan
     L.DomEvent.disableClickPropagation(hud);
@@ -417,12 +436,12 @@ export class EditorVertices {
     const g = this.geometriaAtual();
     const nos = this.hud.querySelector('[data-campo="nos"]');
     const medida = this.hud.querySelector('[data-campo="medida"]');
-    if (nos) nos.textContent = g.tipo === 'Circle' ? 'Centro move · borda muda o raio' : `Nós: ${this.pts.length} (mín. ${minimoVertices(g)})`;
+    if (nos) nos.textContent = g.tipo === 'Circle' ? 'Centro move · borda = raio' : `${this.pts.length} nós`;
     if (!medida) return;
     if (g.tipo === 'Polygon') {
-      medida.textContent = `Área: ${formatarArea(areaDaGeometria(g) ?? 0)} · Perímetro: ${formatarExtensao(extensaoDaGeometria(g) ?? 0)}`;
+      medida.textContent = `Área ${formatarArea(areaDaGeometria(g) ?? 0)} · perím. ${formatarExtensao(extensaoDaGeometria(g) ?? 0)}`;
     } else if (g.tipo === 'LineString') {
-      medida.textContent = `Extensão: ${formatarExtensao(extensaoDaGeometria(g) ?? 0)}`;
+      medida.textContent = formatarExtensao(extensaoDaGeometria(g) ?? 0);
     } else if (g.tipo === 'Point') {
       medida.textContent = `${g.coordenada[0].toFixed(6)}, ${g.coordenada[1].toFixed(6)}`;
     } else if (g.tipo === 'Circle') {

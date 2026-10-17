@@ -116,6 +116,7 @@ export class UICanvasCAD extends SafeHTMLElement {
     Object.assign(contextoInteracao, {
       aoMenuContexto: (e: MouseEvent) => this.feicoes.menuContexto(e),
       ferramentaAtiva: () => this.feicoes.ferramentaAtiva !== null,
+      edicaoAtiva: () => this.feicoes.editando,
       aoLimparSelecao: () => this.feicoes.aoPedirLimpeza(),
       selecionarFeicoesNaCaixa: (caixa: { x1: number; y1: number; x2: number; y2: number }, modo: 'window' | 'crossing', aditivo: boolean) =>
         this.feicoes.selecionarNaCaixa(caixa, modo, aditivo)

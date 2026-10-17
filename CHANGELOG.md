@@ -1,5 +1,12 @@
 # Changelog
 
+## Não lançado
+
+### Canvas CAD: curvas (Bézier) sempre à mão
+
+- **Editor de vértices**: as alças de Bézier agora aparecem **sempre**, inclusive em linhas/polígonos retos (alças latentes pontilhadas a 1/3 do vizinho, até 40 nós). Arrastar uma alça converte o nó em curva; `Shift` solta a simetria.
+- **Caneta**: as alças das âncoras já colocadas podem ser **ajustadas durante o desenho** (arraste a alça, ou a própria âncora para criar/ajustar a curva dela). `Shift` solta a simetria; o cursor muda ao passar sobre uma alça.
+
 ## 2.5.0
 
 ### `<ui-tabela>`: robustez, modo remoto e ordenação
