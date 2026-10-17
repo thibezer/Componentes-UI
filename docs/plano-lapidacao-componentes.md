@@ -94,10 +94,16 @@ Pré-requisito das demais fases: sem isso `npm run gate` falha.
 - [ ] Eliminar os 8 `any`/TODO; ampliar `ui-camadas.test.ts` e `ui-camadas.regressao.test.ts` para os módulos novos.
 - [ ] Auditar `camadas-resizer.ts` quanto à Regra #2 (A6).
 
-### Fase 3 — `ui-mapa` (P1)
-- [ ] Acesso ao Leaflet por um único módulo (`mapa-leaflet.ts`) com `obterLeaflet()` tipado; remover `window.L as any` de `ui-mapa-linha.ts` e `ui-mapa-marcador.ts`.
-- [ ] ARIA: `role="application"` ou `region` com `aria-label`; marcadores focáveis com rótulo.
-- [ ] Testes: ciclo de vida, marcadores, linhas, atributos reativos.
+### Fase 3 — `ui-mapa` (P1) — concluída em 2026-10-17
+- [x] **Adaptador Leaflet**: `mapa-leaflet.ts` (`obterLeaflet`/`carregarLeafletTipado`) e `tipos.ts` (`LeafletModulo`); `window.L as any` e `L: any` removidos (0 `any` no diretório).
+- [x] **SRP**: `ui-mapa.ts` 178 → 157 linhas (casca); extraídos `mapa-basemaps.ts`, `mapa-atributos.ts` (leitura segura, pura), `mapa-icones.ts`, `mapa-vinculo-pai.ts` (espera do mapa pai + reação a `ui-mapa-pronto`, antes duplicada em marcador e linha).
+- [x] **ARIA**: contêiner `role=region` com `aria-label` (atributo do host, padrão "Mapa"); marcador focável (`role=button`, `tabindex=0`) com `aria-label`/`title` do `titulo`; pin SVG `aria-hidden`.
+- [x] **Testes**: `ui-mapa.regressao.test.ts` (22) e `mapa-atributos.test.ts` (29).
+- **Defeitos encontrados e corrigidos** (cada um com teste que falhava antes):
+  1. **Injeção via `cor`** (Regra #3): o atributo era interpolado em `innerHTML`/`style` do ícone do marcador. Agora o ícone é montado com DOM e a cor passa por `corSegura` (hex, rgb/hsl ou nome).
+  2. `lat`/`lng`/`zoom` inválidos (ou `zoom` mudado depois do init) lançavam "Invalid LatLng" / "infinite number of tiles"; agora cada campo cai no padrão.
+  3. Desconectar antes do Leaflet carregar criava um mapa órfão (vazamento); agora há checagem de `isConnected` após o `await`.
+  4. `<ui-mapa-linha>` não reaparecia quando o mapa era recriado ao reconectar (só o marcador ouvia `ui-mapa-pronto`), e `pontos` que não fossem um array de pares lançavam; agora pares inválidos são descartados.
 
 ### Fase 4 — `ui-tooltip` e `ui-modal` (P2)
 - [ ] **tooltip**: extrair posicionamento (`tooltip-posicionamento.ts`) e API de popover (`tooltip-popover.ts` com detecção de suporte tipada); tratar erros em vez de `catch(_e) {}`; garantir `aria-describedby`, Esc e foco/hover/teclado.
@@ -135,7 +141,7 @@ Pré-requisito das demais fases: sem isso `npm run gate` falha.
 | 1 | Divisão de `cad-feicoes.ts` | feito | 2026-10-17 | | 1.179 → ~625 linhas, 10 módulos; fachada justificada |
 | 1 | Extração de `cad-evento-coordenadas`, regressão/robustez e ARIA | feito | 2026-10-17 | | +5, +23 testes; suíte: 75 arquivos, 1085 testes; `any` em produção: 301 → 275 |
 | 2 | Divisão de `ui-camadas.ts` | pendente | | | |
-| 3 | Adaptador Leaflet e ARIA de `ui-mapa` | pendente | | | |
+| 3 | `ui-mapa`: adaptador, SRP, ARIA e 4 defeitos (inclui injeção via `cor`) | feito | 2026-10-17 | | +51 testes; suíte 77 arquivos / 1134 testes; `any` em produção: 275 → 266 |
 | 4 | `ui-tooltip` e `ui-modal` | pendente | | | |
 | 5 | A11y e testes dos componentes simples | pendente | | | |
 | 6 | Divisões oportunistas | pendente | | | |

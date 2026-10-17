@@ -8,6 +8,13 @@
 - **Mudança de comportamento:** quem importar apenas `core/ui-bus` sem carregar `ui-alerta` (ou o pacote principal) passa a ter `UIBus.notificar()` como no-op, sem erro. Exceções do provedor são capturadas (`console.error`).
 - Contratos `UIToastOpcoes`/`UIToastAcao` movidos para `src/core/tipos-toast.ts` e reexportados por `ui-alerta` (nomes públicos inalterados).
 
+### `<ui-mapa>`, `<ui-mapa-marcador>` e `<ui-mapa-linha>`: robustez e acessibilidade
+
+- **Segurança:** `cor` do `<ui-mapa-marcador>` era interpolada em HTML/estilo do ícone (injeção de atributo). O ícone agora é montado com DOM e `cor` só aceita hex, `rgb()`/`hsl()` ou nome de cor; outro valor usa a cor padrão (`#00f5a0`; `#3388ff` na linha).
+- `lat`, `lng` e `zoom` inválidos (ou fora de -90..90, -180..180, 0..22) caem no padrão em vez de lançar; `espessura` inválida usa 3.
+- Desconectar o `<ui-mapa>` antes de o Leaflet carregar não cria mais um mapa órfão. `<ui-mapa-linha>` reaparece quando o mapa é recriado e ignora pares inválidos em `pontos`.
+- **Acessibilidade:** o mapa é uma região com nome (`aria-label` do host, padrão "Mapa"; o atributo passa a ser observado); marcadores são focáveis por teclado (`role=button`) e usam `titulo` como nome acessível.
+
 ### `<ui-canvas-cad>`: organização interna e acessibilidade
 
 - **Sem mudança de API.** `GerenciadorFeicoes` virou fachada sobre módulos de responsabilidade única (`cad-feicoes-dados`, `-operacoes`, `-versoes`, `-camera`, `-desenho`, `-edicao`, `-consulta`, `-ponteiro`, `-selecao-regiao`, `-tipos`); tipos do Leaflet em `tipos.ts`, `cad-leaflet-adaptador.ts` e `cad-selecao-pontos.ts` substituem casts `as any`.
