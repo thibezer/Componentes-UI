@@ -77,15 +77,15 @@ Pré-requisito das demais fases: sem isso `npm run gate` falha.
 - [x] **A9**: `check:framework-types` precisa de `dist/`; o `package.json` foi reordenado: `gate` = `check:layers` + `check:types` + `test:run`; `gate:full` = `gate` + `build` + `check:framework-types`.
 - Critério: `check:layers`, `check:types`, `test:run`, `build` e `check:framework-types` verdes (verificado em 2026-10-17: 72 arquivos, 1052 testes).
 
-### Fase 1 — `ui-canvas-cad` (P0)
+### Fase 1 — `ui-canvas-cad` (P0) — concluída em 2026-10-17
 - [x] **Tipos** (2026-10-17): `ui-canvas-cad/tipos.ts` criado (`ContainerLeaflet`, `EventoMapaCad`, `LatLngEvento`, `ElementoComCoordenadas`); `as any` de eventos e coordenadas em `cad-eventos-canvas.ts` substituídos. Restam 14 ocorrências de `any` no diretório (parâmetros genéricos de callbacks, `cad-inicializador.ts`, `cad-atributos-sync.ts`, etc.).
 - [x] **Adaptador Leaflet** (2026-10-17, `cad-leaflet-adaptador.ts`): concentrar o reset de `_leaflet_id` (hoje duplicado em `cad-inicializador.ts` e `ui-canvas-cad.ts`) numa função única `liberarContainerLeaflet()`.
-- [~] **`cad-feicoes.ts` (1.179 → 860 linhas)**: divisão em andamento, mantendo `GerenciadorFeicoes` como fachada (API pública e testes intactos). Extraídos: `cad-feicoes-tipos.ts` (contratos), `cad-feicoes-operacoes.ts` (dividir/buffer/duplicar/juntar), `cad-feicoes-versoes.ts` (oficial × prévia), `cad-feicoes-camera.ts` (zoom/ajustar), `cad-feicoes-desenho.ts` (ferramentas, camada e estilo de desenho, texto, conta-gotas). Cada um recebe só as `Portas*` de que precisa. **Pendente** (para chegar a < 400): `cad-feicoes-dados.ts` (CRUD e lote, ~175 linhas), seleção/laço/caixa, hover e menu de contexto, snap e edição de vértices.
-- [ ] **`cad-eventos-canvas.ts`**: extrair a extração de ponto/coordenada do evento (hoje com cascatas de `?.`/`??`) para `cad-evento-coordenadas.ts` (puro, testável). Os 24 testes da Fase 0 já protegem esse trecho.
-- [ ] **Ciclo de vida (A6)**: confirmar que `ResizeObserver`, timers e listeners do `cad-tamanho-observer.ts`/`cad-broadcast.ts` são idempotentes em reconexão (Regra #2) e, se coerente, usar `ListenerBag`.
-- [ ] **Entrada hostil (Regra #0)**: `cad-feicoes.ts` recebe GeoJSON externo; incluir em `tests/ui-canvas-cad.regressao.test.ts` casos nulos, truncados e geometrias degeneradas (< 3 vértices, `NaN`).
+- [x] **`cad-feicoes.ts` (1.179 → ~625 linhas)** (2026-10-17): `GerenciadorFeicoes` virou fachada (API pública e testes intactos) sobre 10 módulos de responsabilidade única: `cad-feicoes-tipos` (contratos), `-dados` (repositório indexado e lote), `-operacoes` (dividir/buffer/duplicar/juntar), `-versoes` (oficial × prévia), `-camera` (zoom/ajustar), `-desenho` (ferramentas, camada/estilo, texto, conta-gotas), `-edicao` (vértices), `-consulta` (candidatas, snap, feição sob o cursor), `-ponteiro` (hover e menu de contexto) e `-selecao-regiao` (laço e caixa). Cada um recebe só as `Portas*` de que precisa. **Exceção ao gatilho de ~400 linhas, justificada:** o que sobra são ~90 delegadores públicos de uma linha mais a fiação das portas no construtor; dividir mais só espalharia a fachada.
+- [x] **`cad-eventos-canvas.ts`**: leitura de alvo, pixel e lat/lng extraída para `cad-evento-coordenadas.ts` (funções puras, `tests/cad-evento-coordenadas.test.ts`, 5 testes); os 24 testes da Fase 0 seguem verdes.
+- [x] **Ciclo de vida (A6)**: auditado. `cad-tamanho-observer` (`observe()` chama `disconnect()` antes), `cad-snap` (guarda `conectado`) e `cad-broadcast` (`conectar()` chama `desconectar()` antes) já são idempotentes; migrar para `ListenerBag` não traria ganho e atrapalharia a injeção de `alvo` do snap. Congelado em `tests/ui-canvas-cad.regressao.test.ts`.
+- [x] **Entrada hostil (Regra #0)**: `tests/ui-canvas-cad.regressao.test.ts` (23 testes) cobre payloads de BroadcastChannel inválidos, `definirFeicoes`/`aplicarLote` com `null`, tipos errados, `NaN`/`Infinity`, polígono degenerado e ids inexistentes. Nenhum bug foi encontrado: o componente já degradava com elegância.
 - [x] **Seleção**: `selectedPontoIds` ganhou acessor único em `cad-selecao-pontos.ts` (`lerPontosSelecionados`/`gravarPontosSelecionados`), usado por `ui-canvas-cad.ts` e `cad-eventos-canvas.ts`. (O motor L2, `canvas_interacao.ts`, ainda tem seus próprios `as any` no mesmo campo; tipar `context.selectedPontoIds` lá elimina o cast restante.)
-- [ ] **ARIA**: região do canvas (`role`/rótulo), anúncio de seleção via `aria-live`, teclado para as ferramentas.
+- [x] **ARIA** (`cad-acessibilidade.ts`): raiz `role=region` "Mapa CAD", barra rápida `role=toolbar`, botões só-ícone com `aria-label`, `aria-pressed` do snap sincronizado e região viva (`role=status`) anunciando seleção e ferramenta. A barra de ferramentas de desenho já tinha `role=toolbar` e `aria-pressed`.
 
 ### Fase 2 — `ui-camadas` (P1)
 - [ ] `ui-camadas.ts` (878): extrair o que não for ciclo de vida/atributos para módulos existentes (`camadas-*`); alvo < 400 linhas.
@@ -131,8 +131,9 @@ Pré-requisito das demais fases: sem isso `npm run gate` falha.
 | 0.5 | `ui-bus` sem importar `ui-alerta` (A1) | feito | 2026-10-17 | | provedor de toast registrável; +5 testes |
 | 0.5 | `check-layers` ampliado (A2), A3 (parcial) e A7 | feito | 2026-10-17 | | +8 testes; pendente A9 (ordem do `gate`) |
 | 0 | Testes de caracterização `ui-canvas-cad` (eventos, atributos, redimensionamento) | feito (parcial) | 2026-10-17 | | 37 testes novos; faltam colecoes-dados, inicializador, toolbar-painel. Nota: contagem de testes do diagnóstico ignorava `tests/` |
-| 1 | Tipos Leaflet, adaptador e acessor de seleção | feito (parcial) | 2026-10-17 | | `tipos.ts`, `cad-leaflet-adaptador.ts`, `cad-selecao-pontos.ts`; +5 testes; 14 `any` restam no diretório |
-| 1 | Divisão de `cad-feicoes.ts` | em andamento | 2026-10-17 | | 1.179 → 860 linhas, 5 módulos novos; faltam dados/lote, seleção, hover, snap/edição |
+| 1 | Tipos Leaflet, adaptador e acessor de seleção | feito | 2026-10-17 | | `tipos.ts`, `cad-leaflet-adaptador.ts`, `cad-selecao-pontos.ts`; `any` no diretório: 23+ → 10 (os restantes são payloads de domínio opacos: `elemento`/`segmento`, `Record<string, any>` de atualização parcial e o payload do BroadcastChannel) |
+| 1 | Divisão de `cad-feicoes.ts` | feito | 2026-10-17 | | 1.179 → ~625 linhas, 10 módulos; fachada justificada |
+| 1 | Extração de `cad-evento-coordenadas`, regressão/robustez e ARIA | feito | 2026-10-17 | | +5, +23 testes; suíte: 75 arquivos, 1085 testes; `any` em produção: 301 → 275 |
 | 2 | Divisão de `ui-camadas.ts` | pendente | | | |
 | 3 | Adaptador Leaflet e ARIA de `ui-mapa` | pendente | | | |
 | 4 | `ui-tooltip` e `ui-modal` | pendente | | | |

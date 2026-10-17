@@ -8,6 +8,11 @@
 - **Mudança de comportamento:** quem importar apenas `core/ui-bus` sem carregar `ui-alerta` (ou o pacote principal) passa a ter `UIBus.notificar()` como no-op, sem erro. Exceções do provedor são capturadas (`console.error`).
 - Contratos `UIToastOpcoes`/`UIToastAcao` movidos para `src/core/tipos-toast.ts` e reexportados por `ui-alerta` (nomes públicos inalterados).
 
+### `<ui-canvas-cad>`: organização interna e acessibilidade
+
+- **Sem mudança de API.** `GerenciadorFeicoes` virou fachada sobre módulos de responsabilidade única (`cad-feicoes-dados`, `-operacoes`, `-versoes`, `-camera`, `-desenho`, `-edicao`, `-consulta`, `-ponteiro`, `-selecao-regiao`, `-tipos`); tipos do Leaflet em `tipos.ts`, `cad-leaflet-adaptador.ts` e `cad-selecao-pontos.ts` substituem casts `as any`.
+- **Acessibilidade:** o canvas é uma região nomeada ("Mapa CAD"), a barra rápida é uma `toolbar` com botões nomeados, o botão de snap expõe `aria-pressed` e uma região viva anuncia a seleção ("2 feições selecionadas") e a ferramenta ativa.
+
 ### Ferramentas de arquitetura
 
 - `scripts/check-layers.mjs` verifica o DAG L0→L5 resolvendo imports (estáticos, de efeito colateral, re-exports e dinâmicos); `npm run gate` / `gate:full` agrupam as verificações.
