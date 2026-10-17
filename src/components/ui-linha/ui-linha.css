@@ -1,0 +1,74 @@
+/* ==========================================
+   <ui-linha>: contêiner de controles na mesma linha
+   Toda a configuração é por atributo (valores fixos) ou por variável CSS; nada aqui calcula medidas mágicas.
+   ========================================== */
+:host {
+  --_espaco: var(--ui-espaco-sm, 8px);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--ui-linha-espaco, var(--_espaco));
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+}
+
+:host([inline]) {
+  display: inline-flex;
+  vertical-align: middle;
+}
+
+:host([hidden]) {
+  display: none;
+}
+
+/* Quebra de linha: por padrão a linha quebra em vez de estourar o contêiner */
+:host([sem-quebra]) {
+  flex-wrap: nowrap;
+}
+
+/* Espaço entre os controles (token --ui-espaco-*; "nenhum" cola os controles) */
+:host([espaco='nenhum']) { --_espaco: 0; }
+:host([espaco='xs']) { --_espaco: var(--ui-espaco-xs, 4px); }
+:host([espaco='sm']) { --_espaco: var(--ui-espaco-sm, 8px); }
+:host([espaco='md']) { --_espaco: var(--ui-espaco-md, 16px); }
+:host([espaco='lg']) { --_espaco: var(--ui-espaco-lg, 24px); }
+
+/* Alinhamento vertical. "centro" (padrão) serve a controles sem rótulo; "fim" alinha as bases de campos
+   com rótulo acima ao lado de botões; "inicio" e "esticar" completam as opções do flexbox. */
+:host([alinhar='inicio']) { align-items: flex-start; }
+:host([alinhar='centro']) { align-items: center; }
+:host([alinhar='fim']) { align-items: flex-end; }
+:host([alinhar='esticar']) { align-items: stretch; }
+
+/* Distribuição horizontal */
+:host([justificar='centro']) { justify-content: center; }
+:host([justificar='fim']) { justify-content: flex-end; }
+:host([justificar='entre']) { justify-content: space-between; }
+:host([justificar='ao-redor']) { justify-content: space-around; }
+
+/* Filhos: tamanho natural, nunca 100% (botão e campo são 100% fora da linha). Estas regras vêm do contêiner
+   (contexto externo ao Shadow DOM do filho), então vencem o :host do filho, mas perdem para CSS do consumidor. */
+::slotted(*) {
+  flex: 0 0 auto;
+  width: auto;
+  max-width: 100%;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+/* Campos e listas ocupam o espaço que sobrar (e quebram para a linha de baixo abaixo da base) */
+::slotted(ui-campo-texto),
+::slotted(ui-input),
+::slotted(ui-lista-flutuante),
+::slotted(ui-select) {
+  flex: 1 1 var(--ui-linha-campo-base, 12rem);
+  min-width: 0;
+}
+
+/* Qualquer filho pode pedir o espaço restante com o atributo [expandir] */
+::slotted([expandir]) {
+  flex: 1 1 0;
+  min-width: 0;
+}

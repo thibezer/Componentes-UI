@@ -892,6 +892,38 @@
       </div>
     </article>
 
+    <!-- Card: Controles na mesma linha (<ui-linha>) -->
+    <article class="card-componente full-width-card" id="card-linha">
+      <h2>Controles na mesma linha (&lt;ui-linha&gt;)</h2>
+      <p style="color: var(--ui-cor-texto-secundario); font-size: 13px; margin: 0 0 12px;">
+        Um só <code>tamanho</code> no contêiner alinha botão, campo, lista, segmented e badge. Sem nenhum CSS extra.
+      </p>
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        <ui-linha tamanho="sm" id="linha-sm">
+          <ui-segmented valor="todas"><span valor="todas">Todas (5)</span><span valor="analise">Em análise (2)</span><span valor="aberta">Votação aberta (1)</span></ui-segmented>
+          <ui-campo-texto placeholder="Buscar..."></ui-campo-texto>
+          <ui-botao variante="primario">Adicionar</ui-botao>
+          <ui-badge controle>Carlos</ui-badge>
+        </ui-linha>
+        <ui-linha id="linha-md">
+          <ui-segmented valor="todos"><span valor="todos">Todos</span><span valor="propostas">Propostas</span><span valor="reclamacoes">Reclamações</span></ui-segmented>
+          <ui-campo-texto placeholder="Buscar..."></ui-campo-texto>
+          <ui-botao variante="secundario">Filtrar</ui-botao>
+          <ui-switch></ui-switch>
+          <ui-badge>Carlos</ui-badge>
+        </ui-linha>
+        <ui-linha tamanho="lg" id="linha-lg">
+          <ui-segmented valor="auto"><span valor="auto">Auto</span><span valor="claro">Claro</span><span valor="escuro">Escuro</span></ui-segmented>
+          <ui-campo-texto placeholder="Buscar..."></ui-campo-texto>
+          <ui-botao variante="primario">+ Adicionar proposta</ui-botao>
+        </ui-linha>
+        <ui-linha alinhar="fim" id="linha-rotulos">
+          <ui-campo-texto label="Nome" placeholder="Digite..."></ui-campo-texto>
+          <ui-botao variante="primario">Salvar</ui-botao>
+        </ui-linha>
+      </div>
+    </article>
+
     <!-- Card 10: Contêineres & Moléculas (<ui-card>) -->
     <article class="card-componente full-width-card">
       <h2>8. Contêineres de Molécula (&lt;ui-card&gt;)</h2>

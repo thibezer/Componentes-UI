@@ -8,6 +8,7 @@ import {
 } from './lista-flutuante-template';
 import { renderizarItensLista, atualizarEstadoSelecaoLista } from './lista-flutuante-render';
 import { definirCustomElement } from '../../core/ssr-safe';
+import { aplicarAlturaControle } from '../../core/altura-controle';
 import { FormAssociatedElement } from '../../core/form-associated-element';
 import { gerarIdUnico, obterRotuloExterno, cliqueVeioDeRotuloExterno } from '../../core/acessibilidade';
 import { renderizarRotulo } from '../../core/rotulo';
@@ -136,12 +137,8 @@ export class UIListaFlutuante extends FormAssociatedElement {
     if (name === 'disabled') {
       this.button.disabled = this.disabled;
     }
-    if (name === 'altura' || name === 'height') {
-      if (value) {
-        this.style.setProperty('--ui-campo-altura', isNaN(Number(value)) ? value : `${value}px`);
-      } else {
-        this.style.removeProperty('--ui-campo-altura');
-      }
+    if (name === 'altura' || name === 'height' || name === 'tamanho' || name === 'size' || name === 'densidade') {
+      aplicarAlturaControle(this);
     }
   }
 
@@ -364,10 +361,7 @@ export class UIListaFlutuante extends FormAssociatedElement {
   };
 
   protected syncState() {
-    const altura = this.getAttribute('altura') || this.getAttribute('height');
-    if (altura) {
-      this.style.setProperty('--ui-campo-altura', isNaN(Number(altura)) ? altura : `${altura}px`);
-    }
+    aplicarAlturaControle(this);
     if (this.hasAttribute('value')) {
       this._value = this.getAttribute('value') || '';
       this.internals.setFormValue(this._value);

@@ -17,7 +17,13 @@
   /* Ergonomia e Alvo de Toque Mobile */
   --ui-touch-target-min: 44px;
 
-  /* Dimensão Mínima Global e Controle Fino dos Componentes */
-  --ui-altura-minima: 15px;
-  --ui-campo-altura: var(--ui-altura-minima, 15px);
+  /* Altura dos Controles (botão, campo, lista, segmented...)
+     Escala nomeada: é o que os atributos tamanho="sm|md|lg" e o <ui-linha> usam.
+     --ui-campo-altura é o contrato lido por TODOS os controles: sobrescrevê-la num contêiner
+     (ou usar <ui-linha tamanho="sm">) alinha todos os controles filhos de uma vez. */
+  --ui-altura-sm: 26px;
+  --ui-altura-md: 34px;
+  --ui-altura-lg: 42px;
+  --ui-altura-minima: var(--ui-altura-md);
+  --ui-campo-altura: var(--ui-altura-minima);
 }

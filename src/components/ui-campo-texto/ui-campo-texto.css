@@ -10,6 +10,7 @@
 :host([inline]) {
   width: auto;
   display: inline-flex;
+  vertical-align: middle;
 }
 
 .ui-campo-texto__container {
@@ -47,8 +48,8 @@
   display: flex;
   align-items: center;
   width: 100%;
-  height: var(--ui-campo-altura, 100%);
-  min-height: var(--ui-campo-altura, var(--ui-altura-minima, 15px));
+  height: var(--ui-campo-altura, 34px);
+  min-height: var(--ui-campo-altura, 34px);
   background-color: var(--ui-cor-fundo-elevado, #1a1a1e);
   border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
   border-radius: var(--ui-raio-borda, 6px);

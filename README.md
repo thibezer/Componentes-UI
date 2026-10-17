@@ -150,7 +150,7 @@ Configurações simples passadas diretamente nas tags:
 
 ### 📏 Ajuste de Altura e Dimensionamento Inteligente (Zero Atrito)
 
-Os campos de texto (`<ui-campo-texto>`), listas flutuantes/selects (`<ui-lista-flutuante>`, `<ui-select>`) e botões (`<ui-botao-primario>`) possuem 4 formas flexíveis de ajuste de altura:
+Os campos de texto (`<ui-campo-texto>`), listas flutuantes/selects (`<ui-lista-flutuante>`, `<ui-select>`), botões (`<ui-botao>`) e o controle segmentado (`<ui-segmented>`) leem **a mesma variável**, `--ui-campo-altura`, e por isso têm sempre a mesma altura lado a lado. Há 5 formas de ajustá-la:
 
 #### 1. Via Atributo de Tamanho Predefinido (`tamanho` ou `densidade`):
 ```html
@@ -193,6 +193,29 @@ UIBus.definirDensidade('padrao');   // 34px
 UIBus.definirDensidade('relaxada'); // 42px
 UIBus.definirDensidade(38);         // Valor numérico em px customizado
 ```
+
+#### 5. Via Contêiner de Linha (`<ui-linha>`): a forma de menor esforço
+Quando vários controles ficam na mesma linha, envolva-os em `<ui-linha>`: um único atributo define a altura de todos, e o contêiner cuida de alinhamento, espaço, quebra e largura (botão e campo deixam de ocupar 100%).
+
+```html
+<ui-linha tamanho="sm" justificar="entre">
+  <ui-segmented valor="todos"><span valor="todos">Todos</span><span valor="abertos">Abertos</span></ui-segmented>
+  <ui-campo-texto placeholder="Buscar..."></ui-campo-texto>   <!-- ocupa o espaço que sobrar -->
+  <ui-botao variante="primario">Adicionar</ui-botao>
+  <ui-badge controle>Carlos</ui-badge>                        <!-- [controle]: badge com a altura dos controles -->
+</ui-linha>
+```
+
+| Atributo (`ui-linha`) | Valores | Padrão |
+| :--- | :--- | :--- |
+| `tamanho` / `densidade` | `sm` (26px), `md` (34px), `lg` (42px); também `compacta`, `padrao`, `relaxada` | herda do token global |
+| `altura` | `40`, `40px`, `2.5rem` (vence `tamanho`) | - |
+| `alinhar` | `centro`, `inicio`, `fim`, `esticar` (use `fim` quando um campo tem rótulo acima) | `centro` |
+| `justificar` | `inicio`, `centro`, `fim`, `entre`, `ao-redor` | `inicio` |
+| `espaco` | `nenhum`, `xs`, `sm`, `md`, `lg` | `sm` |
+| `sem-quebra` / `inline` | booleanos | a linha quebra |
+
+Regras do contrato: o filho com `tamanho`/`altura` próprio vence só ele; `expandir` em qualquer filho faz ocupar o espaço restante; CSS do consumidor (`style`, classe) vence as regras do contêiner. Tokens: `--ui-altura-sm|md|lg` (escala), `--ui-campo-altura` (valor efetivo), `--ui-linha-espaco`, `--ui-linha-campo-base`. No mobile (≤ 640px) todos os controles sobem para no mínimo 38px (alvo de toque), sem exceção, para continuarem alinhados. Mais detalhes em [`docs/layout-linha.md`](docs/layout-linha.md).
 
 ---
 
@@ -708,8 +731,9 @@ window.addEventListener('message', (event) => {
 | `<ui-checkbox>` | Caixa de seleção múltipla com estado indeterminado. | `marcado`, `indeterminado`, `name`, `value` | `ui-change` |
 | `<ui-radio>` | Opção única com agrupamento automático por nome. | `marcado`, `name`, `value` | `ui-change` |
 | `<ui-switch>` | Chave de alternância liga/desliga física instantânea. | `ativo`, `name`, `value` | `ui-change` |
-| `<ui-segmented>` | Controle segmentado de opções (Pills/Tabs deslizantes). | `opcoes`, `value`, `name`, `tamanho` | `ui-change`, `ui-selecionar` |
-| `<ui-badge>` / `<ui-chip>` | Tags de status e chips com botão de remoção. | `variante`, `removivel`, `value` | `ui-remove` |
+| `<ui-segmented>` | Controle segmentado de opções (Pills/Tabs deslizantes). | `opcoes`, `value`, `name`, `tamanho`, `altura` | `ui-change`, `ui-selecionar` |
+| `<ui-badge>` / `<ui-chip>` | Tags de status e chips com botão de remoção. | `variante`, `removivel`, `value`, `controle` | `ui-remove` |
+| `<ui-linha>` | Contêiner que alinha controles na mesma linha (altura única, espaço, quebra). | `tamanho`, `altura`, `alinhar`, `justificar`, `espaco`, `sem-quebra` | - |
 | `<ui-avatar>` | Avatar com fotos, iniciais e status online. | `nome`, `src`, `status`, `tamanho` | - |
 
 ### 🟣 Camada 3: Contêineres, Overlays, Dados & GIS

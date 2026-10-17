@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.8.0 — 2026-10-17
+
+### Controles na mesma linha: altura única e `<ui-linha>`
+
+- **Novo `<ui-linha>`** (L3): contêiner que alinha botão, campo, lista, segmented e badge na mesma linha. `tamanho`/`densidade` (`sm|md|lg`), `altura`, `alinhar`, `justificar`, `espaco`, `sem-quebra`, `inline`; filhos ganham largura natural (botão e campo deixam de ocupar 100%), campos e listas ocupam o espaço restante e qualquer filho aceita `expandir`.
+- **`tamanho`, `densidade` e `altura` agora funcionam** em `ui-botao`, `ui-campo-texto`, `ui-lista-flutuante` e `ui-segmented` (o README já os documentava, mas só `altura` tinha efeito). Lógica única em `src/core/altura-controle.ts` (exportada em `core`): entrada hostil é descartada, `altura` é limitada a 15–200px.
+- **`ui-segmented` segue `--ui-campo-altura`** (antes tinha alturas fixas de 28/36/42px, o que o desalinhava do botão e do campo). O host passou a `inline-flex` com `vertical-align: middle`. `tamanho` inválido não vira mais classe CSS arbitrária (cai em `md`).
+- **Escala de tokens** `--ui-altura-sm|md|lg` (26/34/42px). **Mudança de comportamento:** a altura padrão dos controles passou de 15px para `--ui-altura-md` (34px), o valor que o README já descrevia como padrão. Quem quiser o antigo define `--ui-campo-altura: 15px`.
+- **`ui-badge[controle]`** assume a altura dos controles (e o alvo de toque mínimo no mobile).
+- Hosts `inline` de botão, campo e lista ganharam `vertical-align: middle`.
+- Teste de contrato `tests/contrato-linha.test.ts` + regressões; guia em `docs/layout-linha.md`.
+
 ## 2.7.0 — 2026-10-17
 
 ### `UIBus`: independente do componente de toast
