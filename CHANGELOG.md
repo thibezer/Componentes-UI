@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.8.0 — 2026-10-17
+## 2.8.1 — 2026-10-17
 
 ### Novo: `<ui-area-texto>` (alias `<ui-textarea>`) para textos grandes
 
