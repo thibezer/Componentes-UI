@@ -1,5 +1,6 @@
 :host {
-  display: inline-block;
+  display: inline-flex;
+  vertical-align: middle;
   box-sizing: border-box;
   font-family: var(--ui-fonte-base, 'Inter', sans-serif);
 }
@@ -11,12 +12,17 @@
 }
 
 .ui-segmented {
+  /* A altura vem do contrato comum dos controles (--ui-campo-altura): o mesmo valor do botão e do campo.
+     O tamanho nomeado (sm|md|lg) só ajusta fonte, respiro lateral e moldura interna. */
+  --_altura: var(--ui-campo-altura, 34px);
+  --_moldura: 3px;
   display: inline-flex;
   position: relative;
+  height: var(--_altura);
   background-color: var(--ui-cor-fundo, #0b0b0d);
   border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
   border-radius: var(--ui-raio-borda, 8px);
-  padding: 3px;
+  padding: var(--_moldura);
   box-sizing: border-box;
   user-select: none;
   gap: 2px;
@@ -32,42 +38,33 @@
   flex: 1;
 }
 
-/* Tamanhos */
+/* Tamanhos: fonte, respiro lateral e moldura (a altura total é sempre --ui-campo-altura) */
 .ui-segmented--sm {
-  padding: 2px;
-  height: 28px;
+  --_moldura: 2px;
 }
 .ui-segmented--sm .ui-segmented__item {
   font-size: 12px;
   padding: 0 8px;
-  height: 22px;
 }
 
-.ui-segmented--md {
-  padding: 3px;
-  height: 36px;
-}
 .ui-segmented--md .ui-segmented__item {
   font-size: 13px;
   padding: 0 14px;
-  height: 28px;
 }
 
 .ui-segmented--lg {
-  padding: 4px;
-  height: 42px;
+  --_moldura: 4px;
 }
 .ui-segmented--lg .ui-segmented__item {
   font-size: 14px;
   padding: 0 18px;
-  height: 32px;
 }
 
 /* Indicador Deslizante (Sliding Pill) */
 .ui-segmented__indicador {
   position: absolute;
-  top: 3px;
-  bottom: 3px;
+  top: var(--_moldura);
+  bottom: var(--_moldura);
   left: 0;
   background-color: var(--ui-cor-fundo-card, #1e1e24);
   border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.16));
@@ -79,16 +76,6 @@
               opacity 0.15s ease;
   z-index: 1;
   opacity: 0;
-}
-
-.ui-segmented--sm .ui-segmented__indicador {
-  top: 2px;
-  bottom: 2px;
-}
-
-.ui-segmented--lg .ui-segmented__indicador {
-  top: 4px;
-  bottom: 4px;
 }
 
 /* Botões de Opção */
@@ -110,6 +97,8 @@
   white-space: nowrap;
   transition: color 0.15s ease;
   box-sizing: border-box;
+  /* 2px = borda do contêiner; o item preenche exatamente o que sobra da altura do controle */
+  height: calc(var(--_altura) - 2px - 2 * var(--_moldura));
 }
 
 .ui-segmented__item:hover:not(:disabled) {
@@ -145,4 +134,11 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+
+/* Alvo de toque: mesma regra de botão, campo e lista (>= 38px em telas pequenas) */
+@media (max-width: 640px) {
+  .ui-segmented {
+    --_altura: max(var(--ui-campo-altura, 34px), 38px);
+  }
 }

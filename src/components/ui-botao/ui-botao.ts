@@ -2,6 +2,7 @@ import estilos from './ui-botao.css?inline';
 import { ListenerBag } from '../../core/listener-bag';
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 import { submeterFormulario } from '../../core/form-submissao';
+import { aplicarAlturaControle } from '../../core/altura-controle';
 
 /** Atributos ARIA do host repassados ao <button> interno, que é quem recebe foco e é anunciado. */
 const ATRIBUTOS_ARIA_REPASSADOS = ['aria-label', 'aria-description', 'aria-pressed', 'aria-expanded', 'aria-haspopup'];
@@ -197,12 +198,7 @@ export class UIBotao extends SafeHTMLElement {
   }
 
   private syncState() {
-    const altura = this.getAttribute('altura') || this.getAttribute('height');
-    if (altura) {
-      this.style.setProperty('--ui-campo-altura', isNaN(Number(altura)) ? altura : `${altura}px`);
-    } else {
-      this.style.removeProperty('--ui-campo-altura');
-    }
+    aplicarAlturaControle(this);
 
     const isCarregando = this.carregando;
     const isDisabled = this.disabled || isCarregando;

@@ -5,6 +5,7 @@ import {
   sincronizarFeedbackErro
 } from './campo-texto-estados';
 import { definirCustomElement } from '../../core/ssr-safe';
+import { aplicarAlturaControle } from '../../core/altura-controle';
 import { gerarIdUnico, obterRotuloExterno, cliqueVeioDeRotuloExterno } from '../../core/acessibilidade';
 import { FormAssociatedElement } from '../../core/form-associated-element';
 import { validarRestricoesCampoTexto, aplicarValidadeInternals } from '../../core/form-validacao';
@@ -247,12 +248,7 @@ export class UICampoTexto extends FormAssociatedElement {
       this.removeAttribute('tem-icone-esquerda');
     }
 
-    const altura = this.getAttribute('altura') || this.getAttribute('height');
-    if (altura) {
-      this.style.setProperty('--ui-campo-altura', isNaN(Number(altura)) ? altura : `${altura}px`);
-    } else {
-      this.style.removeProperty('--ui-campo-altura');
-    }
+    aplicarAlturaControle(this);
 
     sincronizarLabelEPlaceholder({
       labelElement: this.labelElement,

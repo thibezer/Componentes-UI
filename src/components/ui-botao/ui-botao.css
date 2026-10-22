@@ -7,6 +7,7 @@
 :host([inline]) {
   width: auto;
   height: auto;
+  vertical-align: middle;
 }
 
 .ui-botao-primario {
@@ -15,8 +16,8 @@
   justify-content: center;
   gap: var(--ui-espaco-sm, 6px);
   width: 100%;
-  height: var(--ui-campo-altura, 100%);
-  min-height: var(--ui-campo-altura, var(--ui-altura-minima, 15px));
+  height: var(--ui-campo-altura, 34px);
+  min-height: var(--ui-campo-altura, 34px);
   box-sizing: border-box;
   padding: 0 12px;
   border: 1px solid transparent;
@@ -174,9 +175,9 @@
 .ui-botao-primario--icon-only,
 .ui-botao-primario--icone {
   padding: 0;
-  width: var(--ui-campo-altura, var(--ui-altura-minima, 15px));
-  min-width: var(--ui-campo-altura, var(--ui-altura-minima, 15px));
-  height: var(--ui-campo-altura, var(--ui-altura-minima, 15px));
+  width: var(--ui-campo-altura, 34px);
+  min-width: var(--ui-campo-altura, 34px);
+  height: var(--ui-campo-altura, 34px);
   aspect-ratio: 1;
   border-radius: var(--ui-raio-borda, 6px);
 }
