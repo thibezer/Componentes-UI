@@ -7,6 +7,7 @@ import { GerenciGeoMapaController } from '../../gerencigeo-canvas/mapa_controlle
 import type { CanvasLayerManager } from '../../gerencigeo-canvas/layer_manager';
 import { ListenerBag } from '../../core/listener-bag';
 import { RegraVersoes } from '../../gerencigeo-canvas/feature_versoes';
+import { lerModoPopups, liberarPopups, type ModoPopups } from '../../gerencigeo-canvas/popup_gate';
 import type { UsuarioRemoto } from '../../gerencigeo-canvas/feature_cursores';
 import { renderizarPainelCamadas } from './cad-painel-camadas';
 import { processarCliqueLivreCanvas, processarAcaoPopup, ContextoEventosCanvas } from './cad-eventos-canvas';
@@ -31,7 +32,7 @@ import { EstilosExternosShadow, type EstilosExternos } from './cad-estilos-exter
 
 export class UICanvasCAD extends SafeHTMLElement {
   static get observedAttributes() {
-    return ['sat-opacity', 'scale-mode', 'crosshair', 'modo-sequencial', 'chave-grupo', 'zona-projecao', 'fuso', 'canal-configuracao', 'ferramentas', 'sem-atalho-snap', 'aceitar-origem', 'sem-camadas-padrao', 'sem-painel-camadas', 'sem-barra-rapida'];
+    return ['sat-opacity', 'scale-mode', 'crosshair', 'modo-sequencial', 'chave-grupo', 'zona-projecao', 'fuso', 'canal-configuracao', 'ferramentas', 'sem-atalho-snap', 'aceitar-origem', 'sem-camadas-padrao', 'sem-painel-camadas', 'sem-barra-rapida', 'popups'];
   }
 
   private shadow: ShadowRoot;
@@ -100,6 +101,8 @@ export class UICanvasCAD extends SafeHTMLElement {
       obterLayerManager: () => this.controller.layerManager,
       obterMapa: () => this.controller.getMap(),
       regra: regraVersoes,
+      modoPopups: () => this.popups,
+      liberarPopups: (fn) => liberarPopups(this.controller.getMap(), fn),
       aoFerramenta: (f) => { this.barraFerramentas.marcar(f); },
       aoSnapMudar: (ligado) => { marcarSnap(this.shadow, ligado); },
       emitir: (evento, detalhe, cancelavel) => {
@@ -140,10 +143,14 @@ export class UICanvasCAD extends SafeHTMLElement {
         this.controller.context.zonaProjecao = parsed;
       }
     }
+    this.controller.core.definirModoPopups(this.popups);
     this.controladorTamanho.observe();
     this.feicoes.conectarTeclado();
     this.hoverListeners.cleanup();
-    if (this.mapContainer) this.hoverListeners.add(this.mapContainer, 'mousemove', (e: MouseEvent) => this.feicoes.aoMoverMouse(e));
+    if (this.mapContainer) {
+      this.hoverListeners.add(this.mapContainer, 'mousemove', (e: MouseEvent) => this.feicoes.aoMoverMouse(e));
+      this.hoverListeners.add(this.mapContainer, 'dblclick', (e: MouseEvent) => this.feicoes.aoDuploClique(e));
+    }
     this.barraFerramentas.montar(interpretarFerramentas(this.getAttribute('ferramentas')));
     this.broadcastConfig.conectar();
     this.desligarAnuncios?.();
@@ -188,6 +195,10 @@ export class UICanvasCAD extends SafeHTMLElement {
     if (name === 'sem-camadas-padrao' || name === 'sem-barra-rapida') return;
     if (name === 'sem-painel-camadas') {
       if (newVal !== null) this.toolbarPainel?.closeLayersPanel();
+      return;
+    }
+    if (name === 'popups') {
+      this.controller?.core.definirModoPopups(lerModoPopups(newVal));
       return;
     }
     if (name === 'aceitar-origem') {
@@ -318,6 +329,14 @@ export class UICanvasCAD extends SafeHTMLElement {
     else this.removeAttribute('aceitar-origem');
   }
 
+  /**
+   * Quando os popups abrem (atributo `popups`): `sob-demanda` (padrão) só por duplo clique sobre a feição/camada ou por
+   * `abrirPopupFeicao()`, sem mover o mapa; `automatico` abre ao clicar e o Leaflet ajusta a vista (comportamento antigo);
+   * `desligado` só por `abrirPopupFeicao()`. Valor inválido usa o padrão.
+   */
+  public get popups(): ModoPopups { return lerModoPopups(this.getAttribute('popups')); }
+  public set popups(val: ModoPopups) { this.setAttribute('popups', String(val)); }
+
   public get modoSequencial(): boolean { return this.hasAttribute('modo-sequencial'); }
   public set modoSequencial(val: boolean) {
     const isTruthy = Boolean(val);
@@ -361,6 +380,7 @@ export class UICanvasCAD extends SafeHTMLElement {
     this.controller.fitBounds(pontos, padding, incluirVizinhos);
   }
   public zoomExtents(): void { this.controller.canvasInteracao.zoomExtents(); }
+  /** Seleciona o vértice. A vista só se move (e o popup abre) se `zoomLevel` for informado: é o pedido de "ir até o ponto". */
   public selectPonto(id: string | number, zoomLevel?: number): void { this.controller.selectPonto(id, zoomLevel); }
   public selecionarPonto(id: string | number, zoomLevel?: number): void { this.controller.selectPonto(id, zoomLevel); }
   public get pontosSelecionados(): (string | number)[] {
@@ -487,6 +507,8 @@ export class UICanvasCAD extends SafeHTMLElement {
   public removerCursorRemoto(id: string): boolean { return this.feicoes.removerCursorRemoto(id); }
   public limparCursoresRemotos(): void { this.feicoes.limparCursoresRemotos(); }
   public fecharPopupFeicao(): void { this.feicoes.fecharPopup(); }
+  /** Abre o popup da feição (pedido explícito, vale em qualquer modo de `popups`). `false` se ela não existe ou não está na tela. */
+  public abrirPopupFeicao(camadaId: string, id: string): boolean { return this.feicoes.abrirPopupFeicao(camadaId, id); }
   /**
    * Opções do popup. `copiarParaAreaDeTransferencia` (padrão `true`): a ação "copiar" também grava as coordenadas na área de
    * transferência; com `false` só sai `cad-feicao-acao` e o consumidor decide (ex.: para mostrar o próprio aviso).

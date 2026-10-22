@@ -25,6 +25,7 @@ import type { ControleDesenho } from '../../gerencigeo-canvas/feature_desenho_co
 import type { Ferramenta } from '../../gerencigeo-canvas/feature_desenho';
 import type { EstiloFeicao, LatLonPar } from '../../gerencigeo-canvas/feature_types';
 import { aplicarMargensHud, type MargensHud } from '../../gerencigeo-canvas/feature_hud';
+import type { ModoPopups } from '../../gerencigeo-canvas/popup_gate';
 
 import {
   TIPO_CAMADA_FEICOES,
@@ -58,6 +59,13 @@ interface Contexto {
   aoFerramenta?: (ferramenta: Ferramenta | null) => void;
   /** Regra de oficial × prévia compartilhada com o renderizador (o componente a põe no contexto de renderização). */
   regra?: RegraVersoes;
+  /**
+   * Quando o popup da feição abre: `sob-demanda` (padrão do componente) só por duplo clique ou `abrirPopupFeicao`;
+   * `automatico` também ao selecionar uma feição. Sem esta função (uso direto do gerenciador), vale `automatico`.
+   */
+  modoPopups?: () => ModoPopups;
+  /** Executa a abertura de um popup como pedido explícito, passando pelo portão de popups do mapa. */
+  liberarPopups?: <T>(fn: () => T) => T;
 }
 
 
@@ -101,7 +109,8 @@ export class GerenciadorFeicoes {
         if (!this.ferramentas.ativo) return false;
         this.ferramentas.botaoDireito();
         return true;
-      }
+      },
+      abrirPopup: (f) => this.popup.abrir(f)
     });
     this.regiao = new SelecaoPorRegiao({
       obterMapa: () => this.contexto.obterMapa(),
@@ -123,6 +132,8 @@ export class GerenciadorFeicoes {
       selecionarUma: (ref) => this.selecao.selecionar([ref]),
       fecharPopup: () => this.popup.fechar(),
       reabrirPopupDaSelecao: () => {
+        // só o modo automático devolve o popup ao fim da edição; sob demanda, quem quiser o abre de novo
+        if (this.modoPopups() !== 'automatico') return;
         const selecionadas = this.selecao.obter();
         if (selecionadas.length === 1) this.popup.abrir(selecionadas[0]);
       },
@@ -185,7 +196,8 @@ export class GerenciadorFeicoes {
     this.popup = new FeicaoPopup({
       obterMapa: () => this.contexto.obterMapa(),
       obterCamada: (id) => this.contexto.obterLayerManager().getLayerDef(id),
-      aoAcao: (acao, feicao) => this.tratarAcaoPopup(acao, feicao)
+      aoAcao: (acao, feicao) => this.tratarAcaoPopup(acao, feicao),
+      liberar: (fn) => (this.contexto.liberarPopups ? this.contexto.liberarPopups(fn) : fn())
     });
     this.selecao = new SelecaoFeicoes({
       obterFeicao: (r) => this.buscar(r.camadaId, r.id),
@@ -203,8 +215,8 @@ export class GerenciadorFeicoes {
           if (!mesma) this.edicao.parar();
           return;
         }
-        // popup só para exatamente uma feição; com mais (ou nenhuma) fecha
-        if (feicoes.length === 1) this.popup.abrir(feicoes[0]);
+        // popup automático só para exatamente uma feição; com mais (ou nenhuma) fecha. Sob demanda, selecionar não abre
+        if (feicoes.length === 1 && this.modoPopups() === 'automatico') this.popup.abrir(feicoes[0]);
         else this.popup.fechar();
       },
       aoSelecionarUma: (feicao) => this.contexto.emitir('cad-feicao-selecionada', { feicao }),
@@ -332,6 +344,25 @@ export class GerenciadorFeicoes {
 
   public fecharPopup(): void {
     this.popup.fechar();
+  }
+
+  private modoPopups(): ModoPopups {
+    return this.contexto.modoPopups?.() ?? 'automatico';
+  }
+
+  /** Pedido explícito: abre o popup da feição (vale em qualquer modo). `false` se não existe, foi excluída ou não está na tela. */
+  public abrirPopupFeicao(camadaId: string, id: string): boolean {
+    if (typeof camadaId !== 'string' || typeof id !== 'string') return false;
+    const f = this.buscar(camadaId, id);
+    if (!f || f.excluida || !this.desenhada(f)) return false;
+    this.popup.abrir(f);
+    return true;
+  }
+
+  /** Duplo clique no mapa: abre o popup da feição sob o cursor (a não ser que os popups estejam desligados). */
+  public aoDuploClique(e: MouseEvent): void {
+    if (this.modoPopups() === 'desligado') return;
+    this.ponteiro.duploClique(e);
   }
 
   /** Opções do popup (hoje: se "copiar" escreve na área de transferência). Mescla com o que já foi definido. */

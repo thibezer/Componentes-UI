@@ -89,6 +89,8 @@ export interface DependenciasPopup {
   obterMapa: () => L.Map | null;
   obterCamada: (camadaId: string) => CanvasLayerDef | undefined;
   aoAcao: (acao: AcaoFeicao, feicao: Feicao) => void;
+  /** Executa a abertura como pedido explícito (o portão de popups do mapa deixa passar). Sem ele, abre direto. */
+  liberar?: <T>(fn: () => T) => T;
 }
 
 export class FeicaoPopup {
@@ -122,7 +124,9 @@ export class FeicaoPopup {
     })
       .setLatLng(coordenadaDeReferencia(f))
       .setContent(this.montar(f));
-    this.popup.openOn(map);
+    const popup = this.popup;
+    if (this.dep.liberar) this.dep.liberar(() => popup.openOn(map));
+    else popup.openOn(map);
   }
 
   /** Reconstrói o conteúdo se a feição aberta mudou (estilo, propriedades, geometria). */

@@ -52,7 +52,6 @@ export class CanvasInteracao {
 
   // Estados de Toque (Mobile/Tablet)
   private touchStartPos = { x: 0, y: 0 };
-  private touchStartDist = 0;
   private isTouchPanning: boolean = false;
 
   private removerSupressao: (() => void) | null = null;
@@ -130,10 +129,8 @@ export class CanvasInteracao {
       this.isTouchPanning = true;
       this.touchStartPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
     } else if (e.touches.length === 2) {
+      // pinça e pan de dois dedos são do `touchZoom` do Leaflet (suave, em torno do centro dos dedos)
       this.isTouchPanning = false;
-      const dx = e.touches[0].clientX - e.touches[1].clientX;
-      const dy = e.touches[0].clientY - e.touches[1].clientY;
-      this.touchStartDist = Math.hypot(dx, dy);
     }
   };
 
@@ -146,26 +143,14 @@ export class CanvasInteracao {
       const dy = this.touchStartPos.y - e.touches[0].clientY;
       this.map.panBy([dx, dy], { animate: false });
       this.touchStartPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-    } else if (e.touches.length === 2 && this.touchStartDist > 0) {
-      e.preventDefault();
+    } else if (e.touches.length === 2) {
+      // sem preventDefault e sem zoom próprio: antes o tratador daqui e o do Leaflet davam zoom os dois, e em passos de 1 nível
       this.panHappened = true;
-      const dx = e.touches[0].clientX - e.touches[1].clientX;
-      const dy = e.touches[0].clientY - e.touches[1].clientY;
-      const dist = Math.hypot(dx, dy);
-      if (Math.abs(dist - this.touchStartDist) > 25) {
-        if (dist > this.touchStartDist) {
-          this.map.zoomIn(1);
-        } else {
-          this.map.zoomOut(1);
-        }
-        this.touchStartDist = dist;
-      }
     }
   };
 
   private handleTouchEnd = (): void => {
     this.isTouchPanning = false;
-    this.touchStartDist = 0;
     setTimeout(() => {
       this.panHappened = false;
     }, 120);
@@ -208,12 +193,13 @@ export class CanvasInteracao {
 
     if (e.button === 1) {
       e.preventDefault();
-      const agora = Date.now();
-      if (agora - this.lastMiddleClickTime < 300) {
+      // Só um clique limpo anterior (sem arraste, registrado ao soltar) forma o duplo clique;
+      // dois arrastes seguidos são pan, não um pedido de "zoom extents"
+      if (Date.now() - this.lastMiddleClickTime < 300) {
+        this.lastMiddleClickTime = 0;
         this.zoomExtents();
         return;
       }
-      this.lastMiddleClickTime = agora;
 
       this.isPanning = true;
       this.panHappened = false;
@@ -254,6 +240,7 @@ export class CanvasInteracao {
   private handleMouseUp = (e: MouseEvent): void => {
     if (this.isPanning) {
       this.isPanning = false;
+      if (e.button === 1 && !this.panHappened) this.lastMiddleClickTime = Date.now();
       if (this.mapContainer) {
         this.mapContainer.style.cursor = 'grab';
       }

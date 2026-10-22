@@ -11,6 +11,8 @@ export interface PortasPonteiro {
   interacaoAtiva: () => boolean;
   /** Se há ferramenta ativa, entrega a ela o botão direito e devolve `true` (não abre menu). */
   botaoDireitoDaFerramenta: () => boolean;
+  /** Pedido explícito de informações: abre o popup da feição. */
+  abrirPopup?: (feicao: Feicao) => void;
 }
 
 export class PonteiroFeicoes {
@@ -55,6 +57,13 @@ export class PonteiroFeicoes {
     const r = this.p.feicaoSob(e.clientX, e.clientY);
     if (!r) return;
     this.p.emitir('cad-feicao-menu', { feicao: r.feicao, coordenada: r.coordenada, x: e.clientX, y: e.clientY });
+  }
+
+  /** Duplo clique sobre uma feição: pedido de informações (popup). Ignorado durante desenho ou edição de vértices. */
+  public duploClique(e: MouseEvent): void {
+    if (this.p.interacaoAtiva() || !this.p.abrirPopup) return;
+    const r = this.p.feicaoSob(e.clientX, e.clientY);
+    if (r?.feicao) this.p.abrirPopup(r.feicao);
   }
 
   /** Esquece a feição sob o cursor (ao destruir o componente). */

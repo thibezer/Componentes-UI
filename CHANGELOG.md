@@ -1,5 +1,24 @@
 # Changelog
 
+## Não lançado
+
+### `<ui-canvas-cad>`: popups e câmera só a pedido (como CAD/GIS)
+
+- **Popups sob demanda (mudança de comportamento):** clicar numa feição, vértice, linha ou polígono **não abre mais o popup nem move o mapa** (o Leaflet abria no clique e fazia auto-pan). Abrem com **duplo clique** sobre a camada, por `abrirPopupFeicao(camadaId, id)` ou, no código, por `marcador.openPopup()` fora de um clique. Popups abertos a pedido não fazem auto-pan. Novo atributo/propriedade `popups`: `sob-demanda` (padrão), `automatico` (comportamento antigo: abre ao selecionar uma feição, com auto-pan e `definirMargensPopup`) e `desligado` (clique e duplo clique não abrem). A consulta SIGEF segue abrindo ao clicar (é um pedido explícito). No modo sob demanda, terminar a edição de vértices não reabre o popup.
+- **Implementação:** `popup_gate.ts` (`PortaoPopups`, `liberarPopups`, `lerModoPopups`) intercepta `map.addLayer` só para popups e separa clique do mouse de abertura pelo código; `FeicaoPopup` aceita `liberar`; `PonteiroFeicoes.duploClique` e `GerenciadorFeicoes.abrirPopupFeicao`/`aoDuploClique`.
+- **`selectPonto(id)` / `selecionarPonto(id)`:** só seleciona. Antes recentralizava o mapa sempre e abria o popup; agora isso acontece apenas com `zoomLevel` informado (pedido de "ir até o ponto").
+- **Zoom em passos finos:** `zoomSnap: 0.25`, `zoomDelta: 0.5`, `wheelPxPerZoomLevel: 90` (antes 1, 1 e 60: cada giro da roda saltava um nível inteiro). Zoom fracionário é aceito por simplificação, clusters, densidade e pré-carga de tiles.
+- **Botão do meio:** o duplo clique que enquadra (`zoomExtents`) agora exige dois cliques limpos; dois arrastes rápidos em sequência (pan) não enquadram mais.
+- **Toque:** removido o zoom próprio da pinça (passos de 1 nível, em paralelo ao `touchZoom` do Leaflet, que também reagia ao mesmo gesto). Um dedo continua arrastando.
+- **Não mudou:** `zoomParaFeicao(s)`, `ajustarTudo`, `ajustarCamada`, `fitBounds`, clique em cluster, ação "zoom" do popup e o botão "Enquadrar" seguem como pedidos explícitos. `zoomExtents` continua considerando só os vértices (não as feições).
+
+### `<ui-camadas>`: busca, espaço da lista e documentação de eventos
+
+- **Busca por nome de camada (correção):** o campo "Buscar camada ou feição" só filtrava feições; buscar `eixos` deixava todas as camadas na tela com "Nenhum item correspondente", inclusive a que casava. Agora a árvore mostra só camadas que casam (pelo nome) ou que levam a um resultado, mantendo os grupos ancestrais; um grupo que casa traz suas subcamadas; sem resultado há uma mensagem única (termo escapado). Nova função pura `filtrarCamadasPorBusca()` em `camadas-selecao.ts`; a seleção em intervalo (`Shift`) segue as mesmas linhas.
+- **Mapa base recolhível:** novo atributo/propriedade `mapas-base-recolhido` / `mapasBaseRecolhido`, e o cabeçalho "Mapa Base" vira botão (`aria-expanded`) que mostra o mapa ativo. Novo evento `ui-mapas-base-recolhimento` (`{ recolhido }`), só para ação do usuário. Padrão inalterado (aberta).
+- **Espaço da lista:** `.ui-panel-box` passa de `min-height: 80px` para `140px`, para a árvore não ficar espremida por rodapé e mapas base em painéis `docked` baixos (o corpo rola abaixo disso).
+- **Documentação:** `ui-camada-grupo-adicionar` é emitido com `{ isGroup: true }` (o README dizia `{ grupoId, nome }`); `ui-camada-adicionar` (`{}` ou `{ parentId }`) passa a constar na tabela. Ambos são pedidos: sem handler no aplicativo, os botões não criam nada.
+
 ## 2.7.0 — 2026-10-17
 
 ### `UIBus`: independente do componente de toast

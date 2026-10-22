@@ -27,7 +27,8 @@ src/gerencigeo-canvas/
 ## 🧭 Pilares Técnicos Importados
 
 ### 1. Núcleo Cartográfico e Gerenciamento de Panes (`MapaCore`)
-- **Instância Leaflet:** `preferCanvas: true`, `maxZoom: 24`, `scrollWheelZoom: true`.
+- **Instância Leaflet:** `preferCanvas: true`, `maxZoom: 24`, `scrollWheelZoom: true`, zoom em passos finos (`zoomSnap: 0.25`, `zoomDelta: 0.5`, `wheelPxPerZoomLevel: 90`; ver `zoom_opcoes.ts`).
+- **Popups sob demanda (`popup_gate.ts`):** o clique seleciona e não abre popup nem move o mapa. O duplo clique sobre a camada (ou `abrirPopupFeicao`) abre, sem auto-pan. Modos `sob-demanda` (padrão), `automatico` (Leaflet original) e `desligado`; atributo `popups` do `<ui-canvas-cad>`.
 - **Camadas Base:** Google Satellite Híbrido com controle de opacidade + WMS INCRA/SIGEF (`certificada_sigef_particular_pr`).
 - **Arquitetura de Panes com Z-Index estrito:**
   - `sigefPane` (z-index: 390): WMS do acervo fundiário (abaixo das linhas do imóvel).
@@ -38,7 +39,8 @@ src/gerencigeo-canvas/
 
 ### 2. Motor de Interações Estilo AutoCAD (`CanvasInteracao`)
 - **Pan Dinâmico:** Botão do meio (Scroll Wheel Drag) com cursor `grabbing`.
-- **Zoom Extents:** Duplo clique na rodinha do mouse (`< 300ms`) executa `fitBounds`.
+- **Zoom Extents:** Duplo clique na rodinha do mouse (`< 300ms`) executa `fitBounds`. Só vale para dois cliques limpos: dois arrastes seguidos são pan e não enquadram.
+- **Toque:** um dedo arrasta (pan); a pinça e o pan de dois dedos são do `touchZoom` do Leaflet (antes havia um segundo tratador que também dava zoom, de 1 em 1 nível).
 - **Janelas de Seleção Retangular:**
   - **Window Selection (Esquerda $\to$ Direita):** Caixa Azul Sólida (`#06b6d4`) — apenas vértices 100% contidos.
   - **Crossing Selection (Direita $\to$ Esquerda):** Caixa Verde Tracejada (`#10b981`) — qualquer vértice interceptado.
