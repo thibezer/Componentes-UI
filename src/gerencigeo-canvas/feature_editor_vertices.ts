@@ -1,5 +1,5 @@
 import L from 'leaflet';
-import type { Feicao, LatLonPar } from './feature_types';
+import type { Feicao, GeometriaFeicao, LatLonPar } from './feature_types';
 import {
   alternarSuavidade, comPontos, inserirPonto, minimoVertices, moverAlca, nosDe, pontoMedioDoSegmento, pontosDe,
   removerPonto, segmentosDoEditor, type QualAlca
@@ -246,15 +246,44 @@ export class EditorVertices {
   private criarFantasma(i: number, j: number): { marker: L.Marker; i: number; j: number } {
     const marker = L.marker(pontoMedioDoSegmento(this.geometriaAtual(), i, j), {
       icon: this.icone('cad-vertex-ghost', 9, `background:${COR};opacity:.45;border:1px solid #111;border-radius:50%;cursor:copy`),
+      draggable: true,
       pane: PANE_EDICAO,
       keyboard: false
     });
     // o editor reconstrói tudo a cada inserção/exclusão, então `i` nunca fica desatualizado
+    // clique: insere no ponto médio; arraste: insere o nó já na posição solta (um gesto só, como o arraste de uma alça)
     marker.on('click', (ev: L.LeafletMouseEvent) => {
       L.DomEvent.stopPropagation(ev.originalEvent);
-      this.inserir(i, marker.getLatLng());
+      this.inserir(i);
+    });
+    marker.on('drag', () => this.aoArrastarFantasma(marker, i));
+    marker.on('dragend', () => {
+      this.esconderSnap();
+      this.inserir(i, this.posicaoDoFantasma(marker));
     });
     return { marker, i, j };
+  }
+
+  /** Posição do fantasma em arrasto, com snap (ignorando o vértice que ainda não existe). */
+  private posicaoDoFantasma(marker: L.Marker): LatLonPar {
+    const f = this.feicaoAtual;
+    const pos: LatLonPar = [marker.getLatLng().lat, marker.getLatLng().lng];
+    if (!f || !this.dep.snapLigado()) return pos;
+    return this.dep.buscarSnap(pos, { feicaoId: f.id, camadaId: f.camadaId })?.coordenada ?? pos;
+  }
+
+  private aoArrastarFantasma(marker: L.Marker, depoisDe: number): void {
+    const pos = this.posicaoDoFantasma(marker);
+    if (pos[0] !== marker.getLatLng().lat || pos[1] !== marker.getLatLng().lng) {
+      marker.setLatLng(pos);
+      this.mostrarSnap(pos);
+    } else {
+      this.esconderSnap();
+    }
+    const previa = this.comInsercao(depoisDe, pos);
+    if (!previa) return;
+    this.dep.previsualizar(previa.feicao);
+    this.atualizarHud(previa.feicao.geometria);
   }
 
   // ---- gestos ----
@@ -305,15 +334,35 @@ export class EditorVertices {
     }
   }
 
-  private inserir(depoisDe: number, coord: L.LatLng): void {
+  /**
+   * Feição com um nó novo logo depois de `depoisDe`, já em `destino` (padrão: o meio do segmento). Não grava nada.
+   * Na curva o nó nasce sobre o traçado (sem mudar o desenho) e só depois vai para `destino`.
+   */
+  private comInsercao(depoisDe: number, destino?: LatLonPar): { feicao: Feicao; pts: LatLonPar[] } | null {
     const f = this.feicaoAtual;
-    if (!f) return;
-    const nova = inserirPonto(this.geometriaAtual(), depoisDe, [coord.lat, coord.lng]);
-    this.pts = pontosDe(nova).map((p) => [p[0], p[1]] as LatLonPar);
+    if (!f || this.pts.length === 0) return null;
+    const g = this.geometriaAtual();
+    const meio = pontoMedioDoSegmento(g, depoisDe, (depoisDe + 1) % this.pts.length);
+    const nova = inserirPonto(g, depoisDe, meio);
+    if (nova === g) return null;
+    const pts = pontosDe(nova).map((p) => [p[0], p[1]] as LatLonPar);
+    if (destino && Number.isFinite(destino[0]) && Number.isFinite(destino[1])) pts[depoisDe + 1] = destino;
+    return { feicao: { ...f, geometria: comPontos(nova, pts) }, pts };
+  }
+
+  private inserir(depoisDe: number, destino?: LatLonPar): void {
+    const r = this.comInsercao(depoisDe, destino);
+    if (!r) {
+      // nada a inserir: refaz as alças (o fantasma arrastado volta ao ponto médio) e a prévia da geometria gravada
+      this.reconstruir();
+      if (this.feicaoAtual) this.dep.previsualizar(this.feicaoComPontos());
+      return;
+    }
+    this.pts = r.pts;
+    this.feicaoAtual = r.feicao;
     this.reconstruir();
-    const atualizada = this.feicaoComPontos();
-    this.dep.previsualizar(atualizada);
-    this.confirmar(atualizada);
+    this.dep.previsualizar(r.feicao);
+    this.confirmar(r.feicao);
   }
 
   private confirmar(f: Feicao): void {
@@ -342,9 +391,7 @@ export class EditorVertices {
 
   public inserirVerticeApos(indice: number): void {
     if (indice < 0 || indice >= this.pts.length) return;
-    const proximo = (indice + 1) % this.pts.length;
-    const m = pontoMedioDoSegmento(this.geometriaAtual(), indice, proximo);
-    this.inserir(indice, L.latLng(m[0], m[1]));
+    this.inserir(indice);
   }
 
   // ---- snap visual ----
@@ -402,7 +449,7 @@ export class EditorVertices {
     botao.addEventListener('click', () => this.parar());
     const dica = campo('dica');
     dica.style.opacity = '.7';
-    dica.textContent = 'Duplo clique no nó: curva ↔ canto · Alças: Shift solta a simetria';
+    dica.textContent = 'Arraste o ponto do meio para criar um nó · Botão direito no nó exclui · Duplo clique no nó: curva ↔ canto · Alças: Shift solta a simetria';
     hud.append(titulo, campo('nos'), campo('medida'), snap, dica, botao);
     // não deixa o HUD iniciar caixa de seleção nem pan
     L.DomEvent.disableClickPropagation(hud);
@@ -412,9 +459,9 @@ export class EditorVertices {
     this.atualizarSnapNoHud();
   }
 
-  private atualizarHud(): void {
+  private atualizarHud(geometria?: GeometriaFeicao): void {
     if (!this.hud || !this.feicaoAtual) return;
-    const g = this.geometriaAtual();
+    const g = geometria ?? this.geometriaAtual();
     const nos = this.hud.querySelector('[data-campo="nos"]');
     const medida = this.hud.querySelector('[data-campo="medida"]');
     if (nos) nos.textContent = g.tipo === 'Circle' ? 'Centro move · borda muda o raio' : `Nós: ${this.pts.length} (mín. ${minimoVertices(g)})`;

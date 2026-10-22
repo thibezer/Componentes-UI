@@ -648,6 +648,30 @@
   pointer-events: none !important;
 }
 
+/* Aviso visível de recusa (ferramenta sem camada de desenho, edição recusada); o anúncio vai pela região viva abaixo. */
+.cad-aviso {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: calc(var(--ui-z-workspace-hud, 500) + 1);
+  box-sizing: border-box;
+  max-width: min(calc(100% - 200px), 460px);
+  padding: 8px 14px;
+  border-radius: var(--ui-raio-borda, 6px);
+  border: 1px solid var(--ui-cor-aviso, #f59e0b);
+  background: rgba(12, 21, 16, 0.95);
+  color: var(--ui-cor-texto, #ffffff);
+  font: 600 12px var(--ui-fonte-base, sans-serif);
+  line-height: 1.35;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
+
+.cad-aviso[hidden] {
+  display: none;
+}
+
 /* Região viva para leitores de tela (anúncios de seleção e ferramenta). */
 .cad-sr-only {
   position: absolute;

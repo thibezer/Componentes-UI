@@ -22,6 +22,7 @@ export function obterTemplateCanvasCAD(): string {
         <div class="layer-panel-body" id="layers-list-container"></div>
       </div>
       <div class="cad-sr-only" id="cad-status" role="status" aria-live="polite" aria-atomic="true"></div>
+      <div class="cad-aviso" id="cad-aviso" aria-hidden="true" hidden></div>
       <div class="cad-quick-toolbar" role="toolbar" aria-label="Controles do mapa">
         <button class="cad-btn-tool" id="btn-toggle-layers" type="button" title="Camadas">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>

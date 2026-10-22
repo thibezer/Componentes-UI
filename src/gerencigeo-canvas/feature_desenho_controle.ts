@@ -1,5 +1,5 @@
 import L from 'leaflet';
-import { focoEmCampoDeTexto } from '../core/alvo-digitavel';
+import { focoEmCampoDeTexto, focoEmControleAcionavel } from '../core/alvo-digitavel';
 import type { GeometriaFeicao, LatLonPar } from './feature_types';
 import { SessaoDesenho, type Ferramenta } from './feature_desenho';
 import {
@@ -270,6 +270,8 @@ export class ControleDesenho {
     }
     if (digitando) return;
     if (e.key === 'Enter') {
+      // com o foco num botão (barra de ferramentas, "Sair" do HUD), o Enter é do botão
+      if (focoEmControleAcionavel(e)) return;
       this.concluir();
       e.preventDefault();
     } else if (e.key === 'Backspace' || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z')) {

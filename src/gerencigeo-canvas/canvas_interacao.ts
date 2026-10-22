@@ -7,6 +7,9 @@ import { garantirCanvasSemEventos, resolverCliqueCentral } from './layer_hit_tes
 
 export { CAD_INTERACTIVE_PANES };
 
+/** Alças do editor de vértices e HUDs: o mouse e o toque que começam neles não iniciam seleção por caixa nem pan. */
+const SELETOR_TOQUE_PROPRIO = '.cad-vertex-handle, .cad-vertex-ghost, .cad-bezier-handle, #cm-vertex-edit-hud, #cm-draw-hud';
+
 export interface CanvasInteracaoContext {
   mapaController?: any;
   layerManager?: CanvasLayerManager;
@@ -127,6 +130,11 @@ export class CanvasInteracao {
   private handleTouchStart = (e: TouchEvent): void => {
     if (!this.map || !this.mapContainer) return;
     if (e.touches.length === 1) {
+      // alças de edição e HUDs tratam o próprio toque: arrastar um nó (ou o ponto médio) não move o mapa junto
+      if ((e.target as HTMLElement | null)?.closest?.(SELETOR_TOQUE_PROPRIO)) {
+        this.isTouchPanning = false;
+        return;
+      }
       this.isTouchPanning = true;
       this.touchStartPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
     } else if (e.touches.length === 2) {
@@ -224,7 +232,7 @@ export class CanvasInteracao {
 
     if (e.button === 0) {
       // alças de edição de vértices e o HUD da edição tratam o próprio mouse: não iniciam caixa de seleção
-      if ((e.target as HTMLElement | null)?.closest?.('.cad-vertex-handle, .cad-vertex-ghost, #cm-vertex-edit-hud, #cm-draw-hud')) return;
+      if ((e.target as HTMLElement | null)?.closest?.(SELETOR_TOQUE_PROPRIO)) return;
       if (this.ctx.ferramentaAtiva?.()) return;
       this.selectionHappened = false;
       if (this.ctx.mapaController && this.ctx.mapaController.modoCliqueSequencialAtivo) {

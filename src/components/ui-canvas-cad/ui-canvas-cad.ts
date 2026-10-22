@@ -31,7 +31,7 @@ import { EstilosExternosShadow, type EstilosExternos } from './cad-estilos-exter
 
 export class UICanvasCAD extends SafeHTMLElement {
   static get observedAttributes() {
-    return ['sat-opacity', 'scale-mode', 'crosshair', 'modo-sequencial', 'chave-grupo', 'zona-projecao', 'fuso', 'canal-configuracao', 'ferramentas', 'sem-atalho-snap', 'aceitar-origem', 'sem-camadas-padrao', 'sem-painel-camadas', 'sem-barra-rapida'];
+    return ['sat-opacity', 'scale-mode', 'crosshair', 'modo-sequencial', 'chave-grupo', 'zona-projecao', 'fuso', 'canal-configuracao', 'ferramentas', 'sem-atalho-snap', 'aceitar-origem', 'sem-camadas-padrao', 'sem-painel-camadas', 'sem-barra-rapida', 'sem-avisos'];
   }
 
   private shadow: ShadowRoot;
@@ -184,8 +184,8 @@ export class UICanvasCAD extends SafeHTMLElement {
       this.feicoes?.definirAtalhoSnap(newVal === null);
       return;
     }
-    // lidos na inicialização do mapa (camadas) ou só por CSS (barra); o painel aberto fecha ao ser desligado
-    if (name === 'sem-camadas-padrao' || name === 'sem-barra-rapida') return;
+    // lidos na inicialização do mapa (camadas), só por CSS (barra) ou na hora do aviso (`sem-avisos`); o painel aberto fecha ao ser desligado
+    if (name === 'sem-camadas-padrao' || name === 'sem-barra-rapida' || name === 'sem-avisos') return;
     if (name === 'sem-painel-camadas') {
       if (newVal !== null) this.toolbarPainel?.closeLayersPanel();
       return;

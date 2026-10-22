@@ -1,5 +1,16 @@
 # Changelog
 
+## Não lançado
+
+### `<ui-canvas-cad>`: usabilidade do desenho e da edição de vértices
+
+- **Esc voltava a falhar depois do primeiro popup.** O Leaflet mantém `map._popup` apontando para o último popup mesmo fechado, e o atalho de teclado do mapa engole o Esc enquanto essa referência existe: com o foco no mapa, o Esc deixava de encerrar a edição de vértices, cancelar a figura em desenho e limpar a seleção. O mapa agora solta a referência no `popupclose` (`src/gerencigeo-canvas/popup_residual.ts`); popup aberto continua fechando com Esc.
+- **Enter em botões durante o desenho.** Com uma ferramenta ativa, o Enter era tratado como "concluir" mesmo com o foco num botão (barra de ferramentas, "Sair" do HUD), e o clique do botão não acontecia. O Enter agora fica com botões, links e controles com `role` acionável (`focoEmControleAcionavel`, em `src/core/alvo-digitavel.ts`).
+- **Ferramenta ou edição recusada agora avisa.** Sem camada de desenho (ou com camada bloqueada/inválida), e ao recusar a edição de uma feição (bloqueada, com furos, multiparte...), o componente mostra um aviso visível por 5 s e o anuncia na região viva, além de emitir `cad-desenho-recusado`/`cad-edicao-recusada` como antes. **Novo atributo `sem-avisos`**: o consumidor que mostra o próprio aviso a partir dos eventos desliga o do componente.
+- **Ponto médio arrastável na edição de vértices.** Arrastar o ponto médio de uma aresta cria o nó já na posição solta (com snap, prévia e HUD ao vivo e um único `cad-feicao-atualizada`); o clique continua inserindo no meio da aresta. Em feição com curva, o nó nasce sobre o traçado e a curva é mantida (antes, inserir um nó numa curva a convertia em poligonal). A dica do HUD passou a mencionar inserir e excluir.
+- **Toque.** Um toque que começa numa alça de edição, num ponto médio ou nos HUDs não move mais o mapa junto; alças de Bézier passam a ser tratadas como as demais alças pelo mouse (não iniciam caixa de seleção).
+- Testes de regressão em `tests/ui-canvas-cad-edicao.regressao.test.ts`.
+
 ## 2.7.0 — 2026-10-17
 
 ### `UIBus`: independente do componente de toast
