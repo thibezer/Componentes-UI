@@ -8,7 +8,7 @@ import { ICONES } from './camadas-icones';
 import { escapeHtml, sanitizarCorCss, corParaHex } from './camadas-utils';
 import { renderizarThumbGeometria } from './camadas-thumb';
 import { construirHierarquiaCamadas, type CamadaNodoHierarquico } from './camadas-hierarquia';
-import { filtrarFeicoesPorBusca, LIMITE_FEICOES_POR_CAMADA } from './camadas-selecao';
+import { filtrarCamadasPorBusca, LIMITE_FEICOES_POR_CAMADA } from './camadas-selecao';
 
 export interface ParametrosRenderArvore {
   camadas: CamadaItem[];
@@ -43,6 +43,8 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
   } = params;
 
   const q = (searchQuery || '').trim().toLowerCase();
+  // Com busca, só entram na árvore as camadas que casam (ou levam a um resultado)
+  const busca = filtrarCamadasPorBusca(camadas, feicoes, q);
 
   // Indexação rápida de feições por camada
   const featsByLayer = new Map<string, FeicaoItem[]>();
@@ -105,8 +107,12 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
   // Função recursiva para renderizar um nó e todas as suas subcamadas
   const renderizarNodo = (nodo: CamadaNodoHierarquico): string => {
     const layer = nodo.camada;
+    if (busca && !busca.camadasVisiveis.has(layer.id)) return '';
     const depth = nodo.depth;
     const subcamadas = nodo.subcamadas;
+    const subcamadasExibidas = busca
+      ? subcamadas.filter((s) => busca.camadasVisiveis.has(s.camada.id))
+      : subcamadas;
     const isGroup = Boolean(layer.isGroup || subcamadas.length > 0);
 
     const safeId = escapeHtml(layer.id);
@@ -118,7 +124,7 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
     const isSettingsOpen = activeSettingsLayerId === layer.id;
     const isActiveLayer = camadaAtivaId === layer.id;
 
-    const layerFeats = filtrarFeicoesPorBusca(featsByLayer.get(layer.id) || [], q);
+    const layerFeats = busca ? busca.feicoesPorCamada.get(layer.id) || [] : featsByLayer.get(layer.id) || [];
 
     const allFeatsSelected =
       layerFeats.length > 0 && layerFeats.every((f) => selectedFeatureIds.has(f.id));
@@ -285,7 +291,7 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
       : '';
 
     // Renderiza subcamadas recursivamente
-    const subcamadasHtml = subcamadas.map((sub) => renderizarNodo(sub)).join('');
+    const subcamadasHtml = subcamadasExibidas.map((sub) => renderizarNodo(sub)).join('');
 
     return `
       <div class="ui-layer-group ${depth > 0 ? 'is-sublayer-group' : ''}" data-layer-id="${safeId}" data-layer-depth="${depth}" role="treeitem" aria-expanded="${isExpanded}">
@@ -347,8 +353,8 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
           ${feicoesHtml}
           ${truncateNotice}
           ${
-            subcamadas.length === 0 && layerFeats.length === 0
-              ? `<div class="ui-empty-row"><span>${q ? 'Nenhum item correspondente' : isGroup ? 'Grupo vazio (adicione subcamadas ou feições)' : 'Nenhum elemento neste grupo'}</span></div>`
+            subcamadasExibidas.length === 0 && layerFeats.length === 0
+              ? `<div class="ui-empty-row"><span>${isGroup ? 'Grupo vazio (adicione subcamadas ou feições)' : 'Nenhum elemento neste grupo'}</span></div>`
               : ''
           }
         </div>
@@ -357,7 +363,10 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
   };
 
   const hierarquia = construirHierarquiaCamadas(camadas);
-  const camadasHtml = hierarquia.map((nodo) => renderizarNodo(nodo)).join('');
+  const camadasHtml =
+    busca && busca.camadasVisiveis.size === 0
+      ? `<div class="ui-search-empty" role="status">Nenhum resultado para “${escapeHtml((searchQuery || '').trim())}”</div>`
+      : hierarquia.map((nodo) => renderizarNodo(nodo)).join('');
 
   return `
     ${toolbarHtml}

@@ -22,6 +22,7 @@
   - Reordenação da ordem de desenho / Z-Index das camadas (suporte a mouse e toque no handle de arraste).
   - Aninhamento de camadas ao soltar no centro de outra camada (`drop-into`) com proteção contra ciclos.
   - Reordenação de feições internas e transferência de feições entre camadas distintas arrastando sobre o grupo.
+- **Busca por camada e feição**: o campo filtra a árvore inteira. Casar pelo nome de uma camada (ou grupo) mostra a camada com todas as suas feições (e as subcamadas, no caso de grupo); casar por uma feição mostra a camada e o grupo ancestral só com as feições que casam. Sem resultado, aparece uma mensagem única.
 - **Edição Inline de Nomes**: Duplo-clique no nome da camada ou feição para editar (`Enter` para confirmar, `Esc` para cancelar).
 - **Drawer de Configurações**: Ajuste contínuo de opacidade, seletor de cor HEX/nativo, definição de camada pai (`parentId`), botão de adicionar subcamada e exclusão com confirmação em 2 passos.
 - **Cálculo Geodésico Automático (WGS84)**: Cálculo de área em hectares/m² com desconto de furos/ilhas interiores (*donut polygons*) e comprimento em metros/km com base esférica precisa.
@@ -171,6 +172,7 @@ painel.style.height = '450px';
 | `camada-ativa` | `el.camadaAtivaId` | `string \| null` | `null` | ID da camada de trabalho atualmente ativa para inserção de vetores. |
 | `mapa-base-ativo`| `el.mapaBaseAtivo` | `string` | `'satelite'`| ID do mapa base ativo no seletor inferior. |
 | `mostrar-mapas-base` | `el.mostrarMapasBase` | `boolean` | `true` | Exibe ou oculta a seção de mapas base no rodapé do painel. |
+| `mapas-base-recolhido` | `el.mapasBaseRecolhido` | `boolean` | `false` | Recolhe a grade de mapas base, deixando só o cabeçalho com o mapa ativo. O usuário alterna clicando no cabeçalho (o atributo acompanha). Recomendado em painéis `docked` baixos, para dar espaço à árvore. |
 | `mostrar-rodape` | `el.mostrarRodape` | `boolean` | `true` | Exibe ou oculta a barra de ações em massa e contadores. |
 | `mostrar-busca` | `el.mostrarBusca` | `boolean` | `true` | Exibe o campo de busca/filtro textual de camadas e feições. |
 | `densidade` | `el.densidade` | `'compacto' \| 'normal'` | `'normal'` | Densidade visual das linhas (22px vs 25px). |
@@ -250,7 +252,8 @@ Todos os eventos disparam com `{ bubbles: true, composed: true }`.
 | `ui-camada-renomeada` | `{ camadaId, novoNome }` | Camada renomeada via duplo-clique |
 | `ui-camada-excluida` | `{ camadaId }` | Camada removida pelo usuário |
 | `ui-camadas-reordenadas`| `{ camadas }` | Nova ordem das camadas pós Drag & Drop |
-| `ui-camada-grupo-adicionar` | `{ grupoId, nome }` | Novo grupo/pasta de camadas criado pelo usuário |
+| `ui-camada-adicionar` | `{}` ou `{ parentId }` | **Pedido** de nova camada (botão `+ Camada` da toolbar e do rodapé, ou `+ Subcamada` no drawer, que envia `parentId`). O painel não cria nada sozinho: o aplicativo trata o evento e chama `adicionarCamada()` |
+| `ui-camada-grupo-adicionar` | `{ isGroup: true }` | **Pedido** de novo grupo/pasta (botão `Grupo`). O payload não traz id nem nome: o aplicativo escolhe ambos e chama `adicionarCamada({ id, name, isGroup: true })` |
 | `ui-camada-mover-hierarquia` | `{ camadaId, novoParentId, parentAnteriorId }` | Camada movida para dentro de outra ou para raiz |
 | `ui-feicao-selecionada` | `{ feicaoId, feicao }` | Feição individual selecionada |
 | `ui-feicoes-selecionadas`| `{ feicoesIds, feicoes }`| Conjunto de feições selecionadas |
@@ -258,6 +261,18 @@ Todos os eventos disparam com `{ bubbles: true, composed: true }`.
 | `ui-acao-massa` | `{ acao, feicoesIds, feicoes }` | Ação coletiva disparada no rodapé |
 | `ui-mapa-base-alterado` | `{ mapaBaseId }` | Mapa base alterado no seletor |
 | `ui-colapso-alterado` | `{ colapsado: boolean }` | Painel colapsado ou expandido |
+| `ui-mapas-base-recolhimento` | `{ recolhido: boolean }` | Seção "Mapa Base" recolhida ou aberta pelo usuário (cabeçalho da seção) |
+
+> **Sem handler, `+ Camada` e `Grupo` não fazem nada.** Exemplo mínimo:
+>
+> ```typescript
+> painel.addEventListener('ui-camada-adicionar', (e) => {
+>   painel.adicionarCamada({ id: crypto.randomUUID(), name: 'Nova camada', parentId: e.detail.parentId ?? null });
+> });
+> painel.addEventListener('ui-camada-grupo-adicionar', () => {
+>   painel.adicionarCamada({ id: crypto.randomUUID(), name: 'Novo grupo', isGroup: true });
+> });
+> ```
 
 ---
 

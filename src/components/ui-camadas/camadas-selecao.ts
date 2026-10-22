@@ -26,6 +26,89 @@ export function filtrarFeicoesPorBusca(feicoes: FeicaoItem[], termo: string): Fe
   );
 }
 
+export interface ResultadoBuscaCamadas {
+  /** Camadas que permanecem na árvore: as que casam, seus ancestrais e as subcamadas de quem casa pelo nome. */
+  camadasVisiveis: Set<string>;
+  /** Feições mostradas em cada camada visível (todas, se a camada casa pelo nome; senão, só as que casam). */
+  feicoesPorCamada: Map<string, FeicaoItem[]>;
+}
+
+/**
+ * Busca em toda a árvore: casa pelo nome da camada ou pelos dados das feições (ver `filtrarFeicoesPorBusca`).
+ * Mantém os grupos ancestrais de cada resultado e, quando um grupo casa pelo nome, suas subcamadas.
+ * Sem termo, retorna `null` (nada a filtrar). Tolera nomes ausentes e ciclos de `parentId`.
+ */
+export function filtrarCamadasPorBusca(
+  camadas: CamadaItem[],
+  feicoes: FeicaoItem[],
+  termo: string
+): ResultadoBuscaCamadas | null {
+  const q = (termo || '').trim().toLowerCase();
+  if (!q) return null;
+
+  const camadaPorId = new Map<string, CamadaItem>();
+  const filhasPorPai = new Map<string, string[]>();
+  for (const l of camadas) {
+    camadaPorId.set(l.id, l);
+    if (l.parentId && l.parentId !== l.id) {
+      if (!filhasPorPai.has(l.parentId)) filhasPorPai.set(l.parentId, []);
+      filhasPorPai.get(l.parentId)!.push(l.id);
+    }
+  }
+
+  const feicoesPorLayer = new Map<string, FeicaoItem[]>();
+  for (const f of feicoes) {
+    const lid = f.layerId || '';
+    if (!feicoesPorLayer.has(lid)) feicoesPorLayer.set(lid, []);
+    feicoesPorLayer.get(lid)!.push(f);
+  }
+
+  const casaPeloNome = new Set<string>();
+  const casam = new Set<string>();
+  for (const l of camadas) {
+    const nome = typeof l.name === 'string' ? l.name.toLowerCase() : '';
+    if (nome.includes(q)) {
+      casaPeloNome.add(l.id);
+      casam.add(l.id);
+    } else if (filtrarFeicoesPorBusca(feicoesPorLayer.get(l.id) || [], q).length > 0) {
+      casam.add(l.id);
+    }
+  }
+
+  const camadasVisiveis = new Set<string>(casam);
+
+  // Ancestrais: o grupo de um resultado precisa aparecer para o resultado ter onde ficar
+  for (const id of casam) {
+    const vistos = new Set<string>([id]);
+    let pai = camadaPorId.get(id)?.parentId;
+    while (pai && camadaPorId.has(pai) && !vistos.has(pai)) {
+      vistos.add(pai);
+      camadasVisiveis.add(pai);
+      pai = camadaPorId.get(pai)?.parentId;
+    }
+  }
+
+  // Descendentes: abrir um grupo pelo nome mostra o que há dentro dele
+  const pilha = [...casaPeloNome];
+  while (pilha.length > 0) {
+    const id = pilha.pop()!;
+    for (const filha of filhasPorPai.get(id) || []) {
+      if (!camadasVisiveis.has(filha)) {
+        camadasVisiveis.add(filha);
+        pilha.push(filha);
+      }
+    }
+  }
+
+  const feicoesPorCamada = new Map<string, FeicaoItem[]>();
+  for (const id of camadasVisiveis) {
+    const daCamada = feicoesPorLayer.get(id) || [];
+    feicoesPorCamada.set(id, casaPeloNome.has(id) ? daCamada : filtrarFeicoesPorBusca(daCamada, q));
+  }
+
+  return { camadasVisiveis, feicoesPorCamada };
+}
+
 /**
  * IDs de feições efetivamente exibidas na árvore, na ordem da tela:
  * respeita camadas expandidas (todas, durante uma busca), o filtro de busca e o limite de linhas.
@@ -37,7 +120,7 @@ export function obterIdsVisiveisFeicoes(
   termoBusca = '',
   limitePorCamada = LIMITE_FEICOES_POR_CAMADA
 ): string[] {
-  const buscando = (termoBusca || '').trim() !== '';
+  const busca = filtrarCamadasPorBusca(camadas, feicoes, termoBusca);
   const ids: string[] = [];
   const featsByLayer = new Map<string, FeicaoItem[]>();
   for (let i = 0; i < feicoes.length; i++) {
@@ -49,11 +132,18 @@ export function obterIdsVisiveisFeicoes(
 
   for (let i = 0; i < camadas.length; i++) {
     const l = camadas[i];
-    if (buscando || camadasExpandidas.has(l.id)) {
-      const lf = filtrarFeicoesPorBusca(featsByLayer.get(l.id) || [], termoBusca).slice(0, limitePorCamada);
-      for (let j = 0; j < lf.length; j++) {
-        ids.push(lf[j].id);
-      }
+    let lista: FeicaoItem[];
+    if (busca) {
+      if (!busca.camadasVisiveis.has(l.id)) continue;
+      lista = busca.feicoesPorCamada.get(l.id) || [];
+    } else if (camadasExpandidas.has(l.id)) {
+      lista = featsByLayer.get(l.id) || [];
+    } else {
+      continue;
+    }
+    const lf = lista.slice(0, limitePorCamada);
+    for (let j = 0; j < lf.length; j++) {
+      ids.push(lf[j].id);
     }
   }
   return ids;

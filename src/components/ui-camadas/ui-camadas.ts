@@ -14,7 +14,7 @@ import {
   AbaPainelCamadas
 } from './tipos';
 import { renderizarPainel } from './camadas-render';
-import { MAPAS_BASE_PADRAO } from './camadas-mapas-base';
+import { MAPAS_BASE_PADRAO, nomeDoMapaBase } from './camadas-mapas-base';
 import { CamadasDragDropManager } from './camadas-drag-drop';
 import { CamadasHostCompleto } from './camadas-host';
 import { cancelarArrasteControles } from './camadas-arraste-controles';
@@ -57,6 +57,7 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
       'colapsado',
       'flutuante',
       'mostrar-mapas-base',
+      'mapas-base-recolhido',
       'mostrar-rodape',
       'mostrar-busca',
       'densidade',
@@ -222,6 +223,7 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
       if (newVal) this.marcarMapaBaseAtivoNoDOM(newVal);
     } else if (
       name === 'mostrar-mapas-base' ||
+      name === 'mapas-base-recolhido' ||
       name === 'mostrar-rodape' ||
       name === 'mostrar-busca' ||
       name === 'colapsavel' ||
@@ -276,6 +278,28 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
       c.classList.toggle('active', ativo);
       c.setAttribute('aria-pressed', String(ativo));
     });
+    const atual = this.shadow.querySelector('[data-basemap-atual]');
+    if (atual) atual.textContent = nomeDoMapaBase(this.mapasBase, id);
+  }
+
+  /** Seção "Mapa Base" recolhida (só o cabeçalho com o mapa ativo). Atributo `mapas-base-recolhido`. */
+  public get mapasBaseRecolhido(): boolean {
+    return this.hasAttribute('mapas-base-recolhido');
+  }
+  public set mapasBaseRecolhido(valor: boolean) {
+    if (valor) {
+      this.setAttribute('mapas-base-recolhido', '');
+    } else {
+      this.removeAttribute('mapas-base-recolhido');
+    }
+  }
+
+  /** Alterna a seção de mapas base; com `emitirEvento`, dispara `ui-mapas-base-recolhimento`. */
+  public alternarMapasBaseRecolhido(emitirEvento = false): void {
+    this.mapasBaseRecolhido = !this.mapasBaseRecolhido;
+    if (emitirEvento) {
+      this.dispararEvento('ui-mapas-base-recolhimento', { recolhido: this.mapasBaseRecolhido });
+    }
   }
 
   public get abaAtiva(): AbaPainelCamadas {
