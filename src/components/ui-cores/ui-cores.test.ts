@@ -153,22 +153,96 @@ describe('<ui-seletor-cor>', () => {
     expect(confirmado).toMatchObject({ cor: 'none' });
   });
 
-  it('amostras, "sem cor", cores do projeto e hexadecimal', () => {
-    const alteracoes: DetalheSeletorCor[] = [];
+  it('sem paletas, faixas nem atalhos de opacidade: só campos numéricos', () => {
     abrirSeletorCor({
       ancora,
       preenchimento: '#10b981',
       traco: '#ffffff',
-      coresProjeto: ['#123456', '#123456', 'none'],
-      aoAlterar: (d) => alteracoes.push(d)
+      coresProjeto: ['#123456'],
+      paleta: ['#654321']
     });
+    const raiz = sr(seletorNoDom()!);
+    expect(raiz.querySelector('.amostra')).toBeNull();
+    expect(raiz.querySelector('input[type="range"]')).toBeNull();
+    expect(raiz.querySelector('[data-opacidade], [data-espessura]')).toBeNull();
+    expect((raiz.querySelector('.opacidade-entrada') as HTMLInputElement).value).toBe('35');
+    expect((raiz.querySelector('.espessura-entrada') as HTMLInputElement).value).toBe('2.5');
+  });
+
+  it('campo de opacidade: texto com %, vírgula, inválido, fora da faixa e passos', () => {
+    const alteracoes: DetalheSeletorCor[] = [];
+    abrirSeletorCor({ ancora, preenchimento: '#10b981', traco: '#ffffff', aoAlterar: (d) => alteracoes.push(d) });
+    const el = seletorNoDom()!;
+    const campo = sr(el).querySelector('.opacidade-entrada') as HTMLInputElement;
+    const digitar = (v: string) => {
+      campo.value = v;
+      campo.dispatchEvent(new Event('change'));
+    };
+
+    digitar('50%');
+    expect(el.opacidade).toBe(0.5);
+    expect(campo.value).toBe('50');
+    digitar('12,6');
+    expect(el.opacidade).toBeCloseTo(0.126);
+    expect(campo.value).toBe('13');
+    const emitidos = alteracoes.length;
+    digitar('abc');
+    expect(el.opacidade).toBeCloseTo(0.126);
+    expect(campo.value).toBe('13');
+    expect(alteracoes).toHaveLength(emitidos);
+    digitar('250');
+    expect(el.opacidade).toBe(1);
+    digitar('-5');
+    expect(el.opacidade).toBe(0);
+
+    const teclaNoCampo = (key: string, extra: KeyboardEventInit = {}) =>
+      campo.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, composed: true, cancelable: true, ...extra }));
+    teclaNoCampo('ArrowUp');
+    expect(el.opacidade).toBeCloseTo(0.01);
+    teclaNoCampo('ArrowUp', { shiftKey: true });
+    expect(el.opacidade).toBeCloseTo(0.11);
+    teclaNoCampo('ArrowDown');
+    expect(el.opacidade).toBeCloseTo(0.1);
+    expect(campo.value).toBe('10');
+
+    (sr(el).querySelector('[data-passo="opacidade"][data-direcao="1"]') as HTMLElement).click();
+    expect(el.opacidade).toBeCloseTo(0.11);
+    expect(ultimo(alteracoes)).toMatchObject({ opacidade: 0.11 });
+  });
+
+  it('campo de espessura aceita "2,5 px", passos de 0,5 e limita a [0,5; 50]', () => {
+    abrirSeletorCor({ ancora, preenchimento: '#10b981', traco: '#ffffff', alvo: 'traco' });
+    const el = seletorNoDom()!;
+    const campo = sr(el).querySelector('.espessura-entrada') as HTMLInputElement;
+    campo.value = '4,5 px';
+    campo.dispatchEvent(new Event('change'));
+    expect(el.espessura).toBe(4.5);
+    (sr(el).querySelector('[data-passo="espessura"][data-direcao="-1"]') as HTMLElement).click();
+    expect(el.espessura).toBe(4);
+    campo.value = '999';
+    campo.dispatchEvent(new Event('change'));
+    expect(el.espessura).toBe(50);
+    expect(campo.value).toBe('50');
+  });
+
+  it('Enter e X no campo numérico não fecham o seletor nem trocam o alvo', () => {
+    let confirmacoes = 0;
+    abrirSeletorCor({ ancora, preenchimento: '#10b981', traco: '#ffffff', aoConfirmar: () => confirmacoes++ });
+    const el = seletorNoDom()!;
+    const campo = sr(el).querySelector('.opacidade-entrada') as HTMLInputElement;
+    campo.value = '80';
+    campo.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, composed: true, cancelable: true }));
+    expect(el.opacidade).toBe(0.8);
+    campo.dispatchEvent(new KeyboardEvent('keydown', { key: 'x', bubbles: true, composed: true, cancelable: true }));
+    expect(el.alvo).toBe('preenchimento');
+    expect(confirmacoes).toBe(0);
+    expect(seletorNoDom()).not.toBeNull();
+  });
+
+  it('"sem cor" e hexadecimal', () => {
+    abrirSeletorCor({ ancora, preenchimento: '#10b981', traco: '#ffffff' });
     const el = seletorNoDom()!;
     const raiz = sr(el);
-    expect(raiz.querySelectorAll('.amostra[data-cor="#123456"]').length).toBe(1);
-
-    (raiz.querySelector('.amostra[data-cor="#123456"]') as HTMLElement).click();
-    expect(el.cor).toBe('#123456');
-    expect(raiz.querySelector('.amostra[data-cor="#123456"]')!.classList.contains('ativo')).toBe(true);
 
     (raiz.querySelector('.sem-cor') as HTMLElement).click();
     expect(el.cor).toBe('none');
@@ -206,7 +280,7 @@ describe('<ui-seletor-cor>', () => {
     abrirSeletorCor({ ancora, preenchimento: '#10b981', traco: '#ffffff', aoConfirmar: () => confirmacoes++ });
     pointerdownEm(ancora);
     expect(seletorNoDom()).not.toBeNull();
-    pointerdownEm(sr(seletorNoDom()!).querySelector('.amostra')!);
+    pointerdownEm(sr(seletorNoDom()!).querySelector('.hex-entrada')!);
     expect(seletorNoDom()).not.toBeNull();
     tecla('Escape');
     expect(confirmacoes).toBe(1);
@@ -416,14 +490,14 @@ describe('<ui-controle-cores>', () => {
     expect(el.seletorAberto).toBe(false);
   });
 
-  it('passa misto e cores do projeto ao seletor', () => {
+  it('passa misto ao seletor; cores do projeto (obsoletas) não geram amostras', () => {
     el.coresProjeto = ['#111111', '#111111', '#222222'];
+    expect(el.coresProjeto).toEqual(['#111111', '#222222']);
     el.definirMisto({ preenchimento: true });
     el.abrirSeletor('preenchimento');
     const raiz = sr(seletorNoDom()!);
     expect(raiz.querySelector('.previa-rotulo-nova')!.textContent).toBe('MISTO (?)');
-    expect(raiz.querySelectorAll('.amostra[data-cor="#111111"]').length).toBe(1);
-    expect(raiz.querySelector('.amostra[data-cor="#222222"]')).not.toBeNull();
+    expect(raiz.querySelector('.amostra')).toBeNull();
   });
 
   it('desabilitado não abre o seletor', () => {

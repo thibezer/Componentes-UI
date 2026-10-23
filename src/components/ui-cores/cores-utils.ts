@@ -1,6 +1,6 @@
 import type { ValorCor } from './tipos';
 
-/** Paleta técnica padrão (CAD/GIS) do seletor de cor. */
+/** Paleta técnica padrão (CAD/GIS). @deprecated O seletor de cor não a usa mais. */
 export const PALETA_CORES_PADRAO: readonly string[] = [
   '#00e08a', '#38bdf8', '#3b82f6', '#6366f1', '#a855f7', '#ec4899', '#ef4444',
   '#f97316', '#eab308', '#84cc16', '#14b8a6', '#ffffff', '#94a3b8', '#0f172a'

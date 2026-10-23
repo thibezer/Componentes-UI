@@ -1,5 +1,13 @@
 # Changelog
 
+## Não publicado
+
+### `<ui-seletor-cor>`: painel mais compacto, campos no estilo Illustrator
+
+- Opacidade e espessura do traçado viram **campos numéricos** compactos (rótulo à esquerda, campo com setas ▲▼ e unidade `%`/`px`), no lugar das faixas deslizantes e dos atalhos (25–100 % e 1–8 px). No campo: ↑/↓ e a roda do mouse (com o campo em foco) somam um passo (1 % ou 0,5 px), Shift soma dez; o valor digitado ("50", "50%", "2,5 px") vale no Enter, no Tab ou ao sair; texto inválido volta ao valor atual sem emitir evento. Enter no campo não fecha o seletor.
+- "Sem cor" deixa de ser um botão largo com texto e vira uma amostra quadrada de 30 px (fundo neutro com diagonal vermelha, como o *None* do Illustrator) ao lado do hexadecimal e do seletor do sistema; mantém a classe `.sem-cor`, `data-cor="none"`, `aria-pressed` e o rótulo acessível.
+- Saem as amostras "Cores do projeto" e "Paleta padrão". As opções `coresProjeto` e `paleta` de `abrirSeletorCor()`/`configurar()`, a propriedade `coresProjeto` do `<ui-controle-cores>` e a constante `PALETA_CORES_PADRAO` continuam aceitas, mas ficam obsoletas (`@deprecated`) e são ignoradas pelo seletor.
+
 ## 2.10.1 — 2026-10-23
 
 Junta à 2.10.0 tudo o que ainda estava fora do npm: a revisão da edição de formas da 2.4.0 (PR #7), a espessura do traço no controle e no seletor de cor e o estado misto do `<ui-tabela-propriedades>` (PR #12). Sai como 2.10.1 a pedido, embora traga novidades.

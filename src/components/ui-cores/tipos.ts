@@ -46,9 +46,9 @@ export interface OpcoesSeletorCor {
   mostrarEspessura?: boolean;
   /** A cor inicial representa uma seleção com cores diferentes (mostra "MISTO"). */
   misto?: boolean;
-  /** Cores extras oferecidas em "Cores do projeto" (duplicadas e inválidas são ignoradas). */
+  /** @deprecated Ignorado: o seletor de cor não mostra mais amostras de cores. */
   coresProjeto?: ValorCor[];
-  /** Substitui a paleta padrão. */
+  /** @deprecated Ignorado: o seletor de cor não mostra mais amostras de cores. */
   paleta?: ValorCor[];
   /** Leva o foco do teclado para o painel ao abrir (ao fechar, o foco volta para a âncora). Padrão: `false`. */
   focar?: boolean;

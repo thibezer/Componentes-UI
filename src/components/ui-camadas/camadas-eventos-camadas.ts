@@ -179,14 +179,12 @@ export function conectarEventosCamadas(host: CamadasHostCompleto, shadow: Shadow
       const layerId = bar.getAttribute('data-layer-color');
       const layer = host.camadas.find((l) => l.id === layerId);
       if (!layerId || !layer) return;
-      const outras = host.camadas.filter((l) => l.id !== layerId && l.color).map((l) => l.color as string);
       abrirSeletorCor({
         ancora: bar,
         titulo: `Cor · ${layer.name || 'Camada'}`,
         modo: 'simples',
         cor: sanitizarCorCss(layer.color, '#00E08A'),
         mostrarOpacidade: false,
-        coresProjeto: outras,
         aoAlterar: (d) => atualizarCorCamadaNoDOM(layerId, d.cor, false),
         aoConfirmar: (d) => atualizarCorCamadaNoDOM(layerId, d.cor, true),
         aoCancelar: (d) => atualizarCorCamadaNoDOM(layerId, d.cor, true)
