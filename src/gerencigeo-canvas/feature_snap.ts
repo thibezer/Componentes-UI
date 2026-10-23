@@ -1,6 +1,6 @@
 import { partesDaLinha, type Feicao, type LatLonPar } from './feature_types';
 import type { PontoPx, Projetor } from './feature_caixa';
-import { pontoMedio, verticesDe } from './feature_edicao_ops';
+import { nosDe, pontoMedio, pontoMedioDoSegmento, segmentosDoEditor, verticesDe } from './feature_edicao_ops';
 
 /*
  * Snap (imã) sobre as feições candidatas. Puro: recebe as candidatas (vindas do índice espacial) e um
@@ -80,6 +80,40 @@ export function buscarSnap(
 
     // curva em edição: o índice arrastado é de um nó, não dos vértices de apoio, e a própria curva não atrai
     if (propria && (g.tipo === 'LineString' || g.tipo === 'Polygon') && g.curva) continue;
+
+    // curva de outra feição: "vértice" é o nó e "meio" é o meio do trecho curvo (o mesmo que o editor oferece);
+    // os vértices de apoio amostrados só servem à aresta, que acompanha o traçado
+    const nos = g.tipo === 'LineString' || g.tipo === 'Polygon' ? nosDe(g) : null;
+    if (nos) {
+      if (usaVertice) {
+        for (const no of nos) {
+          const d = dist(cursor, projetar(no.ponto));
+          if (d <= tol) melhorVertice = proporia(melhorVertice, { tipo: 'vertice', coordenada: no.ponto, distanciaPx: d, ...base });
+        }
+      }
+      if (usaMeio) {
+        for (const [i, j] of segmentosDoEditor(g)) {
+          const m = pontoMedioDoSegmento(g, i, j);
+          const d = dist(cursor, projetar(m));
+          if (d <= tol) melhorMeio = proporia(melhorMeio, { tipo: 'meio', coordenada: m, distanciaPx: d, ...base });
+        }
+      }
+      if (usaAresta) {
+        const apoio = verticesDe(g);
+        const px = apoio.map(projetar);
+        const pares: Array<[number, number]> = [];
+        for (let i = 0; i < apoio.length - 1; i++) pares.push([i, i + 1]);
+        if (g.tipo === 'Polygon' && apoio.length > 2) pares.push([apoio.length - 1, 0]);
+        for (const [i, j] of pares) {
+          const { t, d } = projetarNoSegmento(cursor, px[i], px[j]);
+          if (d <= tol) {
+            const c: LatLonPar = [apoio[i][0] + t * (apoio[j][0] - apoio[i][0]), apoio[i][1] + t * (apoio[j][1] - apoio[i][1])];
+            melhorAresta = proporia(melhorAresta, { tipo: 'aresta', coordenada: c, distanciaPx: d, ...base });
+          }
+        }
+      }
+      continue;
+    }
 
     // trechos: cada parte de uma linha (vértices de todas as partes atraem; o último de uma parte não liga ao primeiro da
     // seguinte) ou o anel externo do polígono (fechado). O vértice em arrasto só existe na edição, que é de uma parte só.

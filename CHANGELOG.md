@@ -1,5 +1,32 @@
 # Changelog
 
+## 2.11.0 — 2026-10-23
+
+### `<ui-canvas-cad>`: volta a revisão dos modos de edição da 2.4.0
+
+A 2.4.0 e a 2.4.1 foram publicadas no npm, mas a revisão da edição de formas que elas traziam não entrou na 2.5.0 nem nas versões seguintes. Esta versão a traz de volta, portada para os módulos extraídos depois (`cad-feicoes-edicao.ts`, `cad-feicoes-ponteiro.ts` e o novo `cad-feicoes-teclado.ts`) e combinada com a edição da 2.10.0 (alças latentes, ponto médio arrastável, dica do HUD).
+
+**Novidades**
+
+- **Desfazer/refazer/cancelar na edição**: Ctrl+Z, Ctrl+Shift+Z / Ctrl+Y e botões no HUD (100 gestos); **Cancelar** volta à geometria de quando a edição começou. Mudar a geometria por fora recomeça o histórico.
+- **Nó selecionado**: clique na alça destaca o nó; Delete/Backspace ou "Excluir nó" o exclui. Recusas (mínimo de nós, ponto, círculo) avisam no HUD.
+- **Mais formas de entrar na edição**: **Enter** com uma só feição editável selecionada e botão **Editar** na barra (`ferramentas="editar"` ou `"todas"`; reflete a edição em curso com `aria-pressed`). `cad-edicao-recusada` ganha o motivo `sem-selecao` (botão Editar sem uma feição selecionada), com aviso visível.
+- **Novo evento `cad-feicao-duplo-clique`** (cancelável, `{ camadaId, feicao, coordenada }`). O duplo clique sobre a feição continua abrindo o popup, como na 2.8.1 (na 2.4.0 ele abria a edição). Com `preventDefault()` o consumidor assume o gesto, por exemplo chamando `editarVertices()`.
+- **Retângulo**: arrastar um canto de um retângulo alinhado aos eixos mantém o retângulo (Shift solta).
+- **Fantasmas** não aparecem em segmentos com menos de 24 px na tela e voltam ao aproximar o zoom.
+- **Ferramentas de desenho avisam no HUD** quando recusam o clique (círculo abaixo de 2 m, cantos alinhados, centro repetido) ou quando Enter/duplo clique chega com pontos de menos.
+- O HUD de edição passa a ter vários botões (Desfazer, Refazer, Excluir nó, Cancelar, Concluir): quem buscava o botão pelo seletor `#cm-vertex-edit-hud button` deve usar `[data-acao="concluir"]`.
+
+**Correções**
+
+- **Círculo**: o popup oferece o botão **Editar**; a alça da borda fica onde foi solta (antes voltava para o leste do centro).
+- **Fantasma de inserção**: o duplo clique insere um vértice e não o converte mais em curva (`dblclick` até 600 ms depois da inserção é ignorado).
+- **Camada ou feição fechada durante a edição**: ocultar, bloquear ou remover a camada, ou bloquear a feição, encerra a edição (`cad-edicao-concluida`) e tira alças e HUD.
+- **Caneta**: o arraste da alça termina com o `mouseup` na janela; soltar o botão fora do mapa não deixa mais a alça seguindo o cursor.
+- **Snap em curvas**: feição com `curva` atrai pelos nós (vértice) e pelo meio do trecho curvo; os vértices de apoio amostrados só valem como aresta.
+- **Mudança externa no meio do arraste** (outro operador, API): a alça arrastada não é destruída; o gesto em curso vence ao soltar.
+- **Tecla S** e **Enter** com vários canvases na página só valem no que está sob o mouse ou com foco. Com um único canvas nada muda.
+
 ## 2.10.0 — 2026-10-23
 
 Junta à 2.9.0 o trabalho que tinha ficado fora do npm: o `<ui-area-texto>` e a lapidação dos textos (PR #10), a usabilidade do desenho e da edição de vértices, as curvas Bézier sempre à mão, o painel de camadas no estilo Adobe e a lapidação do `<ui-card>`.

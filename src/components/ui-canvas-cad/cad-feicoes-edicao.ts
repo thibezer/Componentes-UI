@@ -29,10 +29,15 @@ export interface PortasEdicao {
   snapAtivo: () => boolean;
   alternarSnap: () => void;
   buscarSnapEm: (coord: [number, number], excluir?: ExcluirSnap) => ReturnType<typeof import('../../gerencigeo-canvas/feature_snap').buscarSnap>;
+  /** Feições selecionadas agora (o botão "Editar" e o Enter editam quando há exatamente uma). */
+  selecionadas: () => Feicao[];
+  /** A edição começou (`true`) ou terminou (`false`), para refletir no botão "Editar" da barra. */
+  aoEdicao?: (ativa: boolean) => void;
 }
 
 export class EdicaoFeicoes {
   private editor: EditorVertices | null = null;
+  private pararDeVigiarCamada: (() => void) | null = null;
 
   constructor(private p: PortasEdicao) {}
 
@@ -93,6 +98,8 @@ export class EdicaoFeicoes {
       },
       aoEncerrar: (ultima) => {
         this.editor = null;
+        this.vigiarCamada(null);
+        this.p.aoEdicao?.(false);
         const atual = this.p.buscar(ultima.camadaId, ultima.id) ?? ultima;
         this.p.emitir('cad-edicao-concluida', { feicao: atual });
         // restaura o popup da seleção (ele ficou fechado durante a edição)
@@ -101,8 +108,52 @@ export class EdicaoFeicoes {
     });
     this.editor = editor;
     editor.iniciar(f);
+    this.p.aoEdicao?.(true);
+    this.vigiarCamada(lm);
     this.p.emitir('cad-edicao-iniciada', { feicao: f });
     return { ok: true };
+  }
+
+  /** Camada ocultada, bloqueada ou removida no meio da edição encerra a edição (as alças gravariam numa camada que não aceita). */
+  private vigiarCamada(lm: CanvasLayerManager | null): void {
+    this.pararDeVigiarCamada?.();
+    this.pararDeVigiarCamada = null;
+    if (!lm) return;
+    this.pararDeVigiarCamada = lm.onChange(() => {
+      const ed = this.feicao;
+      if (!ed) return;
+      const def = lm.getLayerDef(ed.camadaId);
+      if (!def || !def.visivel || def.bloqueada) this.parar();
+    });
+  }
+
+  /** A única feição selecionada, se puder ser editada agora (sem emitir recusa). */
+  private selecionadaEditavel(): Feicao | null {
+    const sel = this.p.selecionadas();
+    if (sel.length !== 1) return null;
+    const camada = this.p.obterLayerManager().getLayerDef(sel[0].camadaId);
+    return verificarEditavel(sel[0], !!camada?.bloqueada) === null ? sel[0] : null;
+  }
+
+  /** Enter: edita a única feição selecionada, se ela for editável. Devolve se a edição começou. */
+  public editarSelecionada(): boolean {
+    if (this.editando) return false;
+    const f = this.selecionadaEditavel();
+    return !!f && this.iniciarEdicao(f.camadaId, f.id).ok;
+  }
+
+  /** Botão "Editar" da barra: encerra a edição em curso ou edita a feição selecionada (uma só). */
+  public alternarEdicaoDaSelecao(): ResultadoEdicao {
+    if (this.editando) {
+      this.parar();
+      return { ok: true };
+    }
+    const sel = this.p.selecionadas();
+    if (sel.length !== 1) {
+      this.p.emitir('cad-edicao-recusada', { motivo: 'sem-selecao', feicao: null });
+      return { ok: false, motivo: 'sem-selecao' };
+    }
+    return this.iniciarEdicao(sel[0].camadaId, sel[0].id);
   }
 
   public parar(): void {

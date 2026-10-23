@@ -27,7 +27,7 @@ import type { PontoPixel } from './cad-evento-coordenadas';
 import { liberarContainerLeaflet } from './cad-leaflet-adaptador';
 import { lerPontosSelecionados, gravarPontosSelecionados } from './cad-selecao-pontos';
 import { GerenciadorFeicoes, OpcoesCamadaFeicoes, OpcoesLote, LoteFeicoes, ResultadoLote, ResultadoFeicoes, ResultadoEdicao, ResultadoFerramenta } from './cad-feicoes';
-import { BarraFerramentas, interpretarFerramentas } from './cad-ferramentas-barra';
+import { BarraFerramentas, interpretarFerramentas, barraPedeEdicao } from './cad-ferramentas-barra';
 import type { EstiloFeicao } from '../../gerencigeo-canvas/feature_types';
 import type { Feicao } from '../../gerencigeo-canvas/feature_types';
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
@@ -55,6 +55,8 @@ export class UICanvasCAD extends SafeHTMLElement {
   private estilosExternos: EstilosExternosShadow;
   private lastPopupActionEmit?: { acaoId: string; elementoId: string | number; time: number };
   private lastCanvasClickTime: number = 0;
+  /** Mouse sobre o componente: junto com o foco dentro dele, decide se S e Enter valem quando há vários canvases na página. */
+  private ponteiroSobre = false;
   private _chaveGrupo?: string;
   private _zonaProjecao: number = 22;
 
@@ -108,6 +110,8 @@ export class UICanvasCAD extends SafeHTMLElement {
       liberarPopups: (fn) => liberarPopups(this.controller.getMap(), fn),
       aoFerramenta: (f) => { this.barraFerramentas.marcar(f); },
       aoSnapMudar: (ligado) => { marcarSnap(this.shadow, ligado); },
+      aoEdicao: (ativa) => { this.barraFerramentas.marcarEdicao(ativa); },
+      atalhoValido: () => this.ponteiroSobre || this.matchesFocoInterno() || this.ehUnicoCanvas(),
       emitir: (evento, detalhe, cancelavel) => {
         const ev = new CustomEvent(evento, { detail: detalhe, bubbles: true, composed: true, cancelable: !!cancelavel });
         this.dispatchEvent(ev);
@@ -122,9 +126,10 @@ export class UICanvasCAD extends SafeHTMLElement {
     });
     this.barraFerramentas = new BarraFerramentas({
       raiz: this.shadow.getElementById('cad-root') as HTMLElement,
-      aoEscolher: (f) => { this.feicoes.alternarFerramenta(f); }
+      aoEscolher: (f) => { this.feicoes.alternarFerramenta(f); },
+      aoEditar: () => { this.feicoes.alternarEdicaoDaSelecao(); }
     });
-    this.barraFerramentas.montar(interpretarFerramentas(this.getAttribute('ferramentas')));
+    this.montarBarra(this.getAttribute('ferramentas'));
     Object.assign(contextoInteracao, {
       aoMenuContexto: (e: MouseEvent) => this.feicoes.menuContexto(e),
       ferramentaAtiva: () => this.feicoes.ferramentaAtiva !== null,
@@ -155,12 +160,33 @@ export class UICanvasCAD extends SafeHTMLElement {
       this.hoverListeners.add(this.mapContainer, 'mousemove', (e: MouseEvent) => this.feicoes.aoMoverMouse(e));
       this.hoverListeners.add(this.mapContainer, 'dblclick', (e: MouseEvent) => this.feicoes.aoDuploClique(e));
     }
-    this.barraFerramentas.montar(interpretarFerramentas(this.getAttribute('ferramentas')));
+    this.hoverListeners.add(this, 'mouseenter', () => { this.ponteiroSobre = true; });
+    this.hoverListeners.add(this, 'mouseleave', () => { this.ponteiroSobre = false; });
+    this.montarBarra(this.getAttribute('ferramentas'));
     this.broadcastConfig.conectar();
     this.desligarAnuncios?.();
     this.desligarAnuncios = conectarAnuncios(this, this.shadow);
     this.estilosExternos.aplicar();
     this.initTimeout = window.setTimeout(() => { this.initTimeout = undefined; this.inicializarAgora(); }, 0);
+  }
+
+  private montarBarra(valor: string | null): void {
+    this.barraFerramentas?.montar(interpretarFerramentas(valor), barraPedeEdicao(valor));
+  }
+
+  /** Único canvas da página: os atalhos valem em qualquer lugar (comportamento de sempre). Com vários, só no que está sob o mouse ou com foco. */
+  private ehUnicoCanvas(): boolean {
+    const raiz = this.getRootNode() as Document | ShadowRoot;
+    return (raiz.querySelectorAll?.('ui-canvas-cad').length ?? 1) <= 1;
+  }
+
+  /** O foco do teclado está dentro do componente (inclusive no shadow DOM)? */
+  private matchesFocoInterno(): boolean {
+    try {
+      return this.matches(':focus-within');
+    } catch {
+      return false;
+    }
   }
 
   public destroy(): void {
@@ -215,8 +241,9 @@ export class UICanvasCAD extends SafeHTMLElement {
       return;
     }
     if (name === 'ferramentas') {
-      this.barraFerramentas?.montar(interpretarFerramentas(newVal));
+      this.montarBarra(newVal);
       this.barraFerramentas?.marcar(this.feicoes?.ferramentaAtiva ?? null);
+      this.barraFerramentas?.marcarEdicao(!!this.feicoes?.editando);
       return;
     }
     sincronizarAtributoCAD(

@@ -197,6 +197,8 @@ export class FeicaoPopup {
     const botoes: Array<[AcaoFeicao, string]> = [['inspecionar', 'Inspecionar'], ['zoom', 'Zoom']];
     if (f.geometria.tipo === 'LineString' || f.geometria.tipo === 'Polygon' || f.geometria.tipo === 'Point') {
       botoes.push(['vertices', 'Vértices']);
+    } else if (f.geometria.tipo === 'Circle') {
+      botoes.push(['vertices', 'Editar']); // centro e borda: a mesma ação, outro rótulo
     }
     if (f.geometria.tipo === 'Point') botoes.push(['copiar', 'Copiar']);
     for (const [acao, rotulo] of botoes) {

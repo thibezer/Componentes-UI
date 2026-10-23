@@ -8,6 +8,8 @@ import { focoEmCampoDeTexto } from '../../core/alvo-digitavel';
 export interface ContextoControleSnap {
   /** Chamado quando o estado efetivo ou o ligado/desligado muda. */
   aoMudar: (estado: { ativo: boolean; ligado: boolean; temporario: boolean }) => void;
+  /** A tecla S só vale quando isto devolve `true` (ex.: mouse sobre o canvas ou foco dentro dele). Sem a função, vale sempre. */
+  aplica?: () => boolean;
   /** Alvo dos listeners de teclado (padrão: window). */
   alvo?: Pick<Window, 'addEventListener' | 'removeEventListener'>;
 }
@@ -71,7 +73,8 @@ export class ControleSnap {
       this.definirAlt(true);
       return;
     }
-    if (this.atalhoS && (e.key === 's' || e.key === 'S') && !e.ctrlKey && !e.metaKey && !e.altKey && !focoEmCampoDeTexto(e)) {
+    if (this.atalhoS && (e.key === 's' || e.key === 'S') && !e.ctrlKey && !e.metaKey && !e.altKey && !focoEmCampoDeTexto(e)
+      && (this.contexto.aplica?.() ?? true)) {
       this.alternar();
     }
   };

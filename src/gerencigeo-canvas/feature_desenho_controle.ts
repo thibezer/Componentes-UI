@@ -26,6 +26,7 @@ const REPETICAO_MS = 450;
 const FECHAR_PX = 10;
 /** Distância (px) do clique a uma alça/âncora da caneta para pegá-la em vez de criar outra âncora. */
 const PEGAR_PX = 8;
+const AVISO_MS = 2500;
 
 export interface InfoMedicao {
   tipo: 'distancia' | 'area';
@@ -84,6 +85,7 @@ export class ControleDesenho {
   /** Caneta: alça que o mouse está puxando (a da âncora recém-colocada ou uma já existente). */
   private arrastando: { i: number; qual: QualAlcaCaneta } | null = null;
   private ultimoClique: { x: number; y: number; t: number } | null = null;
+  private avisoTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(private dep: DependenciasDesenho) {}
 
@@ -128,7 +130,8 @@ export class ControleDesenho {
     map.on('dblclick', this.aoDuploClique);
     map.on('mousemove', this.aoMover);
     map.on('mousedown', this.aoPressionar);
-    map.on('mouseup', this.aoSoltar);
+    // na window (e não no mapa): soltar o botão fora do mapa também termina o arraste da alça
+    window.addEventListener('mouseup', this.aoSoltar);
     window.addEventListener('keydown', this.aoTecla);
     this.montarHud();
     this.atualizar();
@@ -153,7 +156,7 @@ export class ControleDesenho {
     map.off('dblclick', this.aoDuploClique);
     map.off('mousemove', this.aoMover);
     map.off('mousedown', this.aoPressionar);
-    map.off('mouseup', this.aoSoltar);
+    window.removeEventListener('mouseup', this.aoSoltar);
     window.removeEventListener('keydown', this.aoTecla);
     const c = map.getContainer();
     c.classList.remove(CLASSE_FERRAMENTA_ATIVA);
@@ -163,6 +166,8 @@ export class ControleDesenho {
     this.previa = null;
     this.marcas = null;
     this.marcadorSnap = null;
+    if (this.avisoTimer) clearTimeout(this.avisoTimer);
+    this.avisoTimer = null;
     this.hud?.remove();
     this.hud = null;
     this.campoTexto = null;
@@ -217,6 +222,7 @@ export class ControleDesenho {
       return;
     }
     this.atualizar();
+    if (r.aviso) this.avisar(r.aviso);
   };
 
   /** Com 3+ vértices, um clique perto do primeiro fecha a figura em polígono. */
@@ -317,6 +323,19 @@ export class ControleDesenho {
     if (!s) return;
     const g = s.concluir();
     if (g) this.finalizar(g);
+    else if (s.ehSequencial && s.nos > 0 && !s.podeConcluir) this.avisar(`Faltam ${s.minimo - s.nos} ponto(s): mínimo de ${s.minimo}.`);
+  }
+
+  /** Mensagem curta no HUD (recusas, pontos de menos), que some sozinha. */
+  private avisar(texto: string): void {
+    const el = this.hud?.querySelector('[data-campo="aviso"]');
+    if (!el) return;
+    el.textContent = texto;
+    if (this.avisoTimer) clearTimeout(this.avisoTimer);
+    this.avisoTimer = setTimeout(() => {
+      el.textContent = '';
+      this.avisoTimer = null;
+    }, AVISO_MS);
   }
 
   /**
@@ -531,7 +550,10 @@ export class ControleDesenho {
       b.addEventListener('click', acao);
       return b;
     };
-    hud.append(titulo, campo('nos'), campo('medida'), dica);
+    const aviso = campo('aviso');
+    aviso.style.color = '#fbbf24';
+    aviso.setAttribute('role', 'status');
+    hud.append(titulo, campo('nos'), campo('medida'), dica, aviso);
     if (s.ehSequencial) hud.append(botao('Concluir', () => this.concluir(), true));
     hud.append(botao('Sair', () => this.desativar()));
     L.DomEvent.disableClickPropagation(hud);
@@ -571,6 +593,7 @@ export class ControleDesenho {
       else this.finalizar(r.concluida);
     } else {
       this.atualizar();
+      if (r.aviso) this.avisar(r.aviso);
     }
   }
 

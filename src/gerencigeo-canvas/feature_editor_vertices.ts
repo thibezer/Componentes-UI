@@ -1,18 +1,21 @@
 import L from 'leaflet';
+import { focoEmCampoDeTexto } from '../core/alvo-digitavel';
 import type { Feicao, GeometriaFeicao, LatLonPar } from './feature_types';
 import {
-  alcaLatente, alternarSuavidade, comPontos, MAX_NOS_COM_ALCA_LATENTE, inserirPonto, moverAlca, nosDe, nosOuVertices, pontoMedioDoSegmento, pontosDe,
+  alcaLatente, alternarSuavidade, comPontos, MAX_NOS_COM_ALCA_LATENTE, inserirPonto, minimoVertices, moverAlca, nosDe, nosOuVertices, pontoMedioDoSegmento, pontosDe,
   removerPonto, segmentosDoEditor, type QualAlca
 } from './feature_edicao_ops';
 import {
-  areaDaGeometria, extensaoDaGeometria, formatarArea, formatarExtensao
+  areaDaGeometria, distanciaMetros, extensaoDaGeometria, formatarArea, formatarExtensao
 } from './feature_metricas';
 import type { ResultadoSnap } from './feature_snap';
 import { CSS_POSICAO_HUD } from './feature_hud';
 
 /*
  * Editor visual de vértices (Leaflet): uma alça arrastável por vértice, alças-fantasma nos pontos
- * médios (clique insere), botão direito exclui, snap durante o arrasto e HUD com medidas ao vivo.
+ * médios (clique insere), botão direito ou Delete exclui, snap durante o arrasto e HUD com medidas ao vivo.
+ * Cada gesto (soltar alça, inserir, excluir, curva ↔ canto) entra num histórico: Ctrl+Z desfaz, Ctrl+Shift+Z / Ctrl+Y
+ * refaz e "Cancelar" volta à geometria de quando a edição começou.
  * A geometria é recalculada pelas funções puras de feature_edicao_ops.ts.
  */
 
@@ -20,6 +23,14 @@ export const ID_HUD_EDICAO = 'cm-vertex-edit-hud';
 const PANE_EDICAO = 'cad-edicao-vertices';
 const COR = '#facc15';
 const COR_ALCA = '#f472b6';
+const COR_SELECIONADA = '#22d3ee';
+/** Um duplo clique que começou inserindo um vértice (no fantasma) não converte o nó novo em curva dentro deste prazo. */
+const JANELA_DUPLO_CLIQUE_MS = 600;
+/** Gestos guardados para desfazer. */
+const LIMITE_HISTORICO = 100;
+/** Segmentos menores que isto na tela não ganham fantasma (ele cobriria as alças das pontas). */
+const FANTASMA_MIN_PX = 24;
+const AVISO_MS = 2500;
 
 export interface DependenciasEditor {
   map: L.Map;
@@ -29,14 +40,22 @@ export interface DependenciasEditor {
   alternarSnap: () => void;
   /** Mostra a geometria nova no mapa sem gravar (durante o arrasto). */
   previsualizar: (f: Feicao) => void;
-  /** Fim de cada gesto (soltar alça, inserir, excluir): grava a feição. */
+  /** Fim de cada gesto (soltar alça, inserir, excluir, desfazer): grava a feição. */
   aoGesto: (f: Feicao) => void;
   /** A edição terminou (Concluir, Esc, ou chamada de `parar`). */
   aoEncerrar: (f: Feicao) => void;
 }
 
+const mesmaGeometria = (a: unknown, b: unknown): boolean => a === b || JSON.stringify(a) === JSON.stringify(b);
+
 export class EditorVertices {
   private feicaoAtual: Feicao | null = null;
+  /** Feição como foi gravada pela última vez (base do histórico). */
+  private base: Feicao | null = null;
+  /** Feição de quando a edição começou (ou da última mudança externa): destino do "Cancelar". */
+  private inicial: Feicao | null = null;
+  private historico: Feicao[] = [];
+  private refeitos: Feicao[] = [];
   private pts: LatLonPar[] = [];
   private alcas: L.Marker[] = [];
   private fantasmas: Array<{ marker: L.Marker; i: number; j: number }> = [];
@@ -45,6 +64,15 @@ export class EditorVertices {
   private marcadorSnap: L.Marker | null = null;
   private hud: HTMLElement | null = null;
   private grupo: L.LayerGroup | null = null;
+  private ultimaInsercao = 0;
+  private selecionado: number | null = null;
+  /** Alças sendo arrastadas agora (a feição não é refeita por fora enquanto houver arraste). */
+  private arrastando = 0;
+  /** A gravação do gesto está em andamento: o eco vindo dos dados é nosso, não uma mudança externa. */
+  private gravando = false;
+  /** Polígono de 4 cantos alinhado aos eixos: arrastar um canto mantém o retângulo (Shift solta). */
+  private retangulo = false;
+  private avisoTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(private dep: DependenciasEditor) {}
 
@@ -60,16 +88,37 @@ export class EditorVertices {
     return this.feicaoAtual;
   }
 
+  /** Nó selecionado (clique na alça), ou `null`. */
+  public get noSelecionado(): number | null {
+    return this.selecionado;
+  }
+
+  public get podeDesfazer(): boolean {
+    return this.historico.length > 0;
+  }
+
+  public get podeRefazer(): boolean {
+    return this.refeitos.length > 0;
+  }
+
   public iniciar(f: Feicao): void {
     this.parar();
     this.feicaoAtual = f;
+    this.base = f;
+    this.inicial = f;
+    this.historico = [];
+    this.refeitos = [];
+    this.selecionado = null;
     this.pts = pontosDe(f.geometria).map((p) => [p[0], p[1]] as LatLonPar);
+    this.retangulo = this.detectarRetangulo();
     const map = this.dep.map;
     if (!map.getPane(PANE_EDICAO)) {
       const pane = map.createPane(PANE_EDICAO);
       pane.style.zIndex = '9000';
     }
     this.grupo = L.layerGroup().addTo(map);
+    map.on('zoomend', this.aoZoom);
+    window.addEventListener('keydown', this.aoTecla);
     this.montarHud();
     this.reconstruir();
   }
@@ -79,9 +128,19 @@ export class EditorVertices {
     const f = this.feicaoAtual;
     if (!f) return;
     this.feicaoAtual = null;
+    this.base = null;
+    this.inicial = null;
+    this.historico = [];
+    this.refeitos = [];
+    this.selecionado = null;
+    this.arrastando = 0;
     this.alcas = [];
     this.fantasmas = [];
     this.alcasBezier = [];
+    this.dep.map.off('zoomend', this.aoZoom);
+    window.removeEventListener('keydown', this.aoTecla);
+    if (this.avisoTimer) clearTimeout(this.avisoTimer);
+    this.avisoTimer = null;
     this.grupo?.remove();
     this.grupo = null;
     this.marcadorSnap = null;
@@ -90,12 +149,66 @@ export class EditorVertices {
     this.dep.aoEncerrar(f);
   }
 
-  /** A feição foi alterada por fora (API): refaz as alças com a geometria nova. */
+  /** Descarta tudo o que foi feito desde o começo da edição (um gesto só: o histórico não é percorrido) e encerra. */
+  public cancelar(): void {
+    const f = this.feicaoAtual;
+    const inicial = this.inicial;
+    if (!f || !inicial) return;
+    if (!mesmaGeometria(inicial.geometria, f.geometria)) {
+      const volta = { ...f, geometria: inicial.geometria };
+      this.dep.previsualizar(volta);
+      this.gravar(volta);
+    }
+    this.parar();
+  }
+
+  /** A feição foi alterada por fora (API, outro operador): refaz as alças com a geometria nova. */
   public sincronizar(f: Feicao): void {
     if (!this.feicaoAtual || this.feicaoAtual.id !== f.id) return;
+
+    if (this.gravando) {
+      // eco da nossa própria gravação (já normalizado): mantém o histórico
+      this.feicaoAtual = f;
+      this.base = f;
+      if (!(this.ehCirculo && this.circuloCompativel(f))) {
+        this.pts = pontosDe(f.geometria).map((p) => [p[0], p[1]] as LatLonPar);
+      }
+      this.retangulo = this.detectarRetangulo();
+      this.reconstruir();
+      return;
+    }
+
+    if (this.arrastando > 0) {
+      // não destrói a alça em arrasto: o resto da feição vem de fora e a geometria do gesto em curso vence ao soltar
+      this.feicaoAtual = { ...f, geometria: this.feicaoAtual.geometria };
+      return;
+    }
+
+    if (this.base && mesmaGeometria(f.geometria, this.base.geometria)) {
+      // só estilo/propriedades mudaram: nada a refazer nem a esquecer
+      this.feicaoAtual = f;
+      this.base = f;
+      return;
+    }
+
+    // outra geometria vinda de fora: desfazer passaria por cima dela, então o histórico recomeça daqui
     this.feicaoAtual = f;
+    this.base = f;
+    this.inicial = f;
+    this.historico = [];
+    this.refeitos = [];
+    this.selecionado = null;
     this.pts = pontosDe(f.geometria).map((p) => [p[0], p[1]] as LatLonPar);
+    this.retangulo = this.detectarRetangulo();
     this.reconstruir();
+  }
+
+  /** O círculo da feição bate com as alças atuais (centro e raio): a alça da borda fica onde o usuário a soltou. */
+  private circuloCompativel(f: Feicao): boolean {
+    const g = f.geometria;
+    if (g.tipo !== 'Circle' || this.pts.length < 2) return false;
+    return g.centro[0] === this.pts[0][0] && g.centro[1] === this.pts[0][1]
+      && Math.abs(distanciaMetros(this.pts[0], this.pts[1]) - g.raioMetros) < 0.01;
   }
 
   /** Atualiza o texto "Snap" do HUD quando o snap é ligado/desligado. */
@@ -114,12 +227,22 @@ export class EditorVertices {
     return { ...this.feicaoAtual!, geometria: this.geometriaAtual() };
   }
 
+  private detectarRetangulo(): boolean {
+    const g = this.feicaoAtual?.geometria;
+    if (!g || g.tipo !== 'Polygon' || g.curva || this.pts.length !== 4) return false;
+    const [a, b, c, d] = this.pts;
+    const horizontalPrimeiro = a[0] === b[0] && b[1] === c[1] && c[0] === d[0] && d[1] === a[1];
+    const verticalPrimeiro = a[1] === b[1] && b[0] === c[0] && c[1] === d[1] && d[0] === a[0];
+    return horizontalPrimeiro || verticalPrimeiro;
+  }
+
   private reconstruir(): void {
     this.grupo?.clearLayers();
     this.alcas = [];
     this.fantasmas = [];
     this.alcasBezier = [];
     if (!this.feicaoAtual || !this.grupo) return;
+    if (this.selecionado !== null && this.selecionado >= this.pts.length) this.selecionado = null;
 
     const g = this.feicaoAtual.geometria;
     this.pts.forEach((p, i) => {
@@ -132,6 +255,7 @@ export class EditorVertices {
 
     if (g.tipo !== 'Point') {
       for (const [i, j] of segmentosDoEditor(this.geometriaAtual())) {
+        if (!this.segmentoLongoNaTela(i, j)) continue;
         const f = this.criarFantasma(i, j);
         this.fantasmas.push(f);
         this.grupo.addLayer(f.marker);
@@ -139,6 +263,20 @@ export class EditorVertices {
     }
     this.atualizarHud();
   }
+
+  /** Segmento curto demais na tela não ganha fantasma: ele ficaria por cima das alças das pontas. */
+  private segmentoLongoNaTela(i: number, j: number): boolean {
+    const a = this.pts[i];
+    const b = this.pts[j];
+    if (!a || !b) return false;
+    const pa = this.dep.map.latLngToContainerPoint(a);
+    const pb = this.dep.map.latLngToContainerPoint(b);
+    return Math.hypot(pa.x - pb.x, pa.y - pb.y) >= FANTASMA_MIN_PX;
+  }
+
+  private aoZoom = (): void => {
+    if (this.feicaoAtual && this.arrastando === 0) this.reconstruir();
+  };
 
   private icone(classe: string, tam: number, estilo: string): L.DivIcon {
     return L.divIcon({
@@ -148,18 +286,39 @@ export class EditorVertices {
     });
   }
 
+  private iconeAlca(indice: number): L.DivIcon {
+    const borda = this.ehCirculo && indice === 1;
+    const selecionada = this.selecionado === indice;
+    const fundo = selecionada ? COR_SELECIONADA : COR;
+    const contorno = selecionada ? '2px solid #fff;box-shadow:0 0 0 2px #0e7490' : '2px solid #111';
+    return this.icone('cad-vertex-handle', 12, `background:${fundo};border:${contorno};border-radius:${borda ? '50%' : '2px'};cursor:${borda ? 'ew-resize' : 'move'}`);
+  }
+
   private criarAlca(p: LatLonPar, indice: number): L.Marker {
     const marker = L.marker(p, {
-      icon: this.icone('cad-vertex-handle', 12, `background:${COR};border:2px solid #111;border-radius:${this.ehCirculo && indice === 1 ? '50%' : '2px'};cursor:${this.ehCirculo && indice === 1 ? 'ew-resize' : 'move'}`),
+      icon: this.iconeAlca(indice),
       draggable: true,
       pane: PANE_EDICAO,
       keyboard: false
     });
 
-    marker.on('drag', () => this.aoArrastar(marker, indice));
+    marker.on('dragstart', () => { this.arrastando++; });
+    marker.on('drag', (ev: L.LeafletEvent) => {
+      const o = (ev as unknown as { originalEvent?: MouseEvent }).originalEvent;
+      this.aoArrastar(marker, indice, !!o?.shiftKey);
+    });
     marker.on('dragend', () => {
+      this.arrastando = Math.max(0, this.arrastando - 1);
       this.esconderSnap();
+      this.selecionado = indice;
+      this.retangulo = this.detectarRetanguloDe(this.pts);
       this.confirmar(this.feicaoComPontos());
+      this.atualizarSelecaoVisual();
+    });
+    // clique (sem arrasto) seleciona o nó: Delete ou o botão do HUD o exclui
+    marker.on('click', (ev: L.LeafletMouseEvent) => {
+      L.DomEvent.stopPropagation(ev.originalEvent);
+      this.selecionarNo(indice);
     });
     marker.on('contextmenu', (ev: L.LeafletMouseEvent) => {
       L.DomEvent.preventDefault(ev.originalEvent);
@@ -169,9 +328,35 @@ export class EditorVertices {
     // duplo clique: canto ↔ suave (numa linha/polígono comum, é o que converte em curva)
     marker.on('dblclick', (ev: L.LeafletMouseEvent) => {
       L.DomEvent.stopPropagation(ev.originalEvent);
+      // duplo clique num fantasma: o 1º clique inseriu o vértice e o 2º caiu na alça nova; não é pedido de curva
+      if (Date.now() - this.ultimaInsercao < JANELA_DUPLO_CLIQUE_MS) return;
       this.alternarSuave(indice);
     });
     return marker;
+  }
+
+  private detectarRetanguloDe(pts: LatLonPar[]): boolean {
+    const antes = this.pts;
+    this.pts = pts;
+    try {
+      return this.detectarRetangulo();
+    } finally {
+      this.pts = antes;
+    }
+  }
+
+  // ---- seleção de nó ----
+
+  /** Seleciona o nó `indice` (destacado na tela); `null` limpa. */
+  public selecionarNo(indice: number | null): void {
+    this.selecionado = indice !== null && indice >= 0 && indice < this.pts.length ? indice : null;
+    this.atualizarSelecaoVisual();
+    this.atualizarBotoes();
+  }
+
+  private atualizarSelecaoVisual(): void {
+    this.alcas.forEach((a, i) => a.setIcon(this.iconeAlca(i)));
+    this.atualizarBotoes();
   }
 
   // ---- alças de Bézier ----
@@ -213,11 +398,15 @@ export class EditorVertices {
       });
       const marker = L.marker(p.pos, { icon: this.iconeDaAlca(p.latente), draggable: true, pane: PANE_EDICAO, keyboard: false });
       const entrada = { marker, haste, i, qual, latente: p.latente };
+      marker.on('dragstart', () => { this.arrastando++; });
       marker.on('drag', (ev: L.LeafletEvent) => {
         const o = (ev as unknown as { originalEvent?: MouseEvent }).originalEvent;
         this.aoArrastarAlca(entrada, !o?.shiftKey);
       });
-      marker.on('dragend', () => this.confirmar(this.feicaoAtual!));
+      marker.on('dragend', () => {
+        this.arrastando = Math.max(0, this.arrastando - 1);
+        this.confirmar(this.feicaoAtual!);
+      });
       this.alcasBezier.push(entrada);
       this.grupo.addLayer(haste);
       this.grupo.addLayer(marker);
@@ -277,11 +466,13 @@ export class EditorVertices {
     // clique: insere no ponto médio; arraste: insere o nó já na posição solta (um gesto só, como o arraste de uma alça)
     marker.on('click', (ev: L.LeafletMouseEvent) => {
       L.DomEvent.stopPropagation(ev.originalEvent);
+      this.ultimaInsercao = Date.now();
       this.inserir(i);
     });
     marker.on('drag', () => this.aoArrastarFantasma(marker, i));
     marker.on('dragend', () => {
       this.esconderSnap();
+      this.ultimaInsercao = Date.now();
       this.inserir(i, this.posicaoDoFantasma(marker));
     });
     return { marker, i, j };
@@ -311,7 +502,7 @@ export class EditorVertices {
 
   // ---- gestos ----
 
-  private aoArrastar(alca: L.Marker, indice: number): void {
+  private aoArrastar(alca: L.Marker, indice: number, livre = false): void {
     const f = this.feicaoAtual;
     if (!f) return;
     let pos: LatLonPar = [alca.getLatLng().lat, alca.getLatLng().lng];
@@ -334,14 +525,29 @@ export class EditorVertices {
       this.pts[1] = [this.pts[1][0] + dLat, this.pts[1][1] + dLon];
       this.alcas[1]?.setLatLng(this.pts[1]);
     }
-    this.pts[indice] = pos;
+    if (this.retangulo && !livre) this.moverCantoDoRetangulo(indice, pos);
+    else this.pts[indice] = pos;
     // fantasmas vizinhos acompanham o vértice
     for (const fan of this.fantasmas) {
-      if (fan.i === indice || fan.j === indice) fan.marker.setLatLng(pontoMedioDoSegmento(this.geometriaAtual(), fan.i, fan.j));
+      if (this.retangulo && !livre) fan.marker.setLatLng(pontoMedioDoSegmento(this.geometriaAtual(), fan.i, fan.j));
+      else if (fan.i === indice || fan.j === indice) fan.marker.setLatLng(pontoMedioDoSegmento(this.geometriaAtual(), fan.i, fan.j));
     }
     this.dep.previsualizar(this.feicaoComPontos());
     this.atualizarAlcasDoNo(indice);
     this.atualizarHud();
+  }
+
+  /** Move o canto `i` para `pos` e arrasta os dois vizinhos para o retângulo continuar alinhado, com o canto oposto fixo. */
+  private moverCantoDoRetangulo(i: number, pos: LatLonPar): void {
+    const oposto = this.pts[(i + 2) % 4];
+    const n1 = (i + 1) % 4;
+    const n3 = (i + 3) % 4;
+    const n1CompartilhaLat = this.pts[n1][0] === this.pts[i][0];
+    this.pts[i] = pos;
+    this.pts[n1] = n1CompartilhaLat ? [pos[0], oposto[1]] : [oposto[0], pos[1]];
+    this.pts[n3] = n1CompartilhaLat ? [oposto[0], pos[1]] : [pos[0], oposto[1]];
+    this.alcas[n1]?.setLatLng(this.pts[n1]);
+    this.alcas[n3]?.setLatLng(this.pts[n3]);
   }
 
   /** Durante o arrasto de um nó, as alças dele (e as latentes dos vizinhos) acompanham; a geometria só é gravada no fim. */
@@ -375,26 +581,64 @@ export class EditorVertices {
     }
     this.pts = r.pts;
     this.feicaoAtual = r.feicao;
+    this.retangulo = false;
+    this.selecionado = depoisDe + 1;
     this.reconstruir();
     this.dep.previsualizar(r.feicao);
     this.confirmar(r.feicao);
   }
 
+  /** Grava o gesto: guarda a geometria anterior no histórico (se mudou) e avisa quem escuta. */
   private confirmar(f: Feicao): void {
+    const antes = this.base;
+    if (antes && !mesmaGeometria(antes.geometria, f.geometria)) {
+      this.historico.push(antes);
+      if (this.historico.length > LIMITE_HISTORICO) this.historico.shift();
+      this.refeitos = [];
+    }
     this.feicaoAtual = f;
-    this.dep.aoGesto(f);
+    this.base = f;
+    this.gravar(f);
+    this.atualizarBotoes();
   }
 
-  private excluir(indice: number): void {
+  private gravar(f: Feicao): void {
+    this.gravando = true;
+    try {
+      this.dep.aoGesto(f);
+    } finally {
+      this.gravando = false;
+    }
+  }
+
+  private excluir(indice: number): boolean {
     const f = this.feicaoAtual;
-    if (!f) return;
-    const nova = removerPonto(this.geometriaAtual(), indice);
-    if (!nova) return; // abaixo do mínimo (3 no polígono, 2 na linha)
+    if (!f) return false;
+    const g = this.geometriaAtual();
+    const nova = removerPonto(g, indice);
+    if (!nova) {
+      if (g.tipo === 'Circle') this.avisar('Círculo: mova o centro ou a borda (não há nós para excluir).');
+      else if (g.tipo === 'Point') this.avisar('Um ponto tem um único nó.');
+      else this.avisar(`Mínimo de ${minimoVertices(g)} nós: não dá para excluir mais.`);
+      return false;
+    }
     this.pts = pontosDe(nova).map((p) => [p[0], p[1]] as LatLonPar);
+    this.retangulo = false;
+    this.selecionado = null;
     this.reconstruir();
     const atualizada = this.feicaoComPontos();
     this.dep.previsualizar(atualizada);
     this.confirmar(atualizada);
+    return true;
+  }
+
+  /** Exclui o nó selecionado (Delete/Backspace ou botão do HUD). */
+  public excluirSelecionado(): boolean {
+    if (this.selecionado === null) {
+      this.avisar('Clique num nó para selecioná-lo e então exclua.');
+      return false;
+    }
+    return this.excluir(this.selecionado);
   }
 
   /** Atalho para testes/API: mesma operação do botão direito. */
@@ -408,6 +652,65 @@ export class EditorVertices {
     if (indice < 0 || indice >= this.pts.length) return;
     this.inserir(indice);
   }
+
+  // ---- histórico ----
+
+  /** Desfaz o último gesto. Devolve se havia algo a desfazer. */
+  public desfazer(): boolean {
+    const anterior = this.historico.pop();
+    if (!anterior || !this.base) {
+      this.avisar('Nada a desfazer.');
+      return false;
+    }
+    this.refeitos.push(this.base);
+    this.aplicarEstado(anterior);
+    return true;
+  }
+
+  /** Refaz o último gesto desfeito. */
+  public refazer(): boolean {
+    const proximo = this.refeitos.pop();
+    if (!proximo || !this.base) {
+      this.avisar('Nada a refazer.');
+      return false;
+    }
+    this.historico.push(this.base);
+    this.aplicarEstado(proximo);
+    return true;
+  }
+
+  private aplicarEstado(alvo: Feicao): void {
+    if (!this.feicaoAtual) return;
+    const nova = { ...this.feicaoAtual, geometria: alvo.geometria };
+    this.feicaoAtual = nova;
+    this.base = nova;
+    this.pts = pontosDe(nova.geometria).map((p) => [p[0], p[1]] as LatLonPar);
+    this.retangulo = this.detectarRetangulo();
+    this.reconstruir();
+    this.dep.previsualizar(nova);
+    this.gravar(nova);
+    this.atualizarBotoes();
+  }
+
+  private aoTecla = (e: KeyboardEvent): void => {
+    if (!this.feicaoAtual || e.defaultPrevented || focoEmCampoDeTexto(e)) return;
+    const mod = e.ctrlKey || e.metaKey;
+    const tecla = e.key.toLowerCase();
+    if (mod && !e.altKey && tecla === 'z') {
+      if (e.shiftKey) this.refazer();
+      else this.desfazer();
+    } else if (mod && !e.altKey && tecla === 'y') {
+      this.refazer();
+    } else if (e.key === 'Delete' || e.key === 'Backspace') {
+      if (this.selecionado === null) return; // sem nó selecionado, a tecla segue o rumo normal
+      this.excluir(this.selecionado);
+    } else if (e.key === 'Enter') {
+      this.parar();
+    } else {
+      return;
+    }
+    e.preventDefault();
+  };
 
   // ---- snap visual ----
 
@@ -451,6 +754,17 @@ export class EditorVertices {
       s.dataset.campo = nome;
       return s;
     };
+    const botao = (acao: string, rotulo: string, titulo: string, aoClicar: () => void, destaque = false): HTMLButtonElement => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.dataset.acao = acao;
+      b.textContent = rotulo;
+      b.title = titulo;
+      b.style.cssText = `padding:2px 8px;font-size:11px;border-radius:4px;border:1px solid ${destaque ? COR : 'rgba(255,255,255,.3)'};background:${destaque ? COR : 'transparent'};color:${destaque ? '#111' : '#fff'};font-weight:600;cursor:pointer`;
+      b.addEventListener('click', aoClicar);
+      return b;
+    };
+    const geom = this.feicaoAtual?.geometria.tipo;
     const titulo = document.createElement('strong');
     titulo.textContent = this.ehCirculo ? 'Círculo' : 'Editando';
     const snap = campo('snap');
@@ -459,23 +773,62 @@ export class EditorVertices {
     snap.title = 'Alternar snap (S). Alt desliga temporariamente.';
     snap.style.opacity = '.85';
     snap.addEventListener('click', () => this.dep.alternarSnap());
-    const botao = document.createElement('button');
-    botao.type = 'button';
-    botao.textContent = 'Concluir';
-    botao.style.cssText = 'padding:2px 8px;font-size:11px;border-radius:4px;border:1px solid #facc15;background:#facc15;color:#111;font-weight:600;cursor:pointer';
-    botao.addEventListener('click', () => this.parar());
     const dica = campo('dica');
     dica.style.opacity = '.7';
-    dica.textContent = this.ehCirculo ? '' : 'Arraste ○ p/ curvar · ponto do meio: novo nó · botão direito no nó: excluir · 2× clique: curva/canto · Shift: alça livre';
-    dica.title = 'Alças pontilhadas ainda são retas. Esc ou Concluir sai; clicar fora não sai.';
+    dica.textContent = geom === 'Circle'
+      ? 'Ctrl+Z desfaz · Enter conclui'
+      : geom === 'Point'
+        ? 'Arraste para mover · Ctrl+Z desfaz · Enter conclui'
+        : 'Arraste ○ p/ curvar · ponto do meio: novo nó · botão direito ou Delete no nó: excluir · 2× clique: curva/canto · Shift: alça livre · Ctrl+Z desfaz';
+    dica.title = 'Alças pontilhadas ainda são retas. Shift vale durante o arraste. Enter, Esc ou Concluir sai; clicar fora não sai.';
     dica.style.fontSize = '10px';
-    hud.append(titulo, campo('nos'), campo('medida'), snap, dica, botao);
+    const aviso = campo('aviso');
+    aviso.style.color = '#fbbf24';
+    aviso.setAttribute('role', 'status');
+
+    hud.append(titulo, campo('nos'), campo('medida'), snap, dica, aviso);
+    hud.append(botao('desfazer', 'Desfazer', 'Desfazer o último gesto (Ctrl+Z)', () => this.desfazer()));
+    hud.append(botao('refazer', 'Refazer', 'Refazer (Ctrl+Shift+Z ou Ctrl+Y)', () => this.refazer()));
+    if (geom === 'LineString' || geom === 'Polygon') {
+      hud.append(botao('excluir-no', 'Excluir nó', 'Exclui o nó selecionado (Delete); clique num nó para selecioná-lo', () => this.excluirSelecionado()));
+    }
+    hud.append(botao('cancelar', 'Cancelar', 'Descartar tudo o que foi alterado nesta edição', () => this.cancelar()));
+    hud.append(botao('concluir', 'Concluir', 'Concluir a edição (Enter ou Esc)', () => this.parar(), true));
     // não deixa o HUD iniciar caixa de seleção nem pan
     L.DomEvent.disableClickPropagation(hud);
     L.DomEvent.disableScrollPropagation(hud);
     container.appendChild(hud);
     this.hud = hud;
     this.atualizarSnapNoHud();
+    this.atualizarBotoes();
+  }
+
+  private atualizarBotoes(): void {
+    if (!this.hud) return;
+    const estado: Record<string, boolean> = {
+      desfazer: this.historico.length > 0,
+      refazer: this.refeitos.length > 0,
+      'excluir-no': this.selecionado !== null
+    };
+    for (const [acao, ligado] of Object.entries(estado)) {
+      const b = this.hud.querySelector<HTMLButtonElement>(`[data-acao="${acao}"]`);
+      if (!b) continue;
+      b.disabled = !ligado;
+      b.style.opacity = ligado ? '1' : '.4';
+      b.style.cursor = ligado ? 'pointer' : 'default';
+    }
+  }
+
+  /** Mensagem curta no HUD (recusas, nada a desfazer), que some sozinha. */
+  private avisar(texto: string): void {
+    const el = this.hud?.querySelector('[data-campo="aviso"]');
+    if (!el) return;
+    el.textContent = texto;
+    if (this.avisoTimer) clearTimeout(this.avisoTimer);
+    this.avisoTimer = setTimeout(() => {
+      el.textContent = '';
+      this.avisoTimer = null;
+    }, AVISO_MS);
   }
 
   private atualizarHud(geometria?: GeometriaFeicao): void {
@@ -520,12 +873,12 @@ export class EditorVertices {
     this.alternarSuave(indice);
   }
 
-  /** Para os testes: move um vértice como se a alça tivesse sido arrastada até `coord`. */
-  public arrastarPara(indice: number, coord: LatLonPar): void {
+  /** Para os testes: move um vértice como se a alça tivesse sido arrastada até `coord` (`livre` = Shift). */
+  public arrastarPara(indice: number, coord: LatLonPar, livre = false): void {
     const alca = this.alcas[indice];
     if (!alca) return;
     alca.setLatLng(coord);
-    this.aoArrastar(alca, indice);
+    this.aoArrastar(alca, indice, livre);
     alca.fire('dragend');
   }
 }

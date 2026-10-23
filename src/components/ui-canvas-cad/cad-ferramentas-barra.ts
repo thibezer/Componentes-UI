@@ -22,9 +22,18 @@ export function interpretarFerramentas(valor: string | null): Ferramenta[] {
   return FERRAMENTAS.filter((f) => pedidas.has(f));
 }
 
+/** O atributo pede o botão "Editar" (edição de vértices da feição selecionada)? Vale em "todas" ou com a palavra `editar`. */
+export function barraPedeEdicao(valor: string | null): boolean {
+  if (!valor) return false;
+  const itens = valor.split(/[\s,]+/).map((s) => s.trim().toLowerCase());
+  return itens.includes('todas') || itens.includes('editar');
+}
+
 export interface ContextoBarraFerramentas {
   raiz: HTMLElement;
   aoEscolher: (ferramenta: Ferramenta) => void;
+  /** Clique em "Editar". Sem isto o botão não é montado. */
+  aoEditar?: () => void;
 }
 
 export class BarraFerramentas {
@@ -32,10 +41,11 @@ export class BarraFerramentas {
 
   constructor(private ctx: ContextoBarraFerramentas) {}
 
-  public montar(ferramentas: Ferramenta[]): void {
+  public montar(ferramentas: Ferramenta[], comEdicao = false): void {
     this.barra?.remove();
     this.barra = null;
-    if (ferramentas.length === 0) return;
+    const editar = comEdicao && !!this.ctx.aoEditar;
+    if (ferramentas.length === 0 && !editar) return;
 
     const barra = document.createElement('div');
     barra.className = 'cad-quick-toolbar cad-draw-toolbar';
@@ -52,8 +62,31 @@ export class BarraFerramentas {
       b.addEventListener('click', () => this.ctx.aoEscolher(f));
       barra.appendChild(b);
     }
+    if (editar) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'cad-btn-tool cad-draw-btn';
+      b.dataset.acao = 'editar';
+      b.textContent = 'Editar';
+      b.title = 'Editar os vértices da feição selecionada (Enter ou duplo clique)';
+      b.setAttribute('aria-pressed', String(this.editando));
+      b.classList.toggle('active', this.editando);
+      b.addEventListener('click', () => this.ctx.aoEditar!());
+      barra.appendChild(b);
+    }
     this.ctx.raiz.appendChild(barra);
     this.barra = barra;
+  }
+
+  private editando = false;
+
+  /** Reflete no botão "Editar" se a edição está em curso. */
+  public marcarEdicao(ativa: boolean): void {
+    this.editando = ativa;
+    const b = this.barra?.querySelector<HTMLButtonElement>('[data-acao="editar"]');
+    if (!b) return;
+    b.classList.toggle('active', ativa);
+    b.setAttribute('aria-pressed', String(ativa));
   }
 
   public marcar(ativa: Ferramenta | null): void {

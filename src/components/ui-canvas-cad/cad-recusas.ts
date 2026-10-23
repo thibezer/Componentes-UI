@@ -16,7 +16,8 @@ const EDICAO: Record<string, string> = {
   multiparte: 'Feição com várias partes não pode ser editada no mapa.',
   'muitos-vertices': 'A feição tem vértices demais para editar no mapa.',
   'tipo-nao-suportado': 'Este tipo de feição não tem vértices para editar.',
-  inexistente: 'A feição não existe mais.'
+  inexistente: 'A feição não existe mais.',
+  'sem-selecao': 'Selecione uma feição para editar os vértices.'
 };
 
 function buscar(tabela: Record<string, string>, motivo: unknown, padrao: string): string {

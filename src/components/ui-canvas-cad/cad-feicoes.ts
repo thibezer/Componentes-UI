@@ -20,6 +20,7 @@ import { EdicaoFeicoes } from './cad-feicoes-edicao';
 import { ConsultaEspacialFeicoes } from './cad-feicoes-consulta';
 import { PonteiroFeicoes } from './cad-feicoes-ponteiro';
 import { SelecaoPorRegiao } from './cad-feicoes-selecao-regiao';
+import { TecladoEdicao } from './cad-feicoes-teclado';
 import type { EditorVertices } from '../../gerencigeo-canvas/feature_editor_vertices';
 import type { ControleDesenho } from '../../gerencigeo-canvas/feature_desenho_controle';
 import type { Ferramenta } from '../../gerencigeo-canvas/feature_desenho';
@@ -66,6 +67,13 @@ interface Contexto {
   modoPopups?: () => ModoPopups;
   /** Executa a abertura de um popup como pedido explícito, passando pelo portão de popups do mapa. */
   liberarPopups?: <T>(fn: () => T) => T;
+  /** A edição de vértices começou (`true`) ou terminou (`false`), para refletir no botão da barra. */
+  aoEdicao?: (ativa: boolean) => void;
+  /**
+   * Os atalhos de teclado do canvas (S do snap, Enter para editar) valem agora? O componente responde que sim com o mouse
+   * sobre ele ou o foco dentro dele; sem esta função, valem sempre (a edição e as ferramentas em andamento também sempre valem).
+   */
+  atalhoValido?: () => boolean;
 }
 
 
@@ -76,6 +84,7 @@ export class GerenciadorFeicoes {
   private selecao: SelecaoFeicoes;
   private popup: FeicaoPopup;
   private edicao: EdicaoFeicoes;
+  private teclado: TecladoEdicao;
   private consulta: ConsultaEspacialFeicoes;
   private ponteiro: PonteiroFeicoes;
   private regiao: SelecaoPorRegiao;
@@ -102,9 +111,10 @@ export class GerenciadorFeicoes {
       desenhada: (f) => this.desenhada(f)
     });
     this.ponteiro = new PonteiroFeicoes({
-      emitir: (evento, detalhe) => this.contexto.emitir(evento, detalhe),
+      emitir: (evento, detalhe, cancelavel) => this.contexto.emitir(evento, detalhe, cancelavel),
       feicaoSob: (x, y) => this.consulta.feicaoSob(x, y),
       interacaoAtiva: () => this.ferramentas.ativo || this.edicao.editando,
+      popupNoDuploClique: () => this.modoPopups() !== 'desligado',
       botaoDireitoDaFerramenta: () => {
         if (!this.ferramentas.ativo) return false;
         this.ferramentas.botaoDireito();
@@ -130,6 +140,8 @@ export class GerenciadorFeicoes {
       desativarFerramenta: () => this.ferramentas.desativarFerramenta(),
       aplicarMargensHud: () => this.aplicarMargensHud(),
       selecionarUma: (ref) => this.selecao.selecionar([ref]),
+      selecionadas: () => this.selecao.obter(),
+      aoEdicao: (ativa) => this.contexto.aoEdicao?.(ativa),
       fecharPopup: () => this.popup.fechar(),
       reabrirPopupDaSelecao: () => {
         // só o modo automático devolve o popup ao fim da edição; sob demanda, quem quiser o abre de novo
@@ -140,6 +152,11 @@ export class GerenciadorFeicoes {
       snapAtivo: () => this.snap.ativo,
       alternarSnap: () => this.snap.alternar(),
       buscarSnapEm: (coord, excluir) => this.buscarSnapEm(coord, excluir)
+    });
+    this.teclado = new TecladoEdicao({
+      ocupado: () => this.edicao.editando || this.ferramentas.ativo,
+      atalhosValem: () => this.atalhosValem(),
+      editarSelecionada: () => this.edicao.editarSelecionada()
     });
     this.versoes = new VersoesFeicoes({
       obterLayerManager: () => this.contexto.obterLayerManager(),
@@ -187,6 +204,7 @@ export class GerenciadorFeicoes {
     });
     this.cursores = new CursoresRemotos(() => this.contexto.obterMapa());
     this.snap = new ControleSnap({
+      aplica: () => this.atalhosValem(),
       aoMudar: (estado) => {
         this.contexto.emitir('cad-snap', estado);
         this.edicao.atualizarSnapNoHud();
@@ -231,7 +249,7 @@ export class GerenciadorFeicoes {
     if (this.edicao.editando) {
       const ed = this.edicao.feicao!;
       const atualEd = this.buscar(ed.camadaId, ed.id);
-      if (!atualEd || atualEd.excluida) this.edicao.parar();
+      if (!atualEd || atualEd.excluida || atualEd.bloqueada) this.edicao.parar();
       else if (atualEd !== ed) this.edicao.sincronizar(atualEd);
     }
     const aberta = this.popup.aberto;
@@ -359,9 +377,8 @@ export class GerenciadorFeicoes {
     return true;
   }
 
-  /** Duplo clique no mapa: abre o popup da feição sob o cursor (a não ser que os popups estejam desligados). */
+  /** Duplo clique no mapa: `cad-feicao-duplo-clique` (cancelável) e, se ninguém assumir, o popup da feição sob o cursor. */
   public aoDuploClique(e: MouseEvent): void {
-    if (this.modoPopups() === 'desligado') return;
     this.ponteiro.duploClique(e);
   }
 
@@ -525,10 +542,21 @@ export class GerenciadorFeicoes {
 
   public conectarTeclado(): void {
     this.snap.conectar();
+    this.teclado.conectar();
   }
 
   public desconectarTeclado(): void {
     this.snap.desconectar();
+    this.teclado.desconectar();
+  }
+
+  private atalhosValem(): boolean {
+    return this.edicao.editando || this.ferramentas.ativo || (this.contexto.atalhoValido?.() ?? true);
+  }
+
+  /** Botão "Editar" da barra: encerra a edição em curso ou edita a feição selecionada (uma só). */
+  public alternarEdicaoDaSelecao(): ResultadoEdicao {
+    return this.edicao.alternarEdicaoDaSelecao();
   }
 
   // ---- edição de vértices ----

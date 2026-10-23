@@ -25,6 +25,8 @@ export function ehFerramenta(v: unknown): v is Ferramenta {
 /** Resultado de um clique: se a ferramenta fecha sozinha (ponto, retângulo, círculo...), vem a geometria. */
 export interface ResultadoClique {
   concluida?: GeometriaFeicao;
+  /** O clique foi recusado (círculo curto demais, cantos alinhados...): o motivo, para a camada visual mostrar. */
+  aviso?: string;
 }
 
 /**
@@ -142,7 +144,10 @@ export class SessaoDesenho {
           this.pontos.push(c);
           return {};
         }
-        return { concluida: this.retangulo(this.pontos[0], c) ?? undefined };
+        {
+          const g = this.retangulo(this.pontos[0], c);
+          return g ? { concluida: g } : { aviso: 'Os dois cantos precisam diferir em latitude e em longitude.' };
+        }
       case 'circulo':
         if (this.pontos.length === 0) {
           this.pontos.push(c);
@@ -150,7 +155,9 @@ export class SessaoDesenho {
         }
         {
           const raio = distanciaMetros(this.pontos[0], c);
-          return raio >= RAIO_MINIMO_CIRCULO_M ? { concluida: { tipo: 'Circle', centro: this.pontos[0], raioMetros: raio } } : {};
+          return raio >= RAIO_MINIMO_CIRCULO_M
+            ? { concluida: { tipo: 'Circle', centro: this.pontos[0], raioMetros: raio } }
+            : { aviso: `Raio mínimo de ${RAIO_MINIMO_CIRCULO_M} m: clique mais longe do centro.` };
         }
       case 'elipse':
       case 'poligono-regular':
@@ -160,7 +167,7 @@ export class SessaoDesenho {
           return {};
         }
         const anel = FORMAS_DE_DOIS_CLIQUES[this.ferramenta]!(this.pontos[0], c);
-        return anel ? { concluida: { tipo: 'Polygon', aneis: [anel] } } : {};
+        return anel ? { concluida: { tipo: 'Polygon', aneis: [anel] } } : { aviso: 'Clique num ponto diferente do centro.' };
       }
       case 'caneta':
         this.ancoras.push({ ponto: c });
