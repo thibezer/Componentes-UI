@@ -113,7 +113,7 @@ export class UIControleCores extends SafeHTMLElement {
   get alvo(): AlvoCor { return this._alvo; }
   set alvo(v: AlvoCor) { this.definirAlvo(v); }
 
-  /** Cores oferecidas em "Cores do projeto" no seletor. */
+  /** @deprecated Ignorado: o seletor de cor não mostra mais amostras de cores. */
   get coresProjeto(): string[] { return [...this._coresProjeto]; }
   set coresProjeto(v: string[]) { this._coresProjeto = coresUnicas(v); }
 
@@ -224,7 +224,6 @@ export class UIControleCores extends SafeHTMLElement {
       opacidade: this._opacidade,
       espessuraTraco: this._espessuraTraco,
       misto: this._misto[this._alvo],
-      coresProjeto: this._coresProjeto,
       focar,
       aoAlterar: (d) => this.aplicarDoSeletor(d, false),
       aoConfirmar: (d) => {

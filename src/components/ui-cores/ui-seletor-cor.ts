@@ -1,11 +1,12 @@
 import estilos from './ui-seletor-cor.css?inline';
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 import { ListenerBag } from '../../core/listener-bag';
-import { PALETA_CORES_PADRAO, coresUnicas, escaparHtml, normalizarCor, normalizarOpacidade, normalizarEspessura } from './cores-utils';
+import { escaparHtml, normalizarCor, normalizarOpacidade, normalizarEspessura } from './cores-utils';
 import type { AlvoCor, DetalheSeletorCor, OpcoesSeletorCor, SeletorCorAberto, ValorCor } from './tipos';
 
-const OPACIDADES_RAPIDAS = [0.25, 0.35, 0.5, 0.75, 1];
-const ESPESSURAS_RAPIDAS = [1, 2, 2.5, 4, 6, 8];
+/** Campos numéricos (estilo Illustrator): passo das setas e da roda; com Shift o passo é ×10. */
+type CampoAjuste = 'opacidade' | 'espessura';
+const PASSO: Record<CampoAjuste, number> = { opacidade: 1, espessura: 0.5 };
 
 /** Configuração aceita por `UISeletorCor.configurar()` (as opções de `abrirSeletorCor` sem âncora e callbacks). */
 export type ConfiguracaoSeletorCor = Omit<
@@ -15,8 +16,8 @@ export type ConfiguracaoSeletorCor = Omit<
 
 /**
  * <ui-seletor-cor> — painel de cor e estilo CAD: abas Preenchimento/Traço, prévia
- * antes × depois com espessura real, hexadecimal, seletor do sistema, espessura do traçado (px),
- * opacidade do preenchimento, cores do projeto, paleta padrão e "sem cor".
+ * antes × depois com espessura real, hexadecimal, seletor do sistema, campos numéricos de espessura
+ * do traçado (px) e opacidade do preenchimento (%) no estilo Illustrator, e "sem cor".
  *
  * Métodos: configurar(opcoes), trocarAlvo(alvo), definirCor(cor), definirOpacidade(v), definirEspessura(v),
  *          confirmar(), cancelar(), obterEstado()
@@ -37,8 +38,6 @@ export class UISeletorCor extends SafeHTMLElement {
   private _espessura = 2.5;
   private _mostrarEspessura: boolean | undefined;
   private _misto = false;
-  private _coresProjeto: string[] = [];
-  private _paleta: string[] = [...PALETA_CORES_PADRAO];
 
   private inicial = {
     preenchimento: '#00e08a' as ValorCor,
@@ -79,8 +78,6 @@ export class UISeletorCor extends SafeHTMLElement {
     this._espessura = normalizarEspessura(opcoes.espessuraTraco, 2.5);
     this._mostrarEspessura = opcoes.mostrarEspessura;
     this._misto = opcoes.misto === true;
-    this._coresProjeto = coresUnicas(opcoes.coresProjeto);
-    this._paleta = opcoes.paleta ? coresUnicas(opcoes.paleta) : [...PALETA_CORES_PADRAO];
 
     this.inicial = {
       preenchimento: this._preenchimento,
@@ -181,9 +178,24 @@ export class UISeletorCor extends SafeHTMLElement {
   private renderizar() {
     this.listeners.cleanup();
     this.setAttribute('aria-label', this._titulo);
-    const amostras = (cores: string[]) => cores.map((c) => `
-      <button type="button" class="amostra" data-cor="${c}" style="background-color: ${c};" title="${c.toUpperCase()}" aria-label="Cor ${c.toUpperCase()}" aria-pressed="false"></button>
-    `).join('');
+    const campo = (nome: CampoAjuste, rotulo: string, unidade: string, descricao: string, min: number, max: number) => `
+      <div class="ajuste ${nome}">
+        <label class="ajuste-rotulo" for="${nome}-entrada">${rotulo}</label>
+        <div class="ajuste-campo">
+          <span class="ajuste-passos">
+            <button type="button" tabindex="-1" data-passo="${nome}" data-direcao="1" aria-label="Aumentar ${rotulo.toLowerCase()}">
+              <svg viewBox="0 0 10 6" width="8" height="5" aria-hidden="true"><path d="M1 5l4-4 4 4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+            </button>
+            <button type="button" tabindex="-1" data-passo="${nome}" data-direcao="-1" aria-label="Diminuir ${rotulo.toLowerCase()}">
+              <svg viewBox="0 0 10 6" width="8" height="5" aria-hidden="true"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+            </button>
+          </span>
+          <input type="text" id="${nome}-entrada" class="${nome}-entrada" inputmode="decimal" spellcheck="false" autocomplete="off"
+            role="spinbutton" aria-valuemin="${min}" aria-valuemax="${max}" aria-label="${descricao}" />
+          <span class="ajuste-unidade" aria-hidden="true">${unidade}</span>
+        </div>
+      </div>
+    `;
 
     this.raiz.innerHTML = `
       <style>${estilos}</style>
@@ -237,56 +249,13 @@ export class UISeletorCor extends SafeHTMLElement {
           </svg>
           <input type="color" class="nativo-entrada" aria-label="Seletor de cor do sistema" />
         </label>
+        <button type="button" class="sem-cor" data-cor="none" aria-pressed="false" title="Sem cor (vazado / transparente)" aria-label="Sem cor (vazado / transparente)"></button>
       </div>
 
-      <!-- Seção de Espessura do Traçado (CAD) -->
-      <div class="espessura">
-        <div class="espessura-cabecalho">
-          <span class="espessura-titulo">
-            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <line x1="3" y1="12" x2="21" y2="12" stroke-width="3" />
-              <line x1="3" y1="6" x2="21" y2="6" stroke-width="1.5" />
-              <line x1="3" y1="18" x2="21" y2="18" stroke-width="4.5" />
-            </svg>
-            <span>Espessura do traçado</span>
-          </span>
-          <span class="espessura-valor"></span>
-        </div>
-        <input type="range" class="espessura-entrada" min="0.5" max="15" step="0.5" aria-label="Espessura do traçado em pixels" />
-        <div class="espessura-atalhos">
-          ${ESPESSURAS_RAPIDAS.map((e) => `<button type="button" data-espessura="${e}">${e}px</button>`).join('')}
-        </div>
+      <div class="ajustes">
+        ${campo('espessura', 'Espessura', 'px', 'Espessura do traçado em pixels', 0.5, 50)}
+        ${campo('opacidade', 'Opacidade', '%', 'Opacidade do preenchimento em porcentagem', 0, 100)}
       </div>
-
-      <!-- Seção de Opacidade do Preenchimento -->
-      <div class="opacidade">
-        <div class="opacidade-cabecalho">
-          <span>Opacidade do preenchimento</span>
-          <span class="opacidade-valor"></span>
-        </div>
-        <input type="range" class="opacidade-entrada" min="0" max="100" step="1" aria-label="Opacidade do preenchimento" />
-        <div class="opacidade-atalhos">
-          ${OPACIDADES_RAPIDAS.map((a) => `<button type="button" data-opacidade="${a}">${Math.round(a * 100)}%</button>`).join('')}
-        </div>
-      </div>
-
-      ${this._coresProjeto.length ? `
-        <div class="rotulo-secao">Cores do projeto</div>
-        <div class="amostras">${amostras(this._coresProjeto)}</div>
-      ` : ''}
-
-      ${this._paleta.length ? `
-        <div class="rotulo-secao">Paleta padrão</div>
-        <div class="amostras">${amostras(this._paleta)}</div>
-      ` : ''}
-
-      <button type="button" class="sem-cor" data-cor="none" aria-pressed="false" title="Sem cor (vazado / transparente)">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
-          <circle cx="12" cy="12" r="9"/>
-          <line x1="5.5" y1="5.5" x2="18.5" y2="18.5"/>
-        </svg>
-        Sem cor (vazado / transparente)
-      </button>
 
       <div class="rodape">
         <button type="button" class="botao-cancelar" data-acao="cancelar">Cancelar</button>
@@ -387,42 +356,14 @@ export class UISeletorCor extends SafeHTMLElement {
     const nativo = q<HTMLInputElement>('.nativo-entrada');
     if (nativo) nativo.value = semCor ? '#00e08a' : cor;
 
-    // Valores e sliders
-    if (this.espessuraVisivel) {
-      const faixaEspessura = q<HTMLInputElement>('.espessura-entrada');
-      const pctEsp = Math.round(((this._espessura - 0.5) / (15 - 0.5)) * 100);
-      if (faixaEspessura) {
-        faixaEspessura.value = String(this._espessura);
-        faixaEspessura.style.setProperty('--pct-espessura', `${Math.max(0, Math.min(100, pctEsp))}%`);
-        faixaEspessura.setAttribute('aria-valuetext', `${this._espessura}px`);
-      }
-      const valorEsp = q<HTMLElement>('.espessura-valor');
-      if (valorEsp) valorEsp.textContent = `${this._espessura} px`;
-      this.raiz.querySelectorAll<HTMLElement>('[data-espessura]').forEach((b) => {
-        b.classList.toggle('ativo', Math.abs(Number(b.dataset.espessura) - this._espessura) < 0.1);
-      });
-    }
-
-    if (this.opacidadeVisivel) {
-      const pct = Math.round(this._opacidade * 100);
-      const faixaOpacidade = q<HTMLInputElement>('.opacidade-entrada');
-      if (faixaOpacidade) {
-        faixaOpacidade.value = String(pct);
-        faixaOpacidade.style.setProperty('--pct', `${pct}%`);
-        faixaOpacidade.setAttribute('aria-valuetext', `${pct}%`);
-      }
-      const valorOpac = q<HTMLElement>('.opacidade-valor');
-      if (valorOpac) valorOpac.textContent = `${pct}%`;
-      this.raiz.querySelectorAll<HTMLElement>('[data-opacidade]').forEach((b) => {
-        b.classList.toggle('ativo', Math.abs(Number(b.dataset.opacidade) - this._opacidade) < 0.02);
-      });
-    }
-
-    // Amostras de cores
-    this.raiz.querySelectorAll<HTMLElement>('.amostra').forEach((a) => {
-      const ativa = a.dataset.cor === cor;
-      a.classList.toggle('ativo', ativa);
-      a.setAttribute('aria-pressed', String(ativa));
+    // Campos numéricos (não sobrescreve o que o usuário está digitando)
+    (['espessura', 'opacidade'] as const).forEach((nome) => {
+      const entrada = q<HTMLInputElement>(`.${nome}-entrada`);
+      if (!entrada) return;
+      const valor = this.valorCampo(nome);
+      if (!this.campoEmFoco(entrada)) entrada.value = valor;
+      entrada.setAttribute('aria-valuenow', valor);
+      entrada.setAttribute('aria-valuetext', nome === 'opacidade' ? `${valor}%` : `${valor} px`);
     });
     const botaoSemCor = q<HTMLElement>('.sem-cor');
     botaoSemCor?.classList.toggle('ativo', semCor);
@@ -448,23 +389,38 @@ export class UISeletorCor extends SafeHTMLElement {
       this.listeners.add(el, 'click', () => this.definirCor(el.dataset.cor || ''));
     });
 
-    // Eventos de espessura
-    r.querySelectorAll<HTMLElement>('[data-espessura]').forEach((b) => {
-      this.listeners.add(b, 'click', () => this.definirEspessura(Number(b.dataset.espessura)));
+    // Campos numéricos: setas ▲▼, ↑/↓ e roda do mouse com o campo em foco (Shift = passo ×10);
+    // o valor digitado vale no Enter, no Tab ou ao sair do campo
+    r.querySelectorAll<HTMLElement>('[data-passo]').forEach((b) => {
+      this.listeners.add<MouseEvent>(b, 'click', (e: MouseEvent) => {
+        this.ajustarPor(b.dataset.passo as CampoAjuste, Number(b.dataset.direcao), e.shiftKey);
+      });
     });
-    const faixaEsp = r.querySelector<HTMLInputElement>('.espessura-entrada');
-    if (faixaEsp) {
-      this.listeners.add(faixaEsp, 'input', () => this.definirEspessura(Number(faixaEsp.value)));
-    }
-
-    // Eventos de opacidade
-    r.querySelectorAll<HTMLElement>('[data-opacidade]').forEach((b) => {
-      this.listeners.add(b, 'click', () => this.definirOpacidade(Number(b.dataset.opacidade)));
+    (['espessura', 'opacidade'] as const).forEach((nome) => {
+      const entrada = r.querySelector<HTMLInputElement>(`.${nome}-entrada`);
+      if (!entrada) return;
+      const passo = (direcao: number, grande: boolean) => {
+        this.ajustarPor(nome, direcao, grande);
+        entrada.value = this.valorCampo(nome);
+      };
+      this.listeners.add(entrada, 'change', () => this.lerCampo(nome, entrada));
+      this.listeners.add<KeyboardEvent>(entrada, 'keydown', (e: KeyboardEvent) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          this.lerCampo(nome, entrada);
+          entrada.select();
+        } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+          e.preventDefault();
+          passo(e.key === 'ArrowUp' ? 1 : -1, e.shiftKey);
+          entrada.select();
+        }
+      });
+      this.listeners.add<WheelEvent>(entrada, 'wheel', (e: WheelEvent) => {
+        if (!this.campoEmFoco(entrada) || e.deltaY === 0) return;
+        e.preventDefault();
+        passo(e.deltaY < 0 ? 1 : -1, e.shiftKey);
+      }, { passive: false });
     });
-    const faixaOpac = r.querySelector<HTMLInputElement>('.opacidade-entrada');
-    if (faixaOpac) {
-      this.listeners.add(faixaOpac, 'input', () => this.definirOpacidade(Number(faixaOpac.value) / 100));
-    }
 
     // Hexadecimal
     const hex = r.querySelector<HTMLInputElement>('.hex-entrada');
@@ -495,6 +451,29 @@ export class UISeletorCor extends SafeHTMLElement {
     this.listeners.add(r.querySelector('[data-acao="fechar"]'), 'click', () => this.confirmar());
     this.listeners.add(r.querySelector('[data-acao="concluir"]'), 'click', () => this.confirmar());
     this.listeners.add(r.querySelector('[data-acao="cancelar"]'), 'click', () => this.cancelar());
+  }
+
+  /** Texto exibido no campo: opacidade em % inteira, espessura em px. */
+  private valorCampo(nome: CampoAjuste): string {
+    return String(nome === 'opacidade' ? Math.round(this._opacidade * 100) : this._espessura);
+  }
+
+  /** Soma um passo do campo no sentido de `direcao` (com `grande`, dez passos). */
+  private ajustarPor(nome: CampoAjuste, direcao: number, grande = false) {
+    if (!Number.isFinite(direcao) || direcao === 0) return;
+    const delta = Math.sign(direcao) * PASSO[nome] * (grande ? 10 : 1);
+    if (nome === 'opacidade') this.definirOpacidade((Math.round(this._opacidade * 100) + delta) / 100);
+    else this.definirEspessura(this._espessura + delta);
+  }
+
+  /** Aplica o texto do campo ("50", "50%", "2,5 px"…); texto inválido volta ao valor atual sem emitir. */
+  private lerCampo(nome: CampoAjuste, entrada: HTMLInputElement) {
+    const n = parseFloat(entrada.value.replace(',', '.').replace(/[^\d.+-]/g, ''));
+    if (Number.isFinite(n)) {
+      if (nome === 'opacidade') this.definirOpacidade(n / 100);
+      else this.definirEspessura(n);
+    }
+    entrada.value = this.valorCampo(nome);
   }
 
   private emitir(tipo: string, detail: unknown) {

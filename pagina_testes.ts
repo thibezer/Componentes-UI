@@ -1432,7 +1432,6 @@ document.addEventListener('DOMContentLoaded', () => {
       traco: estadoCoresModelo.traco,
       opacidade: estadoCoresModelo.opacidade,
       espessuraTraco: estadoCoresModelo.espessuraTraco,
-      coresProjeto: ['#00e08a', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#10b981'],
       mostrarEspessura: true,
       mostrarOpacidade: true
     });
@@ -1472,7 +1471,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (controleCores) {
-    controleCores.coresProjeto = ['#00e08a', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#10b981'];
     controleCores.atalhos = { alternar: 'X', inverter: 'Shift+X', semCor: '/', padrao: 'D' };
 
     controleCores.addEventListener('ui-cores-change', (e: Event) => {
