@@ -1,5 +1,12 @@
 # Handoff — motor das formas (`feat/motor-formas`)
 
+> **Estado em 2026-10-23 (fim da 3ª conversa): pronto para publicar a 2.9.0.** Trabalho commitado em `feat/motor-formas`;
+> a 2.8.2 (branch `feat/barra-ferramentas-pendencias`, commit `5054a9b`, publicada a partir de uma base 2.6.0) foi mesclada,
+> com as mudanças do ribbon e da paleta portadas para os módulos da 2.7.0. `package.json` em 2.9.0. Gates verdes (tsc,
+> check:layers, vitest 113 arquivos / 1774 testes, build limpo, test:tipos, `dist/motor.js` sem leaflet). Conferência manual e
+> benchmark com GPU feitos pelo dono e registrados em `docs/RELATORIO-motor-formas.md`. Falta só: publicar (dono) e, se
+> quiser, enviar os branches ao GitHub. O texto abaixo é o histórico.
+
 Registro do que foi feito e do que falta, para retomar em outra conversa. Origem: `PROMPT_MOTOR_FORMAS_KIT.md` (fica no
 checkout principal, não versionado). **Nada foi commitado nem publicado** (a regra do prompt é: commit e npm são do dono).
 

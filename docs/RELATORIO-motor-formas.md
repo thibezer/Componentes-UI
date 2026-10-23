@@ -1,7 +1,8 @@
 # Relatório final — motor das formas (2.9.0)
 
-Rascunho. Os campos marcados **[preencher]** dependem da conferência manual e do benchmark na máquina com GPU (passo a
-passo na seção "Como fechar o relatório"). Origem do trabalho: `PROMPT_MOTOR_FORMAS_KIT.md`. Branch `feat/motor-formas`.
+Fechado em 2026-10-23 com a conferência manual e o benchmark na máquina do dono (GPU, Chrome 155). Origem do trabalho:
+`PROMPT_MOTOR_FORMAS_KIT.md`. Branch `feat/motor-formas`. A 2.9.0 também junta a 2.8.2, publicada a partir de uma base
+antiga (ver o CHANGELOG).
 
 ## Resumo
 
@@ -10,9 +11,11 @@ passo na seção "Como fechar o relatório"). Origem do trabalho: `PROMPT_MOTOR_
 continua `leaflet`. Mesma API pública, mesmos eventos, mesmos dados. O motor também sai sozinho em
 `@thibezer/ui-components-kit/motor`, sem Leaflet.
 
-Medido sem GPU, o caminho canvas fica de 2 a 8 vezes abaixo do leaflet de 50 mil formas para cima (100 mil em zoom 12:
-~200–440 ms contra ~840–2 100 ms), de empate a ~1,5× em 20 mil, e não perde mais nos casos de poucas formas. As metas absolutas do prompt **[preencher: confirmadas ou
-não na máquina com GPU]**.
+Na máquina com GPU, o caminho canvas fica de **2 a 6 vezes** abaixo do leaflet em todos os tamanhos medidos (1 mil a 100 mil,
+zooms 12/15/18), e as operações pontuais em lote caem uma ordem de grandeza (selecionar 2 000 feições numa camada de 50 mil:
+114 contra 1 316 ms). As metas absolutas do prompt para a mudança de vista em zoom 12 **não foram atingidas**: 20 mil em
+90–222 ms (meta 60), 50 mil em 224–300 ms (meta 100), 100 mil em 218–375 ms (meta 200). O padrão continua `leaflet` (Fase 4
+não feita).
 
 ## Por fase
 
@@ -57,7 +60,10 @@ não na máquina com GPU]**.
 - **Coordenadas projetadas em cache** no lugar de `Path2D` (o ambiente de teste não tem `Path2D`).
 - **Pan incremental medido em pixels de mundo** (os pontos de camada do Leaflet mudam a cada `viewreset`).
 - **Limite de repintura 500 itens por camada**, escolhido por medição intercalada sem GPU (repintar ganha 3–5× até ~200,
-  empata ~650, perde de ~1 500). **[preencher: confirmado ou ajustado com GPU]**
+  empata ~650, perde de ~1 500). Com GPU o equilíbrio fica mais baixo: repintar ainda ganha com poucos itens (~10 por camada:
+  2 contra 25–26 ms em zoom 18) mas a ~180 por camada deslocar já sai um pouco melhor (67–86 contra 90–96 ms). **Mantido em
+  500**: com GPU a diferença nessa faixa é de ~15–20 ms; sem GPU, repintar é 3× melhor. Ajustável em
+  `CanvasFormas.limiteRepintar`.
 
 ## O que não deu (pendências conhecidas)
 
@@ -88,9 +94,52 @@ visivelmente mais rápido que o leaflet.
 
 ## Benchmark com GPU (`/bench/bench-formas.html`, "Protocolo completo")
 
-[preencher: colar aqui as duas tabelas que o botão "Copiar resultado" copia]
+Máquina do dono, Chrome 155, 2026-10-23. Mediana em ms de cada volta, configurações alternadas, 2 voltas.
 
-## Como fechar o relatório
+**Canvas (limiteRepintar = 500) × leaflet:**
+
+| Formas | zoom | itens/camada | canvas | leaflet |
+|---|---|---|---|---|
+| 1 000 | 12 | 182 | 58, 64 | 247, 197 |
+| 1 000 | 15 | 32 | 54, 71 | 211, 171 |
+| 1 000 | 18 | 0 | 4, 4 | 195, 151 |
+| 20 000 | 12 | 3 055 | 90, 222 | 473, 676 |
+| 20 000 | 15 | 651 | 85, 194 | 428, 511 |
+| 20 000 | 18 | 12 | 60, 71 | 115, 123 |
+| 50 000 | 12 | 7 556 | 300, 224 | 1 418, 1 362 |
+| 50 000 | 15 | 1 558 | 285, 325 | 1 251, 1 145 |
+| 50 000 | 18 | 31 | 91, 96 | 220, 280 |
+| 100 000 | 12 | 15 056 | 375, 218 | 977, 1 003 |
+| 100 000 | 15 | 2 930 | 166, 197 | 811, 1 652 |
+| 100 000 | 18 | 60 | 94, 109 | 328, 388 |
+
+**Operações pontuais (síncrono, ms, canvas / leaflet):**
+
+| Operação | 20 mil | 50 mil | 100 mil |
+|---|---|---|---|
+| selecionar 1 | 0,6 / 1,3 | 9,4 / 16,3 | 8,1 / 20,5 |
+| selecionar 2 000 | **13** / 242 | **114** / 1 316 | **47** / 398 |
+| limpar 2 000 | **1,7** / 212 | **22** / 1 355 | **4,4** / 385 |
+| ocultar camada | 2,2 / 42 | 87 / 271 | 17 / 144 |
+| exibir camada | 38 / 257 | 1 169 / 1 606 | 207 / 350 |
+
+**Limite de repintura (sempre desloca / sempre repinta / leaflet):**
+
+| Formas | zoom | itens/camada | desloca | repinta | leaflet |
+|---|---|---|---|---|---|
+| 1 000 | 12 | 182 | 67, 86 | 96, 90 | 230, 249 |
+| 1 000 | 18 | 10 | 26, 25 | 2, – | 197, 228 |
+| 20 000 | 12 | 3 055 | 171, 81 | 454, 212 | 347, 501 |
+| 50 000 | 12 | 7 556 | –, 226 | 1 124, 473 | 1 202, 502 |
+| 100 000 | 12 | 15 056 | 238, 408 | 936, 3 231 | 2 696, 2 725 |
+| 100 000 | 15 | 2 930 | 191, 507 | 620, 1 599 | 2 155, 2 069 |
+
+Nessa rodada algumas células saíram com **0 ms** (por exemplo 50 mil em zoom 12, "sempre desloca", primeira volta), o que não
+é possível com desenho real: provavelmente a janela perdeu o foco ou ficou oculta naquele trecho e o navegador não pintou. Elas
+aparecem como "–" acima e não entram na conclusão. A tabela completa, como saiu do bench, está no histórico da conversa de
+fechamento.
+
+## Como refazer as medições
 
 1. `npm run dev` na worktree `motor-formas` e abrir `http://localhost:5173/bench/conferencia-canvas.html`. Seguir o roteiro da
    página nos dois renderizadores; preencher a tabela de conferência.

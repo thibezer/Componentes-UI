@@ -255,6 +255,21 @@ exagerada. A comparação que decide o limite é a tabela anterior. As metas do 
 ≤ 200 ms em z12) continuam **não confirmadas** nesta máquina, e o limite deve ser conferido numa máquina com GPU (lá o
 deslocamento é uma cópia de textura e o equilíbrio pode ficar em outro ponto).
 
+### Com GPU (máquina do dono, 2026-10-23)
+
+Protocolo completo do bench (`__bench.protocoloGPU()`), Chrome 155. Tabelas completas em
+[`docs/RELATORIO-motor-formas.md`](RELATORIO-motor-formas.md). Resumo:
+
+- **Canvas × leaflet:** o canvas fica de 2 a 6 vezes abaixo em todos os tamanhos e zooms (1 000 em zoom 18: 4 contra
+  151–195 ms; 20 000 em zoom 12: 90–222 contra 473–676 ms; 100 000 em zoom 15: 166–197 contra 811–1 652 ms).
+- **Operações em lote:** selecionar 2 000 feições numa camada de 50 mil, 114 contra 1 316 ms; limpar, 22 contra 1 355 ms.
+- **Metas do prompt em zoom 12** (20 mil ≤ 60, 50 mil ≤ 100, 100 mil ≤ 200 ms): **não atingidas** (90–222, 224–300 e
+  218–375 ms).
+- **Limite de repintura:** com GPU o equilíbrio fica abaixo do medido sem GPU (deslocar já ganha um pouco a ~180 itens por
+  camada: 67–86 contra 90–96 ms; repintar segue muito melhor com ~10 itens: 2 contra 25–26 ms). O limite ficou em 500: com
+  GPU a perda na faixa 180–500 é de ~15–20 ms, sem GPU repintar é 3× melhor. Algumas células da medição de limite saíram com
+  0 ms (janela sem foco naquele trecho) e foram descartadas.
+
 ## Regressão
 
 `tests/feicoes-lote.test.ts`:

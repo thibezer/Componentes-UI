@@ -1,6 +1,11 @@
 # Changelog
 
-## Não lançado
+## 2.9.0 — 2026-10-23
+
+### Junta a 2.8.2 com a linha 2.6.1–2.8.1
+
+- **Atenção a quem instalou a 2.8.2:** ela foi publicada a partir de um branch baseado na 2.6.0 e **não continha** o que saiu na 2.6.1, 2.7.0, 2.8.0 e 2.8.1 (entre outros: `<ui-linha>` e a altura única dos controles; popups e câmera só a pedido no `<ui-canvas-cad>`; busca por nome de camada e mapa base recolhível no `<ui-camadas>`; as correções de robustez e acessibilidade da 2.7.0 em `<ui-tooltip>`, `<ui-modal>`, `<ui-mapa>`, `<ui-tabela>`, `<ui-camadas>` e `<ui-canvas-cad>`). A 2.9.0 traz as duas linhas juntas: tudo da 2.8.1 mais tudo da 2.8.2 (medidas no elipsoide GRS80 e as pendências do ribbon e da paleta).
+- As mudanças da 2.8.2 no `<ui-ribbon>` e na `<ui-paleta-ferramentas>` foram portadas para os módulos extraídos na 2.7.0: grupo colapsado, botão dividido e lançador de diálogo em `ribbon-render.ts` (os cliques seguem delegados pelo painel); ativação manual das abas em `ribbon-teclado.ts` (`acaoDaTeclaAba` ganha a ação `ativar`); atalhos compostos e a paleta "dona" dos atalhos em `paleta-atalhos.ts` (`resolverAtalho` aceita o evento de teclado; `paletaDonaDosAtalhos`).
 
 ### `<ui-canvas-cad>`: desenho de muitas formas (Fases 0 e 1 do motor de formas)
 
@@ -24,7 +29,7 @@
 - **Motor headless** (`src/gerencigeo-canvas/motor/`, L2, sem DOM e sem Leaflet; roda em Node e serve para Web Worker): `MotorFormas` com `definirCamada`, `definirFeicoes`, `aplicarDelta`, `listaDesenho(vista, { camadas, parte })`, `listaSobreposicao`, `consultarCaixa`, seleção, `previsualizar`, `destacar` e clusters. Estilo resolvido compartilhado pelos dois renderizadores (`estilo.ts`), geometria em `Float64Array` com projeção própria e Douglas-Peucker em px (`geometria-px.ts`), loja + índice + oficial × prévia (`dados-camada.ts`).
 - **Novo entrypoint `@thibezer/ui-components-kit/motor`** (`src/motor.ts`): o motor sem o componente. O `check-layers` garante que nada alcançado por ele importa `leaflet` (`dist/motor.js` não importa).
 - **Renderizador Canvas** (`renderers/renderizador_formas.ts`, `PintorCanvas2D`): pinta forma a forma, agrupado por estilo, com recorte. **Pan incremental** (`renderers/canvas_formas_leaflet.ts`): o bitmap é deslocado em pixels de mundo e só as faixas expostas são listadas e pintadas. Seleção, hover e edição vão para uma sobreposição única por mapa, sem repintar a base. Clique e hover passam pelo hit-test central (`FonteHit`).
-- **Números** (navegador, A/B na mesma sessão, mediana; ver `docs/desempenho-feicoes.md`): mudança de vista com 20 mil formas em zoom 12 de ~240 ms para **~55 ms**; 50 mil em zoom 12 de ~630 ms para **~100–150 ms**; selecionar 2 000 feições (20 mil na camada) de 182 ms para **14 ms**; exibir camada de 20 mil de 254 ms para **112 ms**.
+- **Números com GPU** (máquina do dono, canvas × leaflet intercalados; tabelas em `docs/RELATORIO-motor-formas.md`): o canvas fica de 2 a 6 vezes abaixo do leaflet em todos os tamanhos. Mudança de vista: 20 mil em zoom 12, 90–222 contra 473–676 ms; 100 mil em zoom 15, 166–197 contra 811–1 652 ms. Selecionar 2 000 feições numa camada de 50 mil: 114 contra 1 316 ms. As metas absolutas do prompt (zoom 12: 20 mil ≤ 60 ms, 50 mil ≤ 100 ms, 100 mil ≤ 200 ms) não foram atingidas.
 - **Desempenho do caminho canvas:** o item da marca de LOD fica em cache por zoom e é reaproveitado no pan enquanto feição, estilo da camada, seleção e destaque não mudam (lista de 100 mil marcas em zoom 12: de ~390 para ~140 ms por mudança de vista, no Node). Canvas em branco (camada sem nada na vista, sobreposição sem seleção) não é mais deslocado, limpo nem redimensionado a cada pan: cada chamada de desenho fazia o navegador reenviar o canvas inteiro ao compositor (1 000 formas em zoom 18: de ~130 para ~30 ms por pan, medido sem GPU). Camada com até 500 itens na vista é repintada inteira no pan em vez de ter o bitmap deslocado (`CanvasFormas.limiteRepintar`, ajustável; também por instância): com poucas formas, deslocar o bitmap de 3072×1920 custava 3–5× mais que repintar e deixava o canvas mais lento que o leaflet (1 000 formas em zoom 12: de ~200 para ~60 ms).
 - **Correções** achadas pela suíte de equivalência: marca de LOD antiga ficava na tela quando a feição passava a ponto agrupado (também no caminho `leaflet`); ícone selecionado ou único restante numa célula de cluster sumia no caminho canvas.
 
@@ -35,7 +40,30 @@
 - Curvas Bézier (`LinhaCurva`/`PoligonoCurvo`), ícone, texto, cluster e rótulo continuam como objetos/marcadores Leaflet dentro do mesmo renderizador.
 - As feições não aparecem em `grupo.getLayers()` nem em `map._layers`; use `estatisticasFeicoes()`.
 
-Versão sugerida: **2.9.0** (minor: nada que o app usa mudou de assinatura; o padrão continua `leaflet`).
+## 2.8.2 — 2026-10-23
+
+> Publicada a partir de um branch baseado na 2.6.0: não inclui a 2.6.1, a 2.7.0, a 2.8.0 nem a 2.8.1. Use a 2.9.0, que junta as duas linhas.
+
+### Canvas de feições: medidas no elipsoide GRS80
+
+- **Distância, comprimento e área** (`feature_metricas`) deixam a esfera de 6371 km: distância pela escala local do elipsoide (M e N) até 0,1° e Vincenty acima disso; área por Σ(λ[i+1]−λ[i−1])·sen φ·M·N/2. Antes o erro chegava a 0,5% na distância e 0,45% na área; agora fica abaixo de 0,01% na área e de 2e-7 na distância curta (linha Flinders–Buninyong confere em milímetros).
+- **Deslocamentos, offsets e alça de borda do círculo** (`feature_algoritmos`, `feature_edicao_ops`) usam a mesma escala (`metrosPorGrau`, exportada), para o raio lido da alça bater com o desenhado.
+
+### `<ui-ribbon>` e `<ui-paleta-ferramentas>`: pendências de UX, acessibilidade e robustez
+
+- **Harmonização de bordas, raios e alinhamento vertical no Ribbon**: botões pequenos agora utilizam `--ui-raio-sm` (4px) com `padding: 0 8px` proporcional; colunas de ferramentas recebem `gap: 2px` evitando colisão de cantos arredondados entre itens adjacentes; botões grandes têm altura calibrada em 76px (equivalente a 3 slots de 24px + gaps) com área de itens centrada verticalmente; grupos sem rótulo não geram nó vazio, eliminando o espaçamento inferior fantasma e garantindo margens perfeitamente simétricas.
+- **Tooltip estilizado leve (M2)**: substituição do `title` nativo do browser por tooltip no Shadow DOM exibido em `focus-visible` e `pointerover`, com renderização do atalho formatado (`kbd`). Remoção de `aria-label` duplicado em botões que já possuem rótulo visível.
+- **Colapso automático de grupos no Ribbon (A4)**: suporte a `prioridade` em `RibbonGrupo` e colapso dinâmico via `ResizeObserver` quando o espaço é insuficiente, transformando o grupo em botão único com flyout (estilo Office).
+- **Botão dividido e Lançador de Diálogo (M4)**: suporte a `item.dividido` no ribbon (ação primária + gatilho de menu independente) e botão lançador de diálogo opcional (`grupo.lancadorDialogo`) com emissão do evento `ui-grupo-dialogo`.
+- **Atalhos compostos e escopo multi-paletas (M7/B9)**: suporte a atalhos combinados (`Ctrl+Z`, `Shift+V`, `Esc`, etc.) via `correspondeAtalho`. No ribbon, suporte ao atributo `atalhos` e `keytips` (Alt). Conflito entre múltiplas paletas com atalhos na mesma página resolvido via escopo de foco (`:focus-within`) e ordenação DOM.
+- **Navegação em grade de 2 colunas (M9)**: em paletas verticais com `colunas="2"`, navegação bidimensional intuitiva com `ArrowUp`, `ArrowDown`, `ArrowLeft` e `ArrowRight` respeitando a ordem visual e layout RTL.
+- **Ativação manual de abas (M10)**: atributo opt-in `ativacao-manual` e propriedade `ativacaoManual` no ribbon, onde setas apenas transferem o foco do teclado e Enter/Espaço ativam a aba.
+- **Fechamento de menu no window blur (M8)**: removido fechamento indevido em `window blur` para permitir inspeção no DevTools e troca de janelas; menus fecham apenas por clique fora, `Escape` ou rolagem.
+- **Exclusividade configurável de ferramentas no Ribbon (B8)**: suporte a `tipo: 'ferramenta'` com seleção única por grupo e propriedade `grupo.exclusivo` (padrão `true`, `false` para múltipla ativação).
+- **Submenus aninhados**: suporte a múltiplos níveis de `filhos` dentro de `filhos` na paleta e no ribbon, com abertura/fechamento via `ArrowRight` e `ArrowLeft` (respeitando RTL).
+- **Modo controlado sem mutação de dados (A1)**: propriedade `modoControlado` e atributos `modo-controlado` / `copiar-dados` para clonagem profunda na entrada, garantindo que objetos do consumidor não sofram mutações.
+- **IDs em SVG inline e allowlist (B1)**: prefixagem de IDs em `<defs>` de ícones SVG (`url(#...)` e `href`) no `svg-seguro.ts` para evitar colisões no DOM, e aviso em console para elementos descartados pela allowlist.
+- **SSR e prevenção de layout shift (B9)**: reserva de altura mínima no `:host` do ribbon para evitar Cumulative Layout Shift (CLS) antes da hidratação.
 
 ## 2.8.1 — 2026-10-21
 
