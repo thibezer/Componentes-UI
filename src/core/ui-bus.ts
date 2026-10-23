@@ -4,7 +4,10 @@
    precisar navegar pelo DOM com querySelector.
    ==================================================== */
 
-import { UIToast, type UIToastOpcoes } from '../components/ui-alerta';
+import type { UIToastOpcoes } from './tipos-toast';
+
+/** Função que exibe um toast; registrada por quem implementa o componente (L3), nunca importada pelo core. */
+export type ProvedorToast = (opcoes: UIToastOpcoes) => void;
 
 export interface UIBusEventsMap {
   'modal:aberto': { id: string };
@@ -26,6 +29,7 @@ interface ControllableUIElement extends HTMLElement {
 }
 
 class UIBusManager {
+  private provedorToast: ProvedorToast | null = null;
   private listeners: Map<string, Set<UIEmitterCallback<any>>> = new Map();
 
   constructor() {
@@ -221,11 +225,21 @@ class UIBusManager {
    * Dispara uma notificação toast flutuante inteligente.
    */
   public notificar(opcoes: UIToastOpcoes | string): void {
-    if (typeof opcoes === 'string') {
-      UIToast.notificar({ mensagem: opcoes, tipo: 'info' });
-    } else {
-      UIToast.notificar(opcoes);
+    const provedor = this.provedorToast;
+    if (!provedor) return;
+    try {
+      provedor(typeof opcoes === 'string' ? { mensagem: opcoes, tipo: 'info' } : opcoes);
+    } catch (erro) {
+      console.error('Erro ao exibir toast:', erro);
     }
+  }
+
+  /**
+   * Registra (ou remove, com `null`) o provedor que materializa os toasts.
+   * O `ui-toast` se registra sozinho ao ser carregado; sem provedor, `notificar` é no-op.
+   */
+  public registrarProvedorToast(provedor: ProvedorToast | null): void {
+    this.provedorToast = provedor;
   }
 
   /**

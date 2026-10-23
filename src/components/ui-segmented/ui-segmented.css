@@ -69,6 +69,7 @@
   top: 3px;
   bottom: 3px;
   left: 0;
+  box-sizing: border-box;
   background-color: var(--ui-cor-fundo-card, #1e1e24);
   border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.16));
   border-radius: calc(var(--ui-raio-borda, 8px) - 2px);

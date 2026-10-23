@@ -9,8 +9,11 @@ import {
   atualizarRoving,
   avisarIdsDuplicados,
   coletarIds,
+  correspondeAtalho,
   criarBotaoFerramenta,
   definirRoving,
+  GerenciadorTooltip,
+  navegarGrade2Colunas,
   navegarRoving,
   seguirFoco,
   type MenuHandle
@@ -42,7 +45,7 @@ const TAMANHO_ICONE: Record<string, number> = { sm: 16, md: 18, lg: 22 };
  */
 export class UIPaletaFerramentas extends SafeHTMLElement {
   static get observedAttributes() {
-    return ['valor', 'value', 'orientacao', 'colunas', 'tamanho', 'size', 'aria-label'];
+    return ['valor', 'value', 'orientacao', 'colunas', 'tamanho', 'size', 'aria-label', 'copiar-dados', 'modo-controlado'];
   }
 
   private rootElement: HTMLDivElement;
@@ -56,6 +59,8 @@ export class UIPaletaFerramentas extends SafeHTMLElement {
   private inicioPressao: { x: number; y: number } | null = null;
   private suprimirClique = false;
   private listeners = new ListenerBag();
+  private tooltip: GerenciadorTooltip | null = null;
+  private _modoControlado = false;
 
   constructor() {
     super();
@@ -69,6 +74,9 @@ export class UIPaletaFerramentas extends SafeHTMLElement {
 
   connectedCallback() {
     this.listeners.cleanup();
+    this.tooltip?.destruir();
+    this.tooltip = new GerenciadorTooltip(this.shadowRoot!, this.rootElement);
+
     this.listeners.add(this.rootElement, 'click', this.handleClick);
     this.listeners.add(this.rootElement, 'pointerdown', this.handlePointerDown);
     this.listeners.add(this.rootElement, 'pointermove', this.handlePointerMove);
@@ -91,6 +99,8 @@ export class UIPaletaFerramentas extends SafeHTMLElement {
     window.clearTimeout(this.timerSupressao);
     this.suprimirClique = false;
     this.fecharMenu();
+    this.tooltip?.destruir();
+    this.tooltip = null;
     this.listeners.cleanup();
   }
 
@@ -107,12 +117,35 @@ export class UIPaletaFerramentas extends SafeHTMLElement {
 
   /* ---------- API pública ---------- */
 
+  /**
+   * Quando `true` ou atributo `copiar-dados` / `modo-controlado`: clona a árvore de itens
+   * para não mutar os objetos fornecidos pelo consumidor (Item 11).
+   */
+  get modoControlado(): boolean {
+    return this._modoControlado || this.hasAttribute('modo-controlado') || this.hasAttribute('copiar-dados');
+  }
+
+  set modoControlado(val: boolean) {
+    this._modoControlado = !!val;
+  }
+
+  get copiarDados(): boolean {
+    return this.modoControlado;
+  }
+
+  set copiarDados(val: boolean) {
+    this.modoControlado = val;
+  }
+
   get ferramentas(): FerramentaItem[] {
     return this._ferramentas;
   }
 
   set ferramentas(val: FerramentaItem[]) {
-    this._ferramentas = Array.isArray(val) ? val : [];
+    const lista = Array.isArray(val) ? val : [];
+    this._ferramentas = this.modoControlado
+      ? lista.map(f => ({ ...f, filhos: f.filhos?.map(c => ({ ...c })) }))
+      : lista;
     avisarIdsDuplicados(coletarIds(this._ferramentas), '<ui-paleta-ferramentas> ferramentas');
     this.visiveis.clear();
     if (this._pendente) this.aplicarPendente();
@@ -462,9 +495,16 @@ export class UIPaletaFerramentas extends SafeHTMLElement {
   private handleKeyDown = (e: KeyboardEvent) => {
     const horizontal = this.getAttribute('orientacao') === 'horizontal';
     const rtl = getComputedStyle(this).direction === 'rtl';
-    const prev = horizontal ? [rtl ? 'ArrowRight' : 'ArrowLeft'] : ['ArrowUp'];
-    const next = horizontal ? [rtl ? 'ArrowLeft' : 'ArrowRight'] : ['ArrowDown'];
-    if (navegarRoving(e, this.botoes(), prev, next)) return;
+    const colunas = this.colunas;
+
+    // Item 5: Navegação em grade quando colunas=2 em layout vertical
+    if (!horizontal && colunas === 2) {
+      if (navegarGrade2Colunas(e, this.botoes(), rtl)) return;
+    } else {
+      const prev = horizontal ? [rtl ? 'ArrowRight' : 'ArrowLeft'] : ['ArrowUp'];
+      const next = horizontal ? [rtl ? 'ArrowLeft' : 'ArrowRight'] : ['ArrowDown'];
+      if (navegarRoving(e, this.botoes(), prev, next)) return;
+    }
 
     const teclaFlyout = horizontal ? 'ArrowDown' : rtl ? 'ArrowLeft' : 'ArrowRight';
     const btn = e.target instanceof HTMLButtonElement ? e.target : null;
@@ -476,7 +516,7 @@ export class UIPaletaFerramentas extends SafeHTMLElement {
   };
 
   private handleAtalho = (e: KeyboardEvent) => {
-    if (!this.hasAttribute('atalhos') || e.ctrlKey || e.metaKey || e.altKey || e.defaultPrevented) return;
+    if (!this.hasAttribute('atalhos') || e.defaultPrevented) return;
     const caminho = e.composedPath() as HTMLElement[];
     const origem = caminho[0];
     if (origem && (/^(INPUT|TEXTAREA|SELECT)$/.test(origem.tagName) || origem.isContentEditable)) return;
@@ -490,10 +530,15 @@ export class UIPaletaFerramentas extends SafeHTMLElement {
     });
     if (bloqueia) return;
 
-    const tecla = (e.key || '').toUpperCase();
-    if (tecla.length !== 1) return;
+    // Item 4: Evita conflito entre várias paletas com "atalhos" na mesma página.
+    // Apenas a paleta dona (que contém o foco ativo) ou a primeira no DOM se nenhuma tiver foco.
+    const todasPaletas = Array.from(document.querySelectorAll<UIPaletaFerramentas>('ui-paleta-ferramentas[atalhos]'));
+    if (todasPaletas.length > 1) {
+      const dona = todasPaletas.find(p => p.matches(':focus-within') || p.shadowRoot?.activeElement) || todasPaletas[0];
+      if (dona !== this) return;
+    }
 
-    const candidatos = this.todasFerramentas().filter(f => !f.disabled && f.atalho?.toUpperCase() === tecla);
+    const candidatos = this.todasFerramentas().filter(f => !f.disabled && correspondeAtalho(e, f.atalho));
     if (!candidatos.length) return;
 
     e.preventDefault();

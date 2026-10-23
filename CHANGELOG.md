@@ -1,5 +1,28 @@
 # Changelog
 
+## 2.8.2 — 2026-10-23
+
+### Canvas de feições: medidas no elipsoide GRS80
+
+- **Distância, comprimento e área** (`feature_metricas`) deixam a esfera de 6371 km: distância pela escala local do elipsoide (M e N) até 0,1° e Vincenty acima disso; área por Σ(λ[i+1]−λ[i−1])·sen φ·M·N/2. Antes o erro chegava a 0,5% na distância e 0,45% na área; agora fica abaixo de 0,01% na área e de 2e-7 na distância curta (linha Flinders–Buninyong confere em milímetros).
+- **Deslocamentos, offsets e alça de borda do círculo** (`feature_algoritmos`, `feature_edicao_ops`) usam a mesma escala (`metrosPorGrau`, exportada), para o raio lido da alça bater com o desenhado.
+
+### `<ui-ribbon>` e `<ui-paleta-ferramentas>`: pendências de UX, acessibilidade e robustez
+
+- **Harmonização de bordas, raios e alinhamento vertical no Ribbon**: botões pequenos agora utilizam `--ui-raio-sm` (4px) com `padding: 0 8px` proporcional; colunas de ferramentas recebem `gap: 2px` evitando colisão de cantos arredondados entre itens adjacentes; botões grandes têm altura calibrada em 76px (equivalente a 3 slots de 24px + gaps) com área de itens centrada verticalmente; grupos sem rótulo não geram nó vazio, eliminando o espaçamento inferior fantasma e garantindo margens perfeitamente simétricas.
+- **Tooltip estilizado leve (M2)**: substituição do `title` nativo do browser por tooltip no Shadow DOM exibido em `focus-visible` e `pointerover`, com renderização do atalho formatado (`kbd`). Remoção de `aria-label` duplicado em botões que já possuem rótulo visível.
+- **Colapso automático de grupos no Ribbon (A4)**: suporte a `prioridade` em `RibbonGrupo` e colapso dinâmico via `ResizeObserver` quando o espaço é insuficiente, transformando o grupo em botão único com flyout (estilo Office).
+- **Botão dividido e Lançador de Diálogo (M4)**: suporte a `item.dividido` no ribbon (ação primária + gatilho de menu independente) e botão lançador de diálogo opcional (`grupo.lancadorDialogo`) com emissão do evento `ui-grupo-dialogo`.
+- **Atalhos compostos e escopo multi-paletas (M7/B9)**: suporte a atalhos combinados (`Ctrl+Z`, `Shift+V`, `Esc`, etc.) via `correspondeAtalho`. No ribbon, suporte ao atributo `atalhos` e `keytips` (Alt). Conflito entre múltiplas paletas com atalhos na mesma página resolvido via escopo de foco (`:focus-within`) e ordenação DOM.
+- **Navegação em grade de 2 colunas (M9)**: em paletas verticais com `colunas="2"`, navegação bidimensional intuitiva com `ArrowUp`, `ArrowDown`, `ArrowLeft` e `ArrowRight` respeitando a ordem visual e layout RTL.
+- **Ativação manual de abas (M10)**: atributo opt-in `ativacao-manual` e propriedade `ativacaoManual` no ribbon, onde setas apenas transferem o foco do teclado e Enter/Espaço ativam a aba.
+- **Fechamento de menu no window blur (M8)**: removido fechamento indevido em `window blur` para permitir inspeção no DevTools e troca de janelas; menus fecham apenas por clique fora, `Escape` ou rolagem.
+- **Exclusividade configurável de ferramentas no Ribbon (B8)**: suporte a `tipo: 'ferramenta'` com seleção única por grupo e propriedade `grupo.exclusivo` (padrão `true`, `false` para múltipla ativação).
+- **Submenus aninhados**: suporte a múltiplos níveis de `filhos` dentro de `filhos` na paleta e no ribbon, com abertura/fechamento via `ArrowRight` e `ArrowLeft` (respeitando RTL).
+- **Modo controlado sem mutação de dados (A1)**: propriedade `modoControlado` e atributos `modo-controlado` / `copiar-dados` para clonagem profunda na entrada, garantindo que objetos do consumidor não sofram mutações.
+- **IDs em SVG inline e allowlist (B1)**: prefixagem de IDs em `<defs>` de ícones SVG (`url(#...)` e `href`) no `svg-seguro.ts` para evitar colisões no DOM, e aviso em console para elementos descartados pela allowlist.
+- **SSR e prevenção de layout shift (B9)**: reserva de altura mínima no `:host` do ribbon para evitar Cumulative Layout Shift (CLS) antes da hidratação.
+
 ## 2.6.0 — 2026-10-17
 
 ### `<ui-ribbon>` e `<ui-paleta-ferramentas>`: contrato com o consumidor

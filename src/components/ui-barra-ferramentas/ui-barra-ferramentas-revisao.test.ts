@@ -207,7 +207,7 @@ describe('<ui-ribbon> — revisão', () => {
     r.atualizarItem('bloco', { rotulo: 'Novo' });
     expect(r.shadowRoot!.querySelector('.ui-ferr-menu')).toBeTruthy();
     r.selecionarAba('inserir');
-    expect(btn(r, 'bloco').getAttribute('aria-label')).toBe('Novo');
+    expect(btn(r, 'bloco').querySelector('.ui-ferr-btn__rotulo')?.textContent).toBe('Novo');
   });
 
   it('atualizarItem só de estado preserva o foco e o roving tabindex', () => {
@@ -260,6 +260,40 @@ describe('<ui-ribbon> — revisão', () => {
     r.addEventListener('ui-ferramenta', spy);
     btn(r, 'copiar').click();
     expect(spy).toHaveBeenCalledTimes(1);
+  });
+
+  it('grupo sem rótulo não cria .ui-ribbon__grupo-rotulo e botões pequenos respeitam coluna de 2', () => {
+    const r = document.createElement('ui-ribbon') as UIRibbon;
+    r.abas = [
+      {
+        id: 'inicio',
+        rotulo: 'Início',
+        grupos: [
+          {
+            id: 'g-cores',
+            rotulo: '',
+            itens: [
+              { id: 'cores', rotulo: 'Cores', tamanho: 'grande' },
+              { id: 'copiar-estilo', rotulo: 'Copiar estilo' },
+              { id: 'inverter-cores', rotulo: 'Inverter cores' }
+            ]
+          }
+        ]
+      }
+    ];
+    document.body.appendChild(r);
+
+    const grupo = r.shadowRoot!.querySelector('.ui-ribbon__grupo[data-id="g-cores"]')!;
+    expect(grupo).toBeTruthy();
+    expect(grupo.querySelector('.ui-ribbon__grupo-rotulo')).toBeNull();
+
+    const coluna = grupo.querySelector('.ui-ribbon__coluna')!;
+    expect(coluna).toBeTruthy();
+    const botoesPequenos = coluna.querySelectorAll('.ui-ferr-btn--pequeno');
+    expect(botoesPequenos.length).toBe(2);
+
+    const btnGrande = grupo.querySelector('.ui-ferr-btn--grande')!;
+    expect(btnGrande).toBeTruthy();
   });
 });
 

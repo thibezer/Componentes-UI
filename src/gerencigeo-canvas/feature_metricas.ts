@@ -1,15 +1,71 @@
 import { partesDaLinha, type Feicao, type GeometriaFeicao, type LatLonPar } from './feature_types';
 
-/* Medidas geodésicas simples das feições (WGS-84 esférico; suficiente para rótulos). */
+/* Medidas geodésicas das feições no elipsoide GRS80 (SIRGAS 2000 / WGS-84). */
 
-const RAIO_TERRA_M = 6371008.8;
+const SEMIEIXO_A = 6378137;
+const ACHATAMENTO = 1 / 298.257222101;
+const E2 = ACHATAMENTO * (2 - ACHATAMENTO);
 const rad = (g: number): number => (g * Math.PI) / 180;
 
+/** Raios de curvatura do meridiano (M) e do primeiro vertical (N) na latitude (graus). */
+function raiosCurvatura(latGraus: number): { M: number; N: number } {
+  const s = Math.sin(rad(latGraus));
+  const w = 1 - E2 * s * s;
+  return { N: SEMIEIXO_A / Math.sqrt(w), M: (SEMIEIXO_A * (1 - E2)) / (w * Math.sqrt(w)) };
+}
+
+/** Metros por grau de latitude e de longitude na latitude dada (escala local do elipsoide). */
+export function metrosPorGrau(latGraus: number): { lat: number; lng: number } {
+  const { M, N } = raiosCurvatura(latGraus);
+  return { lat: rad(1) * M, lng: rad(1) * N * Math.cos(rad(latGraus)) };
+}
+
+/** Distância geodésica inversa de Vincenty (usada quando os pontos estão distantes). */
+function vincenty(a: LatLonPar, b: LatLonPar): number {
+  const B = SEMIEIXO_A * (1 - ACHATAMENTO);
+  const f = ACHATAMENTO;
+  const L = rad(b[1] - a[1]);
+  const U1 = Math.atan((1 - f) * Math.tan(rad(a[0])));
+  const U2 = Math.atan((1 - f) * Math.tan(rad(b[0])));
+  const sU1 = Math.sin(U1), cU1 = Math.cos(U1), sU2 = Math.sin(U2), cU2 = Math.cos(U2);
+  let lambda = L;
+  let sinS = 0, cosS = 0, sigma = 0, cos2A = 0, cos2Sm = 0;
+  for (let i = 0; i < 100; i++) {
+    const sl = Math.sin(lambda), cl = Math.cos(lambda);
+    sinS = Math.hypot(cU2 * sl, cU1 * sU2 - sU1 * cU2 * cl);
+    if (sinS === 0) return 0;
+    cosS = sU1 * sU2 + cU1 * cU2 * cl;
+    sigma = Math.atan2(sinS, cosS);
+    const sinA = (cU1 * cU2 * sl) / sinS;
+    cos2A = 1 - sinA * sinA;
+    cos2Sm = cos2A === 0 ? 0 : cosS - (2 * sU1 * sU2) / cos2A;
+    const C = (f / 16) * cos2A * (4 + f * (4 - 3 * cos2A));
+    const anterior = lambda;
+    lambda = L + (1 - C) * f * sinA * (sigma + C * sinS * (cos2Sm + C * cosS * (-1 + 2 * cos2Sm * cos2Sm)));
+    if (Math.abs(lambda - anterior) < 1e-12) break;
+  }
+  const u2 = (cos2A * (SEMIEIXO_A * SEMIEIXO_A - B * B)) / (B * B);
+  const k1 = 1 + (u2 / 16384) * (4096 + u2 * (-768 + u2 * (320 - 175 * u2)));
+  const k2 = (u2 / 1024) * (256 + u2 * (-128 + u2 * (74 - 47 * u2)));
+  const dSigma = k2 * sinS * (cos2Sm + (k2 / 4) * (cosS * (-1 + 2 * cos2Sm * cos2Sm)
+    - (k2 / 6) * cos2Sm * (-3 + 4 * sinS * sinS) * (-3 + 4 * cos2Sm * cos2Sm)));
+  return B * k1 * (sigma - dSigma);
+}
+
+/**
+ * Distância em metros no elipsoide. Até ~11 km (0,1°) usa a escala local do elipsoide (M e N na
+ * latitude média, erro < 2e-7); acima disso, Vincenty. Rápida o bastante para laços de arraste/encaixe.
+ */
 export function distanciaMetros(a: LatLonPar, b: LatLonPar): number {
-  const dLat = rad(b[0] - a[0]);
-  const dLon = rad(b[1] - a[1]);
-  const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a[0])) * Math.cos(rad(b[0])) * Math.sin(dLon / 2) ** 2;
-  return 2 * RAIO_TERRA_M * Math.asin(Math.min(1, Math.sqrt(h)));
+  const dLat = b[0] - a[0];
+  const dLon = b[1] - a[1];
+  if (Math.abs(dLat) < 0.1 && Math.abs(dLon) < 0.1) {
+    const { M, N } = raiosCurvatura((a[0] + b[0]) / 2);
+    const dy = rad(dLat) * M;
+    const dx = rad(dLon) * N * Math.cos(rad((a[0] + b[0]) / 2));
+    return Math.hypot(dx, dy);
+  }
+  return vincenty(a, b);
 }
 
 export function comprimentoMetros(pts: LatLonPar[], fechado = false): number {
@@ -19,17 +75,25 @@ export function comprimentoMetros(pts: LatLonPar[], fechado = false): number {
   return total;
 }
 
-/** Área (m²) de um anel pela projeção equiretangular local; vale para áreas de até alguns km. */
+/**
+ * Área (m²) de um anel no elipsoide: Σ (λ[i+1] − λ[i−1]) · sen(φ[i]) · M·N / 2, com M·N na latitude
+ * média do anel. Erro abaixo de 0,01% de lotes a municípios (referência: área elipsoidal geodésica).
+ */
 function areaAnelMetros2(anel: LatLonPar[]): number {
-  const lat0 = rad(anel.reduce((s, p) => s + p[0], 0) / anel.length);
-  const xy = anel.map((p) => [rad(p[1]) * Math.cos(lat0) * RAIO_TERRA_M, rad(p[0]) * RAIO_TERRA_M]);
+  const n = anel.length;
+  if (n < 3) return 0;
   let soma = 0;
-  for (let i = 0; i < xy.length; i++) {
-    const [x1, y1] = xy[i];
-    const [x2, y2] = xy[(i + 1) % xy.length];
-    soma += x1 * y2 - x2 * y1;
+  let latMedia = 0;
+  for (let i = 0; i < n; i++) {
+    const anterior = anel[(i - 1 + n) % n];
+    const atual = anel[i];
+    const proximo = anel[(i + 1) % n];
+    soma += rad(proximo[1] - anterior[1]) * Math.sin(rad(atual[0]));
+    latMedia += atual[0];
   }
-  return Math.abs(soma) / 2;
+  const { M, N } = raiosCurvatura(latMedia / n);
+  const area = Math.abs((soma * M * N) / 2);
+  return Number.isFinite(area) ? area : 0;
 }
 
 /** Área (m²) do polígono, descontando os furos. */

@@ -34,12 +34,37 @@ export interface FerramentaItem {
   somenteIcone?: boolean;
   /** Ribbon: itens do menu suspenso. Paleta: ferramentas agrupadas (flyout). */
   filhos?: FerramentaItem[];
+  /**
+   * Ribbon: botão dividido (split button). A ação principal dispara no clique do corpo
+   * e a seta abre o menu suspenso com os `filhos`.
+   */
+  dividido?: boolean;
 }
 
 export interface RibbonGrupo {
   id: string;
   rotulo: string;
   itens: FerramentaItem[];
+  /**
+   * Prioridade para colapso automático quando a largura é insuficiente (estilo Office).
+   * Grupos de menor prioridade viram um botão único com flyout primeiro. Padrão: 0.
+   */
+  prioridade?: number;
+  /** Ícone exibido quando o grupo for colapsado em um botão de flyout. */
+  icone?: string;
+  /**
+   * Exibe um botão "lançador de diálogo" no canto inferior do grupo (estilo Office Dialog Box Launcher).
+   * Pode ser `true` ou o identificador/ação a disparar.
+   */
+  lancadorDialogo?: boolean | string;
+  /** Rótulo acessível para o botão lançador de diálogo. Padrão: "Mais opções de [rotulo]". */
+  rotuloLancador?: string;
+  /**
+   * Quando `true` (padrão para grupos com ferramentas no ribbon), garante exclusividade
+   * de seleção entre itens `tipo: 'ferramenta'` dentro do mesmo grupo.
+   * Defina como `false` para desativar a exclusividade automática no grupo.
+   */
+  exclusivo?: boolean;
 }
 
 export interface RibbonAba {
@@ -82,6 +107,12 @@ export interface RecolhidoChangeDetail {
   recolhido: boolean;
 }
 
+/** `detail` de `ui-grupo-dialogo` do ribbon (lançador de diálogo do grupo). */
+export interface GrupoDialogoDetail {
+  id: string;
+  grupo: RibbonGrupo;
+}
+
 declare global {
   interface HTMLElementEventMap {
     /** Cancelável: `preventDefault()` reverte o toggle / a seleção feita pelo clique. */
@@ -90,5 +121,7 @@ declare global {
     'ui-recolhido-change': CustomEvent<RecolhidoChangeDetail>;
     'ui-change': CustomEvent<PaletaChangeDetail>;
     'ui-selecionar': CustomEvent<PaletaChangeDetail>;
+    'ui-grupo-dialogo': CustomEvent<GrupoDialogoDetail>;
   }
 }
+

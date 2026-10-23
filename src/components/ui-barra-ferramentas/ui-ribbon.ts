@@ -9,10 +9,14 @@ import {
   atualizarRoving,
   avisarIdsDuplicados,
   coletarIds,
-  seguirFoco,
+  correspondeAtalho,
+  criarBotaoDividido,
   criarBotaoFerramenta,
+  criarIcone,
   definirRoving,
+  GerenciadorTooltip,
   navegarRoving,
+  seguirFoco,
   type MenuHandle
 } from './ferramentas-comum';
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
@@ -20,11 +24,12 @@ import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 /**
  * <ui-ribbon> — barra de ferramentas em abas com grupos (estilo AutoCAD / Word / Excel).
  *
- * Atributos: aba-ativa, recolhido, compacto, aria-label (rótulo da toolbar), rotulo-abas (rótulo do tablist)
- * Propriedades: abas, abaAtiva, recolhido, compacto
+ * Atributos: aba-ativa, recolhido, compacto, ativacao-manual, copiar-dados, modo-controlado, atalhos, keytips,
+ *            aria-label (rótulo da toolbar), rotulo-abas (rótulo do tablist)
+ * Propriedades: abas, abaAtiva, recolhido, compacto, ativacaoManual, modoControlado, copiarDados
  * Métodos: atualizarItem(id, parcial), definirAbaVisivel(id, visivel), selecionarAba(id)
  * Eventos: ui-ferramenta { id, item, pai?, ativo?, origem, aba } (cancelável: preventDefault reverte o toggle),
- *          ui-aba-change { id, aba }, ui-recolhido-change { recolhido }
+ *          ui-aba-change { id, aba }, ui-recolhido-change { recolhido }, ui-grupo-dialogo { id, grupo }
  *
  * `aba-ativa` pode ser definido antes de `abas`: o valor fica pendente até a aba existir/ficar visível.
  */
@@ -32,7 +37,20 @@ let contadorRibbon = 0;
 
 export class UIRibbon extends SafeHTMLElement {
   static get observedAttributes() {
-    return ['aba-ativa', 'recolhido', 'compacto', 'aria-label', 'rotulo-abas', 'rotulo-fixar', 'rotulo-expandir'];
+    return [
+      'aba-ativa',
+      'recolhido',
+      'compacto',
+      'ativacao-manual',
+      'copiar-dados',
+      'modo-controlado',
+      'atalhos',
+      'keytips',
+      'aria-label',
+      'rotulo-abas',
+      'rotulo-fixar',
+      'rotulo-expandir'
+    ];
   }
 
   private rootElement: HTMLDivElement;
@@ -43,11 +61,16 @@ export class UIRibbon extends SafeHTMLElement {
   private readonly uid = `ui-ribbon-${++contadorRibbon}`;
   private _abaPendente = '';
   private _pronto = false;
+  private _modoControlado = false;
 
   private _abas: RibbonAba[] = [];
   private _abaAtiva = '';
   private menu: MenuHandle | null = null;
   private listeners = new ListenerBag();
+  private tooltip: GerenciadorTooltip | null = null;
+  private observerResize: ResizeObserver | null = null;
+  private gruposColapsados = new Set<string>();
+  private keytipsAtivas = false;
 
   constructor() {
     super();
@@ -74,6 +97,9 @@ export class UIRibbon extends SafeHTMLElement {
 
   connectedCallback() {
     this.listeners.cleanup();
+    this.tooltip?.destruir();
+    this.tooltip = new GerenciadorTooltip(this.shadowRoot!, this.rootElement);
+
     this.listeners.add(this.abasElement, 'click', this.handleClickAbas);
     this.listeners.add(this.fixarElement, 'click', this.handleClickFixar);
     this.listeners.add(this.abasElement, 'dblclick', this.handleDblClickAbas);
@@ -83,6 +109,9 @@ export class UIRibbon extends SafeHTMLElement {
     this.listeners.add(document, 'pointerdown', this.handlePointerDownFora, true);
     this.listeners.add(this.rootElement, 'keydown', this.handleEscape);
     this.listeners.add(this.gruposElement, 'focusin', this.handleFocusInGrupos);
+    this.listeners.add(document, 'keydown', this.handleAtalho);
+
+    this.iniciarResizeObserver();
 
     const inicial = this.getAttribute('aba-ativa');
     if (inicial && !this._abaAtiva) this._abaPendente = inicial;
@@ -94,6 +123,10 @@ export class UIRibbon extends SafeHTMLElement {
   disconnectedCallback() {
     this._pronto = false;
     this.fecharMenu();
+    this.observerResize?.disconnect();
+    this.observerResize = null;
+    this.tooltip?.destruir();
+    this.tooltip = null;
     this.listeners.cleanup();
   }
 
@@ -142,17 +175,56 @@ export class UIRibbon extends SafeHTMLElement {
 
   /* ---------- API pública ---------- */
 
+  get modoControlado(): boolean {
+    return this._modoControlado || this.hasAttribute('modo-controlado') || this.hasAttribute('copiar-dados');
+  }
+
+  set modoControlado(val: boolean) {
+    this._modoControlado = !!val;
+  }
+
+  get copiarDados(): boolean {
+    return this.modoControlado;
+  }
+
+  set copiarDados(val: boolean) {
+    this.modoControlado = val;
+  }
+
+  get ativacaoManual(): boolean {
+    return this.hasAttribute('ativacao-manual');
+  }
+
+  set ativacaoManual(val: boolean) {
+    if (val) this.setAttribute('ativacao-manual', '');
+    else this.removeAttribute('ativacao-manual');
+  }
+
   get abas(): RibbonAba[] {
     return this._abas;
   }
 
   set abas(val: RibbonAba[]) {
-    this._abas = Array.isArray(val) ? val : [];
+    const lista = Array.isArray(val) ? val : [];
+    this._abas = this.modoControlado
+      ? lista.map(a => ({
+          ...a,
+          grupos: a.grupos.map(g => ({
+            ...g,
+            itens: g.itens.map(i => ({
+              ...i,
+              filhos: i.filhos?.map(c => ({ ...c }))
+            }))
+          }))
+        }))
+      : lista;
+
     avisarIdsDuplicados(this._abas.map(a => a.id), '<ui-ribbon> abas');
     avisarIdsDuplicados(
       this._abas.flatMap(a => a.grupos.flatMap(g => coletarIds(g.itens))),
       '<ui-ribbon> itens'
     );
+    this.gruposColapsados.clear();
     this.renderizar();
   }
 
@@ -192,6 +264,7 @@ export class UIRibbon extends SafeHTMLElement {
     this._abaPendente = '';
 
     this.fecharMenu();
+    this.gruposColapsados.clear();
     this._abaAtiva = aba.id;
     if (this.getAttribute('aba-ativa') !== aba.id) this.setAttribute('aba-ativa', aba.id);
     this.renderizar();
@@ -343,6 +416,76 @@ export class UIRibbon extends SafeHTMLElement {
     definirRoving(this.botoesPainel());
   }
 
+  private iniciarResizeObserver() {
+    if (typeof ResizeObserver === 'undefined') return;
+    this.observerResize = new ResizeObserver(() => {
+      this.ajustarColapsoGrupos();
+    });
+    this.observerResize.observe(this.painelElement);
+  }
+
+  private ajustarColapsoGrupos() {
+    const aba = this._abas.find(a => a.id === this._abaAtiva);
+    if (!aba || !aba.grupos.length) return;
+
+    const container = this.gruposElement;
+    if (container.scrollWidth > container.clientWidth) {
+      // Ordena grupos não colapsados por prioridade crescente (menor prioridade colapsa primeiro)
+      const candidatos = [...aba.grupos]
+        .filter(g => !this.gruposColapsados.has(g.id))
+        .sort((a, b) => (a.prioridade ?? 0) - (b.prioridade ?? 0));
+
+      if (candidatos.length > 0) {
+        this.gruposColapsados.add(candidatos[0].id);
+        this.renderizarPainel();
+      }
+    } else if (this.gruposColapsados.size > 0) {
+      const colapsados = [...aba.grupos]
+        .filter(g => this.gruposColapsados.has(g.id))
+        .sort((a, b) => (b.prioridade ?? 0) - (a.prioridade ?? 0));
+
+      if (colapsados.length > 0) {
+        this.gruposColapsados.delete(colapsados[0].id);
+        this.renderizarPainel();
+        if (container.scrollWidth > container.clientWidth) {
+          this.gruposColapsados.add(colapsados[0].id);
+          this.renderizarPainel();
+        }
+      }
+    }
+  }
+
+  private alternarMenuGrupoColapsado(btn: HTMLButtonElement, grupo: RibbonGrupo) {
+    const jaAberto = this.menu?.ancora === btn;
+    this.fecharMenu();
+    if (jaAberto) return;
+
+    btn.setAttribute('aria-expanded', 'true');
+    this.menu = abrirMenu(
+      this.shadowRoot!,
+      btn,
+      grupo.itens,
+      item => {
+        const btnReal = this.gruposElement.querySelector<HTMLButtonElement>(`.ui-ferr-btn[data-id="${CSS.escape(item.id)}"]`);
+        if (btnReal) this.acionar(btnReal, false);
+        else {
+          const antes = item.ativo;
+          if (item.tipo === 'toggle') item.ativo = !antes;
+          else if (item.tipo === 'ferramenta') item.ativo = true;
+          if (!this.emitir(item)) item.ativo = antes;
+        }
+        this.rootElement.classList.remove('ui-ribbon--aberto');
+      },
+      {
+        lado: 'baixo',
+        onFechar: () => {
+          btn.setAttribute('aria-expanded', 'false');
+          this.menu = null;
+        }
+      }
+    );
+  }
+
   private criarGrupo(grupo: RibbonGrupo): HTMLElement {
     const el = document.createElement('div');
     el.className = 'ui-ribbon__grupo';
@@ -350,16 +493,58 @@ export class UIRibbon extends SafeHTMLElement {
     el.setAttribute('aria-label', grupo.rotulo);
     el.dataset.id = grupo.id;
 
+    if (this.gruposColapsados.has(grupo.id)) {
+      el.classList.add('ui-ribbon__grupo--colapsado');
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'ui-ferr-btn ui-ferr-btn--grande ui-ribbon__btn-colapsado';
+      btn.dataset.id = grupo.id;
+      btn.dataset.tooltip = grupo.rotulo;
+      btn.setAttribute('aria-haspopup', 'menu');
+      btn.setAttribute('aria-expanded', 'false');
+
+      const icone = criarIcone(grupo.icone, 24) || criarIcone('<svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2" fill="none"/></svg>', 24);
+      if (icone) {
+        const span = document.createElement('span');
+        span.className = 'ui-ferr-btn__icone';
+        span.appendChild(icone);
+        btn.appendChild(span);
+      }
+
+      const rotulo = document.createElement('span');
+      rotulo.className = 'ui-ferr-btn__rotulo';
+      rotulo.textContent = grupo.rotulo;
+      btn.appendChild(rotulo);
+
+      const caret = document.createElement('span');
+      caret.className = 'ui-ferr-btn__caret';
+      btn.appendChild(caret);
+
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.alternarMenuGrupoColapsado(btn, grupo);
+      });
+
+      el.appendChild(btn);
+      return el;
+    }
+
     const itens = document.createElement('div');
     itens.className = 'ui-ribbon__grupo-itens';
 
-    // Botões pequenos consecutivos são agrupados em colunas de até 3 (padrão Office/CAD)
     let coluna: HTMLElement | null = null;
     let naColuna = 0;
     const fecharColuna = () => {
       if (coluna) itens.appendChild(coluna);
       coluna = null;
       naColuna = 0;
+    };
+
+    const criarItemEl = (item: FerramentaItem, tamanho: 'grande' | 'pequeno', icone: number): HTMLElement => {
+      if (item.dividido && item.filhos?.length) {
+        return criarBotaoDividido(this.efetivo(item), tamanho, icone);
+      }
+      return this.criarBotao(item, tamanho, icone);
     };
 
     grupo.itens.forEach(item => {
@@ -371,24 +556,45 @@ export class UIRibbon extends SafeHTMLElement {
         itens.appendChild(sep);
       } else if (item.tamanho === 'grande') {
         fecharColuna();
-        itens.appendChild(this.criarBotao(item, 'grande', 24));
+        itens.appendChild(criarItemEl(item, 'grande', 24));
       } else {
         if (!coluna) {
           coluna = document.createElement('div');
           coluna.className = 'ui-ribbon__coluna';
         }
-        coluna.appendChild(this.criarBotao(item, 'pequeno', 16));
+        coluna.appendChild(criarItemEl(item, 'pequeno', 16));
         if (++naColuna === 3) fecharColuna();
       }
     });
     fecharColuna();
 
-    const rotulo = document.createElement('div');
-    rotulo.className = 'ui-ribbon__grupo-rotulo';
-    rotulo.textContent = grupo.rotulo;
+    if (grupo.rotulo || grupo.lancadorDialogo) {
+      const rotulo = document.createElement('div');
+      rotulo.className = 'ui-ribbon__grupo-rotulo';
+      if (grupo.rotulo) rotulo.textContent = grupo.rotulo;
+
+      if (grupo.lancadorDialogo) {
+        const lancador = document.createElement('button');
+        lancador.type = 'button';
+        lancador.className = 'ui-ribbon__lancador';
+        const label = grupo.rotuloLancador || `Mais opções de ${grupo.rotulo || 'ferramentas'}`;
+        lancador.setAttribute('aria-label', label);
+        lancador.dataset.tooltip = label;
+        lancador.innerHTML = `<svg viewBox="0 0 16 16" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 12h8V4M12 12l-7-7"/></svg>`;
+        lancador.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.dispatchEvent(new CustomEvent('ui-grupo-dialogo', {
+            detail: { id: typeof grupo.lancadorDialogo === 'string' ? grupo.lancadorDialogo : grupo.id, grupo },
+            bubbles: true,
+            composed: true
+          }));
+        });
+        rotulo.appendChild(lancador);
+      }
+      el.appendChild(rotulo);
+    }
 
     el.appendChild(itens);
-    el.appendChild(rotulo);
     return el;
   }
 
@@ -427,6 +633,13 @@ export class UIRibbon extends SafeHTMLElement {
     const atual = tabs.findIndex(t => t === e.target);
     if (atual < 0) return;
 
+    if (this.ativacaoManual && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      const id = tabs[atual].dataset.id;
+      if (id) this.selecionarAba(id);
+      return;
+    }
+
     let destino = atual;
     const [teclaProx, teclaAnt] = this.rtl ? ['ArrowLeft', 'ArrowRight'] : ['ArrowRight', 'ArrowLeft'];
     if (e.key === teclaProx) destino = (atual + 1) % tabs.length;
@@ -443,12 +656,31 @@ export class UIRibbon extends SafeHTMLElement {
 
     e.preventDefault();
     const id = tabs[destino].dataset.id;
-    if (id) this.selecionarAba(id);
-    this.abasElement.querySelector<HTMLButtonElement>(`.ui-ribbon__aba[data-id="${CSS.escape(id ?? '')}"]`)?.focus();
+    if (this.ativacaoManual) {
+      tabs.forEach(t => (t.tabIndex = -1));
+      tabs[destino].tabIndex = 0;
+      tabs[destino].focus();
+    } else {
+      if (id) this.selecionarAba(id);
+      this.abasElement.querySelector<HTMLButtonElement>(`.ui-ribbon__aba[data-id="${CSS.escape(id ?? '')}"]`)?.focus();
+    }
   };
 
   private handleClickGrupos = (e: Event) => {
-    const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('.ui-ferr-btn');
+    const alvo = e.target as HTMLElement;
+    const splitGatilho = alvo.closest<HTMLButtonElement>('.ui-ferr-split__gatilho');
+    if (splitGatilho) {
+      const split = splitGatilho.closest<HTMLElement>('.ui-ferr-split');
+      const id = split?.dataset.id;
+      const aba = this._abas.find(a => a.id === this._abaAtiva);
+      const item = aba && acharItem(aba.grupos.flatMap(g => g.itens), id ?? '');
+      if (item && item.filhos?.length) {
+        this.alternarMenu(splitGatilho, item, false);
+      }
+      return;
+    }
+
+    const btn = alvo.closest<HTMLButtonElement>('.ui-ferr-btn');
     if (!btn?.dataset.id) return;
     // detail === 0: ativação por teclado (Enter/Espaço) → foca o primeiro item do menu
     this.acionar(btn, (e as MouseEvent).detail === 0);
@@ -475,12 +707,66 @@ export class UIRibbon extends SafeHTMLElement {
     if (!e.composedPath().includes(this)) this.rootElement.classList.remove('ui-ribbon--aberto');
   };
 
+  private handleAtalho = (e: KeyboardEvent) => {
+    if (!this.hasAttribute('atalhos') && !this.hasAttribute('keytips')) return;
+    if (e.defaultPrevented) return;
+
+    const caminho = e.composedPath() as HTMLElement[];
+    const origem = caminho[0];
+    if (origem && (/^(INPUT|TEXTAREA|SELECT)$/.test(origem.tagName) || origem.isContentEditable)) return;
+    const bloqueia = caminho.some(el => {
+      const role = el.getAttribute?.('role');
+      return (
+        el.getAttribute?.('aria-modal') === 'true' ||
+        role === 'textbox' || role === 'searchbox' || role === 'combobox' || role === 'spinbutton'
+      );
+    });
+    if (bloqueia) return;
+
+    if (this.hasAttribute('keytips') && (e.key === 'Alt' || e.key === 'F10') && !e.ctrlKey && !e.shiftKey && !e.metaKey) {
+      e.preventDefault();
+      this.alternarKeyTips();
+      return;
+    }
+
+    if (!this.hasAttribute('atalhos')) return;
+
+    const aba = this._abas.find(a => a.id === this._abaAtiva);
+    if (!aba) return;
+    const itens = aba.grupos.flatMap(g => g.itens);
+    const item = itens.find(i => !i.disabled && correspondeAtalho(e, i.atalho));
+    if (!item) return;
+
+    e.preventDefault();
+    const btn = this.gruposElement.querySelector<HTMLButtonElement>(`.ui-ferr-btn[data-id="${CSS.escape(item.id)}"]`);
+    if (btn) this.acionar(btn, false);
+    else this.emitir(item);
+  };
+
+  private alternarKeyTips() {
+    this.keytipsAtivas = !this.keytipsAtivas;
+    this.shadowRoot!.querySelectorAll('.ui-ribbon__keytip').forEach(el => el.remove());
+    if (!this.keytipsAtivas) return;
+
+    const tabs = Array.from(this.abasElement.querySelectorAll<HTMLButtonElement>('.ui-ribbon__aba'));
+    tabs.forEach((tab, idx) => {
+      const badge = document.createElement('span');
+      badge.className = 'ui-ribbon__keytip';
+      badge.textContent = String(idx + 1);
+      badge.style.top = '2px';
+      badge.style.left = '4px';
+      tab.style.position = 'relative';
+      tab.appendChild(badge);
+    });
+  }
+
   private acionar(btn: HTMLButtonElement, focarMenu: boolean) {
     const aba = this._abas.find(a => a.id === this._abaAtiva);
-    const item = aba && acharItem(aba.grupos.flatMap(g => g.itens), btn.dataset.id!);
+    const grupo = aba?.grupos.find(g => acharItem(g.itens, btn.dataset.id!));
+    const item = grupo && acharItem(grupo.itens, btn.dataset.id!);
     if (!item || item.disabled) return;
 
-    if (item.filhos?.length) {
+    if (item.filhos?.length && !item.dividido) {
       this.alternarMenu(btn, item, focarMenu);
       return;
     }
@@ -490,9 +776,36 @@ export class UIRibbon extends SafeHTMLElement {
       item.ativo = !antes;
       aplicarEstadoBotao(btn, item);
       if (!this.emitir(item)) {
-        // consumidor vetou (preventDefault): reverte
         item.ativo = antes;
         aplicarEstadoBotao(btn, item);
+      }
+    } else if (item.tipo === 'ferramenta') {
+      const antesAtivo = item.ativo;
+      const exclusivo = grupo ? grupo.exclusivo !== false : true;
+      const irmaos = (exclusivo && grupo)
+        ? grupo.itens.filter(i => i.tipo === 'ferramenta' && i.id !== item.id && i.ativo)
+        : [];
+
+      item.ativo = true;
+      aplicarEstadoBotao(btn, item);
+      if (exclusivo) {
+        irmaos.forEach(i => {
+          i.ativo = false;
+          const b = this.gruposElement.querySelector<HTMLButtonElement>(`.ui-ferr-btn[data-id="${CSS.escape(i.id)}"]`);
+          if (b) aplicarEstadoBotao(b, i);
+        });
+      }
+
+      if (!this.emitir(item)) {
+        item.ativo = antesAtivo;
+        aplicarEstadoBotao(btn, item);
+        if (exclusivo) {
+          irmaos.forEach(i => {
+            i.ativo = true;
+            const b = this.gruposElement.querySelector<HTMLButtonElement>(`.ui-ferr-btn[data-id="${CSS.escape(i.id)}"]`);
+            if (b) aplicarEstadoBotao(b, i);
+          });
+        }
       }
     } else {
       this.emitir(item);

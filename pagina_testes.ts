@@ -1013,17 +1013,27 @@ document.addEventListener('DOMContentLoaded', () => {
           {
             id: 'desenho',
             rotulo: 'Desenho',
+            prioridade: 10,
             itens: [
               {
                 id: 'menu-linha',
                 rotulo: 'Linha',
                 icone: I.linha,
                 tamanho: 'grande',
+                dividido: true,
                 filhos: [
                   { id: 'linha', rotulo: 'Linha', icone: I.linha, atalho: 'L' },
                   { id: 'polilinha', rotulo: 'Polilinha', icone: I.polilinha, atalho: 'PL' },
                   { id: 'sep', tipo: 'separador' },
-                  { id: 'arco', rotulo: 'Arco', icone: I.arco, atalho: 'A' }
+                  {
+                    id: 'arcos',
+                    rotulo: 'Arcos e Curvas',
+                    icone: I.arco,
+                    filhos: [
+                      { id: 'arco-3p', rotulo: 'Arco por 3 pontos' },
+                      { id: 'arco-centro', rotulo: 'Arco centro e raio' }
+                    ]
+                  }
                 ]
               },
               { id: 'retangulo', rotulo: 'Retângulo', icone: I.retangulo },
@@ -1034,6 +1044,9 @@ document.addEventListener('DOMContentLoaded', () => {
           {
             id: 'formato',
             rotulo: 'Formato',
+            prioridade: 5,
+            lancadorDialogo: true,
+            rotuloLancador: 'Opções Avançadas de Formato',
             itens: [
               { id: 'negrito', icone: I.negrito, rotulo: 'Negrito', tipo: 'toggle', somenteIcone: true, atalho: 'Ctrl+B' },
               { id: 'italico', icone: I.italico, rotulo: 'Itálico', tipo: 'toggle', somenteIcone: true, atalho: 'Ctrl+I' },
@@ -1077,6 +1090,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (d.id === 'polilinha') demoRibbon.definirAbaVisivel('edicao-poli', true);
     });
     demoRibbon.addEventListener('ui-aba-change', (e: any) => registrarLog(`[Ribbon] Aba: ${e.detail.id}`));
+    demoRibbon.addEventListener('ui-grupo-dialogo', (e: any) => registrarLog(`[Ribbon] Lançador de Diálogo: ${e.detail.grupo.rotulo} (id=${e.detail.id})`));
   }
 
   const ferramentasPaleta = (): FerramentaItem[] => [
