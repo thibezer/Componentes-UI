@@ -22,7 +22,7 @@ import { obterTemplateCanvasCAD } from './cad-template';
 import { sincronizarAtributoCAD } from './cad-atributos-sync';
 import { inicializarCAD } from './cad-inicializador';
 import { nomearBotoesDaBarra, marcarSnap, conectarAnuncios } from './cad-acessibilidade';
-import type { EventoMapaCad, LatLngEvento } from './tipos';
+import type { EventoMapaCad, LatLngEvento, OpcoesLinhaPadrao } from './tipos';
 import type { PontoPixel } from './cad-evento-coordenadas';
 import { liberarContainerLeaflet } from './cad-leaflet-adaptador';
 import { lerPontosSelecionados, gravarPontosSelecionados } from './cad-selecao-pontos';
@@ -32,10 +32,13 @@ import type { EstiloFeicao } from '../../gerencigeo-canvas/feature_types';
 import type { Feicao } from '../../gerencigeo-canvas/feature_types';
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 import { EstilosExternosShadow, type EstilosExternos } from './cad-estilos-externos';
+import { ehAtributoLinhaPadrao, lerLinhaPadrao, mesclarLinhaPadrao, opcaoDoAtributo } from './cad-linha-padrao';
 
 export class UICanvasCAD extends SafeHTMLElement {
   static get observedAttributes() {
-    return ['sat-opacity', 'scale-mode', 'crosshair', 'modo-sequencial', 'chave-grupo', 'zona-projecao', 'fuso', 'canal-configuracao', 'ferramentas', 'sem-atalho-snap', 'aceitar-origem', 'sem-camadas-padrao', 'sem-painel-camadas', 'sem-barra-rapida', 'popups', 'renderizador', 'sem-avisos'];
+    return ['sat-opacity', 'scale-mode', 'crosshair', 'modo-sequencial', 'chave-grupo', 'zona-projecao', 'fuso', 'canal-configuracao', 'ferramentas', 'sem-atalho-snap', 'aceitar-origem', 'sem-camadas-padrao', 'sem-painel-camadas', 'sem-barra-rapida', 'popups', 'renderizador', 'sem-avisos',
+      // linha padrão (`cad-linha-padrao.ts`); literais para o manifesto e os tipos React/Vue enxergarem
+      'linha-cor', 'linha-espessura', 'linha-tipo', 'linha-escala', 'linha-tracejado', 'linha-deslocamento', 'linha-opacidade', 'linha-terminacao', 'linha-juncao'];
   }
 
   private shadow: ShadowRoot;
@@ -234,6 +237,10 @@ export class UICanvasCAD extends SafeHTMLElement {
     if (name === 'renderizador') {
       // as camadas de feições já desenhadas são refeitas no novo caminho; as demais camadas não são tocadas
       if (lerModoRenderizador(oldVal) !== lerModoRenderizador(newVal)) this.controller?.layerManager.recriarCamadasDoTipo('feicoes');
+      return;
+    }
+    if (ehAtributoLinhaPadrao(name)) {
+      this.feicoes?.definirEstiloDesenho(mesclarLinhaPadrao(this.feicoes.obterEstiloDesenho(), opcaoDoAtributo(name, newVal)));
       return;
     }
     if (name === 'aceitar-origem') {
@@ -525,6 +532,15 @@ export class UICanvasCAD extends SafeHTMLElement {
   public get camadaDesenho(): string | null { return this.feicoes.camadaDeDesenho; }
   public definirEstiloDesenho(estilo: EstiloFeicao): void { this.feicoes.definirEstiloDesenho(estilo); }
   public obterEstiloDesenho(): EstiloFeicao { return this.feicoes.obterEstiloDesenho(); }
+  /**
+   * Linha padrão das feições desenhadas daqui para frente (cor, espessura, tipo de linha CAD, escala, tracejado,
+   * deslocamento, opacidade, terminação e junção). Mescla no estilo de desenho; `null` numa opção a remove e valor
+   * inválido é ignorado (a opção volta ao padrão). Os atributos `linha-*` fazem o mesmo.
+   */
+  public definirLinhaPadrao(opcoes: { [K in keyof OpcoesLinhaPadrao]?: OpcoesLinhaPadrao[K] | null }): void {
+    this.feicoes.definirEstiloDesenho(mesclarLinhaPadrao(this.feicoes.obterEstiloDesenho(), opcoes));
+  }
+  public obterLinhaPadrao(): OpcoesLinhaPadrao { return lerLinhaPadrao(this.feicoes.obterEstiloDesenho()); }
   /**
    * Ferramentas: ponto, linha, poligono, retangulo, elipse, poligono-regular, estrela, circulo, texto, caneta,
    * medir-distancia, medir-area, dividir, selecao-laco, conta-gotas. `iniciarEm` ([lat, lon]) registra o primeiro clique.

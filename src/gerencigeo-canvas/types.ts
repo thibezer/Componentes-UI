@@ -1,3 +1,5 @@
+import type { JuncaoTraco, TerminacaoTraco, TipoLinha } from './motor/tipos-linha';
+
 export type ScaleMode = 'screen' | 'world';
 
 export type CanvasLayerCategory = 'base' | 'wms' | 'levantamento' | 'referencia' | 'anotacoes' | 'custom';
@@ -11,6 +13,16 @@ export interface LayerStyleDef {
   tamanhoMarcador?: number;
   estiloMarcador?: 'circle' | 'square' | 'cross' | 'circle-dot' | 'triangle' | 'diamond' | string;
   dashArray?: string;
+  /** Tipo de linha padrão das feições da camada (estilo CAD); a feição pode trocar o seu. */
+  tipoLinha?: TipoLinha;
+  /** Escala do tipo de linha padrão da camada (LTSCALE). */
+  escalaTipoLinha?: number;
+  /** Opacidade padrão do traço das feições da camada, de 0 a 1. */
+  opacidadeLinha?: number;
+  /** Pontas padrão do traço das feições da camada. */
+  terminacaoLinha?: TerminacaoTraco;
+  /** Cantos padrão do traço das feições da camada. */
+  juncaoLinha?: JuncaoTraco;
   scaleMode?: ScaleMode;
   /** Dimensão métrica no terreno em metros quando scaleMode === 'world' */
   dimensaoMetros?: number;

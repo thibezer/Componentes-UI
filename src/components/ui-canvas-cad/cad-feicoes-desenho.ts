@@ -13,6 +13,9 @@ import { feicaoNoPonto } from '../../gerencigeo-canvas/feature_amostra';
 import type { buscarSnap } from '../../gerencigeo-canvas/feature_snap';
 import { TIPO_CAMADA_FEICOES, type ResultadoFerramenta } from './cad-feicoes-tipos';
 
+/** Opções de linha que o conta-gotas copia junto com cor, espessura e tracejado. */
+const CHAVES_LINHA_AMOSTRADAS = ['tipoLinha', 'escalaTipoLinha', 'deslocamentoTracejado', 'opacidadeTraco', 'terminacaoTraco', 'juncaoTraco'] as const;
+
 /** Ferramentas que criam feições na camada de desenho. */
 const FERRAMENTAS_DE_CRIACAO = new Set<Ferramenta>(['ponto', 'linha', 'poligono', 'retangulo', 'elipse', 'poligono-regular', 'estrela', 'circulo', 'texto', 'caneta']);
 
@@ -228,6 +231,7 @@ export class FerramentasDesenho {
     if (e.espessuraTraco !== undefined) amostrado.espessuraTraco = e.espessuraTraco;
     if (e.opacidadePreenchimento !== undefined) amostrado.opacidadePreenchimento = e.opacidadePreenchimento;
     if (e.dashArray) amostrado.dashArray = e.dashArray;
+    for (const k of CHAVES_LINHA_AMOSTRADAS) if (e[k] !== undefined) (amostrado as Record<string, unknown>)[k] = e[k];
     this.estiloDesenho = { ...this.estiloDesenho, ...amostrado };
     this.p.emitir('cad-conta-gotas', { cor: traco ?? e.corPreenchimento ?? '', feicao: f, estilo: amostrado });
   }
