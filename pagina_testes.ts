@@ -1,6 +1,6 @@
 import './src/index';
 import { UIToast, ICONES_FERRAMENTAS as I } from './src/index';
-import type { UIRibbon, UIPaletaFerramentas, FerramentaItem, UICamadas, CamadaItem, FeicaoItem } from './src/index';
+import type { UIRibbon, UIPaletaFerramentas, FerramentaItem, UICamadas, CamadaItem, FeicaoItem, UIControleCores, UISeletorCor, DetalheSeletorCor, DetalheControleCores, AlvoCor } from './src/index';
 import type { UIListaFlutuante } from './src/components/ui-lista-flutuante';
 import type { UIModal } from './src/components/ui-modal';
 import type { UITabela, TabelaColuna } from './src/components/ui-tabela';
@@ -1389,6 +1389,130 @@ document.addEventListener('DOMContentLoaded', () => {
       registrarLog(`[Camadas:Flutuante] Adicionada via botão: ${novaCamada.name}`);
     });
   }
+
+  // ----------------------------------------------------
+  // 17. Lógica do Modelo Interativo de Cores & Espessura CAD
+  // ----------------------------------------------------
+  const seletorModelo = document.getElementById('demo-seletor-modelo') as UISeletorCor | null;
+  const controleCores = document.getElementById('demo-controle-cores') as UIControleCores | null;
+  const polyPreview = document.getElementById('svg-preview-polygon') as SVGPolygonElement | null;
+  const jsonDisplay = document.getElementById('demo-cores-json');
+  const btnToggleAlvoModelo = document.getElementById('btn-toggle-alvo-modelo');
+  const btnOpenFill = document.getElementById('btn-demo-abrir-seletor-fill');
+  const btnOpenStroke = document.getElementById('btn-demo-abrir-seletor-stroke');
+  const btnInvert = document.getElementById('btn-demo-inverter-cores');
+
+  const estadoCoresModelo = {
+    preenchimento: '#00e08a',
+    traco: '#3b82f6',
+    opacidade: 0.65,
+    espessuraTraco: 4,
+    alvo: 'traco' as AlvoCor
+  };
+
+  function atualizarPreviewModelo() {
+    if (polyPreview) {
+      const fillVal = estadoCoresModelo.preenchimento === 'none' ? 'transparent' : estadoCoresModelo.preenchimento;
+      const strokeVal = estadoCoresModelo.traco === 'none' ? 'transparent' : estadoCoresModelo.traco;
+      polyPreview.setAttribute('fill', fillVal);
+      polyPreview.setAttribute('fill-opacity', String(estadoCoresModelo.opacidade));
+      polyPreview.setAttribute('stroke', strokeVal);
+      polyPreview.setAttribute('stroke-width', String(estadoCoresModelo.espessuraTraco));
+    }
+    if (jsonDisplay) {
+      jsonDisplay.textContent = JSON.stringify(estadoCoresModelo, null, 2);
+    }
+  }
+
+  if (seletorModelo) {
+    seletorModelo.configurar({
+      titulo: 'Cores & Estilo CAD (Modelo)',
+      alvo: 'traco',
+      preenchimento: estadoCoresModelo.preenchimento,
+      traco: estadoCoresModelo.traco,
+      opacidade: estadoCoresModelo.opacidade,
+      espessuraTraco: estadoCoresModelo.espessuraTraco,
+      coresProjeto: ['#00e08a', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#10b981'],
+      mostrarEspessura: true,
+      mostrarOpacidade: true
+    });
+
+    seletorModelo.addEventListener('ui-cor-input', (e: Event) => {
+      const d = (e as CustomEvent<DetalheSeletorCor>).detail;
+      if (d.preenchimento) estadoCoresModelo.preenchimento = d.preenchimento;
+      if (d.traco) estadoCoresModelo.traco = d.traco;
+      if (typeof d.opacidade === 'number') estadoCoresModelo.opacidade = d.opacidade;
+      if (typeof d.espessuraTraco === 'number') estadoCoresModelo.espessuraTraco = d.espessuraTraco;
+      if (d.alvo) estadoCoresModelo.alvo = d.alvo;
+      atualizarPreviewModelo();
+      controleCores?.definirCores({
+        preenchimento: estadoCoresModelo.preenchimento,
+        traco: estadoCoresModelo.traco,
+        opacidade: estadoCoresModelo.opacidade,
+        espessuraTraco: estadoCoresModelo.espessuraTraco
+      });
+      registrarLog(`[Seletor Modelo] Prévia alterada: alvo=${d.alvo}, espessura=${d.espessuraTraco}px, opacidade=${Math.round(d.opacidade * 100)}%`);
+    });
+
+    seletorModelo.addEventListener('ui-cor-confirmar', () => {
+      registrarLog(`[Seletor Modelo] Cor e estilo confirmados!`);
+      UIToast.notificar({
+        tipo: 'sucesso',
+        titulo: 'Estilo Confirmado',
+        mensagem: `Traço: ${estadoCoresModelo.traco} (${estadoCoresModelo.espessuraTraco}px) | Preenchimento: ${estadoCoresModelo.preenchimento}`
+      });
+    });
+
+    seletorModelo.addEventListener('ui-alvo-change', (e: Event) => {
+      const { alvo } = (e as CustomEvent<{ alvo: AlvoCor }>).detail;
+      estadoCoresModelo.alvo = alvo;
+      atualizarPreviewModelo();
+      registrarLog(`[Seletor Modelo] Alvo alternado para: ${alvo}`);
+    });
+  }
+
+  if (controleCores) {
+    controleCores.coresProjeto = ['#00e08a', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#10b981'];
+    controleCores.atalhos = { alternar: 'X', inverter: 'Shift+X', semCor: '/', padrao: 'D' };
+
+    controleCores.addEventListener('ui-cores-change', (e: Event) => {
+      const d = (e as CustomEvent<DetalheControleCores>).detail;
+      if (d.preenchimento) estadoCoresModelo.preenchimento = d.preenchimento;
+      if (d.traco) estadoCoresModelo.traco = d.traco;
+      if (typeof d.opacidade === 'number') estadoCoresModelo.opacidade = d.opacidade;
+      if (typeof d.espessuraTraco === 'number') estadoCoresModelo.espessuraTraco = d.espessuraTraco;
+      if (d.alvo) estadoCoresModelo.alvo = d.alvo;
+      atualizarPreviewModelo();
+      seletorModelo?.configurar({
+        preenchimento: estadoCoresModelo.preenchimento,
+        traco: estadoCoresModelo.traco,
+        opacidade: estadoCoresModelo.opacidade,
+        espessuraTraco: estadoCoresModelo.espessuraTraco,
+        alvo: estadoCoresModelo.alvo
+      });
+      registrarLog(`[Controle Cores] Alteração recebida (${d.origem}): espessura=${d.espessuraTraco}px, confirmado=${d.confirmado}`);
+    });
+  }
+
+  btnToggleAlvoModelo?.addEventListener('click', () => {
+    const novoAlvo = estadoCoresModelo.alvo === 'traco' ? 'preenchimento' : 'traco';
+    seletorModelo?.trocarAlvo(novoAlvo);
+    controleCores?.definirAlvo(novoAlvo);
+  });
+
+  btnOpenFill?.addEventListener('click', () => {
+    controleCores?.abrirSeletor('preenchimento');
+  });
+
+  btnOpenStroke?.addEventListener('click', () => {
+    controleCores?.abrirSeletor('traco');
+  });
+
+  btnInvert?.addEventListener('click', () => {
+    controleCores?.inverter();
+  });
+
+  atualizarPreviewModelo();
 
   registrarLog('Playground autônomo inicializado com Suporte Inteligente (Zero-JS, FormData e UIBus).');
 });
