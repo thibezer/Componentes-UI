@@ -21,6 +21,8 @@ export interface CanvasInteracaoContext {
   aoLimparSelecao?: () => void;
   /** Há uma ferramenta de desenho ativa: cliques e arrastos do mouse são dela, não da seleção. */
   ferramentaAtiva?: () => boolean;
+  /** Há uma feição em edição de vértices: clique e caixa de seleção não mexem na seleção (só Esc/Concluir saem). */
+  edicaoAtiva?: () => boolean;
   /** Botão direito sobre o mapa (o menu nativo é sempre suprimido). */
   aoMenuContexto?: (e: MouseEvent) => void;
   /** Seleção por caixa sobre feições genéricas; `aditivo` = Ctrl/Cmd. */
@@ -80,6 +82,8 @@ export class CanvasInteracao {
 
     this.map.dragging.disable();
     this.map.doubleClickZoom.disable();
+    // Shift+arrasto é do CAD (alça livre, seleção aditiva): nunca pode virar zoom em caixa do Leaflet
+    this.map.boxZoom.disable();
 
     this.selecaoBox = new CanvasSelecaoBox(this.map, this.mapContainer, this.ctx);
 
@@ -120,6 +124,7 @@ export class CanvasInteracao {
     if (this.map) {
       this.map.dragging.enable();
       this.map.doubleClickZoom.enable();
+      this.map.boxZoom.enable();
     }
   }
 
@@ -163,7 +168,7 @@ export class CanvasInteracao {
 
   private handleClick = (e: MouseEvent): void => {
     if (!this.map || !this.ctx.layerManager) return;
-    if (this.ctx.ferramentaAtiva?.()) return;
+    if (this.ctx.ferramentaAtiva?.() || this.ctx.edicaoAtiva?.()) return;
     // marcador DOM (ícone/texto): o Leaflet já entregou o clique a ele; não repassa às feições do canvas por baixo
     if ((e.target as HTMLElement | null)?.closest?.('.leaflet-marker-icon')) return;
     resolverCliqueCentral(this.map, this.ctx.layerManager.getLayers(), e);
@@ -210,8 +215,8 @@ export class CanvasInteracao {
 
     if (e.button === 0) {
       // alças de edição de vértices e o HUD da edição tratam o próprio mouse: não iniciam caixa de seleção
-      if ((e.target as HTMLElement | null)?.closest?.('.cad-vertex-handle, .cad-vertex-ghost, #cm-vertex-edit-hud, #cm-draw-hud')) return;
-      if (this.ctx.ferramentaAtiva?.()) return;
+      if ((e.target as HTMLElement | null)?.closest?.('.cad-vertex-handle, .cad-bezier-handle, .cad-vertex-ghost, #cm-vertex-edit-hud, #cm-draw-hud')) return;
+      if (this.ctx.ferramentaAtiva?.() || this.ctx.edicaoAtiva?.()) return;
       this.selectionHappened = false;
       if (this.ctx.mapaController && this.ctx.mapaController.modoCliqueSequencialAtivo) {
         return;

@@ -8,7 +8,7 @@ import { OPCOES_ZOOM_FINO } from './zoom_opcoes';
 
 export interface MapaCoreControllerRef {
   modoCliqueSequencialAtivo?: boolean;
-  canvasInteracao?: { selectionHappened?: boolean };
+  canvasInteracao?: { selectionHappened?: boolean; ctx?: { ferramentaAtiva?: () => boolean; edicaoAtiva?: () => boolean } };
   layerManager?: any;
 }
 
@@ -103,6 +103,9 @@ export class MapaCore {
     this.map.on('click', (e: L.LeafletMouseEvent) => {
       if (this.controller.modoCliqueSequencialAtivo) return;
       if (this.controller.canvasInteracao && this.controller.canvasInteracao.selectionHappened) return;
+      // ferramenta de desenho ou edição de vértices em andamento: o clique é dela, não abre consulta/popup
+      const ctx = this.controller.canvasInteracao?.ctx;
+      if (ctx?.ferramentaAtiva?.() || ctx?.edicaoAtiva?.()) return;
 
       const isSigefActive = this.controller.layerManager 
         ? this.controller.layerManager.isLayerActiveAndSelectable('sigef')

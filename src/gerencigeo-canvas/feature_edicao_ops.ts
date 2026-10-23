@@ -221,9 +221,29 @@ export function removerPonto(g: GeometriaFeicao, indice: number): GeometriaFeica
 export type QualAlca = 'entrada' | 'saida';
 
 /** Nós de uma linha ou polígono: os da curva ou, sem curva, um nó de canto por vértice. `null` para os demais tipos. */
-function nosOuVertices(g: GeometriaFeicao): NoCurva[] | null {
+export function nosOuVertices(g: GeometriaFeicao): NoCurva[] | null {
   if (g.tipo !== 'LineString' && g.tipo !== 'Polygon') return null;
   return nosDe(g) ?? verticesDe(g).map((p) => ({ ponto: [p[0], p[1]] as LatLonPar }));
+}
+
+/** Mais nós que isto e as alças latentes (das poligonais) não são oferecidas: seriam ruído na tela. */
+export const MAX_NOS_COM_ALCA_LATENTE = 40;
+
+/**
+ * Onde a alça `qual` do nó `indice` fica por padrão (um terço do caminho até o vizinho): é a posição em que a alça
+ * "espera" ser arrastada num nó de canto, deixando o trecho reto até ser mexida. `null` na ponta de uma linha sem vizinho.
+ */
+export function alcaLatente(g: GeometriaFeicao, indice: number, qual: QualAlca): LatLonPar | null {
+  const nos = nosOuVertices(g);
+  if (!nos || indice < 0 || indice >= nos.length) return null;
+  const fechada = g.tipo === 'Polygon';
+  const n = nos.length;
+  const viz = qual === 'saida'
+    ? (indice < n - 1 ? nos[indice + 1] : fechada ? nos[0] : null)
+    : (indice > 0 ? nos[indice - 1] : fechada ? nos[n - 1] : null);
+  if (!viz) return null;
+  const p = nos[indice].ponto;
+  return [p[0] + (viz.ponto[0] - p[0]) / 3, p[1] + (viz.ponto[1] - p[1]) / 3];
 }
 
 /**
