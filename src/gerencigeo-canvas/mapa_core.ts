@@ -5,6 +5,7 @@ import { consultarSigefNoPonto, SigefConsultorState } from './sigef_consultor';
 import { preCarregarTilesRegiao } from './tile_preloader';
 import { PortaoPopups, lerModoPopups, MODO_POPUPS_PADRAO, type ModoPopups } from './popup_gate';
 import { OPCOES_ZOOM_FINO } from './zoom_opcoes';
+import { liberarEscDoPopup } from './popup_residual';
 
 export interface MapaCoreControllerRef {
   modoCliqueSequencialAtivo?: boolean;
@@ -79,6 +80,7 @@ export class MapaCore {
 
     this.listenConfigBroadcast();
     this.applyMapStyles();
+    liberarEscDoPopup(this.map);
 
     // Criação dos panes cartográficos padronizados
     if (!this.map.getPane('sigefPane')) {
