@@ -143,6 +143,15 @@ Pré-requisito das demais fases: sem isso `npm run gate` falha.
 - **Exceção ao gatilho de ~400 linhas, justificada:** o que resta em cada casca são os acessores públicos, os controladores de menu/dados e a fiação de eventos. Dividir mais separaria o que muda junto.
 - Nenhum defeito novo foi encontrado nesses três componentes (já tinham testes de robustez e regressão, como o plano antecipou).
 
+### Fase 7 — `ui-card` (segunda passada) — concluída em 2026-10-17
+- [x] `card-interacao.ts` (clique/tecla do card × controle interno, puro) e `card-secoes.ts` (seção com conteúdo); `ui-card.ts` segue como casca.
+- **Defeitos encontrados e corrigidos** (teste que falhava antes em `ui-card.regressao.test.ts`):
+  1. Enter/Espaço de um `<input>`/botão interno ativava o card e sofria `preventDefault` (não se digitava espaço no campo).
+  2. Clique no `<path>` de um ícone SVG dentro de botão ativava o card (`instanceof HTMLElement`); `label`, `summary` e editáveis também.
+  3. `closest()` subia além do host: card dentro de um `<a>`/`label` nunca disparava `ui-clique`.
+  4. `[slot]` aninhado em descendente revelava a seção; `hidden` no host era ignorado; sem foco visível; `focus()` e `aria-label` do host sem efeito.
+- Nota de teste: o happy-dom não propaga eventos do light DOM pelo `<slot>` até a base; os testes simulam o alvo (`deAlvo`). Os testes antigos de "controle interno" passavam por vacuidade.
+
 ## Definição de pronto (por fase)
 
 - Checklist do `AGENTS.md` §5 inteiro (camadas, decomposição, zero crash, SSR/memória, tokens/a11y, suíte verde, contratos).
