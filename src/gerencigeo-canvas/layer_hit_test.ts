@@ -59,6 +59,37 @@ export interface CandidatoHit {
   distancia: number;
   /** Área do envelope em px²; só usada para desempatar áreas. */
   area: number;
+  /** Só nas feições vindas de uma `FonteHit` (marcas de LOD, que não são objetos Leaflet): a feição e a chave dela. */
+  feicao?: unknown;
+  chave?: string;
+}
+
+/**
+ * Candidatos que não são objetos Leaflet (as marcas de LOD do renderizador de feições). A camada registra a fonte e o
+ * clique central as inclui no mesmo empilhamento (prioridade, camada do topo, menor área, alternância de cliques).
+ * O evento `click` é disparado em `alvo`, com a feição em `feicaoHit`.
+ */
+export interface FonteHit {
+  alvo: L.Layer;
+  /** Feições sob `ponto` (ponto de camada do mapa), da melhor para a pior. Não pode lançar. */
+  consultar(ponto: L.Point): Array<{ feicao: unknown; chave: string; tipo: TipoGeometriaPane; distancia: number; area: number }>;
+}
+
+const fontesPorMapa = new WeakMap<L.Map, Map<string, FonteHit>>();
+
+export function registrarFonteHit(map: L.Map, camadaId: string, fonte: FonteHit): void {
+  let m = fontesPorMapa.get(map);
+  if (!m) {
+    m = new Map();
+    fontesPorMapa.set(map, m);
+  }
+  m.set(camadaId, fonte);
+}
+
+/** Remove a fonte da camada (só se ainda for `fonte`, para uma camada recriada não perder a nova). */
+export function removerFonteHit(map: L.Map, camadaId: string, fonte: FonteHit): void {
+  const m = fontesPorMapa.get(map);
+  if (m?.get(camadaId) === fonte) m.delete(camadaId);
 }
 
 function tolerarTraco(layer: CamadaCanvas, base: number): number {
@@ -149,6 +180,16 @@ export function consultarFeicoesNoPonto(
         }
       }
     }
+    const fonte = fontesPorMapa.get(map)?.get(def.id);
+    if (fonte) {
+      try {
+        for (const c of fonte.consultar(ponto)) {
+          candidatos.push({ camada: def, tipo: c.tipo, alvo: fonte.alvo, distancia: c.distancia, area: c.area, feicao: c.feicao, chave: c.chave });
+        }
+      } catch {
+        // uma fonte com defeito não pode derrubar o clique das demais camadas
+      }
+    }
   }
 
   // sort estável: dentro do mesmo empate preserva camada do topo > desenhada por último
@@ -161,10 +202,10 @@ export function consultarFeicoesNoPonto(
 }
 
 /** Memória do último clique: se o próximo cai no mesmo lugar e no mesmo empilhamento, avança. */
-const ultimoClique = new WeakMap<L.Map, { x: number; y: number; ids: number[]; indice: number }>();
+const ultimoClique = new WeakMap<L.Map, { x: number; y: number; ids: string[]; indice: number }>();
 
 function escolherComAlternancia(map: L.Map, ponto: L.Point, candidatos: CandidatoHit[]): CandidatoHit {
-  const ids = candidatos.map((c) => L.Util.stamp(c.alvo));
+  const ids = candidatos.map((c) => (c.chave === undefined ? String(L.Util.stamp(c.alvo)) : `${L.Util.stamp(c.alvo)}:${c.chave}`));
   const anterior = ultimoClique.get(map);
   let indice = 0;
   if (
@@ -195,14 +236,15 @@ export function resolverCliqueCentral(
     return false;
   }
 
-  const alvo = escolherComAlternancia(map, ponto, candidatos).alvo;
-  alvo.fire(
+  const escolhido = escolherComAlternancia(map, ponto, candidatos);
+  escolhido.alvo.fire(
     e.type,
     {
       originalEvent: e,
       latlng: map.mouseEventToLatLng(e),
       layerPoint: ponto,
-      containerPoint: map.mouseEventToContainerPoint(e)
+      containerPoint: map.mouseEventToContainerPoint(e),
+      ...(escolhido.feicao !== undefined ? { feicaoHit: escolhido.feicao } : {})
     },
     true
   );

@@ -8,6 +8,9 @@ import type { CanvasLayerManager } from '../../gerencigeo-canvas/layer_manager';
 import { ListenerBag } from '../../core/listener-bag';
 import { RegraVersoes } from '../../gerencigeo-canvas/feature_versoes';
 import { lerModoPopups, liberarPopups, type ModoPopups } from '../../gerencigeo-canvas/popup_gate';
+import { LayerRendererFactory } from '../../gerencigeo-canvas/layer_renderer_factory';
+import { lerModoRenderizador, type ModoRenderizador } from '../../gerencigeo-canvas/renderers/feicoes_despachante';
+import type { EstatisticasFeicoes, IRenderizadorFeicoes } from '../../gerencigeo-canvas/renderers/renderizador_feicoes_tipos';
 import type { UsuarioRemoto } from '../../gerencigeo-canvas/feature_cursores';
 import { renderizarPainelCamadas } from './cad-painel-camadas';
 import { processarCliqueLivreCanvas, processarAcaoPopup, ContextoEventosCanvas } from './cad-eventos-canvas';
@@ -32,7 +35,7 @@ import { EstilosExternosShadow, type EstilosExternos } from './cad-estilos-exter
 
 export class UICanvasCAD extends SafeHTMLElement {
   static get observedAttributes() {
-    return ['sat-opacity', 'scale-mode', 'crosshair', 'modo-sequencial', 'chave-grupo', 'zona-projecao', 'fuso', 'canal-configuracao', 'ferramentas', 'sem-atalho-snap', 'aceitar-origem', 'sem-camadas-padrao', 'sem-painel-camadas', 'sem-barra-rapida', 'popups'];
+    return ['sat-opacity', 'scale-mode', 'crosshair', 'modo-sequencial', 'chave-grupo', 'zona-projecao', 'fuso', 'canal-configuracao', 'ferramentas', 'sem-atalho-snap', 'aceitar-origem', 'sem-camadas-padrao', 'sem-painel-camadas', 'sem-barra-rapida', 'popups', 'renderizador'];
   }
 
   private shadow: ShadowRoot;
@@ -96,7 +99,7 @@ export class UICanvasCAD extends SafeHTMLElement {
     // Object.assign (e não `obj.x = ...`): o analisador do manifesto confundiria a atribuição com propriedades do elemento
     const contextoRender = this.controller.context;
     const contextoInteracao = this.controller.canvasInteracao.ctx;
-    Object.assign(contextoRender, { regraVersoes });
+    Object.assign(contextoRender, { regraVersoes, renderizador: () => this.renderizador });
     this.feicoes = new GerenciadorFeicoes({
       obterLayerManager: () => this.controller.layerManager,
       obterMapa: () => this.controller.getMap(),
@@ -199,6 +202,11 @@ export class UICanvasCAD extends SafeHTMLElement {
     }
     if (name === 'popups') {
       this.controller?.core.definirModoPopups(lerModoPopups(newVal));
+      return;
+    }
+    if (name === 'renderizador') {
+      // as camadas de feições já desenhadas são refeitas no novo caminho; as demais camadas não são tocadas
+      if (lerModoRenderizador(oldVal) !== lerModoRenderizador(newVal)) this.controller?.layerManager.recriarCamadasDoTipo('feicoes');
       return;
     }
     if (name === 'aceitar-origem') {
@@ -336,6 +344,25 @@ export class UICanvasCAD extends SafeHTMLElement {
    */
   public get popups(): ModoPopups { return lerModoPopups(this.getAttribute('popups')); }
   public set popups(val: ModoPopups) { this.setAttribute('popups', String(val)); }
+
+  /**
+   * Quem desenha as camadas de feições (atributo `renderizador`): `leaflet` (padrão; um objeto Leaflet por feição) ou
+   * `canvas` (motor sem DOM + Canvas 2D: um canvas por camada e um de sobreposição para seleção, formas minúsculas
+   * como marcas em lote, só um objeto Leaflet por marcador de ícone, texto, cluster e rótulo). Valor inválido usa
+   * `leaflet`. Ao mudar, as camadas de feições são recriadas; a API, os eventos e os dados não mudam.
+   */
+  public get renderizador(): ModoRenderizador { return lerModoRenderizador(this.getAttribute('renderizador')); }
+  public set renderizador(val: ModoRenderizador) { this.setAttribute('renderizador', String(val)); }
+
+  /**
+   * Contadores do desenho de uma camada de feições (`total`, `materializadas`, `desenhadas`, `marcasLOD`, `clusters`,
+   * `canvases`, `renderizador`...), para diagnóstico e benchmark. `null` se a camada não está desenhada.
+   */
+  public estatisticasFeicoes(camadaId: string): EstatisticasFeicoes | null {
+    const instancia = this.controller.layerManager.getLayerInstance(camadaId);
+    const renderer = LayerRendererFactory.get('feicoes') as IRenderizadorFeicoes | undefined;
+    return instancia && renderer ? renderer.estatisticas(instancia as L.LayerGroup) : null;
+  }
 
   public get modoSequencial(): boolean { return this.hasAttribute('modo-sequencial'); }
   public set modoSequencial(val: boolean) {

@@ -4,7 +4,7 @@ import { normalizarCoordenada } from '../../gerencigeo-canvas/feature_adapters';
 import { RegraVersoes } from '../../gerencigeo-canvas/feature_versoes';
 import { CursoresRemotos, type UsuarioRemoto } from '../../gerencigeo-canvas/feature_cursores';
 import { LayerRendererFactory } from '../../gerencigeo-canvas/layer_renderer_factory';
-import type { FeicoesLayerRenderer } from '../../gerencigeo-canvas/renderers/feicoes_renderer';
+import type { IRenderizadorFeicoes } from '../../gerencigeo-canvas/renderers/renderizador_feicoes_tipos';
 import { SelecaoFeicoes, type RefFeicao } from '../../gerencigeo-canvas/feature_selecao';
 import type { CaixaPx, ModoCaixa } from '../../gerencigeo-canvas/feature_caixa';
 import { FeicaoPopup, coordenadaDeReferencia, type AcaoFeicao, type MargensPopup } from '../../gerencigeo-canvas/feature_popup';
@@ -203,7 +203,7 @@ export class GerenciadorFeicoes {
       obterFeicao: (r) => this.buscar(r.camadaId, r.id),
       aplicarVisual: (camadaId, ids) => {
         const instancia = this.contexto.obterLayerManager().getLayerInstance(camadaId);
-        const renderer = LayerRendererFactory.get(TIPO_CAMADA_FEICOES) as FeicoesLayerRenderer | undefined;
+        const renderer = LayerRendererFactory.get(TIPO_CAMADA_FEICOES) as IRenderizadorFeicoes | undefined;
         if (instancia && renderer) renderer.aplicarSelecao(instancia as L.LayerGroup, ids);
       },
       aoSelecionar: (feicoes) => {

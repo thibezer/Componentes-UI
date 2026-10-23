@@ -1,5 +1,42 @@
 # Changelog
 
+## Não lançado
+
+### `<ui-canvas-cad>`: desenho de muitas formas (Fases 0 e 1 do motor de formas)
+
+- **LOD por tamanho em pixels:** feição (linha, polígono, círculo) com diagonal abaixo de 3 px na tela deixa de ser um objeto Leaflet e vira uma **marca de 1–2 px** na cor do preenchimento/contorno, pintada em lote por cor num canvas por camada (`feature_lod.ts`, `renderers/marcas_lod_layer.ts`). O mapa não fica "furado". Sempre em detalhe completo: selecionada (e em edição), com rótulo e em par oficial × prévia; ponto e texto nunca viram marca. Hit-test, snap, caixa, laço e hover seguem na geometria original, então uma feição de 1 px continua clicável. Reavaliado ao mudar de zoom, não a cada pan.
+- **Seleção incremental:** `aplicarSelecao` deixou de reconciliar a camada inteira. Só as feições que mudaram de estado são tocadas, e só no estilo (`setStyle`/`setIcon`, sem `setLatLngs`); a camada só é reconciliada quando há ponto sob agrupamento (selecionado sai do cluster). Selecionar 1 feição em 100 mil: de ~60 ms síncronos para ~6 ms (medido no navegador).
+- **Simplificação em pixels:** a tolerância de 1,2 px passa a valer para feições com **mais de 8 vértices** (antes 40) em **qualquer zoom abaixo de 17** (antes 12). `simplificarLinha`/`simplificarAnel` ganham o parâmetro opcional `escalaLat` e a tolerância deixa de ser 1/cos(lat) vezes maior na vertical (2× a 60° de latitude).
+- **Instrumentação:** `FeicoesLayerRenderer.estatisticas()` ganha `marcasLOD` e `avaliacoesLOD`; novo `idsDesenhados()`. Página de benchmark `bench/bench-formas.html` (rAF por canal de mensagens e `getImageData`, dados sintéticos com semente fixa) para medir mudança de vista, seleção e ocultar/exibir no navegador.
+- **Correções (Regra #0):** `feicaoNoPonto` estourava a pilha (`Math.max(...xs)`) em polígono com ~120 mil vértices ou mais; `toleranciaPorZoom(NaN)` colapsava geometrias a 2 pontos; uma feição que o Leaflet recusa (coordenada NaN) derrubava a reconciliação da camada inteira e agora fica sem desenho.
+
+**Mudanças de comportamento**
+
+- Feições minúsculas não estão mais em `grupo.getLayers()` nem em `map._layers`: quem contava camadas Leaflet para medir desenho deve usar `estatisticas()` (o app usa `map._layers` só no benchmark).
+- O desenho de feições com mais de 8 vértices é mais simplificado (até 1,2 px de desvio) abaixo do zoom 17. A geometria da feição nunca é alterada.
+- O clique numa marca passa pelo hit-test central do mapa (`layer_hit_test`: nova `FonteHit`), não por um objeto Leaflet: uma ação `feicao-clique` por clique, com a mesma ordem das formas (linha antes de área, camada do topo, menor área) e alternância em cliques repetidos sobre marcas empilhadas (até 20).
+- Cada camada com marcas ganha um canvas extra (removido quando não há marcas). Não foi consolidado nesta fase.
+
+### Motor das formas headless e renderizador Canvas opt-in (Fases 2 e 3)
+
+- **Novo atributo/propriedade `renderizador`** em `<ui-canvas-cad>`: `leaflet` (padrão, inalterado) ou `canvas`. Com `canvas`, as camadas de feições são desenhadas por um motor próprio em Canvas 2D em vez de um objeto Leaflet por feição. Trocar o valor em tempo de execução recria só as camadas de feições (`CanvasLayerManager.recriarCamadasDoTipo`), mantendo dados e seleção. Valor inválido cai em `leaflet`. Guia: [`docs/motor-formas.md`](docs/motor-formas.md).
+- **`estatisticasFeicoes(camadaId)`:** contadores da camada desenhada (`total`, `materializadas`, `marcasLOD`, `clusters`, `avaliacoesLOD` e, no caminho canvas, `desenhadas`, `marcadoresDom`, `canvases`; mais `renderizador`), para diagnóstico e benchmark. `null` se a camada não está desenhada.
+- **Motor headless** (`src/gerencigeo-canvas/motor/`, L2, sem DOM e sem Leaflet; roda em Node e serve para Web Worker): `MotorFormas` com `definirCamada`, `definirFeicoes`, `aplicarDelta`, `listaDesenho(vista, { camadas, parte })`, `listaSobreposicao`, `consultarCaixa`, seleção, `previsualizar`, `destacar` e clusters. Estilo resolvido compartilhado pelos dois renderizadores (`estilo.ts`), geometria em `Float64Array` com projeção própria e Douglas-Peucker em px (`geometria-px.ts`), loja + índice + oficial × prévia (`dados-camada.ts`).
+- **Novo entrypoint `@thibezer/ui-components-kit/motor`** (`src/motor.ts`): o motor sem o componente. O `check-layers` garante que nada alcançado por ele importa `leaflet` (`dist/motor.js` não importa).
+- **Renderizador Canvas** (`renderers/renderizador_formas.ts`, `PintorCanvas2D`): pinta forma a forma, agrupado por estilo, com recorte. **Pan incremental** (`renderers/canvas_formas_leaflet.ts`): o bitmap é deslocado em pixels de mundo e só as faixas expostas são listadas e pintadas. Seleção, hover e edição vão para uma sobreposição única por mapa, sem repintar a base. Clique e hover passam pelo hit-test central (`FonteHit`).
+- **Números** (navegador, A/B na mesma sessão, mediana; ver `docs/desempenho-feicoes.md`): mudança de vista com 20 mil formas em zoom 12 de ~240 ms para **~55 ms**; 50 mil em zoom 12 de ~630 ms para **~100–150 ms**; selecionar 2 000 feições (20 mil na camada) de 182 ms para **14 ms**; exibir camada de 20 mil de 254 ms para **112 ms**.
+- **Desempenho do caminho canvas:** o item da marca de LOD fica em cache por zoom e é reaproveitado no pan enquanto feição, estilo da camada, seleção e destaque não mudam (lista de 100 mil marcas em zoom 12: de ~390 para ~140 ms por mudança de vista, no Node). Canvas em branco (camada sem nada na vista, sobreposição sem seleção) não é mais deslocado, limpo nem redimensionado a cada pan: cada chamada de desenho fazia o navegador reenviar o canvas inteiro ao compositor (1 000 formas em zoom 18: de ~130 para ~30 ms por pan, medido sem GPU). Camada com até 500 itens na vista é repintada inteira no pan em vez de ter o bitmap deslocado (`CanvasFormas.limiteRepintar`, ajustável; também por instância): com poucas formas, deslocar o bitmap de 3072×1920 custava 3–5× mais que repintar e deixava o canvas mais lento que o leaflet (1 000 formas em zoom 12: de ~200 para ~60 ms).
+- **Correções** achadas pela suíte de equivalência: marca de LOD antiga ficava na tela quando a feição passava a ponto agrupado (também no caminho `leaflet`); ícone selecionado ou único restante numa célula de cluster sumia no caminho canvas.
+
+**Mudanças de comportamento do caminho `canvas`** (o caminho `leaflet` não muda)
+
+- Preenchimento translúcido é pintado forma a forma: polígonos sobrepostos da mesma camada continuam escurecendo onde se cruzam, como no Leaflet. A ordem de desenho dentro da camada é por grupo de estilo, não por ordem de inserção.
+- Há um canvas por camada de feições mais uma sobreposição por mapa (não 2 canvases no total). Opacidade e visibilidade seguem o pane da camada; a sobreposição ignora a opacidade da camada (a seleção aparece sempre cheia).
+- Curvas Bézier (`LinhaCurva`/`PoligonoCurvo`), ícone, texto, cluster e rótulo continuam como objetos/marcadores Leaflet dentro do mesmo renderizador.
+- As feições não aparecem em `grupo.getLayers()` nem em `map._layers`; use `estatisticasFeicoes()`.
+
+Versão sugerida: **2.9.0** (minor: nada que o app usa mudou de assinatura; o padrão continua `leaflet`).
+
 ## 2.8.1 — 2026-10-21
 
 ### `<ui-canvas-cad>`: popups e câmera só a pedido (como CAD/GIS)

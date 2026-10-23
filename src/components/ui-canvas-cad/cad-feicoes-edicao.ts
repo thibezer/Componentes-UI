@@ -10,7 +10,7 @@ import type { RefFeicao } from '../../gerencigeo-canvas/feature_selecao';
 import { EditorVertices } from '../../gerencigeo-canvas/feature_editor_vertices';
 import { verificarEditavel } from '../../gerencigeo-canvas/feature_edicao_ops';
 import { LayerRendererFactory } from '../../gerencigeo-canvas/layer_renderer_factory';
-import type { FeicoesLayerRenderer } from '../../gerencigeo-canvas/renderers/feicoes_renderer';
+import type { IRenderizadorFeicoes } from '../../gerencigeo-canvas/renderers/renderizador_feicoes_tipos';
 import type { ExcluirSnap } from '../../gerencigeo-canvas/feature_snap';
 import { TIPO_CAMADA_FEICOES, type ResultadoEdicao } from './cad-feicoes-tipos';
 
@@ -77,7 +77,7 @@ export class EdicaoFeicoes {
     this.p.fecharPopup();
 
     const lm = this.p.obterLayerManager();
-    const renderer = LayerRendererFactory.get(TIPO_CAMADA_FEICOES) as FeicoesLayerRenderer | undefined;
+    const renderer = LayerRendererFactory.get(TIPO_CAMADA_FEICOES) as IRenderizadorFeicoes | undefined;
     const editor = new EditorVertices({
       map,
       snapLigado: () => this.p.snapAtivo(),

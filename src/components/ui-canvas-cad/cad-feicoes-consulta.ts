@@ -6,7 +6,7 @@ import L from 'leaflet';
 import type { CanvasLayerManager } from '../../gerencigeo-canvas/layer_manager';
 import type { Feicao, LatLonPar } from '../../gerencigeo-canvas/feature_types';
 import { LayerRendererFactory } from '../../gerencigeo-canvas/layer_renderer_factory';
-import type { FeicoesLayerRenderer } from '../../gerencigeo-canvas/renderers/feicoes_renderer';
+import type { IRenderizadorFeicoes } from '../../gerencigeo-canvas/renderers/renderizador_feicoes_tipos';
 import type { CaixaGeo } from '../../gerencigeo-canvas/feature_indice';
 import { buscarSnap, TOLERANCIA_SNAP_PX, type ExcluirSnap } from '../../gerencigeo-canvas/feature_snap';
 import { feicaoNoPonto } from '../../gerencigeo-canvas/feature_amostra';
@@ -25,7 +25,7 @@ export class ConsultaEspacialFeicoes {
   public candidatasEm(coord: LatLonPar, tolPx: number): Feicao[] {
     const map = this.p.obterMapa();
     const lm = this.p.obterLayerManager();
-    const renderer = LayerRendererFactory.get(TIPO_CAMADA_FEICOES) as FeicoesLayerRenderer | undefined;
+    const renderer = LayerRendererFactory.get(TIPO_CAMADA_FEICOES) as IRenderizadorFeicoes | undefined;
     if (!map || !renderer) return [];
     const cursor = map.latLngToContainerPoint(coord);
     const a = map.containerPointToLatLng([cursor.x - tolPx, cursor.y + tolPx]);

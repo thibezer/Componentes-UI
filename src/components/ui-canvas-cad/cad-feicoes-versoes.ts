@@ -8,7 +8,7 @@ import type { CanvasLayerManager } from '../../gerencigeo-canvas/layer_manager';
 import type { Feicao } from '../../gerencigeo-canvas/feature_types';
 import { RegraVersoes, entidadeDe } from '../../gerencigeo-canvas/feature_versoes';
 import { LayerRendererFactory } from '../../gerencigeo-canvas/layer_renderer_factory';
-import type { FeicoesLayerRenderer } from '../../gerencigeo-canvas/renderers/feicoes_renderer';
+import type { IRenderizadorFeicoes } from '../../gerencigeo-canvas/renderers/renderizador_feicoes_tipos';
 import { TIPO_CAMADA_FEICOES } from './cad-feicoes-tipos';
 
 export interface PortasVersoes {
@@ -39,7 +39,7 @@ export class VersoesFeicoes {
   public visivelPorVersao(f: Feicao): boolean {
     // com a camada desenhada, o renderizador já mantém as entidades oficiais em dia (sem varrer a camada)
     const instancia = this.p.obterLayerManager().getLayerInstance(f.camadaId);
-    const renderer = LayerRendererFactory.get(TIPO_CAMADA_FEICOES) as FeicoesLayerRenderer | undefined;
+    const renderer = LayerRendererFactory.get(TIPO_CAMADA_FEICOES) as IRenderizadorFeicoes | undefined;
     if (instancia && renderer) return renderer.feicaoVisivel(instancia as L.LayerGroup, f);
     return this.regra.visivel(f, this.oficiaisDe(f.camadaId));
   }
@@ -51,7 +51,7 @@ export class VersoesFeicoes {
 
   public aplicarVersoes(): void {
     const lm = this.p.obterLayerManager();
-    const renderer = LayerRendererFactory.get(TIPO_CAMADA_FEICOES) as FeicoesLayerRenderer | undefined;
+    const renderer = LayerRendererFactory.get(TIPO_CAMADA_FEICOES) as IRenderizadorFeicoes | undefined;
     for (const camada of lm.getLayers()) {
       if (camada.tipo !== TIPO_CAMADA_FEICOES) continue;
       const instancia = lm.getLayerInstance(camada.id);

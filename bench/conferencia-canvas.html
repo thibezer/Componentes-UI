@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Conferência do renderizador canvas</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #0f172a; color: #e2e8f0; font: 13px/1.45 system-ui, sans-serif; }
+    body { display: grid; grid-template-columns: 380px 1fr; }
+    #painel { overflow-y: auto; padding: 12px 14px; border-right: 1px solid #1e293b; }
+    #palco { position: relative; min-height: 0; }
+    #palco ui-canvas-cad { position: absolute; inset: 0; display: block; }
+    h1 { font-size: 15px; margin: 0 0 4px; }
+    h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: #94a3b8; margin: 16px 0 6px; }
+    p { margin: 4px 0; color: #cbd5e1; }
+    .linha { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 4px 0; }
+    button { background: #1e293b; color: #e2e8f0; border: 1px solid #334155; border-radius: 6px; padding: 5px 9px; font: inherit; cursor: pointer; }
+    button:hover { background: #334155; }
+    button.ativo { background: #0369a1; border-color: #0ea5e9; }
+    input[type=range] { width: 150px; }
+    #estado { white-space: pre; font: 11px/1.4 ui-monospace, Consolas, monospace; background: #020617; padding: 8px; border-radius: 6px; color: #a5f3fc; }
+    ol { padding-left: 18px; margin: 4px 0; }
+    li { margin: 6px 0; }
+    li label { display: flex; gap: 6px; align-items: flex-start; cursor: pointer; }
+    li small { display: block; color: #94a3b8; margin-left: 22px; }
+    li.ok label > span { color: #86efac; }
+    #eventos { white-space: pre-wrap; font: 11px/1.35 ui-monospace, Consolas, monospace; max-height: 140px; overflow-y: auto; background: #020617; padding: 6px 8px; border-radius: 6px; color: #fde68a; }
+  </style>
+</head>
+<body>
+  <aside id="painel">
+    <h1>Conferência do renderizador canvas</h1>
+    <p>Cena fixa: polígonos, linhas, círculo, pontos com e sem ícone, texto, curva Bézier e uma camada translúcida
+      sobreposta. Use o roteiro abaixo; o estado das caixas fica salvo neste navegador.</p>
+
+    <h2>Renderizador</h2>
+    <div class="linha">
+      <button data-renderizador="canvas">canvas</button>
+      <button data-renderizador="leaflet">leaflet</button>
+      <span id="rotulo-modo"></span>
+    </div>
+    <div class="linha">
+      <label>Volume extra: <select id="volume">
+        <option value="0">só a cena</option>
+        <option value="5000">+ 5 mil</option>
+        <option value="20000">+ 20 mil</option>
+        <option value="50000">+ 50 mil</option>
+      </select></label>
+    </div>
+
+    <h2>Zoom e câmera</h2>
+    <div class="linha">
+      <button id="zoom-mais">Zoom + (animado)</button>
+      <button id="zoom-menos">Zoom − (animado)</button>
+      <button id="voar">Voar até o lote</button>
+      <button id="enquadrar">Enquadrar tudo</button>
+    </div>
+
+    <h2>Edição de vértices</h2>
+    <div class="linha">
+      <button id="editar">Editar o lote 1</button>
+      <button id="parar">Parar edição</button>
+    </div>
+
+    <h2>Popups</h2>
+    <div class="linha">
+      <label>Modo: <select id="popups">
+        <option value="sob-demanda">sob-demanda (padrão)</option>
+        <option value="automatico">automatico</option>
+        <option value="desligado">desligado</option>
+      </select></label>
+      <button id="popup">Abrir popup do lote 2</button>
+    </div>
+
+    <h2>Opacidade da camada "Translúcida"</h2>
+    <div class="linha">
+      <input id="opacidade" type="range" min="0" max="1" step="0.05" value="0.5" />
+      <span id="valor-opacidade">0,50</span>
+      <button id="selecionar-translucida">Selecionar uma feição dela</button>
+    </div>
+
+    <h2>Roteiro</h2>
+    <ol id="roteiro"></ol>
+    <div class="linha"><button id="limpar-roteiro">Desmarcar tudo</button></div>
+
+    <h2>Estado</h2>
+    <div id="estado"></div>
+    <h2>Eventos</h2>
+    <div id="eventos"></div>
+  </aside>
+  <main id="palco"></main>
+  <script type="module" src="./conferencia_canvas.ts"></script>
+</body>
+</html>

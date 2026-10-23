@@ -7,7 +7,7 @@ import { VectorLinesLayerRenderer } from './renderers/vector_lines_renderer';
 import { VectorPointsLayerRenderer } from './renderers/vector_points_renderer';
 import { VectorPolygonsLayerRenderer } from './renderers/vector_polygons_renderer';
 import { GridLayerRenderer } from './renderers/grid_renderer';
-import { FeicoesLayerRenderer } from './renderers/feicoes_renderer';
+import { DespachanteFeicoes } from './renderers/feicoes_despachante';
 
 // Registra os renderizadores padrão no Factory
 LayerRendererFactory.register('tile', new TileLayerRenderer());
@@ -16,7 +16,7 @@ LayerRendererFactory.register('vetorial-linhas', new VectorLinesLayerRenderer())
 LayerRendererFactory.register('vetorial-pontos', new VectorPointsLayerRenderer());
 LayerRendererFactory.register('vetorial-poligonos', new VectorPolygonsLayerRenderer());
 LayerRendererFactory.register('grid', new GridLayerRenderer());
-LayerRendererFactory.register('feicoes', new FeicoesLayerRenderer());
+LayerRendererFactory.register('feicoes', new DespachanteFeicoes());
 
 export const DEFAULT_LAYERS: CanvasLayerDef[] = [
   {
@@ -225,6 +225,32 @@ export class CanvasLayerManager {
       }
     });
 
+    this.notifyChange();
+  }
+
+  /**
+   * Destrói e recria as instâncias das camadas visíveis de um tipo (ex.: troca do renderizador das camadas de
+   * feições). Os dados, a seleção e as definições ficam: só o desenho é refeito, as demais camadas não são tocadas.
+   */
+  public recriarCamadasDoTipo(tipo: string): void {
+    this.flushRender();
+    if (!this.map || !this.context) return;
+    const renderer = LayerRendererFactory.get(tipo);
+    if (!renderer) return;
+    for (const layer of this.layers) {
+      if (layer.tipo !== tipo) continue;
+      const antiga = this.layerInstances.get(layer.id);
+      if (antiga) {
+        renderer.destroy(antiga, this.map);
+        this.layerInstances.delete(layer.id);
+      }
+      if (!layer.visivel) continue;
+      const nova = renderer.render(layer, this.map, this.context);
+      if (nova) {
+        nova.addTo(this.map);
+        this.layerInstances.set(layer.id, nova);
+      }
+    }
     this.notifyChange();
   }
 

@@ -24,7 +24,7 @@ const WORKSTATION_L4 = [
 ];
 const ENTRYPOINTS_L5 = [
     'index', 'register', 'botao', 'camadas', 'canvas', 'tabela', 'forms', 'tools',
-    'campo-texto', 'card', 'cores', 'data', 'feedback', 'mapa', 'modal', 'seletor-mapa-base'
+    'campo-texto', 'card', 'cores', 'data', 'feedback', 'mapa', 'modal', 'seletor-mapa-base', 'motor'
 ];
 
 /** Utilitários puros declarados como L2 que ainda moram em diretórios de componentes (ver AGENTS.md §1). */
@@ -83,12 +83,36 @@ function listar(dir) {
 
 const ehTeste = (f) => /\.(test|spec)\.tsx?$/.test(f);
 
+/**
+ * Módulos do motor de formas que precisam rodar em Node/SSR e em Web Worker: nada de `leaflet`, `window`, `document`.
+ * Tudo em `gerencigeo-canvas/motor/` entra aqui; os demais são os `feature_*.ts` puros já extraídos.
+ */
+const PUROS_SEM_DOM = [
+    'gerencigeo-canvas/motor',
+    'gerencigeo-canvas/feature_lod.ts',
+    'gerencigeo-canvas/feature_simplificacao.ts',
+    'gerencigeo-canvas/feature_indice.ts'
+];
+const ehPuroSemDom = (abs) => PUROS_SEM_DOM.some((p) => dentro(norm(abs), em(p)));
+const GLOBAIS_DOM = /\b(window|document|localStorage|sessionStorage|requestAnimationFrame|ResizeObserver|HTMLElement)\b/;
+
 export function verificar(arquivos, ler = (f) => fs.readFileSync(f, 'utf-8')) {
     const violacoes = [];
     for (const arquivo of arquivos) {
         if (ehTeste(arquivo)) continue; // testes podem atravessar camadas
         const camadaOrigem = classificar(arquivo);
         if (camadaOrigem === null || camadaOrigem === 5) continue;
+
+        if (ehPuroSemDom(arquivo)) {
+            const codigo = ler(arquivo).replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1');
+            if (/(?:from|import\s*\(|require\()\s*['"]leaflet(?:\/[^'"]*)?['"]/.test(codigo)) {
+                violacoes.push({ arquivo, motivo: 'Módulo puro do motor de formas não pode importar "leaflet" (roda em Node/SSR e em Worker).' });
+            }
+            const uso = codigo.match(GLOBAIS_DOM);
+            if (uso) {
+                violacoes.push({ arquivo, motivo: `Módulo puro do motor de formas não pode usar o global de navegador "${uso[1]}".` });
+            }
+        }
 
         // L0 é só CSS: nenhum código TS/JS é permitido em src/tokens
         if (camadaOrigem === 0 && /\.(ts|js|mjs)$/.test(arquivo)) {
@@ -114,11 +138,47 @@ export function verificar(arquivos, ler = (f) => fs.readFileSync(f, 'utf-8')) {
     return violacoes;
 }
 
+/** Entrypoints que precisam rodar em Node/SSR e em Worker: nada que eles alcançam pode importar `leaflet`. */
+const ENTRADAS_SEM_LEAFLET = ['motor.ts'];
+
+/**
+ * Percorre os imports relativos (em runtime) a partir de uma entrada e acusa quem importa `leaflet`. `ler` devolve o
+ * conteúdo de um arquivo (ou `null` se não existe); `resolver` completa a extensão.
+ */
+export function verificarEntradaSemLeaflet(
+    entrada,
+    ler = (f) => (fs.existsSync(f) ? fs.readFileSync(f, 'utf-8') : null),
+    resolver = (base) => ['.ts', '/index.ts', ''].map((x) => base + x).find((c) => fs.existsSync(c) && fs.statSync(c).isFile()) ?? null
+) {
+    const violacoes = [];
+    const vistos = new Set();
+    const fila = [entrada];
+    while (fila.length > 0) {
+        const arquivo = fila.pop();
+        if (vistos.has(arquivo)) continue;
+        vistos.add(arquivo);
+        const conteudo = ler(arquivo);
+        if (conteudo === null || conteudo === undefined) continue;
+        const semComentarios = conteudo.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1');
+        const runtime = semComentarios.replace(/\b(?:import|export)\s+type\s[^;]*?from\s*['"][^'"]+['"]/g, '');
+        for (const esp of extrairImports(conteudo)) {
+            if (/^leaflet(\/|$)/.test(esp) && runtime.includes(esp)) {
+                violacoes.push({ arquivo, motivo: `Alcançado por "${path.relative(SRC_DIR, entrada)}", que não pode depender de "leaflet" (${esp}).` });
+            }
+            const destino = resolverDestino(arquivo, esp);
+            if (!destino) continue;
+            const real = resolver(destino);
+            if (real) fila.push(real);
+        }
+    }
+    return violacoes;
+}
+
 const executadoDiretamente = process.argv[1] && norm(process.argv[1]) === norm(fileURLToPath(import.meta.url));
 if (executadoDiretamente) {
     const arquivos = [...listar(SRC_DIR), path.join(RAIZ, 'ui-tokens.css')]
         .filter((f) => /\.(ts|tsx|css)$/.test(f) && fs.existsSync(f));
-    const violacoes = verificar(arquivos);
+    const violacoes = [...verificar(arquivos), ...ENTRADAS_SEM_LEAFLET.flatMap((e) => verificarEntradaSemLeaflet(path.join(SRC_DIR, e)))];
     for (const v of violacoes) {
         console.error(`❌ ${path.relative(process.cwd(), v.arquivo)}`);
         console.error(`   ${v.motivo}\n`);

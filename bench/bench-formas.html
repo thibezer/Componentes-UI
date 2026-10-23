@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <title>Benchmark do canvas CAD (formas)</title>
+  <script>
+    /*
+     * rAF síncrono por canal de mensagens: o painel estrangula o requestAnimationFrame quando a janela perde o foco e os
+     * tempos saem falsos. Precisa rodar ANTES do Leaflet, que captura `window.requestAnimationFrame` ao carregar.
+     */
+    (function () {
+      var fila = [];
+      var postado = false;
+      var proximo = 1;
+      var canal = new MessageChannel();
+      canal.port1.onmessage = function () {
+        postado = false;
+        var lote = fila;
+        fila = [];
+        for (var i = 0; i < lote.length; i++) {
+          if (lote[i].ativo) { try { lote[i].cb(performance.now()); } catch (e) { console.error(e); } }
+        }
+      };
+      window.requestAnimationFrame = function (cb) {
+        var item = { id: proximo++, cb: cb, ativo: true };
+        fila.push(item);
+        if (!postado) { postado = true; canal.port2.postMessage(0); }
+        return item.id;
+      };
+      window.cancelAnimationFrame = function (id) {
+        for (var i = 0; i < fila.length; i++) if (fila[i].id === id) fila[i].ativo = false;
+      };
+      window.__rafOcioso = function () { return fila.length === 0 && !postado; };
+    })();
+  </script>
+  <style>
+    html, body { margin: 0; background: #0f172a; color: #e2e8f0; font: 13px/1.4 system-ui, sans-serif; }
+    #acoes { position: absolute; left: 0; top: 0; width: 1280px; height: 44px; box-sizing: border-box; display: flex; gap: 8px; align-items: center; padding: 0 12px; }
+    #acoes button { background: #1e293b; color: #e2e8f0; border: 1px solid #334155; border-radius: 6px; padding: 5px 10px; font: inherit; cursor: pointer; }
+    #acoes button:disabled { opacity: .5; cursor: wait; }
+    #acoes small { color: #94a3b8; }
+    #palco { position: absolute; left: 0; top: 44px; width: 1280px; height: 800px; }
+    #palco ui-canvas-cad { display: block; width: 100%; height: 100%; }
+    #saida { position: absolute; left: 0; top: 864px; margin: 0; padding: 8px 12px; white-space: pre; font: 12px/1.4 ui-monospace, Consolas, monospace; }
+  </style>
+</head>
+<body>
+  <div id="acoes">
+    <button id="b-protocolo" data-medicao>Protocolo completo (~20 min)</button>
+    <button id="b-intercalado" data-medicao>Canvas × leaflet</button>
+    <button id="b-limites" data-medicao>Escolher limite</button>
+    <button id="b-rapido" data-medicao>Teste rápido (1 min)</button>
+    <button id="b-copiar">Copiar resultado</button>
+    <small>Recarregue a página antes de cada medição longa. Deixe a janela visível e em foco.</small>
+  </div>
+  <div id="palco"></div>
+  <pre id="saida">Benchmark carregando… use window.__bench.rodar({ ... }) no console.</pre>
+  <script type="module" src="./bench_formas.ts"></script>
+</body>
+</html>

@@ -93,6 +93,11 @@
       "import": "./dist/canvas.js",
       "require": "./dist/canvas.cjs"
     },
+    "./motor": {
+      "types": "./dist/motor.d.ts",
+      "import": "./dist/motor.js",
+      "require": "./dist/motor.cjs"
+    },
     "./botao": {
       "types": "./dist/botao.d.ts",
       "import": "./dist/botao.js",

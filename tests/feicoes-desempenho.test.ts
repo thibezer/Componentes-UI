@@ -1,13 +1,16 @@
-import { describe, it, expect, afterEach, vi } from 'vitest';
+import { describe, it, expect, afterEach, beforeAll, vi } from 'vitest';
 import L from 'leaflet';
 import { IndiceEspacial, caixaDaFeicao, type CaixaGeo } from '../src/gerencigeo-canvas/feature_indice';
 import {
-  toleranciaPorZoom, simplificarLinha, simplificarAnel, simplificarGeometria, MIN_VERTICES_SIMPLIFICAR
+  toleranciaPorZoom, simplificarLinha, simplificarAnel, simplificarGeometria, MIN_VERTICES_SIMPLIFICAR, ZOOM_SEM_SIMPLIFICACAO
 } from '../src/gerencigeo-canvas/feature_simplificacao';
 import { agruparPontos, deveAgrupar, type PontoCluster } from '../src/gerencigeo-canvas/feature_cluster';
 import { FeicoesLayerRenderer, COR_SELECAO } from '../src/gerencigeo-canvas/renderers/feicoes_renderer';
 import type { Feicao, LatLonPar } from '../src/gerencigeo-canvas/feature_types';
 import type { CanvasLayerDef, CanvasRenderContext } from '../src/gerencigeo-canvas/types';
+import { MotorFormas } from '../src/gerencigeo-canvas/motor/motor-formas';
+import { projetarMercator } from '../src/gerencigeo-canvas/feature_lod';
+import type { ListaDesenho, Vista } from '../src/gerencigeo-canvas/motor/tipos';
 
 afterEach(() => { document.body.innerHTML = ''; });
 
@@ -101,10 +104,11 @@ describe('IndiceEspacial', () => {
 describe('simplificação por zoom', () => {
   const reta = (n: number): LatLonPar[] => Array.from({ length: n }, (_, i) => [i * 1e-4, 0.00001 * (i % 2)]);
 
-  it('só simplifica abaixo do zoom 12', () => {
-    expect(toleranciaPorZoom(12)).toBe(0);
+  it('só simplifica abaixo de ZOOM_SEM_SIMPLIFICACAO (17)', () => {
+    expect(toleranciaPorZoom(ZOOM_SEM_SIMPLIFICACAO)).toBe(0);
     expect(toleranciaPorZoom(18)).toBe(0);
-    expect(toleranciaPorZoom(11)).toBeGreaterThan(0);
+    expect(toleranciaPorZoom(12)).toBeGreaterThan(0);
+    expect(toleranciaPorZoom(ZOOM_SEM_SIMPLIFICACAO - 1)).toBeGreaterThan(0);
     expect(toleranciaPorZoom(5)).toBeGreaterThan(toleranciaPorZoom(8));
   });
 
@@ -130,7 +134,7 @@ describe('simplificação por zoom', () => {
     const g = { tipo: 'LineString' as const, coordenadas: reta(MIN_VERTICES_SIMPLIFICAR - 1) };
     expect(simplificarGeometria(g, 5)).toBe(g);
     const grande = { tipo: 'LineString' as const, coordenadas: reta(500) };
-    expect(simplificarGeometria(grande, 14)).toBe(grande);
+    expect(simplificarGeometria(grande, ZOOM_SEM_SIMPLIFICACAO)).toBe(grande);
     const s = simplificarGeometria(grande, 5);
     expect(s).not.toBe(grande);
     expect((s as typeof grande).coordenadas.length).toBeLessThan(500);
@@ -272,7 +276,7 @@ describe('renderizador: culling, clusters e simplificação', () => {
     expect(map.getZoom()).toBeGreaterThanOrEqual(zoomAntes);
   });
 
-  it('simplifica só o desenho: abaixo do zoom 12 a camada tem menos vértices, a feição original fica intacta', () => {
+  it('simplifica só o desenho: abaixo do zoom 17 a camada tem menos vértices, a feição original fica intacta', () => {
     const map = mapa(8);
     const r = new FeicoesLayerRenderer();
     const coords: LatLonPar[] = Array.from({ length: 400 }, (_, i) => [-23.5 + i * 1e-4, -46.6 + (i % 2) * 1e-7]);
@@ -282,7 +286,7 @@ describe('renderizador: culling, clusters e simplificação', () => {
     expect((desenhada.getLatLngs() as L.LatLng[]).length).toBeLessThan(10);
     expect((linha.geometria as { coordenadas: LatLonPar[] }).coordenadas).toHaveLength(400);
 
-    map.setZoom(14, { animate: false });
+    map.setZoom(ZOOM_SEM_SIMPLIFICACAO, { animate: false });
     return new Promise<void>((res) => setTimeout(() => {
       expect((desenhada.getLatLngs() as L.LatLng[]).length).toBe(400);
       res();
@@ -301,4 +305,193 @@ describe('renderizador: culling, clusters e simplificação', () => {
     expect(g.getLayers().map((l) => L.Util.stamp(l))).toEqual(antes);
     expect((g.getLayers()[0] as L.CircleMarker).getLatLng().lat).toBeCloseTo(-23.4);
   });
+});
+
+describe('Fase 1 do motor de formas: LOD em pixels e seleção incremental (orçamentos folgados para CI lenta)', () => {
+  const ctx2 = { onLayerAction: vi.fn(), config: {}, graphicScale: {} } as unknown as CanvasRenderContext;
+  const mLat = 1 / 111320;
+  const mLon = 1 / (111320 * Math.cos((23.5 * Math.PI) / 180));
+
+  function mapa2(zoom: number): L.Map {
+    const el = document.createElement('div');
+    Object.defineProperty(el, 'clientWidth', { value: 800 });
+    Object.defineProperty(el, 'clientHeight', { value: 600 });
+    document.body.appendChild(el);
+    return L.map(el, { preferCanvas: true, center: [-23.5, -46.6], zoom });
+  }
+
+  /** `n` quadrados de `lado` metros espalhados num bloco de ~13 km (semente fixa). */
+  function quadrados(n: number, lado: number): Feicao[] {
+    const rnd = semente(99);
+    return Array.from({ length: n }, (_, i) => {
+      const lat = -23.5 + (rnd() - 0.5) * 0.12;
+      const lon = -46.6 + (rnd() - 0.5) * 0.13;
+      return {
+        id: `q${i}`, camadaId: 'c', propriedades: {},
+        geometria: { tipo: 'Polygon', aneis: [[[lat, lon], [lat, lon + lado * mLon], [lat + lado * mLat, lon + lado * mLon], [lat + lado * mLat, lon]]] }
+      } as Feicao;
+    });
+  }
+  const def2 = (feicoes: Feicao[]): CanvasLayerDef => ({
+    id: 'c', nome: 'C', categoria: 'custom', tipo: 'feicoes', visivel: true, opacidade: 1,
+    zIndex: 600, interativo: true, estilo: {}, dados: { feicoes }
+  });
+
+  it('20 mil polígonos de 40 m em zoom 12: todos viram marca (zero objetos Leaflet) e o desenho é rápido', () => {
+    const map = mapa2(12);
+    const r = new FeicoesLayerRenderer();
+    const t0 = performance.now();
+    const g = r.render(def2(quadrados(20000, 40)), map, ctx2);
+    const ms = performance.now() - t0;
+    expect(r.estatisticas(g)).toMatchObject({ total: 20000, materializadas: 0, marcasLOD: 20000 });
+    expect(g.getLayers()).toHaveLength(0);
+    expect(ms).toBeLessThan(5000);
+  });
+
+  it('LOD no hot path: mudança de vista com 20 mil marcas reaproveita o cache (zero reavaliações no pan)', async () => {
+    const map = mapa2(12);
+    const r = new FeicoesLayerRenderer();
+    const g = r.render(def2(quadrados(20000, 40)), map, ctx2);
+    const avaliacoes = r.estatisticas(g)!.avaliacoesLOD;
+    const t0 = performance.now();
+    map.panBy([60, 20], { animate: false });
+    await new Promise((res) => setTimeout(res, 50));
+    expect(performance.now() - t0).toBeLessThan(2000);
+    expect(r.estatisticas(g)!.avaliacoesLOD).toBe(avaliacoes);
+  });
+
+  it('selecionar 1 feição entre milhares de formas na tela: sem reconciliar a camada e em poucos ms', () => {
+    const map = mapa2(16);
+    const r = new FeicoesLayerRenderer();
+    const g = r.render(def2(quadrados(2000, 40).map((f, i) => ({ ...f, geometria: deslocar(i) }))), map, ctx2);
+    const reconciliar = vi.spyOn(r as unknown as { reconciliar: () => void }, 'reconciliar');
+    const alvo = r.idsDesenhados(g)!.materializadas[0];
+    expect(alvo).toBeDefined();
+    const t0 = performance.now();
+    r.aplicarSelecao(g, new Set([alvo]));
+    const ms = performance.now() - t0;
+    expect(reconciliar).not.toHaveBeenCalled();
+    expect(ms).toBeLessThan(100); // meta de produto: ≤ 20 ms no navegador; aqui há folga para CI lenta
+  });
+
+  /** Reposiciona o quadrado `i` junto ao centro do mapa (dentro da tela em zoom 16). */
+  function deslocar(i: number): Feicao['geometria'] {
+    const lat = -23.5 + (i % 40) * 0.0001;
+    const lon = -46.6 + Math.floor(i / 40) * 0.0001;
+    return { tipo: 'Polygon', aneis: [[[lat, lon], [lat, lon + 40 * mLon], [lat + 40 * mLat, lon + 40 * mLon], [lat + 40 * mLat, lon]]] };
+  }
+
+  it('a seleção de 1 feição custa o mesmo com 2 mil ou com 20 mil na camada (O(mudanças))', () => {
+    const tempo = (n: number): number => {
+      document.body.innerHTML = '';
+      const map = mapa2(12);
+      const r = new FeicoesLayerRenderer();
+      const g = r.render(def2(quadrados(n, 40)), map, ctx2);
+      const t0 = performance.now();
+      for (let i = 0; i < 20; i++) r.aplicarSelecao(g, new Set([`q${i}`]));
+      return performance.now() - t0;
+    };
+    tempo(2000);
+    const pequeno = tempo(2000);
+    const grande = tempo(20000);
+    expect(grande).toBeLessThan(Math.max(pequeno * 6, 50));
+  });
+});
+
+describe('motor das formas (Fases 2–3): orçamentos do caminho canvas com 100 mil feições (folgados para CI lenta)', () => {
+  const mLat = 1 / 111320;
+  const mLon = 1 / (111320 * Math.cos((23.5 * Math.PI) / 180));
+  const CENTRO: LatLonPar = [-23.5, -46.6];
+
+  /** `n` quadrados de `lado` metros num bloco de ~13 km em volta de CENTRO (semente fixa). */
+  function quadrados(n: number, lado: number): Feicao[] {
+    const rnd = semente(2024);
+    return Array.from({ length: n }, (_, i) => {
+      const lat = CENTRO[0] + (rnd() - 0.5) * 0.12;
+      const lon = CENTRO[1] + (rnd() - 0.5) * 0.13;
+      return {
+        id: `q${i}`, camadaId: 'c', propriedades: {},
+        geometria: { tipo: 'Polygon', aneis: [[[lat, lon], [lat, lon + lado * mLon], [lat + lado * mLat, lon + lado * mLon], [lat + lado * mLat, lon]]] }
+      } as Feicao;
+    });
+  }
+
+  /**
+   * Vista de `w`×`h` px com o canto superior esquerdo em `origem` (pixels de mundo). `sub` recorta uma faixa dela,
+   * como o pan incremental faz: a origem continua a do canvas inteiro e só a caixa encolhe.
+   */
+  function vista(zoom: number, origem: { x: number; y: number }, w = 800, h = 600, sub?: { x: number; y: number; w: number; h: number }): Vista {
+    const escala = 256 * 2 ** zoom;
+    const lon = (x: number) => (x / escala) * 360 - 180;
+    const lat = (y: number) => (Math.atan(Math.sinh(Math.PI * (1 - (2 * y) / escala))) * 180) / Math.PI;
+    const r = sub ?? { x: 0, y: 0, w, h };
+    return {
+      zoom, larguraPx: r.w, alturaPx: r.h, dpr: 1, origemPx: origem,
+      caixa: { minLon: lon(origem.x + r.x), maxLon: lon(origem.x + r.x + r.w), maxLat: lat(origem.y + r.y), minLat: lat(origem.y + r.y + r.h) }
+    };
+  }
+  const origemEm = (zoom: number, w = 800, h = 600) => {
+    const c = projetarMercator(CENTRO[0], CENTRO[1], zoom);
+    return { x: c.x - w / 2, y: c.y - h / 2 };
+  };
+  const itens = (l: ListaDesenho) => l.camadas.reduce((t, c) => t + c.itens.length, 0);
+
+  const motor = new MotorFormas();
+  motor.definirCamada({ id: 'c', zIndex: 600, opacidade: 1, visivel: true, interativo: true, estilo: {} });
+  beforeAll(() => { motor.definirFeicoes('c', quadrados(100_000, 40)); }, 60_000);
+
+  it('listaDesenho em zoom 12 (tudo na tela, tudo vira marca): primeira vista e mudança de vista dentro do orçamento', () => {
+    const o = origemEm(12);
+    const t0 = performance.now();
+    const primeira = motor.listaDesenho(vista(12, o));
+    const fria = performance.now() - t0;
+    expect(itens(primeira)).toBe(100_000);
+    expect(primeira.camadas[0].itens.every((i) => i.forma === 'marca')).toBe(true);
+
+    const t1 = performance.now();
+    for (let k = 1; k <= 5; k++) motor.listaDesenho(vista(12, { x: o.x + k * 40, y: o.y + k * 15 }));
+    const quente = (performance.now() - t1) / 5;
+    // medido isolado: ~650 ms frio e ~140 ms por vista com o item da marca em cache (antes ~450 ms); folga para a suíte
+    // em paralelo e CI lenta (docs/desempenho-feicoes.md)
+    expect(fria).toBeLessThan(15000);
+    expect(quente).toBeLessThan(6000);
+  }, 60_000);
+
+  it('pan incremental em zoom 15: a faixa exposta lista uma fração das formas e custa menos que a vista inteira', () => {
+    const o = origemEm(15);
+    const nInteira = itens(motor.listaDesenho(vista(15, o))); // aquece o cache de projeção desse zoom
+    expect(nInteira).toBeGreaterThan(1000);
+
+    const medir = (f: () => ListaDesenho): { ms: number; n: number } => {
+      let n = 0;
+      const t = performance.now();
+      for (let k = 0; k < 10; k++) n = itens(f());
+      return { ms: (performance.now() - t) / 10, n };
+    };
+    const cheia = medir(() => motor.listaDesenho(vista(15, o)));
+    const faixa = medir(() => motor.listaDesenho(vista(15, o, 800, 600, { x: 680, y: 0, w: 120, h: 600 }), { parte: 'canvas' }));
+    expect(faixa.n).toBeGreaterThan(0);
+    expect(faixa.n).toBeLessThan(nInteira * 0.4);
+    expect(faixa.ms).toBeLessThan(Math.max(cheia.ms, 5));
+    expect(cheia.ms).toBeLessThan(3000);
+  }, 30_000);
+
+  it('hover: consultarCaixa de alguns px em 100 mil feições fica no orçamento de quadro (≤ 16 ms por consulta)', () => {
+    const rnd = semente(5);
+    const meio = (8 / (256 * 2 ** 15)) * 360; // ~8 px em zoom 15
+    let achados = 0;
+    let pior = 0;
+    const t0 = performance.now();
+    for (let q = 0; q < 1000; q++) {
+      const lat = CENTRO[0] + (rnd() - 0.5) * 0.12;
+      const lon = CENTRO[1] + (rnd() - 0.5) * 0.13;
+      const t = performance.now();
+      achados += motor.consultarCaixa('c', { minLat: lat - meio, maxLat: lat + meio, minLon: lon - meio, maxLon: lon + meio }).length;
+      pior = Math.max(pior, performance.now() - t);
+    }
+    const media = (performance.now() - t0) / 1000;
+    expect(achados).toBeGreaterThan(0);
+    expect(media).toBeLessThan(16);
+    expect(pior).toBeLessThan(500); // uma pausa isolada de GC não reprova; a meta é a média
+  }, 30_000);
 });

@@ -26,6 +26,7 @@ if (typeof HTMLCanvasElement !== 'undefined') {
         save: () => {},
         restore: () => {},
         setTransform: () => {},
+        setLineDash: () => {},
         resetTransform: () => {},
         fillRect: () => {},
         strokeRect: () => {},
