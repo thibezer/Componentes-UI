@@ -14,21 +14,8 @@ export function sincronizarCamadaAtivaDOM(host: CamadasHostCompleto, shadow: Sha
     const lid = row.getAttribute('data-layer-row');
     const isAtiva = lid === host.camadaAtivaId;
     row.classList.toggle('active-drawing-layer', isAtiva);
-
-    const nameCol = row.querySelector('.ui-col-name');
-    if (nameCol) {
-      let badge = nameCol.querySelector('.ui-active-badge');
-      if (isAtiva && !badge) {
-        badge = document.createElement('span');
-        badge.className = 'ui-active-badge';
-        badge.textContent = '✓ Ativa';
-        const chip = nameCol.querySelector('.ui-count-chip');
-        if (chip) nameCol.insertBefore(badge, chip);
-        else nameCol.appendChild(badge);
-      } else if (!isAtiva && badge) {
-        badge.remove();
-      }
-    }
+    if (isAtiva) row.setAttribute('aria-current', 'true');
+    else row.removeAttribute('aria-current');
   });
 }
 

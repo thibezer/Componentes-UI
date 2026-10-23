@@ -408,9 +408,9 @@
 }
 
 .ui-layer-row.active-drawing-layer {
-  background: color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 12%, transparent) !important;
+  background: color-mix(in srgb, var(--layer-active-color, var(--ui-cor-primaria, #00E08A)) 18%, var(--ui-cor-fundo-elevado, #18181d)) !important;
   border-left: 3px solid var(--layer-active-color, var(--ui-cor-primaria, #00E08A)) !important;
-  box-shadow: inset 0 0 12px color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 7%, transparent);
+  box-shadow: inset 0 0 12px color-mix(in srgb, var(--layer-active-color, var(--ui-cor-primaria, #00E08A)) 10%, transparent);
 }
 
 .ui-layer-row.active-drawing-layer .ui-name-text {
@@ -419,6 +419,9 @@
 }
 
 .ui-feat-row {
+  /* Mesmas colunas fixas da linha da camada: borda de 3px + vaga da alça de arraste */
+  border-left: 3px solid transparent;
+  padding-left: 13px;
   background: var(--ui-cor-fundo, #101014);
   font-weight: 400;
   cursor: pointer;
@@ -429,8 +432,8 @@
 }
 
 .ui-feat-row.selected-row {
-  background: color-mix(in srgb, var(--ui-cor-texto-info, #33b5ff) 18%, transparent) !important;
-  outline: 1px solid color-mix(in srgb, var(--ui-cor-texto-info, #33b5ff) 50%, transparent) !important;
+  background: color-mix(in srgb, var(--layer-active-color, var(--ui-cor-texto-info, #33b5ff)) 20%, var(--ui-cor-fundo, #101014)) !important;
+  outline: 1px solid color-mix(in srgb, var(--layer-active-color, var(--ui-cor-texto-info, #33b5ff)) 55%, transparent) !important;
   outline-offset: -1px;
 }
 
@@ -486,15 +489,7 @@
 
 /* Subcamadas e Hierarquia de Árvore */
 .ui-layer-row.is-sublayer {
-  padding-left: calc(6px + var(--layer-depth, 1) * 16px);
   background: color-mix(in srgb, var(--ui-cor-fundo-elevado, #18181d) 70%, transparent);
-  border-left: 2px solid color-mix(in srgb, var(--layer-active-color, #00E08A) 40%, transparent);
-}
-
-.ui-children-container.is-subchildren {
-  position: relative;
-  margin-left: calc(var(--layer-depth, 0) * 8px);
-  border-left: 1px dashed var(--ui-cor-borda, rgba(255, 255, 255, 0.1));
 }
 
 .ui-group-folder-icon {
@@ -503,20 +498,6 @@
   justify-content: center;
   color: var(--ui-cor-texto-alerta, #ffb86c);
   margin-right: 4px;
-  flex-shrink: 0;
-}
-
-.ui-group-badge {
-  font-size: 8.5px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  padding: 1px 4px;
-  border-radius: 3px;
-  background: color-mix(in srgb, var(--ui-cor-texto-alerta, #ffb86c) 15%, transparent);
-  color: var(--ui-cor-texto-alerta, #ffb86c);
-  border: 1px solid color-mix(in srgb, var(--ui-cor-texto-alerta, #ffb86c) 30%, transparent);
-  margin-left: 4px;
   flex-shrink: 0;
 }
 
@@ -530,7 +511,8 @@
 }
 
 .ui-col-drag {
-  width: 14px;
+  width: 8px;
+  margin-right: 1px;
   cursor: grab;
   color: var(--ui-cor-texto-secundario, #888899);
   opacity: 0.35;
@@ -570,6 +552,31 @@
   margin: 0 3px 0 2px;
   border-radius: 1.5px;
   flex-shrink: 0;
+}
+
+/* Barra de cor da camada: editável (área de clique maior que o traço visível) */
+.ui-col-colorbar-editavel {
+  position: relative;
+  width: 5px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.ui-col-colorbar-editavel::before {
+  content: '';
+  position: absolute;
+  inset: -3px -4px;
+}
+
+.ui-col-colorbar-editavel:hover,
+.ui-col-colorbar-editavel:focus-visible {
+  filter: brightness(1.3);
+  outline: none;
+}
+
+.ui-col-chevron,
+.ui-col-branch {
+  margin-left: calc(var(--layer-depth, 0) * 12px);
 }
 
 .ui-col-chevron {
@@ -647,36 +654,14 @@
   white-space: nowrap;
 }
 
-.ui-active-badge {
-  font-size: 8px;
-  font-weight: 700;
-  color: var(--ui-cor-texto-sobre-primaria, #000000);
-  background: var(--ui-cor-primaria, #00E08A);
-  border: 1px solid color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 45%, transparent);
-  padding: 1px 4px;
-  border-radius: 3px;
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  white-space: nowrap;
-  flex-shrink: 0;
-  animation: pulseBadge 2.8s infinite;
-}
-
-@keyframes pulseBadge {
-  0% { opacity: 0.85; }
-  50% { opacity: 1; filter: drop-shadow(0 0 4px color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 50%, transparent)); }
-  100% { opacity: 0.85; }
-}
-
 .ui-count-chip {
   font-size: 9px;
   font-family: var(--ui-fonte-codigo, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
   font-variant-numeric: tabular-nums;
-  color: var(--ui-cor-texto, #e1e1e6);
-  background: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 6%, transparent);
-  padding: 0 4px;
-  border-radius: 8px;
+  color: var(--ui-cor-texto-secundario, #888899);
+  font-weight: 400;
+  padding: 0 2px;
+  flex-shrink: 0;
 }
 
 .ui-col-actions {
@@ -737,14 +722,14 @@
 }
 
 .ui-target-circle.selected {
-  border: 2px solid var(--ui-cor-texto-info, #33b5ff);
-  background: var(--ui-cor-texto-info, #33b5ff);
+  border: 2px solid var(--layer-active-color, var(--ui-cor-texto-info, #33b5ff));
+  background: var(--layer-active-color, var(--ui-cor-texto-info, #33b5ff));
   box-shadow: inset 0 0 0 2px var(--ui-cor-superficie, #141418);
 }
 
 .ui-target-circle.partial {
-  border: 2px solid var(--ui-cor-texto-info, #33b5ff);
-  background: color-mix(in srgb, var(--ui-cor-texto-info, #33b5ff) 40%, transparent);
+  border: 2px solid var(--layer-active-color, var(--ui-cor-texto-info, #33b5ff));
+  background: color-mix(in srgb, var(--layer-active-color, var(--ui-cor-texto-info, #33b5ff)) 40%, transparent);
 }
 
 /* Edição Inline de Nomes */
@@ -1044,28 +1029,15 @@
   100% { transform: scale(1); }
 }
 
-/* Tags de Geometria (Oficial / Prévia) */
-.ui-geom-tag {
-  font-size: 8px;
-  font-weight: 700;
-  letter-spacing: 0.4px;
-  padding: 1px 4px;
-  border-radius: 3px;
+/* Geometria prévia: marcador discreto (o estado oficial, padrão, não leva selo) */
+.ui-previa-dot {
+  width: 6px;
+  height: 6px;
   margin-left: 4px;
-  text-transform: uppercase;
+  border-radius: 50%;
   flex-shrink: 0;
-}
-
-.ui-geom-tag.oficial {
-  background: color-mix(in srgb, var(--ui-cor-texto-sucesso, #00E08A) 16%, transparent);
-  color: var(--ui-cor-texto-sucesso, #00E08A);
-  border: 1px solid color-mix(in srgb, var(--ui-cor-texto-sucesso, #00E08A) 35%, transparent);
-}
-
-.ui-geom-tag.previa {
-  background: color-mix(in srgb, var(--ui-cor-texto-alerta, #ffb86c) 16%, transparent);
-  color: var(--ui-cor-texto-alerta, #ffb86c);
-  border: 1px solid color-mix(in srgb, var(--ui-cor-texto-alerta, #ffb86c) 35%, transparent);
+  background: var(--ui-cor-texto-alerta, #ffb86c);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ui-cor-texto-alerta, #ffb86c) 25%, transparent);
 }
 
 /* Rodapé de Ações em Massa (Ações Coletivas) */

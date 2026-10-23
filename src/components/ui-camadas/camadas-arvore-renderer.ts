@@ -149,18 +149,16 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
             : 'Bloquear Feição';
         const isFeatSelected = selectedFeatureIds.has(feat.id);
 
-        const status = feat.status;
-        let statusTag = '';
-        if (status === 'oficial') {
-          statusTag = `<span class="ui-geom-tag oficial" title="Geometria Oficial">OFICIAL</span>`;
-        } else if (status === 'previa') {
-          statusTag = `<span class="ui-geom-tag previa" title="Geometria Prévia">PRÉVIA</span>`;
-        }
+        // Estilo Adobe: o estado padrão (oficial) não ganha selo; só a exceção (prévia) é sinalizada
+        const statusTag =
+          feat.status === 'previa'
+            ? `<span class="ui-previa-dot" title="Geometria prévia" aria-label="Geometria prévia"></span>`
+            : '';
 
         return `
           <div class="ui-feat-row ${isFeatSelected ? 'selected-row' : ''} ${
           !isFeatVisible ? 'hidden-row' : ''
-        }" data-feat-row="${featId}" data-feat-select="${featId}" data-feat-layer="${safeId}" role="treeitem" aria-selected="${isFeatSelected}" tabindex="-1" draggable="true" title="Clique para selecionar | Arraste para reordenar">
+        }" data-feat-row="${featId}" data-feat-select="${featId}" data-feat-layer="${safeId}" role="treeitem" aria-selected="${isFeatSelected}" tabindex="-1" draggable="true" style="--layer-depth: ${depth + 1};" title="Clique para selecionar | Arraste para reordenar">
             <div class="ui-col ui-col-eye" data-feat-eye="${featId}" role="button" tabindex="0" aria-label="${
           isFeatVisible ? 'Ocultar Feição' : 'Exibir Feição'
         }" title="${
@@ -294,10 +292,10 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
     const subcamadasHtml = subcamadasExibidas.map((sub) => renderizarNodo(sub)).join('');
 
     return `
-      <div class="ui-layer-group ${depth > 0 ? 'is-sublayer-group' : ''}" data-layer-id="${safeId}" data-layer-depth="${depth}" role="treeitem" aria-expanded="${isExpanded}">
+      <div class="ui-layer-group ${depth > 0 ? 'is-sublayer-group' : ''}" data-layer-id="${safeId}" data-layer-depth="${depth}" role="treeitem" aria-expanded="${isExpanded}" style="--layer-active-color: ${safeColor};">
         <div class="ui-layer-row ${!isVisible ? 'hidden-layer' : ''} ${
       isActiveLayer ? 'active-drawing-layer' : ''
-    } ${depth > 0 ? 'is-sublayer' : ''} ${isGroup ? 'is-group-row' : ''}" data-layer-row="${safeId}" data-layer-id="${safeId}" tabindex="-1" draggable="true" style="--layer-depth: ${depth}; --layer-active-color: ${safeColor};">
+    } ${depth > 0 ? 'is-sublayer' : ''} ${isGroup ? 'is-group-row' : ''}" data-layer-row="${safeId}" data-layer-id="${safeId}" tabindex="-1" draggable="true" ${isActiveLayer ? 'aria-current="true"' : ''} style="--layer-depth: ${depth};">
           <div class="ui-col ui-col-drag" title="Arrastar para reordenar Z-Index">${ICONES.dragHandle}</div>
 
           <div class="ui-col ui-col-eye" data-layer-eye="${safeId}" role="button" tabindex="0" aria-label="${
@@ -316,7 +314,7 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
             ${isLocked ? ICONES.cadeadoTrancado : ICONES.cadeadoAberto}
           </div>
 
-          <div class="ui-col ui-col-colorbar" style="background: ${safeColor};"></div>
+          <div class="ui-col ui-col-colorbar ui-col-colorbar-editavel" data-layer-color="${safeId}" role="button" tabindex="0" style="background: ${safeColor};" aria-label="Alterar cor da camada" title="Alterar cor da camada (usada no destaque de seleção)"></div>
 
           <div class="ui-col ui-col-chevron" data-layer-expand="${safeId}" role="button" tabindex="0" aria-label="${isExpanded ? 'Recolher grupo' : 'Expandir grupo'}">
             <span class="ui-chevron-icon ${isExpanded ? 'open' : ''}">${ICONES.chevronDir}</span>
@@ -328,9 +326,7 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
                 ? `<input type="text" class="ui-inline-rename-input" data-inline-layer-input="${safeId}" value="${safeName}" />`
                 : `${isGroup ? `<span class="ui-group-folder-icon" title="Grupo/Pasta">${ICONES.moverPasta}</span>` : ''}
                    <span class="ui-name-text">${safeName}</span>
-                   ${isActiveLayer ? `<span class="ui-active-badge" title="Camada ativa para novos desenhos">✓ Ativa</span>` : ''}
-                   ${subcamadas.length > 0 ? `<span class="ui-group-badge" title="${subcamadas.length} subcamadas">${subcamadas.length} sub</span>` : ''}
-                   ${layerFeats.length > 0 || !isGroup ? `<span class="ui-count-chip">${layerFeats.length}</span>` : ''}`
+                   ${layerFeats.length > 0 || !isGroup ? `<span class="ui-count-chip" title="${layerFeats.length} ${layerFeats.length === 1 ? 'feição' : 'feições'}${subcamadas.length > 0 ? ` · ${subcamadas.length} subcamadas` : ''}">${layerFeats.length}</span>` : ''}`
             }
           </div>
 

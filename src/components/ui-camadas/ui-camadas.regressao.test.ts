@@ -733,4 +733,57 @@ describe('UICamadas - regressões', () => {
       expect(sr(el).querySelector('[data-basemap-toggle]')).toBeNull();
     });
   });
+
+  describe('linha da camada (estilo Adobe)', () => {
+    it('não exibe selos de camada ativa, subcamadas nem status oficial', () => {
+      const camadas: CamadaItem[] = [
+        { id: 'g', name: 'Grupo', isGroup: true },
+        { id: 'c0', name: 'Camada 0', color: '#38bdf8', parentId: 'g' }
+      ];
+      const feicoes = criarFeicoes(1).map((f) => ({ ...f, status: 'oficial' }));
+      const el = criarPainel(camadas, feicoes);
+      el.definirCamadaAtiva('c0');
+      const html = sr(el).innerHTML;
+      expect(html).not.toContain('ui-active-badge');
+      expect(html).not.toContain('ui-group-badge');
+      expect(html).not.toContain('OFICIAL');
+      expect(q(el, '[data-layer-row="c0"]').getAttribute('aria-current')).toBe('true');
+      el.definirCamadaAtiva('g');
+      expect(q(el, '[data-layer-row="c0"]').hasAttribute('aria-current')).toBe(false);
+    });
+
+    it('a cor da camada fica no grupo, para o destaque de seleção da camada e das feições', () => {
+      const el = criarPainel(camadasPadrao(), criarFeicoes(1, 'c1'));
+      const grupo = q(el, '.ui-layer-group[data-layer-id="c1"]');
+      expect(grupo.style.getPropertyValue('--layer-active-color')).toBe('#38bdf8');
+    });
+
+    it('a barra de cor é editável e atualiza camada, barra e destaque, disparando ui-camada-cor', () => {
+      const el = criarPainel(camadasPadrao(), criarFeicoes(1, 'c1'));
+      const aoMudar = vi.fn();
+      el.addEventListener('ui-camada-cor', aoMudar);
+
+      q(el, '[data-layer-color="c1"]').click();
+      const seletor = document.querySelector('ui-seletor-cor') as HTMLElement;
+      expect(seletor).toBeTruthy();
+
+      const hex = seletor.shadowRoot!.querySelector('input[type="text"]') as HTMLInputElement;
+      hex.value = '#ff3b8d';
+      hex.dispatchEvent(new Event('input', { bubbles: true }));
+
+      expect(aoMudar).toHaveBeenCalled();
+      expect(aoMudar.mock.lastCall![0].detail).toEqual({ camadaId: 'c1', cor: '#ff3b8d' });
+      expect(q(el, '.ui-layer-group[data-layer-id="c1"]').style.getPropertyValue('--layer-active-color')).toBe('#ff3b8d');
+      expect(q(el, '[data-layer-color="c1"]').style.backgroundColor).toMatch(/^(#ff3b8d|rgb\(255, 59, 141\))$/);
+      seletor.remove();
+    });
+
+    it('clicar na barra de cor não ativa a camada', () => {
+      const el = criarPainel(camadasPadrao(), []);
+      el.definirCamadaAtiva('c0');
+      q(el, '[data-layer-color="c1"]').click();
+      expect(el.camadaAtivaId).toBe('c0');
+      document.querySelector('ui-seletor-cor')?.remove();
+    });
+  });
 });
