@@ -146,7 +146,7 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "preview": "vite preview",
-    "prepublishOnly": "npm test && npm run build && npm run test:tipos",
+    "prepublishOnly": "npm run check:release && npm test && npm run build && npm run test:tipos",
     "manifesto": "cem analyze --config custom-elements-manifest.config.mjs",
     "test:tipos": "tsc -p tests/tipos/tsconfig.json",
     "check:types": "tsc --noEmit",
@@ -155,7 +155,8 @@
     "test:run": "vitest run",
     "test:ssr": "vitest run tests/ssr-safety.test.ts",
     "gate": "npm run check:layers && npm run check:types && npm run test:run",
-    "gate:full": "npm run gate && npm run build && npm run check:framework-types"
+    "gate:full": "npm run gate && npm run build && npm run check:framework-types",
+    "check:release": "node scripts/check-release-branch.mjs"
   },
   "peerDependencies": {
     "leaflet": "^1.9.4"

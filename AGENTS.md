@@ -126,6 +126,7 @@ Uma feature ou refatoração no `Componentes-UI` **só está concluída** quando
 - [ ] **Design Tokens & Acessibilidade:** Usa variáveis de `src/tokens/`, expõe `::part()` padronizado, suporta navegação por teclado e respeita `alvo-digitavel.ts`.
 - [ ] **Suíte de Testes Verde:** Testes unitários, `*.regressao.test.ts` / `*-robustez.test.ts` e `ssr-safety.test.ts` passando sem avisos.
 - [ ] **Contratos Atualizados:** Tipos exportados em `tipos.ts`, entrypoints em `src/` íntegros e compatibilidade garantida com `tests/tipos/react.tsx` e `tests/tipos/vue.ts`.
+- [ ] **Sincronização & Release Guard:** Publicações no NPM são feitas exclusivamente a partir da `main` após merge de todos os PRs do ciclo (conforme `docs/protocolo-de-release-e-sincronizacao.md`), com `CHANGELOG.md` alinhado e sem seções "Não publicado".
 
 ---
 
