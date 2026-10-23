@@ -1,5 +1,92 @@
 # Changelog
 
+## 2.10.0 — 2026-10-23
+
+Junta à 2.9.0 o trabalho que tinha ficado fora do npm: o `<ui-area-texto>` e a lapidação dos textos (PR #10), a usabilidade do desenho e da edição de vértices, as curvas Bézier sempre à mão, o painel de camadas no estilo Adobe e a lapidação do `<ui-card>`.
+
+### Novo: `<ui-area-texto>` (alias `<ui-textarea>`) para textos grandes
+
+- Área de texto de várias linhas, form-associated (`name`, `value`, `required`, `minlength`/`maxlength`, `setCustomValidity`, `form.reset()`), com rótulo, ajuda/erro e os mesmos eventos do `<ui-campo-texto>` (`ui-input`, `ui-change`, `input`, `change`).
+- `linhas` (1–50, padrão 4), `auto-altura` (cresce com o conteúdo, sem pular a rolagem da página) com `linhas-max` como teto, `redimensionar` (`nenhum`|`vertical`|`horizontal`|`ambos`) e `contador` (usa `maxlength` como limite).
+- **Enter insere quebra de linha** e não submete o formulário. **Ctrl/Cmd + Enter** emite `ui-enviar` (`detail: { value }`).
+- Acessibilidade: nome acessível pelo `label`, `aria-label` do host, `<label for>` ou `<label>` envolvente; `aria-required`; `aria-describedby` só com a ajuda visível; o contador avisa leitores de tela apenas quando muda de nível (perto do limite, atingido, excedido), não a cada tecla.
+- API programática: `focus()`, `blur()`, `select()`, `setSelectionRange()`, `limpar()`, `readOnly`, `minLength`, `maxLength`.
+- Parts: `rotulo`, `campo`, `input`, `rodape`, `ajuda`, `contador`. Exportado por `index`, `register` e `forms`.
+
+### `<ui-texto>`: texto longo e lapidação
+
+- **Novo `linhas`:** limita o texto a N linhas (1–50) com reticências; `truncar` continua tendo prioridade. Valores inválidos são ignorados.
+- Palavras e URLs muito compridas passam a quebrar (`overflow-wrap`) em vez de estourar o contêiner; `alinhamento="justificado"` usa hifenização.
+- O elemento interno expõe `part="base"`. Sem DOM (SSR) o componente fica inerte, sem casts `any`.
+
+### `<ui-campo-texto>`: lapidação
+
+- **`minlength`/`maxlength` inválidos** (`abc`, vazio, negativo) eram repassados ao `<input>` como `NaN`; agora são ignorados, e os getters `minLength`/`maxLength` devolvem `-1` em vez de `NaN`.
+- Acessibilidade: `aria-required` no campo obrigatório; `aria-describedby` só referencia a ajuda enquanto ela está visível; a ajuda/erro é uma região `aria-live="polite"`, então mensagens de erro passam a ser anunciadas.
+- Ouvintes via `ListenerBag` e temporizador de sincronização cancelado ao desconectar/reconectar (sem `any`).
+
+### Núcleo
+
+- `core/opcoes`: `escolherInteiro` e `inteiroOuNulo` convertem atributos numéricos hostis (`NaN`, `Infinity`, texto, fora da faixa) em inteiros seguros. `sincronizarFeedbackErro` aceita `<textarea>` e um prefixo de classe opcional (padrão inalterado).
+
+### `<ui-canvas-cad>`: usabilidade do desenho e da edição de vértices
+
+
+
+- **Esc voltava a falhar depois do primeiro popup.** O Leaflet mantém `map._popup` apontando para o último popup mesmo fechado, e o atalho de teclado do mapa engole o Esc enquanto essa referência existe: com o foco no mapa, o Esc deixava de encerrar a edição de vértices, cancelar a figura em desenho e limpar a seleção. O mapa agora solta a referência no `popupclose` (`src/gerencigeo-canvas/popup_residual.ts`); popup aberto continua fechando com Esc.
+
+- **Enter em botões durante o desenho.** Com uma ferramenta ativa, o Enter era tratado como "concluir" mesmo com o foco num botão (barra de ferramentas, "Sair" do HUD), e o clique do botão não acontecia. O Enter agora fica com botões, links e controles com `role` acionável (`focoEmControleAcionavel`, em `src/core/alvo-digitavel.ts`).
+
+- **Ferramenta ou edição recusada agora avisa.** Sem camada de desenho (ou com camada bloqueada/inválida), e ao recusar a edição de uma feição (bloqueada, com furos, multiparte...), o componente mostra um aviso visível por 5 s e o anuncia na região viva, além de emitir `cad-desenho-recusado`/`cad-edicao-recusada` como antes. **Novo atributo `sem-avisos`**: o consumidor que mostra o próprio aviso a partir dos eventos desliga o do componente.
+
+- **Ponto médio arrastável na edição de vértices.** Arrastar o ponto médio de uma aresta cria o nó já na posição solta (com snap, prévia e HUD ao vivo e um único `cad-feicao-atualizada`); o clique continua inserindo no meio da aresta. Em feição com curva, o nó nasce sobre o traçado e a curva é mantida (antes, inserir um nó numa curva a convertia em poligonal). A dica do HUD passou a mencionar inserir e excluir.
+
+- **Toque.** Um toque que começa numa alça de edição, num ponto médio ou nos HUDs não move mais o mapa junto; alças de Bézier passam a ser tratadas como as demais alças pelo mouse (não iniciam caixa de seleção).
+
+- Testes de regressão em `tests/ui-canvas-cad-edicao.regressao.test.ts`.
+
+### Canvas CAD: curvas (Bézier) sempre à mão
+
+
+
+- **Editor de vértices**: as alças de Bézier agora aparecem **sempre**, inclusive em linhas/polígonos retos (alças latentes pontilhadas a 1/3 do vizinho, até 40 nós). Arrastar uma alça converte o nó em curva; `Shift` solta a simetria.
+
+- **Caneta**: as alças das âncoras já colocadas podem ser **ajustadas durante o desenho** (arraste a alça, ou a própria âncora para criar/ajustar a curva dela). `Shift` solta a simetria; o cursor muda ao passar sobre uma alça.
+
+- A dica do HUD de edição junta os gestos das duas mudanças acima (curvar pelas alças, ponto do meio, botão direito para excluir, duplo clique, Shift).
+
+### `<ui-camadas>`: painel de camadas no estilo Adobe
+
+- **Mudança visual:** os selos "✓ Ativa", "N SUB" e "OFICIAL" saem da linha da camada (a informação continua em `aria-current`, na dica da contagem e no marcador da prévia). Quem estilizava `.ui-active-badge`/`.ui-group-badge` precisa revisar.
+
+
+
+- **Cor da camada editável**: clicar (ou Enter/Espaço) na barra de cor da linha abre o `<ui-seletor-cor>` ao lado, com prévia ao vivo, "cores do projeto" e Cancelar que restaura. Emite `ui-camada-cor` como antes.
+
+- **Destaque de seleção na cor da camada**: a camada ativa, as feições selecionadas e o alvo de seleção usam a cor da camada (variável `--layer-active-color`, agora definida no grupo e herdada pelas feições).
+
+- **Menos selos**: removidos "✓ Ativa", "N SUB" e "OFICIAL"; a camada ativa é indicada pelo destaque da linha (`aria-current`), a contagem vira um número discreto (a dica traz feições e subcamadas) e só a geometria prévia ganha um marcador.
+
+- Alça de arraste mais estreita (8px, antes 14px).
+
+- Colunas fixas (alça, olho, cadeado, barra de cor) alinhadas à esquerda em camadas, subcamadas e feições; só seta, miniatura e nome recuam com a profundidade, como no Illustrator. A barra de cor não se expande mais ao passar o mouse.
+
+### `<ui-card>`: lapidação
+
+
+
+- **Teclado:** Enter/Espaço vindos de um campo ou botão dentro do card não o ativam mais nem têm o `preventDefault` aplicado (antes era impossível digitar espaço num `<input>` dentro de um card `clicavel`). Tecla mantida (`repeat`) e atalhos com Ctrl/Alt/Meta não ativam.
+
+- **Cliques internos:** o clique num ícone SVG dentro de um botão (alvo `<path>`) passou a ser reconhecido como de controle interno; `label`, `summary`, conteúdo editável, `ui-campo-texto` e `ui-segmented` também. Um `<a>`/`<label>` que *envolve* o card não o bloqueia mais.
+
+- **Acessibilidade:** `aria-label` do host dá nome ao card clicável; `focus()` no host foca o card; anel de foco visível (`:focus-visible`, contorno que sobrevive ao modo de alto contraste).
+
+- **Estilo:** o atributo `hidden` passa a esconder o card (o `display: block` do host o anulava); o realce de hover vale só com `(hover: hover)`; `prefers-reduced-motion` desliga transições e deslocamento.
+
+- **Seções:** `[slot="cabecalho|rodape|midia"]` aninhado em um descendente não revela mais a seção do card (só filhos diretos).
+
+- Lógica extraída para `card-interacao.ts` e `card-secoes.ts`; JSDoc de atributos, slots, parts e evento para o manifesto. API pública inalterada (novo observado: `aria-label`).
+
 ## 2.9.0 — 2026-10-23
 
 ### Junta a 2.8.2 com a linha 2.6.1–2.8.1
