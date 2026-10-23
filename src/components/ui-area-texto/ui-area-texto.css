@@ -1,0 +1,174 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: var(--ui-fonte-base, 'Inter', sans-serif);
+}
+
+:host([inline]) {
+  width: auto;
+  display: inline-flex;
+}
+
+.ui-area-texto__container {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.ui-area-texto__label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--ui-tamanho-corpo-sm, 13px);
+  font-weight: var(--ui-peso-medio, 500);
+  color: var(--ui-cor-texto, #e1e1e6);
+  user-select: none;
+  margin-bottom: 4px;
+  flex-shrink: 0;
+}
+
+.ui-area-texto__asterisco {
+  color: var(--ui-cor-texto-erro, #ff5555);
+  margin-left: 2px;
+  font-weight: 600;
+}
+
+.ui-area-texto__wrapper {
+  position: relative;
+  display: flex;
+  width: 100%;
+  background-color: var(--ui-cor-fundo-elevado, #1a1a1e);
+  border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
+  border-radius: var(--ui-raio-borda, 6px);
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+/* Foco: o realce vem do invólucro, pois o textarea nativo não tem borda própria */
+.ui-area-texto__wrapper:focus-within {
+  border-color: var(--ui-cor-primaria, #00E08A);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 18%, transparent);
+  background-color: var(--ui-cor-fundo-menu, #18181c);
+}
+
+.ui-area-texto__wrapper--erro {
+  border-color: var(--ui-cor-texto-erro, #ff5555) !important;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ui-cor-texto-erro, #ff5555) 18%, transparent) !important;
+}
+
+.ui-area-texto__wrapper--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 3%, transparent);
+}
+
+.ui-area-texto__input {
+  display: block;
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  /* Teto da altura automática: `linhas-max` linhas de 1.5em + o respiro vertical */
+  max-height: calc(var(--ui-area-linhas-max) * 1.5em + 12px);
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--ui-cor-texto, #e1e1e6);
+  font-family: inherit;
+  font-size: var(--ui-tamanho-corpo-sm, 13px);
+  line-height: 1.5;
+  padding: 6px 8px;
+  margin: 0;
+  box-sizing: border-box;
+  resize: vertical;
+  overflow-wrap: anywhere;
+  touch-action: manipulation;
+}
+
+.ui-area-texto__input::placeholder {
+  color: var(--ui-cor-texto-secundario, #888899);
+  opacity: 0.65;
+}
+
+.ui-area-texto__input:disabled {
+  cursor: not-allowed;
+  resize: none;
+}
+
+/* Rodapé: ajuda/erro à esquerda e contador à direita */
+.ui-area-texto__rodape {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.ui-area-texto__helper {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--ui-tamanho-caption, 11px);
+  color: var(--ui-cor-texto-secundario, #888899);
+  line-height: var(--ui-altura-linha-compacta, 1.2);
+  margin-top: 2px;
+}
+
+.ui-area-texto__helper--erro {
+  color: var(--ui-cor-texto-erro, #ff5555);
+  font-weight: 500;
+}
+
+.ui-area-texto__contador {
+  margin-left: auto;
+  flex-shrink: 0;
+  font-size: var(--ui-tamanho-caption, 11px);
+  line-height: var(--ui-altura-linha-compacta, 1.2);
+  margin-top: 2px;
+  color: var(--ui-cor-texto-secundario, #888899);
+  font-variant-numeric: tabular-nums;
+}
+
+.ui-area-texto__contador[hidden] {
+  display: none;
+}
+
+.ui-area-texto__contador--aviso {
+  color: var(--ui-cor-texto-alerta, #ffb86c);
+}
+
+.ui-area-texto__contador--excedido {
+  color: var(--ui-cor-texto-erro, #ff5555);
+  font-weight: 600;
+}
+
+/* Região viva só para leitores de tela */
+.ui-area-texto__anuncio {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 640px), (pointer: coarse) and (max-width: 1024px) {
+  /* Evita o auto-zoom do iOS Safari ao focar o campo */
+  .ui-area-texto__input {
+    font-size: 16px;
+  }
+
+  .ui-area-texto__label {
+    font-size: 13px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-area-texto__wrapper {
+    transition: none;
+  }
+}

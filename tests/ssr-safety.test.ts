@@ -69,6 +69,8 @@ describe('SSR Safety (Node.js runtime sem DOM)', () => {
 
     const forms = await import('../src/forms');
     expect(forms.UICampoTexto).toBeDefined();
+    expect(forms.UIAreaTexto).toBeDefined();
+    expect(forms.UITextarea).toBeDefined();
     expect(forms.UICheckbox).toBeDefined();
     expect(forms.UIRadio).toBeDefined();
     expect(forms.UISwitch).toBeDefined();

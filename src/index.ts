@@ -10,6 +10,7 @@ export * from './components/ui-botao';
 export * from './components/ui-lista-flutuante';
 export * from './components/ui-texto';
 export * from './components/ui-campo-texto';
+export * from './components/ui-area-texto';
 export * from './components/ui-icone';
 
 // 3. Camada 2: Controles e Seleção de Dados
@@ -89,6 +90,7 @@ import type { UIBotao, UIBotaoPrimario } from './components/ui-botao';
 import type { UIListaFlutuante, UISelect } from './components/ui-lista-flutuante';
 import type { UITexto } from './components/ui-texto';
 import type { UICampoTexto, UIInput } from './components/ui-campo-texto';
+import type { UIAreaTexto, UITextarea } from './components/ui-area-texto';
 import type { UIIcone } from './components/ui-icone';
 import type { UICheckbox } from './components/ui-checkbox';
 import type { UIRadio } from './components/ui-radio';
@@ -124,6 +126,8 @@ declare global {
     'ui-texto': UITexto;
     'ui-campo-texto': UICampoTexto;
     'ui-input': UIInput;
+    'ui-area-texto': UIAreaTexto;
+    'ui-textarea': UITextarea;
     'ui-icone': UIIcone;
     'ui-checkbox': UICheckbox;
     'ui-radio': UIRadio;

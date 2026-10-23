@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import '../src/components/ui-botao';
 import '../src/components/ui-campo-texto';
+import '../src/components/ui-area-texto';
 import '../src/components/ui-lista-flutuante';
 import '../src/components/ui-modal';
 import '../src/components/ui-drawer';
@@ -71,6 +72,7 @@ describe('Shadow parts (::part) para customização', () => {
   const partsEsperados: Record<string, string[]> = {
     'ui-botao': ['base', 'spinner'],
     'ui-campo-texto': ['rotulo', 'campo', 'input', 'icone-esquerda', 'icone-direita', 'ajuda'],
+    'ui-area-texto': ['rotulo', 'campo', 'input', 'ajuda', 'contador', 'rodape'],
     'ui-lista-flutuante': ['rotulo', 'campo', 'valor', 'seta', 'lista'],
     'ui-modal': ['fundo', 'painel', 'cabecalho', 'titulo', 'fechar', 'corpo', 'rodape'],
     'ui-drawer': ['fundo', 'painel', 'cabecalho', 'titulo', 'descricao', 'fechar', 'corpo', 'rodape'],

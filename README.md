@@ -330,6 +330,8 @@ O Shadow DOM isola o CSS, mas os elementos internos principais são expostos com
 | :--- | :--- |
 | `<ui-botao>` / `<ui-botao-primario>` | `base`, `spinner` |
 | `<ui-campo-texto>` / `<ui-input>` | `rotulo`, `campo`, `input`, `icone`, `icone-esquerda`, `icone-direita`, `ajuda` |
+| `<ui-area-texto>` / `<ui-textarea>` | `rotulo`, `campo`, `input`, `rodape`, `ajuda`, `contador` |
+| `<ui-texto>` | `base` |
 | `<ui-lista-flutuante>` / `<ui-select>` | `rotulo`, `campo`, `valor`, `seta`, `lista`, `opcao`, `opcao-selecionada` |
 | `<ui-checkbox>`, `<ui-radio>`, `<ui-switch>` | `base`, `controle`, `indicador`, `rotulo` |
 | `<ui-segmented>` | `base`, `indicador`, `opcao`, `opcao-selecionada` |
@@ -393,7 +395,7 @@ Você pode acionar modais, fechar janelas, disparar notificações toast ou copi
 ---
 
 ### 2. Formulários Automáticos com `FormData` Nativo (W3C FACE)
-Todos os campos (`<ui-campo-texto>`, `<ui-lista-flutuante>`, `<ui-checkbox>`, `<ui-radio>`, `<ui-switch>`) implementam a especificação oficial de **Form-Associated Custom Elements**.
+Todos os campos (`<ui-campo-texto>`, `<ui-area-texto>`, `<ui-lista-flutuante>`, `<ui-checkbox>`, `<ui-radio>`, `<ui-switch>`) implementam a especificação oficial de **Form-Associated Custom Elements**.
 
 Isso significa que você extrai os dados de todos os campos de uma única vez, sem ler um por um:
 
@@ -721,8 +723,9 @@ window.addEventListener('message', (event) => {
 | :--- | :--- | :--- | :--- |
 | `<ui-botao-primario>` | Botão com estados de loading, ícone e variantes. Form-associated (`type="submit"`/`"reset"`, `name`/`value`, `form`). Só com ícone, informe `aria-label` (ou `title`). | `variante`, `carregando`, `disabled`, `type`, `aria-label`, `target-modal` | `ui-click` |
 | `<ui-campo-texto>` | Input de texto com Floating Label, validação e senha. | `label`, `value`, `tipo`, `obrigatorio`, `name` | `ui-input`, `ui-change` |
+| `<ui-area-texto>` | Texto longo de várias linhas (descrições, laudos): contador, altura automática, redimensionamento, form-associated. Enter quebra a linha; Ctrl/Cmd+Enter emite `ui-enviar`. | `label`, `value`, `linhas`, `auto-altura`, `linhas-max`, `maxlength`, `contador`, `obrigatorio`, `name` | `ui-input`, `ui-change`, `ui-enviar` |
 | `<ui-lista-flutuante>` | Select/Dropdown com Bottom Sheet no mobile. | `itens`, `value`, `placeholder`, `name` | `ui-selecionar` |
-| `<ui-texto>` | Tipografia semântica (H1-H6, corpo, caption, código). | `variante`, `cor`, `peso` | - |
+| `<ui-texto>` | Tipografia semântica (H1-H6, corpo, caption, código). Texto longo: `linhas="3"` limita a N linhas com reticências e palavras compridas quebram. | `variante`, `cor`, `peso`, `linhas`, `truncar` | - |
 | `<ui-icone>` | Wrapper para ícones vetoriais padronizados. | `nome`, `tamanho`, `cor` | - |
 
 ### 🔵 Camada 2: Controles & Seleção

@@ -63,29 +63,34 @@ export function sincronizarIconeSenha(
   }
 }
 
+/**
+ * Reflete erro e texto de ajuda no campo. `prefixo` é o bloco BEM do componente (padrão `ui-campo-texto`),
+ * permitindo que `<ui-area-texto>` reutilize a mesma regra com suas próprias classes.
+ */
 export function sincronizarFeedbackErro(
-  wrapper: HTMLDivElement,
-  input: HTMLInputElement,
-  helper: HTMLDivElement,
+  wrapper: HTMLElement,
+  input: HTMLInputElement | HTMLTextAreaElement,
+  helper: HTMLElement,
   temErro: boolean,
   mensagemErro: string | null,
-  helperText: string | null
+  helperText: string | null,
+  prefixo: string = 'ui-campo-texto'
 ): void {
   if (temErro) {
-    wrapper.classList.add('ui-campo-texto__wrapper--erro');
+    wrapper.classList.add(`${prefixo}__wrapper--erro`);
     input.setAttribute('aria-invalid', 'true');
   } else {
-    wrapper.classList.remove('ui-campo-texto__wrapper--erro');
+    wrapper.classList.remove(`${prefixo}__wrapper--erro`);
     input.removeAttribute('aria-invalid');
   }
 
   if (temErro && mensagemErro) {
     helper.textContent = `⚠️ ${mensagemErro}`;
-    helper.className = 'ui-campo-texto__helper ui-campo-texto__helper--erro';
+    helper.className = `${prefixo}__helper ${prefixo}__helper--erro`;
     helper.style.display = 'block';
   } else if (helperText) {
     helper.textContent = helperText;
-    helper.className = 'ui-campo-texto__helper';
+    helper.className = `${prefixo}__helper`;
     helper.style.display = 'block';
   } else {
     helper.style.display = 'none';

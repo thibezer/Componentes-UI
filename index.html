@@ -703,6 +703,45 @@
       </div>
     </article>
 
+    <!-- Card 6b: Texto longo (<ui-area-texto> e <ui-texto linhas>) -->
+    <article class="card-componente full-width-card">
+      <h2>4b. &lt;ui-area-texto&gt; (Texto Longo) e &lt;ui-texto linhas&gt;</h2>
+      <div class="variations-matrix">
+
+        <div class="matrix-column">
+          <span class="matrix-title">Contador, ajuda e redimensionamento</span>
+          <ui-area-texto id="area-laudo" label="Laudo técnico" placeholder="Descreva o imóvel..." linhas="4"
+            maxlength="200" contador helper-text="Ctrl+Enter envia; Enter quebra a linha."></ui-area-texto>
+        </div>
+
+        <div class="matrix-column">
+          <span class="matrix-title">Altura automática (até 8 linhas)</span>
+          <ui-area-texto id="area-auto" label="Observações" linhas="2" auto-altura linhas-max="8"
+            placeholder="Digite várias linhas: o campo cresce com o texto."></ui-area-texto>
+        </div>
+
+        <div class="matrix-column">
+          <span class="matrix-title">Obrigatório, erro e somente leitura</span>
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <ui-area-texto label="Justificativa" obrigatorio linhas="2" erro
+              mensagem-erro="Informe a justificativa."></ui-area-texto>
+            <ui-area-texto label="Histórico (leitura)" readonly linhas="2"
+              value="Registro importado do cartório em 12/03/2024."></ui-area-texto>
+          </div>
+        </div>
+
+        <div class="matrix-column">
+          <span class="matrix-title">Texto longo na leitura: <code>linhas</code></span>
+          <ui-texto linhas="3" cor="secundaria">
+            Memorial descritivo: o perímetro parte do marco M-01, segue por cerca de arame farpado até o marco M-02,
+            confrontando com a gleba de matrícula 12.345, e prossegue pela margem direita do córrego até o marco M-07,
+            fechando o polígono com área total de 124,6532 ha, conforme levantamento georreferenciado.
+          </ui-texto>
+        </div>
+
+      </div>
+    </article>
+
     <!-- Card 7: Contêiner de Ícones (<ui-icone>) & Botões Ultra-Compactos -->
     <article class="card-componente full-width-card">
       <h2>5. &lt;ui-icone&gt; (Wrapper de Ícones Padronizados & Herança de Cor)</h2>
