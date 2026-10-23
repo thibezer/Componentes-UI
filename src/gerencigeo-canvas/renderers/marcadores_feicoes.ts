@@ -91,11 +91,14 @@ export function opcoesPath(e: EstiloVetor, interativo: boolean): L.PathOptions {
     color: e.cor,
     stroke: e.traco,
     weight: e.peso,
+    opacity: e.opacidadeTraco ?? 1,
     dashArray: e.dash,
+    dashOffset: e.deslocamentoDash ? String(e.deslocamentoDash) : undefined,
     fill: e.preencher,
     fillColor: e.corPreenchimento,
     fillOpacity: e.opacidadePreenchimento,
-    lineJoin: 'round',
+    lineCap: e.terminacao ?? 'round',
+    lineJoin: e.juncao ?? 'round',
     interactive: interativo
   };
 }
