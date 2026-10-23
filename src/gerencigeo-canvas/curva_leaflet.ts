@@ -1,5 +1,5 @@
 import L from 'leaflet';
-import { caminhoSvg, passosDaCurva } from './feature_curvas';
+import { caminhoSvg, nosDaGeometria, passosDaCurva } from './feature_curvas';
 import type { GeometriaFeicao, LatLonPar, NoCurva } from './feature_types';
 
 /*
@@ -79,12 +79,7 @@ export class PoligonoCurvo extends L.Polygon {
   }
 }
 
-/** A geometria deve ser desenhada como curva? Linha simples ou polígono de um anel, com `curva`. */
-export function nosDaGeometria(g: GeometriaFeicao): NoCurva[] | null {
-  if (g.tipo === 'LineString') return g.curva && g.curva.length >= 2 && !(g.partes && g.partes.length > 1) ? g.curva : null;
-  if (g.tipo === 'Polygon') return g.curva && g.curva.length >= 3 && g.aneis.length === 1 ? g.curva : null;
-  return null;
-}
+export { nosDaGeometria };
 
 /** Cria a camada Leaflet de uma linha/polígono com `curva`, ou `null` se a geometria não é curva. */
 export function criarCamadaCurva(g: GeometriaFeicao, opcoes: L.PolylineOptions): LinhaCurva | PoligonoCurvo | null {

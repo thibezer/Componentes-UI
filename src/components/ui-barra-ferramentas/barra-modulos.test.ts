@@ -4,7 +4,7 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { acaoDaTeclaAba } from './ribbon-teclado';
 import { criarBotaoAba, criarGrupoRibbon, MAX_BOTOES_POR_COLUNA } from './ribbon-render';
-import { atalhoBloqueadoPeloContexto, resolverAtalho } from './paleta-atalhos';
+import { atalhoBloqueadoPeloContexto, paletaDonaDosAtalhos, resolverAtalho } from './paleta-atalhos';
 import {
   PressaoLonga, TEMPO_PRESSAO_LONGA_MS, DISTANCIA_CANCELA_PRESSAO_PX, TEMPO_LIMPA_SUPRESSAO_MS
 } from './paleta-pressao-longa';
@@ -196,5 +196,82 @@ describe('PressaoLonga', () => {
     expect(vi.getTimerCount()).toBe(0);
     vi.advanceTimersByTime(TEMPO_PRESSAO_LONGA_MS);
     expect(b).not.toHaveBeenCalled();
+  });
+});
+
+describe('porte da 2.8.2 para os módulos', () => {
+  const tecla = (key: string, mods: Partial<Record<'ctrlKey' | 'metaKey' | 'altKey' | 'shiftKey', boolean>> = {}) => ({
+    key, ctrlKey: false, metaKey: false, altKey: false, shiftKey: false, ...mods
+  });
+
+  it('acaoDaTeclaAba: na ativação manual Enter/Espaço ativam a aba focada; setas seguem só navegando', () => {
+    expect(acaoDaTeclaAba('Enter', 1, 3, false, true)).toEqual({ tipo: 'ativar', indice: 1 });
+    expect(acaoDaTeclaAba(' ', 2, 3, false, true)).toEqual({ tipo: 'ativar', indice: 2 });
+    expect(acaoDaTeclaAba('ArrowRight', 0, 3, false, true)).toEqual({ tipo: 'ir-para', indice: 1 });
+    expect(acaoDaTeclaAba('Enter', 1, 3, false)).toBeNull(); // automática: Enter é o clique nativo do botão
+    expect(acaoDaTeclaAba('Enter', -1, 3, false, true)).toBeNull();
+  });
+
+  it('resolverAtalho com o evento: combinações casam só com os mesmos modificadores', () => {
+    const todas: FerramentaItem[] = [
+      { id: 'desfazer', rotulo: 'Desfazer', atalho: 'Ctrl+Z' },
+      { id: 'zoom', rotulo: 'Zoom', atalho: 'Z' },
+      { id: 'vertice', rotulo: 'Vértice', atalho: 'Shift+V' },
+      { id: 'sair', rotulo: 'Sair', atalho: 'Esc' }
+    ];
+    expect(resolverAtalho(tecla('z', { ctrlKey: true }), todas, todas, '')?.alvo.id).toBe('desfazer');
+    expect(resolverAtalho(tecla('z', { metaKey: true }), todas, todas, '')?.alvo.id).toBe('desfazer');
+    expect(resolverAtalho(tecla('z'), todas, todas, '')?.alvo.id).toBe('zoom');
+    expect(resolverAtalho(tecla('V', { shiftKey: true }), todas, todas, '')?.alvo.id).toBe('vertice');
+    expect(resolverAtalho(tecla('v'), todas, todas, '')).toBeNull();
+    expect(resolverAtalho(tecla('Escape'), todas, todas, '')?.alvo.id).toBe('sair');
+    expect(resolverAtalho(tecla(''), todas, todas, '')).toBeNull();
+    expect(resolverAtalho('z', todas, todas, '')?.alvo.id).toBe('zoom'); // só a tecla: sem modificadores
+  });
+
+  it('paletaDonaDosAtalhos: a que tem o foco, senão a primeira; lista vazia não tem dona', () => {
+    expect(paletaDonaDosAtalhos(['a', 'b', 'c'], (p) => p === 'b')).toBe('b');
+    expect(paletaDonaDosAtalhos(['a', 'b'], () => false)).toBe('a');
+    expect(paletaDonaDosAtalhos([], () => true)).toBeUndefined();
+  });
+
+  it('criarGrupoRibbon: colapsado vira um botão com flyout; sem rótulo não gera rótulo vazio; lançador leva o id do grupo', () => {
+    const botao = (item: FerramentaItem) => {
+      const b = document.createElement('button');
+      b.dataset.id = item.id;
+      return b;
+    };
+    const grupo: RibbonGrupo = { id: 'g', rotulo: 'Fonte', itens: [{ id: 'a', rotulo: 'A' }], lancadorDialogo: 'dlg' };
+
+    const colapsado = criarGrupoRibbon(grupo, botao, { colapsado: true });
+    expect(colapsado.classList.contains('ui-ribbon__grupo--colapsado')).toBe(true);
+    const unico = colapsado.querySelector<HTMLButtonElement>('.ui-ribbon__btn-colapsado')!;
+    expect(unico.dataset.grupoColapsado).toBe('g');
+    expect(unico.getAttribute('aria-haspopup')).toBe('menu');
+    expect(colapsado.querySelector('[data-id="a"]')).toBeNull();
+
+    const normal = criarGrupoRibbon(grupo, botao);
+    const lancador = normal.querySelector<HTMLButtonElement>('.ui-ribbon__lancador')!;
+    expect(lancador.dataset.lancador).toBe('g');
+    expect(lancador.getAttribute('aria-label')).toBe('Mais opções de Fonte');
+
+    const semRotulo = criarGrupoRibbon({ id: 'h', rotulo: '', itens: [{ id: 'b', rotulo: 'B' }] }, botao);
+    expect(semRotulo.querySelector('.ui-ribbon__grupo-rotulo')).toBeNull();
+  });
+
+  it('criarGrupoRibbon: item dividido com filhos usa criarDividido; sem filhos, o botão comum', () => {
+    const comum = vi.fn((item: FerramentaItem) => Object.assign(document.createElement('button'), { className: `comum-${item.id}` }));
+    const dividido = vi.fn((item: FerramentaItem) => Object.assign(document.createElement('div'), { className: `split-${item.id}` }));
+    const grupo: RibbonGrupo = {
+      id: 'g', rotulo: 'G',
+      itens: [
+        { id: 'x', rotulo: 'X', dividido: true, filhos: [{ id: 'x1', rotulo: 'X1' }] },
+        { id: 'y', rotulo: 'Y', dividido: true }
+      ]
+    };
+    const el = criarGrupoRibbon(grupo, comum, { criarDividido: dividido });
+    expect(el.querySelector('.split-x')).not.toBeNull();
+    expect(el.querySelector('.comum-y')).not.toBeNull();
+    expect(dividido).toHaveBeenCalledTimes(1);
   });
 });

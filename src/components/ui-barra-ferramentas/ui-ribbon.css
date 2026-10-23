@@ -2,8 +2,13 @@
   display: block;
   position: relative;
   box-sizing: border-box;
+  min-height: 122px;
   font-family: var(--ui-fonte-base, 'Inter', sans-serif);
   color: var(--ui-cor-texto, #e1e1e6);
+}
+
+:host([recolhido]) {
+  min-height: 31px;
 }
 
 .ui-ribbon {
@@ -175,8 +180,9 @@
 .ui-ribbon__grupo {
   display: flex;
   flex-direction: column;
+  justify-content: center;
   flex-shrink: 0;
-  padding: 0 8px;
+  padding: 0 var(--ui-espaco-sm, 8px);
   border-inline-end: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
 }
 
@@ -187,11 +193,15 @@
 .ui-ribbon__grupo-itens {
   display: flex;
   flex: 1;
-  align-items: stretch;
-  gap: 2px;
+  align-items: center;
+  gap: var(--ui-espaco-xs, 4px);
 }
 
 .ui-ribbon__grupo-rotulo {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 3px 0 1px;
   color: var(--ui-cor-texto-secundario, #888899);
   font-size: 0.6875rem;
@@ -200,16 +210,83 @@
   white-space: nowrap;
 }
 
+.ui-ribbon__grupo-rotulo:empty {
+  display: none;
+  padding: 0;
+}
+
+.ui-ribbon__lancador {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ui-cor-texto-secundario, #888899);
+  cursor: pointer;
+  border-radius: 2px;
+  opacity: 0.7;
+}
+
+[dir="rtl"] .ui-ribbon__lancador {
+  right: auto;
+  left: 0;
+}
+
+.ui-ribbon__lancador:hover {
+  opacity: 1;
+  color: var(--ui-cor-texto, #e1e1e6);
+  background: var(--ui-cor-hover-menu, rgba(255, 255, 255, 0.08));
+}
+
+.ui-ribbon__lancador:focus-visible {
+  outline: 2px solid var(--ui-cor-primaria, #00E08A);
+  outline-offset: -1px;
+}
+
+.ui-ribbon__grupo--colapsado {
+  padding: 0 4px;
+  justify-content: center;
+}
+
+.ui-ribbon__btn-colapsado {
+  height: calc(100% - 6px);
+  margin: 3px 0;
+}
+
+.ui-ribbon__keytip {
+  position: absolute;
+  z-index: 100;
+  padding: 1px 4px;
+  font-size: 0.625rem;
+  font-weight: 700;
+  line-height: 1;
+  color: #111;
+  background: #fef08a;
+  border: 1px solid #ca8a04;
+  border-radius: 2px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+}
+
 .ui-ribbon__coluna {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 0;
+  gap: 2px;
 }
 
 .ui-ribbon__separador {
   width: 1px;
-  margin: 4px 3px;
+  height: 68px;
+  align-self: center;
+  margin: 0 var(--ui-espaco-xs, 4px);
   background: var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
 }
 
@@ -217,8 +294,13 @@
 .ui-ferr-btn--grande {
   flex-direction: column;
   min-width: 52px;
-  padding: 4px 6px;
+  height: 76px;
+  padding: 6px 8px;
   gap: 3px;
+  box-sizing: border-box;
+  border-radius: var(--ui-raio-borda, 6px);
+  justify-content: center;
+  align-items: center;
 }
 
 /* Rótulo do botão grande pode quebrar em 2 linhas (padrão Office) */
@@ -232,14 +314,30 @@
 
 .ui-ferr-btn--pequeno {
   height: 24px;
-  padding: 0 6px;
+  padding: 0 8px;
+  border-radius: var(--ui-raio-sm, 4px);
   justify-content: flex-start;
+  box-sizing: border-box;
 }
 
 .ui-ferr-btn--pequeno.ui-ferr-btn--so-icone {
   width: 24px;
   padding: 0;
   justify-content: center;
+}
+
+/* Ajustes finos de raio para split buttons pequenos na ribbon */
+.ui-ferr-split--pequeno {
+  border-radius: var(--ui-raio-sm, 4px);
+}
+
+.ui-ferr-split--pequeno .ui-ferr-split__acao {
+  border-radius: var(--ui-raio-sm, 4px) 0 0 var(--ui-raio-sm, 4px);
+  padding: 0 6px 0 8px;
+}
+
+.ui-ferr-split--pequeno .ui-ferr-split__gatilho {
+  border-radius: 0 var(--ui-raio-sm, 4px) var(--ui-raio-sm, 4px) 0;
 }
 
 /* Foco por dentro (não é cortado pelo overflow do painel nem coberto pelo botão vizinho) */

@@ -8,8 +8,14 @@ import { MIN_VERTICES_SIMPLIFICAR, ZOOM_SEM_SIMPLIFICACAO, simplificarGeometria,
 import { entidadeDe, statusDe } from '../feature_versoes';
 import { LinhaCurva, PoligonoCurvo, atualizarCamadaCurva, criarCamadaCurva, nosDaGeometria } from '../curva_leaflet';
 import { AgrupadorCluster, deveAgrupar, type PontoCluster } from '../feature_cluster';
+import { diagonalPx, ehMarca, ladoMarca, type MarcaLOD } from '../feature_lod';
+import { feicaoNoPonto } from '../feature_amostra';
+import { registrarFonteHit, removerFonteHit, type FonteHit } from '../layer_hit_test';
+import { CamadaMarcasLOD } from './marcas_lod_layer';
 import { textoRotulo } from '../feature_metricas';
-import { escapeHtml } from '../utils';
+import { selecaoVisual } from './selecao_visual';
+import { ICONES_FEICAO, iconeCluster, opcoesPath, iconeSvg as iconeSvgDe, iconeTexto as iconeTextoDe } from './marcadores_feicoes';
+import { COR_PADRAO, COR_SELECAO, corSegura, estiloVetorDe, raioPontoPx } from '../motor/estilo';
 
 /*
  * Renderiza feições genéricas (Point, LineString, Polygon, Circle, Text) de uma camada.
@@ -19,21 +25,11 @@ import { escapeHtml } from '../utils';
  * (setLatLngs/setStyle/setRadius) em vez de recriada. Só troca de tipo ou de ícone recria.
  */
 
-export const ICONES_FEICAO: Record<string, string> = {
-  tower: '<path d="M12 2 L8 22 M12 2 L16 22 M9.5 12 H14.5 M8.7 17 H15.3 M12 2 L9.5 12 L14.5 12 Z" />',
-  tree: '<path d="M12 22 V14 M12 3 L5 14 H19 Z" />',
-  warning: '<path d="M12 3 L22 20 H2 Z M12 9 V14 M12 17 V17.5" />',
-  water: '<path d="M12 3 C12 3 5 11 5 15.5 A7 7 0 0 0 19 15.5 C19 11 12 3 12 3 Z" />',
-  boundary: '<path d="M12 2 L22 12 L12 22 L2 12 Z" />'
-};
+// ícones e marcadores DOM compartilhados com o renderizador Canvas
+export { ICONES_FEICAO };
 
-const COR_PADRAO = '#38bdf8';
-const COR_SEGURA = /^(#[0-9a-f]{3,8}|(rgb|hsl)a?\([0-9.,%\s\/-]+\)|[a-z]{3,20})$/i;
-
-/** Cores vão para atributos style; só passam formatos conhecidos (hex, rgb/hsl, nome). */
-export function corSegura(cor: string | undefined, padrao: string): string {
-  return cor && COR_SEGURA.test(cor.trim()) ? cor.trim() : padrao;
-}
+// estilo resolvido uma vez só, em `motor/estilo.ts`: o renderizador Canvas usa a mesma função
+export { corSegura, COR_SELECAO };
 
 interface Entrada {
   layer: L.Layer;
@@ -81,8 +77,20 @@ interface Estado {
   contOficiais: Map<string, number>;
   /** Quantas prévias a camada tem (sem prévias, a entrada de uma entidade oficial não muda a visibilidade de ninguém). */
   nPrevias: number;
+  /** Entidade -> quantas prévias tem. Entidade com oficial E prévia forma um "par": sempre em detalhe completo (sem LOD). */
+  contPrevias: Map<string, number>;
   /** Só as feições materializadas como camada Leaflet (as que estão na tela ou perto). */
   entradas: Map<string, Entrada>;
+  /** Feições menores que ~3 px na tela: desenhadas como marcas de 1–2 px em lote (LOD), sem objeto Leaflet. */
+  marcas: Map<string, MarcaLOD>;
+  camadaMarcas: CamadaMarcasLOD | null;
+  /** Registro no hit-test central: o clique nas marcas é resolvido junto com o das formas (uma ação por clique). */
+  fonteHit: FonteHit | null;
+  /** Cache de "é marca?" por feição, válido para `zoomLod` (reavaliado ao mudar de zoom, não a cada pan). */
+  lod: Map<string, boolean>;
+  zoomLod: number;
+  /** Quantas vezes o LOD foi calculado (diagnóstico: no pan puro não cresce). */
+  avaliacoesLOD: number;
   clusters: Map<string, ClusterMaterializado>;
   /** Pontos visíveis (pela regra de versões); com 8 ou menos nunca há cluster. */
   nPontos: number;
@@ -99,7 +107,6 @@ interface Estado {
 
 type Grupo = L.LayerGroup;
 
-export const COR_SELECAO = '#38bdf8';
 /** Acima deste número de mudanças, a seleção é aplicada em blocos para não travar o quadro. */
 const LIMITE_LOTE_SELECAO = 150;
 const TAMANHO_BLOCO_SELECAO = 100;
@@ -107,6 +114,8 @@ const TAMANHO_BLOCO_SELECAO = 100;
 export const LIMITE_CULLING = 300;
 /** Folga ao redor da tela, como fração da viewport. */
 const FOLGA_VIEWPORT = 0.75;
+/** Quantas marcas empilhadas no mesmo ponto o clique alterna (as demais ficam inalcançáveis até afastar o zoom). */
+const LIMITE_EMPILHADAS_MARCA = 20;
 /** Mudança em mais que esta fração da camada: remonta o índice em vez de atualizar item a item. */
 const FRACAO_REMONTAR_INDICE = 0.3;
 
@@ -116,7 +125,7 @@ const agendarQuadro: (cb: () => void) => void =
 export class FeicoesLayerRenderer implements ILayerRenderer {
   private estados = new WeakMap<Grupo, Estado>();
   /** Por definição de camada (uma por componente), para a seleção sobreviver à recriação do grupo. */
-  private selecionadas = new WeakMap<CanvasLayerDef, Set<string>>();
+  private selecionadas = selecaoVisual;
   private tokenLote = new WeakMap<Grupo, number>();
 
   public render(layerDef: CanvasLayerDef, map: L.Map, context: CanvasRenderContext): L.LayerGroup {
@@ -146,6 +155,7 @@ export class FeicoesLayerRenderer implements ILayerRenderer {
     if (estado) {
       estado.vivo = false;
       map.off('moveend zoomend', estado.aoMover);
+      this.descartarMarcas(estado);
     }
     layerInstance.clearLayers();
     this.estados.delete(layerInstance);
@@ -190,10 +200,21 @@ export class FeicoesLayerRenderer implements ILayerRenderer {
     this.remendar(entrada.layer, this.paraDesenho(f, zoom), estado.layerDef, estado.interativo, !!this.selecionadas.get(estado.layerDef)?.has(f.id));
   }
 
-  /** Para testes e diagnóstico: quantas feições estão materializadas e quantos clusters desenhados. */
-  public estatisticas(group: Grupo): { total: number; materializadas: number; clusters: number } | null {
+  /**
+   * Para testes, benchmark e diagnóstico: `total` (na camada), `materializadas` (objetos Leaflet), `marcasLOD` (feições
+   * pequenas pintadas em lote), `clusters` e `avaliacoesLOD` (quantas vezes o LOD foi calculado; no pan puro não cresce).
+   */
+  public estatisticas(group: Grupo): { total: number; materializadas: number; marcasLOD: number; clusters: number; avaliacoesLOD: number } | null {
     const e = this.estados.get(group);
-    return e ? { total: e.loja.size, materializadas: e.entradas.size, clusters: e.clusters.size } : null;
+    return e
+      ? { total: e.loja.size, materializadas: e.entradas.size, marcasLOD: e.marcas.size, clusters: e.clusters.size, avaliacoesLOD: e.avaliacoesLOD }
+      : null;
+  }
+
+  /** Ids desenhados, separados por forma (Leaflet × marca de LOD). Base da comparação "incremental = completo". */
+  public idsDesenhados(group: Grupo): { materializadas: string[]; marcas: string[] } | null {
+    const e = this.estados.get(group);
+    return e ? { materializadas: [...e.entradas.keys()].sort(), marcas: [...e.marcas.keys()].sort() } : null;
   }
 
   private feicoesDe(layerDef: CanvasLayerDef): Feicao[] {
@@ -208,8 +229,9 @@ export class FeicoesLayerRenderer implements ILayerRenderer {
       const novo: Estado = {
         layerDef, interativo: false, map, context,
         loja: new Map(), indice: new IndiceEspacial(), revisao: 0, revisaoBase: 0, listaSincronizada: null,
-        oficiais: new Set(), contOficiais: new Map(), nPrevias: 0,
-        entradas: new Map(), clusters: new Map(),
+        oficiais: new Set(), contOficiais: new Map(), nPrevias: 0, contPrevias: new Map(),
+        entradas: new Map(), marcas: new Map(), camadaMarcas: null, fonteHit: null, lod: new Map(), zoomLod: -1, avaliacoesLOD: 0,
+        clusters: new Map(),
         nPontos: 0, nPontosRev: -1, agrupador: null, agrupadorRev: -1, culling: false,
         agendado: false, vivo: true,
         aoMover: () => {
@@ -259,6 +281,7 @@ export class FeicoesLayerRenderer implements ILayerRenderer {
     if (mudadas.size > 0 || removidas.length > 0) {
       estado.revisao++;
       estado.revisaoBase++;
+      estado.lod.clear();
       if (estado.loja.size === 0 || mudadas.size + removidas.length > novas.length * FRACAO_REMONTAR_INDICE) {
         estado.indice.construir(novas);
       } else {
@@ -279,11 +302,14 @@ export class FeicoesLayerRenderer implements ILayerRenderer {
 
   private recontarOficiais(estado: Estado, feicoes: Iterable<Feicao>): void {
     estado.contOficiais = new Map();
+    estado.contPrevias = new Map();
     estado.nPrevias = 0;
     for (const f of feicoes) {
       if (f.excluida) continue;
       if (statusDe(f) !== 'oficial') {
         estado.nPrevias++;
+        const e = entidadeDe(f);
+        estado.contPrevias.set(e, (estado.contPrevias.get(e) ?? 0) + 1);
         continue;
       }
       const e = entidadeDe(f);
@@ -316,10 +342,20 @@ export class FeicoesLayerRenderer implements ILayerRenderer {
 
     const idsMudados: string[] = [];
     const idsRemovidos: string[] = [];
+    const contarPrevia = (f: Feicao, d: 1 | -1): void => {
+      const e = entidadeDe(f);
+      const n = (estado.contPrevias.get(e) ?? 0) + d;
+      if (n <= 0) estado.contPrevias.delete(e);
+      else estado.contPrevias.set(e, n);
+    };
     const tirar = (id: string): void => {
       const antiga = loja.get(id);
       if (!antiga) return;
-      if (statusDe(antiga) === 'previa') estado.nPrevias--;
+      estado.lod.delete(id);
+      if (statusDe(antiga) === 'previa') {
+        estado.nPrevias--;
+        contarPrevia(antiga, -1);
+      }
       contar(antiga, -1);
       if (pontoVisivel(antiga)) estado.nPontos--;
       loja.delete(id);
@@ -334,9 +370,16 @@ export class FeicoesLayerRenderer implements ILayerRenderer {
         continue;
       }
       const antiga = loja.get(f.id);
-      if (statusDe(f) === 'previa') estado.nPrevias++;
+      estado.lod.delete(f.id);
+      if (statusDe(f) === 'previa') {
+        estado.nPrevias++;
+        contarPrevia(f, 1);
+      }
       if (antiga) {
-        if (statusDe(antiga) === 'previa') estado.nPrevias--;
+        if (statusDe(antiga) === 'previa') {
+          estado.nPrevias--;
+          contarPrevia(antiga, -1);
+        }
         contar(antiga, -1);
         if (pontoVisivel(antiga)) estado.nPontos--;
       }
@@ -383,20 +426,172 @@ export class FeicoesLayerRenderer implements ILayerRenderer {
     return { minLon: limites.getWest(), minLat: limites.getSouth(), maxLon: limites.getEast(), maxLat: limites.getNorth() };
   }
 
-  /** Cria a camada Leaflet da feição ou remenda a que existe (e só se algo mudou). */
-  private materializar(group: Grupo, estado: Estado, f: Feicao, zoom: number, selecionada: boolean, repatch: boolean): void {
-    const forma = this.formaDe(f);
-    const atual = estado.entradas.get(f.id);
-    const fDesenho = this.paraDesenho(f, zoom);
+  /**
+   * Decide como a feição é desenhada: marca de LOD (menor que ~3 px) ou camada Leaflet. Sempre em detalhe completo:
+   * selecionada (inclui a em edição, que é sempre selecionada), com rótulo e em par oficial × prévia. Pontos e textos
+   * nunca viram marca (já têm a regra de cluster). `zoomLod < 0` = mapa sem vista: sem LOD.
+   * O resultado é guardado por (feição, zoom): no pan só se consulta; muda ao trocar de zoom ou de geometria.
+   */
+  private comoMarca(estado: Estado, f: Feicao, zoomLod: number, selecionada: boolean): boolean {
+    if (zoomLod < 0 || selecionada) return false;
+    const tipo = f.geometria.tipo;
+    if (tipo === 'Point' || tipo === 'Text') return false;
+    if (f.estilo?.mostrarRotulo) return false;
+    if (estado.contPrevias.size > 0) {
+      const e = entidadeDe(f);
+      if (estado.contPrevias.has(e) && estado.oficiais.has(e)) return false;
+    }
+    if (zoomLod !== estado.zoomLod) {
+      estado.lod.clear();
+      estado.zoomLod = zoomLod;
+    }
+    const guardado = estado.lod.get(f.id);
+    if (guardado !== undefined) return guardado;
+    estado.avaliacoesLOD++;
+    const r = ehMarca(estado.indice.caixaDe(f.id), zoomLod);
+    estado.lod.set(f.id, r);
+    return r;
+  }
 
-    if (atual && atual.forma === forma) {
-      if (repatch || atual.feicao !== f || this.ressimplificar(atual, zoom)) {
-        this.remendar(atual.layer, fDesenho, estado.layerDef, estado.interativo, selecionada);
-        atual.feicao = f;
-        atual.zoomDesenho = zoom;
+  private novaMarca(estado: Estado, f: Feicao, zoom: number): MarcaLOD | null {
+    const caixa = estado.indice.caixaDe(f.id);
+    if (!caixa) return null;
+    const e: EstiloFeicao = f.estilo ?? {};
+    const cor = corSegura(e.corPreenchimento ?? e.corTraco ?? estado.layerDef.estilo.corPrimaria, COR_PADRAO);
+    return {
+      id: f.id, lat: (caixa.minLat + caixa.maxLat) / 2, lon: (caixa.minLon + caixa.maxLon) / 2, cor,
+      lado: ladoMarca(diagonalPx(caixa, zoom)), fonte: f
+    };
+  }
+
+  /** Desenha a feição como marca ou camada Leaflet, trocando de uma forma para a outra quando preciso. */
+  private colocarFeicao(
+    group: Grupo, estado: Estado, f: Feicao, zoom: number, zoomLod: number, selecionada: boolean, repatch: boolean | 'estilo'
+  ): void {
+    if (this.comoMarca(estado, f, zoomLod, selecionada)) {
+      this.tirarEntrada(group, estado, f.id);
+      const atual = estado.marcas.get(f.id);
+      if (!atual || atual.fonte !== f) {
+        const m = this.novaMarca(estado, f, zoomLod);
+        if (m) estado.marcas.set(f.id, m);
       }
       return;
     }
+    estado.marcas.delete(f.id);
+    this.materializar(group, estado, f, zoom, selecionada, repatch);
+  }
+
+  /**
+   * Cria a camada das marcas na primeira necessidade e pede o redesenho. Sem marcas ela é desfeita: um canvas vazio por
+   * camada ainda custaria limpeza e rasterização a cada vista. O clique nas marcas entra no hit-test central do mapa
+   * (`layer_hit_test`), que escolhe UMA feição entre todas as camadas e dispara `click` na camada das marcas.
+   */
+  private sincronizarMarcas(estado: Estado): void {
+    if (estado.marcas.size === 0) {
+      if (estado.camadaMarcas) this.descartarMarcas(estado);
+      return;
+    }
+    if (!estado.camadaMarcas) {
+      const pane = garantirSubPane(estado.map, estado.layerDef.id, 'poligono');
+      const camada = new CamadaMarcasLOD(pane, () => estado.marcas.values());
+      estado.camadaMarcas = camada;
+      camada.addTo(estado.map);
+      camada.on('click', (ev: L.LeafletEvent) => {
+        const { feicaoHit, originalEvent: o } = ev as unknown as { feicaoHit?: Feicao; originalEvent?: MouseEvent };
+        if (!feicaoHit || !estado.vivo) return;
+        estado.context.onLayerAction?.('feicao-clique', {
+          camadaId: estado.layerDef.id,
+          feicao: feicaoHit,
+          aditivo: !!(o && (o.ctrlKey || o.metaKey || o.shiftKey))
+        });
+      });
+      estado.fonteHit = this.fonteDeMarcas(estado, camada);
+      registrarFonteHit(estado.map, estado.layerDef.id, estado.fonteHit);
+    }
+    estado.camadaMarcas.solicitarRedesenho();
+  }
+
+  /**
+   * Hit-test das marcas na geometria ORIGINAL (índice + `feicaoNoPonto`): uma feição de 1 px continua clicável.
+   * Devolve as feições sob o ponto, da melhor para a pior, para a alternância de cliques empilhados do clique central.
+   */
+  private fonteDeMarcas(estado: Estado, camada: CamadaMarcasLOD): FonteHit {
+    return {
+      alvo: camada,
+      consultar: (ponto) => {
+        const { map } = estado;
+        if (!estado.vivo || !estado.interativo || !estado.layerDef.visivel || estado.marcas.size === 0 || !this.estaCarregado(map)) return [];
+        const cp = map.layerPointToContainerPoint(ponto);
+        const tol = 8;
+        const a = map.containerPointToLatLng([cp.x - tol, cp.y + tol]);
+        const b = map.containerPointToLatLng([cp.x + tol, cp.y - tol]);
+        const caixa: CaixaGeo = {
+          minLat: Math.min(a.lat, b.lat), maxLat: Math.max(a.lat, b.lat), minLon: Math.min(a.lng, b.lng), maxLon: Math.max(a.lng, b.lng)
+        };
+        const restantes: Feicao[] = [];
+        for (const id of estado.indice.consultar(caixa)) {
+          const f = estado.marcas.has(id) ? estado.loja.get(id) : undefined;
+          if (f) restantes.push(f);
+        }
+        const projetar = (p: LatLonPar): { x: number; y: number } => {
+          const c = map.latLngToContainerPoint(p);
+          return { x: c.x, y: c.y };
+        };
+        const zoom = map.getZoom();
+        const achadas: ReturnType<FonteHit['consultar']> = [];
+        for (let n = 0; n < LIMITE_EMPILHADAS_MARCA && restantes.length > 0; n++) {
+          const f = feicaoNoPonto({ x: cp.x, y: cp.y }, restantes, projetar);
+          if (!f) break;
+          restantes.splice(restantes.indexOf(f), 1);
+          const diagonal = diagonalPx(estado.indice.caixaDe(f.id) ?? caixa, zoom);
+          achadas.push({
+            feicao: f, chave: f.id, tipo: f.geometria.tipo === 'LineString' ? 'linha' : 'poligono', distancia: 0,
+            area: Number.isFinite(diagonal) ? (diagonal * diagonal) / 2 : 0
+          });
+        }
+        return achadas;
+      }
+    };
+  }
+
+  private descartarMarcas(estado: Estado): void {
+    if (estado.fonteHit) removerFonteHit(estado.map, estado.layerDef.id, estado.fonteHit);
+    estado.fonteHit = null;
+    if (estado.camadaMarcas) {
+      estado.map.removeLayer(estado.camadaMarcas);
+      estado.camadaMarcas = null;
+    }
+    estado.marcas.clear();
+  }
+
+  /**
+   * Cria a camada Leaflet da feição ou remenda a que existe (e só se algo mudou). `'estilo'` só troca o estilo.
+   * Uma feição que o Leaflet recusa (coordenada NaN, por exemplo) fica sem desenho em vez de derrubar a camada inteira.
+   */
+  private materializar(group: Grupo, estado: Estado, f: Feicao, zoom: number, selecionada: boolean, repatch: boolean | 'estilo'): void {
+    try {
+      this.materializarFeicao(group, estado, f, zoom, selecionada, repatch);
+    } catch {
+      this.tirarEntrada(group, estado, f.id);
+    }
+  }
+
+  private materializarFeicao(group: Grupo, estado: Estado, f: Feicao, zoom: number, selecionada: boolean, repatch: boolean | 'estilo'): void {
+    const forma = this.formaDe(f);
+    const atual = estado.entradas.get(f.id);
+
+    if (atual && atual.forma === forma) {
+      const geometriaMudou = atual.feicao !== f || this.ressimplificar(atual, zoom);
+      if (repatch === true || geometriaMudou) {
+        this.remendar(atual.layer, this.paraDesenho(f, zoom), estado.layerDef, estado.interativo, selecionada);
+        atual.feicao = f;
+        atual.zoomDesenho = zoom;
+      } else if (repatch === 'estilo') {
+        this.restilizar(atual.layer, f, estado.layerDef, estado.interativo, selecionada);
+      }
+      return;
+    }
+    const fDesenho = this.paraDesenho(f, zoom);
     if (atual) group.removeLayer(atual.layer);
 
     const layer = this.criar(fDesenho, estado.layerDef, estado.map, estado.interativo, selecionada);
@@ -516,15 +711,20 @@ export class FeicoesLayerRenderer implements ILayerRenderer {
       }
     }
 
-    // --- materializa feições ---
+    // --- materializa feições (camada Leaflet ou marca de LOD) ---
+    const zoomLod = carregado ? zoom : -1;
     for (const id of desejadas) {
       const f = loja.get(id);
-      if (f) this.materializar(group, estado, f, zoom, !!sel?.has(id), repatchTudo || !!mudadas?.has(id));
+      if (f) this.colocarFeicao(group, estado, f, zoom, zoomLod, !!sel?.has(id), repatchTudo || !!mudadas?.has(id));
     }
     for (const id of [...estado.entradas.keys()]) {
       if (desejadas.has(id) && loja.has(id)) continue;
       this.tirarEntrada(group, estado, id);
     }
+    for (const id of [...estado.marcas.keys()]) {
+      if (!desejadas.has(id) || !loja.has(id)) estado.marcas.delete(id);
+    }
+    this.sincronizarMarcas(estado);
 
     // --- materializa clusters ---
     for (const [chave, c] of clustersDesejados) this.colocarCluster(group, estado, chave, c);
@@ -538,6 +738,11 @@ export class FeicoesLayerRenderer implements ILayerRenderer {
    * o estado de conjunto muda: regra oficial × prévia, entrada/saída do corte por viewport ou do agrupamento.
    */
   private reconciliarParcial(group: Grupo, estado: Estado, mudadas: string[], removidas: string[], oficiaisMudou: boolean): void {
+    this.reconciliarParcialInterno(group, estado, mudadas, removidas, oficiaisMudou);
+    this.sincronizarMarcas(estado);
+  }
+
+  private reconciliarParcialInterno(group: Grupo, estado: Estado, mudadas: string[], removidas: string[], oficiaisMudou: boolean): void {
     const { map, layerDef, loja } = estado;
     const carregado = this.estaCarregado(map);
     const zoom = carregado ? map.getZoom() : 0;
@@ -557,10 +762,12 @@ export class FeicoesLayerRenderer implements ILayerRenderer {
     const limites = culling ? map.getBounds().pad(FOLGA_VIEWPORT) : null;
     const caixaTela = limites ? this.caixaDe(limites) : null;
 
+    const zoomLod = carregado ? zoom : -1;
     const individual = (id: string, repatch: boolean): void => {
       const f = loja.get(id);
       if (!f || !visivelV(f)) {
         this.tirarEntrada(group, estado, id);
+        estado.marcas.delete(id);
         return;
       }
       const selecionada = !!sel?.has(id);
@@ -568,20 +775,24 @@ export class FeicoesLayerRenderer implements ILayerRenderer {
         const c = estado.indice.caixaDe(id);
         if (!c || !caixasSeTocam(c, caixaTela)) {
           this.tirarEntrada(group, estado, id);
+          estado.marcas.delete(id);
           return;
         }
       }
-      this.materializar(group, estado, f, zoom, selecionada, repatch);
+      this.colocarFeicao(group, estado, f, zoom, zoomLod, selecionada, repatch);
     };
 
     const tocadas = new Set<string>();
     const individuais: string[] = [];
     for (const id of removidas) {
       this.tirarEntrada(group, estado, id);
+      estado.marcas.delete(id);
       const c = ag?.remover(id);
       if (c !== undefined) tocadas.add(c);
     }
     for (const id of mudadas) {
+      // uma marca de LOD antiga não pode ficar se a feição virou ponto agrupado (`individual` a refaz se ainda for marca)
+      estado.marcas.delete(id);
       const f = loja.get(id);
       if (!f) continue;
       const antiga = ag?.remover(id);
@@ -630,16 +841,7 @@ export class FeicoesLayerRenderer implements ILayerRenderer {
   }
 
   private criarMarcadorCluster(coordenada: LatLonPar, n: number, obterMembros: () => PontoCluster[], estado: Estado): L.Marker {
-    const tam = n < 10 ? 30 : n < 100 ? 38 : 46;
-    const cor = corSegura(estado.layerDef.estilo.corPrimaria, COR_PADRAO);
-    const icone = L.divIcon({
-      className: 'custom-leaflet-marker cad-feicao-cluster',
-      iconSize: [tam, tam],
-      html:
-        `<div style="width:${tam}px;height:${tam}px;border-radius:50%;background:${cor};opacity:.9;` +
-        `border:2px solid rgba(255,255,255,.85);display:flex;align-items:center;justify-content:center;` +
-        `color:#fff;font:700 12px sans-serif;text-shadow:0 0 2px #000">${n}</div>`
-    });
+    const icone = iconeCluster(n, estado.layerDef.estilo);
     const marker = L.marker(coordenada, {
       icon: icone, pane: garantirSubPane(estado.map, estado.layerDef.id, 'ponto'), keyboard: false
     });
@@ -653,8 +855,9 @@ export class FeicoesLayerRenderer implements ILayerRenderer {
 
   /**
    * Marca como selecionadas as feições `ids` deste grupo (as demais voltam ao estilo normal).
-   * Só as que mudaram são tocadas; mudanças grandes são aplicadas em blocos, as visíveis primeiro.
-   * Pontos selecionados saem dos clusters; ao desmarcar, voltam a ser agrupados.
+   * Só as que mudaram são tocadas, e só no estilo: o custo é O(mudanças), não O(visíveis). A camada inteira só é
+   * reconciliada quando a mudança pode alterar o CONJUNTO desenhado, ou seja, quando há ponto sob agrupamento
+   * (selecionado sai do cluster, desmarcado volta a ele). Mudanças grandes são aplicadas em blocos, as visíveis primeiro.
    */
   public aplicarSelecao(group: Grupo, ids: Set<string>): void {
     const estado = this.estados.get(group);
@@ -668,13 +871,36 @@ export class FeicoesLayerRenderer implements ILayerRenderer {
     for (const id of anterior) if (!novo.has(id)) mudadas.push(id);
     if (mudadas.length === 0) return;
 
-    const mapa = estado.entradas;
+    const { map, loja } = estado;
+    const carregado = this.estaCarregado(map);
+    const zoom = carregado ? map.getZoom() : 0;
+    const zoomLod = carregado ? zoom : -1;
+    const caixaTela = carregado && loja.size > LIMITE_CULLING ? this.caixaDe(map.getBounds().pad(FOLGA_VIEWPORT)) : null;
+
+    // pontos sob agrupamento: quem entra/sai do cluster muda o conjunto desenhado
+    const reconciliarTudo = estado.agrupador !== null && mudadas.some((id) => loja.get(id)?.geometria.tipo === 'Point');
+
     const aplicar = (id: string): void => {
-      const e = mapa.get(id);
-      if (!e) return;
+      const f = loja.get(id);
+      if (!f) return;
       const sel = novo.has(id);
-      this.remendar(e.layer, this.paraDesenho(e.feicao, e.zoomDesenho), estado.layerDef, estado.interativo, sel);
-      if (sel && 'bringToFront' in e.layer) (e.layer as L.Path).bringToFront();
+      if (!this.desenhavel(estado, f)) {
+        this.tirarEntrada(group, estado, id);
+        estado.marcas.delete(id);
+        return;
+      }
+      if (!sel && caixaTela) {
+        // desmarcada fora da tela: só estava desenhada por estar selecionada
+        const c = estado.indice.caixaDe(id);
+        if (!c || !caixasSeTocam(c, caixaTela)) {
+          this.tirarEntrada(group, estado, id);
+          estado.marcas.delete(id);
+          return;
+        }
+      }
+      this.colocarFeicao(group, estado, f, zoom, zoomLod, sel, 'estilo');
+      const e = sel ? estado.entradas.get(id) : undefined;
+      if (e && 'bringToFront' in e.layer) (e.layer as L.Path).bringToFront();
     };
 
     const token = (this.tokenLote.get(group) ?? 0) + 1;
@@ -683,29 +909,27 @@ export class FeicoesLayerRenderer implements ILayerRenderer {
     if (mudadas.length <= LIMITE_LOTE_SELECAO) {
       mudadas.forEach(aplicar);
     } else {
-      const carregado = !!(estado.map as unknown as { _loaded?: boolean })._loaded;
-      const limites = carregado ? estado.map.getBounds() : null;
+      const tela = carregado ? this.caixaDe(map.getBounds()) : null;
       const visivel = (id: string): boolean => {
-        const l = mapa.get(id)?.layer as any;
-        if (!limites) return true;
-        if (l?.getBounds) return limites.intersects(l.getBounds());
-        if (l?.getLatLng) return limites.contains(l.getLatLng());
-        return true;
+        if (!tela) return true;
+        const c = estado.indice.caixaDe(id);
+        return !c || caixasSeTocam(c, tela);
       };
       const naTela = mudadas.filter(visivel);
       const resto = mudadas.filter((id) => !visivel(id));
       naTela.forEach(aplicar);
 
       const passo = (): void => {
-        if (this.tokenLote.get(group) !== token) return;
+        if (this.tokenLote.get(group) !== token || !estado.vivo) return;
         resto.splice(0, TAMANHO_BLOCO_SELECAO).forEach(aplicar);
         if (resto.length > 0) agendarQuadro(passo);
+        else this.sincronizarMarcas(estado);
       };
       if (resto.length > 0) agendarQuadro(passo);
     }
 
-    // pontos que entram/saem de cluster por causa da seleção
-    this.reconciliar(group, estado, false, null);
+    if (reconciliarTudo) this.reconciliar(group, estado, false, null);
+    else this.sincronizarMarcas(estado);
   }
 
   private formaDe(f: Feicao): string {
@@ -726,28 +950,7 @@ export class FeicoesLayerRenderer implements ILayerRenderer {
   }
 
   private estiloVetor(f: Feicao, layerDef: CanvasLayerDef, interativo: boolean, selecionada = false): L.PathOptions {
-    const e: EstiloFeicao = f.estilo ?? {};
-    const cor = corSegura(e.corTraco ?? layerDef.estilo.corPrimaria, COR_PADRAO);
-    const area = f.geometria.tipo === 'Polygon' || f.geometria.tipo === 'Circle';
-    const ponto = f.geometria.tipo === 'Point';
-    // ponto sem ícone: o contorno pode ter cor e espessura próprias
-    const corContorno = ponto ? corSegura(e.corContorno, '') || cor : cor;
-    const pesoContorno = ponto && typeof e.espessuraContorno === 'number' && Number.isFinite(e.espessuraContorno) && e.espessuraContorno >= 0
-      ? e.espessuraContorno
-      : undefined;
-    const peso = pesoContorno ?? e.espessuraTraco ?? layerDef.estilo.espessuraLinha ?? 2;
-    const opacidadeFill = e.opacidadePreenchimento ?? (area ? 0.2 : 0.85);
-    return {
-      color: selecionada ? COR_SELECAO : corContorno,
-      stroke: !(pesoContorno === 0 && !selecionada),
-      weight: selecionada ? peso + 2 : peso,
-      dashArray: e.dashArray ?? (statusDe(f) === 'previa' ? '6 4' : layerDef.estilo.dashArray),
-      fill: area || f.geometria.tipo === 'Point',
-      fillColor: corSegura(e.corPreenchimento, cor),
-      fillOpacity: selecionada ? Math.min(1, opacidadeFill + 0.18) : opacidadeFill,
-      lineJoin: 'round',
-      interactive: interativo
-    };
+    return opcoesPath(estiloVetorDe(f, layerDef.estilo, selecionada), interativo);
   }
 
   private criar(f: Feicao, layerDef: CanvasLayerDef, map: L.Map, interativo: boolean, selecionada: boolean): L.Layer {
@@ -772,7 +975,7 @@ export class FeicoesLayerRenderer implements ILayerRenderer {
         }
         return L.circleMarker(g.coordenada, {
           ...estilo,
-          radius: (f.estilo?.tamanhoIcone ?? layerDef.estilo.tamanhoMarcador ?? 8) / 2,
+          radius: raioPontoPx(f, layerDef.estilo),
           pane
         });
       }
@@ -805,7 +1008,7 @@ export class FeicoesLayerRenderer implements ILayerRenderer {
       (layer as L.Circle).setStyle(estilo);
     } else if (g.tipo === 'Point' && layer instanceof L.CircleMarker) {
       layer.setLatLng(g.coordenada);
-      layer.setRadius((f.estilo?.tamanhoIcone ?? layerDef.estilo.tamanhoMarcador ?? 8) / 2);
+      layer.setRadius(raioPontoPx(f, layerDef.estilo));
       layer.setStyle(estilo);
     } else if (layer instanceof L.Marker) {
       layer.setLatLng(g.tipo === 'Point' || g.tipo === 'Text' ? g.coordenada : layer.getLatLng());
@@ -819,57 +1022,21 @@ export class FeicoesLayerRenderer implements ILayerRenderer {
     this.aplicarRotulo(layer, f);
   }
 
+  /** Só o estilo (seleção): sem `setLatLngs`, que reprojetaria e recalcularia limites da forma. */
+  private restilizar(layer: L.Layer, f: Feicao, layerDef: CanvasLayerDef, interativo: boolean, selecionada: boolean): void {
+    if (layer instanceof L.Marker) {
+      layer.setIcon(f.geometria.tipo === 'Text' ? this.iconeTexto(f, layerDef, selecionada) : this.iconeSvg(f, layerDef, selecionada));
+    } else if (layer instanceof L.Path) {
+      layer.setStyle(this.estiloVetor(f, layerDef, interativo, selecionada));
+    }
+  }
+
   private iconeSvg(f: Feicao, layerDef: CanvasLayerDef, selecionada = false): L.DivIcon {
-    const e = f.estilo ?? {};
-    // o tamanho entra em atributos HTML: só número finito (o dado vem do consumidor, sem garantia de tipo)
-    const bruto = e.tamanhoIcone ?? layerDef.estilo.tamanhoMarcador;
-    const tam = typeof bruto === 'number' && Number.isFinite(bruto) && bruto > 0 ? bruto : 22;
-    const cor = selecionada ? COR_SELECAO : corSegura(e.corTraco ?? e.corPreenchimento ?? layerDef.estilo.corPrimaria, COR_PADRAO);
-    const rot = Number.isFinite(e.rotacaoIcone) ? e.rotacaoIcone : 0;
-    const caminho = ICONES_FEICAO[e.icone ?? ''] ?? '';
-    return L.divIcon({
-      className: `custom-leaflet-marker${selecionada ? ' cad-feicao-selecionada' : ''}`,
-      iconSize: [tam, tam],
-      html:
-        `<svg width="${tam}" height="${tam}" viewBox="0 0 24 24" fill="${cor}" fill-opacity="0.25" ` +
-        `stroke="${cor}" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" ` +
-        `style="transform:rotate(${rot}deg);overflow:visible;display:block${selecionada ? `;filter:drop-shadow(0 0 3px ${COR_SELECAO})` : ''}">${caminho}</svg>`
-    });
+    return iconeSvgDe(f, layerDef.estilo, selecionada);
   }
 
   private iconeTexto(f: Feicao, layerDef: CanvasLayerDef, selecionada = false): L.DivIcon {
-    const e = f.estilo ?? {};
-    const texto = f.geometria.tipo === 'Text' ? f.geometria.texto : '';
-    const cor = selecionada ? COR_SELECAO : corSegura(e.corTraco ?? layerDef.estilo.corPrimaria, '#ffffff');
-    const tam = Number.isFinite(e.tamanhoFonte) ? e.tamanhoFonte : 13;
-    const rot = Number.isFinite(e.rotacaoIcone) ? e.rotacaoIcone : 0;
-    const base = `display:inline-block;white-space:nowrap;transform:translate(-50%,-50%) rotate(${rot}deg);color:${cor};font-size:${tam}px;font-weight:600;`;
-
-    // selo (fundo + borda): substitui o halo. Cores só passam por `corSegura`; números só se finitos
-    const fundo = corSegura(e.corFundo, '');
-    if (fundo) {
-      const borda = corSegura(e.corBorda, '');
-      const opacidade = typeof e.opacidadeFundo === 'number' && Number.isFinite(e.opacidadeFundo) ? Math.min(1, Math.max(0, e.opacidadeFundo)) : 0.85;
-      const raio = typeof e.raioBorda === 'number' && Number.isFinite(e.raioBorda) ? Math.min(50, Math.max(0, e.raioBorda)) : 4;
-      const bordaCss = selecionada ? `1px solid ${COR_SELECAO}` : borda ? `1px solid ${borda}` : 'none';
-      return L.divIcon({
-        className: `custom-leaflet-marker cad-feicao-texto cad-feicao-selo${selecionada ? ' cad-feicao-selecionada' : ''}`,
-        iconSize: undefined,
-        html:
-          `<span style="${base}position:relative;padding:2px 6px;border-radius:${raio}px;border:${bordaCss}">` +
-          `<span style="position:absolute;top:0;right:0;bottom:0;left:0;border-radius:inherit;background:${fundo};opacity:${opacidade}"></span>` +
-          `<span style="position:relative">${escapeHtml(texto)}</span></span>`
-      });
-    }
-
-    const halo = e.halo
-      ? 'text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000;'
-      : '';
-    return L.divIcon({
-      className: `custom-leaflet-marker cad-feicao-texto${selecionada ? ' cad-feicao-selecionada' : ''}`,
-      iconSize: undefined,
-      html: `<span style="${base}${halo}">${escapeHtml(texto)}</span>`
-    });
+    return iconeTextoDe(f, layerDef.estilo, selecionada);
   }
 
   private aplicarRotulo(layer: L.Layer, f: Feicao): void {

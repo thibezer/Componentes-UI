@@ -1,5 +1,239 @@
 # Changelog
 
+## 2.10.1 — 2026-10-23
+
+Junta à 2.10.0 tudo o que ainda estava fora do npm: a revisão da edição de formas da 2.4.0 (PR #7), a espessura do traço no controle e no seletor de cor e o estado misto do `<ui-tabela-propriedades>` (PR #12). Sai como 2.10.1 a pedido, embora traga novidades.
+
+### `<ui-controle-cores>` e `<ui-seletor-cor>`: espessura do traço
+
+- **`<ui-controle-cores>`**: atributo `espessura-traco`, propriedade `espessuraTraco` (0,5 a 50 px, padrão 2,5) e `obterCores()`/`definirCores()` com a espessura. `ui-cores-change` ganha `espessuraTraco`, o alterado `'espessuraTraco'` e a origem `'espessura'`.
+- **`<ui-seletor-cor>`**: controle de espessura do traçado (faixa e atalhos de 1 a 8 px) e prévia antes × depois com a espessura real. Novas opções `espessuraTraco` e `mostrarEspessura` (padrão: só com o alvo Traço). `ui-cor-input`/`ui-cor-confirmar` trazem `espessuraTraco`.
+- Utilitário `normalizarEspessura()`: limita a [0,5; 50] px com uma casa decimal; valor inválido vira 2,5. Um atributo `espessura-traco` vazio volta ao padrão (antes da revisão, viraria o mínimo de 0,5 px).
+- Página de exemplos: card 17, com controle e seletor ligados, prévia SVG e estado em JSON.
+
+### `<ui-tabela-propriedades>`: estado misto ("Varia") para seleção múltipla
+
+
+
+- Com várias formas selecionadas, a propriedade cujo valor difere entre elas exibe **"Varia"**; as iguais exibem o valor comum (como o *\*VARIES\** do AutoCAD).
+
+- Novo valor sentinela `VALOR_MISTO` (`Symbol.for('ui-tabela-propriedades:misto')`) e atalho `misto: true` em `ItemPropriedade`. Funções puras `combinarValores(registros)`, `valorComum(valores)` e `isValorMisto(valor)`: `painel.valores = combinarValores(formas.map(f => f.propriedades))`.
+
+- Novo atributo/propriedade `texto-misto` / `textoMisto` define a palavra exibida (padrão "Varia").
+
+- Todos os editores suportam o estado: texto e número ficam vazios com "Varia" no placeholder; seleção, tipo/espessura de linha e cor CAD mostram uma opção "Varia" não selecionável; booleano fica indeterminado (`aria-checked="mixed"`, o primeiro clique marca todos); cor e somente leitura exibem "Varia". Linha recebe a classe `ui-prop__linha--misto`; cor ajustável por `--ui-prop-misto-cor`.
+
+- Sair do campo sem digitar, apagar o texto, Esc, ↑/↓ e o arrasto do rótulo não alteram um valor misto. Ao editar, `ui-propriedade-alterada` sai com `valorAnterior: VALOR_MISTO`; **Desfazer** volta ao estado misto. Em `ui-aplicar`, as propriedades não editadas continuam com `VALOR_MISTO` — filtre com `isValorMisto()` antes de gravar.
+
+
+### `<ui-canvas-cad>`: volta a revisão dos modos de edição da 2.4.0
+
+A 2.4.0 e a 2.4.1 foram publicadas no npm, mas a revisão da edição de formas que elas traziam não entrou na 2.5.0 nem nas versões seguintes. Esta versão a traz de volta, portada para os módulos extraídos depois (`cad-feicoes-edicao.ts`, `cad-feicoes-ponteiro.ts` e o novo `cad-feicoes-teclado.ts`) e combinada com a edição da 2.10.0 (alças latentes, ponto médio arrastável, dica do HUD).
+
+**Novidades**
+
+- **Desfazer/refazer/cancelar na edição**: Ctrl+Z, Ctrl+Shift+Z / Ctrl+Y e botões no HUD (100 gestos); **Cancelar** volta à geometria de quando a edição começou. Mudar a geometria por fora recomeça o histórico.
+- **Nó selecionado**: clique na alça destaca o nó; Delete/Backspace ou "Excluir nó" o exclui. Recusas (mínimo de nós, ponto, círculo) avisam no HUD.
+- **Mais formas de entrar na edição**: **Enter** com uma só feição editável selecionada e botão **Editar** na barra (`ferramentas="editar"` ou `"todas"`; reflete a edição em curso com `aria-pressed`). `cad-edicao-recusada` ganha o motivo `sem-selecao` (botão Editar sem uma feição selecionada), com aviso visível.
+- **Novo evento `cad-feicao-duplo-clique`** (cancelável, `{ camadaId, feicao, coordenada }`). O duplo clique sobre a feição continua abrindo o popup, como na 2.8.1 (na 2.4.0 ele abria a edição). Com `preventDefault()` o consumidor assume o gesto, por exemplo chamando `editarVertices()`.
+- **Retângulo**: arrastar um canto de um retângulo alinhado aos eixos mantém o retângulo (Shift solta).
+- **Fantasmas** não aparecem em segmentos com menos de 24 px na tela e voltam ao aproximar o zoom.
+- **Ferramentas de desenho avisam no HUD** quando recusam o clique (círculo abaixo de 2 m, cantos alinhados, centro repetido) ou quando Enter/duplo clique chega com pontos de menos.
+- O HUD de edição passa a ter vários botões (Desfazer, Refazer, Excluir nó, Cancelar, Concluir): quem buscava o botão pelo seletor `#cm-vertex-edit-hud button` deve usar `[data-acao="concluir"]`.
+
+**Correções**
+
+- **Círculo**: o popup oferece o botão **Editar**; a alça da borda fica onde foi solta (antes voltava para o leste do centro).
+- **Fantasma de inserção**: o duplo clique insere um vértice e não o converte mais em curva (`dblclick` até 600 ms depois da inserção é ignorado).
+- **Camada ou feição fechada durante a edição**: ocultar, bloquear ou remover a camada, ou bloquear a feição, encerra a edição (`cad-edicao-concluida`) e tira alças e HUD.
+- **Caneta**: o arraste da alça termina com o `mouseup` na janela; soltar o botão fora do mapa não deixa mais a alça seguindo o cursor.
+- **Snap em curvas**: feição com `curva` atrai pelos nós (vértice) e pelo meio do trecho curvo; os vértices de apoio amostrados só valem como aresta.
+- **Mudança externa no meio do arraste** (outro operador, API): a alça arrastada não é destruída; o gesto em curso vence ao soltar.
+- **Tecla S** e **Enter** com vários canvases na página só valem no que está sob o mouse ou com foco. Com um único canvas nada muda.
+
+## 2.10.0 — 2026-10-23
+
+Junta à 2.9.0 o trabalho que tinha ficado fora do npm: o `<ui-area-texto>` e a lapidação dos textos (PR #10), a usabilidade do desenho e da edição de vértices, as curvas Bézier sempre à mão, o painel de camadas no estilo Adobe e a lapidação do `<ui-card>`.
+
+### Novo: `<ui-area-texto>` (alias `<ui-textarea>`) para textos grandes
+
+- Área de texto de várias linhas, form-associated (`name`, `value`, `required`, `minlength`/`maxlength`, `setCustomValidity`, `form.reset()`), com rótulo, ajuda/erro e os mesmos eventos do `<ui-campo-texto>` (`ui-input`, `ui-change`, `input`, `change`).
+- `linhas` (1–50, padrão 4), `auto-altura` (cresce com o conteúdo, sem pular a rolagem da página) com `linhas-max` como teto, `redimensionar` (`nenhum`|`vertical`|`horizontal`|`ambos`) e `contador` (usa `maxlength` como limite).
+- **Enter insere quebra de linha** e não submete o formulário. **Ctrl/Cmd + Enter** emite `ui-enviar` (`detail: { value }`).
+- Acessibilidade: nome acessível pelo `label`, `aria-label` do host, `<label for>` ou `<label>` envolvente; `aria-required`; `aria-describedby` só com a ajuda visível; o contador avisa leitores de tela apenas quando muda de nível (perto do limite, atingido, excedido), não a cada tecla.
+- API programática: `focus()`, `blur()`, `select()`, `setSelectionRange()`, `limpar()`, `readOnly`, `minLength`, `maxLength`.
+- Parts: `rotulo`, `campo`, `input`, `rodape`, `ajuda`, `contador`. Exportado por `index`, `register` e `forms`.
+
+### `<ui-texto>`: texto longo e lapidação
+
+- **Novo `linhas`:** limita o texto a N linhas (1–50) com reticências; `truncar` continua tendo prioridade. Valores inválidos são ignorados.
+- Palavras e URLs muito compridas passam a quebrar (`overflow-wrap`) em vez de estourar o contêiner; `alinhamento="justificado"` usa hifenização.
+- O elemento interno expõe `part="base"`. Sem DOM (SSR) o componente fica inerte, sem casts `any`.
+
+### `<ui-campo-texto>`: lapidação
+
+- **`minlength`/`maxlength` inválidos** (`abc`, vazio, negativo) eram repassados ao `<input>` como `NaN`; agora são ignorados, e os getters `minLength`/`maxLength` devolvem `-1` em vez de `NaN`.
+- Acessibilidade: `aria-required` no campo obrigatório; `aria-describedby` só referencia a ajuda enquanto ela está visível; a ajuda/erro é uma região `aria-live="polite"`, então mensagens de erro passam a ser anunciadas.
+- Ouvintes via `ListenerBag` e temporizador de sincronização cancelado ao desconectar/reconectar (sem `any`).
+
+### Núcleo
+
+- `core/opcoes`: `escolherInteiro` e `inteiroOuNulo` convertem atributos numéricos hostis (`NaN`, `Infinity`, texto, fora da faixa) em inteiros seguros. `sincronizarFeedbackErro` aceita `<textarea>` e um prefixo de classe opcional (padrão inalterado).
+
+### `<ui-canvas-cad>`: usabilidade do desenho e da edição de vértices
+
+
+
+- **Esc voltava a falhar depois do primeiro popup.** O Leaflet mantém `map._popup` apontando para o último popup mesmo fechado, e o atalho de teclado do mapa engole o Esc enquanto essa referência existe: com o foco no mapa, o Esc deixava de encerrar a edição de vértices, cancelar a figura em desenho e limpar a seleção. O mapa agora solta a referência no `popupclose` (`src/gerencigeo-canvas/popup_residual.ts`); popup aberto continua fechando com Esc.
+
+- **Enter em botões durante o desenho.** Com uma ferramenta ativa, o Enter era tratado como "concluir" mesmo com o foco num botão (barra de ferramentas, "Sair" do HUD), e o clique do botão não acontecia. O Enter agora fica com botões, links e controles com `role` acionável (`focoEmControleAcionavel`, em `src/core/alvo-digitavel.ts`).
+
+- **Ferramenta ou edição recusada agora avisa.** Sem camada de desenho (ou com camada bloqueada/inválida), e ao recusar a edição de uma feição (bloqueada, com furos, multiparte...), o componente mostra um aviso visível por 5 s e o anuncia na região viva, além de emitir `cad-desenho-recusado`/`cad-edicao-recusada` como antes. **Novo atributo `sem-avisos`**: o consumidor que mostra o próprio aviso a partir dos eventos desliga o do componente.
+
+- **Ponto médio arrastável na edição de vértices.** Arrastar o ponto médio de uma aresta cria o nó já na posição solta (com snap, prévia e HUD ao vivo e um único `cad-feicao-atualizada`); o clique continua inserindo no meio da aresta. Em feição com curva, o nó nasce sobre o traçado e a curva é mantida (antes, inserir um nó numa curva a convertia em poligonal). A dica do HUD passou a mencionar inserir e excluir.
+
+- **Toque.** Um toque que começa numa alça de edição, num ponto médio ou nos HUDs não move mais o mapa junto; alças de Bézier passam a ser tratadas como as demais alças pelo mouse (não iniciam caixa de seleção).
+
+- Testes de regressão em `tests/ui-canvas-cad-edicao.regressao.test.ts`.
+
+### Canvas CAD: curvas (Bézier) sempre à mão
+
+
+
+- **Editor de vértices**: as alças de Bézier agora aparecem **sempre**, inclusive em linhas/polígonos retos (alças latentes pontilhadas a 1/3 do vizinho, até 40 nós). Arrastar uma alça converte o nó em curva; `Shift` solta a simetria.
+
+- **Caneta**: as alças das âncoras já colocadas podem ser **ajustadas durante o desenho** (arraste a alça, ou a própria âncora para criar/ajustar a curva dela). `Shift` solta a simetria; o cursor muda ao passar sobre uma alça.
+
+- A dica do HUD de edição junta os gestos das duas mudanças acima (curvar pelas alças, ponto do meio, botão direito para excluir, duplo clique, Shift).
+
+### `<ui-camadas>`: painel de camadas no estilo Adobe
+
+- **Mudança visual:** os selos "✓ Ativa", "N SUB" e "OFICIAL" saem da linha da camada (a informação continua em `aria-current`, na dica da contagem e no marcador da prévia). Quem estilizava `.ui-active-badge`/`.ui-group-badge` precisa revisar.
+
+
+
+- **Cor da camada editável**: clicar (ou Enter/Espaço) na barra de cor da linha abre o `<ui-seletor-cor>` ao lado, com prévia ao vivo, "cores do projeto" e Cancelar que restaura. Emite `ui-camada-cor` como antes.
+
+- **Destaque de seleção na cor da camada**: a camada ativa, as feições selecionadas e o alvo de seleção usam a cor da camada (variável `--layer-active-color`, agora definida no grupo e herdada pelas feições).
+
+- **Menos selos**: removidos "✓ Ativa", "N SUB" e "OFICIAL"; a camada ativa é indicada pelo destaque da linha (`aria-current`), a contagem vira um número discreto (a dica traz feições e subcamadas) e só a geometria prévia ganha um marcador.
+
+- Alça de arraste mais estreita (8px, antes 14px).
+
+- Colunas fixas (alça, olho, cadeado, barra de cor) alinhadas à esquerda em camadas, subcamadas e feições; só seta, miniatura e nome recuam com a profundidade, como no Illustrator. A barra de cor não se expande mais ao passar o mouse.
+
+### `<ui-card>`: lapidação
+
+
+
+- **Teclado:** Enter/Espaço vindos de um campo ou botão dentro do card não o ativam mais nem têm o `preventDefault` aplicado (antes era impossível digitar espaço num `<input>` dentro de um card `clicavel`). Tecla mantida (`repeat`) e atalhos com Ctrl/Alt/Meta não ativam.
+
+- **Cliques internos:** o clique num ícone SVG dentro de um botão (alvo `<path>`) passou a ser reconhecido como de controle interno; `label`, `summary`, conteúdo editável, `ui-campo-texto` e `ui-segmented` também. Um `<a>`/`<label>` que *envolve* o card não o bloqueia mais.
+
+- **Acessibilidade:** `aria-label` do host dá nome ao card clicável; `focus()` no host foca o card; anel de foco visível (`:focus-visible`, contorno que sobrevive ao modo de alto contraste).
+
+- **Estilo:** o atributo `hidden` passa a esconder o card (o `display: block` do host o anulava); o realce de hover vale só com `(hover: hover)`; `prefers-reduced-motion` desliga transições e deslocamento.
+
+- **Seções:** `[slot="cabecalho|rodape|midia"]` aninhado em um descendente não revela mais a seção do card (só filhos diretos).
+
+- Lógica extraída para `card-interacao.ts` e `card-secoes.ts`; JSDoc de atributos, slots, parts e evento para o manifesto. API pública inalterada (novo observado: `aria-label`).
+
+## 2.9.0 — 2026-10-23
+
+### Junta a 2.8.2 com a linha 2.6.1–2.8.1
+
+- **Atenção a quem instalou a 2.8.2:** ela foi publicada a partir de um branch baseado na 2.6.0 e **não continha** o que saiu na 2.6.1, 2.7.0, 2.8.0 e 2.8.1 (entre outros: `<ui-linha>` e a altura única dos controles; popups e câmera só a pedido no `<ui-canvas-cad>`; busca por nome de camada e mapa base recolhível no `<ui-camadas>`; as correções de robustez e acessibilidade da 2.7.0 em `<ui-tooltip>`, `<ui-modal>`, `<ui-mapa>`, `<ui-tabela>`, `<ui-camadas>` e `<ui-canvas-cad>`). A 2.9.0 traz as duas linhas juntas: tudo da 2.8.1 mais tudo da 2.8.2 (medidas no elipsoide GRS80 e as pendências do ribbon e da paleta).
+- As mudanças da 2.8.2 no `<ui-ribbon>` e na `<ui-paleta-ferramentas>` foram portadas para os módulos extraídos na 2.7.0: grupo colapsado, botão dividido e lançador de diálogo em `ribbon-render.ts` (os cliques seguem delegados pelo painel); ativação manual das abas em `ribbon-teclado.ts` (`acaoDaTeclaAba` ganha a ação `ativar`); atalhos compostos e a paleta "dona" dos atalhos em `paleta-atalhos.ts` (`resolverAtalho` aceita o evento de teclado; `paletaDonaDosAtalhos`).
+
+### `<ui-canvas-cad>`: desenho de muitas formas (Fases 0 e 1 do motor de formas)
+
+- **LOD por tamanho em pixels:** feição (linha, polígono, círculo) com diagonal abaixo de 3 px na tela deixa de ser um objeto Leaflet e vira uma **marca de 1–2 px** na cor do preenchimento/contorno, pintada em lote por cor num canvas por camada (`feature_lod.ts`, `renderers/marcas_lod_layer.ts`). O mapa não fica "furado". Sempre em detalhe completo: selecionada (e em edição), com rótulo e em par oficial × prévia; ponto e texto nunca viram marca. Hit-test, snap, caixa, laço e hover seguem na geometria original, então uma feição de 1 px continua clicável. Reavaliado ao mudar de zoom, não a cada pan.
+- **Seleção incremental:** `aplicarSelecao` deixou de reconciliar a camada inteira. Só as feições que mudaram de estado são tocadas, e só no estilo (`setStyle`/`setIcon`, sem `setLatLngs`); a camada só é reconciliada quando há ponto sob agrupamento (selecionado sai do cluster). Selecionar 1 feição em 100 mil: de ~60 ms síncronos para ~6 ms (medido no navegador).
+- **Simplificação em pixels:** a tolerância de 1,2 px passa a valer para feições com **mais de 8 vértices** (antes 40) em **qualquer zoom abaixo de 17** (antes 12). `simplificarLinha`/`simplificarAnel` ganham o parâmetro opcional `escalaLat` e a tolerância deixa de ser 1/cos(lat) vezes maior na vertical (2× a 60° de latitude).
+- **Instrumentação:** `FeicoesLayerRenderer.estatisticas()` ganha `marcasLOD` e `avaliacoesLOD`; novo `idsDesenhados()`. Página de benchmark `bench/bench-formas.html` (rAF por canal de mensagens e `getImageData`, dados sintéticos com semente fixa) para medir mudança de vista, seleção e ocultar/exibir no navegador.
+- **Correções (Regra #0):** `feicaoNoPonto` estourava a pilha (`Math.max(...xs)`) em polígono com ~120 mil vértices ou mais; `toleranciaPorZoom(NaN)` colapsava geometrias a 2 pontos; uma feição que o Leaflet recusa (coordenada NaN) derrubava a reconciliação da camada inteira e agora fica sem desenho.
+
+**Mudanças de comportamento**
+
+- Feições minúsculas não estão mais em `grupo.getLayers()` nem em `map._layers`: quem contava camadas Leaflet para medir desenho deve usar `estatisticas()` (o app usa `map._layers` só no benchmark).
+- O desenho de feições com mais de 8 vértices é mais simplificado (até 1,2 px de desvio) abaixo do zoom 17. A geometria da feição nunca é alterada.
+- O clique numa marca passa pelo hit-test central do mapa (`layer_hit_test`: nova `FonteHit`), não por um objeto Leaflet: uma ação `feicao-clique` por clique, com a mesma ordem das formas (linha antes de área, camada do topo, menor área) e alternância em cliques repetidos sobre marcas empilhadas (até 20).
+- Cada camada com marcas ganha um canvas extra (removido quando não há marcas). Não foi consolidado nesta fase.
+
+### Motor das formas headless e renderizador Canvas opt-in (Fases 2 e 3)
+
+- **Novo atributo/propriedade `renderizador`** em `<ui-canvas-cad>`: `leaflet` (padrão, inalterado) ou `canvas`. Com `canvas`, as camadas de feições são desenhadas por um motor próprio em Canvas 2D em vez de um objeto Leaflet por feição. Trocar o valor em tempo de execução recria só as camadas de feições (`CanvasLayerManager.recriarCamadasDoTipo`), mantendo dados e seleção. Valor inválido cai em `leaflet`. Guia: [`docs/motor-formas.md`](docs/motor-formas.md).
+- **`estatisticasFeicoes(camadaId)`:** contadores da camada desenhada (`total`, `materializadas`, `marcasLOD`, `clusters`, `avaliacoesLOD` e, no caminho canvas, `desenhadas`, `marcadoresDom`, `canvases`; mais `renderizador`), para diagnóstico e benchmark. `null` se a camada não está desenhada.
+- **Motor headless** (`src/gerencigeo-canvas/motor/`, L2, sem DOM e sem Leaflet; roda em Node e serve para Web Worker): `MotorFormas` com `definirCamada`, `definirFeicoes`, `aplicarDelta`, `listaDesenho(vista, { camadas, parte })`, `listaSobreposicao`, `consultarCaixa`, seleção, `previsualizar`, `destacar` e clusters. Estilo resolvido compartilhado pelos dois renderizadores (`estilo.ts`), geometria em `Float64Array` com projeção própria e Douglas-Peucker em px (`geometria-px.ts`), loja + índice + oficial × prévia (`dados-camada.ts`).
+- **Novo entrypoint `@thibezer/ui-components-kit/motor`** (`src/motor.ts`): o motor sem o componente. O `check-layers` garante que nada alcançado por ele importa `leaflet` (`dist/motor.js` não importa).
+- **Renderizador Canvas** (`renderers/renderizador_formas.ts`, `PintorCanvas2D`): pinta forma a forma, agrupado por estilo, com recorte. **Pan incremental** (`renderers/canvas_formas_leaflet.ts`): o bitmap é deslocado em pixels de mundo e só as faixas expostas são listadas e pintadas. Seleção, hover e edição vão para uma sobreposição única por mapa, sem repintar a base. Clique e hover passam pelo hit-test central (`FonteHit`).
+- **Números com GPU** (máquina do dono, canvas × leaflet intercalados; tabelas em `docs/RELATORIO-motor-formas.md`): o canvas fica de 2 a 6 vezes abaixo do leaflet em todos os tamanhos. Mudança de vista: 20 mil em zoom 12, 90–222 contra 473–676 ms; 100 mil em zoom 15, 166–197 contra 811–1 652 ms. Selecionar 2 000 feições numa camada de 50 mil: 114 contra 1 316 ms. As metas absolutas do prompt (zoom 12: 20 mil ≤ 60 ms, 50 mil ≤ 100 ms, 100 mil ≤ 200 ms) não foram atingidas.
+- **Desempenho do caminho canvas:** o item da marca de LOD fica em cache por zoom e é reaproveitado no pan enquanto feição, estilo da camada, seleção e destaque não mudam (lista de 100 mil marcas em zoom 12: de ~390 para ~140 ms por mudança de vista, no Node). Canvas em branco (camada sem nada na vista, sobreposição sem seleção) não é mais deslocado, limpo nem redimensionado a cada pan: cada chamada de desenho fazia o navegador reenviar o canvas inteiro ao compositor (1 000 formas em zoom 18: de ~130 para ~30 ms por pan, medido sem GPU). Camada com até 500 itens na vista é repintada inteira no pan em vez de ter o bitmap deslocado (`CanvasFormas.limiteRepintar`, ajustável; também por instância): com poucas formas, deslocar o bitmap de 3072×1920 custava 3–5× mais que repintar e deixava o canvas mais lento que o leaflet (1 000 formas em zoom 12: de ~200 para ~60 ms).
+- **Correções** achadas pela suíte de equivalência: marca de LOD antiga ficava na tela quando a feição passava a ponto agrupado (também no caminho `leaflet`); ícone selecionado ou único restante numa célula de cluster sumia no caminho canvas.
+
+**Mudanças de comportamento do caminho `canvas`** (o caminho `leaflet` não muda)
+
+- Preenchimento translúcido é pintado forma a forma: polígonos sobrepostos da mesma camada continuam escurecendo onde se cruzam, como no Leaflet. A ordem de desenho dentro da camada é por grupo de estilo, não por ordem de inserção.
+- Há um canvas por camada de feições mais uma sobreposição por mapa (não 2 canvases no total). Opacidade e visibilidade seguem o pane da camada; a sobreposição ignora a opacidade da camada (a seleção aparece sempre cheia).
+- Curvas Bézier (`LinhaCurva`/`PoligonoCurvo`), ícone, texto, cluster e rótulo continuam como objetos/marcadores Leaflet dentro do mesmo renderizador.
+- As feições não aparecem em `grupo.getLayers()` nem em `map._layers`; use `estatisticasFeicoes()`.
+
+## 2.8.2 — 2026-10-23
+
+> Publicada a partir de um branch baseado na 2.6.0: não inclui a 2.6.1, a 2.7.0, a 2.8.0 nem a 2.8.1. Use a 2.9.0, que junta as duas linhas.
+
+### Canvas de feições: medidas no elipsoide GRS80
+
+- **Distância, comprimento e área** (`feature_metricas`) deixam a esfera de 6371 km: distância pela escala local do elipsoide (M e N) até 0,1° e Vincenty acima disso; área por Σ(λ[i+1]−λ[i−1])·sen φ·M·N/2. Antes o erro chegava a 0,5% na distância e 0,45% na área; agora fica abaixo de 0,01% na área e de 2e-7 na distância curta (linha Flinders–Buninyong confere em milímetros).
+- **Deslocamentos, offsets e alça de borda do círculo** (`feature_algoritmos`, `feature_edicao_ops`) usam a mesma escala (`metrosPorGrau`, exportada), para o raio lido da alça bater com o desenhado.
+
+### `<ui-ribbon>` e `<ui-paleta-ferramentas>`: pendências de UX, acessibilidade e robustez
+
+- **Harmonização de bordas, raios e alinhamento vertical no Ribbon**: botões pequenos agora utilizam `--ui-raio-sm` (4px) com `padding: 0 8px` proporcional; colunas de ferramentas recebem `gap: 2px` evitando colisão de cantos arredondados entre itens adjacentes; botões grandes têm altura calibrada em 76px (equivalente a 3 slots de 24px + gaps) com área de itens centrada verticalmente; grupos sem rótulo não geram nó vazio, eliminando o espaçamento inferior fantasma e garantindo margens perfeitamente simétricas.
+- **Tooltip estilizado leve (M2)**: substituição do `title` nativo do browser por tooltip no Shadow DOM exibido em `focus-visible` e `pointerover`, com renderização do atalho formatado (`kbd`). Remoção de `aria-label` duplicado em botões que já possuem rótulo visível.
+- **Colapso automático de grupos no Ribbon (A4)**: suporte a `prioridade` em `RibbonGrupo` e colapso dinâmico via `ResizeObserver` quando o espaço é insuficiente, transformando o grupo em botão único com flyout (estilo Office).
+- **Botão dividido e Lançador de Diálogo (M4)**: suporte a `item.dividido` no ribbon (ação primária + gatilho de menu independente) e botão lançador de diálogo opcional (`grupo.lancadorDialogo`) com emissão do evento `ui-grupo-dialogo`.
+- **Atalhos compostos e escopo multi-paletas (M7/B9)**: suporte a atalhos combinados (`Ctrl+Z`, `Shift+V`, `Esc`, etc.) via `correspondeAtalho`. No ribbon, suporte ao atributo `atalhos` e `keytips` (Alt). Conflito entre múltiplas paletas com atalhos na mesma página resolvido via escopo de foco (`:focus-within`) e ordenação DOM.
+- **Navegação em grade de 2 colunas (M9)**: em paletas verticais com `colunas="2"`, navegação bidimensional intuitiva com `ArrowUp`, `ArrowDown`, `ArrowLeft` e `ArrowRight` respeitando a ordem visual e layout RTL.
+- **Ativação manual de abas (M10)**: atributo opt-in `ativacao-manual` e propriedade `ativacaoManual` no ribbon, onde setas apenas transferem o foco do teclado e Enter/Espaço ativam a aba.
+- **Fechamento de menu no window blur (M8)**: removido fechamento indevido em `window blur` para permitir inspeção no DevTools e troca de janelas; menus fecham apenas por clique fora, `Escape` ou rolagem.
+- **Exclusividade configurável de ferramentas no Ribbon (B8)**: suporte a `tipo: 'ferramenta'` com seleção única por grupo e propriedade `grupo.exclusivo` (padrão `true`, `false` para múltipla ativação).
+- **Submenus aninhados**: suporte a múltiplos níveis de `filhos` dentro de `filhos` na paleta e no ribbon, com abertura/fechamento via `ArrowRight` e `ArrowLeft` (respeitando RTL).
+- **Modo controlado sem mutação de dados (A1)**: propriedade `modoControlado` e atributos `modo-controlado` / `copiar-dados` para clonagem profunda na entrada, garantindo que objetos do consumidor não sofram mutações.
+- **IDs em SVG inline e allowlist (B1)**: prefixagem de IDs em `<defs>` de ícones SVG (`url(#...)` e `href`) no `svg-seguro.ts` para evitar colisões no DOM, e aviso em console para elementos descartados pela allowlist.
+- **SSR e prevenção de layout shift (B9)**: reserva de altura mínima no `:host` do ribbon para evitar Cumulative Layout Shift (CLS) antes da hidratação.
+
+## 2.8.1 — 2026-10-21
+
+### `<ui-canvas-cad>`: popups e câmera só a pedido (como CAD/GIS)
+
+- **Popups sob demanda (mudança de comportamento):** clicar numa feição, vértice, linha ou polígono **não abre mais o popup nem move o mapa** (o Leaflet abria no clique e fazia auto-pan). Abrem com **duplo clique** sobre a camada, por `abrirPopupFeicao(camadaId, id)` ou, no código, por `marcador.openPopup()` fora de um clique. Popups abertos a pedido não fazem auto-pan. Novo atributo/propriedade `popups`: `sob-demanda` (padrão), `automatico` (comportamento antigo: abre ao selecionar uma feição, com auto-pan e `definirMargensPopup`) e `desligado` (clique e duplo clique não abrem). A consulta SIGEF segue abrindo ao clicar (é um pedido explícito). No modo sob demanda, terminar a edição de vértices não reabre o popup.
+- **Implementação:** `popup_gate.ts` (`PortaoPopups`, `liberarPopups`, `lerModoPopups`) intercepta `map.addLayer` só para popups e separa clique do mouse de abertura pelo código; `FeicaoPopup` aceita `liberar`; `PonteiroFeicoes.duploClique` e `GerenciadorFeicoes.abrirPopupFeicao`/`aoDuploClique`.
+- **`selectPonto(id)` / `selecionarPonto(id)`:** só seleciona. Antes recentralizava o mapa sempre e abria o popup; agora isso acontece apenas com `zoomLevel` informado (pedido de "ir até o ponto").
+- **Zoom em passos finos:** `zoomSnap: 0.25`, `zoomDelta: 0.5`, `wheelPxPerZoomLevel: 90` (antes 1, 1 e 60: cada giro da roda saltava um nível inteiro). Zoom fracionário é aceito por simplificação, clusters, densidade e pré-carga de tiles.
+- **Botão do meio:** o duplo clique que enquadra (`zoomExtents`) agora exige dois cliques limpos; dois arrastes rápidos em sequência (pan) não enquadram mais.
+- **Toque:** removido o zoom próprio da pinça (passos de 1 nível, em paralelo ao `touchZoom` do Leaflet, que também reagia ao mesmo gesto). Um dedo continua arrastando.
+- **Não mudou:** `zoomParaFeicao(s)`, `ajustarTudo`, `ajustarCamada`, `fitBounds`, clique em cluster, ação "zoom" do popup e o botão "Enquadrar" seguem como pedidos explícitos. `zoomExtents` continua considerando só os vértices (não as feições).
+
+### `<ui-camadas>`: busca, espaço da lista e documentação de eventos
+
+- **Busca por nome de camada (correção):** o campo "Buscar camada ou feição" só filtrava feições; buscar `eixos` deixava todas as camadas na tela com "Nenhum item correspondente", inclusive a que casava. Agora a árvore mostra só camadas que casam (pelo nome) ou que levam a um resultado, mantendo os grupos ancestrais; um grupo que casa traz suas subcamadas; sem resultado há uma mensagem única (termo escapado). Nova função pura `filtrarCamadasPorBusca()` em `camadas-selecao.ts`; a seleção em intervalo (`Shift`) segue as mesmas linhas.
+- **Mapa base recolhível:** novo atributo/propriedade `mapas-base-recolhido` / `mapasBaseRecolhido`, e o cabeçalho "Mapa Base" vira botão (`aria-expanded`) que mostra o mapa ativo. Novo evento `ui-mapas-base-recolhimento` (`{ recolhido }`), só para ação do usuário. Padrão inalterado (aberta).
+- **Espaço da lista:** `.ui-panel-box` passa de `min-height: 80px` para `140px`, para a árvore não ficar espremida por rodapé e mapas base em painéis `docked` baixos (o corpo rola abaixo disso).
+- **Documentação:** `ui-camada-grupo-adicionar` é emitido com `{ isGroup: true }` (o README dizia `{ grupoId, nome }`); `ui-camada-adicionar` (`{}` ou `{ parentId }`) passa a constar na tabela. Ambos são pedidos: sem handler no aplicativo, os botões não criam nada.
+
+## 2.8.0 — 2026-10-17
+
+### Controles na mesma linha: altura única e `<ui-linha>`
+
+- **Novo `<ui-linha>`** (L3): contêiner que alinha botão, campo, lista, segmented e badge na mesma linha. `tamanho`/`densidade` (`sm|md|lg`), `altura`, `alinhar`, `justificar`, `espaco`, `sem-quebra`, `inline`; filhos ganham largura natural (botão e campo deixam de ocupar 100%), campos e listas ocupam o espaço restante e qualquer filho aceita `expandir`.
+- **`tamanho`, `densidade` e `altura` agora funcionam** em `ui-botao`, `ui-campo-texto`, `ui-lista-flutuante` e `ui-segmented` (o README já os documentava, mas só `altura` tinha efeito). Lógica única em `src/core/altura-controle.ts` (exportada em `core`): entrada hostil é descartada, `altura` é limitada a 15–200px.
+- **`ui-segmented` segue `--ui-campo-altura`** (antes tinha alturas fixas de 28/36/42px, o que o desalinhava do botão e do campo). O host passou a `inline-flex` com `vertical-align: middle`. `tamanho` inválido não vira mais classe CSS arbitrária (cai em `md`).
+- **Escala de tokens** `--ui-altura-sm|md|lg` (26/34/42px). **Mudança de comportamento:** a altura padrão dos controles passou de 15px para `--ui-altura-md` (34px), o valor que o README já descrevia como padrão. Quem quiser o antigo define `--ui-campo-altura: 15px`.
+- **`ui-badge[controle]`** assume a altura dos controles (e o alvo de toque mínimo no mobile).
+- Hosts `inline` de botão, campo e lista ganharam `vertical-align: middle`.
+- Teste de contrato `tests/contrato-linha.test.ts` + regressões; guia em `docs/layout-linha.md`.
+
 ## 2.7.0 — 2026-10-17
 
 ### `UIBus`: independente do componente de toast

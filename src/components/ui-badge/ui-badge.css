@@ -22,6 +22,20 @@
   white-space: nowrap;
 }
 
+/* [controle]: o badge assume a altura dos controles (botão, campo) quando precisa alinhar com eles na mesma linha */
+:host([controle]) .ui-badge {
+  height: var(--ui-campo-altura, 34px);
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+/* Alvo de toque: mesma regra de botão, campo, lista e segmented (>= 38px em telas pequenas) */
+@media (max-width: 640px) {
+  :host([controle]) .ui-badge {
+    height: max(var(--ui-campo-altura, 34px), 38px);
+  }
+}
+
 ::slotted(svg),
 ::slotted(ui-icone) {
   width: 12px !important;

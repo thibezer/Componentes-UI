@@ -22,7 +22,7 @@ function montar(atributos: Record<string, string> = {}): UICanvasCAD {
 }
 
 describe('reconexão (Regra #2: zero vazamento)', () => {
-  it('reconectar várias vezes não acumula listeners de teclado do snap em window', () => {
+  it('reconectar várias vezes não acumula listeners de teclado (snap e Enter da edição) em window', () => {
     const adicionados: string[] = [];
     const removidos: string[] = [];
     const add = vi.spyOn(window, 'addEventListener').mockImplementation(((t: string) => { adicionados.push(t); }) as never);
@@ -36,9 +36,10 @@ describe('reconexão (Regra #2: zero vazamento)', () => {
     el.remove();
 
     const teclas = (lista: string[], t: string) => lista.filter((x) => x === t).length;
+    // por conexão: keydown do snap e do Enter da edição, keyup do snap (nunca duplicados); ao final, nenhum sem remoção
+    const porConexao: Record<string, number> = { keydown: 2, keyup: 1 };
     for (const tecla of ['keydown', 'keyup']) {
-      // uma adição por conexão (nunca duplicada) e, ao final, nenhuma ficou sem remoção
-      expect(teclas(adicionados, tecla)).toBe(3);
+      expect(teclas(adicionados, tecla)).toBe(3 * porConexao[tecla]);
       expect(teclas(removidos, tecla)).toBeGreaterThanOrEqual(teclas(adicionados, tecla));
     }
     add.mockRestore();

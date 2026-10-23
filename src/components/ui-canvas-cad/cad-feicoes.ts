@@ -4,7 +4,7 @@ import { normalizarCoordenada } from '../../gerencigeo-canvas/feature_adapters';
 import { RegraVersoes } from '../../gerencigeo-canvas/feature_versoes';
 import { CursoresRemotos, type UsuarioRemoto } from '../../gerencigeo-canvas/feature_cursores';
 import { LayerRendererFactory } from '../../gerencigeo-canvas/layer_renderer_factory';
-import type { FeicoesLayerRenderer } from '../../gerencigeo-canvas/renderers/feicoes_renderer';
+import type { IRenderizadorFeicoes } from '../../gerencigeo-canvas/renderers/renderizador_feicoes_tipos';
 import { SelecaoFeicoes, type RefFeicao } from '../../gerencigeo-canvas/feature_selecao';
 import type { CaixaPx, ModoCaixa } from '../../gerencigeo-canvas/feature_caixa';
 import { FeicaoPopup, coordenadaDeReferencia, type AcaoFeicao, type MargensPopup } from '../../gerencigeo-canvas/feature_popup';
@@ -20,11 +20,13 @@ import { EdicaoFeicoes } from './cad-feicoes-edicao';
 import { ConsultaEspacialFeicoes } from './cad-feicoes-consulta';
 import { PonteiroFeicoes } from './cad-feicoes-ponteiro';
 import { SelecaoPorRegiao } from './cad-feicoes-selecao-regiao';
+import { TecladoEdicao } from './cad-feicoes-teclado';
 import type { EditorVertices } from '../../gerencigeo-canvas/feature_editor_vertices';
 import type { ControleDesenho } from '../../gerencigeo-canvas/feature_desenho_controle';
 import type { Ferramenta } from '../../gerencigeo-canvas/feature_desenho';
 import type { EstiloFeicao, LatLonPar } from '../../gerencigeo-canvas/feature_types';
 import { aplicarMargensHud, type MargensHud } from '../../gerencigeo-canvas/feature_hud';
+import type { ModoPopups } from '../../gerencigeo-canvas/popup_gate';
 
 import {
   TIPO_CAMADA_FEICOES,
@@ -58,6 +60,20 @@ interface Contexto {
   aoFerramenta?: (ferramenta: Ferramenta | null) => void;
   /** Regra de oficial × prévia compartilhada com o renderizador (o componente a põe no contexto de renderização). */
   regra?: RegraVersoes;
+  /**
+   * Quando o popup da feição abre: `sob-demanda` (padrão do componente) só por duplo clique ou `abrirPopupFeicao`;
+   * `automatico` também ao selecionar uma feição. Sem esta função (uso direto do gerenciador), vale `automatico`.
+   */
+  modoPopups?: () => ModoPopups;
+  /** Executa a abertura de um popup como pedido explícito, passando pelo portão de popups do mapa. */
+  liberarPopups?: <T>(fn: () => T) => T;
+  /** A edição de vértices começou (`true`) ou terminou (`false`), para refletir no botão da barra. */
+  aoEdicao?: (ativa: boolean) => void;
+  /**
+   * Os atalhos de teclado do canvas (S do snap, Enter para editar) valem agora? O componente responde que sim com o mouse
+   * sobre ele ou o foco dentro dele; sem esta função, valem sempre (a edição e as ferramentas em andamento também sempre valem).
+   */
+  atalhoValido?: () => boolean;
 }
 
 
@@ -68,6 +84,7 @@ export class GerenciadorFeicoes {
   private selecao: SelecaoFeicoes;
   private popup: FeicaoPopup;
   private edicao: EdicaoFeicoes;
+  private teclado: TecladoEdicao;
   private consulta: ConsultaEspacialFeicoes;
   private ponteiro: PonteiroFeicoes;
   private regiao: SelecaoPorRegiao;
@@ -94,14 +111,16 @@ export class GerenciadorFeicoes {
       desenhada: (f) => this.desenhada(f)
     });
     this.ponteiro = new PonteiroFeicoes({
-      emitir: (evento, detalhe) => this.contexto.emitir(evento, detalhe),
+      emitir: (evento, detalhe, cancelavel) => this.contexto.emitir(evento, detalhe, cancelavel),
       feicaoSob: (x, y) => this.consulta.feicaoSob(x, y),
       interacaoAtiva: () => this.ferramentas.ativo || this.edicao.editando,
+      popupNoDuploClique: () => this.modoPopups() !== 'desligado',
       botaoDireitoDaFerramenta: () => {
         if (!this.ferramentas.ativo) return false;
         this.ferramentas.botaoDireito();
         return true;
-      }
+      },
+      abrirPopup: (f) => this.popup.abrir(f)
     });
     this.regiao = new SelecaoPorRegiao({
       obterMapa: () => this.contexto.obterMapa(),
@@ -121,14 +140,23 @@ export class GerenciadorFeicoes {
       desativarFerramenta: () => this.ferramentas.desativarFerramenta(),
       aplicarMargensHud: () => this.aplicarMargensHud(),
       selecionarUma: (ref) => this.selecao.selecionar([ref]),
+      selecionadas: () => this.selecao.obter(),
+      aoEdicao: (ativa) => this.contexto.aoEdicao?.(ativa),
       fecharPopup: () => this.popup.fechar(),
       reabrirPopupDaSelecao: () => {
+        // só o modo automático devolve o popup ao fim da edição; sob demanda, quem quiser o abre de novo
+        if (this.modoPopups() !== 'automatico') return;
         const selecionadas = this.selecao.obter();
         if (selecionadas.length === 1) this.popup.abrir(selecionadas[0]);
       },
       snapAtivo: () => this.snap.ativo,
       alternarSnap: () => this.snap.alternar(),
       buscarSnapEm: (coord, excluir) => this.buscarSnapEm(coord, excluir)
+    });
+    this.teclado = new TecladoEdicao({
+      ocupado: () => this.edicao.editando || this.ferramentas.ativo,
+      atalhosValem: () => this.atalhosValem(),
+      editarSelecionada: () => this.edicao.editarSelecionada()
     });
     this.versoes = new VersoesFeicoes({
       obterLayerManager: () => this.contexto.obterLayerManager(),
@@ -176,6 +204,7 @@ export class GerenciadorFeicoes {
     });
     this.cursores = new CursoresRemotos(() => this.contexto.obterMapa());
     this.snap = new ControleSnap({
+      aplica: () => this.atalhosValem(),
       aoMudar: (estado) => {
         this.contexto.emitir('cad-snap', estado);
         this.edicao.atualizarSnapNoHud();
@@ -185,13 +214,14 @@ export class GerenciadorFeicoes {
     this.popup = new FeicaoPopup({
       obterMapa: () => this.contexto.obterMapa(),
       obterCamada: (id) => this.contexto.obterLayerManager().getLayerDef(id),
-      aoAcao: (acao, feicao) => this.tratarAcaoPopup(acao, feicao)
+      aoAcao: (acao, feicao) => this.tratarAcaoPopup(acao, feicao),
+      liberar: (fn) => (this.contexto.liberarPopups ? this.contexto.liberarPopups(fn) : fn())
     });
     this.selecao = new SelecaoFeicoes({
       obterFeicao: (r) => this.buscar(r.camadaId, r.id),
       aplicarVisual: (camadaId, ids) => {
         const instancia = this.contexto.obterLayerManager().getLayerInstance(camadaId);
-        const renderer = LayerRendererFactory.get(TIPO_CAMADA_FEICOES) as FeicoesLayerRenderer | undefined;
+        const renderer = LayerRendererFactory.get(TIPO_CAMADA_FEICOES) as IRenderizadorFeicoes | undefined;
         if (instancia && renderer) renderer.aplicarSelecao(instancia as L.LayerGroup, ids);
       },
       aoSelecionar: (feicoes) => {
@@ -203,8 +233,8 @@ export class GerenciadorFeicoes {
           if (!mesma) this.edicao.parar();
           return;
         }
-        // popup só para exatamente uma feição; com mais (ou nenhuma) fecha
-        if (feicoes.length === 1) this.popup.abrir(feicoes[0]);
+        // popup automático só para exatamente uma feição; com mais (ou nenhuma) fecha. Sob demanda, selecionar não abre
+        if (feicoes.length === 1 && this.modoPopups() === 'automatico') this.popup.abrir(feicoes[0]);
         else this.popup.fechar();
       },
       aoSelecionarUma: (feicao) => this.contexto.emitir('cad-feicao-selecionada', { feicao }),
@@ -219,7 +249,7 @@ export class GerenciadorFeicoes {
     if (this.edicao.editando) {
       const ed = this.edicao.feicao!;
       const atualEd = this.buscar(ed.camadaId, ed.id);
-      if (!atualEd || atualEd.excluida) this.edicao.parar();
+      if (!atualEd || atualEd.excluida || atualEd.bloqueada) this.edicao.parar();
       else if (atualEd !== ed) this.edicao.sincronizar(atualEd);
     }
     const aberta = this.popup.aberto;
@@ -332,6 +362,24 @@ export class GerenciadorFeicoes {
 
   public fecharPopup(): void {
     this.popup.fechar();
+  }
+
+  private modoPopups(): ModoPopups {
+    return this.contexto.modoPopups?.() ?? 'automatico';
+  }
+
+  /** Pedido explícito: abre o popup da feição (vale em qualquer modo). `false` se não existe, foi excluída ou não está na tela. */
+  public abrirPopupFeicao(camadaId: string, id: string): boolean {
+    if (typeof camadaId !== 'string' || typeof id !== 'string') return false;
+    const f = this.buscar(camadaId, id);
+    if (!f || f.excluida || !this.desenhada(f)) return false;
+    this.popup.abrir(f);
+    return true;
+  }
+
+  /** Duplo clique no mapa: `cad-feicao-duplo-clique` (cancelável) e, se ninguém assumir, o popup da feição sob o cursor. */
+  public aoDuploClique(e: MouseEvent): void {
+    this.ponteiro.duploClique(e);
   }
 
   /** Opções do popup (hoje: se "copiar" escreve na área de transferência). Mescla com o que já foi definido. */
@@ -494,10 +542,21 @@ export class GerenciadorFeicoes {
 
   public conectarTeclado(): void {
     this.snap.conectar();
+    this.teclado.conectar();
   }
 
   public desconectarTeclado(): void {
     this.snap.desconectar();
+    this.teclado.desconectar();
+  }
+
+  private atalhosValem(): boolean {
+    return this.edicao.editando || this.ferramentas.ativo || (this.contexto.atalhoValido?.() ?? true);
+  }
+
+  /** Botão "Editar" da barra: encerra a edição em curso ou edita a feição selecionada (uma só). */
+  public alternarEdicaoDaSelecao(): ResultadoEdicao {
+    return this.edicao.alternarEdicaoDaSelecao();
   }
 
   // ---- edição de vértices ----

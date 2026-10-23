@@ -25,7 +25,10 @@ export interface ItemPropriedade {
   id: string;
   rotulo: string;
   tipo: TipoPropriedade;
+  /** Valor atual; `VALOR_MISTO` quando difere entre os objetos selecionados (exibe "Varia"). */
   valor: any;
+  /** Atalho para `valor: VALOR_MISTO`: a propriedade difere entre os objetos selecionados. */
+  misto?: boolean;
   unidade?: string;
   casasDecimais?: number;
   opcoes?: OpcaoPropriedade[];
@@ -64,4 +67,6 @@ export interface ContextoEditorPropriedade {
   registrarAlteracao: (categoriaId: string, propId: string, novoValor: any) => void;
   focarProximoEditor: (elementoAtual: HTMLElement) => void;
   despacharEventoAcao: (prop: ItemPropriedade, categoriaId: string) => void;
+  /** Texto exibido para valores mistos (atributo `texto-misto`); padrão "Varia". */
+  obterTextoMisto?: () => string;
 }

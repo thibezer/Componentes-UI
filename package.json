@@ -1,6 +1,6 @@
 {
   "name": "@thibezer/ui-components-kit",
-  "version": "2.7.0",
+  "version": "2.10.1",
   "description": "Web Components nativos (W3C Custom Elements + Shadow DOM) para interfaces densas de GIS, CAD e formulários, sem dependência de framework.",
   "keywords": [
     "web-components",
@@ -92,6 +92,11 @@
       "types": "./dist/canvas.d.ts",
       "import": "./dist/canvas.js",
       "require": "./dist/canvas.cjs"
+    },
+    "./motor": {
+      "types": "./dist/motor.d.ts",
+      "import": "./dist/motor.js",
+      "require": "./dist/motor.cjs"
     },
     "./botao": {
       "types": "./dist/botao.d.ts",

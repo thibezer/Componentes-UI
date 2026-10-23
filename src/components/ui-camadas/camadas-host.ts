@@ -19,6 +19,7 @@ export interface CamadasHostCompleto extends UICamadasHost {
   readonly mapaBaseAtivo: string;
   definirCamadaAtiva(camadaId: string, emitirEvento?: boolean): void;
   selecionarMapaBase(id: string, emitirEvento?: boolean): void;
+  alternarMapasBaseRecolhido(emitirEvento?: boolean): void;
   selecionarFeicao(
     feicaoId: string,
     acumular?: boolean,

@@ -37,7 +37,7 @@ você ligue [`aceitar-origem`](#coordenada-0-0).
 | `setSnappingEnabled` / `toggleSnapping` | `definirSnap(bool)` / `alternarSnap()` (tecla **S**, botão da barra; **Alt** desliga enquanto segurado) |
 | `startVertexEditing(feature, cb)` / `stopVertexEditing` | `editarVertices(camadaId, id)` / `pararEdicaoVertices()` |
 | `zoomToFeature`, `zoomToFeatures`, `fitAllFeatures`, `fitLayer` | `zoomParaFeicao`, `zoomParaFeicoes`, `ajustarTudo()`, `ajustarCamada(id)` |
-| `closeFeaturePopup` | `fecharPopupFeicao()` (e `definirMargensPopup` para o auto-pan; `definirOpcoesPopup` para a ação "copiar") |
+| `closeFeaturePopup` | `fecharPopupFeicao()` (e `definirOpcoesPopup` para a ação "copiar"). O popup abre **sob demanda**: duplo clique na feição ou `abrirPopupFeicao(camadaId, id)`, sem mover o mapa. `popups="automatico"` devolve o comportamento antigo (abre ao selecionar, com auto-pan, e aí `definirMargensPopup` vale) |
 | (barras e painéis sobre o mapa) | `definirMargensPopup(...)` e `definirMargensHud(...)` ([HUDs](#posicao-dos-huds)) |
 | `toggleGlobalShowPreviews` / `setGlobalShowPreviews` | `alternarPreviasGlobais()` / `definirPreviasGlobais(bool)` |
 | `toggleIndividualPreview` / `isFeaturePreviewActive` | `alternarPrevia(camadaId, id)` / `previaSolicitada(camadaId, id)` |

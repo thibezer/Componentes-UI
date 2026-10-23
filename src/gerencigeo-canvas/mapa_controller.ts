@@ -4,6 +4,7 @@ import type {
   CanvasLayerState, CanvasLayerDef, PontoCAD, ConexaoCAD, PoligonoCAD, DestacarElementoOpcoes
 } from './types';
 import { MapaCore } from './mapa_core';
+import { liberarPopups } from './popup_gate';
 import { CanvasInteracao } from './canvas_interacao';
 import { CanvasLayerManager } from './layer_manager';
 import {
@@ -212,10 +213,11 @@ export class GerenciGeoMapaController {
     if (!this.core.map) return;
     const strId = String(pId);
     const marker = this.getMarkers().find(m => String((m as any).pontoId) === strId);
-    if (marker) {
-      const targetZoom = zoomLevel !== undefined ? zoomLevel : this.core.map.getZoom();
-      this.core.map.setView(marker.getLatLng(), targetZoom);
-      marker.openPopup();
+    // Selecionar não move a câmera: só `zoomLevel` explícito é um pedido de "ir até o ponto" (centraliza e abre o popup)
+    if (marker && zoomLevel !== undefined) {
+      const mapa = this.core.map;
+      mapa.setView(marker.getLatLng(), zoomLevel);
+      liberarPopups(mapa, () => marker.openPopup());
     }
     const parsedId = normalizarIdPonto(pId);
     this.canvasInteracao.ctx.selectedPontoIds = [parsedId as any];

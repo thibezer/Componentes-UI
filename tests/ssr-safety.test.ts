@@ -46,6 +46,17 @@ describe('SSR Safety (Node.js runtime sem DOM)', () => {
     unsub();
   });
 
+  it('módulos puros do motor de formas (LOD, simplificação, índice) rodam em Node sem DOM nem Leaflet', async () => {
+    const lod = await import('../src/gerencigeo-canvas/feature_lod');
+    expect(lod.ehMarca({ minLat: 0, maxLat: 0.00001, minLon: 0, maxLon: 0.00001 }, 10)).toBe(true);
+    expect(lod.projetarMercator(0, 0, 0).x).toBeCloseTo(128);
+    const simp = await import('../src/gerencigeo-canvas/feature_simplificacao');
+    expect(simp.toleranciaPorZoom(10)).toBeGreaterThan(0);
+    const indice = await import('../src/gerencigeo-canvas/feature_indice');
+    expect(new indice.IndiceEspacial().tamanho).toBe(0);
+    expect(isBrowser).toBe(false);
+  });
+
   it('importação dos entrypoints e componentes não deve lançar ReferenceError em ambiente de servidor', async () => {
     // Importações simulando Server-Side Rendering (Next.js App Router / Nuxt / SvelteKit)
     const core = await import('../src/core/index');
@@ -58,6 +69,8 @@ describe('SSR Safety (Node.js runtime sem DOM)', () => {
 
     const forms = await import('../src/forms');
     expect(forms.UICampoTexto).toBeDefined();
+    expect(forms.UIAreaTexto).toBeDefined();
+    expect(forms.UITextarea).toBeDefined();
     expect(forms.UICheckbox).toBeDefined();
     expect(forms.UIRadio).toBeDefined();
     expect(forms.UISwitch).toBeDefined();

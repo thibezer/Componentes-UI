@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import path from 'node:path';
 // @ts-expect-error módulo .mjs sem declarações
-import { classificar, extrairImports, verificar } from '../scripts/check-layers.mjs';
+import { classificar, extrairImports, verificar, verificarEntradaSemLeaflet } from '../scripts/check-layers.mjs';
 
 const src = (...p: string[]) => path.resolve(__dirname, '..', 'src', ...p);
 
@@ -68,8 +68,59 @@ describe('check-layers: verificação', () => {
     expect(verificar([f], ler({ [f]: "import L from 'leaflet';" }))).toEqual([]);
   });
 
+  it('módulos puros do motor (motor/, feature_lod, feature_simplificacao, feature_indice) não importam leaflet nem usam DOM', () => {
+    const lod = src('gerencigeo-canvas', 'feature_lod.ts');
+    const motor = src('gerencigeo-canvas', 'motor', 'vista.ts');
+    expect(verificar([lod], ler({ [lod]: "import L from 'leaflet';" }))).toHaveLength(1);
+    expect(verificar([motor], ler({ [motor]: "import type L from \"leaflet\";\nconst x = window.innerWidth;" })).length).toBeGreaterThanOrEqual(1);
+    expect(verificar([motor], ler({ [motor]: 'const el = document.createElement("a");' }))).toHaveLength(1);
+    // comentário que cita window/document não conta; renderers (que usam Leaflet) seguem livres
+    expect(verificar([lod], ler({ [lod]: '// sem window nem document\nexport const x = 1;' }))).toEqual([]);
+    const renderer = src('gerencigeo-canvas', 'renderers', 'feicoes_renderer.ts');
+    expect(verificar([renderer], ler({ [renderer]: "import L from 'leaflet'; document.body;" }))).toEqual([]);
+  });
+
   it('proíbe código em tokens (L0)', () => {
     const f = src('tokens', 'x.ts');
     expect(verificar([f], ler({ [f]: '' }))).toHaveLength(1);
+  });
+});
+
+describe('check-layers: entrypoint sem Leaflet (motor)', () => {
+  const fs = (arquivos: Record<string, string>) => ({
+    ler: (f: string) => arquivos[f] ?? null,
+    resolver: (base: string) => [`${base}.ts`, base].find((c) => c in arquivos) ?? null
+  });
+  const raiz = path.resolve(__dirname, '..', 'src');
+
+  it('acusa um arquivo alcançado (mesmo indiretamente) que importa leaflet em runtime', () => {
+    const entrada = path.join(raiz, 'motor.ts');
+    const { ler, resolver } = fs({
+      [entrada]: "export * from './a';",
+      [path.join(raiz, 'a.ts')]: ["import { b } from './b';", 'export const a = b;'].join('\n'),
+      [path.join(raiz, 'b.ts')]: ["import L from 'leaflet';", 'export const b = L;'].join('\n')
+    });
+    const v = verificarEntradaSemLeaflet(entrada, ler, resolver);
+    expect(v).toHaveLength(1);
+    expect(v[0].arquivo).toBe(path.join(raiz, 'b.ts'));
+  });
+
+  it('import type de leaflet não conta (some na compilação); ciclos não travam', () => {
+    const entrada = path.join(raiz, 'motor.ts');
+    const { ler, resolver } = fs({
+      [entrada]: "export * from './a';",
+      [path.join(raiz, 'a.ts')]: ["import type L from 'leaflet';", "import './b';"].join('\n'),
+      [path.join(raiz, 'b.ts')]: "import './a';"
+    });
+    expect(verificarEntradaSemLeaflet(entrada, ler, resolver)).toEqual([]);
+  });
+
+  it('o entrypoint real `src/motor.ts` não alcança leaflet', () => {
+    expect(verificarEntradaSemLeaflet(path.join(raiz, 'motor.ts'))).toEqual([]);
+  });
+
+  it('classifica motor.ts como L5 e gerencigeo-canvas/motor como L2', () => {
+    expect(classificar(src('motor.ts'))).toBe(5);
+    expect(classificar(src('gerencigeo-canvas', 'motor', 'motor-formas.ts'))).toBe(2);
   });
 });

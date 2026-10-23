@@ -20,6 +20,7 @@ export interface HostRenderizavel extends CamadasHostCompleto {
   editingFeatureId: string | null;
   readonly flutuante: boolean;
   readonly mostrarMapasBase: boolean;
+  readonly mapasBaseRecolhido: boolean;
   readonly mostrarRodape: boolean;
   getAttribute(nome: string): string | null;
 }
@@ -45,7 +46,7 @@ export function renderizarPainel(
     });
 
     const mapasBaseHtml = host.mostrarMapasBase
-      ? renderizarGridMapasBase(host.mapasBase, host.mapaBaseAtivo)
+      ? renderizarGridMapasBase(host.mapasBase, host.mapaBaseAtivo, host.mapasBaseRecolhido)
       : '';
 
     const rodapeHtml = host.mostrarRodape

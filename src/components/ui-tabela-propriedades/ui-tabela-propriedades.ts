@@ -39,6 +39,8 @@ export * from './propriedades-painel-controles';
 export * from './propriedades-dom-utils';
 export * from './propriedades-flutuante';
 export * from './propriedades-densidade';
+export * from './propriedades-valor-misto';
+import { TEXTO_MISTO_PADRAO } from './propriedades-valor-misto';
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 
 export class UITabelaPropriedades extends SafeHTMLElement {
@@ -52,7 +54,8 @@ export class UITabelaPropriedades extends SafeHTMLElement {
       'largura-rotulo',
       'fechavel',
       'colapsado',
-      'flutuante'
+      'flutuante',
+      'texto-misto'
     ];
   }
 
@@ -156,6 +159,9 @@ export class UITabelaPropriedades extends SafeHTMLElement {
       case 'estilo-visual':
         this.renderSeletorTipos();
         return;
+      case 'texto-misto':
+        this.renderCategorias();
+        return;
       case 'filtro':
         sincronizarPainelControles(this.shadow, this);
         // Filtro escondido não pode continuar escondendo propriedades
@@ -179,6 +185,23 @@ export class UITabelaPropriedades extends SafeHTMLElement {
     this._categorias = Array.isArray(novasCategorias) ? novasCategorias : [];
     this.gerenciadorValores.inicializarCategorias(this._categorias);
     this.renderCategorias();
+  }
+
+  /**
+   * Texto exibido nas propriedades cujo valor difere entre os objetos selecionados
+   * (`VALOR_MISTO`). Reflete o atributo `texto-misto`; padrão "Varia".
+   */
+  get textoMisto(): string {
+    const texto = this.getAttribute('texto-misto');
+    return texto && texto.trim() ? texto : TEXTO_MISTO_PADRAO;
+  }
+
+  set textoMisto(texto: string) {
+    if (typeof texto === 'string' && texto.trim()) {
+      this.setAttribute('texto-misto', texto);
+    } else {
+      this.removeAttribute('texto-misto');
+    }
   }
 
   get tipos(): SeletorTipoItem[] {
@@ -392,6 +415,7 @@ export class UITabelaPropriedades extends SafeHTMLElement {
             this.gerenciadorValores.registrarAlteracao(catId, id, val);
           },
           focarProximoEditor: (el: HTMLElement) => focarProximoEditor(this.shadow, el),
+          obterTextoMisto: () => this.textoMisto,
           despacharEventoAcao: (p: ItemPropriedade, catId: string) => {
             this.dispatchEvent(
               new CustomEvent('ui-acao-clique', {

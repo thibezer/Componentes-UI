@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import './index';
-import { normalizarCor, normalizarOpacidade, coresUnicas } from './cores-utils';
+import { normalizarCor, normalizarOpacidade, normalizarEspessura, coresUnicas } from './cores-utils';
 import { UISeletorCor, abrirSeletorCor, fecharSeletorCor } from './ui-seletor-cor';
 import { UIControleCores } from './ui-controle-cores';
 import type { DetalheControleCores, DetalheSeletorCor } from './tipos';
@@ -36,6 +36,13 @@ describe('cores-utils', () => {
     expect(normalizarOpacidade('abc', 0.2)).toBe(0.2);
   });
 
+  it('limita a espessura do traço e descarta valores inválidos', () => {
+    expect(normalizarEspessura(60)).toBe(50);
+    expect(normalizarEspessura(0.1)).toBe(0.5);
+    expect(normalizarEspessura('4')).toBe(4);
+    expect(normalizarEspessura('abc', 3)).toBe(3);
+  });
+
   it('remove cores repetidas, inválidas e "sem cor"', () => {
     expect(coresUnicas(['#fff', '#FFFFFF', 'none', 'azul', '#000'])).toEqual(['#ffffff', '#000000']);
     expect(coresUnicas(null)).toEqual([]);
@@ -50,7 +57,7 @@ describe('<ui-seletor-cor>', () => {
     document.body.appendChild(ancora);
   });
 
-  it('modo duplo: troca de alvo, cor e opacidade com eventos de pré-visualização', () => {
+  it('modo duplo: troca de alvo, cor, espessura e opacidade com eventos de pré-visualização', () => {
     const alteracoes: DetalheSeletorCor[] = [];
     const alvos: string[] = [];
     abrirSeletorCor({
@@ -58,6 +65,7 @@ describe('<ui-seletor-cor>', () => {
       preenchimento: '#10b981',
       traco: '#ef4444',
       opacidade: 0.35,
+      espessuraTraco: 2.5,
       aoAlterar: (d) => alteracoes.push(d),
       aoTrocarAlvo: (a) => alvos.push(a)
     });
@@ -66,18 +74,24 @@ describe('<ui-seletor-cor>', () => {
     expect(el.cor).toBe('#10b981');
     expect(sr(el).querySelectorAll('[data-alvo]').length).toBe(2);
     expect((sr(el).querySelector('.opacidade') as HTMLElement).hidden).toBe(false);
+    expect((sr(el).querySelector('.espessura') as HTMLElement).hidden).toBe(true);
 
     el.trocarAlvo('traco');
     expect(alvos).toEqual(['traco']);
     expect(el.cor).toBe('#ef4444');
     expect((sr(el).querySelector('.opacidade') as HTMLElement).hidden).toBe(true);
+    expect((sr(el).querySelector('.espessura') as HTMLElement).hidden).toBe(false);
 
     el.definirCor('#38BDF8');
     expect(ultimo(alteracoes)).toMatchObject({ alvo: 'traco', cor: '#38bdf8', traco: '#38bdf8', preenchimento: '#10b981' });
 
+    el.definirEspessura(4);
+    expect(el.espessura).toBe(4);
+    expect(ultimo(alteracoes)).toMatchObject({ espessuraTraco: 4 });
+
     el.trocarAlvo('preenchimento');
     el.definirOpacidade(0.75);
-    expect(ultimo(alteracoes)).toMatchObject({ opacidade: 0.75, preenchimento: '#10b981', traco: '#38bdf8' });
+    expect(ultimo(alteracoes)).toMatchObject({ opacidade: 0.75, preenchimento: '#10b981', traco: '#38bdf8', espessuraTraco: 4 });
   });
 
   it('ignora cores inválidas', () => {
@@ -99,7 +113,7 @@ describe('<ui-seletor-cor>', () => {
     expect(aberto.aberto).toBe(false);
   });
 
-  it('Cancelar restaura as cores iniciais sem confirmar', () => {
+  it('Cancelar restaura as cores e espessura iniciais sem confirmar', () => {
     const alteracoes: DetalheSeletorCor[] = [];
     let confirmou = false;
     let cancelado: DetalheSeletorCor | null = null;
@@ -108,6 +122,7 @@ describe('<ui-seletor-cor>', () => {
       preenchimento: '#10b981',
       traco: '#ffffff',
       opacidade: 0.35,
+      espessuraTraco: 2.5,
       aoAlterar: (d) => alteracoes.push(d),
       aoConfirmar: () => (confirmou = true),
       aoCancelar: (d) => (cancelado = d)
@@ -116,12 +131,13 @@ describe('<ui-seletor-cor>', () => {
     el.definirCor('#000000');
     el.trocarAlvo('traco');
     el.definirCor('#ff0000');
+    el.definirEspessura(6);
     el.definirOpacidade(0.9);
     (sr(el).querySelector('[data-acao="cancelar"]') as HTMLElement).click();
 
     expect(confirmou).toBe(false);
-    expect(cancelado).toMatchObject({ preenchimento: '#10b981', traco: '#ffffff', opacidade: 0.35 });
-    expect(ultimo(alteracoes)).toMatchObject({ preenchimento: '#10b981', traco: '#ffffff', opacidade: 0.35 });
+    expect(cancelado).toMatchObject({ preenchimento: '#10b981', traco: '#ffffff', opacidade: 0.35, espessuraTraco: 2.5 });
+    expect(ultimo(alteracoes)).toMatchObject({ preenchimento: '#10b981', traco: '#ffffff', opacidade: 0.35, espessuraTraco: 2.5 });
     expect(seletorNoDom()).toBeNull();
   });
 
@@ -215,7 +231,6 @@ describe('<ui-seletor-cor>', () => {
       expect(seletorNoDom()!.style.left).toBe('70px');
       expect(seletorNoDom()!.style.top).toBe('100px');
 
-      // Perto da borda de baixo: sobe até caber; perto da direita: vai para a esquerda da âncora
       ancora.getBoundingClientRect = () => rect(window.innerWidth - 30, window.innerHeight - 40, 20, 20);
       abrirSeletorCor({ ancora, cor: '#fff' });
       expect(seletorNoDom()!.style.top).toBe(`${window.innerHeight - 480 - 10}px`);
@@ -267,19 +282,19 @@ describe('<ui-controle-cores>', () => {
   });
 
   it('lê os atributos iniciais e pinta as amostras', () => {
-    expect(el.obterCores()).toEqual({ preenchimento: '#10b981', traco: '#3b82f6', opacidade: 0.35, alvo: 'preenchimento' });
+    expect(el.obterCores()).toEqual({ preenchimento: '#10b981', traco: '#3b82f6', opacidade: 0.35, espessuraTraco: 2.5, alvo: 'preenchimento' });
     expect(face('preenchimento').style.backgroundColor).not.toBe('');
     expect(face('traco').style.borderColor).not.toBe('');
     expect(amostra('preenchimento').classList.contains('amostra--ativa')).toBe(true);
   });
 
   it('definirCores, definirAlvo e definirMisto não emitem eventos', () => {
-    el.definirCores({ preenchimento: '#000', traco: 'none', opacidade: 0.5 });
+    el.definirCores({ preenchimento: '#000', traco: 'none', opacidade: 0.5, espessuraTraco: 3 });
     el.definirAlvo('traco');
     el.definirMisto({ preenchimento: true });
     expect(eventos).toHaveLength(0);
     expect(alvos).toHaveLength(0);
-    expect(el.obterCores()).toEqual({ preenchimento: '#000000', traco: 'none', opacidade: 0.5, alvo: 'traco' });
+    expect(el.obterCores()).toEqual({ preenchimento: '#000000', traco: 'none', opacidade: 0.5, espessuraTraco: 3, alvo: 'traco' });
     expect(face('preenchimento').classList.contains('face--misto')).toBe(true);
     expect(face('traco').classList.contains('face--sem-cor')).toBe(true);
   });
@@ -290,6 +305,20 @@ describe('<ui-controle-cores>', () => {
     expect(el.preenchimento).toBe('#10b981');
     expect(face('preenchimento').classList.contains('face--misto')).toBe(true);
     expect(face('traco').classList.contains('face--misto')).toBe(false);
+  });
+
+  it('espessura-traco hostil (texto, NaN, Infinity, negativa, gigante) não quebra e fica dentro de [0.5, 50]', () => {
+    for (const v of ['abc', 'NaN', 'Infinity', '']) {
+      el.setAttribute('espessura-traco', v);
+      expect(el.espessuraTraco).toBe(2.5);
+    }
+    el.setAttribute('espessura-traco', '-3');
+    expect(el.espessuraTraco).toBe(0.5);
+    el.setAttribute('espessura-traco', '9999');
+    expect(el.espessuraTraco).toBe(50);
+    el.espessuraTraco = 3.14159;
+    expect(el.espessuraTraco).toBe(3.1);
+    expect(eventos).toHaveLength(0);
   });
 
   it('alternarAlvo emite ui-alvo-change', () => {
@@ -348,7 +377,7 @@ describe('<ui-controle-cores>', () => {
 
   it('Enter abre o seletor no alvo da amostra', () => {
     amostra('traco').dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
-    expect(el.alvo).toBe('traco');
+    expect(el.seletorAberto).toBe(true);
     expect(seletorNoDom()!.alvo).toBe('traco');
   });
 
@@ -421,7 +450,6 @@ describe('<ui-controle-cores>', () => {
     expect(seletorNoDom()!.alvo).toBe('preenchimento');
     seletorNoDom()!.trocarAlvo('traco');
     expect(el.alvo).toBe('traco');
-    // Um evento por troca feita pelo controle ou pelo seletor; o do painel não sobe até o documento
     expect(naRaiz.every((t) => t === 'UI-CONTROLE-CORES')).toBe(true);
   });
 

@@ -23,10 +23,19 @@ function distSegmento(p: PontoPx, a: PontoPx, b: PontoPx): number {
 function areaEnvelopePx(f: Feicao, projetar: Projetor): number {
   const g = f.geometria;
   if (g.tipo !== 'Polygon') return 0;
-  const pts = g.aneis[0].map(projetar);
-  const xs = pts.map((p) => p.x);
-  const ys = pts.map((p) => p.y);
-  return (Math.max(...xs) - Math.min(...xs)) * (Math.max(...ys) - Math.min(...ys));
+  // laço em vez de Math.max(...xs): anéis com centenas de milhares de vértices estourariam a pilha
+  let minX = Infinity;
+  let maxX = -Infinity;
+  let minY = Infinity;
+  let maxY = -Infinity;
+  for (const v of g.aneis[0]) {
+    const p = projetar(v);
+    if (p.x < minX) minX = p.x;
+    if (p.x > maxX) maxX = p.x;
+    if (p.y < minY) minY = p.y;
+    if (p.y > maxY) maxY = p.y;
+  }
+  return (maxX - minX) * (maxY - minY);
 }
 
 export function feicaoNoPonto(

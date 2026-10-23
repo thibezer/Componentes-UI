@@ -8,7 +8,7 @@ import { ICONES } from './camadas-icones';
 import { escapeHtml, sanitizarCorCss, corParaHex } from './camadas-utils';
 import { renderizarThumbGeometria } from './camadas-thumb';
 import { construirHierarquiaCamadas, type CamadaNodoHierarquico } from './camadas-hierarquia';
-import { filtrarFeicoesPorBusca, LIMITE_FEICOES_POR_CAMADA } from './camadas-selecao';
+import { filtrarCamadasPorBusca, LIMITE_FEICOES_POR_CAMADA } from './camadas-selecao';
 
 export interface ParametrosRenderArvore {
   camadas: CamadaItem[];
@@ -43,6 +43,8 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
   } = params;
 
   const q = (searchQuery || '').trim().toLowerCase();
+  // Com busca, só entram na árvore as camadas que casam (ou levam a um resultado)
+  const busca = filtrarCamadasPorBusca(camadas, feicoes, q);
 
   // Indexação rápida de feições por camada
   const featsByLayer = new Map<string, FeicaoItem[]>();
@@ -105,8 +107,12 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
   // Função recursiva para renderizar um nó e todas as suas subcamadas
   const renderizarNodo = (nodo: CamadaNodoHierarquico): string => {
     const layer = nodo.camada;
+    if (busca && !busca.camadasVisiveis.has(layer.id)) return '';
     const depth = nodo.depth;
     const subcamadas = nodo.subcamadas;
+    const subcamadasExibidas = busca
+      ? subcamadas.filter((s) => busca.camadasVisiveis.has(s.camada.id))
+      : subcamadas;
     const isGroup = Boolean(layer.isGroup || subcamadas.length > 0);
 
     const safeId = escapeHtml(layer.id);
@@ -118,7 +124,7 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
     const isSettingsOpen = activeSettingsLayerId === layer.id;
     const isActiveLayer = camadaAtivaId === layer.id;
 
-    const layerFeats = filtrarFeicoesPorBusca(featsByLayer.get(layer.id) || [], q);
+    const layerFeats = busca ? busca.feicoesPorCamada.get(layer.id) || [] : featsByLayer.get(layer.id) || [];
 
     const allFeatsSelected =
       layerFeats.length > 0 && layerFeats.every((f) => selectedFeatureIds.has(f.id));
@@ -143,18 +149,16 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
             : 'Bloquear Feição';
         const isFeatSelected = selectedFeatureIds.has(feat.id);
 
-        const status = feat.status;
-        let statusTag = '';
-        if (status === 'oficial') {
-          statusTag = `<span class="ui-geom-tag oficial" title="Geometria Oficial">OFICIAL</span>`;
-        } else if (status === 'previa') {
-          statusTag = `<span class="ui-geom-tag previa" title="Geometria Prévia">PRÉVIA</span>`;
-        }
+        // Estilo Adobe: o estado padrão (oficial) não ganha selo; só a exceção (prévia) é sinalizada
+        const statusTag =
+          feat.status === 'previa'
+            ? `<span class="ui-previa-dot" title="Geometria prévia" aria-label="Geometria prévia"></span>`
+            : '';
 
         return `
           <div class="ui-feat-row ${isFeatSelected ? 'selected-row' : ''} ${
           !isFeatVisible ? 'hidden-row' : ''
-        }" data-feat-row="${featId}" data-feat-select="${featId}" data-feat-layer="${safeId}" role="treeitem" aria-selected="${isFeatSelected}" tabindex="-1" draggable="true" title="Clique para selecionar | Arraste para reordenar">
+        }" data-feat-row="${featId}" data-feat-select="${featId}" data-feat-layer="${safeId}" role="treeitem" aria-selected="${isFeatSelected}" tabindex="-1" draggable="true" style="--layer-depth: ${depth + 1};" title="Clique para selecionar | Arraste para reordenar">
             <div class="ui-col ui-col-eye" data-feat-eye="${featId}" role="button" tabindex="0" aria-label="${
           isFeatVisible ? 'Ocultar Feição' : 'Exibir Feição'
         }" title="${
@@ -285,13 +289,13 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
       : '';
 
     // Renderiza subcamadas recursivamente
-    const subcamadasHtml = subcamadas.map((sub) => renderizarNodo(sub)).join('');
+    const subcamadasHtml = subcamadasExibidas.map((sub) => renderizarNodo(sub)).join('');
 
     return `
-      <div class="ui-layer-group ${depth > 0 ? 'is-sublayer-group' : ''}" data-layer-id="${safeId}" data-layer-depth="${depth}" role="treeitem" aria-expanded="${isExpanded}">
+      <div class="ui-layer-group ${depth > 0 ? 'is-sublayer-group' : ''}" data-layer-id="${safeId}" data-layer-depth="${depth}" role="treeitem" aria-expanded="${isExpanded}" style="--layer-active-color: ${safeColor};">
         <div class="ui-layer-row ${!isVisible ? 'hidden-layer' : ''} ${
       isActiveLayer ? 'active-drawing-layer' : ''
-    } ${depth > 0 ? 'is-sublayer' : ''} ${isGroup ? 'is-group-row' : ''}" data-layer-row="${safeId}" data-layer-id="${safeId}" tabindex="-1" draggable="true" style="--layer-depth: ${depth}; --layer-active-color: ${safeColor};">
+    } ${depth > 0 ? 'is-sublayer' : ''} ${isGroup ? 'is-group-row' : ''}" data-layer-row="${safeId}" data-layer-id="${safeId}" tabindex="-1" draggable="true" ${isActiveLayer ? 'aria-current="true"' : ''} style="--layer-depth: ${depth};">
           <div class="ui-col ui-col-drag" title="Arrastar para reordenar Z-Index">${ICONES.dragHandle}</div>
 
           <div class="ui-col ui-col-eye" data-layer-eye="${safeId}" role="button" tabindex="0" aria-label="${
@@ -310,7 +314,7 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
             ${isLocked ? ICONES.cadeadoTrancado : ICONES.cadeadoAberto}
           </div>
 
-          <div class="ui-col ui-col-colorbar" style="background: ${safeColor};"></div>
+          <div class="ui-col ui-col-colorbar ui-col-colorbar-editavel" data-layer-color="${safeId}" role="button" tabindex="0" style="background: ${safeColor};" aria-label="Alterar cor da camada" title="Alterar cor da camada (usada no destaque de seleção)"></div>
 
           <div class="ui-col ui-col-chevron" data-layer-expand="${safeId}" role="button" tabindex="0" aria-label="${isExpanded ? 'Recolher grupo' : 'Expandir grupo'}">
             <span class="ui-chevron-icon ${isExpanded ? 'open' : ''}">${ICONES.chevronDir}</span>
@@ -322,9 +326,7 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
                 ? `<input type="text" class="ui-inline-rename-input" data-inline-layer-input="${safeId}" value="${safeName}" />`
                 : `${isGroup ? `<span class="ui-group-folder-icon" title="Grupo/Pasta">${ICONES.moverPasta}</span>` : ''}
                    <span class="ui-name-text">${safeName}</span>
-                   ${isActiveLayer ? `<span class="ui-active-badge" title="Camada ativa para novos desenhos">✓ Ativa</span>` : ''}
-                   ${subcamadas.length > 0 ? `<span class="ui-group-badge" title="${subcamadas.length} subcamadas">${subcamadas.length} sub</span>` : ''}
-                   ${layerFeats.length > 0 || !isGroup ? `<span class="ui-count-chip">${layerFeats.length}</span>` : ''}`
+                   ${layerFeats.length > 0 || !isGroup ? `<span class="ui-count-chip" title="${layerFeats.length} ${layerFeats.length === 1 ? 'feição' : 'feições'}${subcamadas.length > 0 ? ` · ${subcamadas.length} subcamadas` : ''}">${layerFeats.length}</span>` : ''}`
             }
           </div>
 
@@ -347,8 +349,8 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
           ${feicoesHtml}
           ${truncateNotice}
           ${
-            subcamadas.length === 0 && layerFeats.length === 0
-              ? `<div class="ui-empty-row"><span>${q ? 'Nenhum item correspondente' : isGroup ? 'Grupo vazio (adicione subcamadas ou feições)' : 'Nenhum elemento neste grupo'}</span></div>`
+            subcamadasExibidas.length === 0 && layerFeats.length === 0
+              ? `<div class="ui-empty-row"><span>${isGroup ? 'Grupo vazio (adicione subcamadas ou feições)' : 'Nenhum elemento neste grupo'}</span></div>`
               : ''
           }
         </div>
@@ -357,7 +359,10 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
   };
 
   const hierarquia = construirHierarquiaCamadas(camadas);
-  const camadasHtml = hierarquia.map((nodo) => renderizarNodo(nodo)).join('');
+  const camadasHtml =
+    busca && busca.camadasVisiveis.size === 0
+      ? `<div class="ui-search-empty" role="status">Nenhum resultado para “${escapeHtml((searchQuery || '').trim())}”</div>`
+      : hierarquia.map((nodo) => renderizarNodo(nodo)).join('');
 
   return `
     ${toolbarHtml}

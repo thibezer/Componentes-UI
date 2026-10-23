@@ -7,6 +7,10 @@ import { GerenciGeoMapaController } from '../../gerencigeo-canvas/mapa_controlle
 import type { CanvasLayerManager } from '../../gerencigeo-canvas/layer_manager';
 import { ListenerBag } from '../../core/listener-bag';
 import { RegraVersoes } from '../../gerencigeo-canvas/feature_versoes';
+import { lerModoPopups, liberarPopups, type ModoPopups } from '../../gerencigeo-canvas/popup_gate';
+import { LayerRendererFactory } from '../../gerencigeo-canvas/layer_renderer_factory';
+import { lerModoRenderizador, type ModoRenderizador } from '../../gerencigeo-canvas/renderers/feicoes_despachante';
+import type { EstatisticasFeicoes, IRenderizadorFeicoes } from '../../gerencigeo-canvas/renderers/renderizador_feicoes_tipos';
 import type { UsuarioRemoto } from '../../gerencigeo-canvas/feature_cursores';
 import { renderizarPainelCamadas } from './cad-painel-camadas';
 import { processarCliqueLivreCanvas, processarAcaoPopup, ContextoEventosCanvas } from './cad-eventos-canvas';
@@ -23,7 +27,7 @@ import type { PontoPixel } from './cad-evento-coordenadas';
 import { liberarContainerLeaflet } from './cad-leaflet-adaptador';
 import { lerPontosSelecionados, gravarPontosSelecionados } from './cad-selecao-pontos';
 import { GerenciadorFeicoes, OpcoesCamadaFeicoes, OpcoesLote, LoteFeicoes, ResultadoLote, ResultadoFeicoes, ResultadoEdicao, ResultadoFerramenta } from './cad-feicoes';
-import { BarraFerramentas, interpretarFerramentas } from './cad-ferramentas-barra';
+import { BarraFerramentas, interpretarFerramentas, barraPedeEdicao } from './cad-ferramentas-barra';
 import type { EstiloFeicao } from '../../gerencigeo-canvas/feature_types';
 import type { Feicao } from '../../gerencigeo-canvas/feature_types';
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
@@ -31,7 +35,7 @@ import { EstilosExternosShadow, type EstilosExternos } from './cad-estilos-exter
 
 export class UICanvasCAD extends SafeHTMLElement {
   static get observedAttributes() {
-    return ['sat-opacity', 'scale-mode', 'crosshair', 'modo-sequencial', 'chave-grupo', 'zona-projecao', 'fuso', 'canal-configuracao', 'ferramentas', 'sem-atalho-snap', 'aceitar-origem', 'sem-camadas-padrao', 'sem-painel-camadas', 'sem-barra-rapida'];
+    return ['sat-opacity', 'scale-mode', 'crosshair', 'modo-sequencial', 'chave-grupo', 'zona-projecao', 'fuso', 'canal-configuracao', 'ferramentas', 'sem-atalho-snap', 'aceitar-origem', 'sem-camadas-padrao', 'sem-painel-camadas', 'sem-barra-rapida', 'popups', 'renderizador', 'sem-avisos'];
   }
 
   private shadow: ShadowRoot;
@@ -51,6 +55,8 @@ export class UICanvasCAD extends SafeHTMLElement {
   private estilosExternos: EstilosExternosShadow;
   private lastPopupActionEmit?: { acaoId: string; elementoId: string | number; time: number };
   private lastCanvasClickTime: number = 0;
+  /** Mouse sobre o componente: junto com o foco dentro dele, decide se S e Enter valem quando há vários canvases na página. */
+  private ponteiroSobre = false;
   private _chaveGrupo?: string;
   private _zonaProjecao: number = 22;
 
@@ -95,13 +101,17 @@ export class UICanvasCAD extends SafeHTMLElement {
     // Object.assign (e não `obj.x = ...`): o analisador do manifesto confundiria a atribuição com propriedades do elemento
     const contextoRender = this.controller.context;
     const contextoInteracao = this.controller.canvasInteracao.ctx;
-    Object.assign(contextoRender, { regraVersoes });
+    Object.assign(contextoRender, { regraVersoes, renderizador: () => this.renderizador });
     this.feicoes = new GerenciadorFeicoes({
       obterLayerManager: () => this.controller.layerManager,
       obterMapa: () => this.controller.getMap(),
       regra: regraVersoes,
+      modoPopups: () => this.popups,
+      liberarPopups: (fn) => liberarPopups(this.controller.getMap(), fn),
       aoFerramenta: (f) => { this.barraFerramentas.marcar(f); },
       aoSnapMudar: (ligado) => { marcarSnap(this.shadow, ligado); },
+      aoEdicao: (ativa) => { this.barraFerramentas.marcarEdicao(ativa); },
+      atalhoValido: () => this.ponteiroSobre || this.matchesFocoInterno() || this.ehUnicoCanvas(),
       emitir: (evento, detalhe, cancelavel) => {
         const ev = new CustomEvent(evento, { detail: detalhe, bubbles: true, composed: true, cancelable: !!cancelavel });
         this.dispatchEvent(ev);
@@ -116,12 +126,14 @@ export class UICanvasCAD extends SafeHTMLElement {
     });
     this.barraFerramentas = new BarraFerramentas({
       raiz: this.shadow.getElementById('cad-root') as HTMLElement,
-      aoEscolher: (f) => { this.feicoes.alternarFerramenta(f); }
+      aoEscolher: (f) => { this.feicoes.alternarFerramenta(f); },
+      aoEditar: () => { this.feicoes.alternarEdicaoDaSelecao(); }
     });
-    this.barraFerramentas.montar(interpretarFerramentas(this.getAttribute('ferramentas')));
+    this.montarBarra(this.getAttribute('ferramentas'));
     Object.assign(contextoInteracao, {
       aoMenuContexto: (e: MouseEvent) => this.feicoes.menuContexto(e),
       ferramentaAtiva: () => this.feicoes.ferramentaAtiva !== null,
+      edicaoAtiva: () => this.feicoes.editando,
       aoLimparSelecao: () => this.feicoes.aoPedirLimpeza(),
       selecionarFeicoesNaCaixa: (caixa: { x1: number; y1: number; x2: number; y2: number }, modo: 'window' | 'crossing', aditivo: boolean) =>
         this.feicoes.selecionarNaCaixa(caixa, modo, aditivo)
@@ -140,16 +152,41 @@ export class UICanvasCAD extends SafeHTMLElement {
         this.controller.context.zonaProjecao = parsed;
       }
     }
+    this.controller.core.definirModoPopups(this.popups);
     this.controladorTamanho.observe();
     this.feicoes.conectarTeclado();
     this.hoverListeners.cleanup();
-    if (this.mapContainer) this.hoverListeners.add(this.mapContainer, 'mousemove', (e: MouseEvent) => this.feicoes.aoMoverMouse(e));
-    this.barraFerramentas.montar(interpretarFerramentas(this.getAttribute('ferramentas')));
+    if (this.mapContainer) {
+      this.hoverListeners.add(this.mapContainer, 'mousemove', (e: MouseEvent) => this.feicoes.aoMoverMouse(e));
+      this.hoverListeners.add(this.mapContainer, 'dblclick', (e: MouseEvent) => this.feicoes.aoDuploClique(e));
+    }
+    this.hoverListeners.add(this, 'mouseenter', () => { this.ponteiroSobre = true; });
+    this.hoverListeners.add(this, 'mouseleave', () => { this.ponteiroSobre = false; });
+    this.montarBarra(this.getAttribute('ferramentas'));
     this.broadcastConfig.conectar();
     this.desligarAnuncios?.();
     this.desligarAnuncios = conectarAnuncios(this, this.shadow);
     this.estilosExternos.aplicar();
     this.initTimeout = window.setTimeout(() => { this.initTimeout = undefined; this.inicializarAgora(); }, 0);
+  }
+
+  private montarBarra(valor: string | null): void {
+    this.barraFerramentas?.montar(interpretarFerramentas(valor), barraPedeEdicao(valor));
+  }
+
+  /** Único canvas da página: os atalhos valem em qualquer lugar (comportamento de sempre). Com vários, só no que está sob o mouse ou com foco. */
+  private ehUnicoCanvas(): boolean {
+    const raiz = this.getRootNode() as Document | ShadowRoot;
+    return (raiz.querySelectorAll?.('ui-canvas-cad').length ?? 1) <= 1;
+  }
+
+  /** O foco do teclado está dentro do componente (inclusive no shadow DOM)? */
+  private matchesFocoInterno(): boolean {
+    try {
+      return this.matches(':focus-within');
+    } catch {
+      return false;
+    }
   }
 
   public destroy(): void {
@@ -184,10 +221,19 @@ export class UICanvasCAD extends SafeHTMLElement {
       this.feicoes?.definirAtalhoSnap(newVal === null);
       return;
     }
-    // lidos na inicialização do mapa (camadas) ou só por CSS (barra); o painel aberto fecha ao ser desligado
-    if (name === 'sem-camadas-padrao' || name === 'sem-barra-rapida') return;
+    // lidos na inicialização do mapa (camadas), só por CSS (barra) ou na hora do aviso (`sem-avisos`); o painel aberto fecha ao ser desligado
+    if (name === 'sem-camadas-padrao' || name === 'sem-barra-rapida' || name === 'sem-avisos') return;
     if (name === 'sem-painel-camadas') {
       if (newVal !== null) this.toolbarPainel?.closeLayersPanel();
+      return;
+    }
+    if (name === 'popups') {
+      this.controller?.core.definirModoPopups(lerModoPopups(newVal));
+      return;
+    }
+    if (name === 'renderizador') {
+      // as camadas de feições já desenhadas são refeitas no novo caminho; as demais camadas não são tocadas
+      if (lerModoRenderizador(oldVal) !== lerModoRenderizador(newVal)) this.controller?.layerManager.recriarCamadasDoTipo('feicoes');
       return;
     }
     if (name === 'aceitar-origem') {
@@ -195,8 +241,9 @@ export class UICanvasCAD extends SafeHTMLElement {
       return;
     }
     if (name === 'ferramentas') {
-      this.barraFerramentas?.montar(interpretarFerramentas(newVal));
+      this.montarBarra(newVal);
       this.barraFerramentas?.marcar(this.feicoes?.ferramentaAtiva ?? null);
+      this.barraFerramentas?.marcarEdicao(!!this.feicoes?.editando);
       return;
     }
     sincronizarAtributoCAD(
@@ -318,6 +365,33 @@ export class UICanvasCAD extends SafeHTMLElement {
     else this.removeAttribute('aceitar-origem');
   }
 
+  /**
+   * Quando os popups abrem (atributo `popups`): `sob-demanda` (padrão) só por duplo clique sobre a feição/camada ou por
+   * `abrirPopupFeicao()`, sem mover o mapa; `automatico` abre ao clicar e o Leaflet ajusta a vista (comportamento antigo);
+   * `desligado` só por `abrirPopupFeicao()`. Valor inválido usa o padrão.
+   */
+  public get popups(): ModoPopups { return lerModoPopups(this.getAttribute('popups')); }
+  public set popups(val: ModoPopups) { this.setAttribute('popups', String(val)); }
+
+  /**
+   * Quem desenha as camadas de feições (atributo `renderizador`): `leaflet` (padrão; um objeto Leaflet por feição) ou
+   * `canvas` (motor sem DOM + Canvas 2D: um canvas por camada e um de sobreposição para seleção, formas minúsculas
+   * como marcas em lote, só um objeto Leaflet por marcador de ícone, texto, cluster e rótulo). Valor inválido usa
+   * `leaflet`. Ao mudar, as camadas de feições são recriadas; a API, os eventos e os dados não mudam.
+   */
+  public get renderizador(): ModoRenderizador { return lerModoRenderizador(this.getAttribute('renderizador')); }
+  public set renderizador(val: ModoRenderizador) { this.setAttribute('renderizador', String(val)); }
+
+  /**
+   * Contadores do desenho de uma camada de feições (`total`, `materializadas`, `desenhadas`, `marcasLOD`, `clusters`,
+   * `canvases`, `renderizador`...), para diagnóstico e benchmark. `null` se a camada não está desenhada.
+   */
+  public estatisticasFeicoes(camadaId: string): EstatisticasFeicoes | null {
+    const instancia = this.controller.layerManager.getLayerInstance(camadaId);
+    const renderer = LayerRendererFactory.get('feicoes') as IRenderizadorFeicoes | undefined;
+    return instancia && renderer ? renderer.estatisticas(instancia as L.LayerGroup) : null;
+  }
+
   public get modoSequencial(): boolean { return this.hasAttribute('modo-sequencial'); }
   public set modoSequencial(val: boolean) {
     const isTruthy = Boolean(val);
@@ -361,6 +435,7 @@ export class UICanvasCAD extends SafeHTMLElement {
     this.controller.fitBounds(pontos, padding, incluirVizinhos);
   }
   public zoomExtents(): void { this.controller.canvasInteracao.zoomExtents(); }
+  /** Seleciona o vértice. A vista só se move (e o popup abre) se `zoomLevel` for informado: é o pedido de "ir até o ponto". */
   public selectPonto(id: string | number, zoomLevel?: number): void { this.controller.selectPonto(id, zoomLevel); }
   public selecionarPonto(id: string | number, zoomLevel?: number): void { this.controller.selectPonto(id, zoomLevel); }
   public get pontosSelecionados(): (string | number)[] {
@@ -487,6 +562,8 @@ export class UICanvasCAD extends SafeHTMLElement {
   public removerCursorRemoto(id: string): boolean { return this.feicoes.removerCursorRemoto(id); }
   public limparCursoresRemotos(): void { this.feicoes.limparCursoresRemotos(); }
   public fecharPopupFeicao(): void { this.feicoes.fecharPopup(); }
+  /** Abre o popup da feição (pedido explícito, vale em qualquer modo de `popups`). `false` se ela não existe ou não está na tela. */
+  public abrirPopupFeicao(camadaId: string, id: string): boolean { return this.feicoes.abrirPopupFeicao(camadaId, id); }
   /**
    * Opções do popup. `copiarParaAreaDeTransferencia` (padrão `true`): a ação "copiar" também grava as coordenadas na área de
    * transferência; com `false` só sai `cad-feicao-acao` e o consumidor decide (ex.: para mostrar o próprio aviso).

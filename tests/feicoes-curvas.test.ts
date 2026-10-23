@@ -3,7 +3,7 @@ import L from 'leaflet';
 import {
   amostrarCurva, caminhoSvg, normalizarNos, passosDaCurva, pontoDaCubica, temAlcas
 } from '../src/gerencigeo-canvas/feature_curvas';
-import { SessaoDesenho } from '../src/gerencigeo-canvas/feature_desenho';
+import { SessaoDesenho, nosDeAncoras } from '../src/gerencigeo-canvas/feature_desenho';
 import { normalizarFeicaoEntrada } from '../src/gerencigeo-canvas/feature_adapters';
 import { deslocarGeometria } from '../src/gerencigeo-canvas/feature_algoritmos';
 import { alternarSuavidade, comPontos, inserirPonto, moverAlca, pontosDe, removerPonto } from '../src/gerencigeo-canvas/feature_edicao_ops';
@@ -55,6 +55,22 @@ describe('feature_curvas', () => {
     expect(normalizarNos([A, { ponto: [NaN, 1] }])).toBeNull();
     expect(normalizarNos([{ ponto: [0, 0] }, { ponto: [0, 1], entrada: [Infinity, 1] }])).toBeNull(); // alça inválida é descartada: sem alças, não é curva
     expect(temAlcas([A, B])).toBe(true);
+  });
+});
+
+describe('caneta: ajustar alças já colocadas', () => {
+  it('puxa a alça de uma âncora anterior (simétrica) e solta a simetria com Shift', () => {
+    const s = new SessaoDesenho('caneta');
+    s.clicar([0, 0]);
+    s.clicar([0, 1]);
+    s.moverAlcaDaAncora(0, 'saida', [1, 0.3]);
+    expect(nosDeAncoras(s.ancoras)[0].entrada).toEqual([-1, -0.3]);
+    s.moverAlcaDaAncora(0, 'entrada', [-2, 0], false);
+    const n = nosDeAncoras(s.ancoras)[0];
+    expect(n.entrada).toEqual([-2, 0]);
+    expect(n.saida).toEqual([1, 0.3]);
+    s.moverAlcaDaAncora(0, 'entrada', [-0.5, -0.5]);
+    expect(nosDeAncoras(s.ancoras)[0].saida).toEqual([0.5, 0.5]);
   });
 });
 
@@ -306,11 +322,23 @@ describe('alças: editor', () => {
     const g = novo();
     g.definirFeicoes('c', [{ id: 'k', geometria: { tipo: 'LineString', coordenadas: [[-23.5, -46.6], [-23.5, -46.595], [-23.5, -46.59]] } }]);
     g.iniciarEdicao('c', 'k');
-    expect(editor(g).totalAlcasBezier).toBe(0);
+    expect(editor(g).totalAlcasBezier).toBe(4); // latentes: sempre à mão (pontas só têm a alça que olha o vizinho)
     editor(g).alternarSuavidadeDoNo(1);
     expect(nosDe(g)).toHaveLength(3);
-    expect(editor(g).totalAlcasBezier).toBe(2);
+    expect(editor(g).totalAlcasBezier).toBe(4);
     editor(g).alternarSuavidadeDoNo(1);
-    expect(editor(g).totalAlcasBezier).toBe(0);
+    expect(nosDe(g)).toBeUndefined();
+    expect(editor(g).totalAlcasBezier).toBe(4);
+  });
+
+  it('alça latente de uma poligonal pode ser arrastada e vira curva', () => {
+    const g = novo();
+    g.definirFeicoes('c', [{ id: 'k', geometria: { tipo: 'LineString', coordenadas: [[-23.5, -46.6], [-23.5, -46.59]] } }]);
+    g.iniciarEdicao('c', 'k');
+    expect(editor(g).totalAlcasBezier).toBe(2);
+    expect(nosDe(g)).toBeUndefined();
+    editor(g).arrastarAlcaPara(0, 'saida', [-23.49, -46.597]);
+    expect(nosDe(g)![0].saida).toEqual([-23.49, -46.597]);
+    expect(editor(g).totalAlcasBezier).toBe(3);
   });
 });

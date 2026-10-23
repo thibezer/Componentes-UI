@@ -11,13 +11,15 @@ import {
   coletarIds,
   criarBotaoFerramenta,
   definirRoving,
+  GerenciadorTooltip,
+  navegarGrade2Colunas,
   navegarRoving,
   seguirFoco,
   type MenuHandle
 } from './ferramentas-comum';
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 import { PressaoLonga } from './paleta-pressao-longa';
-import { atalhoBloqueadoPeloContexto, resolverAtalho } from './paleta-atalhos';
+import { atalhoBloqueadoPeloContexto, paletaDonaDosAtalhos, resolverAtalho } from './paleta-atalhos';
 
 const TAMANHO_ICONE: Record<string, number> = { sm: 16, md: 18, lg: 22 };
 
@@ -41,7 +43,7 @@ const TAMANHO_ICONE: Record<string, number> = { sm: 16, md: 18, lg: 22 };
  */
 export class UIPaletaFerramentas extends SafeHTMLElement {
   static get observedAttributes() {
-    return ['valor', 'value', 'orientacao', 'colunas', 'tamanho', 'size', 'aria-label'];
+    return ['valor', 'value', 'orientacao', 'colunas', 'tamanho', 'size', 'aria-label', 'copiar-dados', 'modo-controlado'];
   }
 
   private rootElement: HTMLDivElement;
@@ -52,6 +54,8 @@ export class UIPaletaFerramentas extends SafeHTMLElement {
   private menu: MenuHandle | null = null;
   private pressao = new PressaoLonga();
   private listeners = new ListenerBag();
+  private tooltip: GerenciadorTooltip | null = null;
+  private _modoControlado = false;
 
   constructor() {
     super();
@@ -65,6 +69,9 @@ export class UIPaletaFerramentas extends SafeHTMLElement {
 
   connectedCallback() {
     this.listeners.cleanup();
+    this.tooltip?.destruir();
+    this.tooltip = new GerenciadorTooltip(this.shadowRoot!, this.rootElement);
+
     this.listeners.add(this.rootElement, 'click', this.handleClick);
     this.listeners.add(this.rootElement, 'pointerdown', this.handlePointerDown);
     this.listeners.add(this.rootElement, 'pointermove', this.handlePointerMove);
@@ -85,6 +92,8 @@ export class UIPaletaFerramentas extends SafeHTMLElement {
   disconnectedCallback() {
     this.pressao.destruir();
     this.fecharMenu();
+    this.tooltip?.destruir();
+    this.tooltip = null;
     this.listeners.cleanup();
   }
 
@@ -101,12 +110,35 @@ export class UIPaletaFerramentas extends SafeHTMLElement {
 
   /* ---------- API pública ---------- */
 
+  /**
+   * Quando `true` ou atributo `copiar-dados` / `modo-controlado`: clona a árvore de itens
+   * para não mutar os objetos fornecidos pelo consumidor (Item 11).
+   */
+  get modoControlado(): boolean {
+    return this._modoControlado || this.hasAttribute('modo-controlado') || this.hasAttribute('copiar-dados');
+  }
+
+  set modoControlado(val: boolean) {
+    this._modoControlado = !!val;
+  }
+
+  get copiarDados(): boolean {
+    return this.modoControlado;
+  }
+
+  set copiarDados(val: boolean) {
+    this.modoControlado = val;
+  }
+
   get ferramentas(): FerramentaItem[] {
     return this._ferramentas;
   }
 
   set ferramentas(val: FerramentaItem[]) {
-    this._ferramentas = Array.isArray(val) ? val : [];
+    const lista = Array.isArray(val) ? val : [];
+    this._ferramentas = this.modoControlado
+      ? lista.map(f => ({ ...f, filhos: f.filhos?.map(c => ({ ...c })) }))
+      : lista;
     avisarIdsDuplicados(coletarIds(this._ferramentas), '<ui-paleta-ferramentas> ferramentas');
     this.visiveis.clear();
     if (this._pendente) this.aplicarPendente();
@@ -424,9 +456,16 @@ export class UIPaletaFerramentas extends SafeHTMLElement {
   private handleKeyDown = (e: KeyboardEvent) => {
     const horizontal = this.getAttribute('orientacao') === 'horizontal';
     const rtl = getComputedStyle(this).direction === 'rtl';
-    const prev = horizontal ? [rtl ? 'ArrowRight' : 'ArrowLeft'] : ['ArrowUp'];
-    const next = horizontal ? [rtl ? 'ArrowLeft' : 'ArrowRight'] : ['ArrowDown'];
-    if (navegarRoving(e, this.botoes(), prev, next)) return;
+    const colunas = this.colunas;
+
+    // Item 5: Navegação em grade quando colunas=2 em layout vertical
+    if (!horizontal && colunas === 2) {
+      if (navegarGrade2Colunas(e, this.botoes(), rtl)) return;
+    } else {
+      const prev = horizontal ? [rtl ? 'ArrowRight' : 'ArrowLeft'] : ['ArrowUp'];
+      const next = horizontal ? [rtl ? 'ArrowLeft' : 'ArrowRight'] : ['ArrowDown'];
+      if (navegarRoving(e, this.botoes(), prev, next)) return;
+    }
 
     const teclaFlyout = horizontal ? 'ArrowDown' : rtl ? 'ArrowLeft' : 'ArrowRight';
     const btn = e.target instanceof HTMLButtonElement ? e.target : null;
@@ -437,11 +476,20 @@ export class UIPaletaFerramentas extends SafeHTMLElement {
     }
   };
 
-  private handleAtalho = (e: KeyboardEvent) => {
-    if (!this.hasAttribute('atalhos') || e.ctrlKey || e.metaKey || e.altKey || e.defaultPrevented) return;
-    if (atalhoBloqueadoPeloContexto(e.composedPath())) return;
+  /** Várias paletas com `atalhos` na página: só a que contém o foco (ou a primeira no DOM) responde. */
+  private donaDosAtalhos(): boolean {
+    const paletas = Array.from(document.querySelectorAll<UIPaletaFerramentas>('ui-paleta-ferramentas[atalhos]'));
+    if (paletas.length <= 1) return true;
+    return paletaDonaDosAtalhos(paletas, (p) => p.matches(':focus-within') || !!p.shadowRoot?.activeElement) === this;
+  }
 
-    const resolvido = resolverAtalho(e.key, this.todasFerramentas(), this._ferramentas, this._ativo);
+  private handleAtalho = (e: KeyboardEvent) => {
+    // combinações (Ctrl+Z, Shift+V, Esc) contam; só a paleta dona responde quando há várias na página
+    if (!this.hasAttribute('atalhos') || e.defaultPrevented) return;
+    if (atalhoBloqueadoPeloContexto(e.composedPath())) return;
+    if (!this.donaDosAtalhos()) return;
+
+    const resolvido = resolverAtalho(e, this.todasFerramentas(), this._ferramentas, this._ativo);
     if (!resolvido) return;
 
     e.preventDefault();

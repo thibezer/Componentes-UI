@@ -4,12 +4,14 @@
 
 import './tokens/index.css';
 export * from './components/ui-campo-texto';
+export * from './components/ui-area-texto';
 export * from './components/ui-lista-flutuante';
 export * from './components/ui-checkbox';
 export * from './components/ui-radio';
 export * from './components/ui-switch';
 
 import type { UICampoTexto, UIInput } from './components/ui-campo-texto';
+import type { UIAreaTexto, UITextarea } from './components/ui-area-texto';
 import type { UIListaFlutuante, UISelect } from './components/ui-lista-flutuante';
 import type { UICheckbox } from './components/ui-checkbox';
 import type { UIRadio } from './components/ui-radio';
@@ -19,6 +21,8 @@ declare global {
   interface HTMLElementTagNameMap {
     'ui-campo-texto': UICampoTexto;
     'ui-input': UIInput;
+    'ui-area-texto': UIAreaTexto;
+    'ui-textarea': UITextarea;
     'ui-lista-flutuante': UIListaFlutuante;
     'ui-select': UISelect;
     'ui-checkbox': UICheckbox;

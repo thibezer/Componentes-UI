@@ -3,7 +3,7 @@ import './ui-camadas';
 import type { UICamadas } from './ui-camadas';
 import type { CamadaItem, FeicaoItem } from './tipos';
 import { sanitizarCorCss, corParaHex, buscarPorAtributo } from './camadas-utils';
-import { obterIdsVisiveisFeicoes, filtrarFeicoesPorBusca } from './camadas-selecao';
+import { obterIdsVisiveisFeicoes, filtrarFeicoesPorBusca, filtrarCamadasPorBusca } from './camadas-selecao';
 
 const QUADRADO: [number, number][] = [
   [-23.5, -46.6],
@@ -571,6 +571,219 @@ describe('UICamadas - regressões', () => {
       expect(w.saldo.get('pointermove')).toBe(0);
       expect(w.saldo.get('dragstart')).toBe(0);
       w.restaurar();
+    });
+  });
+
+  describe('busca por nome de camada (falhava antes: só filtrava feições)', () => {
+    const arvore = (): CamadaItem[] => [
+      { id: 'g1', name: 'Planejamento Urbano', isGroup: true },
+      { id: 'zon', name: 'Zoneamento', parentId: 'g1' },
+      { id: 'lot', name: 'Lotes', parentId: 'g1' },
+      { id: 'eix', name: 'Eixos Viários' },
+      { id: 'hid', name: 'Hidrografia' }
+    ];
+    const feicoesArvore = (): FeicaoItem[] => [
+      { id: 'fa', name: 'Lote 14', layerId: 'lot', type: 'Polygon', coordinates: QUADRADO },
+      { id: 'fb', name: 'Rio Azul', layerId: 'hid', type: 'LineString', coordinates: QUADRADO },
+      { id: 'fc', name: 'Avenida', layerId: 'eix', type: 'LineString', coordinates: QUADRADO }
+    ];
+    const digitar = (el: UICamadas, termo: string) => {
+      const input = q<HTMLInputElement>(el, '#input-layer-search');
+      input.value = termo;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      vi.advanceTimersByTime(100);
+    };
+    const idsLinhas = (el: UICamadas) =>
+      Array.from(sr(el).querySelectorAll('[data-layer-row]')).map((n) => n.getAttribute('data-layer-row'));
+
+    it('sem termo (ou só espaços) a função pura devolve null', () => {
+      expect(filtrarCamadasPorBusca(arvore(), feicoesArvore(), '')).toBeNull();
+      expect(filtrarCamadasPorBusca(arvore(), feicoesArvore(), '   ')).toBeNull();
+    });
+
+    it('camada que casa pelo nome aparece com todas as suas feições', () => {
+      const r = filtrarCamadasPorBusca(arvore(), feicoesArvore(), 'hidro')!;
+      expect([...r.camadasVisiveis]).toEqual(['hid']);
+      expect(r.feicoesPorCamada.get('hid')!.map((f) => f.id)).toEqual(['fb']);
+    });
+
+    it('subcamada encontrada mantém os grupos ancestrais, sem os irmãos que não casam', () => {
+      const r = filtrarCamadasPorBusca(arvore(), feicoesArvore(), 'zoneamento')!;
+      expect(r.camadasVisiveis.has('zon')).toBe(true);
+      expect(r.camadasVisiveis.has('g1')).toBe(true);
+      expect(r.camadasVisiveis.has('lot')).toBe(false);
+      expect(r.camadasVisiveis.has('eix')).toBe(false);
+    });
+
+    it('feição encontrada mantém a camada (e o grupo) mostrando só as feições que casam', () => {
+      const r = filtrarCamadasPorBusca(arvore(), feicoesArvore(), 'lote 14')!;
+      expect([...r.camadasVisiveis].sort()).toEqual(['g1', 'lot']);
+      expect(r.feicoesPorCamada.get('lot')!.map((f) => f.id)).toEqual(['fa']);
+    });
+
+    it('grupo que casa pelo nome traz suas subcamadas junto', () => {
+      const r = filtrarCamadasPorBusca(arvore(), feicoesArvore(), 'planejamento')!;
+      expect([...r.camadasVisiveis].sort()).toEqual(['g1', 'lot', 'zon']);
+    });
+
+    it('é insensível a caixa e a nomes ausentes, e não trava com ciclo de parentId', () => {
+      const ciclo: CamadaItem[] = [
+        { id: 'a', name: 'Alfa', parentId: 'b' },
+        { id: 'b', name: undefined as unknown as string, parentId: 'a' },
+        { id: 'c', name: 'Gama', parentId: 'c' }
+      ];
+      expect(filtrarCamadasPorBusca(ciclo, [], 'ALFA')!.camadasVisiveis.has('a')).toBe(true);
+      expect(filtrarCamadasPorBusca(ciclo, [], 'gama')!.camadasVisiveis.has('c')).toBe(true);
+    });
+
+    it('buscar o nome de uma camada mostra só ela, em vez de todas com "Nenhum item correspondente"', () => {
+      vi.useFakeTimers();
+      const el = criarPainel(arvore(), feicoesArvore());
+      expect(idsLinhas(el)).toHaveLength(5);
+
+      digitar(el, 'eixos');
+
+      expect(idsLinhas(el)).toEqual(['eix']);
+      expect(sr(el).querySelector('.ui-empty-row')).toBeNull();
+      expect(sr(el).querySelector('[data-feat-row="fc"]')).toBeTruthy();
+    });
+
+    it('sem resultados mostra uma única mensagem com o termo escapado', () => {
+      vi.useFakeTimers();
+      const el = criarPainel(arvore(), feicoesArvore());
+
+      digitar(el, '<img src=x onerror=alert(1)>');
+
+      expect(idsLinhas(el)).toHaveLength(0);
+      const vazio = q(el, '.ui-search-empty');
+      expect(vazio).toBeTruthy();
+      expect(vazio.textContent).toContain('<img src=x onerror=alert(1)>');
+      expect(sr(el).querySelector('.ui-search-empty img')).toBeNull();
+    });
+
+    it('limpar a busca devolve todas as camadas', () => {
+      vi.useFakeTimers();
+      const el = criarPainel(arvore(), feicoesArvore());
+      digitar(el, 'eixos');
+      digitar(el, '');
+      expect(idsLinhas(el)).toHaveLength(5);
+    });
+
+    it('a lista de feições navegáveis respeita a busca por camada', () => {
+      expect(obterIdsVisiveisFeicoes(arvore(), feicoesArvore(), new Set(), 'eixos')).toEqual(['fc']);
+    });
+  });
+
+  describe('seção de mapa base recolhível', () => {
+    const toggle = (el: UICamadas) => q<HTMLElement>(el, '[data-basemap-toggle]');
+
+    it('começa aberta, com botão que expõe aria-expanded e o mapa ativo', () => {
+      const el = criarPainel(camadasPadrao(), []);
+      expect(toggle(el).getAttribute('aria-expanded')).toBe('true');
+      expect(toggle(el).textContent).toContain('Esri');
+      expect(sr(el).querySelectorAll('[data-basemap-id]').length).toBeGreaterThan(0);
+    });
+
+    it('clicar recolhe a grade, reflete no atributo e avisa o aplicativo', () => {
+      const el = criarPainel(camadasPadrao(), []);
+      const spy = vi.fn();
+      el.addEventListener('ui-mapas-base-recolhimento', (e) => spy((e as CustomEvent).detail));
+
+      toggle(el).click();
+
+      expect(el.hasAttribute('mapas-base-recolhido')).toBe(true);
+      expect(sr(el).querySelectorAll('[data-basemap-id]').length).toBe(0);
+      expect(toggle(el).getAttribute('aria-expanded')).toBe('false');
+      expect(spy).toHaveBeenCalledWith({ recolhido: true });
+
+      toggle(el).click();
+      expect(el.hasAttribute('mapas-base-recolhido')).toBe(false);
+      expect(sr(el).querySelectorAll('[data-basemap-id]').length).toBeGreaterThan(0);
+      expect(spy).toHaveBeenLastCalledWith({ recolhido: false });
+    });
+
+    it('o atributo declarado pelo autor recolhe sem disparar evento', () => {
+      const el = criarPainel(camadasPadrao(), [], { 'mapas-base-recolhido': '' });
+      const spy = vi.fn();
+      el.addEventListener('ui-mapas-base-recolhimento', spy);
+      expect(sr(el).querySelectorAll('[data-basemap-id]').length).toBe(0);
+
+      el.mapasBaseRecolhido = false;
+      expect(sr(el).querySelectorAll('[data-basemap-id]').length).toBeGreaterThan(0);
+      expect(spy).not.toHaveBeenCalled();
+    });
+
+    it('o foco permanece no botão depois de alternar', () => {
+      const el = criarPainel(camadasPadrao(), []);
+      toggle(el).focus();
+      toggle(el).click();
+      expect(el.mapasBaseRecolhido).toBe(true);
+      expect(sr(el).activeElement?.hasAttribute('data-basemap-toggle')).toBe(true);
+    });
+
+    it('recolhida, o mapa ativo continua legível no cabeçalho', () => {
+      const el = criarPainel(camadasPadrao(), [], { 'mapas-base-recolhido': '' });
+      el.selecionarMapaBase('osm');
+      expect(toggle(el).textContent).toContain('OpenStreetMap');
+    });
+
+    it('sem mapas base não renderiza botão nenhum', () => {
+      const el = criarPainel(camadasPadrao(), []);
+      el.definirMapasBase([]);
+      expect(sr(el).querySelector('[data-basemap-toggle]')).toBeNull();
+    });
+  });
+
+  describe('linha da camada (estilo Adobe)', () => {
+    it('não exibe selos de camada ativa, subcamadas nem status oficial', () => {
+      const camadas: CamadaItem[] = [
+        { id: 'g', name: 'Grupo', isGroup: true },
+        { id: 'c0', name: 'Camada 0', color: '#38bdf8', parentId: 'g' }
+      ];
+      const feicoes = criarFeicoes(1).map((f) => ({ ...f, status: 'oficial' }));
+      const el = criarPainel(camadas, feicoes);
+      el.definirCamadaAtiva('c0');
+      const html = sr(el).innerHTML;
+      expect(html).not.toContain('ui-active-badge');
+      expect(html).not.toContain('ui-group-badge');
+      expect(html).not.toContain('OFICIAL');
+      expect(q(el, '[data-layer-row="c0"]').getAttribute('aria-current')).toBe('true');
+      el.definirCamadaAtiva('g');
+      expect(q(el, '[data-layer-row="c0"]').hasAttribute('aria-current')).toBe(false);
+    });
+
+    it('a cor da camada fica no grupo, para o destaque de seleção da camada e das feições', () => {
+      const el = criarPainel(camadasPadrao(), criarFeicoes(1, 'c1'));
+      const grupo = q(el, '.ui-layer-group[data-layer-id="c1"]');
+      expect(grupo.style.getPropertyValue('--layer-active-color')).toBe('#38bdf8');
+    });
+
+    it('a barra de cor é editável e atualiza camada, barra e destaque, disparando ui-camada-cor', () => {
+      const el = criarPainel(camadasPadrao(), criarFeicoes(1, 'c1'));
+      const aoMudar = vi.fn();
+      el.addEventListener('ui-camada-cor', aoMudar);
+
+      q(el, '[data-layer-color="c1"]').click();
+      const seletor = document.querySelector('ui-seletor-cor') as HTMLElement;
+      expect(seletor).toBeTruthy();
+
+      const hex = seletor.shadowRoot!.querySelector('input[type="text"]') as HTMLInputElement;
+      hex.value = '#ff3b8d';
+      hex.dispatchEvent(new Event('input', { bubbles: true }));
+
+      expect(aoMudar).toHaveBeenCalled();
+      expect(aoMudar.mock.lastCall![0].detail).toEqual({ camadaId: 'c1', cor: '#ff3b8d' });
+      expect(q(el, '.ui-layer-group[data-layer-id="c1"]').style.getPropertyValue('--layer-active-color')).toBe('#ff3b8d');
+      expect(q(el, '[data-layer-color="c1"]').style.backgroundColor).toMatch(/^(#ff3b8d|rgb\(255, 59, 141\))$/);
+      seletor.remove();
+    });
+
+    it('clicar na barra de cor não ativa a camada', () => {
+      const el = criarPainel(camadasPadrao(), []);
+      el.definirCamadaAtiva('c0');
+      q(el, '[data-layer-color="c1"]').click();
+      expect(el.camadaAtivaId).toBe('c0');
+      document.querySelector('ui-seletor-cor')?.remove();
     });
   });
 });

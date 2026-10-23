@@ -150,7 +150,7 @@ Configurações simples passadas diretamente nas tags:
 
 ### 📏 Ajuste de Altura e Dimensionamento Inteligente (Zero Atrito)
 
-Os campos de texto (`<ui-campo-texto>`), listas flutuantes/selects (`<ui-lista-flutuante>`, `<ui-select>`) e botões (`<ui-botao-primario>`) possuem 4 formas flexíveis de ajuste de altura:
+Os campos de texto (`<ui-campo-texto>`), listas flutuantes/selects (`<ui-lista-flutuante>`, `<ui-select>`), botões (`<ui-botao>`) e o controle segmentado (`<ui-segmented>`) leem **a mesma variável**, `--ui-campo-altura`, e por isso têm sempre a mesma altura lado a lado. Há 5 formas de ajustá-la:
 
 #### 1. Via Atributo de Tamanho Predefinido (`tamanho` ou `densidade`):
 ```html
@@ -193,6 +193,29 @@ UIBus.definirDensidade('padrao');   // 34px
 UIBus.definirDensidade('relaxada'); // 42px
 UIBus.definirDensidade(38);         // Valor numérico em px customizado
 ```
+
+#### 5. Via Contêiner de Linha (`<ui-linha>`): a forma de menor esforço
+Quando vários controles ficam na mesma linha, envolva-os em `<ui-linha>`: um único atributo define a altura de todos, e o contêiner cuida de alinhamento, espaço, quebra e largura (botão e campo deixam de ocupar 100%).
+
+```html
+<ui-linha tamanho="sm" justificar="entre">
+  <ui-segmented valor="todos"><span valor="todos">Todos</span><span valor="abertos">Abertos</span></ui-segmented>
+  <ui-campo-texto placeholder="Buscar..."></ui-campo-texto>   <!-- ocupa o espaço que sobrar -->
+  <ui-botao variante="primario">Adicionar</ui-botao>
+  <ui-badge controle>Carlos</ui-badge>                        <!-- [controle]: badge com a altura dos controles -->
+</ui-linha>
+```
+
+| Atributo (`ui-linha`) | Valores | Padrão |
+| :--- | :--- | :--- |
+| `tamanho` / `densidade` | `sm` (26px), `md` (34px), `lg` (42px); também `compacta`, `padrao`, `relaxada` | herda do token global |
+| `altura` | `40`, `40px`, `2.5rem` (vence `tamanho`) | - |
+| `alinhar` | `centro`, `inicio`, `fim`, `esticar` (use `fim` quando um campo tem rótulo acima) | `centro` |
+| `justificar` | `inicio`, `centro`, `fim`, `entre`, `ao-redor` | `inicio` |
+| `espaco` | `nenhum`, `xs`, `sm`, `md`, `lg` | `sm` |
+| `sem-quebra` / `inline` | booleanos | a linha quebra |
+
+Regras do contrato: o filho com `tamanho`/`altura` próprio vence só ele; `expandir` em qualquer filho faz ocupar o espaço restante; CSS do consumidor (`style`, classe) vence as regras do contêiner. Tokens: `--ui-altura-sm|md|lg` (escala), `--ui-campo-altura` (valor efetivo), `--ui-linha-espaco`, `--ui-linha-campo-base`. No mobile (≤ 640px) todos os controles sobem para no mínimo 38px (alvo de toque), sem exceção, para continuarem alinhados. Mais detalhes em [`docs/layout-linha.md`](docs/layout-linha.md).
 
 ---
 
@@ -307,6 +330,8 @@ O Shadow DOM isola o CSS, mas os elementos internos principais são expostos com
 | :--- | :--- |
 | `<ui-botao>` / `<ui-botao-primario>` | `base`, `spinner` |
 | `<ui-campo-texto>` / `<ui-input>` | `rotulo`, `campo`, `input`, `icone`, `icone-esquerda`, `icone-direita`, `ajuda` |
+| `<ui-area-texto>` / `<ui-textarea>` | `rotulo`, `campo`, `input`, `rodape`, `ajuda`, `contador` |
+| `<ui-texto>` | `base` |
 | `<ui-lista-flutuante>` / `<ui-select>` | `rotulo`, `campo`, `valor`, `seta`, `lista`, `opcao`, `opcao-selecionada` |
 | `<ui-checkbox>`, `<ui-radio>`, `<ui-switch>` | `base`, `controle`, `indicador`, `rotulo` |
 | `<ui-segmented>` | `base`, `indicador`, `opcao`, `opcao-selecionada` |
@@ -370,7 +395,7 @@ Você pode acionar modais, fechar janelas, disparar notificações toast ou copi
 ---
 
 ### 2. Formulários Automáticos com `FormData` Nativo (W3C FACE)
-Todos os campos (`<ui-campo-texto>`, `<ui-lista-flutuante>`, `<ui-checkbox>`, `<ui-radio>`, `<ui-switch>`) implementam a especificação oficial de **Form-Associated Custom Elements**.
+Todos os campos (`<ui-campo-texto>`, `<ui-area-texto>`, `<ui-lista-flutuante>`, `<ui-checkbox>`, `<ui-radio>`, `<ui-switch>`) implementam a especificação oficial de **Form-Associated Custom Elements**.
 
 Isso significa que você extrai os dados de todos os campos de uma única vez, sem ler um por um:
 
@@ -698,8 +723,9 @@ window.addEventListener('message', (event) => {
 | :--- | :--- | :--- | :--- |
 | `<ui-botao-primario>` | Botão com estados de loading, ícone e variantes. Form-associated (`type="submit"`/`"reset"`, `name`/`value`, `form`). Só com ícone, informe `aria-label` (ou `title`). | `variante`, `carregando`, `disabled`, `type`, `aria-label`, `target-modal` | `ui-click` |
 | `<ui-campo-texto>` | Input de texto com Floating Label, validação e senha. | `label`, `value`, `tipo`, `obrigatorio`, `name` | `ui-input`, `ui-change` |
+| `<ui-area-texto>` | Texto longo de várias linhas (descrições, laudos): contador, altura automática, redimensionamento, form-associated. Enter quebra a linha; Ctrl/Cmd+Enter emite `ui-enviar`. | `label`, `value`, `linhas`, `auto-altura`, `linhas-max`, `maxlength`, `contador`, `obrigatorio`, `name` | `ui-input`, `ui-change`, `ui-enviar` |
 | `<ui-lista-flutuante>` | Select/Dropdown com Bottom Sheet no mobile. | `itens`, `value`, `placeholder`, `name` | `ui-selecionar` |
-| `<ui-texto>` | Tipografia semântica (H1-H6, corpo, caption, código). | `variante`, `cor`, `peso` | - |
+| `<ui-texto>` | Tipografia semântica (H1-H6, corpo, caption, código). Texto longo: `linhas="3"` limita a N linhas com reticências e palavras compridas quebram. | `variante`, `cor`, `peso`, `linhas`, `truncar` | - |
 | `<ui-icone>` | Wrapper para ícones vetoriais padronizados. | `nome`, `tamanho`, `cor` | - |
 
 ### 🔵 Camada 2: Controles & Seleção
@@ -708,8 +734,9 @@ window.addEventListener('message', (event) => {
 | `<ui-checkbox>` | Caixa de seleção múltipla com estado indeterminado. | `marcado`, `indeterminado`, `name`, `value` | `ui-change` |
 | `<ui-radio>` | Opção única com agrupamento automático por nome. | `marcado`, `name`, `value` | `ui-change` |
 | `<ui-switch>` | Chave de alternância liga/desliga física instantânea. | `ativo`, `name`, `value` | `ui-change` |
-| `<ui-segmented>` | Controle segmentado de opções (Pills/Tabs deslizantes). | `opcoes`, `value`, `name`, `tamanho` | `ui-change`, `ui-selecionar` |
-| `<ui-badge>` / `<ui-chip>` | Tags de status e chips com botão de remoção. | `variante`, `removivel`, `value` | `ui-remove` |
+| `<ui-segmented>` | Controle segmentado de opções (Pills/Tabs deslizantes). | `opcoes`, `value`, `name`, `tamanho`, `altura` | `ui-change`, `ui-selecionar` |
+| `<ui-badge>` / `<ui-chip>` | Tags de status e chips com botão de remoção. | `variante`, `removivel`, `value`, `controle` | `ui-remove` |
+| `<ui-linha>` | Contêiner que alinha controles na mesma linha (altura única, espaço, quebra). | `tamanho`, `altura`, `alinhar`, `justificar`, `espaco`, `sem-quebra` | - |
 | `<ui-avatar>` | Avatar com fotos, iniciais e status online. | `nome`, `src`, `status`, `tamanho` | - |
 
 ### 🟣 Camada 3: Contêineres, Overlays, Dados & GIS
@@ -724,14 +751,14 @@ window.addEventListener('message', (event) => {
 | `<ui-skeleton>` | Placeholder de carregamento animado com pulsos. | `tipo`, `largura`, `altura`, `animado` | - |
 | `<ui-stat>` | Cartão KPI de estatísticas, métricas e tendências. | `rotulo`, `valor`, `variacao`, `tendencia` (`alta`, `baixa`, `neutro`) | - |
 | `<ui-tabela>` | Tabela orientada a dados, virtualizada tipo Excel. **Teclado**: cabeçalhos ordenáveis são botões (Tab + Enter/Espaço, com `aria-sort`); nas linhas, ↑/↓, Home/End e PageUp/PageDown movem o foco e Enter/Espaço selecionam (`aria-current`). A seleção é mantida ao ordenar e filtrar. Nome acessível via `aria-label`. | `colunas`, `dados`, `src`, `densidade`, `aria-label` | `ui-sort`, `ui-column-resize`, `ui-linha-clique` (demais eventos: ver seção 4) |
-| `<ui-tabela-propriedades>` | Inspetor de propriedades técnicas padrão AutoCAD & Revit com cálculos matemáticos inline (+, -, *, /, ^, %), arraste de valor contínuo (scrubbing), splitter redimensionável e editores CAD. | `categorias`, `tipo-objeto`, `splitter-pos`, `modo-aplicar`, `filtro` | `ui-propriedade-alterada`, `ui-aplicar`, `ui-desfazer`, `ui-editar-tipo`, `ui-acao-clique`, `ui-quick-select`, `ui-calculadora` |
-| `<ui-ribbon>` | Barra de ferramentas em abas e grupos (estilo AutoCAD / Word / Excel): botões grandes e pequenos em colunas de 3, toggles, menus suspensos, abas contextuais, modo recolhido (duplo clique na aba) e navegação por teclado (roving tabindex). `aba-ativa` pode ser definido antes de `abas` (fica pendente); `aria-label` e `rotulo-abas` rotulam a toolbar e o tablist; `ui-ferramenta` é cancelável (`preventDefault()` reverte o toggle); `atalho` é só texto no ribbon. Use `id` únicos e `rotulo`/`rotuloAcessivel` em botões só de ícone. | `abas`, `aba-ativa`, `recolhido`, `compacto`, `aria-label`, `rotulo-abas` | `ui-ferramenta`, `ui-aba-change`, `ui-recolhido-change` |
-| `<ui-paleta-ferramentas>` | Paleta de ferramentas (estilo Illustrator / Photoshop): seleção exclusiva, grupos com flyout (clique longo, botão direito ou seta), 1 ou 2 colunas, vertical/horizontal e atalhos de teclado que percorrem o grupo. `valor` pode vir antes de `ferramentas` (pendente) e `valor = ''` / `limpar()` remove a seleção; `ui-ferramenta` dispara sempre e é cancelável (`preventDefault()` reverte), `ui-change`/`ui-selecionar` só quando a seleção muda (ouça um deles, não ambos). Atalhos: use `atalhos` em uma paleta por página. | `ferramentas`, `valor`, `orientacao`, `colunas`, `tamanho`, `atalhos`, `aria-label` | `ui-change`, `ui-selecionar`, `ui-ferramenta` |
+| `<ui-tabela-propriedades>` | Inspetor de propriedades técnicas padrão AutoCAD & Revit com cálculos matemáticos inline (+, -, *, /, ^, %), arraste de valor contínuo (scrubbing), splitter redimensionável e editores CAD. Seleção múltipla: propriedade com valores diferentes entre os objetos (`VALOR_MISTO`, `misto: true` ou `combinarValores()`) mostra "Varia" (texto via `texto-misto`); as iguais mostram o valor comum. | `categorias`, `tipo-objeto`, `splitter-pos`, `modo-aplicar`, `filtro` | `ui-propriedade-alterada`, `ui-aplicar`, `ui-desfazer`, `ui-editar-tipo`, `ui-acao-clique`, `ui-quick-select`, `ui-calculadora` |
+| `<ui-ribbon>` | Barra de ferramentas em abas e grupos (estilo AutoCAD / Word / Excel): botões grandes e pequenos em colunas de 3, split buttons (`item.dividido`), toggles, exclusividade configurável (`grupo.exclusivo`), menus suspensos com submenus aninhados, lançador de diálogo (`grupo.lancadorDialogo`), colapso automático responsivo de grupos (`ResizeObserver` + `grupo.prioridade`), abas contextuais, ativação manual de abas (`ativacao-manual`), atalhos de teclado e KeyTips (`keytips`), modo controlado sem mutação (`copiar-dados`), tooltips estilizados e navegação por teclado (roving tabindex). `aba-ativa` pode ser definido antes de `abas` (fica pendente); `aria-label` e `rotulo-abas` rotulam a toolbar e o tablist; `ui-ferramenta` é cancelável (`preventDefault()` reverte o toggle). Use `id` únicos e `rotulo`/`rotuloAcessivel` em botões só de ícone. | `abas`, `aba-ativa`, `recolhido`, `compacto`, `ativacao-manual`, `copiar-dados`, `atalhos`, `keytips`, `aria-label`, `rotulo-abas` | `ui-ferramenta`, `ui-aba-change`, `ui-recolhido-change`, `ui-grupo-dialogo` |
+| `<ui-paleta-ferramentas>` | Paleta de ferramentas gráficas (estilo Illustrator / Photoshop): seleção exclusiva, grupos com flyout expansível e submenus aninhados, navegação em grade bidimensional para `colunas="2"`, suporte a atalhos compostos (`Ctrl+Z`, `Shift+V`, `Esc`) com isolamento multi-paleta, modo controlado sem mutação (`copiar-dados`), orientações vertical/horizontal e tooltips leves integrados no Shadow DOM. `valor` pode vir antes de `ferramentas` (pendente) e `valor = ''` / `limpar()` remove a seleção; `ui-ferramenta` dispara sempre e é cancelável (`preventDefault()` reverte), `ui-change`/`ui-selecionar` só quando a seleção muda (ouça um deles, não ambos). | `ferramentas`, `valor`, `orientacao`, `colunas`, `tamanho`, `atalhos`, `copiar-dados`, `aria-label` | `ui-change`, `ui-selecionar`, `ui-ferramenta` |
 | `<ui-controle-cores>` | Par de cores de desenho (estilo Illustrator): preenchimento na frente, traço atrás, botões de inverter, "sem cor" e restaurar padrão, estado misto (`?`) e modo só traço. Clique no alvo ativo abre o `<ui-seletor-cor>`. Não registra atalhos: quem usa chama `alternarAlvo()`, `inverter()`, `semCor()`, `restaurarPadrao()` e pode exibir as teclas via `atalhos`. Tamanho ajustável com `--ui-controle-cores-amostra`. Entrada: `@thibezer/ui-components-kit/cores`. | `preenchimento`, `traco`, `opacidade`, `alvo`, `padrao-preenchimento`, `padrao-traco`, `titulo-seletor`, `so-traco`, `desabilitado`, `coresProjeto`, `definirCores()`, `definirMisto()` | `ui-cores-change` (`confirmado` false = pré-visualização), `ui-alvo-change` |
 | `<ui-seletor-cor>` | Painel de cor flutuante: abas Preenchimento/Traço (ou cor única), prévia antes × depois, hexadecimal, seletor do sistema, opacidade, cores do projeto, paleta e "sem cor". Abra com `abrirSeletorCor({ ancora, ... })`: um por vez, Esc/clique fora confirmam, Cancelar restaura, `X` alterna o alvo. | `abrirSeletorCor()`, `fecharSeletorCor()`, `configurar()`, `modo` (`duplo`, `simples`), `alvo`, `preenchimento`, `traco`, `cor`, `opacidade`, `mostrarOpacidade`, `misto`, `coresProjeto`, `paleta`, `focar` | `ui-cor-input`, `ui-cor-confirmar`, `ui-cor-cancelar`, `ui-alvo-change` |
 | `<ui-mapa>` | Mapa geográfico interativo com camadas OpenStreetMap. | `lat`, `lng`, `zoom`, `camadas` | - |
 | `<ui-camadas>` | Painel de camadas vetoriais CAD/GIS com hierarquia em árvore, barra de arraste vertical (`redimensionavel`), estabilidade de altura sem colapso, drag-and-drop, métricas geodésicas e persistência no LocalStorage. | `redimensionavel`, `altura`, `min-altura`, `max-altura`, `flutuante`, `colapsado`, `camada-ativa`, `persistir` | `ui-redimensionar-altura`, `ui-camada-selecionada`, `ui-camada-visibilidade`, `ui-camadas-reordenadas`, `ui-acao-massa` |
-| `<ui-canvas-cad>` | Mesa CAD/GIS para poligonais, vértices geodésicos e **feições genéricas** (ponto, linha, polígono, círculo, texto) que você cria: seleção por clique e caixa, popup, edição de vértices, snap, 15 ferramentas de desenho/medição, oficial × prévia, cursores remotos e culling/clusters para 100 mil feições. Linha multiparte, feição `oculta`, selo de texto e contorno de ponto. Nenhuma camada vem pronta. Guia: [`docs/guia-migracao-mapengine.md`](docs/guia-migracao-mapengine.md). | `pontos`, `segmentos`, `ferramentas`, `sem-camadas-padrao`, `sem-painel-camadas`, `sem-barra-rapida`, `sem-atalho-snap`, `aceitar-origem`, `inicializarAgora()`, `definirFeicoes()`, `aplicarLote()`, `definirFerramenta()`, `editarVertices()`, `definirMargensHud()`, `definirEstilosExternos()`, `fitBounds()` | `ui-ponto-selecionado`, `cad-selecao`, `cad-feicao-selecionada`, `cad-feicao-criada`, `cad-feicao-atualizada`, `cad-feicao-hover`, `cad-feicao-menu`, `cad-snap`, `cad-previas` e outros (ver `docs/canvas-cad-eventos.md`) |
+| `<ui-canvas-cad>` | Mesa CAD/GIS para poligonais, vértices geodésicos e **feições genéricas** (ponto, linha, polígono, círculo, texto) que você cria: seleção por clique e caixa, popup, edição de vértices (Enter, botão Editar ou popup; desfazer, refazer e cancelar), snap, 15 ferramentas de desenho/medição, oficial × prévia, cursores remotos e culling/clusters para 100 mil feições. Linha multiparte, feição `oculta`, selo de texto e contorno de ponto. Nenhuma camada vem pronta. Guia: [`docs/guia-migracao-mapengine.md`](docs/guia-migracao-mapengine.md). | `pontos`, `segmentos`, `ferramentas`, `sem-camadas-padrao`, `sem-painel-camadas`, `sem-barra-rapida`, `sem-atalho-snap`, `sem-avisos`, `aceitar-origem`, `popups`, `renderizador` (`leaflet` \| `canvas`: motor + Canvas 2D para dezenas de milhares de formas, ver [`docs/motor-formas.md`](docs/motor-formas.md)), `estatisticasFeicoes()`, `abrirPopupFeicao()`, `inicializarAgora()`, `definirFeicoes()`, `aplicarLote()`, `definirFerramenta()`, `editarVertices()`, `definirMargensHud()`, `definirEstilosExternos()`, `fitBounds()` | `ui-ponto-selecionado`, `cad-selecao`, `cad-feicao-selecionada`, `cad-feicao-criada`, `cad-feicao-atualizada`, `cad-feicao-hover`, `cad-feicao-menu`, `cad-snap`, `cad-previas` e outros (ver `docs/canvas-cad-eventos.md`) |
 
 #### `<ui-canvas-cad>`: montar só com API pública (2.1)
 

@@ -1,5 +1,6 @@
 import L from 'leaflet';
 import { escapeHtml } from './utils';
+import { liberarPopups } from './popup_gate';
 
 export interface SigefConsultorState {
   currentAbortController?: AbortController;
@@ -55,8 +56,9 @@ export async function consultarSigefNoPonto(
         </svg>
         Consultando...
       </div>
-    `)
-    .openOn(map);
+    `);
+  // a consulta SIGEF é um pedido explícito (clique com a camada ativa): o popup abre mesmo com o portão fechado
+  liberarPopups(map, () => loadingPopup.openOn(map));
 
   if (state.currentAbortController) {
     state.currentAbortController.abort();

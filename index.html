@@ -703,6 +703,45 @@
       </div>
     </article>
 
+    <!-- Card 6b: Texto longo (<ui-area-texto> e <ui-texto linhas>) -->
+    <article class="card-componente full-width-card">
+      <h2>4b. &lt;ui-area-texto&gt; (Texto Longo) e &lt;ui-texto linhas&gt;</h2>
+      <div class="variations-matrix">
+
+        <div class="matrix-column">
+          <span class="matrix-title">Contador, ajuda e redimensionamento</span>
+          <ui-area-texto id="area-laudo" label="Laudo técnico" placeholder="Descreva o imóvel..." linhas="4"
+            maxlength="200" contador helper-text="Ctrl+Enter envia; Enter quebra a linha."></ui-area-texto>
+        </div>
+
+        <div class="matrix-column">
+          <span class="matrix-title">Altura automática (até 8 linhas)</span>
+          <ui-area-texto id="area-auto" label="Observações" linhas="2" auto-altura linhas-max="8"
+            placeholder="Digite várias linhas: o campo cresce com o texto."></ui-area-texto>
+        </div>
+
+        <div class="matrix-column">
+          <span class="matrix-title">Obrigatório, erro e somente leitura</span>
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <ui-area-texto label="Justificativa" obrigatorio linhas="2" erro
+              mensagem-erro="Informe a justificativa."></ui-area-texto>
+            <ui-area-texto label="Histórico (leitura)" readonly linhas="2"
+              value="Registro importado do cartório em 12/03/2024."></ui-area-texto>
+          </div>
+        </div>
+
+        <div class="matrix-column">
+          <span class="matrix-title">Texto longo na leitura: <code>linhas</code></span>
+          <ui-texto linhas="3" cor="secundaria">
+            Memorial descritivo: o perímetro parte do marco M-01, segue por cerca de arame farpado até o marco M-02,
+            confrontando com a gleba de matrícula 12.345, e prossegue pela margem direita do córrego até o marco M-07,
+            fechando o polígono com área total de 124,6532 ha, conforme levantamento georreferenciado.
+          </ui-texto>
+        </div>
+
+      </div>
+    </article>
+
     <!-- Card 7: Contêiner de Ícones (<ui-icone>) & Botões Ultra-Compactos -->
     <article class="card-componente full-width-card">
       <h2>5. &lt;ui-icone&gt; (Wrapper de Ícones Padronizados & Herança de Cor)</h2>
@@ -889,6 +928,38 @@
           </div>
         </div>
 
+      </div>
+    </article>
+
+    <!-- Card: Controles na mesma linha (<ui-linha>) -->
+    <article class="card-componente full-width-card" id="card-linha">
+      <h2>Controles na mesma linha (&lt;ui-linha&gt;)</h2>
+      <p style="color: var(--ui-cor-texto-secundario); font-size: 13px; margin: 0 0 12px;">
+        Um só <code>tamanho</code> no contêiner alinha botão, campo, lista, segmented e badge. Sem nenhum CSS extra.
+      </p>
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        <ui-linha tamanho="sm" id="linha-sm">
+          <ui-segmented valor="todas"><span valor="todas">Todas (5)</span><span valor="analise">Em análise (2)</span><span valor="aberta">Votação aberta (1)</span></ui-segmented>
+          <ui-campo-texto placeholder="Buscar..."></ui-campo-texto>
+          <ui-botao variante="primario">Adicionar</ui-botao>
+          <ui-badge controle>Carlos</ui-badge>
+        </ui-linha>
+        <ui-linha id="linha-md">
+          <ui-segmented valor="todos"><span valor="todos">Todos</span><span valor="propostas">Propostas</span><span valor="reclamacoes">Reclamações</span></ui-segmented>
+          <ui-campo-texto placeholder="Buscar..."></ui-campo-texto>
+          <ui-botao variante="secundario">Filtrar</ui-botao>
+          <ui-switch></ui-switch>
+          <ui-badge>Carlos</ui-badge>
+        </ui-linha>
+        <ui-linha tamanho="lg" id="linha-lg">
+          <ui-segmented valor="auto"><span valor="auto">Auto</span><span valor="claro">Claro</span><span valor="escuro">Escuro</span></ui-segmented>
+          <ui-campo-texto placeholder="Buscar..."></ui-campo-texto>
+          <ui-botao variante="primario">+ Adicionar proposta</ui-botao>
+        </ui-linha>
+        <ui-linha alinhar="fim" id="linha-rotulos">
+          <ui-campo-texto label="Nome" placeholder="Digite..."></ui-campo-texto>
+          <ui-botao variante="primario">Salvar</ui-botao>
+        </ui-linha>
       </div>
     </article>
 
@@ -1174,6 +1245,11 @@
           Remoto</ui-botao-primario>
         <ui-botao-primario inline style="height: 32px;" variante="secondary" id="btn-cad-ajustar">Ajustar
           Tudo</ui-botao-primario>
+        <ui-badge variante="info">Curvas</ui-badge>
+        <ui-botao-primario inline style="height: 32px;" variante="primary" id="btn-cad-curvas">Testar Curvas
+          (Bézier)</ui-botao-primario>
+        <ui-botao-primario inline style="height: 32px;" variante="secondary" id="btn-cad-caneta">Desenhar com
+          Caneta</ui-botao-primario>
       </div>
 
       <div style="width: 100%; height: 560px;">
@@ -1339,7 +1415,7 @@
             Modo Docked (Painel Lateral - Barra de Arraste de Altura)
           </span>
           <div style="border-radius: 8px; overflow: hidden; border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.1));">
-            <ui-camadas id="demo-camadas-docked" redimensionavel altura="540px"></ui-camadas>
+            <ui-camadas id="demo-camadas-docked" redimensionavel altura="540px" mapas-base-recolhido></ui-camadas>
           </div>
         </div>
 
@@ -1375,6 +1451,95 @@
 
             <!-- Painel Flutuante -->
             <ui-camadas id="demo-camadas-flutuante" flutuante></ui-camadas>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Card 17: Controle de Cores, Estilos & Espessura CAD (<ui-controle-cores> e <ui-seletor-cor>) -->
+    <article class="card-componente full-width-card" id="card-modelo-cores">
+      <h2>
+        <span style="display: flex; align-items: center; gap: 8px;">
+          17. 🎨 Controle de Cores, Estilo CAD &amp; Espessura de Traçado (&lt;ui-controle-cores&gt; &amp; &lt;ui-seletor-cor&gt;)
+        </span>
+        <div style="display: flex; gap: 6px;">
+          <ui-badge variante="sucesso">Espessura Dinâmica (0.5 a 50px)</ui-badge>
+          <ui-badge variante="info">Estilo Illustrator / CAD</ui-badge>
+        </div>
+      </h2>
+      <p style="font-size: 13px; color: var(--ui-cor-texto-secundario, #a0a0b0); margin: 0 0 16px 0;">
+        Sistema profissional de cor e espessura para desenho vetorial, CAD e mapas GIS: duplo canal com alternância
+        rápida entre <strong>Preenchimento</strong> e <strong>Traço</strong> (<kbd>X</kbd>), inversão (<kbd>Shift+X</kbd>),
+        cor transparente (<kbd>/</kbd>), cores padrão (<kbd>D</kbd>), ajuste fino de <strong>espessura de traçado</strong>
+        com botões rápidos (1px a 8px) e slider contínuo com prévia em espessura real, além de opacidade dinâmica.
+      </p>
+
+      <div class="interactive-grid-responsive" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 24px; width: 100%;">
+        <!-- Coluna 1: O Seletor de Cores de Modelo (Inline / Vitrine) -->
+        <div class="component-demo" style="width: 100%; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; background: rgba(0,0,0,0.3); border-radius: 12px; padding: 20px; border: 1px solid var(--ui-cor-borda, rgba(255,255,255,0.08));">
+          <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <span style="font-size: 13px; font-weight: 600; color: var(--ui-cor-primaria, #00E08A);">
+              Painel de Modelo (&lt;ui-seletor-cor inline&gt;)
+            </span>
+            <div style="display: flex; gap: 6px;">
+              <ui-botao-primario id="btn-toggle-alvo-modelo" variante="ghost" tamanho="sm">
+                Alternar Alvo (X)
+              </ui-botao-primario>
+            </div>
+          </div>
+          <ui-seletor-cor id="demo-seletor-modelo" inline></ui-seletor-cor>
+        </div>
+
+        <!-- Coluna 2: Controle de Barra, Botões de Atalho, Amostra Interativa e Prévia Gráfica -->
+        <div class="component-demo" style="width: 100%; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px;">
+          <span style="font-size: 13px; font-weight: 600; color: var(--ui-cor-primaria, #00E08A);">
+            Controle Flutuante / Barra (&lt;ui-controle-cores&gt;)
+          </span>
+          <span style="font-size: 12px; color: var(--ui-cor-texto-secundario, #888899);">
+            Clique nas amostras ou use os botões para abrir o popover e interagir:
+          </span>
+
+          <div style="display: flex; align-items: center; gap: 16px; padding: 14px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid var(--ui-cor-borda, rgba(255,255,255,0.08));">
+            <ui-controle-cores id="demo-controle-cores" preenchimento="#00e08a" traco="#3b82f6" opacidade="0.65" espessura-traco="4"></ui-controle-cores>
+            
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <ui-botao-primario id="btn-demo-abrir-seletor-fill" variante="secondary" tamanho="sm">
+                Abrir Preenchimento
+              </ui-botao-primario>
+              <ui-botao-primario id="btn-demo-abrir-seletor-stroke" variante="secondary" tamanho="sm">
+                Abrir Traço &amp; Espessura
+              </ui-botao-primario>
+              <ui-botao-primario id="btn-demo-inverter-cores" variante="ghost" tamanho="sm">
+                Inverter Cores (Shift+X)
+              </ui-botao-primario>
+            </div>
+          </div>
+
+          <!-- Prévia Gráfica Vetorial em Tempo Real -->
+          <span style="font-size: 13px; font-weight: 600; color: var(--ui-cor-texto, #ffffff); margin-top: 6px;">
+            Prévia Vetorial Renderizada em Tempo Real
+          </span>
+          <div style="width: 100%; height: 160px; background: #08080a; border-radius: 8px; border: 1px solid var(--ui-cor-borda, rgba(255,255,255,0.08)); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;">
+            <!-- Grid CAD de fundo -->
+            <div style="position: absolute; inset: 0; background-image: radial-gradient(circle, rgba(255,255,255,0.08) 1px, transparent 1px); background-size: 16px 16px; pointer-events: none;"></div>
+            
+            <svg id="svg-preview-modelo" width="260" height="130" viewBox="0 0 260 130" style="overflow: visible; z-index: 1;">
+              <!-- Polígono com preenchimento, traço e espessura dinâmicos -->
+              <polygon id="svg-preview-polygon" points="35,105 75,25 185,25 225,105 130,80" 
+                fill="#00e08a" fill-opacity="0.65" stroke="#3b82f6" stroke-width="4" stroke-linejoin="round" />
+            </svg>
+          </div>
+
+          <!-- Estado atual em tempo real em formato JSON -->
+          <div style="width: 100%; display: flex; flex-direction: column; gap: 4px;">
+            <span style="font-size: 11px; font-weight: 600; color: var(--ui-cor-texto-secundario, #888899);">Estado Atual (JSON Eventos / Kit):</span>
+            <div style="font-family: 'Fira Code', monospace; font-size: 11px; padding: 10px; background: rgba(0,0,0,0.5); border-radius: 6px; border: 1px solid rgba(255,255,255,0.06); color: #00e08a; white-space: pre;" id="demo-cores-json">{
+  "preenchimento": "#00e08a",
+  "traco": "#3b82f6",
+  "opacidade": 0.65,
+  "espessuraTraco": 4,
+  "alvo": "preenchimento"
+}</div>
           </div>
         </div>
       </div>

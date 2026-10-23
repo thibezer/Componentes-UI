@@ -44,8 +44,21 @@ export class SegmentedIndicadorController {
         return;
       }
 
-      const offsetLeft = Math.round(btnAtivo.offsetLeft);
-      const offsetWidth = Math.round(btnAtivo.offsetWidth);
+      const container = this.indicadorElement.parentElement;
+      const btnRect = btnAtivo.getBoundingClientRect();
+      const containerRect = container?.getBoundingClientRect();
+
+      let offsetLeft: number;
+      let offsetWidth: number;
+
+      if (container && containerRect && btnRect.width > 0 && containerRect.width > 0) {
+        const borderLeft = container.clientLeft || 0;
+        offsetLeft = Number((btnRect.left - containerRect.left - borderLeft).toFixed(2));
+        offsetWidth = Number(btnRect.width.toFixed(2));
+      } else {
+        offsetLeft = Math.round(btnAtivo.offsetLeft);
+        offsetWidth = Math.round(btnAtivo.offsetWidth);
+      }
 
       this.indicadorElement.style.transform = `translateX(${offsetLeft}px)`;
       this.indicadorElement.style.width = `${offsetWidth}px`;

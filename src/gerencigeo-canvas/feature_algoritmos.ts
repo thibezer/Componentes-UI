@@ -1,5 +1,5 @@
 import { criarLinha, ehMultilinha, partesDaLinha, type Feicao, type GeometriaFeicao, type LatLonPar } from './feature_types';
-import { distanciaMetros } from './feature_metricas';
+import { distanciaMetros, metrosPorGrau } from './feature_metricas';
 import { moverNos } from './feature_curvas';
 
 /*
@@ -11,30 +11,30 @@ import { moverNos } from './feature_curvas';
  * Limitações de cada função estão no comentário dela.
  */
 
-const RAIO_TERRA_M = 6371008.8;
-const METROS_POR_GRAU_LAT = 111320;
-const rad = (g: number): number => (g * Math.PI) / 180;
 
 // ---------- projeção local ----------
 
 interface PlanoLocal {
   lat0: number;
   lon0: number;
-  cos0: number;
+  /** metros por grau de latitude / longitude na latitude de referência (elipsoide GRS80) */
+  mLat: number;
+  mLng: number;
 }
 
 type XY = [number, number];
 
 function planoEm(ref: LatLonPar): PlanoLocal {
-  return { lat0: ref[0], lon0: ref[1], cos0: Math.cos(rad(ref[0])) };
+  const { lat, lng } = metrosPorGrau(ref[0]);
+  return { lat0: ref[0], lon0: ref[1], mLat: lat, mLng: Math.max(lng, 1) };
 }
 
 function paraXY(p: LatLonPar, pl: PlanoLocal): XY {
-  return [rad(p[1] - pl.lon0) * pl.cos0 * RAIO_TERRA_M, rad(p[0] - pl.lat0) * RAIO_TERRA_M];
+  return [(p[1] - pl.lon0) * pl.mLng, (p[0] - pl.lat0) * pl.mLat];
 }
 
 function deXY(p: XY, pl: PlanoLocal): LatLonPar {
-  return [pl.lat0 + (p[1] / RAIO_TERRA_M) * (180 / Math.PI), pl.lon0 + (p[0] / (RAIO_TERRA_M * pl.cos0)) * (180 / Math.PI)];
+  return [pl.lat0 + p[1] / pl.mLat, pl.lon0 + p[0] / pl.mLng];
 }
 
 // ---------- ponto em polígono ----------
@@ -367,8 +367,9 @@ export function gerarBuffer(g: GeometriaFeicao, distanciaM: number): LatLonPar[]
 /** Copia a geometria deslocada `leste` m para leste e `norte` m para norte. */
 export function deslocarGeometria(g: GeometriaFeicao, lesteM: number, norteM: number): GeometriaFeicao {
   const mover = (p: LatLonPar): LatLonPar => {
-    const dLat = norteM / METROS_POR_GRAU_LAT;
-    const dLon = lesteM / (METROS_POR_GRAU_LAT * Math.max(0.01, Math.cos(rad(p[0]))));
+    const escala = metrosPorGrau(p[0]);
+    const dLat = norteM / escala.lat;
+    const dLon = lesteM / Math.max(escala.lng, 1);
     return [p[0] + dLat, p[1] + dLon];
   };
   switch (g.tipo) {

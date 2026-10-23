@@ -25,12 +25,25 @@ export function ehFerramenta(v: unknown): v is Ferramenta {
 /** Resultado de um clique: se a ferramenta fecha sozinha (ponto, retângulo, círculo...), vem a geometria. */
 export interface ResultadoClique {
   concluida?: GeometriaFeicao;
+  /** O clique foi recusado (círculo curto demais, cantos alinhados...): o motivo, para a camada visual mostrar. */
+  aviso?: string;
 }
 
-/** Âncora da caneta Bézier; a alça de saída é uma coordenada absoluta (a de entrada é o espelho). */
+/**
+ * Âncora da caneta Bézier; a alça de saída é uma coordenada absoluta e a de entrada, por padrão, o espelho dela.
+ * `entrada` só existe quando o usuário soltou a simetria (Shift) e puxou a alça de entrada sozinha.
+ */
 export interface AncoraBezier {
   ponto: LatLonPar;
   alca?: LatLonPar;
+  entrada?: LatLonPar;
+}
+
+export type QualAlcaCaneta = 'entrada' | 'saida';
+
+/** Alça de entrada efetiva da âncora (a própria ou o espelho da saída), se houver alguma alça. */
+export function entradaDaAncora(a: AncoraBezier): LatLonPar | undefined {
+  return a.entrada ?? (a.alca ? espelhoDaAlca(a.ponto, a.alca) : undefined);
 }
 
 /** Nós da curva a partir das âncoras da caneta: a alça de saída é a gravada e a de entrada, o espelho dela. */
@@ -39,7 +52,9 @@ export function nosDeAncoras(ancoras: readonly AncoraBezier[]): NoCurva[] {
     const no: NoCurva = { ponto: a.ponto };
     if (a.alca) {
       no.saida = a.alca;
-      no.entrada = espelhoDaAlca(a.ponto, a.alca);
+      no.entrada = entradaDaAncora(a);
+    } else if (a.entrada) {
+      no.entrada = a.entrada;
     }
     return no;
   });
@@ -129,7 +144,10 @@ export class SessaoDesenho {
           this.pontos.push(c);
           return {};
         }
-        return { concluida: this.retangulo(this.pontos[0], c) ?? undefined };
+        {
+          const g = this.retangulo(this.pontos[0], c);
+          return g ? { concluida: g } : { aviso: 'Os dois cantos precisam diferir em latitude e em longitude.' };
+        }
       case 'circulo':
         if (this.pontos.length === 0) {
           this.pontos.push(c);
@@ -137,7 +155,9 @@ export class SessaoDesenho {
         }
         {
           const raio = distanciaMetros(this.pontos[0], c);
-          return raio >= RAIO_MINIMO_CIRCULO_M ? { concluida: { tipo: 'Circle', centro: this.pontos[0], raioMetros: raio } } : {};
+          return raio >= RAIO_MINIMO_CIRCULO_M
+            ? { concluida: { tipo: 'Circle', centro: this.pontos[0], raioMetros: raio } }
+            : { aviso: `Raio mínimo de ${RAIO_MINIMO_CIRCULO_M} m: clique mais longe do centro.` };
         }
       case 'elipse':
       case 'poligono-regular':
@@ -147,7 +167,7 @@ export class SessaoDesenho {
           return {};
         }
         const anel = FORMAS_DE_DOIS_CLIQUES[this.ferramenta]!(this.pontos[0], c);
-        return anel ? { concluida: { tipo: 'Polygon', aneis: [anel] } } : {};
+        return anel ? { concluida: { tipo: 'Polygon', aneis: [anel] } } : { aviso: 'Clique num ponto diferente do centro.' };
       }
       case 'caneta':
         this.ancoras.push({ ponto: c });
@@ -166,6 +186,28 @@ export class SessaoDesenho {
   public definirAlca(c: LatLonPar): void {
     const ultima = this.ancoras[this.ancoras.length - 1];
     if (this.ferramenta === 'caneta' && ultima) ultima.alca = c;
+  }
+
+  /**
+   * Caneta: puxa uma alça de qualquer âncora já colocada. Com `simetrica` a oposta vira o espelho; sem ela
+   * as duas ficam independentes (a oposta mantém onde estava).
+   */
+  public moverAlcaDaAncora(indice: number, qual: QualAlcaCaneta, c: LatLonPar, simetrica = true): void {
+    const a = this.ancoras[indice];
+    if (this.ferramenta !== 'caneta' || !a) return;
+    if (simetrica) {
+      a.alca = qual === 'saida' ? c : espelhoDaAlca(a.ponto, c);
+      delete a.entrada;
+      return;
+    }
+    const entradaAtual = entradaDaAncora(a);
+    if (qual === 'saida') {
+      a.alca = c;
+      if (entradaAtual) a.entrada = entradaAtual;
+    } else {
+      a.alca ??= a.ponto;
+      a.entrada = c;
+    }
   }
 
   /** Desfaz o último vértice/âncora (Backspace). Devolve se algo foi desfeito. */

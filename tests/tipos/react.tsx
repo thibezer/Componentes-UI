@@ -7,6 +7,7 @@ export const usoCorreto = (
       Salvar
     </ui-botao-primario>
     <ui-campo-texto label="Nome" obrigatorio value="Ana" name="nome" className="campo" />
+    <ui-area-texto label="Observações" linhas={6} contador maxlength={500} onui-enviar={(e) => e.detail} />
     <ui-tabela
       colunas={[{ id: 'ponto', rotulo: 'Ponto', ordenavel: true }]}
       dados={[{ id: 1, ponto: 'M-01' }]}

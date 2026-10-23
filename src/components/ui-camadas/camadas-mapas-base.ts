@@ -51,9 +51,16 @@ export const MAPAS_BASE_PADRAO: MapaBaseItem[] = [
   }
 ];
 
+/** Nome do mapa base ativo, para o cabeçalho da seção (vazio se o id não existir na lista). */
+export function nomeDoMapaBase(mapasBase: MapaBaseItem[], id: string): string {
+  const item = Array.isArray(mapasBase) ? mapasBase.find((m) => m.id === id) : undefined;
+  return item && typeof item.nome === 'string' ? item.nome : '';
+}
+
 export function renderizarGridMapasBase(
   mapasBase: MapaBaseItem[] = MAPAS_BASE_PADRAO,
-  mapaBaseAtivo: string = 'satelite'
+  mapaBaseAtivo: string = 'satelite',
+  recolhido: boolean = false
 ): string {
   if (!mapasBase || mapasBase.length === 0) return '';
 
@@ -81,11 +88,19 @@ export function renderizarGridMapasBase(
     .join('');
 
   return `
-    <div class="ui-basemap-section">
-      <div class="ui-basemap-title">Mapa Base</div>
-      <div class="ui-basemap-grid">
+    <div class="ui-basemap-section ${recolhido ? 'recolhido' : ''}">
+      <button type="button" class="ui-basemap-toggle" data-basemap-toggle="alternar" aria-expanded="${!recolhido}" aria-controls="ui-basemap-grid" title="${recolhido ? 'Mostrar mapas base' : 'Recolher mapas base'}">
+        <span class="ui-basemap-title">Mapa Base</span>
+        <span class="ui-basemap-atual" data-basemap-atual>${escapeHtml(nomeDoMapaBase(mapasBase, mapaBaseAtivo))}</span>
+        <span class="ui-chevron-icon ${recolhido ? '' : 'open'}">${ICONES.chevronDir}</span>
+      </button>
+      ${
+        recolhido
+          ? ''
+          : `<div class="ui-basemap-grid" id="ui-basemap-grid">
         ${cardsHtml}
-      </div>
+      </div>`
+      }
     </div>
   `;
 }

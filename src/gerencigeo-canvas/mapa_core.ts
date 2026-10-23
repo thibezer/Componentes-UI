@@ -3,10 +3,13 @@ import { MapaConfigManager } from './mapa_config';
 import type { MapaConfiguracoes } from './types';
 import { consultarSigefNoPonto, SigefConsultorState } from './sigef_consultor';
 import { preCarregarTilesRegiao } from './tile_preloader';
+import { PortaoPopups, lerModoPopups, MODO_POPUPS_PADRAO, type ModoPopups } from './popup_gate';
+import { OPCOES_ZOOM_FINO } from './zoom_opcoes';
+import { liberarEscDoPopup } from './popup_residual';
 
 export interface MapaCoreControllerRef {
   modoCliqueSequencialAtivo?: boolean;
-  canvasInteracao?: { selectionHappened?: boolean };
+  canvasInteracao?: { selectionHappened?: boolean; ctx?: { ferramentaAtiva?: () => boolean; edicaoAtiva?: () => boolean } };
   layerManager?: any;
 }
 
@@ -21,13 +24,24 @@ export class MapaCore {
   private containerElement: HTMLElement | null = null;
   private bc?: BroadcastChannel;
   private sigefState: SigefConsultorState = {};
+  /** Decide quando os popups do mapa abrem (ver `popup_gate.ts`). Existe enquanto houver mapa. */
+  public popups: PortaoPopups | null = null;
+  private modoPopups: ModoPopups = MODO_POPUPS_PADRAO;
 
   constructor(controller: MapaCoreControllerRef) {
     this.controller = controller;
   }
 
+  /** Vale já, ou assim que o mapa for criado (o atributo `popups` pode ser lido antes do mapa existir). */
+  public definirModoPopups(modo: ModoPopups): void {
+    this.modoPopups = lerModoPopups(modo);
+    this.popups?.definirModo(this.modoPopups);
+  }
+
   public init(containerIdOrElement: string | HTMLElement): L.Map | null {
     if (this.map) {
+      this.popups?.destruir();
+      this.popups = null;
       try {
         this.map.off();
         this.map.remove();
@@ -58,11 +72,15 @@ export class MapaCore {
       maxZoom: 24,
       scrollWheelZoom: true,
       preferCanvas: this.config.preferCanvas !== undefined ? this.config.preferCanvas : true,
-      zoomControl: false
+      zoomControl: false,
+      ...OPCOES_ZOOM_FINO
     }).setView([-23.7661, -53.3204], 14);
+
+    this.popups = new PortaoPopups(this.map, this.modoPopups);
 
     this.listenConfigBroadcast();
     this.applyMapStyles();
+    liberarEscDoPopup(this.map);
 
     // Criação dos panes cartográficos padronizados
     if (!this.map.getPane('sigefPane')) {
@@ -87,6 +105,9 @@ export class MapaCore {
     this.map.on('click', (e: L.LeafletMouseEvent) => {
       if (this.controller.modoCliqueSequencialAtivo) return;
       if (this.controller.canvasInteracao && this.controller.canvasInteracao.selectionHappened) return;
+      // ferramenta de desenho ou edição de vértices em andamento: o clique é dela, não abre consulta/popup
+      const ctx = this.controller.canvasInteracao?.ctx;
+      if (ctx?.ferramentaAtiva?.() || ctx?.edicaoAtiva?.()) return;
 
       const isSigefActive = this.controller.layerManager 
         ? this.controller.layerManager.isLayerActiveAndSelectable('sigef')
@@ -147,6 +168,8 @@ export class MapaCore {
     }
 
     if (this.map) {
+      this.popups?.destruir();
+      this.popups = null;
       try {
         this.map.off();
         this.map.remove();

@@ -1,16 +1,22 @@
 /**
- * Ponteiro sobre as feições do <ui-canvas-cad>: hover (`cad-feicao-hover`) e menu de contexto (`cad-feicao-menu`).
+ * Ponteiro sobre as feições do <ui-canvas-cad>: hover (`cad-feicao-hover`), menu de contexto (`cad-feicao-menu`) e duplo clique
+ * (`cad-feicao-duplo-clique`).
  * Responsabilidade única: traduzir o movimento/clique direito do mouse na feição sob o cursor e emitir o evento.
  */
 import type { Feicao, LatLonPar } from '../../gerencigeo-canvas/feature_types';
 
 export interface PortasPonteiro {
-  emitir: (evento: string, detalhe: unknown) => unknown;
+  /** Com `cancelavel`, devolve `true` se algum ouvinte chamou `preventDefault()`. */
+  emitir: (evento: string, detalhe: unknown, cancelavel?: boolean) => unknown;
   feicaoSob: (clientX: number, clientY: number) => { feicao: Feicao | null; coordenada: LatLonPar } | null;
   /** Mouse parado para o hover: uma ferramenta de desenho ou a edição de vértices está ativa. */
   interacaoAtiva: () => boolean;
   /** Se há ferramenta ativa, entrega a ela o botão direito e devolve `true` (não abre menu). */
   botaoDireitoDaFerramenta: () => boolean;
+  /** Pedido explícito de informações: abre o popup da feição. */
+  abrirPopup?: (feicao: Feicao) => void;
+  /** O duplo clique pode abrir o popup (falso com `popups="desligado"`). Sem a função, pode. */
+  popupNoDuploClique?: () => boolean;
 }
 
 export class PonteiroFeicoes {
@@ -55,6 +61,19 @@ export class PonteiroFeicoes {
     const r = this.p.feicaoSob(e.clientX, e.clientY);
     if (!r) return;
     this.p.emitir('cad-feicao-menu', { feicao: r.feicao, coordenada: r.coordenada, x: e.clientX, y: e.clientY });
+  }
+
+  /**
+   * Duplo clique sobre uma feição: emite `cad-feicao-duplo-clique` (cancelável, para o consumidor assumir o gesto) e,
+   * se ninguém chamar `preventDefault()`, abre o popup (pedido de informações). Ignorado durante desenho ou edição de vértices.
+   */
+  public duploClique(e: MouseEvent): void {
+    if (this.p.interacaoAtiva()) return;
+    const r = this.p.feicaoSob(e.clientX, e.clientY);
+    if (!r?.feicao) return;
+    const assumido = this.p.emitir('cad-feicao-duplo-clique', { camadaId: r.feicao.camadaId, feicao: r.feicao, coordenada: r.coordenada }, true) === true;
+    if (assumido || !this.p.abrirPopup || this.p.popupNoDuploClique?.() === false) return;
+    this.p.abrirPopup(r.feicao);
   }
 
   /** Esquece a feição sob o cursor (ao destruir o componente). */

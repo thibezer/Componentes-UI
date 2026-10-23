@@ -196,6 +196,10 @@ function conectarEventosMapasBase(host: CamadasHostCompleto, shadow: ShadowRoot)
     );
   });
 
+  shadow.querySelector('[data-basemap-toggle]')?.addEventListener('click', () => {
+    host.alternarMapasBaseRecolhido(true);
+  });
+
   shadow.querySelectorAll('[data-basemap-id]').forEach((card) => {
     card.addEventListener('click', () => {
       const basemapId = card.getAttribute('data-basemap-id');

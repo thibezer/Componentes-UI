@@ -61,5 +61,5 @@ export interface ResultadoFerramenta {
 
 export interface ResultadoEdicao {
   ok: boolean;
-  motivo?: MotivoRecusaEdicao | 'inexistente' | 'sem-mapa';
+  motivo?: MotivoRecusaEdicao | 'inexistente' | 'sem-mapa' | 'sem-selecao';
 }

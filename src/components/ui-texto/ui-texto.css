@@ -21,6 +21,8 @@
   font-size: inherit;
   font-weight: inherit;
   line-height: inherit;
+  /* Texto longo nunca estoura o contêiner: palavras e URLs compridas quebram */
+  overflow-wrap: break-word;
 }
 
 /* Variantes Tipográficas */
@@ -151,6 +153,7 @@
 
 .ui-texto--alinhamento-justificado {
   text-align: justify;
+  hyphens: auto;
 }
 
 /* Modificador de Truncamento */
@@ -159,4 +162,22 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   display: block;
+}
+
+/* Limite de linhas (atributo `linhas`): reticências ao final da última linha visível */
+.ui-texto--linhas {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--ui-texto-linhas, 3);
+  line-clamp: var(--ui-texto-linhas, 3);
+  overflow: hidden;
+}
+
+@media print {
+  .ui-texto--linhas {
+    -webkit-line-clamp: unset;
+    line-clamp: unset;
+    display: block;
+    overflow: visible;
+  }
 }

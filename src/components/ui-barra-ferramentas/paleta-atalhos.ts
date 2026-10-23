@@ -1,9 +1,18 @@
 /**
- * Atalhos de teclado da <ui-paleta-ferramentas> (uma letra ativa uma ferramenta).
+ * Atalhos de teclado da <ui-paleta-ferramentas> (uma tecla ou combinação, como `Ctrl+Z`, ativa uma ferramenta).
  * Responsabilidade única: decidir se uma tecla deve ser tratada (e não sequestrar a digitação) e qual ferramenta
  * ela ativa. Funções puras sobre o evento e os dados; sem estado nem efeitos.
  */
 import type { FerramentaItem } from './tipos';
+import { correspondeAtalho, type TeclaAtalho } from './ferramentas-comum';
+
+/**
+ * Várias paletas com `atalhos` na mesma página: só a "dona" responde, a que contém o foco ou, sem foco em nenhuma, a
+ * primeira na ordem do DOM. `temFoco` diz se uma paleta contém o foco.
+ */
+export function paletaDonaDosAtalhos<T>(paletas: T[], temFoco: (p: T) => boolean): T | undefined {
+  return paletas.find(temFoco) ?? paletas[0];
+}
 
 /** Papéis ARIA de campos de entrada customizados: o atalho nunca é capturado dentro deles. */
 const PAPEIS_DE_ENTRADA = new Set(['textbox', 'searchbox', 'combobox', 'spinbutton']);
@@ -29,19 +38,22 @@ export interface AtalhoResolvido {
 }
 
 /**
- * Ferramenta ativada pela `tecla` (uma letra, sem diferenciar caixa). Com várias candidatas, alterna entre elas
- * a partir da ativa. `todas` é a lista plana (grupos expandidos); `grupos` serve para achar o pai.
+ * Ferramenta ativada pela tecla. `tecla` é o evento de teclado (atalhos compostos: `Ctrl+Z`, `Shift+V`, `Esc`, via
+ * `correspondeAtalho`) ou só o `key` (uma tecla sem modificadores). Sem diferenciar caixa. Com várias candidatas,
+ * alterna entre elas a partir da ativa. `todas` é a lista plana (grupos expandidos); `grupos` serve para achar o pai.
  */
 export function resolverAtalho(
-  tecla: string,
+  tecla: string | TeclaAtalho,
   todas: FerramentaItem[],
   grupos: FerramentaItem[],
   idAtivo: string
 ): AtalhoResolvido | null {
-  const maiuscula = (tecla || '').toUpperCase();
-  if (maiuscula.length !== 1) return null;
+  const evento: TeclaAtalho = typeof tecla === 'string'
+    ? { key: tecla, ctrlKey: false, metaKey: false, altKey: false, shiftKey: false }
+    : tecla;
+  if (!evento || !evento.key) return null;
 
-  const candidatos = todas.filter((f) => !f.disabled && f.atalho?.toUpperCase() === maiuscula);
+  const candidatos = todas.filter((f) => !f.disabled && correspondeAtalho(evento, f.atalho));
   if (candidatos.length === 0) return null;
 
   let alvo = candidatos[0];

@@ -27,7 +27,8 @@ src/gerencigeo-canvas/
 ## 🧭 Pilares Técnicos Importados
 
 ### 1. Núcleo Cartográfico e Gerenciamento de Panes (`MapaCore`)
-- **Instância Leaflet:** `preferCanvas: true`, `maxZoom: 24`, `scrollWheelZoom: true`.
+- **Instância Leaflet:** `preferCanvas: true`, `maxZoom: 24`, `scrollWheelZoom: true`, zoom em passos finos (`zoomSnap: 0.25`, `zoomDelta: 0.5`, `wheelPxPerZoomLevel: 90`; ver `zoom_opcoes.ts`).
+- **Popups sob demanda (`popup_gate.ts`):** o clique seleciona e não abre popup nem move o mapa. O duplo clique sobre a camada (ou `abrirPopupFeicao`) abre, sem auto-pan. Modos `sob-demanda` (padrão), `automatico` (Leaflet original) e `desligado`; atributo `popups` do `<ui-canvas-cad>`.
 - **Camadas Base:** Google Satellite Híbrido com controle de opacidade + WMS INCRA/SIGEF (`certificada_sigef_particular_pr`).
 - **Arquitetura de Panes com Z-Index estrito:**
   - `sigefPane` (z-index: 390): WMS do acervo fundiário (abaixo das linhas do imóvel).
@@ -38,7 +39,8 @@ src/gerencigeo-canvas/
 
 ### 2. Motor de Interações Estilo AutoCAD (`CanvasInteracao`)
 - **Pan Dinâmico:** Botão do meio (Scroll Wheel Drag) com cursor `grabbing`.
-- **Zoom Extents:** Duplo clique na rodinha do mouse (`< 300ms`) executa `fitBounds`.
+- **Zoom Extents:** Duplo clique na rodinha do mouse (`< 300ms`) executa `fitBounds`. Só vale para dois cliques limpos: dois arrastes seguidos são pan e não enquadram.
+- **Toque:** um dedo arrasta (pan); a pinça e o pan de dois dedos são do `touchZoom` do Leaflet (antes havia um segundo tratador que também dava zoom, de 1 em 1 nível).
 - **Janelas de Seleção Retangular:**
   - **Window Selection (Esquerda $\to$ Direita):** Caixa Azul Sólida (`#06b6d4`) — apenas vértices 100% contidos.
   - **Crossing Selection (Direita $\to$ Esquerda):** Caixa Verde Tracejada (`#10b981`) — qualquer vértice interceptado.
@@ -79,12 +81,56 @@ Nada é criado por padrão: o consumidor escolhe as camadas (`definirFeicoes`). 
 |---|---|
 | `feature_types.ts`, `feature_adapters.ts` | Modelo `Feicao`, normalização de coordenadas/anéis e adaptadores dos dados antigos |
 | `renderers/feicoes_renderer.ts` | Desenho, atualização incremental, seleção visual, culling por viewport, clusters, simplificação por zoom |
-| `feature_indice.ts`, `feature_cluster.ts`, `feature_simplificacao.ts` | R-tree (STR) sem dependências, agrupamento por grade de 55 px, Douglas-Peucker |
+| `feature_indice.ts`, `feature_cluster.ts`, `feature_simplificacao.ts` | R-tree (STR) sem dependências, agrupamento por grade de 55 px, Douglas-Peucker com tolerância de 1,2 px (feição com mais de 8 vértices, abaixo do zoom 17) |
+| `feature_lod.ts`, `renderers/marcas_lod_layer.ts` | LOD por tamanho em px (puro): feição com diagonal < 3 px vira marca de 1–2 px, pintada em lote por cor num canvas por camada; Web Mercator própria (`projetarMercator`) |
 | `layer_hit_test.ts`, `feature_amostra.ts` | Hit-test unificado (tolerância em px, prioridade, alternância de cliques); feição sob um ponto |
 | `feature_selecao.ts`, `feature_caixa.ts`, `feature_popup.ts` | Seleção única/múltipla, caixa Window/Crossing com toque geométrico real, popup único |
 | `feature_snap.ts`, `feature_edicao_ops.ts`, `feature_editor_vertices.ts` | Snap (vértice > meio > aresta), operações de vértices, editor com alças e HUD |
 | `feature_desenho.ts`, `feature_desenho_controle.ts`, `feature_algoritmos.ts` | 11 ferramentas, caneta Bézier, medição, divisão/junção/buffer/deslocamento, unidades, DD ⇄ DMS |
 | `feature_versoes.ts`, `feature_cursores.ts`, `feature_metricas.ts` | Oficial × prévia, cursores remotos, áreas/comprimentos/formatação pt-BR |
+
+### Motor das formas e renderizador Canvas (`renderizador="canvas"`)
+
+Caminho opt-in que desenha as camadas de feições sem um objeto Leaflet por feição. Arquitetura, contratos e decisões:
+[`docs/motor-formas.md`](../../docs/motor-formas.md). O padrão continua `leaflet` (`feicoes_renderer.ts`).
+
+| Arquivo | Papel |
+|---|---|
+| `motor/tipos.ts` | Contratos: `Vista`, `ItemDesenho`, `ListaDesenho`, `DefCamadaMotor`, `DeltaMotor`, `EstatisticasCamada` |
+| `motor/motor-formas.ts` | `MotorFormas` (puro, sem DOM nem Leaflet): `listaDesenho(vista, { camadas, parte })`, `listaSobreposicao`, `consultarCaixa`, seleção, `previsualizar`, `destacar`, clusters |
+| `motor/dados-camada.ts` | Loja da camada, índice espacial, oficial × prévia e aplicação de delta |
+| `motor/estilo.ts` | Estilo resolvido, compartilhado pelos dois renderizadores |
+| `motor/geometria-px.ts` | Projeção em `Float64Array`, Douglas-Peucker em px, raio de círculo em metros |
+| `renderers/renderizador_formas.ts` | `PintorCanvas2D`: pinta a lista forma a forma, por grupo de estilo, com recorte opcional |
+| `renderers/canvas_formas_leaflet.ts` | `CanvasFormas` (`L.Canvas`): canvas por camada com pan incremental (desloca o bitmap e pinta só as faixas expostas) |
+| `renderers/feicoes_canvas_renderer.ts` | Ponte Leaflet: canvas por camada + sobreposição por mapa, marcadores DOM, curvas híbridas, `FonteHit` |
+| `renderers/feicoes_despachante.ts` | Registrado para o tipo `feicoes`; escolhe `leaflet` ou `canvas` pelo contexto (`lerModoRenderizador`) |
+| `renderers/marcadores_feicoes.ts`, `renderers/selecao_visual.ts` | Ícones dos marcadores DOM (ponto com ícone, texto/selo, cluster) e seleção visual por camada, que sobrevive a ocultar/exibir e à troca de renderizador (comuns aos dois caminhos) |
+| `renderers/renderizador_feicoes_tipos.ts` | Contrato `IRenderizadorFeicoes` e `EstatisticasFeicoes`, comum aos dois caminhos |
+
+O motor sai sozinho em `@thibezer/ui-components-kit/motor` (`src/motor.ts`), sem Leaflet: dá para rodá-lo em Node ou num
+Web Worker.
+
+### LOD por tamanho em pixels (marcas)
+
+Feição (linha, polígono ou círculo) cuja **diagonal** na tela fica abaixo de `LIMITE_MARCA_PX` (3 px) não vira objeto Leaflet:
+é desenhada como marca de 1–2 px na cor do preenchimento/contorno, em lote por cor (`fillRect`), num canvas único da camada
+(`CamadaMarcasLOD`, dentro do sub-pane de polígonos, com `pointer-events: none`). O mapa não fica "furado": o operador vê a
+densidade. Regras:
+
+- usa a diagonal, não a área: linha longa e fina (área ~0) continua visível;
+- **sempre em detalhe completo**: feição selecionada (a em edição é sempre selecionada), com rótulo (`mostrarRotulo`) e em
+  par oficial × prévia; ponto e texto nunca viram marca (já têm a regra de cluster);
+- hit-test, snap, caixa, laço e hover usam a geometria **original** (índice + `feicaoNoPonto`): uma feição de 1 px continua
+  clicável. O clique das marcas entra no hit-test central do mapa (`layer_hit_test.ts`, `FonteHit`) junto com o das formas:
+  uma ação por clique, linha antes de área, camada do topo, alternância em cliques repetidos;
+- o resultado é guardado por (feição, zoom): reavaliado ao mudar de zoom ou de geometria, não a cada pan;
+- mapa sem vista (zoom desconhecido) não aplica LOD; opacidade e z-order seguem o pane da camada (opacidade de grupo).
+
+`FeicoesLayerRenderer.estatisticas(grupo)` devolve `total`, `materializadas`, `marcasLOD`, `clusters` e `avaliacoesLOD`;
+`idsDesenhados(grupo)` lista quem é forma e quem é marca. Benchmark no navegador: `npm run dev` e
+`/bench/bench-formas.html` (`await __bench.rodar({ tamanhos: [20000], zooms: [12, 15, 18] })`); resultados em
+[`docs/desempenho-feicoes.md`](../../docs/desempenho-feicoes.md).
 
 Limitações conhecidas: contas geométricas em projeção local (glebas, não escala continental); polígonos com furos não são
 editados nem divididos; a junção de polígonos usa ponte (não faz união booleana de áreas sobrepostas); a coordenada (0, 0)

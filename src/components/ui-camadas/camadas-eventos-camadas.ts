@@ -8,6 +8,7 @@ import { CamadasHostCompleto } from './camadas-host';
 import { ICONES } from './camadas-icones';
 import { sanitizarCorCss, buscarPorAtributo, definirRotuloControle } from './camadas-utils';
 import { filtrarFeicoesPorBusca } from './camadas-selecao';
+import { abrirSeletorCor } from '../ui-cores/ui-seletor-cor';
 
 export function conectarEventosCamadas(host: CamadasHostCompleto, shadow: ShadowRoot): void {
   // 5. Linhas de Camadas
@@ -16,7 +17,7 @@ export function conectarEventosCamadas(host: CamadasHostCompleto, shadow: Shadow
       const target = e.target as HTMLElement;
       if (
         target.closest(
-          '[data-layer-eye], [data-layer-lock], [data-layer-expand], [data-layer-target], [data-layer-fit], [data-layer-settings], input, button'
+          '[data-layer-eye], [data-layer-lock], [data-layer-expand], [data-layer-target], [data-layer-fit], [data-layer-settings], [data-layer-color], input, button'
         )
       ) {
         return;
@@ -147,7 +148,8 @@ export function conectarEventosCamadas(host: CamadasHostCompleto, shadow: Shadow
 
     const row = buscarPorAtributo(shadow, 'data-layer-row', layerId);
     if (row) {
-      row.style.setProperty('--layer-active-color', corSegura);
+      // A variável fica no grupo: a linha da camada e as suas feições herdam o destaque de seleção
+      row.closest<HTMLElement>('.ui-layer-group')?.style.setProperty('--layer-active-color', corSegura);
       const bar = row.querySelector('.ui-col-colorbar') as HTMLElement;
       if (bar) bar.style.backgroundColor = corSegura;
     }
@@ -168,6 +170,36 @@ export function conectarEventosCamadas(host: CamadasHostCompleto, shadow: Shadow
     // 'input' dispara a cada movimento do seletor (grava com debounce); 'change' é o valor final
     p.addEventListener('input', onColorChange(false));
     p.addEventListener('change', onColorChange(true));
+  });
+
+  // Barra de cor da linha: abre o seletor de cor ao lado (prévia ao vivo; Cancelar restaura)
+  shadow.querySelectorAll('[data-layer-color]').forEach((bar) => {
+    const abrir = (e: Event) => {
+      e.stopPropagation();
+      const layerId = bar.getAttribute('data-layer-color');
+      const layer = host.camadas.find((l) => l.id === layerId);
+      if (!layerId || !layer) return;
+      const outras = host.camadas.filter((l) => l.id !== layerId && l.color).map((l) => l.color as string);
+      abrirSeletorCor({
+        ancora: bar,
+        titulo: `Cor · ${layer.name || 'Camada'}`,
+        modo: 'simples',
+        cor: sanitizarCorCss(layer.color, '#00E08A'),
+        mostrarOpacidade: false,
+        coresProjeto: outras,
+        aoAlterar: (d) => atualizarCorCamadaNoDOM(layerId, d.cor, false),
+        aoConfirmar: (d) => atualizarCorCamadaNoDOM(layerId, d.cor, true),
+        aoCancelar: (d) => atualizarCorCamadaNoDOM(layerId, d.cor, true)
+      });
+    };
+    bar.addEventListener('click', abrir);
+    bar.addEventListener('keydown', (e) => {
+      const k = (e as KeyboardEvent).key;
+      if (k === 'Enter' || k === ' ') {
+        e.preventDefault();
+        abrir(e);
+      }
+    });
   });
 
   // Slider de opacidade no drawer da camada (atualização cirúrgica em tempo real)

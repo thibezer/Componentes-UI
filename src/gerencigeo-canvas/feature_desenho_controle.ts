@@ -1,14 +1,13 @@
 import L from 'leaflet';
-import { focoEmCampoDeTexto } from '../core/alvo-digitavel';
+import { focoEmCampoDeTexto, focoEmControleAcionavel } from '../core/alvo-digitavel';
 import type { GeometriaFeicao, LatLonPar } from './feature_types';
-import { SessaoDesenho, type Ferramenta } from './feature_desenho';
+import { SessaoDesenho, entradaDaAncora, type Ferramenta, type QualAlcaCaneta } from './feature_desenho';
 import {
   areaDaGeometria, comprimentoMetros, extensaoDaGeometria, formatarArea, formatarExtensao, distanciaMetros
 } from './feature_metricas';
 import type { ResultadoSnap } from './feature_snap';
 import { CSS_POSICAO_HUD } from './feature_hud';
 import { criarCamadaCurva } from './curva_leaflet';
-import { espelhoDaAlca } from './feature_curvas';
 
 /*
  * Camada visual das ferramentas de desenho: traduz mouse e teclado em chamadas à `SessaoDesenho`,
@@ -25,6 +24,9 @@ const REPETICAO_PX = 4;
 const REPETICAO_MS = 450;
 /** Distância (px) do clique ao primeiro vértice para fechar a figura. */
 const FECHAR_PX = 10;
+/** Distância (px) do clique a uma alça/âncora da caneta para pegá-la em vez de criar outra âncora. */
+const PEGAR_PX = 8;
+const AVISO_MS = 2500;
 
 export interface InfoMedicao {
   tipo: 'distancia' | 'area';
@@ -64,7 +66,7 @@ const DICA: Record<Ferramenta, string> = {
   retangulo: 'Clique nos dois cantos', elipse: 'Clique no centro e depois no canto da caixa',
   'poligono-regular': 'Clique no centro e depois num vértice', estrela: 'Clique no centro e depois numa ponta',
   circulo: 'Clique no centro e depois num ponto da borda', texto: 'Clique onde o texto vai',
-  caneta: 'Clique e arraste para curvar · Enter conclui · 1º ponto fecha', 'medir-distancia': 'Clique nos pontos · Enter conclui',
+  caneta: 'Clique = reta · arraste = curva · arraste as alças já colocadas para ajustar (Shift solta a simetria) · Enter conclui · 1º ponto fecha', 'medir-distancia': 'Clique nos pontos · Enter conclui',
   'medir-area': 'Clique nos vértices · Enter conclui', dividir: 'Desenhe a linha de corte · Enter aplica',
   'selecao-laco': 'Desenhe o laço · Enter ou 1º ponto fecha e seleciona',
   'conta-gotas': 'Clique numa feição para copiar o estilo'
@@ -80,8 +82,10 @@ export class ControleDesenho {
   private marcadorSnap: L.Marker | null = null;
   private hud: HTMLElement | null = null;
   private campoTexto: HTMLInputElement | null = null;
-  private arrastando = false;
+  /** Caneta: alça que o mouse está puxando (a da âncora recém-colocada ou uma já existente). */
+  private arrastando: { i: number; qual: QualAlcaCaneta } | null = null;
   private ultimoClique: { x: number; y: number; t: number } | null = null;
+  private avisoTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(private dep: DependenciasDesenho) {}
 
@@ -126,7 +130,8 @@ export class ControleDesenho {
     map.on('dblclick', this.aoDuploClique);
     map.on('mousemove', this.aoMover);
     map.on('mousedown', this.aoPressionar);
-    map.on('mouseup', this.aoSoltar);
+    // na window (e não no mapa): soltar o botão fora do mapa também termina o arraste da alça
+    window.addEventListener('mouseup', this.aoSoltar);
     window.addEventListener('keydown', this.aoTecla);
     this.montarHud();
     this.atualizar();
@@ -151,7 +156,7 @@ export class ControleDesenho {
     map.off('dblclick', this.aoDuploClique);
     map.off('mousemove', this.aoMover);
     map.off('mousedown', this.aoPressionar);
-    map.off('mouseup', this.aoSoltar);
+    window.removeEventListener('mouseup', this.aoSoltar);
     window.removeEventListener('keydown', this.aoTecla);
     const c = map.getContainer();
     c.classList.remove(CLASSE_FERRAMENTA_ATIVA);
@@ -161,11 +166,13 @@ export class ControleDesenho {
     this.previa = null;
     this.marcas = null;
     this.marcadorSnap = null;
+    if (this.avisoTimer) clearTimeout(this.avisoTimer);
+    this.avisoTimer = null;
     this.hud?.remove();
     this.hud = null;
     this.campoTexto = null;
     this.sessao = null;
-    this.arrastando = false;
+    this.arrastando = null;
     this.ultimoClique = null;
   }
 
@@ -215,6 +222,7 @@ export class ControleDesenho {
       return;
     }
     this.atualizar();
+    if (r.aviso) this.avisar(r.aviso);
   };
 
   /** Com 3+ vértices, um clique perto do primeiro fecha a figura em polígono. */
@@ -229,18 +237,44 @@ export class ControleDesenho {
     return !!g;
   }
 
+  /** Alça ou âncora da caneta sob o ponteiro (alças primeiro, da última âncora para a primeira). */
+  private alcaSobOPonteiro(e: L.LeafletMouseEvent): { i: number; qual: QualAlcaCaneta } | null {
+    const s = this.sessao;
+    if (!s) return null;
+    const map = this.dep.map;
+    const perto = (c: LatLonPar): boolean => {
+      const p = map.latLngToContainerPoint(c);
+      return Math.hypot(p.x - e.containerPoint.x, p.y - e.containerPoint.y) <= PEGAR_PX;
+    };
+    for (let i = s.ancoras.length - 1; i >= 0; i--) {
+      const a = s.ancoras[i];
+      if (a.alca && perto(a.alca)) return { i, qual: 'saida' };
+      const entrada = entradaDaAncora(a);
+      if (entrada && perto(entrada)) return { i, qual: 'entrada' };
+    }
+    for (let i = s.ancoras.length - 1; i >= 0; i--) {
+      if (perto(s.ancoras[i].ponto)) return { i, qual: 'saida' }; // puxar de uma âncora cria/ajusta a curva dela
+    }
+    return null;
+  }
+
   private aoPressionar = (e: L.LeafletMouseEvent): void => {
     const s = this.sessao;
     if (!s || s.ferramenta !== 'caneta' || e.originalEvent?.button !== 0) return;
     if (this.repetido(e)) return; // 2º clique de um duplo clique: o dblclick conclui
     if (this.fechaNoPrimeiroVertice(e)) return;
+    const pegou = this.alcaSobOPonteiro(e);
+    if (pegou) {
+      this.arrastando = pegou;
+      return;
+    }
     s.clicar(this.coordenada(e));
-    this.arrastando = true;
+    this.arrastando = { i: s.ancoras.length - 1, qual: 'saida' };
     this.atualizar();
   };
 
   private aoSoltar = (): void => {
-    this.arrastando = false;
+    this.arrastando = null;
   };
 
   private aoMover = (e: L.LeafletMouseEvent): void => {
@@ -248,7 +282,8 @@ export class ControleDesenho {
     if (!s) return;
     const coord = this.coordenada(e);
     s.mover(coord);
-    if (this.arrastando) s.definirAlca(coord);
+    if (this.arrastando) s.moverAlcaDaAncora(this.arrastando.i, this.arrastando.qual, coord, !e.originalEvent?.shiftKey);
+    else if (s.ferramenta === 'caneta') this.dep.map.getContainer().style.cursor = this.alcaSobOPonteiro(e) ? 'move' : 'crosshair';
     this.atualizar();
   };
 
@@ -270,6 +305,8 @@ export class ControleDesenho {
     }
     if (digitando) return;
     if (e.key === 'Enter') {
+      // com o foco num botão (barra de ferramentas, "Sair" do HUD), o Enter é do botão
+      if (focoEmControleAcionavel(e)) return;
       this.concluir();
       e.preventDefault();
     } else if (e.key === 'Backspace' || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z')) {
@@ -286,6 +323,19 @@ export class ControleDesenho {
     if (!s) return;
     const g = s.concluir();
     if (g) this.finalizar(g);
+    else if (s.ehSequencial && s.nos > 0 && !s.podeConcluir) this.avisar(`Faltam ${s.minimo - s.nos} ponto(s): mínimo de ${s.minimo}.`);
+  }
+
+  /** Mensagem curta no HUD (recusas, pontos de menos), que some sozinha. */
+  private avisar(texto: string): void {
+    const el = this.hud?.querySelector('[data-campo="aviso"]');
+    if (!el) return;
+    el.textContent = texto;
+    if (this.avisoTimer) clearTimeout(this.avisoTimer);
+    this.avisoTimer = setTimeout(() => {
+      el.textContent = '';
+      this.avisoTimer = null;
+    }, AVISO_MS);
   }
 
   /**
@@ -309,7 +359,7 @@ export class ControleDesenho {
     if (!f) return;
     this.sessao = new SessaoDesenho(f, this.fechar);
     this.ultimoClique = null;
-    this.arrastando = false;
+    this.arrastando = null;
     this.atualizar();
   }
 
@@ -375,11 +425,11 @@ export class ControleDesenho {
     // caneta: mostra as alças (linha entre a de entrada e a de saída) para o usuário ver o que está curvando
     if (s.ferramenta === 'caneta') {
       for (const a of s.ancoras) {
-        if (!a.alca) continue;
-        const entrada = espelhoDaAlca(a.ponto, a.alca);
-        this.marcas.addLayer(L.polyline([entrada, a.alca], { pane: PANE, color: COR, weight: 1, opacity: 0.8, interactive: false }));
+        const entrada = entradaDaAncora(a);
+        if (!a.alca || !entrada) continue;
+        this.marcas.addLayer(L.polyline([entrada, a.ponto, a.alca], { pane: PANE, color: COR, weight: 1, opacity: 0.8, interactive: false }));
         for (const alca of [entrada, a.alca]) {
-          this.marcas.addLayer(L.circleMarker(alca, { pane: PANE, radius: 3, color: COR, weight: 1, fillColor: '#fff', fillOpacity: 1, interactive: false }));
+          this.marcas.addLayer(L.circleMarker(alca, { pane: PANE, radius: 4, color: COR, weight: 1.5, fillColor: '#fff', fillOpacity: 1, interactive: false }));
         }
       }
     }
@@ -500,7 +550,10 @@ export class ControleDesenho {
       b.addEventListener('click', acao);
       return b;
     };
-    hud.append(titulo, campo('nos'), campo('medida'), dica);
+    const aviso = campo('aviso');
+    aviso.style.color = '#fbbf24';
+    aviso.setAttribute('role', 'status');
+    hud.append(titulo, campo('nos'), campo('medida'), dica, aviso);
     if (s.ehSequencial) hud.append(botao('Concluir', () => this.concluir(), true));
     hud.append(botao('Sair', () => this.desativar()));
     L.DomEvent.disableClickPropagation(hud);
@@ -540,6 +593,7 @@ export class ControleDesenho {
       else this.finalizar(r.concluida);
     } else {
       this.atualizar();
+      if (r.aviso) this.avisar(r.aviso);
     }
   }
 

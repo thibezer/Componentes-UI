@@ -7,6 +7,9 @@ import { garantirCanvasSemEventos, resolverCliqueCentral } from './layer_hit_tes
 
 export { CAD_INTERACTIVE_PANES };
 
+/** Alças do editor de vértices e HUDs: o mouse e o toque que começam neles não iniciam seleção por caixa nem pan. */
+const SELETOR_TOQUE_PROPRIO = '.cad-vertex-handle, .cad-vertex-ghost, .cad-bezier-handle, #cm-vertex-edit-hud, #cm-draw-hud';
+
 export interface CanvasInteracaoContext {
   mapaController?: any;
   layerManager?: CanvasLayerManager;
@@ -21,6 +24,8 @@ export interface CanvasInteracaoContext {
   aoLimparSelecao?: () => void;
   /** Há uma ferramenta de desenho ativa: cliques e arrastos do mouse são dela, não da seleção. */
   ferramentaAtiva?: () => boolean;
+  /** Há uma feição em edição de vértices: clique e caixa de seleção não mexem na seleção (só Esc/Concluir saem). */
+  edicaoAtiva?: () => boolean;
   /** Botão direito sobre o mapa (o menu nativo é sempre suprimido). */
   aoMenuContexto?: (e: MouseEvent) => void;
   /** Seleção por caixa sobre feições genéricas; `aditivo` = Ctrl/Cmd. */
@@ -52,7 +57,6 @@ export class CanvasInteracao {
 
   // Estados de Toque (Mobile/Tablet)
   private touchStartPos = { x: 0, y: 0 };
-  private touchStartDist = 0;
   private isTouchPanning: boolean = false;
 
   private removerSupressao: (() => void) | null = null;
@@ -81,6 +85,8 @@ export class CanvasInteracao {
 
     this.map.dragging.disable();
     this.map.doubleClickZoom.disable();
+    // Shift+arrasto é do CAD (alça livre, seleção aditiva): nunca pode virar zoom em caixa do Leaflet
+    this.map.boxZoom.disable();
 
     this.selecaoBox = new CanvasSelecaoBox(this.map, this.mapContainer, this.ctx);
 
@@ -121,19 +127,23 @@ export class CanvasInteracao {
     if (this.map) {
       this.map.dragging.enable();
       this.map.doubleClickZoom.enable();
+      this.map.boxZoom.enable();
     }
   }
 
   private handleTouchStart = (e: TouchEvent): void => {
     if (!this.map || !this.mapContainer) return;
     if (e.touches.length === 1) {
+      // alças de edição e HUDs tratam o próprio toque: arrastar um nó (ou o ponto médio) não move o mapa junto
+      if ((e.target as HTMLElement | null)?.closest?.(SELETOR_TOQUE_PROPRIO)) {
+        this.isTouchPanning = false;
+        return;
+      }
       this.isTouchPanning = true;
       this.touchStartPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
     } else if (e.touches.length === 2) {
+      // pinça e pan de dois dedos são do `touchZoom` do Leaflet (suave, em torno do centro dos dedos)
       this.isTouchPanning = false;
-      const dx = e.touches[0].clientX - e.touches[1].clientX;
-      const dy = e.touches[0].clientY - e.touches[1].clientY;
-      this.touchStartDist = Math.hypot(dx, dy);
     }
   };
 
@@ -146,26 +156,14 @@ export class CanvasInteracao {
       const dy = this.touchStartPos.y - e.touches[0].clientY;
       this.map.panBy([dx, dy], { animate: false });
       this.touchStartPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-    } else if (e.touches.length === 2 && this.touchStartDist > 0) {
-      e.preventDefault();
+    } else if (e.touches.length === 2) {
+      // sem preventDefault e sem zoom próprio: antes o tratador daqui e o do Leaflet davam zoom os dois, e em passos de 1 nível
       this.panHappened = true;
-      const dx = e.touches[0].clientX - e.touches[1].clientX;
-      const dy = e.touches[0].clientY - e.touches[1].clientY;
-      const dist = Math.hypot(dx, dy);
-      if (Math.abs(dist - this.touchStartDist) > 25) {
-        if (dist > this.touchStartDist) {
-          this.map.zoomIn(1);
-        } else {
-          this.map.zoomOut(1);
-        }
-        this.touchStartDist = dist;
-      }
     }
   };
 
   private handleTouchEnd = (): void => {
     this.isTouchPanning = false;
-    this.touchStartDist = 0;
     setTimeout(() => {
       this.panHappened = false;
     }, 120);
@@ -178,7 +176,7 @@ export class CanvasInteracao {
 
   private handleClick = (e: MouseEvent): void => {
     if (!this.map || !this.ctx.layerManager) return;
-    if (this.ctx.ferramentaAtiva?.()) return;
+    if (this.ctx.ferramentaAtiva?.() || this.ctx.edicaoAtiva?.()) return;
     // marcador DOM (ícone/texto): o Leaflet já entregou o clique a ele; não repassa às feições do canvas por baixo
     if ((e.target as HTMLElement | null)?.closest?.('.leaflet-marker-icon')) return;
     resolverCliqueCentral(this.map, this.ctx.layerManager.getLayers(), e);
@@ -208,12 +206,13 @@ export class CanvasInteracao {
 
     if (e.button === 1) {
       e.preventDefault();
-      const agora = Date.now();
-      if (agora - this.lastMiddleClickTime < 300) {
+      // Só um clique limpo anterior (sem arraste, registrado ao soltar) forma o duplo clique;
+      // dois arrastes seguidos são pan, não um pedido de "zoom extents"
+      if (Date.now() - this.lastMiddleClickTime < 300) {
+        this.lastMiddleClickTime = 0;
         this.zoomExtents();
         return;
       }
-      this.lastMiddleClickTime = agora;
 
       this.isPanning = true;
       this.panHappened = false;
@@ -224,8 +223,8 @@ export class CanvasInteracao {
 
     if (e.button === 0) {
       // alças de edição de vértices e o HUD da edição tratam o próprio mouse: não iniciam caixa de seleção
-      if ((e.target as HTMLElement | null)?.closest?.('.cad-vertex-handle, .cad-vertex-ghost, #cm-vertex-edit-hud, #cm-draw-hud')) return;
-      if (this.ctx.ferramentaAtiva?.()) return;
+      if ((e.target as HTMLElement | null)?.closest?.(SELETOR_TOQUE_PROPRIO)) return;
+      if (this.ctx.ferramentaAtiva?.() || this.ctx.edicaoAtiva?.()) return;
       this.selectionHappened = false;
       if (this.ctx.mapaController && this.ctx.mapaController.modoCliqueSequencialAtivo) {
         return;
@@ -254,6 +253,7 @@ export class CanvasInteracao {
   private handleMouseUp = (e: MouseEvent): void => {
     if (this.isPanning) {
       this.isPanning = false;
+      if (e.button === 1 && !this.panHappened) this.lastMiddleClickTime = Date.now();
       if (this.mapContainer) {
         this.mapContainer.style.cursor = 'grab';
       }

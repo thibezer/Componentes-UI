@@ -10,6 +10,7 @@ export * from './components/ui-botao';
 export * from './components/ui-lista-flutuante';
 export * from './components/ui-texto';
 export * from './components/ui-campo-texto';
+export * from './components/ui-area-texto';
 export * from './components/ui-icone';
 
 // 3. Camada 2: Controles e Seleção de Dados
@@ -19,6 +20,7 @@ export * from './components/ui-switch';
 export * from './components/ui-badge';
 export * from './components/ui-avatar';
 export * from './components/ui-segmented';
+export * from './components/ui-linha';
 
 // 4. Camada 3: Contêineres, Overlays e Feedback
 export * from './components/ui-card';
@@ -88,6 +90,7 @@ import type { UIBotao, UIBotaoPrimario } from './components/ui-botao';
 import type { UIListaFlutuante, UISelect } from './components/ui-lista-flutuante';
 import type { UITexto } from './components/ui-texto';
 import type { UICampoTexto, UIInput } from './components/ui-campo-texto';
+import type { UIAreaTexto, UITextarea } from './components/ui-area-texto';
 import type { UIIcone } from './components/ui-icone';
 import type { UICheckbox } from './components/ui-checkbox';
 import type { UIRadio } from './components/ui-radio';
@@ -95,6 +98,7 @@ import type { UISwitch, UIToggle } from './components/ui-switch';
 import type { UIBadge, UIChip, UITag } from './components/ui-badge';
 import type { UIAvatar } from './components/ui-avatar';
 import type { UISegmented, UISegmento } from './components/ui-segmented';
+import type { UILinha } from './components/ui-linha';
 import type { UICard } from './components/ui-card';
 import type { UIModal, UIDialog } from './components/ui-modal';
 import type { UIDrawer, UISheet, UIPainelLateral, UIGaveta } from './components/ui-drawer';
@@ -122,6 +126,8 @@ declare global {
     'ui-texto': UITexto;
     'ui-campo-texto': UICampoTexto;
     'ui-input': UIInput;
+    'ui-area-texto': UIAreaTexto;
+    'ui-textarea': UITextarea;
     'ui-icone': UIIcone;
     'ui-checkbox': UICheckbox;
     'ui-radio': UIRadio;
@@ -133,6 +139,7 @@ declare global {
     'ui-avatar': UIAvatar;
     'ui-segmented': UISegmented;
     'ui-segmento': UISegmento;
+    'ui-linha': UILinha;
     'ui-card': UICard;
     'ui-modal': UIModal;
     'ui-dialog': UIDialog;

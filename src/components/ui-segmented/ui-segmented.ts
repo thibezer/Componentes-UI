@@ -9,6 +9,7 @@ import {
 import { definirCustomElement } from '../../core/ssr-safe';
 import { FormAssociatedElement } from '../../core/form-associated-element';
 import { alternarPart } from '../../core/parts';
+import { aplicarAlturaControle, normalizarTamanhoControle } from '../../core/altura-controle';
 
 export interface UISegmentedOpcao {
   valor: string;
@@ -268,7 +269,10 @@ export class UISegmented extends FormAssociatedElement {
   };
 
   protected syncState() {
-    const tamanho = this.getAttribute('tamanho') || this.getAttribute('size') || 'md';
+    aplicarAlturaControle(this);
+    const tamanho = normalizarTamanhoControle(
+      this.getAttribute('tamanho') ?? this.getAttribute('size') ?? this.getAttribute('densidade')
+    ) ?? 'md';
     const isFull = this.hasAttribute('largura-total') || this.hasAttribute('full-width');
     const isDisabled = this.disabled;
 

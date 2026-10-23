@@ -1338,3 +1338,49 @@
   }
 }
 
+
+/* ====================================================
+   Estado misto ("Varia"): valor difere entre os objetos selecionados
+   ==================================================== */
+
+.ui-prop__editor--misto,
+.ui-prop__editor--misto .ui-prop__booleano-rotulo,
+.ui-prop__editor--misto .ui-prop__cor-texto,
+.ui-prop__editor--misto select,
+select.ui-prop__editor--misto {
+  font-style: italic;
+  color: var(--ui-prop-misto-cor, var(--ui-cor-texto-secundario, #a0a0ab));
+}
+
+.ui-prop__editor-input.ui-prop__editor--misto::placeholder {
+  font-style: italic;
+  color: var(--ui-prop-misto-cor, var(--ui-cor-texto-secundario, #a0a0ab));
+  opacity: 1;
+}
+
+/* Opções reais continuam com a fonte normal dentro do select misto */
+.ui-prop__editor--misto option:not([data-misto]),
+select.ui-prop__editor--misto option:not([data-misto]) {
+  font-style: normal;
+  color: var(--ui-cor-texto, #ffffff);
+}
+
+.ui-prop__editor--misto svg {
+  opacity: 0.35;
+}
+
+.ui-prop__checkbox-custom--misto {
+  border-color: var(--ui-prop-misto-cor, var(--ui-cor-texto-secundario, #a0a0ab));
+  color: var(--ui-prop-misto-cor, var(--ui-cor-texto-secundario, #a0a0ab));
+  font-style: normal;
+}
+
+/* Amostra de cor mista: diagonal sobre o fundo, sem sugerir uma cor específica */
+.ui-prop__cor-amostra--misto {
+  background: linear-gradient(
+    to top right,
+    transparent calc(50% - 1px),
+    var(--ui-prop-misto-cor, var(--ui-cor-texto-secundario, #a0a0ab)) 50%,
+    transparent calc(50% + 1px)
+  );
+}

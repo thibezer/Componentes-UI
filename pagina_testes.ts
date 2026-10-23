@@ -1,6 +1,6 @@
 import './src/index';
 import { UIToast, ICONES_FERRAMENTAS as I } from './src/index';
-import type { UIRibbon, UIPaletaFerramentas, FerramentaItem, UICamadas, CamadaItem, FeicaoItem } from './src/index';
+import type { UIRibbon, UIPaletaFerramentas, FerramentaItem, UICamadas, CamadaItem, FeicaoItem, UIControleCores, UISeletorCor, DetalheSeletorCor, DetalheControleCores, AlvoCor } from './src/index';
 import type { UIListaFlutuante } from './src/components/ui-lista-flutuante';
 import type { UIModal } from './src/components/ui-modal';
 import type { UITabela, TabelaColuna } from './src/components/ui-tabela';
@@ -590,6 +590,39 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  const btnCadCurvas = document.getElementById('btn-cad-curvas');
+  const btnCadCaneta = document.getElementById('btn-cad-caneta');
+  if (btnCadCurvas && canvasCad) {
+    btnCadCurvas.addEventListener('click', () => {
+      const [lat, lon] = [-23.7655, -53.3195];
+      const d = (a: number, b: number): [number, number] => [lat + a, lon + b];
+      canvasCad.definirFeicoes('curvas-demo', [
+        { id: 'reta', propriedades: { name: 'Linha reta' }, estilo: { corTraco: '#3b82f6', espessuraTraco: 3 },
+          geometria: { tipo: 'LineString', coordenadas: [d(-0.0006, -0.0020), d(0.0002, -0.0008), d(-0.0006, 0.0004)] } },
+        { id: 'curva', propriedades: { name: 'Linha curva' }, estilo: { corTraco: '#f59e0b', espessuraTraco: 3 },
+          geometria: { tipo: 'LineString', coordenadas: [d(0.0006, -0.0020), d(0.0006, 0.0004)], curva: [
+            { ponto: d(0.0006, -0.0020), saida: d(0.0016, -0.0012) }, { ponto: d(0.0006, 0.0004), entrada: d(-0.0004, -0.0004) }
+          ] } },
+        { id: 'poligono', propriedades: { name: 'Polígono reto' }, estilo: { corPreenchimento: '#00f5a0' },
+          geometria: { tipo: 'Polygon', aneis: [[d(0.0008, 0.0012), d(0.0008, 0.0026), d(-0.0006, 0.0026), d(-0.0006, 0.0012)]] } }
+      ], { nome: 'Curvas de exemplo', zIndex: 900 });
+      canvasCad.definirCamadaDesenho('desenhos-demo');
+      canvasCad.setAttribute('ferramentas', 'todas');
+      canvasCad.ajustarCamada('curvas-demo');
+      canvasCad.selecionarFeicao('curvas-demo', 'reta');
+      canvasCad.editarVertices('curvas-demo', 'reta');
+      registrarLog('<ui-canvas-cad> -> Editando a linha reta: as alças pontilhadas já estão lá; arraste uma para curvar (Shift solta a simetria). Para outra feição: selecione e use "Editar Vértices".');
+    });
+  }
+  if (btnCadCaneta && canvasCad) {
+    btnCadCaneta.addEventListener('click', () => {
+      canvasCad.setAttribute('ferramentas', 'todas');
+      canvasCad.definirCamadaDesenho('desenhos-demo');
+      const r = canvasCad.definirFerramenta('caneta');
+      registrarLog(r?.ok === false ? `<ui-canvas-cad> -> Caneta recusada: ${r.motivo}.` : '<ui-canvas-cad> -> Caneta: clique = reta, arraste = curva; depois arraste as alças dos pontos já colocados para ajustar. Enter conclui.');
+    });
+  }
+
   if (btnCadFeicoesMassa && canvasCad) {
     btnCadFeicoesMassa.addEventListener('click', () => {
       const t0 = performance.now();
@@ -1013,17 +1046,27 @@ document.addEventListener('DOMContentLoaded', () => {
           {
             id: 'desenho',
             rotulo: 'Desenho',
+            prioridade: 10,
             itens: [
               {
                 id: 'menu-linha',
                 rotulo: 'Linha',
                 icone: I.linha,
                 tamanho: 'grande',
+                dividido: true,
                 filhos: [
                   { id: 'linha', rotulo: 'Linha', icone: I.linha, atalho: 'L' },
                   { id: 'polilinha', rotulo: 'Polilinha', icone: I.polilinha, atalho: 'PL' },
                   { id: 'sep', tipo: 'separador' },
-                  { id: 'arco', rotulo: 'Arco', icone: I.arco, atalho: 'A' }
+                  {
+                    id: 'arcos',
+                    rotulo: 'Arcos e Curvas',
+                    icone: I.arco,
+                    filhos: [
+                      { id: 'arco-3p', rotulo: 'Arco por 3 pontos' },
+                      { id: 'arco-centro', rotulo: 'Arco centro e raio' }
+                    ]
+                  }
                 ]
               },
               { id: 'retangulo', rotulo: 'Retângulo', icone: I.retangulo },
@@ -1034,6 +1077,9 @@ document.addEventListener('DOMContentLoaded', () => {
           {
             id: 'formato',
             rotulo: 'Formato',
+            prioridade: 5,
+            lancadorDialogo: true,
+            rotuloLancador: 'Opções Avançadas de Formato',
             itens: [
               { id: 'negrito', icone: I.negrito, rotulo: 'Negrito', tipo: 'toggle', somenteIcone: true, atalho: 'Ctrl+B' },
               { id: 'italico', icone: I.italico, rotulo: 'Itálico', tipo: 'toggle', somenteIcone: true, atalho: 'Ctrl+I' },
@@ -1077,6 +1123,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (d.id === 'polilinha') demoRibbon.definirAbaVisivel('edicao-poli', true);
     });
     demoRibbon.addEventListener('ui-aba-change', (e: any) => registrarLog(`[Ribbon] Aba: ${e.detail.id}`));
+    demoRibbon.addEventListener('ui-grupo-dialogo', (e: any) => registrarLog(`[Ribbon] Lançador de Diálogo: ${e.detail.grupo.rotulo} (id=${e.detail.id})`));
   }
 
   const ferramentasPaleta = (): FerramentaItem[] => [
@@ -1342,6 +1389,130 @@ document.addEventListener('DOMContentLoaded', () => {
       registrarLog(`[Camadas:Flutuante] Adicionada via botão: ${novaCamada.name}`);
     });
   }
+
+  // ----------------------------------------------------
+  // 17. Lógica do Modelo Interativo de Cores & Espessura CAD
+  // ----------------------------------------------------
+  const seletorModelo = document.getElementById('demo-seletor-modelo') as UISeletorCor | null;
+  const controleCores = document.getElementById('demo-controle-cores') as UIControleCores | null;
+  const polyPreview = document.getElementById('svg-preview-polygon') as SVGPolygonElement | null;
+  const jsonDisplay = document.getElementById('demo-cores-json');
+  const btnToggleAlvoModelo = document.getElementById('btn-toggle-alvo-modelo');
+  const btnOpenFill = document.getElementById('btn-demo-abrir-seletor-fill');
+  const btnOpenStroke = document.getElementById('btn-demo-abrir-seletor-stroke');
+  const btnInvert = document.getElementById('btn-demo-inverter-cores');
+
+  const estadoCoresModelo = {
+    preenchimento: '#00e08a',
+    traco: '#3b82f6',
+    opacidade: 0.65,
+    espessuraTraco: 4,
+    alvo: 'traco' as AlvoCor
+  };
+
+  function atualizarPreviewModelo() {
+    if (polyPreview) {
+      const fillVal = estadoCoresModelo.preenchimento === 'none' ? 'transparent' : estadoCoresModelo.preenchimento;
+      const strokeVal = estadoCoresModelo.traco === 'none' ? 'transparent' : estadoCoresModelo.traco;
+      polyPreview.setAttribute('fill', fillVal);
+      polyPreview.setAttribute('fill-opacity', String(estadoCoresModelo.opacidade));
+      polyPreview.setAttribute('stroke', strokeVal);
+      polyPreview.setAttribute('stroke-width', String(estadoCoresModelo.espessuraTraco));
+    }
+    if (jsonDisplay) {
+      jsonDisplay.textContent = JSON.stringify(estadoCoresModelo, null, 2);
+    }
+  }
+
+  if (seletorModelo) {
+    seletorModelo.configurar({
+      titulo: 'Cores & Estilo CAD (Modelo)',
+      alvo: 'traco',
+      preenchimento: estadoCoresModelo.preenchimento,
+      traco: estadoCoresModelo.traco,
+      opacidade: estadoCoresModelo.opacidade,
+      espessuraTraco: estadoCoresModelo.espessuraTraco,
+      coresProjeto: ['#00e08a', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#10b981'],
+      mostrarEspessura: true,
+      mostrarOpacidade: true
+    });
+
+    seletorModelo.addEventListener('ui-cor-input', (e: Event) => {
+      const d = (e as CustomEvent<DetalheSeletorCor>).detail;
+      if (d.preenchimento) estadoCoresModelo.preenchimento = d.preenchimento;
+      if (d.traco) estadoCoresModelo.traco = d.traco;
+      if (typeof d.opacidade === 'number') estadoCoresModelo.opacidade = d.opacidade;
+      if (typeof d.espessuraTraco === 'number') estadoCoresModelo.espessuraTraco = d.espessuraTraco;
+      if (d.alvo) estadoCoresModelo.alvo = d.alvo;
+      atualizarPreviewModelo();
+      controleCores?.definirCores({
+        preenchimento: estadoCoresModelo.preenchimento,
+        traco: estadoCoresModelo.traco,
+        opacidade: estadoCoresModelo.opacidade,
+        espessuraTraco: estadoCoresModelo.espessuraTraco
+      });
+      registrarLog(`[Seletor Modelo] Prévia alterada: alvo=${d.alvo}, espessura=${d.espessuraTraco}px, opacidade=${Math.round(d.opacidade * 100)}%`);
+    });
+
+    seletorModelo.addEventListener('ui-cor-confirmar', () => {
+      registrarLog(`[Seletor Modelo] Cor e estilo confirmados!`);
+      UIToast.notificar({
+        tipo: 'sucesso',
+        titulo: 'Estilo Confirmado',
+        mensagem: `Traço: ${estadoCoresModelo.traco} (${estadoCoresModelo.espessuraTraco}px) | Preenchimento: ${estadoCoresModelo.preenchimento}`
+      });
+    });
+
+    seletorModelo.addEventListener('ui-alvo-change', (e: Event) => {
+      const { alvo } = (e as CustomEvent<{ alvo: AlvoCor }>).detail;
+      estadoCoresModelo.alvo = alvo;
+      atualizarPreviewModelo();
+      registrarLog(`[Seletor Modelo] Alvo alternado para: ${alvo}`);
+    });
+  }
+
+  if (controleCores) {
+    controleCores.coresProjeto = ['#00e08a', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#10b981'];
+    controleCores.atalhos = { alternar: 'X', inverter: 'Shift+X', semCor: '/', padrao: 'D' };
+
+    controleCores.addEventListener('ui-cores-change', (e: Event) => {
+      const d = (e as CustomEvent<DetalheControleCores>).detail;
+      if (d.preenchimento) estadoCoresModelo.preenchimento = d.preenchimento;
+      if (d.traco) estadoCoresModelo.traco = d.traco;
+      if (typeof d.opacidade === 'number') estadoCoresModelo.opacidade = d.opacidade;
+      if (typeof d.espessuraTraco === 'number') estadoCoresModelo.espessuraTraco = d.espessuraTraco;
+      if (d.alvo) estadoCoresModelo.alvo = d.alvo;
+      atualizarPreviewModelo();
+      seletorModelo?.configurar({
+        preenchimento: estadoCoresModelo.preenchimento,
+        traco: estadoCoresModelo.traco,
+        opacidade: estadoCoresModelo.opacidade,
+        espessuraTraco: estadoCoresModelo.espessuraTraco,
+        alvo: estadoCoresModelo.alvo
+      });
+      registrarLog(`[Controle Cores] Alteração recebida (${d.origem}): espessura=${d.espessuraTraco}px, confirmado=${d.confirmado}`);
+    });
+  }
+
+  btnToggleAlvoModelo?.addEventListener('click', () => {
+    const novoAlvo = estadoCoresModelo.alvo === 'traco' ? 'preenchimento' : 'traco';
+    seletorModelo?.trocarAlvo(novoAlvo);
+    controleCores?.definirAlvo(novoAlvo);
+  });
+
+  btnOpenFill?.addEventListener('click', () => {
+    controleCores?.abrirSeletor('preenchimento');
+  });
+
+  btnOpenStroke?.addEventListener('click', () => {
+    controleCores?.abrirSeletor('traco');
+  });
+
+  btnInvert?.addEventListener('click', () => {
+    controleCores?.inverter();
+  });
+
+  atualizarPreviewModelo();
 
   registrarLog('Playground autônomo inicializado com Suporte Inteligente (Zero-JS, FormData e UIBus).');
 });
