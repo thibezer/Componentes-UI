@@ -39,6 +39,8 @@ export interface ContextoFormas2D {
   stroke(): void;
   fillRect(x: number, y: number, w: number, h: number): void;
   setLineDash(segmentos: number[]): void;
+  /** Opcional para contextos falsos de teste; o Canvas 2D real sempre tem. */
+  lineDashOffset?: number;
 }
 
 /** Superfície de pintura de uma camada (ou da sobreposição): o contexto e o tamanho do canvas em px CSS. */
@@ -195,6 +197,7 @@ export class PintorCanvas2D implements RenderizadorFormas {
     this.pintarGrupos(ctx, pontos, origem, est, true);
     ctx.globalAlpha = 1;
     ctx.setLineDash([]);
+    ctx.lineDashOffset = 0;
   }
 
   private agrupar(itens: ItemDesenho[]): Map<EstiloVetor, ItemDesenho[]> {
@@ -272,6 +275,9 @@ export class PintorCanvas2D implements RenderizadorFormas {
         ctx.strokeStyle = e.cor;
         ctx.lineWidth = e.peso;
         ctx.setLineDash(parseDash(e.dash));
+        ctx.lineDashOffset = e.deslocamentoDash ?? 0;
+        ctx.lineCap = e.terminacao ?? 'round';
+        ctx.lineJoin = e.juncao ?? 'round';
       }
       est.chamadas += 3;
       for (const it of lista) {
@@ -284,7 +290,7 @@ export class PintorCanvas2D implements RenderizadorFormas {
           est.chamadas++;
         }
         if (tracar) {
-          ctx.globalAlpha = 1;
+          ctx.globalAlpha = e.opacidadeTraco ?? 1;
           ctx.stroke();
           est.tracos++;
           est.chamadas++;
@@ -299,6 +305,8 @@ export class PintorCanvas2D implements RenderizadorFormas {
     ctx.lineWidth = Math.max(it.estilo.peso, 1) + 4;
     ctx.globalAlpha = 0.9;
     ctx.setLineDash([]);
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
     ctx.beginPath();
     this.caminho(ctx, it, o);
     ctx.stroke();

@@ -359,6 +359,18 @@ describe('conta-gotas', () => {
     desenho().clicarEm([-23.6, -46.6]);
     expect(g.obterFeicoes('r')[0].estilo?.corTraco).toBe('#654321');
   });
+
+  it('copia também o tipo de linha, a escala, a opacidade, as pontas, os cantos e o deslocamento', () => {
+    const { g, desenho } = novo();
+    const linhaCad = { tipoLinha: 'centro', escalaTipoLinha: 2, opacidadeTraco: 0.5, terminacaoTraco: 'reta', juncaoTraco: 'angular', deslocamentoTracejado: 3 } as const;
+    g.definirFeicoes('c', [{ ...quad('q'), estilo: linhaCad }]);
+    g.definirCamadaDesenho('r');
+    (g as unknown as { amostrarEstilo: (c: LatLonPar) => void }).amostrarEstilo([-23.505, -46.595]);
+    expect(g.obterEstiloDesenho()).toMatchObject(linhaCad);
+    g.ativarFerramenta('ponto');
+    desenho().clicarEm([-23.6, -46.6]);
+    expect(g.obterFeicoes('r')[0].estilo).toMatchObject(linhaCad);
+  });
 });
 
 describe('utilitários da API', () => {

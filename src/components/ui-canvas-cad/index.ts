@@ -2,6 +2,8 @@ export * from './ui-canvas-cad';
 export * from './cad-painel-camadas';
 export * from './cad-eventos-canvas';
 export * from './cad-tamanho-observer';
+export type { OpcoesLinhaPadrao } from './tipos';
+export { ATRIBUTOS_LINHA_PADRAO } from './cad-linha-padrao';
 export * from '../../gerencigeo-canvas/types';
 export * from '../../gerencigeo-canvas/layer_manager';
 export * from '../../gerencigeo-canvas/layer_renderer_factory';

@@ -1,6 +1,7 @@
 import type { Feicao } from '../feature_types';
 import type { LayerStyleDef } from '../types';
 import { statusDe } from '../feature_versoes';
+import { dashTipoLinha, juncaoCanvas, normalizarTipoLinha, terminacaoCanvas } from './tipos-linha';
 
 /*
  * Estilo visual de uma feição, resolvido em valores simples (sem Leaflet). O renderizador Leaflet monta as opções de
@@ -26,6 +27,14 @@ export interface EstiloVetor {
   peso: number;
   /** `dashArray` do Leaflet/SVG ("6 4"), ou `undefined` para linha contínua. */
   dash: string | undefined;
+  /** Opacidade do traço, de 0 a 1 (ausente = 1). */
+  opacidadeTraco?: number;
+  /** Pontas do traço (ausente = `'round'`). */
+  terminacao?: CanvasLineCap;
+  /** Cantos do traço (ausente = `'round'`). */
+  juncao?: CanvasLineJoin;
+  /** Deslocamento do tracejado em px (ausente = 0). */
+  deslocamentoDash?: number;
   preencher: boolean;
   corPreenchimento: string;
   opacidadePreenchimento: number;
@@ -43,15 +52,39 @@ export function estiloVetorDe(f: Feicao, camada: LayerStyleDef, selecionada = fa
   const pesoContorno = ponto && numeroFinito(e.espessuraContorno) && e.espessuraContorno >= 0 ? e.espessuraContorno : undefined;
   const pesoBase = pesoContorno ?? (numeroFinito(e.espessuraTraco) ? e.espessuraTraco : undefined) ?? (numeroFinito(camada.espessuraLinha) ? camada.espessuraLinha : 2);
   const opacidade = numeroFinito(e.opacidadePreenchimento) ? e.opacidadePreenchimento : area ? 0.2 : 0.85;
+  const peso = selecionada ? pesoBase + 2 : pesoBase;
+  const terminacao = terminacaoCanvas(e.terminacaoTraco) ?? terminacaoCanvas(camada.terminacaoLinha) ?? 'round';
+  const opTraco = numeroFinito(e.opacidadeTraco) ? e.opacidadeTraco : numeroFinito(camada.opacidadeLinha) ? camada.opacidadeLinha : 1;
   return {
     cor: selecionada ? COR_SELECAO : corContorno,
     traco: !(pesoContorno === 0 && !selecionada),
-    peso: selecionada ? pesoBase + 2 : pesoBase,
-    dash: e.dashArray ?? (statusDe(f) === 'previa' ? '6 4' : camada.dashArray),
+    peso,
+    dash: dashDe(f, camada, peso, terminacao),
+    // selecionada fica opaca: a seleção precisa aparecer mesmo numa linha quase transparente
+    opacidadeTraco: selecionada ? 1 : Math.min(1, Math.max(0, opTraco)),
+    terminacao,
+    juncao: juncaoCanvas(e.juncaoTraco) ?? juncaoCanvas(camada.juncaoLinha) ?? 'round',
+    deslocamentoDash: numeroFinito(e.deslocamentoTracejado) ? e.deslocamentoTracejado : 0,
     preencher: area || ponto,
     corPreenchimento: corSegura(e.corPreenchimento, cor),
     opacidadePreenchimento: selecionada ? Math.min(1, opacidade + 0.18) : opacidade
   };
+}
+
+/**
+ * Tracejado, do mais específico ao mais geral: `dashArray` da feição, `tipoLinha` da feição, o tracejado de prévia,
+ * `dashArray` da camada e `tipoLinha` da camada. `'continua'` na feição força a linha cheia (até na prévia).
+ */
+function dashDe(f: Feicao, camada: LayerStyleDef, peso: number, terminacao: CanvasLineCap): string | undefined {
+  const e = f.estilo ?? {};
+  if (e.dashArray) return e.dashArray;
+  if (e.tipoLinha !== undefined && e.tipoLinha !== null) {
+    const d = dashTipoLinha(e.tipoLinha, peso, e.escalaTipoLinha ?? camada.escalaTipoLinha, terminacao);
+    if (d || normalizarTipoLinha(e.tipoLinha) === 'continua') return d;
+  }
+  if (statusDe(f) === 'previa') return '6 4';
+  if (camada.dashArray) return camada.dashArray;
+  return dashTipoLinha(camada.tipoLinha, peso, camada.escalaTipoLinha, terminacao);
 }
 
 /** Raio, em px, do círculo de um ponto sem ícone. */
@@ -65,7 +98,8 @@ export class InternadorEstilos {
   private porChave = new Map<string, EstiloVetor>();
 
   public interno(e: EstiloVetor): EstiloVetor {
-    const k = `${e.cor}|${e.traco ? 1 : 0}|${e.peso}|${e.dash ?? ''}|${e.preencher ? 1 : 0}|${e.corPreenchimento}|${e.opacidadePreenchimento}`;
+    const k = `${e.cor}|${e.traco ? 1 : 0}|${e.peso}|${e.dash ?? ''}|${e.opacidadeTraco ?? 1}|${e.terminacao ?? ''}|${e.juncao ?? ''}|${e.deslocamentoDash ?? 0}|` +
+      `${e.preencher ? 1 : 0}|${e.corPreenchimento}|${e.opacidadePreenchimento}`;
     const atual = this.porChave.get(k);
     if (atual) return atual;
     this.porChave.set(k, e);

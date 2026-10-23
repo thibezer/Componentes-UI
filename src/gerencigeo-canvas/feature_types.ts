@@ -3,6 +3,8 @@
  * Coordenadas internas sempre em [lat, lon], já normalizadas.
  */
 
+import type { JuncaoTraco, TerminacaoTraco, TipoLinha } from './motor/tipos-linha';
+
 export type TipoFeicao = 'Point' | 'LineString' | 'Polygon' | 'Circle' | 'Text';
 
 export type StatusGeometria = 'oficial' | 'previa';
@@ -59,7 +61,23 @@ export interface EstiloFeicao {
   opacidadePreenchimento?: number;
   corTraco?: string;
   espessuraTraco?: number;
+  /** Tracejado explícito ("6 4"), no formato do SVG/Leaflet. Vence `tipoLinha`. */
   dashArray?: string;
+  /**
+   * Tipo de linha estilo CAD (`'tracejada'`, `'traco-ponto'`, `'centro'`...); ver `TIPOS_LINHA`. Os nomes do AutoCAD
+   * (`'Dashed'`, `'Hidden'`, `'Center'`...) também são aceitos. Padrão: contínua.
+   */
+  tipoLinha?: TipoLinha;
+  /** Escala do tipo de linha (o LTSCALE do CAD): multiplica traços e vãos. Padrão 1, limitada a [0,05; 100]. */
+  escalaTipoLinha?: number;
+  /** Deslocamento do início do tracejado, em px (`dashOffset`). */
+  deslocamentoTracejado?: number;
+  /** Opacidade do traço, de 0 a 1 (padrão 1); independente de `opacidadePreenchimento`. */
+  opacidadeTraco?: number;
+  /** Pontas do traço: `'arredondada'` (padrão), `'reta'` ou `'quadrada'`. */
+  terminacaoTraco?: TerminacaoTraco;
+  /** Cantos do traço: `'arredondada'` (padrão), `'chanfrada'` ou `'angular'`. */
+  juncaoTraco?: JuncaoTraco;
   icone?: string;
   tamanhoIcone?: number;
   rotacaoIcone?: number;

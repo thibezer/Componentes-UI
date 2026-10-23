@@ -8,6 +8,18 @@
 - "Sem cor" deixa de ser um botão largo com texto e vira uma amostra quadrada de 30 px (fundo neutro com diagonal vermelha, como o *None* do Illustrator) ao lado do hexadecimal e do seletor do sistema; mantém a classe `.sem-cor`, `data-cor="none"`, `aria-pressed` e o rótulo acessível.
 - Saem as amostras "Cores do projeto" e "Paleta padrão". As opções `coresProjeto` e `paleta` de `abrirSeletorCor()`/`configurar()`, a propriedade `coresProjeto` do `<ui-controle-cores>` e a constante `PALETA_CORES_PADRAO` continuam aceitas, mas ficam obsoletas (`@deprecated`) e são ignoradas pelo seletor.
 
+## 2.11.0 — 2026-10-23
+
+### `<ui-canvas-cad>`: personalização da linha padrão (tipos de linha CAD)
+
+- **Tipos de linha estilo CAD** (`tipoLinha`): `continua`, `tracejada`, `tracejada-curta`, `tracejada-longa`, `pontilhada`, `traco-ponto`, `traco-ponto-ponto`, `oculta`, `centro`, `fantasma` e `divisa`. Os nomes do AutoCAD (`Dashed`, `Hidden`, `Center`, `Phantom`...) também valem, inclusive os do editor de tipo de linha do `<ui-tabela-propriedades>`.
+- **Novas opções de traço** em `EstiloFeicao`: `tipoLinha`, `escalaTipoLinha` (LTSCALE), `deslocamentoTracejado`, `opacidadeTraco`, `terminacaoTraco` (`arredondada`/`reta`/`quadrada`) e `juncaoTraco` (`arredondada`/`chanfrada`/`angular`). Em `LayerStyleDef`, como padrão da camada: `tipoLinha`, `escalaTipoLinha`, `opacidadeLinha`, `terminacaoLinha` e `juncaoLinha`. Valem nos renderizadores `leaflet` e `canvas`.
+- **Linha padrão do componente**: atributos `linha-cor`, `linha-espessura`, `linha-tipo`, `linha-escala`, `linha-tracejado`, `linha-deslocamento`, `linha-opacidade`, `linha-terminacao` e `linha-juncao`, e os métodos `definirLinhaPadrao(opcoes)` / `obterLinhaPadrao()` (tipo `OpcoesLinhaPadrao`). Gravam no estilo de desenho: as feições desenhadas daqui para frente saem com essa linha.
+- O conta-gotas copia também as novas opções.
+- Entrada hostil: valor inválido não é aplicado (a opção volta ao padrão); cor e tracejado são saneados; `null` remove a opção. Feição selecionada sempre tem traço opaco.
+- Utilitários puros em `gerencigeo-canvas`: `TIPOS_LINHA`, `normalizarTipoLinha`, `dashTipoLinha`, `escalaTipoLinhaSegura`, `terminacaoCanvas`, `juncaoCanvas`. `EstiloVetor` ganha os campos opcionais `opacidadeTraco`, `terminacao`, `juncao` e `deslocamentoDash`.
+- Guia: [`docs/linha-padrao-cad.md`](docs/linha-padrao-cad.md).
+
 ## 2.10.1 — 2026-10-23
 
 Junta à 2.10.0 tudo o que ainda estava fora do npm: a revisão da edição de formas da 2.4.0 (PR #7), a espessura do traço no controle e no seletor de cor e o estado misto do `<ui-tabela-propriedades>` (PR #12). Sai como 2.10.1 a pedido, embora traga novidades.
