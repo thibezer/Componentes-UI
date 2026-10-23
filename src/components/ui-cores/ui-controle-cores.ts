@@ -1,8 +1,8 @@
 import estilos from './ui-controle-cores.css?inline';
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 import { ListenerBag } from '../../core/listener-bag';
-import { coresUnicas, normalizarCor, normalizarOpacidade } from './cores-utils';
-import { abrirSeletorCor, type UISeletorCor } from './ui-seletor-cor';
+import { coresUnicas, normalizarCor, normalizarOpacidade, normalizarEspessura } from './cores-utils';
+import { abrirSeletorCor, UISeletorCor } from './ui-seletor-cor';
 import type {
   AlvoCor,
   AtalhosControleCores,
@@ -17,7 +17,7 @@ type Origem = DetalheControleCores['origem'];
 
 /**
  * <ui-controle-cores> — par de cores de desenho no estilo Illustrator: preenchimento na frente,
- * traço atrás, e botões de canto para inverter, "sem cor" e restaurar o padrão.
+ * traço atrás, espessura do traçado e botões de canto para inverter, "sem cor" e restaurar o padrão.
  *
  * - Clique na amostra de trás: ela vira o alvo ativo. Clique no alvo ativo (ou duplo clique,
  *   Enter, Espaço): abre o `<ui-seletor-cor>` ao lado.
@@ -26,16 +26,16 @@ type Origem = DetalheControleCores['origem'];
  * - O kit não registra atalhos de teclado; quem usa chama `alternarAlvo()`, `inverter()`,
  *   `semCor()` e `restaurarPadrao()` e pode exibir as teclas nas dicas via `atalhos`.
  *
- * Atributos: preenchimento, traco, opacidade, alvo (preenchimento|traco), padrao-preenchimento,
+ * Atributos: preenchimento, traco, opacidade, espessura-traco, alvo (preenchimento|traco), padrao-preenchimento,
  *            padrao-traco, titulo-seletor, so-traco, desabilitado
- * Propriedades: preenchimento, traco, opacidade, alvo, coresProjeto, atalhos, seletorAberto
+ * Propriedades: preenchimento, traco, opacidade, espessuraTraco, alvo, coresProjeto, atalhos, seletorAberto
  * Métodos: definirCores(), obterCores(), definirAlvo(), alternarAlvo(), definirMisto(), inverter(),
  *          semCor(), restaurarPadrao(), abrirSeletor(), fecharSeletor()
  * Eventos: ui-cores-change (DetalheControleCores), ui-alvo-change { alvo }
  */
 export class UIControleCores extends SafeHTMLElement {
   static get observedAttributes() {
-    return ['preenchimento', 'traco', 'opacidade', 'alvo', 'padrao-preenchimento', 'padrao-traco', 'desabilitado'];
+    return ['preenchimento', 'traco', 'opacidade', 'espessura-traco', 'alvo', 'padrao-preenchimento', 'padrao-traco', 'desabilitado'];
   }
 
   private raiz: ShadowRoot;
@@ -45,13 +45,14 @@ export class UIControleCores extends SafeHTMLElement {
   private _preenchimento: ValorCor = '#00e08a';
   private _traco: ValorCor = '#ffffff';
   private _opacidade = 0.35;
+  private _espessuraTraco = 2.5;
   private _alvo: AlvoCor = 'preenchimento';
   private _misto = { preenchimento: false, traco: false };
   private _padrao = { preenchimento: '#00e08a' as ValorCor, traco: '#ffffff' as ValorCor };
   private _coresProjeto: string[] = [];
   private _atalhos: AtalhosControleCores = {};
   private seletor: SeletorCorAberto | null = null;
-  private estadoAoAbrir: { preenchimento: ValorCor; traco: ValorCor; opacidade: number } | null = null;
+  private estadoAoAbrir: { preenchimento: ValorCor; traco: ValorCor; opacidade: number; espessuraTraco: number } | null = null;
 
   constructor() {
     super();
@@ -83,6 +84,8 @@ export class UIControleCores extends SafeHTMLElement {
     if (nome === 'preenchimento') this.definirCores({ preenchimento: valor });
     else if (nome === 'traco') this.definirCores({ traco: valor });
     else if (nome === 'opacidade') this.definirCores({ opacidade: Number(valor) });
+    // texto, não Number(): o atributo vazio daria 0 (o mínimo de 0,5 px) em vez do padrão
+    else if (nome === 'espessura-traco') this.definirCores({ espessuraTraco: normalizarEspessura(valor) });
     else if (nome === 'alvo') this.definirAlvo(valor as AlvoCor);
     else if (nome === 'padrao-preenchimento' || nome === 'padrao-traco') {
       const cor = normalizarCor(valor);
@@ -104,6 +107,9 @@ export class UIControleCores extends SafeHTMLElement {
   get opacidade(): number { return this._opacidade; }
   set opacidade(v: number) { this.definirCores({ opacidade: v }); }
 
+  get espessuraTraco(): number { return this._espessuraTraco; }
+  set espessuraTraco(v: number) { this.definirCores({ espessuraTraco: v }); }
+
   get alvo(): AlvoCor { return this._alvo; }
   set alvo(v: AlvoCor) { this.definirAlvo(v); }
 
@@ -124,8 +130,8 @@ export class UIControleCores extends SafeHTMLElement {
 
   /* ---------- Métodos (sem eventos) ---------- */
 
-  /** Define cores e/ou opacidade sem emitir eventos. Valores inválidos são ignorados; uma cor definida deixa de ser "mista". */
-  definirCores(cores: { preenchimento?: ValorCor; traco?: ValorCor; opacidade?: number } = {}) {
+  /** Define cores, opacidade e/ou espessura sem emitir eventos. Valores inválidos são ignorados; uma cor definida deixa de ser "mista". */
+  definirCores(cores: { preenchimento?: ValorCor; traco?: ValorCor; opacidade?: number; espessuraTraco?: number } = {}) {
     const p = normalizarCor(cores.preenchimento);
     const t = normalizarCor(cores.traco);
     if (p) {
@@ -137,11 +143,18 @@ export class UIControleCores extends SafeHTMLElement {
       this._misto.traco = false;
     }
     if (cores.opacidade !== undefined) this._opacidade = normalizarOpacidade(cores.opacidade, this._opacidade);
+    if (cores.espessuraTraco !== undefined) this._espessuraTraco = normalizarEspessura(cores.espessuraTraco, this._espessuraTraco);
     this.atualizar();
   }
 
-  obterCores(): { preenchimento: ValorCor; traco: ValorCor; opacidade: number; alvo: AlvoCor } {
-    return { preenchimento: this._preenchimento, traco: this._traco, opacidade: this._opacidade, alvo: this._alvo };
+  obterCores(): { preenchimento: ValorCor; traco: ValorCor; opacidade: number; espessuraTraco: number; alvo: AlvoCor } {
+    return {
+      preenchimento: this._preenchimento,
+      traco: this._traco,
+      opacidade: this._opacidade,
+      espessuraTraco: this._espessuraTraco,
+      alvo: this._alvo
+    };
   }
 
   /** Marca a amostra como ativa sem emitir eventos. */
@@ -209,6 +222,7 @@ export class UIControleCores extends SafeHTMLElement {
       preenchimento: this._preenchimento,
       traco: this._traco,
       opacidade: this._opacidade,
+      espessuraTraco: this._espessuraTraco,
       misto: this._misto[this._alvo],
       coresProjeto: this._coresProjeto,
       focar,
@@ -252,17 +266,19 @@ export class UIControleCores extends SafeHTMLElement {
   }
 
   private aplicarDoSeletor(d: DetalheSeletorCor, confirmado: boolean) {
-    const diferenca = (base: { preenchimento: ValorCor; traco: ValorCor; opacidade: number }) => {
+    const diferenca = (base: { preenchimento: ValorCor; traco: ValorCor; opacidade: number; espessuraTraco: number }) => {
       const lista: Alterado[] = [];
       if (d.preenchimento !== base.preenchimento) lista.push('preenchimento');
       if (d.traco !== base.traco) lista.push('traco');
       if (d.opacidade !== base.opacidade) lista.push('opacidade');
+      if (d.espessuraTraco !== undefined && Math.abs(d.espessuraTraco - base.espessuraTraco) > 0.05) lista.push('espessuraTraco');
       return lista;
     };
     const desdeUltimo = diferenca(this.obterCores());
     this._preenchimento = d.preenchimento;
     this._traco = d.traco;
     this._opacidade = d.opacidade;
+    if (d.espessuraTraco !== undefined) this._espessuraTraco = d.espessuraTraco;
     if (desdeUltimo.includes('preenchimento')) this._misto.preenchimento = false;
     if (desdeUltimo.includes('traco')) this._misto.traco = false;
     this.atualizar();
@@ -378,13 +394,18 @@ export class UIControleCores extends SafeHTMLElement {
       face.classList.toggle('face--sem-cor', !misto && cor === 'none');
       const prop = alvo === 'traco' ? 'borderColor' : 'backgroundColor';
       face.style[prop] = misto || cor === 'none' ? '' : cor;
+      if (alvo === 'traco' && cor !== 'none' && !misto) {
+        face.style.borderWidth = `${Math.max(2, Math.min(4.5, this._espessuraTraco))}px`;
+      }
       const descricao = `${rotulo}: ${descrever(cor, misto)}${extra}`;
       amostra.title = this.dica(`${descricao} — clique para ativar, clique de novo para editar`, a.alternar);
       amostra.setAttribute('aria-label', descricao);
     };
+
     const opacidade = this._preenchimento === 'none' || this._misto.preenchimento ? '' : `, opacidade ${Math.round(this._opacidade * 100)}%`;
     pintar('preenchimento', this._preenchimento, this._misto.preenchimento, 'Preenchimento', opacidade);
-    pintar('traco', this._traco, this._misto.traco, 'Traço / contorno');
+    const espessura = this._traco === 'none' || this._misto.traco ? '' : `, espessura ${this._espessuraTraco}px`;
+    pintar('traco', this._traco, this._misto.traco, 'Traço / contorno', espessura);
 
     const titulo = (acao: string, texto: string) => {
       const b = r.querySelector<HTMLButtonElement>(`[data-acao="${acao}"]`);

@@ -1,4 +1,4 @@
-/* <ui-seletor-cor>: painel flutuante de cor (preenchimento/traço, opacidade, paletas e "sem cor") */
+/* <ui-seletor-cor>: painel flutuante de cor (preenchimento/traço, espessura, opacidade, paletas e "sem cor") */
 
 :host {
   /* Paleta local derivada dos tokens do kit (tema escuro por padrão, acompanha o claro) */
@@ -17,17 +17,17 @@
   left: 0;
   z-index: var(--ui-seletor-cor-z, 10000);
   display: block;
-  width: 260px;
+  width: 268px;
   max-height: calc(100vh - 20px);
   overflow-y: auto;
   box-sizing: border-box;
-  padding: 12px;
-  background: var(--ui-seletor-cor-fundo, color-mix(in srgb, var(--ui-cor-fundo-menu, #18181c) 95%, transparent));
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  padding: 13px;
+  background: var(--ui-seletor-cor-fundo, color-mix(in srgb, var(--ui-cor-fundo-menu, #16161a) 96%, transparent));
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   border: 1px solid var(--_linha);
   border-radius: 12px;
-  box-shadow: var(--ui-sombra-lg, 0 16px 40px rgba(0, 0, 0, 0.6)), 0 2px 8px rgba(0, 0, 0, 0.25);
+  box-shadow: var(--ui-sombra-lg, 0 20px 48px -4px rgba(0, 0, 0, 0.7)), 0 0 0 1px rgba(255, 255, 255, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   color: var(--_t);
   font-family: var(--ui-fonte-base, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
   font-size: 12px;
@@ -39,7 +39,16 @@
   display: none;
 }
 
-/* O foco inicial vai para o painel quando ele abre pelo teclado; o anel não precisa aparecer no contêiner */
+:host([inline]),
+:host([embutido]) {
+  position: relative;
+  top: auto;
+  left: auto;
+  z-index: auto;
+  animation: none;
+  box-shadow: var(--ui-sombra-md, 0 8px 24px rgba(0, 0, 0, 0.45));
+}
+
 :host(:focus) {
   outline: none;
 }
@@ -65,6 +74,7 @@ button {
   font-family: inherit;
 }
 
+/* Cabeçalho */
 .cabecalho {
   display: flex;
   align-items: center;
@@ -77,13 +87,14 @@ button {
 .titulo {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   font-weight: 600;
   font-size: 12.5px;
   color: var(--_t);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  letter-spacing: 0.15px;
 }
 
 .titulo svg {
@@ -101,9 +112,9 @@ button {
   padding: 0;
   background: transparent;
   border: none;
-  border-radius: 4px;
+  border-radius: 5px;
   color: var(--_t2);
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
   transition: all 0.15s ease;
 }
@@ -116,9 +127,9 @@ button {
 /* Abas Preenchimento x Traço */
 .abas {
   display: flex;
-  gap: 2px;
-  margin-bottom: 10px;
-  padding: 2px;
+  gap: 3px;
+  margin-bottom: 11px;
+  padding: 3px;
   background: var(--_campo);
   border: 1px solid var(--_linha);
   border-radius: 8px;
@@ -130,7 +141,7 @@ button {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 5px 6px;
+  padding: 5px 8px;
   background: transparent;
   border: none;
   border-radius: 6px;
@@ -149,17 +160,18 @@ button {
 .aba[aria-selected='true'] {
   background: var(--_realce-forte);
   color: var(--_t);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
 }
 
 .aba-amostra {
-  width: 11px;
-  height: 11px;
+  width: 12px;
+  height: 12px;
   border: 1px solid var(--_linha);
-  border-radius: 2.5px;
+  border-radius: 3px;
+  flex-shrink: 0;
 }
 
-/* Preenchimento "sem cor": quadradinho com a diagonal vermelha */
+/* Preenchimento "sem cor": quadradinho com a diagonal vermelha sutil */
 .aba-amostra--sem-cor {
   background: linear-gradient(to top right, transparent calc(50% - 1px), var(--_vermelho) calc(50% - 1px), var(--_vermelho) calc(50% + 1px), transparent calc(50% + 1px)), var(--_realce-forte);
 }
@@ -169,16 +181,16 @@ button {
   background: transparent;
 }
 
-/* Antes x depois */
+/* Prévia: Antes x Depois */
 .previa {
   display: flex;
-  height: 34px;
-  margin-bottom: 10px;
+  height: 42px;
+  margin-bottom: 11px;
   overflow: hidden;
   background: var(--_campo);
   border: 1px solid var(--_linha);
-  border-radius: 7px;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.25);
+  border-radius: 8px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .previa-metade {
@@ -187,7 +199,14 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: repeating-conic-gradient(var(--_realce-forte) 0% 25%, transparent 0% 50%) 50% / 10px 10px;
+  background-image: 
+    linear-gradient(45deg, rgba(255, 255, 255, 0.05) 25%, transparent 25%),
+    linear-gradient(-45deg, rgba(255, 255, 255, 0.05) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, rgba(255, 255, 255, 0.05) 75%),
+    linear-gradient(-45deg, transparent 75%, rgba(255, 255, 255, 0.05) 75%);
+  background-size: 10px 10px;
+  background-position: 0 0, 0 5px, 5px -5px, -5px 0;
+  overflow: hidden;
 }
 
 .previa-metade + .previa-metade {
@@ -197,12 +216,14 @@ button {
 .previa-cor {
   position: absolute;
   inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: background-color 0.12s ease;
 }
 
 .previa-cor--sem-cor {
   background: transparent !important;
-  overflow: hidden;
 }
 
 .previa-cor--sem-cor::after {
@@ -210,19 +231,41 @@ button {
   position: absolute;
   inset: 0;
   background: linear-gradient(to top right, transparent calc(50% - 1px), var(--_vermelho) calc(50% - 1px), var(--_vermelho) calc(50% + 1px), transparent calc(50% + 1px));
+  opacity: 0.85;
 }
 
-/* Rótulos sempre legíveis, qualquer que seja a cor de fundo */
-.previa-metade span {
-  position: relative;
-  z-index: 2;
+/* Linha de demonstração de traço na prévia */
+.previa-linha-traco {
+  width: 78%;
+  height: var(--traco-px, 2.5px);
+  min-height: 1px;
+  max-height: 22px;
+  background-color: var(--traco-cor, #ffffff);
+  border-radius: 999px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  transition: height 0.12s ease, background-color 0.12s ease;
+}
+
+.previa-linha-traco--sem-cor {
+  background: repeating-linear-gradient(90deg, var(--_vermelho) 0, var(--_vermelho) 4px, transparent 4px, transparent 8px);
+  height: 2px !important;
+  opacity: 0.9;
+}
+
+/* Rótulos sempre legíveis no rodapé de cada metade */
+.previa-metade span.previa-badge {
+  position: absolute;
+  bottom: 4px;
+  z-index: 3;
   padding: 1px 5px;
-  background: rgba(0, 0, 0, 0.55);
-  border-radius: 3px;
-  font-size: 9.5px;
-  font-weight: 600;
-  letter-spacing: 0.3px;
-  color: #ffffff;
+  background: rgba(0, 0, 0, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  color: rgba(255, 255, 255, 0.9);
+  pointer-events: none;
 }
 
 /* Hexadecimal + seletor do sistema */
@@ -230,7 +273,7 @@ button {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 10px;
+  margin-bottom: 11px;
 }
 
 .hex {
@@ -245,12 +288,13 @@ button {
   left: 9px;
   color: var(--_t2);
   font-weight: 600;
+  font-size: 11px;
   pointer-events: none;
 }
 
 .hex input {
   width: 100%;
-  height: 28px;
+  height: 30px;
   padding: 0 8px 0 21px;
   background: var(--_campo);
   border: 1px solid var(--_linha);
@@ -284,8 +328,8 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   flex-shrink: 0;
   overflow: hidden;
   background: var(--_realce);
@@ -293,13 +337,14 @@ button {
   border-radius: 6px;
   color: var(--_t2);
   cursor: pointer;
-  transition: border-color 0.15s ease, color 0.15s ease;
+  transition: border-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
 }
 
 .nativo:hover,
 .nativo:focus-within {
   border-color: color-mix(in srgb, var(--_t) 45%, transparent);
   color: var(--_t);
+  transform: scale(1.04);
 }
 
 .nativo input {
@@ -311,13 +356,154 @@ button {
   cursor: pointer;
 }
 
-/* Opacidade */
-.opacidade {
-  margin-bottom: 10px;
-  padding: 8px;
+/* Painel de Espessura do Traçado (CAD) */
+.espessura {
+  margin-bottom: 11px;
+  padding: 9px;
   background: var(--_campo);
   border: 1px solid var(--_linha);
   border-radius: 8px;
+  animation: ui-seletor-cor-entrada 0.15s ease;
+}
+
+.espessura[hidden] {
+  display: none;
+}
+
+.espessura-cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 7px;
+  color: var(--_t2);
+  font-size: 11px;
+}
+
+.espessura-titulo {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 500;
+  color: var(--_t);
+}
+
+.espessura-titulo svg {
+  color: var(--_destaque);
+  flex-shrink: 0;
+}
+
+.espessura-valor {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--_destaque);
+}
+
+/* A parte já percorrida da trilha é preenchida via --pct-espessura */
+.espessura input[type='range'],
+.opacidade input[type='range'] {
+  width: 100%;
+  height: 14px;
+  margin: 0;
+  background: transparent;
+  outline: none;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.espessura input[type='range']::-webkit-slider-runnable-track {
+  height: 6px;
+  background: linear-gradient(to right, var(--_destaque) var(--pct-espessura, 0%), var(--_realce-forte) var(--pct-espessura, 0%));
+  border-radius: 3px;
+}
+
+.espessura input[type='range']::-moz-range-track {
+  height: 6px;
+  background: var(--_realce-forte);
+  border-radius: 3px;
+}
+
+.espessura input[type='range']::-moz-range-progress {
+  height: 6px;
+  background: var(--_destaque);
+  border-radius: 3px;
+}
+
+.espessura input[type='range']::-webkit-slider-thumb,
+.opacidade input[type='range']::-webkit-slider-thumb {
+  width: 14px;
+  height: 14px;
+  margin-top: -4px;
+  background: #ffffff;
+  border: 2px solid var(--_destaque);
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: transform 0.1s ease;
+}
+
+.espessura input[type='range']::-webkit-slider-thumb:hover,
+.opacidade input[type='range']::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+
+.espessura input[type='range']::-moz-range-thumb,
+.opacidade input[type='range']::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  background: #ffffff;
+  border: 2px solid var(--_destaque);
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+}
+
+.espessura-atalhos,
+.opacidade-atalhos {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.espessura-atalhos button,
+.opacidade-atalhos button {
+  flex: 1;
+  padding: 3px 0;
+  background: var(--_realce);
+  border: 1px solid var(--_linha);
+  border-radius: 5px;
+  color: var(--_t2);
+  font-size: 10px;
+  font-weight: 500;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.espessura-atalhos button:hover,
+.opacidade-atalhos button:hover {
+  background: var(--_realce-forte);
+  color: var(--_t);
+}
+
+.espessura-atalhos button.ativo,
+.opacidade-atalhos button.ativo {
+  background: var(--_destaque);
+  border-color: var(--_destaque);
+  color: var(--_sobre-destaque);
+  font-weight: 700;
+}
+
+/* Opacidade */
+.opacidade {
+  margin-bottom: 11px;
+  padding: 9px;
+  background: var(--_campo);
+  border: 1px solid var(--_linha);
+  border-radius: 8px;
+  animation: ui-seletor-cor-entrada 0.15s ease;
 }
 
 .opacidade[hidden] {
@@ -339,18 +525,6 @@ button {
   color: var(--_destaque);
 }
 
-/* A parte já percorrida da trilha é preenchida via --pct (definida pelo componente) */
-.opacidade input[type='range'] {
-  width: 100%;
-  height: 14px;
-  margin: 0;
-  background: transparent;
-  outline: none;
-  cursor: pointer;
-  -webkit-appearance: none;
-  appearance: none;
-}
-
 .opacidade input[type='range']::-webkit-slider-runnable-track {
   height: 6px;
   background: linear-gradient(to right, var(--_destaque) var(--pct, 0%), var(--_realce-forte) var(--pct, 0%));
@@ -369,68 +543,14 @@ button {
   border-radius: 3px;
 }
 
-.opacidade input[type='range']::-webkit-slider-thumb {
-  width: 14px;
-  height: 14px;
-  margin-top: -4px;
-  background: #ffffff;
-  border: 2px solid var(--_destaque);
-  border-radius: 50%;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
-  cursor: pointer;
-  -webkit-appearance: none;
-  appearance: none;
-}
-
-.opacidade input[type='range']::-moz-range-thumb {
-  width: 11px;
-  height: 11px;
-  background: #ffffff;
-  border: 2px solid var(--_destaque);
-  border-radius: 50%;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
-  cursor: pointer;
-}
-
-.opacidade-atalhos {
-  display: flex;
-  gap: 4px;
-  margin-top: 7px;
-}
-
-.opacidade-atalhos button {
-  flex: 1;
-  padding: 3px 0;
-  background: var(--_realce);
-  border: 1px solid var(--_linha);
-  border-radius: 4px;
+/* Seções de Amostras de Cores */
+.rotulo-secao {
+  margin: 10px 0 6px;
   color: var(--_t2);
   font-size: 10px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.12s ease;
-}
-
-.opacidade-atalhos button:hover {
-  background: var(--_realce-forte);
-  color: var(--_t);
-}
-
-.opacidade-atalhos button.ativo {
-  background: var(--_destaque);
-  border-color: var(--_destaque);
-  color: var(--_sobre-destaque);
-  font-weight: 700;
-}
-
-/* Amostras */
-.rotulo-secao {
-  margin: 8px 0 5px;
-  color: var(--_t2);
-  font-size: 10.5px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.6px;
 }
 
 .amostras {
@@ -444,36 +564,37 @@ button {
   position: relative;
   aspect-ratio: 1;
   padding: 0;
-  border: 1px solid color-mix(in srgb, var(--_t) 25%, transparent);
+  border: 1px solid color-mix(in srgb, var(--_t) 20%, transparent);
   border-radius: 5px;
   cursor: pointer;
-  transition: transform 0.12s ease, border-color 0.12s ease;
+  transition: transform 0.12s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.12s ease, box-shadow 0.12s ease;
 }
 
 .amostra:hover {
   z-index: 2;
-  border-color: var(--_t);
+  border-color: #ffffff;
   transform: scale(1.15);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
 .amostra.ativo {
   z-index: 1;
   border: 2px solid #ffffff;
-  box-shadow: 0 0 0 2px var(--_destaque), 0 1px 4px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 0 2px var(--_destaque), 0 2px 6px rgba(0, 0, 0, 0.5);
 }
 
-/* Sem cor */
+/* Botão Sem Cor (Elegante e Moderno) */
 .sem-cor {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 7px;
   width: 100%;
-  margin-top: 6px;
-  padding: 6px;
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.35);
-  border-radius: 6px;
+  margin-top: 8px;
+  padding: 7px 10px;
+  background: color-mix(in srgb, var(--_vermelho) 10%, transparent);
+  border: 1px solid rgba(239, 68, 68, 0.32);
+  border-radius: 7px;
   color: var(--ui-cor-texto-erro, #fca5a5);
   font-size: 11.5px;
   font-weight: 600;
@@ -481,29 +602,35 @@ button {
   transition: all 0.15s ease;
 }
 
+.sem-cor svg {
+  flex-shrink: 0;
+}
+
 .sem-cor:hover {
-  background: rgba(239, 68, 68, 0.2);
+  background: color-mix(in srgb, var(--_vermelho) 22%, transparent);
   border-color: var(--_vermelho);
+  color: #ffffff;
 }
 
 .sem-cor.ativo {
   background: var(--_vermelho);
   border-color: var(--_vermelho);
   color: #ffffff;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--_vermelho) 40%, transparent);
 }
 
-/* Rodapé */
+/* Rodapé de Ações */
 .rodape {
   display: flex;
   justify-content: flex-end;
   gap: 6px;
-  margin-top: 10px;
-  padding-top: 8px;
+  margin-top: 11px;
+  padding-top: 9px;
   border-top: 1px solid var(--_linha);
 }
 
 .rodape button {
-  padding: 5px 12px;
+  padding: 6px 14px;
   border: none;
   border-radius: 6px;
   font-size: 11.5px;
@@ -515,10 +642,16 @@ button {
 .botao-concluir {
   background: var(--_destaque);
   color: var(--_sobre-destaque);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .botao-concluir:hover {
   filter: brightness(1.1);
+  transform: translateY(-0.5px);
+}
+
+.botao-concluir:active {
+  transform: translateY(0);
 }
 
 .botao-cancelar {
@@ -538,7 +671,6 @@ input:focus-visible,
   outline-offset: 1px;
 }
 
-/* O campo hexadecimal já tem o próprio destaque de foco */
 .hex input:focus-visible {
   outline: none;
 }
@@ -549,8 +681,11 @@ input:focus-visible,
   }
 
   .amostra,
-  .amostra:hover {
+  .amostra:hover,
+  .espessura,
+  .opacidade {
     transition: none;
     transform: none;
+    animation: none;
   }
 }

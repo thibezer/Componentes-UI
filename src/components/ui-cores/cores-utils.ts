@@ -26,6 +26,14 @@ export function normalizarOpacidade(valor: unknown, padrao = 0.35): number {
   return Math.max(0, Math.min(1, n));
 }
 
+/** Limita a espessura do traço (em px) a [0.5, 50]; valores inválidos viram `padrao` (2.5). */
+export function normalizarEspessura(valor: unknown, padrao = 2.5): number {
+  const n = typeof valor === 'string' ? parseFloat(valor) : Number(valor);
+  if (!Number.isFinite(n)) return padrao;
+  const arredondado = Math.round(n * 10) / 10;
+  return Math.max(0.5, Math.min(50, arredondado));
+}
+
 /** Lista de cores válidas e sem repetição, na ordem recebida. */
 export function coresUnicas(cores: unknown): string[] {
   if (!Array.isArray(cores)) return [];

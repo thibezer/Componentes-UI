@@ -17,6 +17,8 @@ export interface DetalheSeletorCor {
   traco: ValorCor;
   /** Opacidade do preenchimento, de 0 a 1. */
   opacidade: number;
+  /** Espessura do traçado em pixels (para linhas, contornos e formas CAD). */
+  espessuraTraco?: number;
 }
 
 /** Opções de `abrirSeletorCor()`. */
@@ -38,6 +40,10 @@ export interface OpcoesSeletorCor {
   opacidade?: number;
   /** Mostra o controle de opacidade. Padrão: só quando o alvo é o preenchimento. */
   mostrarOpacidade?: boolean;
+  /** Espessura inicial do traçado em pixels (padrão 2.5). */
+  espessuraTraco?: number;
+  /** Mostra o controle de espessura do traçado. Padrão: só quando o alvo é o traço. */
+  mostrarEspessura?: boolean;
   /** A cor inicial representa uma seleção com cores diferentes (mostra "MISTO"). */
   misto?: boolean;
   /** Cores extras oferecidas em "Cores do projeto" (duplicadas e inválidas são ignoradas). */
@@ -69,13 +75,14 @@ export interface DetalheControleCores {
   preenchimento: ValorCor;
   traco: ValorCor;
   opacidade: number;
+  espessuraTraco?: number;
   alvo: AlvoCor;
   /** `false` durante a pré-visualização no seletor; `true` quando a alteração deve ser gravada. */
   confirmado: boolean;
   /** Quais valores mudaram. */
-  alterados: Array<'preenchimento' | 'traco' | 'opacidade'>;
+  alterados: Array<'preenchimento' | 'traco' | 'opacidade' | 'espessuraTraco'>;
   /** O que gerou a mudança. */
-  origem: 'seletor' | 'inverter' | 'sem-cor' | 'padrao';
+  origem: 'seletor' | 'inverter' | 'sem-cor' | 'padrao' | 'espessura';
 }
 
 /** Textos de atalho exibidos nas dicas dos botões (o kit não registra os atalhos; quem usa decide). */
