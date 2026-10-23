@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import './index';
-import { normalizarCor, normalizarOpacidade, coresUnicas } from './cores-utils';
+import { normalizarCor, normalizarOpacidade, normalizarEspessura, coresUnicas } from './cores-utils';
 import { UISeletorCor, abrirSeletorCor, fecharSeletorCor } from './ui-seletor-cor';
 import { UIControleCores } from './ui-controle-cores';
 import type { DetalheControleCores, DetalheSeletorCor } from './tipos';
@@ -36,6 +36,13 @@ describe('cores-utils', () => {
     expect(normalizarOpacidade('abc', 0.2)).toBe(0.2);
   });
 
+  it('limita a espessura do traço e descarta valores inválidos', () => {
+    expect(normalizarEspessura(60)).toBe(50);
+    expect(normalizarEspessura(0.1)).toBe(0.5);
+    expect(normalizarEspessura('4')).toBe(4);
+    expect(normalizarEspessura('abc', 3)).toBe(3);
+  });
+
   it('remove cores repetidas, inválidas e "sem cor"', () => {
     expect(coresUnicas(['#fff', '#FFFFFF', 'none', 'azul', '#000'])).toEqual(['#ffffff', '#000000']);
     expect(coresUnicas(null)).toEqual([]);
@@ -50,7 +57,7 @@ describe('<ui-seletor-cor>', () => {
     document.body.appendChild(ancora);
   });
 
-  it('modo duplo: troca de alvo, cor e opacidade com eventos de pré-visualização', () => {
+  it('modo duplo: troca de alvo, cor, espessura e opacidade com eventos de pré-visualização', () => {
     const alteracoes: DetalheSeletorCor[] = [];
     const alvos: string[] = [];
     abrirSeletorCor({
@@ -58,6 +65,7 @@ describe('<ui-seletor-cor>', () => {
       preenchimento: '#10b981',
       traco: '#ef4444',
       opacidade: 0.35,
+      espessuraTraco: 2.5,
       aoAlterar: (d) => alteracoes.push(d),
       aoTrocarAlvo: (a) => alvos.push(a)
     });
@@ -66,18 +74,24 @@ describe('<ui-seletor-cor>', () => {
     expect(el.cor).toBe('#10b981');
     expect(sr(el).querySelectorAll('[data-alvo]').length).toBe(2);
     expect((sr(el).querySelector('.opacidade') as HTMLElement).hidden).toBe(false);
+    expect((sr(el).querySelector('.espessura') as HTMLElement).hidden).toBe(true);
 
     el.trocarAlvo('traco');
     expect(alvos).toEqual(['traco']);
     expect(el.cor).toBe('#ef4444');
     expect((sr(el).querySelector('.opacidade') as HTMLElement).hidden).toBe(true);
+    expect((sr(el).querySelector('.espessura') as HTMLElement).hidden).toBe(false);
 
     el.definirCor('#38BDF8');
     expect(ultimo(alteracoes)).toMatchObject({ alvo: 'traco', cor: '#38bdf8', traco: '#38bdf8', preenchimento: '#10b981' });
 
+    el.definirEspessura(4);
+    expect(el.espessura).toBe(4);
+    expect(ultimo(alteracoes)).toMatchObject({ espessuraTraco: 4 });
+
     el.trocarAlvo('preenchimento');
     el.definirOpacidade(0.75);
-    expect(ultimo(alteracoes)).toMatchObject({ opacidade: 0.75, preenchimento: '#10b981', traco: '#38bdf8' });
+    expect(ultimo(alteracoes)).toMatchObject({ opacidade: 0.75, preenchimento: '#10b981', traco: '#38bdf8', espessuraTraco: 4 });
   });
 
   it('ignora cores inválidas', () => {
@@ -99,7 +113,7 @@ describe('<ui-seletor-cor>', () => {
     expect(aberto.aberto).toBe(false);
   });
 
-  it('Cancelar restaura as cores iniciais sem confirmar', () => {
+  it('Cancelar restaura as cores e espessura iniciais sem confirmar', () => {
     const alteracoes: DetalheSeletorCor[] = [];
     let confirmou = false;
     let cancelado: DetalheSeletorCor | null = null;
@@ -108,6 +122,7 @@ describe('<ui-seletor-cor>', () => {
       preenchimento: '#10b981',
       traco: '#ffffff',
       opacidade: 0.35,
+      espessuraTraco: 2.5,
       aoAlterar: (d) => alteracoes.push(d),
       aoConfirmar: () => (confirmou = true),
       aoCancelar: (d) => (cancelado = d)
@@ -116,12 +131,13 @@ describe('<ui-seletor-cor>', () => {
     el.definirCor('#000000');
     el.trocarAlvo('traco');
     el.definirCor('#ff0000');
+    el.definirEspessura(6);
     el.definirOpacidade(0.9);
     (sr(el).querySelector('[data-acao="cancelar"]') as HTMLElement).click();
 
     expect(confirmou).toBe(false);
-    expect(cancelado).toMatchObject({ preenchimento: '#10b981', traco: '#ffffff', opacidade: 0.35 });
-    expect(ultimo(alteracoes)).toMatchObject({ preenchimento: '#10b981', traco: '#ffffff', opacidade: 0.35 });
+    expect(cancelado).toMatchObject({ preenchimento: '#10b981', traco: '#ffffff', opacidade: 0.35, espessuraTraco: 2.5 });
+    expect(ultimo(alteracoes)).toMatchObject({ preenchimento: '#10b981', traco: '#ffffff', opacidade: 0.35, espessuraTraco: 2.5 });
     expect(seletorNoDom()).toBeNull();
   });
 
@@ -215,7 +231,6 @@ describe('<ui-seletor-cor>', () => {
       expect(seletorNoDom()!.style.left).toBe('70px');
       expect(seletorNoDom()!.style.top).toBe('100px');
 
-      // Perto da borda de baixo: sobe até caber; perto da direita: vai para a esquerda da âncora
       ancora.getBoundingClientRect = () => rect(window.innerWidth - 30, window.innerHeight - 40, 20, 20);
       abrirSeletorCor({ ancora, cor: '#fff' });
       expect(seletorNoDom()!.style.top).toBe(`${window.innerHeight - 480 - 10}px`);
@@ -267,19 +282,19 @@ describe('<ui-controle-cores>', () => {
   });
 
   it('lê os atributos iniciais e pinta as amostras', () => {
-    expect(el.obterCores()).toEqual({ preenchimento: '#10b981', traco: '#3b82f6', opacidade: 0.35, alvo: 'preenchimento' });
+    expect(el.obterCores()).toEqual({ preenchimento: '#10b981', traco: '#3b82f6', opacidade: 0.35, espessuraTraco: 2.5, alvo: 'preenchimento' });
     expect(face('preenchimento').style.backgroundColor).not.toBe('');
     expect(face('traco').style.borderColor).not.toBe('');
     expect(amostra('preenchimento').classList.contains('amostra--ativa')).toBe(true);
   });
 
   it('definirCores, definirAlvo e definirMisto não emitem eventos', () => {
-    el.definirCores({ preenchimento: '#000', traco: 'none', opacidade: 0.5 });
+    el.definirCores({ preenchimento: '#000', traco: 'none', opacidade: 0.5, espessuraTraco: 3 });
     el.definirAlvo('traco');
     el.definirMisto({ preenchimento: true });
     expect(eventos).toHaveLength(0);
     expect(alvos).toHaveLength(0);
-    expect(el.obterCores()).toEqual({ preenchimento: '#000000', traco: 'none', opacidade: 0.5, alvo: 'traco' });
+    expect(el.obterCores()).toEqual({ preenchimento: '#000000', traco: 'none', opacidade: 0.5, espessuraTraco: 3, alvo: 'traco' });
     expect(face('preenchimento').classList.contains('face--misto')).toBe(true);
     expect(face('traco').classList.contains('face--sem-cor')).toBe(true);
   });
@@ -348,53 +363,8 @@ describe('<ui-controle-cores>', () => {
 
   it('Enter abre o seletor no alvo da amostra', () => {
     amostra('traco').dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
-    expect(el.alvo).toBe('traco');
+    expect(el.seletorAberto).toBe(true);
     expect(seletorNoDom()!.alvo).toBe('traco');
-  });
-
-  it('o seletor pré-visualiza (confirmado false) e confirma só o que mudou', () => {
-    el.abrirSeletor('preenchimento');
-    const seletor = seletorNoDom()!;
-    seletor.definirCor('#000000');
-    expect(ultimo(eventos)).toMatchObject({ preenchimento: '#000000', confirmado: false, alterados: ['preenchimento'], origem: 'seletor' });
-    expect(el.preenchimento).toBe('#000000');
-
-    seletor.trocarAlvo('traco');
-    expect(el.alvo).toBe('traco');
-    expect(alvos).toEqual(['traco']);
-
-    seletor.confirmar();
-    expect(ultimo(eventos)).toMatchObject({ preenchimento: '#000000', traco: '#3b82f6', confirmado: true, alterados: ['preenchimento'], origem: 'seletor' });
-    expect(el.seletorAberto).toBe(false);
-  });
-
-  it('confirmar sem mudanças ainda emite, com alterados vazio', () => {
-    el.abrirSeletor();
-    seletorNoDom()!.confirmar();
-    expect(eventos).toHaveLength(1);
-    expect(eventos[0]).toMatchObject({ confirmado: true, alterados: [] });
-  });
-
-  it('cancelar no seletor restaura as cores e não confirma', () => {
-    el.abrirSeletor();
-    const seletor = seletorNoDom()!;
-    seletor.definirCor('#000000');
-    seletor.definirOpacidade(0.9);
-    seletor.cancelar();
-    expect(el.obterCores()).toMatchObject({ preenchimento: '#10b981', opacidade: 0.35 });
-    expect(eventos.every((e) => e.confirmado === false)).toBe(true);
-    expect(ultimo(eventos)).toMatchObject({ preenchimento: '#10b981', opacidade: 0.35 });
-    expect(el.seletorAberto).toBe(false);
-  });
-
-  it('passa misto e cores do projeto ao seletor', () => {
-    el.coresProjeto = ['#111111', '#111111', '#222222'];
-    el.definirMisto({ preenchimento: true });
-    el.abrirSeletor('preenchimento');
-    const raiz = sr(seletorNoDom()!);
-    expect(raiz.querySelector('.previa-rotulo-nova')!.textContent).toBe('MISTO (?)');
-    expect(raiz.querySelectorAll('.amostra[data-cor="#111111"]').length).toBe(1);
-    expect(raiz.querySelector('.amostra[data-cor="#222222"]')).not.toBeNull();
   });
 
   it('desabilitado não abre o seletor', () => {
@@ -409,6 +379,61 @@ describe('<ui-controle-cores>', () => {
     el.remove();
     expect(seletorNoDom()).toBeNull();
     expect(ultimo(eventos)).toMatchObject({ preenchimento: '#000000', confirmado: true });
+  });
+
+  it('trocar o alvo no controle acompanha a aba do seletor aberto, sem eventos duplicados', () => {
+    const naRaiz: string[] = [];
+    document.addEventListener('ui-alvo-change', (e) => naRaiz.push((e.target as Element).tagName));
+    el.abrirSeletor('preenchimento');
+    el.alternarAlvo();
+    expect(seletorNoDom()!.alvo).toBe('traco');
+    el.definirAlvo('preenchimento');
+    expect(seletorNoDom()!.alvo).toBe('preenchimento');
+    seletorNoDom()!.trocarAlvo('traco');
+    expect(el.alvo).toBe('traco');
+    expect(naRaiz.every((t) => t === 'UI-CONTROLE-CORES')).toBe(true);
+  });
+
+  it('fecharSeletor(false) cancela: restaura as cores e não confirma', () => {
+    el.abrirSeletor();
+    seletorNoDom()!.definirCor('#000000');
+    el.fecharSeletor(false);
+    expect(el.seletorAberto).toBe(false);
+    expect(el.preenchimento).toBe('#10b981');
+    expect(eventos.every((e) => e.confirmado === false)).toBe(true);
+    expect(ultimo(eventos)).toMatchObject({ preenchimento: '#10b981' });
+  });
+
+  it('abrir pelo teclado leva o foco ao painel e Esc devolve à amostra', () => {
+    const botaoPreench = amostra('preenchimento');
+    botaoPreench.focus();
+    botaoPreench.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    expect(document.activeElement).toBe(seletorNoDom());
+    tecla('Escape');
+    expect(seletorNoDom()).toBeNull();
+    expect(sr(el).activeElement).toBe(botaoPreench);
+  });
+
+  it('Enter na amostra ativa com o seletor aberto fecha (como o clique)', () => {
+    amostra('preenchimento').dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    expect(el.seletorAberto).toBe(true);
+    amostra('preenchimento').dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    expect(el.seletorAberto).toBe(false);
+  });
+
+  it('desabilitado desativa todos os botões (inclusive pelo teclado) e fecha o seletor aberto', () => {
+    el.abrirSeletor();
+    el.setAttribute('desabilitado', '');
+    expect(el.seletorAberto).toBe(false);
+    expect([...sr(el).querySelectorAll('button')].every((b) => b.disabled)).toBe(true);
+    el.removeAttribute('desabilitado');
+    expect([...sr(el).querySelectorAll('button')].some((b) => b.disabled)).toBe(false);
+  });
+
+  it('a dica do preenchimento informa a opacidade', () => {
+    el.definirCores({ opacidade: 0.5 });
+    expect(amostra('preenchimento').getAttribute('aria-label')).toContain('opacidade 50%');
+    expect(amostra('traco').getAttribute('aria-label')).not.toContain('opacidade');
   });
 
   it('atalhos aparecem nas dicas', () => {

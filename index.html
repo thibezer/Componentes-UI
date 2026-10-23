@@ -1380,6 +1380,95 @@
       </div>
     </article>
 
+    <!-- Card 17: Controle de Cores, Estilos & Espessura CAD (<ui-controle-cores> e <ui-seletor-cor>) -->
+    <article class="card-componente full-width-card" id="card-modelo-cores">
+      <h2>
+        <span style="display: flex; align-items: center; gap: 8px;">
+          17. 🎨 Controle de Cores, Estilo CAD &amp; Espessura de Traçado (&lt;ui-controle-cores&gt; &amp; &lt;ui-seletor-cor&gt;)
+        </span>
+        <div style="display: flex; gap: 6px;">
+          <ui-badge variante="sucesso">Espessura Dinâmica (0.5 a 50px)</ui-badge>
+          <ui-badge variante="info">Estilo Illustrator / CAD</ui-badge>
+        </div>
+      </h2>
+      <p style="font-size: 13px; color: var(--ui-cor-texto-secundario, #a0a0b0); margin: 0 0 16px 0;">
+        Sistema profissional de cor e espessura para desenho vetorial, CAD e mapas GIS: duplo canal com alternância
+        rápida entre <strong>Preenchimento</strong> e <strong>Traço</strong> (<kbd>X</kbd>), inversão (<kbd>Shift+X</kbd>),
+        cor transparente (<kbd>/</kbd>), cores padrão (<kbd>D</kbd>), ajuste fino de <strong>espessura de traçado</strong>
+        com botões rápidos (1px a 8px) e slider contínuo com prévia em espessura real, além de opacidade dinâmica.
+      </p>
+
+      <div class="interactive-grid-responsive" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 24px; width: 100%;">
+        <!-- Coluna 1: O Seletor de Cores de Modelo (Inline / Vitrine) -->
+        <div class="component-demo" style="width: 100%; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; background: rgba(0,0,0,0.3); border-radius: 12px; padding: 20px; border: 1px solid var(--ui-cor-borda, rgba(255,255,255,0.08));">
+          <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <span style="font-size: 13px; font-weight: 600; color: var(--ui-cor-primaria, #00E08A);">
+              Painel de Modelo (&lt;ui-seletor-cor inline&gt;)
+            </span>
+            <div style="display: flex; gap: 6px;">
+              <ui-botao-primario id="btn-toggle-alvo-modelo" variante="ghost" tamanho="sm">
+                Alternar Alvo (X)
+              </ui-botao-primario>
+            </div>
+          </div>
+          <ui-seletor-cor id="demo-seletor-modelo" inline></ui-seletor-cor>
+        </div>
+
+        <!-- Coluna 2: Controle de Barra, Botões de Atalho, Amostra Interativa e Prévia Gráfica -->
+        <div class="component-demo" style="width: 100%; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px;">
+          <span style="font-size: 13px; font-weight: 600; color: var(--ui-cor-primaria, #00E08A);">
+            Controle Flutuante / Barra (&lt;ui-controle-cores&gt;)
+          </span>
+          <span style="font-size: 12px; color: var(--ui-cor-texto-secundario, #888899);">
+            Clique nas amostras ou use os botões para abrir o popover e interagir:
+          </span>
+
+          <div style="display: flex; align-items: center; gap: 16px; padding: 14px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid var(--ui-cor-borda, rgba(255,255,255,0.08));">
+            <ui-controle-cores id="demo-controle-cores" preenchimento="#00e08a" traco="#3b82f6" opacidade="0.65" espessura-traco="4"></ui-controle-cores>
+            
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <ui-botao-primario id="btn-demo-abrir-seletor-fill" variante="secondary" tamanho="sm">
+                Abrir Preenchimento
+              </ui-botao-primario>
+              <ui-botao-primario id="btn-demo-abrir-seletor-stroke" variante="secondary" tamanho="sm">
+                Abrir Traço &amp; Espessura
+              </ui-botao-primario>
+              <ui-botao-primario id="btn-demo-inverter-cores" variante="ghost" tamanho="sm">
+                Inverter Cores (Shift+X)
+              </ui-botao-primario>
+            </div>
+          </div>
+
+          <!-- Prévia Gráfica Vetorial em Tempo Real -->
+          <span style="font-size: 13px; font-weight: 600; color: var(--ui-cor-texto, #ffffff); margin-top: 6px;">
+            Prévia Vetorial Renderizada em Tempo Real
+          </span>
+          <div style="width: 100%; height: 160px; background: #08080a; border-radius: 8px; border: 1px solid var(--ui-cor-borda, rgba(255,255,255,0.08)); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;">
+            <!-- Grid CAD de fundo -->
+            <div style="position: absolute; inset: 0; background-image: radial-gradient(circle, rgba(255,255,255,0.08) 1px, transparent 1px); background-size: 16px 16px; pointer-events: none;"></div>
+            
+            <svg id="svg-preview-modelo" width="260" height="130" viewBox="0 0 260 130" style="overflow: visible; z-index: 1;">
+              <!-- Polígono com preenchimento, traço e espessura dinâmicos -->
+              <polygon id="svg-preview-polygon" points="35,105 75,25 185,25 225,105 130,80" 
+                fill="#00e08a" fill-opacity="0.65" stroke="#3b82f6" stroke-width="4" stroke-linejoin="round" />
+            </svg>
+          </div>
+
+          <!-- Estado atual em tempo real em formato JSON -->
+          <div style="width: 100%; display: flex; flex-direction: column; gap: 4px;">
+            <span style="font-size: 11px; font-weight: 600; color: var(--ui-cor-texto-secundario, #888899);">Estado Atual (JSON Eventos / Kit):</span>
+            <div style="font-family: 'Fira Code', monospace; font-size: 11px; padding: 10px; background: rgba(0,0,0,0.5); border-radius: 6px; border: 1px solid rgba(255,255,255,0.06); color: #00e08a; white-space: pre;" id="demo-cores-json">{
+  "preenchimento": "#00e08a",
+  "traco": "#3b82f6",
+  "opacidade": 0.65,
+  "espessuraTraco": 4,
+  "alvo": "preenchimento"
+}</div>
+          </div>
+        </div>
+      </div>
+    </article>
+
     <!-- Console de Eventos em Tempo Real -->
     <section class="console-card">
       <h3>Console de Eventos Customizados em Tempo Real</h3>
