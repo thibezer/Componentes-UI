@@ -1,6 +1,30 @@
 # Changelog
 
-## 2.11.0 — 2026-10-23
+## 2.10.1 — 2026-10-23
+
+Junta à 2.10.0 tudo o que ainda estava fora do npm: a revisão da edição de formas da 2.4.0 (PR #7), a espessura do traço no controle e no seletor de cor e o estado misto do `<ui-tabela-propriedades>` (PR #12). Sai como 2.10.1 a pedido, embora traga novidades.
+
+### `<ui-controle-cores>` e `<ui-seletor-cor>`: espessura do traço
+
+- **`<ui-controle-cores>`**: atributo `espessura-traco`, propriedade `espessuraTraco` (0,5 a 50 px, padrão 2,5) e `obterCores()`/`definirCores()` com a espessura. `ui-cores-change` ganha `espessuraTraco`, o alterado `'espessuraTraco'` e a origem `'espessura'`.
+- **`<ui-seletor-cor>`**: controle de espessura do traçado (faixa e atalhos de 1 a 8 px) e prévia antes × depois com a espessura real. Novas opções `espessuraTraco` e `mostrarEspessura` (padrão: só com o alvo Traço). `ui-cor-input`/`ui-cor-confirmar` trazem `espessuraTraco`.
+- Utilitário `normalizarEspessura()`: limita a [0,5; 50] px com uma casa decimal; valor inválido vira 2,5. Um atributo `espessura-traco` vazio volta ao padrão (antes da revisão, viraria o mínimo de 0,5 px).
+- Página de exemplos: card 17, com controle e seletor ligados, prévia SVG e estado em JSON.
+
+### `<ui-tabela-propriedades>`: estado misto ("Varia") para seleção múltipla
+
+
+
+- Com várias formas selecionadas, a propriedade cujo valor difere entre elas exibe **"Varia"**; as iguais exibem o valor comum (como o *\*VARIES\** do AutoCAD).
+
+- Novo valor sentinela `VALOR_MISTO` (`Symbol.for('ui-tabela-propriedades:misto')`) e atalho `misto: true` em `ItemPropriedade`. Funções puras `combinarValores(registros)`, `valorComum(valores)` e `isValorMisto(valor)`: `painel.valores = combinarValores(formas.map(f => f.propriedades))`.
+
+- Novo atributo/propriedade `texto-misto` / `textoMisto` define a palavra exibida (padrão "Varia").
+
+- Todos os editores suportam o estado: texto e número ficam vazios com "Varia" no placeholder; seleção, tipo/espessura de linha e cor CAD mostram uma opção "Varia" não selecionável; booleano fica indeterminado (`aria-checked="mixed"`, o primeiro clique marca todos); cor e somente leitura exibem "Varia". Linha recebe a classe `ui-prop__linha--misto`; cor ajustável por `--ui-prop-misto-cor`.
+
+- Sair do campo sem digitar, apagar o texto, Esc, ↑/↓ e o arrasto do rótulo não alteram um valor misto. Ao editar, `ui-propriedade-alterada` sai com `valorAnterior: VALOR_MISTO`; **Desfazer** volta ao estado misto. Em `ui-aplicar`, as propriedades não editadas continuam com `VALOR_MISTO` — filtre com `isValorMisto()` antes de gravar.
+
 
 ### `<ui-canvas-cad>`: volta a revisão dos modos de edição da 2.4.0
 

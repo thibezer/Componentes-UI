@@ -10,7 +10,7 @@ Nomes novos usam o prefixo `cad-`; os eventos já existentes no componente não 
 | `onFeatureUpdated` | `cad-feicao-atualizada` | `{ camadaId, feicao }` (texto arrastado; fim de cada gesto de edição de vértices; também ao desfazer, refazer e cancelar a edição) | Fase 2/5 / 2.4.0 |
 | `onFeatureAction` | `cad-feicao-acao` | `{ acao: 'inspecionar' \| 'zoom' \| 'vertices' \| 'copiar', feicao }` (com `definirOpcoesPopup({ copiarParaAreaDeTransferencia: false })` o componente não escreve na área de transferência; o evento sai igual) | Fase 3 / 2.1.0 |
 | (clique numa feição) | `cad-feicao-clique` | `{ camadaId, feicao, aditivo }` | Fase 2 |
-| (duplo clique numa feição) | `cad-feicao-duplo-clique` (**cancelável**) | `{ camadaId, feicao, coordenada }` — sem `preventDefault()` o componente abre o popup da feição (a não ser com `popups="desligado"`); com `preventDefault()` o consumidor assume o gesto. Ignorado durante desenho ou edição de vértices | 2.11.0 |
+| (duplo clique numa feição) | `cad-feicao-duplo-clique` (**cancelável**) | `{ camadaId, feicao, coordenada }` — sem `preventDefault()` o componente abre o popup da feição (a não ser com `popups="desligado"`); com `preventDefault()` o consumidor assume o gesto. Ignorado durante desenho ou edição de vértices | 2.10.1 |
 | `onSnappingChange` | `cad-snap` | `{ ativo, ligado, temporario }` (`ativo` = ligado e sem Alt) | Fase 5 |
 | (edição de vértices) | `cad-edicao-iniciada` / `cad-edicao-concluida` | `{ feicao }` | Fase 5 |
 | (edição recusada) | `cad-edicao-recusada` | `{ motivo: 'bloqueada' \| 'tipo-nao-suportado' \| 'poligono-com-furos' \| 'multiparte' \| 'muitos-vertices' \| 'sem-selecao', feicao }` (`sem-selecao`, do botão Editar da barra, vem com `feicao: null`) | Fase 5 / 2.1.0 / 2.4.0 |
