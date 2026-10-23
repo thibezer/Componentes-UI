@@ -65,6 +65,23 @@ export function sincronizarSelect(
   externa.selected = true;
 }
 
+/**
+ * Exibe o estado misto ("Varia") no select: opção oculta e desabilitada, que o usuário não
+ * consegue escolher; qualquer outra opção vira o valor de todos os objetos.
+ */
+export function marcarSelectMisto(select: HTMLSelectElement, texto: string): void {
+  select.querySelector('option[data-externa]')?.remove();
+  const misto = document.createElement('option');
+  misto.value = '';
+  misto.textContent = texto;
+  misto.setAttribute('data-externa', '');
+  misto.setAttribute('data-misto', '');
+  misto.hidden = true;
+  misto.disabled = true;
+  select.insertBefore(misto, select.firstChild);
+  misto.selected = true;
+}
+
 /* ---------- Navegação e categorias ---------- */
 
 export function focarProximoEditor(shadow: ShadowRoot, atual: HTMLElement): void {

@@ -1,5 +1,15 @@
 # Changelog
 
+## Não publicado
+
+### `<ui-tabela-propriedades>`: estado misto ("Varia") para seleção múltipla
+
+- Com várias formas selecionadas, a propriedade cujo valor difere entre elas exibe **"Varia"**; as iguais exibem o valor comum (como o *\*VARIES\** do AutoCAD).
+- Novo valor sentinela `VALOR_MISTO` (`Symbol.for('ui-tabela-propriedades:misto')`) e atalho `misto: true` em `ItemPropriedade`. Funções puras `combinarValores(registros)`, `valorComum(valores)` e `isValorMisto(valor)`: `painel.valores = combinarValores(formas.map(f => f.propriedades))`.
+- Novo atributo/propriedade `texto-misto` / `textoMisto` define a palavra exibida (padrão "Varia").
+- Todos os editores suportam o estado: texto e número ficam vazios com "Varia" no placeholder; seleção, tipo/espessura de linha e cor CAD mostram uma opção "Varia" não selecionável; booleano fica indeterminado (`aria-checked="mixed"`, o primeiro clique marca todos); cor e somente leitura exibem "Varia". Linha recebe a classe `ui-prop__linha--misto`; cor ajustável por `--ui-prop-misto-cor`.
+- Sair do campo sem digitar, apagar o texto, Esc, ↑/↓ e o arrasto do rótulo não alteram um valor misto. Ao editar, `ui-propriedade-alterada` sai com `valorAnterior: VALOR_MISTO`; **Desfazer** volta ao estado misto. Em `ui-aplicar`, as propriedades não editadas continuam com `VALOR_MISTO` — filtre com `isValorMisto()` antes de gravar.
+
 ## 2.7.0 — 2026-10-17
 
 ### `UIBus`: independente do componente de toast

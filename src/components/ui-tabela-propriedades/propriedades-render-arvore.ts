@@ -1,6 +1,6 @@
 import { ItemPropriedade, CategoriaPropriedades } from './tipos';
 import { criarEditorValor, ContextoEditorPropriedade } from './propriedades-editores';
-import { valoresIguais } from './propriedades-gerenciador-valores';
+import { isValorMisto, valorInicialDaPropriedade, valoresIguais } from './propriedades-valor-misto';
 
 export interface ContextoLinhaPropriedade {
   valoresAtuais: Record<string, any>;
@@ -121,12 +121,13 @@ export function criarLinhaPropriedade(
   linha.className = 'ui-prop__linha';
   linha.setAttribute('data-prop-id', prop.id);
 
-  const valorAtual = ctx.valoresAtuais[prop.id] !== undefined ? ctx.valoresAtuais[prop.id] : prop.valor;
-  const valorOriginal = prop.id in ctx.valoresOriginais ? ctx.valoresOriginais[prop.id] : prop.valor;
+  const valorAtual = ctx.valoresAtuais[prop.id] !== undefined ? ctx.valoresAtuais[prop.id] : valorInicialDaPropriedade(prop);
+  const valorOriginal = prop.id in ctx.valoresOriginais ? ctx.valoresOriginais[prop.id] : valorInicialDaPropriedade(prop);
 
   if (!valoresIguais(valorAtual, valorOriginal)) {
     linha.classList.add('ui-prop__linha--modificada');
   }
+  linha.classList.toggle('ui-prop__linha--misto', isValorMisto(valorAtual));
 
   linha.addEventListener('dblclick', () => {
     const editor = linha.querySelector<HTMLElement>(
@@ -187,6 +188,8 @@ function configurarScrubberNumerico(
 
   colRotulo.addEventListener('pointerdown', (e: PointerEvent) => {
     if (e.button !== 0) return;
+    // Sem valor de partida: arrastar a partir de "Varia" igualaria todos a um número arbitrário
+    if (isValorMisto(ctx.editorCtx.obterValorAtual(prop.id))) return;
     startX = e.clientX;
     // Valor vivo (não o retrato da renderização): cada arrasto continua de onde o anterior parou
     const vAtual = ctx.editorCtx.obterValorAtual(prop.id);

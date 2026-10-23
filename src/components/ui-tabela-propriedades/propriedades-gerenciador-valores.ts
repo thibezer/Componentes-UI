@@ -1,5 +1,8 @@
 import { CategoriaPropriedades, UIPropertyChangeDetail } from './tipos';
 import { buscarLinhaPropriedade } from './propriedades-dom-utils';
+import { isValorMisto, valorInicialDaPropriedade, valoresIguais } from './propriedades-valor-misto';
+
+export { valoresIguais };
 
 export interface ContextoGerenciadorValores {
   hostElement: HTMLElement;
@@ -8,12 +11,6 @@ export interface ContextoGerenciadorValores {
   onAtualizarCampoVisual: (propId: string, novoValor: any) => void;
   onRenderCategorias: () => void;
   isModoManual: () => boolean;
-}
-
-/** Igualdade de valores de propriedade: estrita, com null/undefined equivalentes e NaN igual a NaN. */
-export function valoresIguais(a: any, b: any): boolean {
-  if (a == null && b == null) return true;
-  return Object.is(a, b);
 }
 
 export class GerenciadorValoresPropriedades {
@@ -33,8 +30,9 @@ export class GerenciadorValoresPropriedades {
           console.warn(`[ui-tabela-propriedades] id de propriedade repetido: "${prop.id}". Os valores são indexados por id e serão compartilhados.`);
         }
         vistos.add(prop.id);
-        this.valoresOriginais[prop.id] = prop.valor;
-        this.valoresAtuais[prop.id] = prop.valor;
+        const valor = valorInicialDaPropriedade(prop);
+        this.valoresOriginais[prop.id] = valor;
+        this.valoresAtuais[prop.id] = valor;
       });
     });
 
@@ -128,10 +126,11 @@ export class GerenciadorValoresPropriedades {
     );
   }
 
-  /** Marca/desmarca a linha e recalcula os botões do rodapé (voltar ao original limpa o estado). */
+  /** Marca/desmarca a linha (modificada e mista) e recalcula os botões do rodapé (voltar ao original limpa o estado). */
   private aposAlterar(propId: string): void {
     const linha = buscarLinhaPropriedade(this.ctx.hostElement.shadowRoot, propId);
     linha?.classList.toggle('ui-prop__linha--modificada', this.isModificada(propId));
+    linha?.classList.toggle('ui-prop__linha--misto', isValorMisto(this.valoresAtuais[propId]));
     this.ctx.onAtualizarBotoesFooter(this.isDirty);
   }
 
