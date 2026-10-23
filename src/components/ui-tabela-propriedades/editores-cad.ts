@@ -1,6 +1,7 @@
 import { ItemPropriedade, OpcaoPropriedade } from './tipos';
 import { ContextoEditorPropriedade } from './tipos';
-import { registrarAtualizadorEditor, sincronizarSelect } from './propriedades-dom-utils';
+import { marcarSelectMisto, registrarAtualizadorEditor, sincronizarSelect } from './propriedades-dom-utils';
+import { isValorMisto, textoMistoDe } from './propriedades-valor-misto';
 
 const mesmoTextoSemCaixa = (opcao: string, valor: any) => opcao.toLowerCase() === String(valor ?? '').toLowerCase();
 
@@ -65,6 +66,13 @@ export function criarEditorLinetype(
   ]);
 
   const atualizar = (valor: any) => {
+    const misto = isValorMisto(valor);
+    container.classList.toggle('ui-prop__editor--misto', misto);
+    if (misto) {
+      aplicarEstiloLinha('');
+      marcarSelectMisto(select, textoMistoDe(ctx));
+      return;
+    }
     aplicarEstiloLinha(valor);
     sincronizarSelect(select, valor, mesmoTextoSemCaixa);
   };
@@ -72,9 +80,8 @@ export function criarEditorLinetype(
   registrarAtualizadorEditor(container, atualizar);
 
   select.addEventListener('change', () => {
-    aplicarEstiloLinha(select.value);
     ctx.registrarAlteracao(categoriaId, prop.id, select.value);
-    sincronizarSelect(select, select.value, mesmoTextoSemCaixa);
+    atualizar(select.value);
   });
 
   select.addEventListener('keydown', (e) => {
@@ -145,16 +152,18 @@ export function criarEditorLineweight(
   ]);
 
   const atualizar = (valor: any) => {
-    lineSvg.setAttribute('stroke-width', String(calcularStroke(valor)));
-    sincronizarSelect(select, valor, mesmoTextoSemCaixa);
+    const misto = isValorMisto(valor);
+    container.classList.toggle('ui-prop__editor--misto', misto);
+    lineSvg.setAttribute('stroke-width', String(calcularStroke(misto ? '' : valor)));
+    if (misto) marcarSelectMisto(select, textoMistoDe(ctx));
+    else sincronizarSelect(select, valor, mesmoTextoSemCaixa);
   };
   atualizar(valorAtual);
   registrarAtualizadorEditor(container, atualizar);
 
   select.addEventListener('change', () => {
-    lineSvg.setAttribute('stroke-width', String(calcularStroke(select.value)));
     ctx.registrarAlteracao(categoriaId, prop.id, select.value);
-    sincronizarSelect(select, select.value, mesmoTextoSemCaixa);
+    atualizar(select.value);
   });
 
   select.addEventListener('keydown', (e) => {
@@ -239,6 +248,15 @@ export function criarEditorCorCad(
   picker.tabIndex = -1;
 
   const atualizar = (valor: any) => {
+    const misto = isValorMisto(valor);
+    container.classList.toggle('ui-prop__editor--misto', misto);
+    amostra.classList.toggle('ui-prop__cor-amostra--misto', misto);
+    if (misto) {
+      amostra.style.backgroundColor = '';
+      picker.value = '#ffffff';
+      marcarSelectMisto(select, textoMistoDe(ctx));
+      return;
+    }
     const hex = hexDaCorCad(valor);
     amostra.style.backgroundColor = hex;
     picker.value = hexLongo(hex);
@@ -311,6 +329,17 @@ export function criarEditorCorSwatch(
   picker.tabIndex = -1;
 
   const atualizar = (valor: any) => {
+    const misto = isValorMisto(valor);
+    container.classList.toggle('ui-prop__editor--misto', misto);
+    amostra.classList.toggle('ui-prop__cor-amostra--misto', misto);
+    if (misto) {
+      const rotuloMisto = textoMistoDe(ctx);
+      amostra.style.backgroundColor = '';
+      texto.textContent = rotuloMisto;
+      picker.value = '#ffffff';
+      container.setAttribute('aria-label', `${prop.rotulo}: ${rotuloMisto}`);
+      return;
+    }
     const hex = typeof valor === 'string' && HEX_VALIDO.test(valor) ? hexLongo(valor) : null;
     amostra.style.backgroundColor = valor || '#ffffff';
     texto.textContent = prop.textoAmostra || String(valor || 'ByLayer');
