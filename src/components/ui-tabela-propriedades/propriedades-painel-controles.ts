@@ -11,6 +11,7 @@ export interface ContextoPainelControles {
   onAlternarDensidade?: () => void;
   onAlternarFlutuante?: () => void;
   onAlternarColapsoHorizontal?: () => void;
+  onFocarPrimeiroEditor?: () => void;
 }
 
 export function conectarPainelControles(ctx: ContextoPainelControles): void {
@@ -24,7 +25,8 @@ export function conectarPainelControles(ctx: ContextoPainelControles): void {
     onDesfazer,
     onAlternarDensidade,
     onAlternarFlutuante,
-    onAlternarColapsoHorizontal
+    onAlternarColapsoHorizontal,
+    onFocarPrimeiroEditor
   } = ctx;
 
   const btnFlutuante = shadow.getElementById('btn-flutuante');
@@ -68,10 +70,47 @@ export function conectarPainelControles(ctx: ContextoPainelControles): void {
   }
 
   const filtroInput = shadow.getElementById('filtro-input') as HTMLInputElement | null;
+  const btnLimparFiltro = shadow.getElementById('btn-limpar-filtro') as HTMLButtonElement | null;
+
+  const atualizarBotaoLimpar = () => {
+    if (btnLimparFiltro && filtroInput) {
+      btnLimparFiltro.style.display = filtroInput.value ? 'inline-flex' : 'none';
+    }
+  };
+
   if (filtroInput) {
     listeners.add(filtroInput, 'input', () => {
+      atualizarBotaoLimpar();
       const termo = (filtroInput.value || '').trim().toLowerCase();
       onFiltrar(termo);
+    });
+
+    listeners.add(filtroInput, 'keydown', (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (filtroInput.value) {
+          e.preventDefault();
+          e.stopPropagation();
+          filtroInput.value = '';
+          atualizarBotaoLimpar();
+          onFiltrar('');
+        } else {
+          filtroInput.blur();
+        }
+      } else if (e.key === 'Enter' || e.key === 'ArrowDown') {
+        if (onFocarPrimeiroEditor) {
+          e.preventDefault();
+          onFocarPrimeiroEditor();
+        }
+      }
+    });
+  }
+
+  if (btnLimparFiltro && filtroInput) {
+    listeners.add(btnLimparFiltro, 'click', () => {
+      filtroInput.value = '';
+      atualizarBotaoLimpar();
+      onFiltrar('');
+      filtroInput.focus();
     });
   }
 
@@ -92,6 +131,17 @@ export function conectarPainelControles(ctx: ContextoPainelControles): void {
       host.dispatchEvent(new CustomEvent('ui-ajuda', { bubbles: true, composed: true }));
     });
   }
+
+  // Atalho global do painel: Ctrl+Enter / Cmd+Enter aplica no modo manual
+  listeners.add(shadow, 'keydown', (e: Event) => {
+    const ke = e as KeyboardEvent;
+    if ((ke.ctrlKey || ke.metaKey) && ke.key === 'Enter') {
+      if (host.getAttribute('modo-aplicar') === 'manual') {
+        ke.preventDefault();
+        onAplicar();
+      }
+    }
+  });
 }
 
 export function sincronizarPainelControles(shadow: ShadowRoot, host: HTMLElement): void {
@@ -109,6 +159,7 @@ export function sincronizarPainelControles(shadow: ShadowRoot, host: HTMLElement
   if (btnFlutuante) {
     const isFlutuante = host.hasAttribute('flutuante');
     btnFlutuante.title = isFlutuante ? 'Acoplar painel (Dock)' : 'Desacoplar / Modo flutuante (CAD)';
+    btnFlutuante.setAttribute('aria-pressed', String(isFlutuante));
     btnFlutuante.classList.toggle('ui-prop__btn-icone--ativo', isFlutuante);
   }
 
@@ -116,6 +167,7 @@ export function sincronizarPainelControles(shadow: ShadowRoot, host: HTMLElement
   if (btnColapsarHorizontal) {
     const isColapsado = host.hasAttribute('colapsado');
     btnColapsarHorizontal.title = isColapsado ? 'Expandir painel' : 'Recolher para coluna estreita';
+    btnColapsarHorizontal.setAttribute('aria-pressed', String(isColapsado));
     btnColapsarHorizontal.classList.toggle('ui-prop__btn-icone--ativo', isColapsado);
   }
 
@@ -128,6 +180,12 @@ export function sincronizarPainelControles(shadow: ShadowRoot, host: HTMLElement
   const filtroCont = shadow.getElementById('filtro-container');
   if (filtroCont) {
     filtroCont.style.display = host.hasAttribute('filtro') ? 'flex' : 'none';
+  }
+
+  const filtroInput = shadow.getElementById('filtro-input') as HTMLInputElement | null;
+  const btnLimparFiltro = shadow.getElementById('btn-limpar-filtro');
+  if (btnLimparFiltro && filtroInput) {
+    btnLimparFiltro.style.display = filtroInput.value ? 'inline-flex' : 'none';
   }
 
   const footer = shadow.getElementById('footer');

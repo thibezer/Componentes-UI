@@ -7,8 +7,13 @@ import { CamadaItem, FeicaoItem } from './tipos';
 import { ICONES } from './camadas-icones';
 import { escapeHtml, sanitizarCorCss, corParaHex } from './camadas-utils';
 import { renderizarThumbGeometria } from './camadas-thumb';
-import { construirHierarquiaCamadas, type CamadaNodoHierarquico } from './camadas-hierarquia';
+import {
+  construirHierarquiaCamadas,
+  obterFeicoesDoEscopoCamada,
+  type CamadaNodoHierarquico
+} from './camadas-hierarquia';
 import { filtrarCamadasPorBusca, LIMITE_FEICOES_POR_CAMADA } from './camadas-selecao';
+import { ehDescendente } from './camadas-drop-ops';
 
 export interface ParametrosRenderArvore {
   camadas: CamadaItem[];
@@ -20,6 +25,9 @@ export interface ParametrosRenderArvore {
   editingLayerId: string | null;
   editingFeatureId: string | null;
   searchQuery: string;
+  titulo?: string;
+  mostrarBusca?: boolean;
+  limitesPorCamada?: ReadonlyMap<string, number>;
   limiteFeicoesPorCamada?: number;
   mostrarBotaoColapsar?: boolean;
 }
@@ -38,6 +46,9 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
     editingLayerId,
     editingFeatureId,
     searchQuery,
+    titulo = 'CAMADAS',
+    mostrarBusca = true,
+    limitesPorCamada,
     limiteFeicoesPorCamada = LIMITE_FEICOES_POR_CAMADA,
     mostrarBotaoColapsar = false
   } = params;
@@ -50,6 +61,7 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
   const featsByLayer = new Map<string, FeicaoItem[]>();
   for (let i = 0; i < feicoes.length; i++) {
     const f = feicoes[i];
+    if (!f || !f.id) continue;
     const lid = f.layerId || '';
     if (!featsByLayer.has(lid)) featsByLayer.set(lid, []);
     featsByLayer.get(lid)!.push(f);
@@ -58,10 +70,26 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
   const allVisible = camadas.every((l) => l.visible !== false);
   const allExpanded = camadas.length > 0 && camadas.every((l) => expandedLayers.has(l.id));
 
+  const buscaHtml = mostrarBusca
+    ? `
+    <div class="ui-tree-search-wrapper" part="busca">
+      <span class="ui-tree-search-icon">${ICONES.busca}</span>
+      <input type="text" class="ui-tree-search-input" id="input-layer-search" aria-label="Buscar camada ou feição" placeholder="Buscar camada ou feição..." value="${escapeHtml(
+        searchQuery
+      )}" />
+      ${
+        searchQuery
+          ? `<button class="ui-tree-search-clear" id="btn-clear-layer-search" title="Limpar busca" aria-label="Limpar busca">${ICONES.fechar}</button>`
+          : ''
+      }
+    </div>
+  `
+    : '';
+
   const toolbarHtml = `
-    <div class="ui-tree-toolbar">
+    <div class="ui-tree-toolbar" part="toolbar">
       <div class="ui-tree-title-group">
-        <span class="ui-tree-section-title">CAMADAS</span>
+        <span class="ui-tree-section-title">${escapeHtml(titulo || 'CAMADAS')}</span>
         <span class="ui-tree-count-badge">${camadas.length}</span>
       </div>
       <div class="ui-tree-actions">
@@ -90,18 +118,7 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
         }
       </div>
     </div>
-
-    <div class="ui-tree-search-wrapper">
-      <span class="ui-tree-search-icon">${ICONES.busca}</span>
-      <input type="text" class="ui-tree-search-input" id="input-layer-search" aria-label="Buscar camada ou feição" placeholder="Buscar camada ou feição..." value="${escapeHtml(
-        searchQuery
-      )}" />
-      ${
-        searchQuery
-          ? `<button class="ui-tree-search-clear" id="btn-clear-layer-search" title="Limpar busca" aria-label="Limpar busca">${ICONES.fechar}</button>`
-          : ''
-      }
-    </div>
+    ${buscaHtml}
   `;
 
   // Função recursiva para renderizar um nó e todas as suas subcamadas
@@ -125,14 +142,17 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
     const isActiveLayer = camadaAtivaId === layer.id;
 
     const layerFeats = busca ? busca.feicoesPorCamada.get(layer.id) || [] : featsByLayer.get(layer.id) || [];
+    const escopoFeats = busca ? layerFeats : obterFeicoesDoEscopoCamada(camadas, feicoes, layer.id);
 
     const allFeatsSelected =
-      layerFeats.length > 0 && layerFeats.every((f) => selectedFeatureIds.has(f.id));
+      escopoFeats.length > 0 && escopoFeats.every((f) => selectedFeatureIds.has(f.id));
     const someFeatsSelected =
-      !allFeatsSelected && layerFeats.some((f) => selectedFeatureIds.has(f.id));
+      !allFeatsSelected && escopoFeats.some((f) => selectedFeatureIds.has(f.id));
 
-    const visibleFeats = layerFeats.slice(0, limiteFeicoesPorCamada);
-    const hasTruncated = layerFeats.length > limiteFeicoesPorCamada;
+    const maxFeats = limitesPorCamada?.get(layer.id) ?? limiteFeicoesPorCamada;
+    const visibleFeats = layerFeats.slice(0, maxFeats);
+    const hasTruncated = layerFeats.length > maxFeats;
+    const restantes = layerFeats.length - maxFeats;
 
     const feicoesHtml = visibleFeats
       .map((feat) => {
@@ -158,7 +178,9 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
         return `
           <div class="ui-feat-row ${isFeatSelected ? 'selected-row' : ''} ${
           !isFeatVisible ? 'hidden-row' : ''
-        }" data-feat-row="${featId}" data-feat-select="${featId}" data-feat-layer="${safeId}" role="treeitem" aria-selected="${isFeatSelected}" tabindex="-1" draggable="true" style="--layer-depth: ${depth + 1};" title="Clique para selecionar | Arraste para reordenar">
+        }" data-feat-row="${featId}" data-feat-select="${featId}" data-feat-layer="${safeId}" role="treeitem" aria-selected="${isFeatSelected}" tabindex="-1" draggable="true" part="${
+          isFeatSelected ? 'feicao feicao-selecionada' : 'feicao'
+        }" style="--layer-depth: ${depth + 1};" title="Clique para selecionar | Arraste para reordenar">
             <div class="ui-col ui-col-eye" data-feat-eye="${featId}" role="button" tabindex="0" aria-label="${
           isFeatVisible ? 'Ocultar Feição' : 'Exibir Feição'
         }" title="${
@@ -200,15 +222,18 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
       .join('');
 
     const truncateNotice = hasTruncated
-      ? `<div style="padding: 4px 10px; font-size: 10px; color: var(--ui-cor-texto-secundario, #888899); font-style: italic; background: rgba(0,0,0,0.2);">Exibindo ${limiteFeicoesPorCamada} de ${layerFeats.length} feições. Use a busca acima para filtrar.</div>`
+      ? `<div class="ui-truncate-notice" style="display: flex; align-items: center; justify-content: space-between; padding: 4px 10px; font-size: 10px; color: var(--ui-cor-texto-secundario, #888899); font-style: italic; background: var(--ui-cor-fundo-recuado, rgba(0,0,0,0.15));">
+          <span>Exibindo ${maxFeats} de ${layerFeats.length} feições. Use a busca acima para filtrar.</span>
+          <button type="button" class="ui-truncate-more-btn" data-layer-show-more="${safeId}" style="background: transparent; border: 1px solid var(--ui-cor-borda, rgba(255,255,255,0.15)); color: var(--ui-cor-primaria, #00E08A); border-radius: 3px; font-size: 9.5px; font-style: normal; padding: 1px 6px; cursor: pointer; white-space: nowrap;">Mostrar mais (+${Math.min(80, restantes)})</button>
+        </div>`
       : '';
 
     const currentOpacity = layer.opacity !== undefined ? layer.opacity : 1;
     const currentOpacityPct = Math.round(currentOpacity * 100);
 
-    // Opções de outras camadas para selecionar grupo pai no drawer
+    // Opções de outras camadas para selecionar grupo pai no drawer (exclui a si mesma e seus descendentes)
     const opcoesOutrosPais = camadas
-      .filter((l) => l.id !== layer.id)
+      .filter((l) => l.id !== layer.id && !ehDescendente(camadas, l.id, layer.id))
       .map(
         (l) =>
           `<option value="${escapeHtml(l.id)}" ${layer.parentId === l.id ? 'selected' : ''}>${
@@ -219,11 +244,12 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
 
     const settingsDrawerHtml = isSettingsOpen
       ? `
-      <div class="ui-layer-settings-drawer" id="settings-drawer-${safeId}" style="--drawer-cor-camada: ${safeColor};">
+      <div class="ui-layer-settings-drawer" id="settings-drawer-${safeId}" part="drawer" style="--drawer-cor-camada: ${safeColor};">
         <div class="ui-drawer-header">
           <div class="ui-drawer-header-left">
             <span class="ui-drawer-icon">${ICONES.engrenagem}</span>
             <span class="ui-drawer-title">Configurações da Camada</span>
+            <span class="ui-drawer-layer-chip" title="${safeName}">${safeName}</span>
           </div>
           <button type="button" class="ui-drawer-btn-fechar" data-layer-settings-close="${safeId}" title="Fechar configurações (Esc)" aria-label="Fechar configurações">
             ${ICONES.fechar}
@@ -292,10 +318,12 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
     const subcamadasHtml = subcamadasExibidas.map((sub) => renderizarNodo(sub)).join('');
 
     return `
-      <div class="ui-layer-group ${depth > 0 ? 'is-sublayer-group' : ''}" data-layer-id="${safeId}" data-layer-depth="${depth}" role="treeitem" aria-expanded="${isExpanded}" style="--layer-active-color: ${safeColor};">
+      <div class="ui-layer-group ${depth > 0 ? 'is-sublayer-group' : ''}" data-layer-id="${safeId}" data-layer-depth="${depth}" role="treeitem" aria-expanded="${isExpanded}" part="grupo" style="--layer-active-color: ${safeColor};">
         <div class="ui-layer-row ${!isVisible ? 'hidden-layer' : ''} ${
       isActiveLayer ? 'active-drawing-layer' : ''
-    } ${depth > 0 ? 'is-sublayer' : ''} ${isGroup ? 'is-group-row' : ''}" data-layer-row="${safeId}" data-layer-id="${safeId}" tabindex="-1" draggable="true" ${isActiveLayer ? 'aria-current="true"' : ''} style="--layer-depth: ${depth};">
+    } ${depth > 0 ? 'is-sublayer' : ''} ${isGroup ? 'is-group-row' : ''}" data-layer-row="${safeId}" data-layer-id="${safeId}" tabindex="-1" draggable="true" part="${
+      isActiveLayer ? 'camada camada-ativa' : 'camada'
+    }" ${isActiveLayer ? 'aria-current="true"' : ''} style="--layer-depth: ${depth};">
           <div class="ui-col ui-col-drag" title="Arrastar para reordenar Z-Index">${ICONES.dragHandle}</div>
 
           <div class="ui-col ui-col-eye" data-layer-eye="${safeId}" role="button" tabindex="0" aria-label="${
@@ -367,7 +395,7 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
   return `
     ${toolbarHtml}
     <div class="ui-panel-box">
-      <div class="ui-layer-tree" id="ui-layer-tree-mount" role="tree" aria-label="Camadas e feições" aria-multiselectable="true">
+      <div class="ui-layer-tree" id="ui-layer-tree-mount" role="tree" aria-label="Camadas e feições" aria-multiselectable="true" part="arvore">
         ${camadasHtml}
       </div>
     </div>

@@ -1,12 +1,13 @@
 import { CategoriaPropriedades } from './tipos';
+import { alternarPart } from '../../core/parts';
 
-/** Editores focáveis pela navegação Enter → próximo campo (inclui booleano e amostra de cor). */
+/** Editores focáveis pela navegação Enter → próximo campo (apenas em categorias abertas). */
 const SELETOR_EDITORES =
-  '.ui-prop__linha input:not([disabled]):not([type="color"]):not(.ui-prop__cor-picker-oculto), ' +
-  '.ui-prop__linha select:not([disabled]), ' +
-  '.ui-prop__linha .ui-prop__btn-acao-inline:not([disabled]), ' +
-  '.ui-prop__linha .ui-prop__editor-booleano, ' +
-  '.ui-prop__linha .ui-prop__editor-cor-container';
+  '.ui-prop__categoria--aberta .ui-prop__linha input:not([disabled]):not([type="color"]):not(.ui-prop__cor-picker-oculto), ' +
+  '.ui-prop__categoria--aberta .ui-prop__linha select:not([disabled]), ' +
+  '.ui-prop__categoria--aberta .ui-prop__linha .ui-prop__btn-acao-inline:not([disabled]), ' +
+  '.ui-prop__categoria--aberta .ui-prop__linha .ui-prop__editor-booleano, ' +
+  '.ui-prop__categoria--aberta .ui-prop__linha .ui-prop__editor-cor-container';
 
 /**
  * Linha de uma propriedade. Compara o atributo em vez de montar um seletor CSS com o id:
@@ -96,18 +97,49 @@ export function focarProximoEditor(shadow: ShadowRoot, atual: HTMLElement): void
   }
 }
 
+export function focarEditorAnterior(shadow: ShadowRoot, atual: HTMLElement): void {
+  const editores = Array.from(shadow.querySelectorAll<HTMLElement>(SELETOR_EDITORES));
+  const idx = editores.indexOf(atual);
+  if (idx > 0) {
+    const ant = editores[idx - 1];
+    ant.focus();
+    if (ant instanceof HTMLInputElement) {
+      ant.select();
+    }
+  }
+}
+
+export function focarPrimeiroEditor(shadow: ShadowRoot): void {
+  const primeiro = shadow.querySelector<HTMLElement>(SELETOR_EDITORES);
+  if (primeiro) {
+    primeiro.focus();
+    if (primeiro instanceof HTMLInputElement) {
+      primeiro.select();
+    }
+  }
+}
+
 function marcarCategoria(el: Element, aberta: boolean): void {
   el.classList.toggle('ui-prop__categoria--aberta', aberta);
+  alternarPart(el, 'categoria-aberta', aberta);
   el.querySelector('.ui-prop__categoria-header')?.setAttribute('aria-expanded', String(aberta));
 }
 
 export function expandirTodasCategorias(shadow: ShadowRoot, categorias: CategoriaPropriedades[]): void {
-  categorias.forEach(cat => cat.aberto = true);
+  categorias.forEach(cat => {
+    if (!cat || typeof cat !== 'object') return;
+    cat.aberto = true;
+    if ('aberta' in cat) cat.aberta = true;
+  });
   shadow.querySelectorAll('.ui-prop__categoria').forEach(el => marcarCategoria(el, true));
 }
 
 export function colapsarTodasCategorias(shadow: ShadowRoot, categorias: CategoriaPropriedades[]): void {
-  categorias.forEach(cat => cat.aberto = false);
+  categorias.forEach(cat => {
+    if (!cat || typeof cat !== 'object') return;
+    cat.aberto = false;
+    if ('aberta' in cat) cat.aberta = false;
+  });
   shadow.querySelectorAll('.ui-prop__categoria').forEach(el => marcarCategoria(el, false));
 }
 
@@ -117,17 +149,22 @@ export function alternarCategoria(
   categorias: CategoriaPropriedades[],
   idCategoria: string
 ): void {
-  const cat = categorias.find(c => c.id === idCategoria);
+  const cat = categorias.find(c => c && String(c.id) === String(idCategoria));
   if (cat) {
-    cat.aberto = cat.aberto === false ? true : false;
     const el = Array.from(shadow.querySelectorAll('[data-cat-id]'))
-      .find(c => c.getAttribute('data-cat-id') === idCategoria);
-    if (el) marcarCategoria(el, Boolean(cat.aberto));
+      .find(c => c.getAttribute('data-cat-id') === String(idCategoria));
+    const abertaAtual = el
+      ? el.classList.contains('ui-prop__categoria--aberta')
+      : (cat.aberto !== undefined ? cat.aberto !== false : cat.aberta !== false);
+    const novoEstado = !abertaAtual;
+    cat.aberto = novoEstado;
+    if ('aberta' in cat) cat.aberta = novoEstado;
+    if (el) marcarCategoria(el, novoEstado);
     host.dispatchEvent(
       new CustomEvent('ui-categoria-toggle', {
         bubbles: true,
         composed: true,
-        detail: { id: idCategoria, aberto: cat.aberto }
+        detail: { id: idCategoria, aberto: novoEstado }
       })
     );
   }

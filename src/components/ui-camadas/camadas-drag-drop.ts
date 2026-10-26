@@ -152,6 +152,14 @@ export class CamadasDragDropManager {
             this.host.dispararEvento('ui-camada-mover-hierarquia', {
               camadaId: resultado.camada.id,
               novoParentId: resultado.novoParentId,
+              parentAnteriorId: resultado.parentAnteriorId,
+              camada: resultado.camada
+            });
+          } else if (resultado && resultado.parentAnteriorId !== resultado.novoParentId) {
+            this.host.dispararEvento('ui-camada-mover-hierarquia', {
+              camadaId: resultado.camada.id,
+              novoParentId: resultado.novoParentId,
+              parentAnteriorId: resultado.parentAnteriorId,
               camada: resultado.camada
             });
           }

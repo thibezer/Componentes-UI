@@ -6,30 +6,20 @@
 import { CamadaItem, FeicaoItem } from './tipos';
 import { formatarMetricaFeicoes } from './camadas-metricas';
 import { ICONES } from './camadas-icones';
-import { escapeHtml } from './camadas-utils';
+import { escapeHtml, sanitizarCorCss, corParaHex } from './camadas-utils';
+import { construirHierarquiaCamadas, type CamadaNodoHierarquico } from './camadas-hierarquia';
 
 /**
  * Formata opções de camadas para o select de mover, preservando
  * a hierarquia visual com recuo e ícones de pasta
  */
 export function formatarOpcoesCamadasHierarquicas(camadas: CamadaItem[]): string {
-  const mapaCamadas = new Map<string, CamadaItem>();
-  camadas.forEach((l) => mapaCamadas.set(l.id, l));
+  const hierarquia = construirHierarquiaCamadas(camadas);
 
-  const filhasPorPai = new Map<string, CamadaItem[]>();
-  const raizes: CamadaItem[] = [];
-
-  camadas.forEach((l) => {
-    if (l.parentId && mapaCamadas.has(l.parentId)) {
-      if (!filhasPorPai.has(l.parentId)) filhasPorPai.set(l.parentId, []);
-      filhasPorPai.get(l.parentId)!.push(l);
-    } else {
-      raizes.push(l);
-    }
-  });
-
-  const renderOpcao = (l: CamadaItem, depth: number): string => {
-    const filhas = filhasPorPai.get(l.id) || (Array.isArray(l.children) ? l.children : []);
+  const renderOpcao = (nodo: CamadaNodoHierarquico): string => {
+    const l = nodo.camada;
+    const depth = nodo.depth;
+    const filhas = nodo.subcamadas;
     const prefixo =
       depth > 0
         ? '&nbsp;&nbsp;'.repeat(depth) + '↳ '
@@ -37,11 +27,11 @@ export function formatarOpcoesCamadasHierarquicas(camadas: CamadaItem[]): string
         ? '📁 '
         : '';
     const optionHtml = `<option value="${escapeHtml(l.id)}">${prefixo}${escapeHtml(l.name)}</option>`;
-    const filhasHtml = filhas.map((f) => renderOpcao(f, depth + 1)).join('');
+    const filhasHtml = filhas.map((f) => renderOpcao(f)).join('');
     return optionHtml + filhasHtml;
   };
 
-  return raizes.map((r) => renderOpcao(r, 0)).join('');
+  return hierarquia.map((r) => renderOpcao(r)).join('');
 }
 
 export function renderizarRodapeAcoes(
@@ -52,6 +42,8 @@ export function renderizarRodapeAcoes(
   const feicoesSelecionadas = feicoes.filter((f) => selecionadasIds.has(f.id));
   const temSelecao = feicoesSelecionadas.length > 0;
   const metricaStr = formatarMetricaFeicoes(feicoesSelecionadas);
+  const corInicial = sanitizarCorCss(feicoesSelecionadas[0]?.color, '#00E08A');
+  const corHexInicial = corParaHex(corInicial, '#00E08A');
 
   const totalCount = temSelecao ? feicoesSelecionadas.length : camadas.length;
   const rotulo = temSelecao
@@ -65,7 +57,7 @@ export function renderizarRodapeAcoes(
   const opcoesCamadas = formatarOpcoesCamadasHierarquicas(camadas);
 
   return `
-    <div class="ui-tree-footer ${temSelecao ? 'tem-selecao' : 'sem-selecao'}">
+    <div class="ui-tree-footer ${temSelecao ? 'tem-selecao' : 'sem-selecao'}" part="rodape">
       <div class="ui-footer-left">
         <span class="ui-footer-count" id="footer-count">${totalCount}</span>
         <span class="ui-footer-label" id="footer-label">${rotulo}</span>
@@ -97,8 +89,8 @@ export function renderizarRodapeAcoes(
         </button>
 
         <div class="ui-footer-color-wrapper ${!temSelecao ? 'disabled' : ''}" title="Alterar cor dos selecionados">
-          <span class="ui-footer-color-preview" id="preview-footer-color" style="background-color: #00E08A;"></span>
-          <input type="color" id="input-footer-color" aria-label="Cor dos selecionados" value="#00E08A" class="ui-footer-color" ${!temSelecao ? 'disabled' : ''} />
+          <span class="ui-footer-color-preview" id="preview-footer-color" style="background-color: ${corInicial};"></span>
+          <input type="color" id="input-footer-color" aria-label="Cor dos selecionados" value="${corHexInicial}" class="ui-footer-color" ${!temSelecao ? 'disabled' : ''} />
         </div>
 
         <div class="ui-footer-move-wrapper ${!temSelecao ? 'disabled' : ''}" title="Mover selecionados para outra camada">

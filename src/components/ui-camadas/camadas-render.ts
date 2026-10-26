@@ -42,6 +42,9 @@ export function renderizarPainel(
       editingLayerId: host.editingLayerId,
       editingFeatureId: host.editingFeatureId,
       searchQuery: host.searchQuery,
+      titulo: host.titulo,
+      mostrarBusca: host.mostrarBusca,
+      limitesPorCamada: host.expandedFeatureLimits,
       mostrarBotaoColapsar: host.flutuante && host.getAttribute('colapsavel') !== 'false'
     });
 

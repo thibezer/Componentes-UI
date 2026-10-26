@@ -31,6 +31,16 @@ export interface ItemPropriedade {
   misto?: boolean;
   unidade?: string;
   casasDecimais?: number;
+  /** Alias para `casasDecimais`. */
+  precisao?: number;
+  /** Passo de incremento para teclado (ArrowUp/ArrowDown) e scrubber. */
+  passo?: number;
+  /** Alias para `passo`. */
+  step?: number;
+  /** Limite numérico mínimo permitido. */
+  min?: number;
+  /** Limite numérico máximo permitido. */
+  max?: number;
   opcoes?: OpcaoPropriedade[];
   placeholder?: string;
   somenteLeitura?: boolean;
@@ -44,6 +54,9 @@ export interface CategoriaPropriedades {
   id: string;
   titulo: string;
   aberto?: boolean;
+  /** Alias para `aberto`. */
+  aberta?: boolean;
+  icone?: string;
   propriedades: ItemPropriedade[];
 }
 
@@ -66,6 +79,7 @@ export interface ContextoEditorPropriedade {
   obterValorAtual: (propId: string) => any;
   registrarAlteracao: (categoriaId: string, propId: string, novoValor: any) => void;
   focarProximoEditor: (elementoAtual: HTMLElement) => void;
+  focarEditorAnterior?: (elementoAtual: HTMLElement) => void;
   despacharEventoAcao: (prop: ItemPropriedade, categoriaId: string) => void;
   /** Texto exibido para valores mistos (atributo `texto-misto`); padrão "Varia". */
   obterTextoMisto?: () => string;

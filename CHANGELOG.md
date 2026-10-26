@@ -1,5 +1,66 @@
 # Changelog
 
+## 2.12.0 — 2026-10-26
+
+### `<ui-camadas>`: Verificação e Correção Profunda, Robustez e UX Avançada
+
+- **Proteção Numérica e Degradação Graciosa (Regra #0 do AGENTS.md)**:
+  - Eliminação de recursão infinita e loops em `construirHierarquiaCamadas` e `achatarCamadas`: proteção com detecção de ciclos via `Set` de nós visitados e quebra do ciclo elegendo a raiz sem perder camadas da árvore nem travar a UI.
+  - Correção do cálculo de área geodésica em `camadas-metricas.ts`: substituição da soma de produtos vetoriais de arestas por Shoelace projetado na esfera WGS84 com projeção local ($\phi_m$), blindagem contra `NaN`/`Infinity`, divisão por zero e clamp trigonométrico na distância esférica.
+  - Saneamento defensivo em `atualizarFeicaoNoHost`: proteção contra objetos `feicao` nulos ou indefinidos e clonagem segura de propriedades.
+- **Persistência Completa de Hierarquia**:
+  - `montarEstadoPersistido` e `aplicarEstadoPersistido` agora salvam e restauram `parentId`, impedindo o "desaninhamento" de subcamadas após reload da página. Saneamento preventivo contra reidratação de ciclos (`ehDescendente`).
+- **UX de Paginação Incremental ("Mostrar mais")**:
+  - Em camadas densas com centenas de feições, o componente limita a renderização inicial a 80 itens por camada e disponibiliza o botão "Mostrar mais (+80)" e o método público `incrementarLimiteFeicoes(camadaId)`.
+  - A seleção em intervalo (Shift+Clique) e seleções em lote respeitam estritamente a hierarquia real das subcamadas e o limite visível.
+- **Acessibilidade e Atalhos de Teclado**:
+  - `F2`: Inicia a renomeação inline da camada ou feição focada.
+  - `Ctrl+A` / `Cmd+A`: Seleciona todas as feições visíveis na árvore (respeitando busca ativa e nós colapsados).
+  - `Delete`: Aciona o fluxo de exclusão segura das feições selecionadas com confirmação em dois passos.
+  - `Escape`: Cancela o estado de confirmação pendente ou fecha o drawer lateral de configurações.
+- **Sincronização de Estado e Rodapé**:
+  - O alvo de seleção da camada (`ui-target-circle`) agora monitora a subárvore completa (camada pai e subcamadas filhas), aplicando corretamente os estados `selected`, `partial` ou vazio.
+  - O preview de cor do rodapé é atualizado com a cor real da primeira feição selecionada.
+  - O evento `ui-camada-mover-hierarquia` agora informa `parentAnteriorId` para rastreabilidade e histórico de operações.
+  - Adicionado método público `alternarExpansao(camadaId)`.
+- **Customização e Shadow Parts (`::part()`)**:
+  - Exposição de partes padronizadas: `base`, `corpo`, `toolbar`, `busca`, `arvore`, `grupo`, `camada`, `camada-ativa`, `feicao`, `feicao-selecionada`, `mapas-base`, `rodape`, `drawer`, `resizer` e `botao-expandir`.
+
+### `<ui-tabela-propriedades>`: Verificação e Correção Profunda, Robustez, UX e Acessibilidade CAD/Revit
+
+- **Proteção e Degradação Graciosa (Regra #0 do AGENTS.md)**:
+  - Higienização e tolerância a entradas hostis em `categorias` e `tipos` (itens `null`, propriedades sem rótulo ou malformadas são aceitas sem disparar `TypeError`).
+  - Blindagem do parser matemático contra divisão por zero, `NaN`, `Infinity` e estouro de pilha por parênteses recursivos profundos (`MAX_PROFUNDIDADE = 64`).
+  - Tratamento seguro de `flutuante`: prevenção contra ciclo de recursão de mutação em `attributeChangedCallback`.
+- **Motor Matemático e Expressões Inline CAD/Revit (`avaliador-expressao.ts`)**:
+  - Suporte a prefixo `=` opcional de fórmula (ex.: `=10.5 * 2 + (4 / 2)`).
+  - Suporte completo a números em notação científica (ex.: `1e-5`, `2.5e3`).
+  - Correção na avaliação contextual de porcentagem em termos compostos (`100 + 50 * 10% = 105`).
+  - Suporte a funções matemáticas avançadas: `min`, `max`, `pow`, `hypot`, `atan2`, `mod`, `trunc`, `sign`, `log`, `ln`, `deg`, `rad`.
+  - Preview visual em tempo real no atributo `title` do campo numérico enquanto uma fórmula é digitada (`.ui-prop__editor-input--calculando`).
+- **Ergonomia e UX Técnica (AutoCAD, Revit, Blender e Figma)**:
+  - Suporte a limites numéricos `min` e `max` em propriedades numéricas (com clamp automático na digitação, no teclado e no scrubber).
+  - Suporte a `passo` e `step` customizados para ajuste fino e grosso via setas `ArrowUp`/`ArrowDown` e scrubber.
+  - Suporte a aliases `precisao` (para `casasDecimais`) e `aberta` (para `aberto` em categorias).
+  - Exibição de dicas técnicas (`dica?: string` em `ItemPropriedade`) no `title` do rótulo e em `aria-description` do editor.
+  - Formatação e cópia de valores somente leitura (`readonly`), suportando casas decimais, resolução de labels de seleção e booleanos.
+  - Novo método público `redefinirValor(propId)` para reverter uma propriedade individual ao seu valor original sem descartar as demais alterações.
+  - Novo botão de limpar busca (`#btn-limpar-filtro`) e atalho `Escape` para limpar o filtro de busca instantaneamente.
+  - Busca expandida: agora localiza propriedades também pelo título da categoria (`cat.titulo`) e pelo valor atual.
+  - Exibição de estado vazio informativo quando nenhum resultado coincidir com o filtro.
+  - Atalho `Ctrl+Enter` / `Cmd+Enter` para aplicar alterações no modo manual.
+  - Tecla `Escape` durante a edição de campos numéricos e de texto cancela a alteração sem propagar o evento para modais ou overlays pais.
+  - Suporte a `Shift+Enter` para navegar ao editor anterior, e navegação restrita estritamente a editores visíveis de categorias abertas.
+- **Acessibilidade e WAI-ARIA**:
+  - Splitter vertical (`#splitter`) agora é um separador acessível (`role="separator"`, `tabindex="0"`, `aria-orientation="vertical"`, `aria-valuenow` dinâmico) ajustável via teclado com `ArrowLeft`, `ArrowRight`, `Home`, `End` e `Enter` para restaurar os 45% padrão.
+  - Cabeçalhos de categorias (`.ui-prop__categoria-header`) navegáveis por teclado via `ArrowDown`, `ArrowUp`, `ArrowLeft` (recolhe), `ArrowRight` (expande), `Home` e `End`.
+  - Correção de contraste para conformidade WCAG AA no tema claro (`[data-tema="claro"]`).
+  - Adição de `aria-label` descritivo nos seletores de tipo e de linha.
+- **Shadow Parts (`::part()`) e Registro de Aliases**:
+  - Exposição completa de shadow parts: `base`, `faixa-estreita`, `cabecalho`, `titulo`, `acoes-cabecalho`, `seletor-tipo`, `filtro`, `filtro-input`, `splitter`, `corpo`, `lista-categorias`, `vazio`, `categoria`, `categoria-aberta`, `categoria-cabecalho`, `categoria-conteudo`, `linha`, `linha-modificada`, `linha-mista`, `rotulo`, `valor`, `editor`, `unidade`, `rodape`, `ajuda`, `desfazer`, `aplicar`.
+  - Registro oficial dos Custom Elements aliases `<ui-painel-propriedades>` e `<ui-propriedades>` (classes `UIPainelPropriedades` e `UIPropriedades`), com tipagem completa gerada para HTML nativo, React e Vue.
+
+
 ## 2.11.1 — 2026-10-23
 
 Junta à 2.11.0 o que estava fora do npm (PR #14): o redesign compacto do seletor de cor no estilo Illustrator.

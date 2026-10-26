@@ -207,6 +207,9 @@ painel.expandirTodas();
 painel.colapsarTodas();
 painel.alternarExpansao('camada-lotes');
 
+// Paginação incremental de feições ("Mostrar mais")
+painel.incrementarLimiteFeicoes('camada-lotes');
+
 // Colapso geral do painel
 painel.colapsar();
 painel.expandir();
@@ -296,8 +299,43 @@ O `<ui-camadas>` possui suporte nativo à persistência transparente de estado p
 
 ---
 
-## 🎨 Variáveis CSS Disponíveis para Customização
+## ⌨️ Atalhos de Teclado e Acessibilidade
 
+O componente é totalmente operável por teclado, respeitando as diretrizes WAI-ARIA para árvores e painéis densos:
+
+| Tecla / Atalho | Contexto | Ação |
+| :--- | :--- | :--- |
+| `↑` / `↓` | Foco em linha | Navega verticalmente entre camadas e feições |
+| `Home` / `End` | Foco em linha | Pula diretamente para o primeiro ou último elemento da árvore |
+| `Enter` / `Espaço` | Foco em camada | Alterna a seleção ou expande/recolhe o grupo |
+| `F2` | Foco em linha | Inicia a renomeação inline do nome da camada ou feição |
+| `Ctrl+A` / `Cmd+A` | Foco na árvore | Seleciona todas as feições visíveis (respeitando busca e colapso) |
+| `Delete` | Feições selecionadas | Inicia exclusão das feições com confirmação de segurança em dois passos |
+| `Escape` | Qualquer | Cancela confirmação pendente de exclusão ou fecha o drawer de configurações |
+
+---
+
+## 🎨 Variáveis CSS e Shadow Parts (`::part()`)
+
+### Shadow Parts Disponíveis:
+O componente expõe partes customizáveis para estilização externa pontual:
+- `::part(base)`: Container principal do painel.
+- `::part(corpo)`: Área de conteúdo que envolve toolbar, busca, árvore e rodapé.
+- `::part(toolbar)`: Barra de ferramentas superior com botões de colapso e adição.
+- `::part(busca)`: Bloco de campo de busca textual.
+- `::part(arvore)`: Container rolável com as camadas e feições.
+- `::part(grupo)`: Elemento de grupo ou pasta na árvore.
+- `::part(camada)`: Linha de camada vetorial.
+- `::part(camada-ativa)`: Camada marcada como ativa para desenho.
+- `::part(feicao)`: Linha de feição geográfica individual.
+- `::part(feicao-selecionada)`: Linha de feição com estado de seleção ativo.
+- `::part(mapas-base)`: Seção inferior com os cards de mapas base.
+- `::part(rodape)`: Barra inferior de resumo e ações em massa.
+- `::part(drawer)`: Drawer lateral de configurações da camada.
+- `::part(resizer)`: Barra inferior de arraste para redimensionamento vertical.
+- `::part(botao-expandir)`: Botão flutuante para restaurar o painel colapsado.
+
+### Variáveis CSS:
 ```css
 ui-camadas {
   --ui-camadas-altura: 500px;
