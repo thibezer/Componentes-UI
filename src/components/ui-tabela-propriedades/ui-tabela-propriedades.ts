@@ -22,6 +22,8 @@ import {
 } from './propriedades-painel-controles';
 import {
   focarProximoEditor,
+  focarEditorAnterior,
+  focarPrimeiroEditor,
   atualizarCampoVisual,
   expandirTodasCategorias,
   colapsarTodasCategorias,
@@ -70,6 +72,7 @@ export class UITabelaPropriedades extends SafeHTMLElement {
   private _tipoSelecionadoId: string = '';
   private _termoBusca: string = '';
   private _larguraRotuloPorcentagem: number = 45;
+  private _sincronizandoFlutuante = false;
 
   public get larguraRotuloPorcentagem(): number {
     return this._larguraRotuloPorcentagem;
@@ -131,7 +134,8 @@ export class UITabelaPropriedades extends SafeHTMLElement {
       onDesfazer: () => this.desfazer(),
       onAlternarDensidade: () => this.alternarDensidade(),
       onAlternarFlutuante: () => this.alternarFlutuante(),
-      onAlternarColapsoHorizontal: () => this.alternarColapsoHorizontal()
+      onAlternarColapsoHorizontal: () => this.alternarColapsoHorizontal(),
+      onFocarPrimeiroEditor: () => focarPrimeiroEditor(this.shadow)
     });
 
     conectarArrastoFlutuante(this, this.shadow, this.listeners);
@@ -172,9 +176,83 @@ export class UITabelaPropriedades extends SafeHTMLElement {
           this.renderCategorias();
         }
         return;
+      case 'flutuante':
+        if (!this._sincronizandoFlutuante) {
+          sincronizarPainelControles(this.shadow, this);
+        }
+        return;
       default:
         sincronizarPainelControles(this.shadow, this);
     }
+  }
+
+  // --- Propriedades Públicas Espelhadas (Getters e Setters Tipados) ---
+
+  get titulo(): string {
+    return this.getAttribute('titulo') || 'Propriedades';
+  }
+
+  set titulo(val: string) {
+    if (val) this.setAttribute('titulo', val);
+    else this.removeAttribute('titulo');
+  }
+
+  get estiloVisual(): 'autocad' | 'revit' {
+    return (this.getAttribute('estilo-visual') as 'autocad' | 'revit') || 'autocad';
+  }
+
+  set estiloVisual(val: 'autocad' | 'revit') {
+    if (val && val !== 'autocad') this.setAttribute('estilo-visual', val);
+    else this.removeAttribute('estilo-visual');
+  }
+
+  get modoAplicar(): 'imediato' | 'manual' {
+    return (this.getAttribute('modo-aplicar') as 'imediato' | 'manual') || 'imediato';
+  }
+
+  set modoAplicar(val: 'imediato' | 'manual') {
+    if (val === 'manual') this.setAttribute('modo-aplicar', 'manual');
+    else this.removeAttribute('modo-aplicar');
+  }
+
+  get filtro(): boolean {
+    return this.hasAttribute('filtro');
+  }
+
+  set filtro(val: boolean) {
+    if (val) this.setAttribute('filtro', '');
+    else this.removeAttribute('filtro');
+  }
+
+  get termoBusca(): string {
+    return this._termoBusca;
+  }
+
+  set termoBusca(val: string) {
+    this._termoBusca = (val || '').trim().toLowerCase();
+    const input = this.shadow.getElementById('filtro-input') as HTMLInputElement | null;
+    if (input) input.value = val || '';
+    this.renderCategorias();
+  }
+
+  get larguraRotulo(): number {
+    return this._larguraRotuloPorcentagem;
+  }
+
+  set larguraRotulo(pct: number) {
+    const num = typeof pct === 'number' ? pct : parseFloat(String(pct));
+    if (!isNaN(num)) {
+      this.setAttribute('largura-rotulo', String(num));
+    }
+  }
+
+  get fechavel(): boolean {
+    return this.hasAttribute('fechavel');
+  }
+
+  set fechavel(val: boolean) {
+    if (val) this.setAttribute('fechavel', '');
+    else this.removeAttribute('fechavel');
   }
 
   get categorias(): CategoriaPropriedades[] {
@@ -218,7 +296,7 @@ export class UITabelaPropriedades extends SafeHTMLElement {
   }
 
   set tipoSelecionado(idTipo: string) {
-    this._tipoSelecionadoId = idTipo;
+    this._tipoSelecionadoId = String(idTipo ?? '');
     this.renderSeletorTipos();
   }
 
@@ -245,6 +323,10 @@ export class UITabelaPropriedades extends SafeHTMLElement {
 
   public definirValor(propId: string, novoValor: any, emitirEvento: boolean = true): void {
     this.gerenciadorValores.definirValor(propId, novoValor, emitirEvento);
+  }
+
+  public redefinirValor(propId: string, emitirEvento: boolean = true): void {
+    this.gerenciadorValores.redefinirValor(propId, emitirEvento);
   }
 
   public aplicar(): void {
@@ -320,20 +402,25 @@ export class UITabelaPropriedades extends SafeHTMLElement {
   }
 
   public alternarFlutuante(): boolean {
-    const novoEstado = alternarPosicionamentoFlutuante(this);
-    sincronizarPainelControles(this.shadow, this);
-    this.dispatchEvent(new CustomEvent('ui-flutuante-alterado', {
-      bubbles: true,
-      composed: true,
-      detail: {
-        flutuante: novoEstado,
-        left: this.style.left,
-        top: this.style.top,
-        width: this.style.width,
-        height: this.style.height
-      }
-    }));
-    return novoEstado;
+    this._sincronizandoFlutuante = true;
+    try {
+      const novoEstado = alternarPosicionamentoFlutuante(this);
+      sincronizarPainelControles(this.shadow, this);
+      this.dispatchEvent(new CustomEvent('ui-flutuante-alterado', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          flutuante: novoEstado,
+          left: this.style.left,
+          top: this.style.top,
+          width: this.style.width,
+          height: this.style.height
+        }
+      }));
+      return novoEstado;
+    } finally {
+      this._sincronizandoFlutuante = false;
+    }
   }
 
   public alternarColapsoHorizontal(): boolean {
@@ -369,7 +456,7 @@ export class UITabelaPropriedades extends SafeHTMLElement {
   }
 
   private toggleExpandirTodas() {
-    const algumaFechada = this._categorias.some(c => c.aberto === false);
+    const algumaFechada = this._categorias.some(c => (c.aberto !== undefined ? c.aberto === false : c.aberta === false));
     if (algumaFechada) {
       this.expandirTudo();
     } else {
@@ -386,7 +473,7 @@ export class UITabelaPropriedades extends SafeHTMLElement {
       onSelecionarTipo: (id) => {
         this._tipoSelecionadoId = id;
         this.renderSeletorTipos();
-        const item = this._tipos.find(t => String(t.id) === String(id));
+        const item = this._tipos.find(t => t && String(t.id) === String(id));
         this.dispatchEvent(new CustomEvent('ui-tipo-alterado', { bubbles: true, composed: true, detail: { id, tipo: item } }));
       },
       onEditarTipo: (tipo) => this.dispatchEvent(new CustomEvent('ui-editar-tipo-clique', { bubbles: true, composed: true, detail: { tipo } })),
@@ -415,6 +502,7 @@ export class UITabelaPropriedades extends SafeHTMLElement {
             this.gerenciadorValores.registrarAlteracao(catId, id, val);
           },
           focarProximoEditor: (el: HTMLElement) => focarProximoEditor(this.shadow, el),
+          focarEditorAnterior: (el: HTMLElement) => focarEditorAnterior(this.shadow, el),
           obterTextoMisto: () => this.textoMisto,
           despacharEventoAcao: (p: ItemPropriedade, catId: string) => {
             this.dispatchEvent(
@@ -431,4 +519,9 @@ export class UITabelaPropriedades extends SafeHTMLElement {
   }
 }
 
+export class UIPainelPropriedades extends UITabelaPropriedades {}
+export class UIPropriedades extends UITabelaPropriedades {}
+
 definirCustomElement('ui-tabela-propriedades', UITabelaPropriedades);
+definirCustomElement('ui-painel-propriedades', UIPainelPropriedades);
+definirCustomElement('ui-propriedades', UIPropriedades);

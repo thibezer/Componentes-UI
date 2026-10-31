@@ -121,8 +121,7 @@ export interface DetalheEventoRenomearCamada {
 export interface DetalheEventoMoverHierarquiaCamada {
   camadaId: string;
   novoParentId: string | null;
-  /** Pai antes da mudança (`null` = estava na raiz). */
-  parentAnteriorId: string | null;
+  parentAnteriorId?: string | null;
   camada?: CamadaItem;
 }
 

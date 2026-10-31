@@ -1,7 +1,7 @@
 /* ====================================================
    UI Camadas - Renomear inline
-   Responsabilidade única: edição do nome de camadas e feições por duplo clique ou F2 (Enter confirma, Esc cancela,
-   perder o foco confirma). Com Enter/Esc o foco volta para a linha, para seguir navegando pelo teclado. Camada e feição compartilham o mesmo fluxo; só mudam os atributos e o evento.
+   Responsabilidade única: edição do nome de camadas e feições por duplo clique (Enter confirma, Esc cancela,
+   perder o foco confirma). Camada e feição compartilham o mesmo fluxo; só mudam os atributos e o evento.
    ==================================================== */
 
 import type { CamadaItem, FeicaoItem } from './tipos';
@@ -80,6 +80,7 @@ export function vincularRenomearInline(host: HostRenomear, shadow: ShadowRoot): 
         input.select();
         let concluido = false;
 
+        // Enter/Esc devolvem o foco à linha, para seguir navegando pelo teclado; perder o foco não o rouba
         const concluir = (salvar: boolean, devolverFoco = false): void => {
           if (concluido) return;
           concluido = true;

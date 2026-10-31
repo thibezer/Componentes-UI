@@ -13,5 +13,19 @@ export const tabela: Props<'ui-tabela'> = {
 
 export const botao: Props<'ui-botao-primario'> = { variante: 'primario', onUiClick: () => {} };
 
+export const painelProp: Props<'ui-tabela-propriedades'> = {
+  titulo: 'Propriedades CAD',
+  densidade: 'compacta',
+  onUiPropriedadeAlterada: (e: CustomEvent) => e.detail
+};
+
+export const aliasProp: Props<'ui-painel-propriedades'> = {
+  titulo: 'Propriedades',
+  densidade: 'padrao'
+};
+
 // @ts-expect-error densidade fora do conjunto aceito
 export const densidadeInvalida: Props<'ui-tabela'> = { densidade: 'enorme' };
+
+// @ts-expect-error densidade fora do conjunto aceito
+export const propDensidadeInvalida: Props<'ui-tabela-propriedades'> = { densidade: 'enorme' };

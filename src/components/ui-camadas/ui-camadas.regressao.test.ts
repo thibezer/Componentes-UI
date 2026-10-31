@@ -51,15 +51,10 @@ describe('UICamadas - regressões', () => {
   });
 
   describe('rodapé e métricas', () => {
-    it('mostra a métrica ao selecionar, mesmo que o rodapé tenha sido renderizado sem seleção', () => {
+    it('não exibe métrica de área no rodapé ao selecionar', () => {
       const el = criarPainel(camadasPadrao(), criarFeicoes(3));
-      expect(q(el, '.ui-footer-metric').style.display).toBe('none');
-
       el.selecionarFeicao('f0');
-
-      const metrica = q(el, '.ui-footer-metric');
-      expect(metrica.style.display).not.toBe('none');
-      expect(metrica.textContent!.trim().length).toBeGreaterThan(0);
+      expect(el.shadowRoot!.querySelector('.ui-footer-metric')).toBeNull();
     });
 
     it('exige confirmação em 2 passos para excluir feições pelo rodapé', () => {
@@ -786,6 +781,268 @@ describe('UICamadas - regressões', () => {
       document.querySelector('ui-seletor-cor')?.remove();
     });
   });
+
+  describe('blindagem de hierarquia, ciclos e entradas hostis (Regra #0)', () => {
+    it('não desaparece com camadas em ciclo de parentId nem lança Maximum call stack size exceeded', () => {
+      const ciclo: CamadaItem[] = [
+        { id: 'a', name: 'Camada A', parentId: 'b' },
+        { id: 'b', name: 'Camada B', parentId: 'a' },
+        { id: 'c', name: 'Camada C', parentId: 'a' }
+      ];
+      const el = criarPainel(ciclo, []);
+      const idsRenderizados = Array.from(sr(el).querySelectorAll('[data-layer-row]')).map((r) =>
+        r.getAttribute('data-layer-row')
+      );
+      expect(idsRenderizados.sort()).toEqual(['a', 'b', 'c']);
+    });
+
+    it('mover subcamada originada de children não duplica a camada no grupo antigo', () => {
+      const aninhadas: CamadaItem[] = [
+        {
+          id: 'g1',
+          name: 'Grupo 1',
+          isGroup: true,
+          children: [{ id: 'sub1', name: 'Subcamada 1' }]
+        },
+        { id: 'g2', name: 'Grupo 2', isGroup: true }
+      ];
+      const el = criarPainel(aninhadas, []);
+      q(el, '[data-layer-settings="sub1"]').click();
+      const select = q<HTMLSelectElement>(el, '[data-layer-parent-select="sub1"]');
+      select.value = 'g2';
+      select.dispatchEvent(new Event('change'));
+
+      const ocorrencias = sr(el).querySelectorAll('[data-layer-row="sub1"]');
+      expect(ocorrencias.length).toBe(1);
+    });
+
+    it('o select de grupo pai no drawer oculta os próprios descendentes e recusa ciclos', () => {
+      const camadas: CamadaItem[] = [
+        { id: 'g1', name: 'Grupo Pai', isGroup: true },
+        { id: 'sub1', name: 'Sub 1', parentId: 'g1' },
+        { id: 'neta1', name: 'Neta 1', parentId: 'sub1' },
+        { id: 'outra', name: 'Outra Raiz' }
+      ];
+      const el = criarPainel(camadas, []);
+      q(el, '[data-layer-settings="g1"]').click();
+      const select = q<HTMLSelectElement>(el, '[data-layer-parent-select="g1"]');
+      const valoresOpcoes = Array.from(select.options).map((o) => o.value);
+
+      expect(valoresOpcoes).toContain('');
+      expect(valoresOpcoes).toContain('outra');
+      expect(valoresOpcoes).not.toContain('g1');
+      expect(valoresOpcoes).not.toContain('sub1');
+      expect(valoresOpcoes).not.toContain('neta1');
+    });
+
+    it('ui-camada-mover-hierarquia informa parentAnteriorId e persiste parentId no storage', () => {
+      const el = document.createElement('ui-camadas') as UICamadas;
+      el.setAttribute('storage-key', 'teste-parent-persist');
+      document.body.appendChild(el);
+      el.definirCamadas(
+        [
+          { id: 'g1', name: 'Grupo 1', isGroup: true },
+          { id: 'c1', name: 'Camada 1', parentId: null }
+        ],
+        []
+      );
+
+      const spy = vi.fn();
+      el.addEventListener('ui-camada-mover-hierarquia', (e) => spy((e as CustomEvent).detail));
+
+      q(el, '[data-layer-settings="c1"]').click();
+      const select = q<HTMLSelectElement>(el, '[data-layer-parent-select="c1"]');
+      select.value = 'g1';
+      select.dispatchEvent(new Event('change'));
+
+      expect(spy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          camadaId: 'c1',
+          novoParentId: 'g1',
+          parentAnteriorId: null
+        })
+      );
+
+      // Nova sessão deve lembrar o parentId alterado pelo usuário
+      const el2 = document.createElement('ui-camadas') as UICamadas;
+      el2.setAttribute('storage-key', 'teste-parent-persist');
+      document.body.appendChild(el2);
+      el2.definirCamadas(
+        [
+          { id: 'g1', name: 'Grupo 1', isGroup: true },
+          { id: 'c1', name: 'Camada 1', parentId: null }
+        ],
+        []
+      );
+      expect(el2.obterCamada('c1')?.parentId).toBe('g1');
+    });
+
+    it('tolera entradas nulas, indefinidas e malformadas sem estourar exceção', () => {
+      const el = document.createElement('ui-camadas') as UICamadas;
+      el.setAttribute('persistir', 'false');
+      document.body.appendChild(el);
+
+      expect(() => {
+        el.definirCamadas(
+          [null as unknown as CamadaItem, undefined as unknown as CamadaItem, { id: '', name: 'Sem ID' }, { id: 'ok', name: 'Valida' }],
+          [null as unknown as FeicaoItem, { id: '', name: 'Sem ID', layerId: 'ok' }, { id: 'f1', name: 'Feicao OK', layerId: 'ok', type: 'Polygon', coordinates: [[NaN, Infinity], [-23.5, -46.6]] }]
+        );
+        el.atualizarFeicao(null as unknown as FeicaoItem);
+      }).not.toThrow();
+
+      expect(el.camadas.map((c) => c.id)).toEqual(['ok']);
+      expect(el.feicoes.map((f) => f.id)).toEqual(['f1']);
+    });
+  });
+
+  describe('precisão matemática de métricas geodésicas', () => {
+    it('calcula a mesma área para polígono de 4 vértices ou 5 vértices (fechado) e com vértices colineares', async () => {
+      const { calcularAreaPoligono } = await import('./camadas-metricas');
+      const quad4: [number, number][] = [
+        [-23.550, -46.630],
+        [-23.551, -46.630],
+        [-23.551, -46.631],
+        [-23.550, -46.631]
+      ];
+      const quad5: [number, number][] = [...quad4, [-23.550, -46.630]];
+      const quadColinear: [number, number][] = [
+        [-23.550, -46.630],
+        [-23.5505, -46.630],
+        [-23.551, -46.630],
+        [-23.551, -46.631],
+        [-23.550, -46.631],
+        [-23.550, -46.630]
+      ];
+
+      const a4 = calcularAreaPoligono(quad4);
+      const a5 = calcularAreaPoligono(quad5);
+      const aCol = calcularAreaPoligono(quadColinear);
+
+      // 0.001° lat (~111.32m) x 0.001° lon em -23.55° (~102.04m) ≈ 11.359 m²
+      expect(a4).toBeGreaterThan(11000);
+      expect(a4).toBeLessThan(12000);
+      expect(Math.round(a4)).toBe(Math.round(a5));
+      expect(Math.round(a4)).toBe(Math.round(aCol));
+    });
+  });
+
+  describe('visibilidade hierárquica na seleção, grupos e paginação incremental', () => {
+    it('obterIdsVisiveisFeicoes ignora feições de subcamadas cujo grupo pai está recolhido', () => {
+      const camadas: CamadaItem[] = [
+        { id: 'g1', name: 'Grupo 1', isGroup: true },
+        { id: 'sub1', name: 'Sub 1', parentId: 'g1' },
+        { id: 'c2', name: 'Camada 2' }
+      ];
+      const feicoes: FeicaoItem[] = [
+        { id: 'f-sub', name: 'F Sub', layerId: 'sub1' },
+        { id: 'f-c2', name: 'F C2', layerId: 'c2' }
+      ];
+
+      // 'sub1' e 'c2' estão no Set de expandidas, mas o grupo pai 'g1' NÃO está expandido!
+      const visiveis = obterIdsVisiveisFeicoes(camadas, feicoes, new Set(['sub1', 'c2']));
+      expect(visiveis).toEqual(['f-c2']);
+    });
+
+    it('clicar no target de um grupo seleciona todas as feições das subcamadas filhas', () => {
+      const camadas: CamadaItem[] = [
+        { id: 'g1', name: 'Grupo Pai', isGroup: true },
+        { id: 'sub1', name: 'Sub 1', parentId: 'g1' },
+        { id: 'sub2', name: 'Sub 2', parentId: 'g1' }
+      ];
+      const feicoes: FeicaoItem[] = [
+        { id: 'f1', name: 'F1', layerId: 'sub1' },
+        { id: 'f2', name: 'F2', layerId: 'sub2' }
+      ];
+      const el = criarPainel(camadas, feicoes);
+
+      q(el, '[data-layer-target="g1"]').click();
+      expect([...el.selectedFeatureIds].sort()).toEqual(['f1', 'f2']);
+      expect(q(el, '[data-layer-target="g1"] .ui-target-circle').classList.contains('selected')).toBe(true);
+
+      // Desmarcar apenas f1 deixa o grupo como 'partial'
+      el.selecionarFeicao('f1', true);
+      expect(q(el, '[data-layer-target="g1"] .ui-target-circle').classList.contains('partial')).toBe(true);
+    });
+
+    it('permite expandir o limite de feições exibidas clicando em "Mostrar mais"', () => {
+      const el = criarPainel(camadasPadrao(), criarFeicoes(120, 'c0'));
+      expect(sr(el).querySelectorAll('.ui-feat-row').length).toBe(80);
+
+      const btnMore = q(el, '[data-layer-show-more="c0"]');
+      expect(btnMore).toBeTruthy();
+      btnMore.click();
+
+      expect(sr(el).querySelectorAll('.ui-feat-row').length).toBe(120);
+      expect(sr(el).querySelector('[data-layer-show-more="c0"]')).toBeNull();
+    });
+  });
+
+  describe('atributos reativos, API pública e atalhos de produtividade', () => {
+    it('respeita mostrar-busca="false" e o atributo titulo', () => {
+      const el = criarPainel(camadasPadrao(), [], { 'mostrar-busca': 'false', titulo: 'Vetores CAD' });
+      expect(sr(el).getElementById('input-layer-search')).toBeNull();
+      expect(q(el, '.ui-tree-section-title').textContent).toBe('Vetores CAD');
+
+      el.mostrarBusca = true;
+      expect(sr(el).getElementById('input-layer-search')).toBeTruthy();
+    });
+
+    it('expõe o método alternarExpansao(camadaId) e sincroniza aria-expanded ao clicar no chevron', () => {
+      const el = criarPainel(camadasPadrao(), criarFeicoes(2, 'c0'));
+      expect(el.expandedLayers.has('c0')).toBe(true);
+
+      el.alternarExpansao('c0');
+      expect(el.expandedLayers.has('c0')).toBe(false);
+      expect(q(el, '.ui-layer-group[data-layer-id="c0"]').getAttribute('aria-expanded')).toBe('false');
+
+      // Clicar no chevron atualiza aria-expanded in-place para que ArrowLeft/ArrowRight funcionem
+      q(el, '[data-layer-expand="c0"]').click();
+      expect(q(el, '.ui-layer-group[data-layer-id="c0"]').getAttribute('aria-expanded')).toBe('true');
+    });
+
+    it('atalho F2 na linha focada inicia renomeação inline e Ctrl+A seleciona feições visíveis', () => {
+      const el = criarPainel(camadasPadrao(), criarFeicoes(3, 'c0'));
+      const linhaCamada = q(el, '[data-layer-row="c0"]');
+      linhaCamada.focus();
+
+      linhaCamada.dispatchEvent(new KeyboardEvent('keydown', { key: 'F2', bubbles: true, composed: true }));
+      expect(el.editingLayerId).toBe('c0');
+      const input = q<HTMLInputElement>(el, '[data-inline-layer-input="c0"]');
+      expect(input).toBeTruthy();
+      input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+
+      const linhaFeat = q(el, '[data-feat-row="f0"]');
+      linhaFeat.focus();
+      linhaFeat.dispatchEvent(new KeyboardEvent('keydown', { key: 'a', ctrlKey: true, bubbles: true, composed: true }));
+      expect(el.selectedFeatureIds.size).toBe(3);
+    });
+
+    it('expõe CSS ::part() padronizados para customização externa', () => {
+      const el = criarPainel(camadasPadrao(), criarFeicoes(2, 'c0'));
+      el.selecionarFeicao('f0');
+
+      const parts = new Set(
+        Array.from(sr(el).querySelectorAll('[part]')).flatMap((n) => n.getAttribute('part')!.split(/\s+/))
+      );
+
+      for (const esperado of [
+        'base',
+        'corpo',
+        'toolbar',
+        'busca',
+        'arvore',
+        'camada',
+        'camada-ativa',
+        'feicao',
+        'feicao-selecionada',
+        'rodape',
+        'mapas-base',
+        'resizer'
+      ]) {
+        expect(parts).toContain(esperado);
+      }
+    });
+  });
 });
 
 describe('UICamadas - revisão profunda (falhavam antes)', () => {
@@ -1122,11 +1379,6 @@ describe('UICamadas - revisão profunda (falhavam antes)', () => {
       expect(q(el, '[data-feat-row="fs1"]').getAttribute('aria-level')).toBe('3');
     });
 
-    it('o botão "limpar seleção" criado na sincronização tem rótulo acessível', () => {
-      const el = criarPainel(camadasPadrao(), criarFeicoes(1));
-      el.selecionarFeicao('f0');
-      expect(q(el, '#btn-footer-clear').getAttribute('aria-label')).toBe('Limpar seleção');
-    });
   });
 
   describe('textos e tokens', () => {

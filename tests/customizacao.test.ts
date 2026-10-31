@@ -16,10 +16,12 @@ import '../src/components/ui-alerta';
 import '../src/components/ui-tooltip';
 import '../src/components/ui-segmented';
 import '../src/components/ui-tabela';
+import '../src/components/ui-tabela-propriedades';
 
 import type { UIListaFlutuante } from '../src/components/ui-lista-flutuante';
 import type { UISegmented } from '../src/components/ui-segmented';
 import type { UITabela } from '../src/components/ui-tabela';
+import type { UITabelaPropriedades } from '../src/components/ui-tabela-propriedades';
 
 const SRC = path.resolve(__dirname, '../src');
 
@@ -85,6 +87,7 @@ describe('Shadow parts (::part) para customização', () => {
     'ui-tooltip': ['balao', 'texto', 'seta'],
     'ui-segmented': ['base', 'indicador'],
     'ui-tabela': ['base', 'tabela', 'vazio', 'carregando'],
+    'ui-tabela-propriedades': ['base', 'cabecalho', 'titulo', 'splitter', 'corpo', 'lista-categorias', 'vazio'],
   };
 
   it.each(Object.entries(partsEsperados))('<%s> deve expor os parts documentados', (tag, parts) => {
@@ -98,6 +101,30 @@ describe('Shadow parts (::part) para customização', () => {
     for (const part of parts) {
       expect(expostos, `${tag}::part(${part})`).toContain(part);
     }
+  });
+
+  it('<ui-tabela-propriedades> deve expor parts semânticos de categorias, linhas e editores', () => {
+    const painel = document.createElement('ui-tabela-propriedades') as UITabelaPropriedades;
+    document.body.appendChild(painel);
+    painel.categorias = [
+      {
+        id: 'dimensoes',
+        titulo: 'Dimensões',
+        propriedades: [
+          { id: 'comprimento', rotulo: 'Comprimento', tipo: 'numero', valor: 50, unidade: 'm' }
+        ]
+      }
+    ];
+
+    const shadow = painel.shadowRoot!;
+    expect(shadow.querySelector('[part~="categoria"]')).not.toBeNull();
+    expect(shadow.querySelector('[part~="categoria-cabecalho"]')).not.toBeNull();
+    expect(shadow.querySelector('[part~="categoria-conteudo"]')).not.toBeNull();
+    expect(shadow.querySelector('[part~="linha"]')).not.toBeNull();
+    expect(shadow.querySelector('[part~="rotulo"]')).not.toBeNull();
+    expect(shadow.querySelector('[part~="valor"]')).not.toBeNull();
+    expect(shadow.querySelector('[part~="editor"]')).not.toBeNull();
+    expect(shadow.querySelector('[part~="unidade"]')).not.toBeNull();
   });
 
   it('<ui-lista-flutuante> deve marcar a opção selecionada com o part opcao-selecionada', () => {

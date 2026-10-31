@@ -5,6 +5,7 @@
    ==================================================== */
 
 import { CamadaItem } from './tipos';
+import { ehDescendente } from './camadas-drop-ops';
 
 export interface CamadaPropsPersistidas {
   name?: string;
@@ -214,6 +215,14 @@ export function reidratarCamadasComOverrides(
     }
   }
 
+  // Saneia eventuais ciclos em parentId que possam ter surgido após mesclar overrides
+  for (let i = 0; i < camadas.length; i++) {
+    const c = camadas[i];
+    if (c.parentId && (c.parentId === c.id || ehDescendente(camadas, c.parentId, c.id))) {
+      c.parentId = origensCamadas?.get(c.id)?.parentId ?? null;
+    }
+  }
+
   // Restaura a ordem das camadas persistida pelo usuário (arraste/drag-and-drop),
   // a menos que a aplicação tenha mudado a própria ordem desde então: aí a ordem dela vence
   const idsAtuais = new Set(camadas.map((c) => c.id));
@@ -282,8 +291,7 @@ export function montarEstadoPersistido(entrada: EntradaMontagemEstado): EstadoPe
         locked: !!l.locked,
         opacity: typeof l.opacity === 'number' ? l.opacity : 1,
         color: l.color || '#00E08A',
-        // A hierarquia montada pelo usuário (arrastar para dentro, drawer) também é lembrada
-        parentId: l.parentId ?? null,
+        parentId: l.parentId !== undefined ? l.parentId : null,
         origem: entrada.origensCamadas?.get(l.id) ?? overrides[l.id]?.origem
       };
     });

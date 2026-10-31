@@ -7,6 +7,7 @@
 
 import { CamadaItem, FeicaoItem } from './tipos';
 import { vincularRenomearInline } from './camadas-renomear';
+import { idsCamadasTravadas } from './camadas-hierarquia';
 import {
   zonaDeDropCamada,
   moverCamada,
@@ -14,7 +15,6 @@ import {
   moverFeicaoParaCamada,
   reordenarFeicao
 } from './camadas-drop-ops';
-import { camadaTravadaEfetiva } from './camadas-hierarquia';
 
 export interface UICamadasHost {
   camadas: CamadaItem[];
@@ -83,7 +83,8 @@ export class CamadasDragDropManager {
   private trocaEntreCamadasTravada(feicaoId: string, camadaDestinoId: string | null): boolean {
     const origemId = this.host.feicoes.find((f) => f.id === feicaoId)?.layerId;
     if (!camadaDestinoId || origemId === camadaDestinoId) return false;
-    return camadaTravadaEfetiva(this.host.camadas, origemId) || camadaTravadaEfetiva(this.host.camadas, camadaDestinoId);
+    const travadas = idsCamadasTravadas(this.host.camadas);
+    return travadas.has(camadaDestinoId) || (!!origemId && travadas.has(origemId));
   }
 
   private arrasteBloqueado(alvo: HTMLElement): boolean {
@@ -155,14 +156,18 @@ export class CamadasDragDropManager {
           if (!this.host.camadas.some((l) => l.id === camadaArrastadaId) || !this.host.camadas.some((l) => l.id === camadaId)) return;
 
           const resultado = moverCamada(this.host.camadas, camadaArrastadaId, camadaId, zona);
-          if (!resultado) return;
-          const novoParentId = resultado.camada.parentId ?? null;
-          // Soltar acima/abaixo de uma subcamada de outro grupo também troca o pai: o aplicativo precisa saber
-          if (resultado.tipo === 'hierarquia' || novoParentId !== resultado.parentAnteriorId) {
-            if (novoParentId) this.host.expandedLayers?.add(novoParentId);
+          if (resultado?.tipo === 'hierarquia') {
+            this.host.expandedLayers?.add(resultado.novoParentId);
             this.host.dispararEvento('ui-camada-mover-hierarquia', {
               camadaId: resultado.camada.id,
-              novoParentId,
+              novoParentId: resultado.novoParentId,
+              parentAnteriorId: resultado.parentAnteriorId,
+              camada: resultado.camada
+            });
+          } else if (resultado && resultado.parentAnteriorId !== resultado.novoParentId) {
+            this.host.dispararEvento('ui-camada-mover-hierarquia', {
+              camadaId: resultado.camada.id,
+              novoParentId: resultado.novoParentId,
               parentAnteriorId: resultado.parentAnteriorId,
               camada: resultado.camada
             });

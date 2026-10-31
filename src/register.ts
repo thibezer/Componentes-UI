@@ -11,6 +11,7 @@ import './components/ui-lista-flutuante';
 import './components/ui-texto';
 import './components/ui-campo-texto';
 import './components/ui-area-texto';
+import './components/ui-texto-editavel';
 import './components/ui-icone';
 import './components/ui-checkbox';
 import './components/ui-radio';

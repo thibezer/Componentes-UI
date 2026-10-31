@@ -1,34 +1,79 @@
 # Changelog
 
-## Não publicado
+## 2.12.2 — 2026-10-30
 
-### `<ui-camadas>`: revisão profunda (correções e experiência de uso)
+### `<ui-camadas>`: cabeçalho e rodapé simplificados
 
-Correções (cada uma com teste de regressão em `ui-camadas.regressao.test.ts` ou `camadas-drop-ops.test.ts`):
+- **Barras unificadas**: cabeçalho (título + contador) e rodapé usam a mesma altura (`--camada-barra-altura`, 28px), coladas nas bordas do painel e com linha divisória de ponta a ponta.
+- **Botões sem borda dupla**: olho, chevron, `Grupo` e `Camada` perdem a borda própria; ficam só com fundo sutil.
+- **Criação no rodapé**: `Grupo` e `Camada` saíram da toolbar do topo e ficam à direita do rodapé (eventos `ui-camada-adicionar` e `ui-camada-grupo-adicionar` inalterados). Os ids `btn-add-layer` e `btn-add-group` deixam de existir; use `btn-footer-new-layer` e `btn-footer-new-group`.
+- **Rodapé enxuto**: o texto "N camadas" virou ícone de camadas + número (o texto fica em `title`/`aria-label`). Saíram o olho e o cadeado coletivos, a bolinha de cor, a métrica de área e o botão "X" (o `Esc` limpa a seleção).
+- **Ações em massa**: `visibilidade`, `bloqueio` e `cor` deixam de ser disparadas pelo painel; seguem `mover` e `excluir`. O seletor de camada de destino ocupa o espaço livre.
 
-- **Área do rodapé ~64 % acima do real.** A fórmula somava produtos de arestas consecutivas e ignorava o cosseno da latitude (um quadrado de 0,01° em −23,5° saía com 1,86 km² em vez de 1,14 km²; aberto, 2,48 km²). Agora usa o excesso esférico (a mesma fórmula do Leaflet.draw/Turf); vértice não numérico é ignorado em vez de zerar a área.
-- **Camadas sumiam da árvore** com `parentId` em ciclo (A → B → A): agora sobem para a raiz. `children` que referencia a si mesmo não recursa mais sem fim (nem na árvore nem em `definirCamadas`/`adicionarCamada`).
-- **Ciclos criados pelo próprio painel:** o seletor "Pertence ao Grupo" do drawer não oferece mais a própria camada nem os descendentes (e recusa uma opção forjada); arrastar um grupo para acima/abaixo de um descendente é recusado (antes o grupo virava filho de si mesmo).
-- **`ui-camada-mover-hierarquia`** traz `parentAnteriorId` (já documentado, nunca enviado) e passa a ser emitido também quando soltar acima/abaixo de uma subcamada de outro grupo troca o pai (antes a hierarquia mudava em silêncio). `DetalheEventoMoverHierarquiaCamada` ganha o campo.
-- **Seleção com Shift** segue a ordem da tela (hierarquia, subcamadas antes das feições) e ignora feições sob um grupo recolhido; antes seguia a ordem da lista plana e selecionava feições escondidas.
-- **Alvo de seleção do grupo** marca as feições das subcamadas (antes não fazia nada num grupo sem feições próprias); o estado cheio/parcial considera o ramo inteiro, inclusive no arraste sobre os alvos.
-- **`localStorage` corrompido** (listas que não são listas, opacidade fora de [0, 1], JSON que não é objeto) não derruba mais o painel: o estado é validado campo a campo.
-- **Hierarquia montada pelo usuário é lembrada**: o `parentId` entra na persistência (antes só a ordem voltava). Se o aplicativo mudar o pai depois, o dele vence, como nos demais campos.
-- `atualizarFeicao(null)` não lança; `adicionarCamada` com `children` cadastra as subcamadas (antes apareciam na árvore sem existir na lista, e o olho/cadeado delas não respondiam); remover ou trocar as feições solta a âncora do Shift.
-- O botão "Excluir" do drawer volta ao rótulo original quando a confirmação expira (voltava como "Excluir Camada").
+### `<ui-texto-editavel>` (novo)
 
-Experiência de uso:
+- Novo componente de texto editável inline, exportado em `src/index.ts` e registrado em `src/register.ts`.
 
-- **Estado herdado do grupo:** sob um grupo oculto, subcamadas e feições ficam esmaecidas (classe `herdado-oculto`), sem mudar o próprio estado; sob um grupo travado, as feições das subcamadas ficam travadas ("Bloqueada pela camada") e a linha da subcamada ganha `herdado-travado`.
-- **Camada travada não recebe nem perde feições**: o arraste é recusado e, no "Mover para..." do rodapé, a camada aparece desabilitada com 🔒.
-- **Teclado:** `F2` renomeia a camada ou feição focada; ao confirmar (Enter) ou cancelar (Esc), o foco volta para a linha. `Ctrl/Cmd+A` numa linha seleciona todas as feições visíveis (emite `ui-feicoes-selecionadas`); no campo de busca continua selecionando o texto.
-- O chip de contagem de um grupo soma as feições das subcamadas (o título detalha quantas são da própria camada).
-- Acessibilidade: `aria-level` nos itens da árvore; o botão "Limpar seleção" criado na sincronização ganha `aria-label`.
-- Camada sem itens diz "Camada vazia" (antes, "Nenhum elemento neste grupo"); o aviso de feições truncadas vira a classe `.ui-truncate-notice`, com tokens, em vez de estilo inline.
+## 2.12.0 — 2026-10-26
 
-### `<ui-seletor-cor>`
+### `<ui-camadas>`: Verificação e Correção Profunda, Robustez e UX Avançada
 
-- Removido do DOM por fora (sem `fechar()`), o seletor aberto por `abrirSeletorCor()` soltava os ouvintes de `window` só ao fechar: o de teclado continuava engolindo o Esc da página inteira. Agora solta ao desconectar (Regra #2).
+- **Proteção Numérica e Degradação Graciosa (Regra #0 do AGENTS.md)**:
+  - Eliminação de recursão infinita e loops em `construirHierarquiaCamadas` e `achatarCamadas`: proteção com detecção de ciclos via `Set` de nós visitados e quebra do ciclo elegendo a raiz sem perder camadas da árvore nem travar a UI.
+  - Correção do cálculo de área geodésica em `camadas-metricas.ts`: substituição da soma de produtos vetoriais de arestas por Shoelace projetado na esfera WGS84 com projeção local ($\phi_m$), blindagem contra `NaN`/`Infinity`, divisão por zero e clamp trigonométrico na distância esférica.
+  - Saneamento defensivo em `atualizarFeicaoNoHost`: proteção contra objetos `feicao` nulos ou indefinidos e clonagem segura de propriedades.
+- **Persistência Completa de Hierarquia**:
+  - `montarEstadoPersistido` e `aplicarEstadoPersistido` agora salvam e restauram `parentId`, impedindo o "desaninhamento" de subcamadas após reload da página. Saneamento preventivo contra reidratação de ciclos (`ehDescendente`).
+- **UX de Paginação Incremental ("Mostrar mais")**:
+  - Em camadas densas com centenas de feições, o componente limita a renderização inicial a 80 itens por camada e disponibiliza o botão "Mostrar mais (+80)" e o método público `incrementarLimiteFeicoes(camadaId)`.
+  - A seleção em intervalo (Shift+Clique) e seleções em lote respeitam estritamente a hierarquia real das subcamadas e o limite visível.
+- **Acessibilidade e Atalhos de Teclado**:
+  - `F2`: Inicia a renomeação inline da camada ou feição focada.
+  - `Ctrl+A` / `Cmd+A`: Seleciona todas as feições visíveis na árvore (respeitando busca ativa e nós colapsados).
+  - `Delete`: Aciona o fluxo de exclusão segura das feições selecionadas com confirmação em dois passos.
+  - `Escape`: Cancela o estado de confirmação pendente ou fecha o drawer lateral de configurações.
+- **Sincronização de Estado e Rodapé**:
+  - O alvo de seleção da camada (`ui-target-circle`) agora monitora a subárvore completa (camada pai e subcamadas filhas), aplicando corretamente os estados `selected`, `partial` ou vazio.
+  - O preview de cor do rodapé é atualizado com a cor real da primeira feição selecionada.
+  - O evento `ui-camada-mover-hierarquia` agora informa `parentAnteriorId` para rastreabilidade e histórico de operações.
+  - Adicionado método público `alternarExpansao(camadaId)`.
+- **Customização e Shadow Parts (`::part()`)**:
+  - Exposição de partes padronizadas: `base`, `corpo`, `toolbar`, `busca`, `arvore`, `grupo`, `camada`, `camada-ativa`, `feicao`, `feicao-selecionada`, `mapas-base`, `rodape`, `drawer`, `resizer` e `botao-expandir`.
+
+### `<ui-tabela-propriedades>`: Verificação e Correção Profunda, Robustez, UX e Acessibilidade CAD/Revit
+
+- **Proteção e Degradação Graciosa (Regra #0 do AGENTS.md)**:
+  - Higienização e tolerância a entradas hostis em `categorias` e `tipos` (itens `null`, propriedades sem rótulo ou malformadas são aceitas sem disparar `TypeError`).
+  - Blindagem do parser matemático contra divisão por zero, `NaN`, `Infinity` e estouro de pilha por parênteses recursivos profundos (`MAX_PROFUNDIDADE = 64`).
+  - Tratamento seguro de `flutuante`: prevenção contra ciclo de recursão de mutação em `attributeChangedCallback`.
+- **Motor Matemático e Expressões Inline CAD/Revit (`avaliador-expressao.ts`)**:
+  - Suporte a prefixo `=` opcional de fórmula (ex.: `=10.5 * 2 + (4 / 2)`).
+  - Suporte completo a números em notação científica (ex.: `1e-5`, `2.5e3`).
+  - Correção na avaliação contextual de porcentagem em termos compostos (`100 + 50 * 10% = 105`).
+  - Suporte a funções matemáticas avançadas: `min`, `max`, `pow`, `hypot`, `atan2`, `mod`, `trunc`, `sign`, `log`, `ln`, `deg`, `rad`.
+  - Preview visual em tempo real no atributo `title` do campo numérico enquanto uma fórmula é digitada (`.ui-prop__editor-input--calculando`).
+- **Ergonomia e UX Técnica (AutoCAD, Revit, Blender e Figma)**:
+  - Suporte a limites numéricos `min` e `max` em propriedades numéricas (com clamp automático na digitação, no teclado e no scrubber).
+  - Suporte a `passo` e `step` customizados para ajuste fino e grosso via setas `ArrowUp`/`ArrowDown` e scrubber.
+  - Suporte a aliases `precisao` (para `casasDecimais`) e `aberta` (para `aberto` em categorias).
+  - Exibição de dicas técnicas (`dica?: string` em `ItemPropriedade`) no `title` do rótulo e em `aria-description` do editor.
+  - Formatação e cópia de valores somente leitura (`readonly`), suportando casas decimais, resolução de labels de seleção e booleanos.
+  - Novo método público `redefinirValor(propId)` para reverter uma propriedade individual ao seu valor original sem descartar as demais alterações.
+  - Novo botão de limpar busca (`#btn-limpar-filtro`) e atalho `Escape` para limpar o filtro de busca instantaneamente.
+  - Busca expandida: agora localiza propriedades também pelo título da categoria (`cat.titulo`) e pelo valor atual.
+  - Exibição de estado vazio informativo quando nenhum resultado coincidir com o filtro.
+  - Atalho `Ctrl+Enter` / `Cmd+Enter` para aplicar alterações no modo manual.
+  - Tecla `Escape` durante a edição de campos numéricos e de texto cancela a alteração sem propagar o evento para modais ou overlays pais.
+  - Suporte a `Shift+Enter` para navegar ao editor anterior, e navegação restrita estritamente a editores visíveis de categorias abertas.
+- **Acessibilidade e WAI-ARIA**:
+  - Splitter vertical (`#splitter`) agora é um separador acessível (`role="separator"`, `tabindex="0"`, `aria-orientation="vertical"`, `aria-valuenow` dinâmico) ajustável via teclado com `ArrowLeft`, `ArrowRight`, `Home`, `End` e `Enter` para restaurar os 45% padrão.
+  - Cabeçalhos de categorias (`.ui-prop__categoria-header`) navegáveis por teclado via `ArrowDown`, `ArrowUp`, `ArrowLeft` (recolhe), `ArrowRight` (expande), `Home` e `End`.
+  - Correção de contraste para conformidade WCAG AA no tema claro (`[data-tema="claro"]`).
+  - Adição de `aria-label` descritivo nos seletores de tipo e de linha.
+- **Shadow Parts (`::part()`) e Registro de Aliases**:
+  - Exposição completa de shadow parts: `base`, `faixa-estreita`, `cabecalho`, `titulo`, `acoes-cabecalho`, `seletor-tipo`, `filtro`, `filtro-input`, `splitter`, `corpo`, `lista-categorias`, `vazio`, `categoria`, `categoria-aberta`, `categoria-cabecalho`, `categoria-conteudo`, `linha`, `linha-modificada`, `linha-mista`, `rotulo`, `valor`, `editor`, `unidade`, `rodape`, `ajuda`, `desfazer`, `aplicar`.
+  - Registro oficial dos Custom Elements aliases `<ui-painel-propriedades>` e `<ui-propriedades>` (classes `UIPainelPropriedades` e `UIPropriedades`), com tipagem completa gerada para HTML nativo, React e Vue.
+
 
 ## 2.11.1 — 2026-10-23
 

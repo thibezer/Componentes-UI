@@ -1,11 +1,11 @@
 /* ====================================================
    UI Camadas - Teclado e Acessibilidade
-   Escape, ativação por Enter/Espaço dos controles-ícone,
-   navegação por setas entre as linhas da árvore (roving tabindex),
-   F2 para renomear e Ctrl/Cmd+A para selecionar as feições visíveis
+   Escape, ativação por Enter/Espaço dos controles-ícone e
+   navegação por setas entre as linhas da árvore (roving tabindex)
    ==================================================== */
 
 import { ListenerBag } from '../../core/listener-bag';
+import { focoEmCampoDeTexto } from '../../core/alvo-digitavel';
 import { CamadasHostCompleto } from './camadas-host';
 import { buscarPorAtributo } from './camadas-utils';
 import { obterIdsVisiveisFeicoes } from './camadas-selecao';
@@ -19,8 +19,9 @@ const TIPOS_INPUT_NAO_TEXTUAIS = ['color', 'range', 'checkbox', 'radio', 'button
  * Usa composedPath porque, ouvindo no host, `event.target` é reapontado para o próprio host.
  */
 function ehCampoDeTexto(el: EventTarget | undefined): boolean {
-  if (el instanceof HTMLSelectElement || el instanceof HTMLTextAreaElement) return true;
-  return el instanceof HTMLInputElement && !TIPOS_INPUT_NAO_TEXTUAIS.includes(el.type);
+  if (!el || !(el instanceof Element)) return false;
+  if (el instanceof HTMLInputElement && TIPOS_INPUT_NAO_TEXTUAIS.includes(el.type)) return false;
+  return focoEmCampoDeTexto({ composedPath: () => [el] } as unknown as Event);
 }
 
 function linhasNavegaveis(corpo: HTMLElement): HTMLElement[] {
@@ -50,6 +51,14 @@ function ativarLinha(linha: HTMLElement, e: KeyboardEvent): void {
 function aoPressionarEscape(host: CamadasHostCompleto, shadow: ShadowRoot, e: KeyboardEvent): void {
   if (ehCampoDeTexto(e.composedPath()[0])) return;
 
+  // Cancela confirmação pendente de exclusão do rodapé ou drawer
+  const delBtn = shadow.querySelector('.confirming') as HTMLElement | null;
+  if (delBtn) {
+    e.preventDefault();
+    delBtn.classList.remove('confirming');
+    return;
+  }
+
   if (host.activeSettingsLayerId) {
     e.preventDefault();
     const layerId = host.activeSettingsLayerId;
@@ -64,13 +73,6 @@ function aoPressionarEscape(host: CamadasHostCompleto, shadow: ShadowRoot, e: Ke
     e.preventDefault();
     host.limparSelecao(true);
   }
-}
-
-/** F2 (como no Explorer, QGIS e Illustrator): abre o renomear inline da linha focada. */
-function iniciarRenomear(linha: HTMLElement): void {
-  linha
-    .querySelector('[data-layer-name-trigger], [data-feat-name-trigger]')
-    ?.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
 }
 
 function aoPressionarTeclaNoCorpo(
@@ -90,21 +92,51 @@ function aoPressionarTeclaNoCorpo(
   }
 
   if (!alvo.matches(SEL_LINHAS)) return;
-  if (e.key === 'F2') {
-    e.preventDefault();
-    iniciarRenomear(alvo);
-    return;
-  }
-
-  if ((e.ctrlKey || e.metaKey) && (e.key === 'a' || e.key === 'A')) {
-    e.preventDefault();
-    const ids = obterIdsVisiveisFeicoes(host.camadas, host.feicoes, host.expandedLayers, host.searchQuery);
-    host.selecionarFeicoes(ids, true);
-    return;
-  }
-
   const linhas = linhasNavegaveis(corpo);
   const idx = linhas.indexOf(alvo);
+
+  // Atalho F2: renomeação inline na linha focada
+  if (e.key === 'F2') {
+    e.preventDefault();
+    const layerId = alvo.getAttribute('data-layer-row');
+    const featId = alvo.getAttribute('data-feat-row');
+    const trigger = layerId
+      ? buscarPorAtributo(alvo, 'data-layer-name-trigger', layerId)
+      : featId
+      ? buscarPorAtributo(alvo, 'data-feat-name-trigger', featId)
+      : null;
+    if (trigger) {
+      trigger.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+    }
+    return;
+  }
+
+  // Atalho Ctrl+A / Cmd+A: seleciona todas as feições visíveis
+  if ((e.ctrlKey || e.metaKey) && (e.key === 'a' || e.key === 'A')) {
+    e.preventDefault();
+    const visiveis = obterIdsVisiveisFeicoes(
+      host.camadas,
+      host.feicoes,
+      host.expandedLayers,
+      host.searchQuery,
+      undefined,
+      host.expandedFeatureLimits
+    );
+    if (visiveis.length > 0) {
+      host.selecionarFeicoes(visiveis, true);
+    }
+    return;
+  }
+
+  // Atalho Delete: aciona exclusão coletiva se houver feições selecionadas
+  if (e.key === 'Delete') {
+    const btnDel = shadow.getElementById('btn-footer-del');
+    if (btnDel && !btnDel.hasAttribute('disabled') && host.selectedFeatureIds.size > 0) {
+      e.preventDefault();
+      btnDel.click();
+      return;
+    }
+  }
 
   switch (e.key) {
     case 'ArrowDown':

@@ -1,7 +1,8 @@
 /**
  * Controlador de Redimensionamento do Divisor Vertical (Splitter) (<ui-tabela-propriedades>).
- * Responsabilidade única: gerenciar o arraste com mouse/toque, restrições mínimas de largura
- * (80px rótulo / 130px valor), teto de proporção (20% a 65%) e reset para 45% com duplo-clique.
+ * Responsabilidade única: gerenciar o arraste com mouse/toque, teclado acessível (WAI-ARIA),
+ * restrições mínimas de largura (80px rótulo / 130px valor), teto de proporção (20% a 65%)
+ * e reset para 45% com duplo-clique ou Enter.
  */
 
 import { ListenerBag } from '../../core/listener-bag';
@@ -23,13 +24,26 @@ export function criarControladorSplitter(ctx: ContextoSplitterPropriedades): Con
   let larguraRotuloPorcentagem: number = 45;
 
   function definirLarguraRotulo(porcentagem: number): number {
+    if (!Number.isFinite(porcentagem)) return larguraRotuloPorcentagem;
     const clamped = Math.max(20, Math.min(65, porcentagem));
     larguraRotuloPorcentagem = clamped;
     ctx.hostElement.style.setProperty('--ui-prop-rotulo-largura', `${clamped}%`);
     if (ctx.splitterElement) {
       ctx.splitterElement.style.left = `calc(${clamped}% - 4px)`;
+      ctx.splitterElement.setAttribute('aria-valuenow', String(Math.round(clamped)));
     }
     return clamped;
+  }
+
+  function notificarResize(pct: number): void {
+    ctx.onLarguraAlterada(pct);
+    ctx.hostElement.dispatchEvent(
+      new CustomEvent('ui-splitter-resize', {
+        bubbles: true,
+        composed: true,
+        detail: { larguraPorcentagem: pct }
+      })
+    );
   }
 
   function init(): void {
@@ -81,14 +95,7 @@ export function criarControladorSplitter(ctx: ContextoSplitterPropriedades): Con
         ctx.splitterElement!.removeEventListener('pointerup', onPointerUp);
         ctx.splitterElement!.removeEventListener('pointercancel', onPointerUp);
 
-        ctx.onLarguraAlterada(larguraRotuloPorcentagem);
-        ctx.hostElement.dispatchEvent(
-          new CustomEvent('ui-splitter-resize', {
-            bubbles: true,
-            composed: true,
-            detail: { larguraPorcentagem: larguraRotuloPorcentagem }
-          })
-        );
+        notificarResize(larguraRotuloPorcentagem);
       };
 
       ctx.splitterElement!.addEventListener('pointermove', onPointerMove);
@@ -100,15 +107,26 @@ export function criarControladorSplitter(ctx: ContextoSplitterPropriedades): Con
 
     // Duplo-clique no splitter reseta para 45% (posição padrão de equilíbrio CAD)
     ctx.splitterListeners.add(ctx.splitterElement, 'dblclick', () => {
-      definirLarguraRotulo(45);
-      ctx.onLarguraAlterada(45);
-      ctx.hostElement.dispatchEvent(
-        new CustomEvent('ui-splitter-resize', {
-          bubbles: true,
-          composed: true,
-          detail: { larguraPorcentagem: 45 }
-        })
-      );
+      const novo = definirLarguraRotulo(45);
+      notificarResize(novo);
+    });
+
+    // Ajuste acessível por teclado (WAI-ARIA Window Splitter)
+    ctx.splitterListeners.add(ctx.splitterElement, 'keydown', (e: KeyboardEvent) => {
+      const passo = e.shiftKey ? 5 : 2;
+      let alvo: number | null = null;
+      if (e.key === 'ArrowLeft') alvo = larguraRotuloPorcentagem - passo;
+      else if (e.key === 'ArrowRight') alvo = larguraRotuloPorcentagem + passo;
+      else if (e.key === 'Home') alvo = 20;
+      else if (e.key === 'End') alvo = 65;
+      else if (e.key === 'Enter') alvo = 45;
+
+      if (alvo !== null) {
+        e.preventDefault();
+        e.stopPropagation();
+        const novo = definirLarguraRotulo(alvo);
+        notificarResize(novo);
+      }
     });
   }
 

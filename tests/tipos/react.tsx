@@ -17,6 +17,16 @@ export const usoCorreto = (
       onui-sort={(e) => console.log(e.detail)}
     />
     <ui-modal titulo="Confirmar" aberto bloquear-fechamento onui-fechar={() => {}} />
+    <ui-tabela-propriedades
+      titulo="Propriedades CAD"
+      densidade="compacta"
+      estilo-visual="autocad"
+      modo-aplicar="imediato"
+      categorias={[{ id: 'c1', titulo: 'Geral', propriedades: [] }]}
+      onui-propriedade-alterada={(e) => console.log(e.detail)}
+    />
+    <ui-painel-propriedades titulo="Painel" densidade="padrao" />
+    <ui-propriedades titulo="Propriedades" />
   </>
 );
 
@@ -28,3 +38,6 @@ export const colunasInvalidas = <ui-tabela colunas="ponto" />;
 
 // @ts-expect-error propriedade inexistente
 export const propInexistente = <ui-botao inexistente />;
+
+// @ts-expect-error densidade fora do conjunto aceito em tabela de propriedades
+export const propDensidadeInvalida = <ui-tabela-propriedades densidade="gigante" />;

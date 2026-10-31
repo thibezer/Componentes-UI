@@ -25,26 +25,29 @@ export interface HostColecao {
   solicitarRenderizacao(): void;
 }
 
-/**
- * Transforma a árvore (`children`) em lista plana, herdando `parentId` do pai quando não informado.
- * Itens sem `id` são descartados; um `children` que referencia um ancestral (ou repete um id) não recursa sem fim.
- */
+/** Transforma a árvore (`children`) em lista plana, herdando `parentId` do pai quando não informado. */
 export function achatarCamadas(
   camadas: CamadaItem[],
   parentId: string | null = null,
-  vistos: Set<string> = new Set()
+  visitados = new Set<string>()
 ): CamadaItem[] {
   const resultado: CamadaItem[] = [];
+  if (!Array.isArray(camadas)) return resultado;
+
   for (const c of camadas) {
-    if (!c || typeof c.id !== 'string' || !c.id || vistos.has(c.id)) continue;
-    vistos.add(c.id);
-    const item = { ...c };
+    if (!c || typeof c !== 'object' || !c.id) continue;
+    const idStr = String(c.id);
+    if (visitados.has(idStr)) continue;
+    visitados.add(idStr);
+
+    const item: CamadaItem = { ...c, id: idStr };
+    delete item.children;
     if (parentId && item.parentId === undefined) {
       item.parentId = parentId;
     }
     resultado.push(item);
     if (Array.isArray(c.children) && c.children.length > 0) {
-      resultado.push(...achatarCamadas(c.children, c.id, vistos));
+      resultado.push(...achatarCamadas(c.children, idStr, visitados));
     }
   }
   return resultado;
@@ -54,6 +57,20 @@ export function achatarCamadas(
 function soltarAncoraInvalida(host: HostColecao): void {
   const ancora = host.lastClickedFeatureId;
   if (ancora && !host.feicoes.some((f) => f.id === ancora)) host.lastClickedFeatureId = null;
+}
+
+function sanitizarListaFeicoes(feicoes: FeicaoItem[]): FeicaoItem[] {
+  if (!Array.isArray(feicoes)) return [];
+  const vistas = new Set<string>();
+  const validas: FeicaoItem[] = [];
+  for (const f of feicoes) {
+    if (!f || typeof f !== 'object' || !f.id) continue;
+    const idStr = String(f.id);
+    if (vistas.has(idStr)) continue;
+    vistas.add(idStr);
+    validas.push({ ...f, id: idStr });
+  }
+  return validas;
 }
 
 export function definirCamadasNoHost(host: HostColecao, camadas: CamadaItem[], feicoes?: FeicaoItem[]): void {
@@ -77,7 +94,7 @@ export function definirCamadasNoHost(host: HostColecao, camadas: CamadaItem[], f
   }
 
   if (Array.isArray(feicoes)) {
-    host.feicoes = feicoes.map((f) => ({ ...f }));
+    host.feicoes = sanitizarListaFeicoes(feicoes);
     const layerIdsExistentes = new Set(host.camadas.map((l) => l.id));
     const orfas = host.feicoes.filter((f) => f.layerId && !layerIdsExistentes.has(f.layerId));
     if (orfas.length > 0) {
@@ -101,7 +118,7 @@ export function definirCamadasNoHost(host: HostColecao, camadas: CamadaItem[], f
 }
 
 export function definirFeicoesNoHost(host: HostColecao, feicoes: FeicaoItem[]): void {
-  host.feicoes = Array.isArray(feicoes) ? feicoes.map((f) => ({ ...f })) : [];
+  host.feicoes = sanitizarListaFeicoes(feicoes);
   removerSelecoesInvalidas(host.selectedFeatureIds, host.feicoes);
   soltarAncoraInvalida(host);
   host.solicitarRenderizacao();
@@ -163,7 +180,7 @@ export function adicionarFeicaoNoHost(host: HostColecao, feicao: FeicaoItem): vo
 }
 
 export function atualizarFeicaoNoHost(host: HostColecao, feicaoAtualizada: FeicaoItem): void {
-  if (!feicaoAtualizada || typeof feicaoAtualizada.id !== 'string') return;
+  if (!feicaoAtualizada || typeof feicaoAtualizada !== 'object' || !feicaoAtualizada.id) return;
   const idx = host.feicoes.findIndex((f) => f.id === feicaoAtualizada.id);
   if (idx !== -1) {
     host.feicoes[idx] = { ...host.feicoes[idx], ...feicaoAtualizada };

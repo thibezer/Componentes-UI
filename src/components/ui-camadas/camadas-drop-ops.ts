@@ -32,7 +32,7 @@ export function zonaDeDropCamada(posicaoRelativa: number): ZonaDrop {
 
 export type ResultadoMoverCamada =
   | { tipo: 'hierarquia'; camada: CamadaItem; novoParentId: string; parentAnteriorId: string | null }
-  | { tipo: 'ordem'; camada: CamadaItem; parentAnteriorId: string | null };
+  | { tipo: 'ordem'; camada: CamadaItem; parentAnteriorId: string | null; novoParentId: string | null };
 
 /**
  * Move `movidaId` em relação a `alvoId`. `dentro` torna-a subcamada (recusa ciclos); `acima`/`abaixo`
@@ -48,7 +48,8 @@ export function moverCamada(
   const movida = camadas.find((l) => l.id === movidaId);
   const alvo = camadas.find((l) => l.id === alvoId);
   if (!movida || !alvo) return null;
-  const parentAnteriorId = movida.parentId ?? null;
+
+  const parentAnteriorId = movida.parentId !== undefined ? movida.parentId : null;
 
   if (zona === 'dentro') {
     if (ehDescendente(camadas, alvo.id, movida.id)) return null;
@@ -58,13 +59,14 @@ export function moverCamada(
 
   // Adotar o pai de um descendente criaria ciclo (o grupo passaria a ser filho de si mesmo)
   if (ehDescendente(camadas, alvo.id, movida.id)) return null;
+
   const origem = camadas.findIndex((l) => l.id === movidaId);
   camadas.splice(origem, 1);
   const destino = camadas.findIndex((l) => l.id === alvoId);
   if (destino === -1) camadas.push(movida);
   else camadas.splice(zona === 'acima' ? destino : destino + 1, 0, movida);
   movida.parentId = alvo.parentId ?? null;
-  return { tipo: 'ordem', camada: movida, parentAnteriorId };
+  return { tipo: 'ordem', camada: movida, parentAnteriorId, novoParentId: movida.parentId };
 }
 
 /** Reordena apenas (sem aninhar), como no arraste por toque. Muta `camadas`; `false` se nada mudou. */

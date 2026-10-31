@@ -4,12 +4,12 @@
    in-place, sem redesenhar a árvore inteira
    ==================================================== */
 
+import { alternarPart } from '../../core/parts';
 import { CamadasHostCompleto } from './camadas-host';
+import { obterFeicoesDoEscopoCamada, calcularEstadoHerdado } from './camadas-hierarquia';
 import { ICONES } from './camadas-icones';
-import { formatarMetricaFeicoes } from './camadas-metricas';
-import { feicoesPorRamo } from './camadas-selecao';
-import { calcularEstadoHerdado } from './camadas-hierarquia';
 import { definirRotuloControle } from './camadas-utils';
+import { rotuloRodape } from './camadas-rodape';
 
 export function sincronizarCamadaAtivaDOM(host: CamadasHostCompleto, shadow: ShadowRoot): void {
   const rows = shadow.querySelectorAll('[data-layer-row]');
@@ -17,6 +17,7 @@ export function sincronizarCamadaAtivaDOM(host: CamadasHostCompleto, shadow: Sha
     const lid = row.getAttribute('data-layer-row');
     const isAtiva = lid === host.camadaAtivaId;
     row.classList.toggle('active-drawing-layer', isAtiva);
+    alternarPart(row, 'camada-ativa', isAtiva);
     if (isAtiva) row.setAttribute('aria-current', 'true');
     else row.removeAttribute('aria-current');
   });
@@ -28,16 +29,16 @@ export function sincronizarSelecaoDOM(host: CamadasHostCompleto, shadow: ShadowR
     const featId = row.getAttribute('data-feat-row');
     const isSelected = featId ? host.selectedFeatureIds.has(featId) : false;
     row.classList.toggle('selected-row', isSelected);
+    alternarPart(row, 'feicao-selecionada', isSelected);
     row.setAttribute('aria-selected', String(isSelected));
     const circle = row.querySelector('.ui-target-circle');
     if (circle) circle.classList.toggle('selected', isSelected);
   });
 
-  // 2. Atualizar targets de camadas (selected / partial / vazio), considerando o ramo inteiro
-  const ramos = feicoesPorRamo(host.camadas, host.feicoes, host.searchQuery);
+  // 2. Atualizar targets de camadas (selected / partial / vazio) considerando subárvore
   shadow.querySelectorAll('.ui-layer-group').forEach((group) => {
     const lid = group.getAttribute('data-layer-id');
-    const feats = (lid && ramos.get(lid)) || [];
+    const feats = obterFeicoesDoEscopoCamada(host.camadas, host.feicoes, lid ?? '');
     const circle = group.querySelector('.ui-layer-row .ui-target-circle');
     if (circle && feats.length > 0) {
       const allSel = feats.every((f) => host.selectedFeatureIds.has(f.id));
@@ -59,24 +60,10 @@ export function sincronizarSelecaoDOM(host: CamadasHostCompleto, shadow: ShadowR
     countEl.textContent = String(temSel ? feicoesSel.length : host.camadas.length);
   }
   if (labelEl) {
-    labelEl.textContent = temSel
-      ? feicoesSel.length > 1
-        ? 'selecionados'
-        : 'selecionado'
-      : host.camadas.length > 1
-      ? 'camadas'
-      : 'camada';
-  }
-
-  const metricEl = shadow.querySelector('.ui-footer-metric');
-  const metricaCalculada = formatarMetricaFeicoes(feicoesSel);
-  if (metricEl) {
-    if (metricaCalculada) {
-      metricEl.innerHTML = `${ICONES.reguaMetrica} ${metricaCalculada}`;
-      (metricEl as HTMLElement).style.display = 'inline-flex';
-    } else {
-      (metricEl as HTMLElement).style.display = 'none';
-    }
+    const rotulo = rotuloRodape(host.camadas.length, feicoesSel.length);
+    labelEl.innerHTML = rotulo.icone;
+    labelEl.title = rotulo.texto;
+    labelEl.setAttribute('aria-label', rotulo.texto);
   }
 
   // Alternar modos do rodapé: modo resumo vs modo ações em massa
@@ -97,7 +84,7 @@ export function sincronizarSelecaoDOM(host: CamadasHostCompleto, shadow: ShadowR
   }
 
   // Habilitar/desabilitar botões do rodapé
-  ['btn-footer-vis', 'btn-footer-lock', 'btn-footer-del'].forEach((id) => {
+  ['btn-footer-del'].forEach((id) => {
     const btn = shadow.getElementById(id) as HTMLButtonElement | null;
     if (btn) {
       btn.disabled = !temSel;
@@ -110,26 +97,6 @@ export function sincronizarSelecaoDOM(host: CamadasHostCompleto, shadow: ShadowR
 
   const selMove = shadow.getElementById('select-footer-move') as HTMLSelectElement | null;
   if (selMove) selMove.disabled = !temSel;
-
-  const colorWrap = shadow.querySelector('.ui-footer-color-wrapper');
-  if (colorWrap) colorWrap.classList.toggle('disabled', !temSel);
-
-  const inputColor = shadow.getElementById('input-footer-color') as HTMLInputElement | null;
-  if (inputColor) inputColor.disabled = !temSel;
-
-  let clearBtn = shadow.getElementById('btn-footer-clear');
-  const rightFooter = shadow.querySelector('.ui-footer-right');
-  if (temSel && !clearBtn && rightFooter) {
-    clearBtn = document.createElement('button');
-    clearBtn.id = 'btn-footer-clear';
-    clearBtn.className = 'ui-footer-btn btn-clear-footer';
-    definirRotuloControle(clearBtn, 'Limpar seleção');
-    clearBtn.innerHTML = ICONES.fechar;
-    clearBtn.addEventListener('click', () => host.limparSelecao(true));
-    rightFooter.appendChild(clearBtn);
-  } else if (!temSel && clearBtn) {
-    clearBtn.remove();
-  }
 }
 
 /**

@@ -11,7 +11,18 @@ const RAIO_TERRA = 6378137; // Raio equatorial WGS84 em metros
  * Calcula a distância em metros entre duas coordenadas [lat, lon] ou [lon, lat]
  */
 export function calcularDistanciaPontos(p1: [number, number], p2: [number, number]): number {
-  if (!p1 || !p2) return 0;
+  if (
+    !Array.isArray(p1) ||
+    !Array.isArray(p2) ||
+    p1.length < 2 ||
+    p2.length < 2 ||
+    !Number.isFinite(p1[0]) ||
+    !Number.isFinite(p1[1]) ||
+    !Number.isFinite(p2[0]) ||
+    !Number.isFinite(p2[1])
+  ) {
+    return 0;
+  }
   // Suporta detecção [lat, lon] padrão Leaflet ou [lon, lat] GeoJSON
   const lat1 = (p1[0] * Math.PI) / 180;
   const lon1 = (p1[1] * Math.PI) / 180;
@@ -21,11 +32,17 @@ export function calcularDistanciaPontos(p1: [number, number], p2: [number, numbe
   const dLat = lat2 - lat1;
   const dLon = lon2 - lon1;
 
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const a = Math.min(
+    1,
+    Math.max(
+      0,
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) * Math.sin(dLon / 2)
+    )
+  );
 
-  return RAIO_TERRA * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const dist = RAIO_TERRA * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return Number.isFinite(dist) ? dist : 0;
 }
 
 /**
@@ -51,28 +68,56 @@ export function calcularComprimentoLinha(coords: unknown): number {
 }
 
 /**
- * Calcula a área de um único anel fechado de coordenadas em m² usando fórmula esférica
+ * Calcula a área de um único anel fechado de coordenadas em m² usando a Fórmula de Gauss (Shoelace)
+ * com projeção geodésica local na esfera WGS84.
  */
 export function calcularAreaAnelSimples(coords: unknown): number {
   if (!Array.isArray(coords)) return 0;
-  const len = coords.length;
-  if (len < 3) return 0;
 
-  // Excesso esférico (mesma fórmula do Leaflet.draw/Turf): soma (λ2 − λ1)·(2 + sen φ1 + sen φ2).
-  // Pontos [lat, lon]; vértices não numéricos são ignorados em vez de zerar a área inteira.
-  const rad = Math.PI / 180;
-  const pontos = coords.filter(
-    (p): p is number[] => Array.isArray(p) && Number.isFinite(p[0]) && Number.isFinite(p[1])
-  );
-  if (pontos.length < 3) return 0;
-  let total = 0;
-  for (let i = 0; i < pontos.length; i++) {
-    const p1 = pontos[i];
-    const p2 = pontos[(i + 1) % pontos.length];
-    total += (p2[1] - p1[1]) * rad * (2 + Math.sin(p1[0] * rad) + Math.sin(p2[0] * rad));
+  const validos: [number, number][] = [];
+  for (let i = 0; i < coords.length; i++) {
+    const p = coords[i];
+    if (Array.isArray(p) && p.length >= 2 && Number.isFinite(p[0]) && Number.isFinite(p[1])) {
+      validos.push([p[0], p[1]]);
+    }
   }
 
-  const area = Math.abs((total * RAIO_TERRA * RAIO_TERRA) / 2);
+  // Remove ponto final duplicado de fechamento, se existir, para uma média de latitude limpa
+  if (
+    validos.length > 3 &&
+    validos[0][0] === validos[validos.length - 1][0] &&
+    validos[0][1] === validos[validos.length - 1][1]
+  ) {
+    validos.pop();
+  }
+
+  const len = validos.length;
+  if (len < 3) return 0;
+
+  let somaLat = 0;
+  for (let i = 0; i < len; i++) {
+    somaLat += validos[i][0];
+  }
+  const latMediaRad = ((somaLat / len) * Math.PI) / 180;
+  const cosLat = Math.cos(latMediaRad);
+  const radPorGrau = Math.PI / 180;
+  const lat0 = validos[0][0];
+  const lon0 = validos[0][1];
+
+  let somaGauss = 0;
+  for (let i = 0; i < len; i++) {
+    const p1 = validos[i];
+    const p2 = validos[(i + 1) % len];
+
+    const x1 = (p1[1] - lon0) * radPorGrau * RAIO_TERRA * cosLat;
+    const y1 = (p1[0] - lat0) * radPorGrau * RAIO_TERRA;
+    const x2 = (p2[1] - lon0) * radPorGrau * RAIO_TERRA * cosLat;
+    const y2 = (p2[0] - lat0) * radPorGrau * RAIO_TERRA;
+
+    somaGauss += x1 * y2 - x2 * y1;
+  }
+
+  const area = Math.abs(somaGauss) / 2;
   return Number.isFinite(area) ? area : 0;
 }
 

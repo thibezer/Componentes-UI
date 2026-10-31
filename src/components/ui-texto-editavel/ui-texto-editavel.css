@@ -1,0 +1,227 @@
+:host {
+  display: inline-block;
+  box-sizing: border-box;
+  vertical-align: middle;
+}
+
+:host([largura-total]),
+:host([full-width]) {
+  display: block;
+  width: 100%;
+}
+
+.ui-texto-editavel {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+/* ==========================================
+   Modo Leitura (Botão / Texto Clicável)
+   ========================================== */
+.ui-texto-editavel__botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--ui-espaco-xs, 4px);
+  width: 100%;
+  height: var(--ui-campo-altura, 34px);
+  min-height: var(--ui-campo-altura, 34px);
+  box-sizing: border-box;
+  padding: 0 12px;
+  border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
+  border-radius: var(--ui-raio-borda, 6px);
+  background: var(--ui-cor-botao-secundario-fundo, #1e1e24);
+  color: var(--ui-cor-texto, #e1e1e6);
+  font-family: var(--ui-fonte-base, 'Inter', sans-serif);
+  font-size: clamp(11px, 0.85rem, 13px);
+  font-weight: 500;
+  line-height: 1.2;
+  text-align: left;
+  user-select: none;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.15s ease,
+              border-color 0.15s ease,
+              color 0.15s ease,
+              box-shadow 0.15s ease;
+}
+
+.ui-texto-editavel__botao:hover:not(:disabled) {
+  background: var(--ui-cor-botao-secundario-hover, #2a2a34);
+  border-color: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 24%, transparent);
+}
+
+.ui-texto-editavel__botao:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--ui-cor-fundo, #0b0b0d), 0 0 0 4px var(--ui-cor-primaria, #00E08A);
+}
+
+.ui-texto-editavel__texto {
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.ui-texto-editavel__texto--placeholder {
+  color: var(--ui-cor-texto-silenciado, rgba(255, 255, 255, 0.45));
+  font-style: italic;
+}
+
+/* ==========================================
+   Modo Edição (Input Nativo)
+   ========================================== */
+.ui-texto-editavel__input {
+  display: inline-block;
+  width: 100%;
+  height: var(--ui-campo-altura, 34px);
+  min-height: var(--ui-campo-altura, 34px);
+  box-sizing: border-box;
+  padding: 0 11px; /* -1px compensando a borda ativa */
+  border: 1px solid var(--ui-cor-primaria, #00E08A);
+  border-radius: var(--ui-raio-borda, 6px);
+  background: var(--ui-cor-campo-fundo, #121217);
+  color: var(--ui-cor-texto, #ffffff);
+  font-family: var(--ui-fonte-base, 'Inter', sans-serif);
+  font-size: clamp(11px, 0.85rem, 13px);
+  font-weight: 500;
+  line-height: 1.2;
+  outline: none;
+  box-shadow: 0 0 0 1px var(--ui-cor-primaria, #00E08A), 0 0 0 3px color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 25%, transparent);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ui-texto-editavel__input::selection {
+  background: var(--ui-cor-primaria, #00E08A);
+  color: #000000;
+}
+
+/* Ocultação limpa entre modos */
+.ui-texto-editavel[data-modo="leitura"] .ui-texto-editavel__input {
+  display: none !important;
+}
+
+.ui-texto-editavel[data-modo="edicao"] .ui-texto-editavel__botao {
+  display: none !important;
+}
+
+/* ==========================================
+   Tamanhos
+   ========================================== */
+.ui-texto-editavel--sm .ui-texto-editavel__botao,
+.ui-texto-editavel--sm .ui-texto-editavel__input {
+  height: var(--ui-campo-altura-sm, 28px);
+  min-height: var(--ui-campo-altura-sm, 28px);
+  font-size: 11px;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.ui-texto-editavel--lg .ui-texto-editavel__botao,
+.ui-texto-editavel--lg .ui-texto-editavel__input {
+  height: var(--ui-campo-altura-lg, 42px);
+  min-height: var(--ui-campo-altura-lg, 42px);
+  font-size: 15px;
+  padding-left: 14px;
+  padding-right: 14px;
+}
+
+/* ==========================================
+   Variantes Visuais
+   ========================================== */
+
+/* 1. Primário */
+.ui-texto-editavel--primario .ui-texto-editavel__botao,
+.ui-texto-editavel--primary .ui-texto-editavel__botao {
+  background: var(--ui-cor-primaria, #00E08A);
+  color: var(--ui-cor-texto-sobre-primaria, #000000);
+  border-color: transparent;
+  font-weight: 600;
+}
+
+.ui-texto-editavel--primario .ui-texto-editavel__botao:hover:not(:disabled),
+.ui-texto-editavel--primary .ui-texto-editavel__botao:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+/* 2. Ghost / Terciário */
+.ui-texto-editavel--ghost .ui-texto-editavel__botao,
+.ui-texto-editavel--terciario .ui-texto-editavel__botao {
+  background: transparent;
+  color: var(--ui-cor-texto, #e1e1e6);
+  border-color: transparent;
+}
+
+.ui-texto-editavel--ghost .ui-texto-editavel__botao:hover:not(:disabled),
+.ui-texto-editavel--terciario .ui-texto-editavel__botao:hover:not(:disabled) {
+  background: var(--ui-cor-hover-menu, rgba(255, 255, 255, 0.08));
+}
+
+/* 3. Outline / Borda */
+.ui-texto-editavel--outline .ui-texto-editavel__botao,
+.ui-texto-editavel--borda .ui-texto-editavel__botao {
+  background: transparent;
+  color: var(--ui-cor-texto, #e1e1e6);
+  border-color: var(--ui-cor-borda, rgba(255, 255, 255, 0.2));
+}
+
+.ui-texto-editavel--outline .ui-texto-editavel__botao:hover:not(:disabled),
+.ui-texto-editavel--borda .ui-texto-editavel__botao:hover:not(:disabled) {
+  background: var(--ui-cor-hover-menu, rgba(255, 255, 255, 0.06));
+  border-color: var(--ui-cor-primaria, #00E08A);
+}
+
+/* 4. Texto Puro / Plano (Remove aspecto de botão para usar como rótulo inline puro) */
+.ui-texto-editavel--texto .ui-texto-editavel__botao,
+.ui-texto-editavel--plano .ui-texto-editavel__botao {
+  background: transparent;
+  border-color: transparent;
+  padding: 0 4px;
+  height: auto;
+  min-height: unset;
+  border-radius: 4px;
+}
+
+.ui-texto-editavel--texto .ui-texto-editavel__botao:hover:not(:disabled),
+.ui-texto-editavel--plano .ui-texto-editavel__botao:hover:not(:disabled) {
+  background: var(--ui-cor-hover-menu, rgba(255, 255, 255, 0.06));
+  border-color: color-mix(in srgb, var(--ui-cor-borda, #ffffff) 15%, transparent);
+}
+
+/* 5. Destaque */
+.ui-texto-editavel--destaque .ui-texto-editavel__botao {
+  background: var(--ui-cor-destaque, var(--ui-cor-primaria, #00E08A));
+  color: var(--ui-cor-texto-sobre-primaria, #000000);
+  border-color: transparent;
+}
+
+/* 6. Destrutivo / Erro */
+.ui-texto-editavel--destrutivo .ui-texto-editavel__botao {
+  background: var(--ui-cor-botao-destrutivo-fundo, #ff4444);
+  color: var(--ui-cor-botao-destrutivo-texto, #ffffff);
+  border-color: transparent;
+}
+
+/* ==========================================
+   Desabilitado / Somente Leitura
+   ========================================== */
+:host([disabled]) {
+  pointer-events: none;
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.ui-texto-editavel__botao:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+:host([readonly]) .ui-texto-editavel__botao,
+:host([somente-leitura]) .ui-texto-editavel__botao {
+  cursor: default;
+}

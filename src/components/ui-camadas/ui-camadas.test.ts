@@ -323,13 +323,13 @@ describe('UICamadas - Painel de Camadas GIS/CAD', () => {
     painel.addEventListener('ui-acao-massa', spy);
 
     const shadow = painel.shadowRoot!;
-    const btnFooterVis = shadow.getElementById('btn-footer-vis') as HTMLButtonElement;
-    expect(btnFooterVis).toBeTruthy();
-    expect(btnFooterVis.disabled).toBe(false);
+    // Olho e cadeado coletivos foram removidos (redundantes com as linhas da árvore)
+    expect(shadow.getElementById('btn-footer-vis')).toBeNull();
+    expect(shadow.getElementById('btn-footer-lock')).toBeNull();
 
-    btnFooterVis.click();
-    expect(spy).toHaveBeenCalledTimes(1);
-    expect(spy.mock.calls[0][0].detail.acao).toBe('visibilidade');
+    const btnFooterDel = shadow.getElementById('btn-footer-del') as HTMLButtonElement;
+    expect(btnFooterDel).toBeTruthy();
+    expect(btnFooterDel.disabled).toBe(false);
   });
 
   it('deve sanitizar cores CSS e escapar strings HTML com segurança', () => {
@@ -771,18 +771,18 @@ describe('UICamadas - Painel de Camadas GIS/CAD', () => {
       const count = shadow.getElementById('footer-count');
       const label = shadow.getElementById('footer-label');
       expect(count?.textContent).toBe('2');
-      expect(label?.textContent).toBe('camadas');
+      expect(label?.getAttribute('aria-label')).toBe('2 camadas');
+      expect(label?.querySelector('svg')).toBeTruthy();
 
-      // Botões gerais presentes
-      const btnNewGroup = shadow.getElementById('btn-footer-new-group');
-      const btnNewLayer = shadow.getElementById('btn-footer-new-layer');
-      expect(btnNewGroup).toBeTruthy();
-      expect(btnNewLayer).toBeTruthy();
+      // Criação de camada/grupo fica só no rodapé (sem duplicar na toolbar)
+      expect(shadow.getElementById('btn-footer-new-group')).toBeTruthy();
+      expect(shadow.getElementById('btn-footer-new-layer')).toBeTruthy();
+      expect(shadow.getElementById('btn-add-group')).toBeNull();
+      expect(shadow.getElementById('btn-add-layer')).toBeNull();
 
-      // Contêiner de ações gerais visível e de ações em massa oculto
       const actionsGerais = shadow.querySelector('.ui-footer-actions-gerais') as HTMLElement;
-      const bulkActions = shadow.querySelector('.ui-footer-bulk-actions') as HTMLElement;
       expect(actionsGerais.style.display).not.toBe('none');
+      const bulkActions = shadow.querySelector('.ui-footer-bulk-actions') as HTMLElement;
       expect(bulkActions.style.display).toBe('none');
     });
 
@@ -798,18 +798,18 @@ describe('UICamadas - Painel de Camadas GIS/CAD', () => {
       const count = shadow.getElementById('footer-count');
       const label = shadow.getElementById('footer-label');
       expect(count?.textContent).toBe('1');
-      expect(label?.textContent).toBe('selecionado');
+      expect(label?.getAttribute('aria-label')).toBe('1 selecionado');
 
       const actionsGerais = shadow.querySelector('.ui-footer-actions-gerais') as HTMLElement;
-      const bulkActions = shadow.querySelector('.ui-footer-bulk-actions') as HTMLElement;
       expect(actionsGerais.style.display).toBe('none');
+      const bulkActions = shadow.querySelector('.ui-footer-bulk-actions') as HTMLElement;
       expect(bulkActions.style.display).toBe('flex');
 
-      const previewColor = shadow.getElementById('preview-footer-color');
-      expect(previewColor).toBeTruthy();
-
-      const clearBtn = shadow.getElementById('btn-footer-clear');
-      expect(clearBtn).toBeTruthy();
+      // Cor, métrica e botão "X" foram removidos do rodapé (Esc limpa a seleção)
+      expect(shadow.getElementById('preview-footer-color')).toBeNull();
+      expect(shadow.getElementById('btn-footer-clear')).toBeNull();
+      expect(shadow.querySelector('.ui-footer-metric')).toBeNull();
+      expect(shadow.getElementById('select-footer-move')).toBeTruthy();
     });
 
     it('deve disparar evento ui-camada-grupo-adicionar ao clicar no botão de novo grupo', () => {

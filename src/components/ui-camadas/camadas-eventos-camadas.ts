@@ -7,7 +7,8 @@
 import { CamadasHostCompleto } from './camadas-host';
 import { ICONES } from './camadas-icones';
 import { sanitizarCorCss, buscarPorAtributo, definirRotuloControle } from './camadas-utils';
-import { feicoesPorRamo } from './camadas-selecao';
+import { filtrarFeicoesPorBusca } from './camadas-selecao';
+import { obterFeicoesDoEscopoCamada } from './camadas-hierarquia';
 import { ehDescendente } from './camadas-drop-ops';
 import { sincronizarHerancaDOM } from './camadas-sincronizacao-dom';
 import { abrirSeletorCor } from '../ui-cores/ui-seletor-cor';
@@ -49,9 +50,12 @@ export function conectarEventosCamadas(host: CamadasHostCompleto, shadow: Shadow
       const isExp = host.expandedLayers.has(layerId);
       if (chevron) chevron.classList.toggle('open', isExp);
       if (group) {
+        group.setAttribute('aria-expanded', String(isExp));
         const children = group.querySelector('.ui-children-container') as HTMLElement | null;
         if (children) children.style.display = isExp ? 'block' : 'none';
       }
+      definirRotuloControle(btn, isExp ? 'Recolher grupo' : 'Expandir grupo');
+      atualizarIconeExpansaoGlobal(host, shadow);
 
       host.salvarLembrancaEstado();
     });
@@ -267,28 +271,23 @@ export function conectarEventosCamadas(host: CamadasHostCompleto, shadow: Shadow
       const layerId = selectEl.getAttribute('data-layer-parent-select');
       const novoParentId = selectEl.value || null;
       const layer = host.camadas.find((l) => l.id === layerId);
-      if (!layer) return;
-      const parentAnteriorId = layer.parentId ?? null;
-      // Pai inexistente, a própria camada ou um descendente dela (ciclo): volta ao valor atual
-      const invalido =
-        novoParentId !== null &&
-        (novoParentId === layer.id ||
-          !host.camadas.some((l) => l.id === novoParentId) ||
-          ehDescendente(host.camadas, novoParentId, layer.id));
-      if (invalido || novoParentId === parentAnteriorId) {
-        selectEl.value = parentAnteriorId ?? '';
-        return;
+      if (layer) {
+        if (novoParentId && (novoParentId === layer.id || ehDescendente(host.camadas, novoParentId, layer.id))) {
+          selectEl.value = layer.parentId || '';
+          return;
+        }
+        const parentAnteriorId = layer.parentId ?? null;
+        layer.parentId = novoParentId;
+        if (novoParentId) host.expandedLayers.add(novoParentId);
+        host.salvarLembrancaEstado();
+        host.dispararEvento('ui-camada-mover-hierarquia', {
+          camadaId: layer.id,
+          novoParentId,
+          parentAnteriorId,
+          camada: layer
+        });
+        host.solicitarRenderizacao();
       }
-      layer.parentId = novoParentId;
-      if (novoParentId) host.expandedLayers.add(novoParentId);
-      host.salvarLembrancaEstado();
-      host.dispararEvento('ui-camada-mover-hierarquia', {
-        camadaId: layer.id,
-        novoParentId,
-        parentAnteriorId,
-        camada: layer
-      });
-      host.solicitarRenderizacao();
     });
   });
 
@@ -301,15 +300,25 @@ export function conectarEventosCamadas(host: CamadasHostCompleto, shadow: Shadow
     });
   });
 
-  // Target circle da camada (seleção em lote das feições da camada)
+  // Botão Mostrar mais feições por camada (paginação incremental)
+  shadow.querySelectorAll('[data-layer-show-more]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const layerId = btn.getAttribute('data-layer-show-more');
+      if (layerId) host.incrementarLimiteFeicoes(layerId);
+    });
+  });
+
+  // Target circle da camada (seleção em lote das feições da camada e suas subcamadas)
   shadow.querySelectorAll('[data-layer-target]').forEach((target) => {
     target.addEventListener('click', (e: Event) => {
       e.stopPropagation();
       const me = e as MouseEvent;
       const layerId = target.getAttribute('data-layer-target');
       if (!layerId) return;
-      // Num grupo, o alvo vale para o ramo inteiro (feições das subcamadas incluídas)
-      const layerFeats = feicoesPorRamo(host.camadas, host.feicoes, host.searchQuery).get(layerId) || [];
+
+      const escopoFeats = obterFeicoesDoEscopoCamada(host.camadas, host.feicoes, layerId);
+      const layerFeats = filtrarFeicoesPorBusca(escopoFeats, host.searchQuery);
       if (layerFeats.length === 0) return;
 
       const allSelected = layerFeats.every((f) => host.selectedFeatureIds.has(f.id));
@@ -324,6 +333,20 @@ export function conectarEventosCamadas(host: CamadasHostCompleto, shadow: Shadow
       host.notificarMudancaSelecao();
     });
   });
+}
+
+/** Mantém o ícone do botão "expandir/recolher todas" coerente com o estado individual das camadas */
+export function atualizarIconeExpansaoGlobal(host: CamadasHostCompleto, shadow: ShadowRoot): void {
+  const btn = shadow.getElementById('btn-toggle-all-expand');
+  if (!btn) return;
+  const todasExpandidas =
+    host.camadas.length > 0 && host.camadas.every((l) => host.expandedLayers.has(l.id));
+  const chevron = btn.querySelector('.ui-chevron-icon');
+  if (chevron) chevron.classList.toggle('open', todasExpandidas);
+  definirRotuloControle(
+    btn,
+    todasExpandidas ? 'Recolher Todos os Grupos' : 'Expandir Todos os Grupos'
+  );
 }
 
 /** Mantém o ícone do botão "ocultar/exibir todas" coerente com o estado individual das camadas */

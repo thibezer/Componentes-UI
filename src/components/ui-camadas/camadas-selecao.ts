@@ -110,72 +110,56 @@ export function filtrarCamadasPorBusca(
   return { camadasVisiveis, feicoesPorCamada };
 }
 
-function agruparPorCamada(feicoes: FeicaoItem[]): Map<string, FeicaoItem[]> {
-  const porCamada = new Map<string, FeicaoItem[]>();
-  for (let i = 0; i < feicoes.length; i++) {
-    const f = feicoes[i];
-    const lid = f.layerId || '';
-    if (!porCamada.has(lid)) porCamada.set(lid, []);
-    porCamada.get(lid)!.push(f);
-  }
-  return porCamada;
-}
-
 /**
- * IDs de feições efetivamente exibidas na árvore, na ordem da tela: percorre a hierarquia como o
- * renderizador (subcamadas antes das feições da camada), pula o que está sob um grupo recolhido
- * (com busca, tudo fica aberto) e respeita o filtro de busca e o limite de linhas.
+ * IDs de feições efetivamente exibidas na árvore, na ordem da tela:
+ * respeita hierarquia da árvore, camadas expandidas (e seus ancestrais), o filtro de busca e o limite de linhas.
  */
 export function obterIdsVisiveisFeicoes(
   camadas: CamadaItem[],
   feicoes: FeicaoItem[],
   camadasExpandidas: Set<string>,
   termoBusca = '',
-  limitePorCamada = LIMITE_FEICOES_POR_CAMADA
+  limitePorCamada = LIMITE_FEICOES_POR_CAMADA,
+  limitesCustomizados?: ReadonlyMap<string, number>
 ): string[] {
   const busca = filtrarCamadasPorBusca(camadas, feicoes, termoBusca);
-  const featsByLayer = busca ? null : agruparPorCamada(feicoes);
   const ids: string[] = [];
+  const featsByLayer = new Map<string, FeicaoItem[]>();
+  for (let i = 0; i < feicoes.length; i++) {
+    const f = feicoes[i];
+    if (!f || !f.id) continue;
+    const lid = f.layerId || '';
+    if (!featsByLayer.has(lid)) featsByLayer.set(lid, []);
+    featsByLayer.get(lid)!.push(f);
+  }
 
-  const visitar = (nodo: CamadaNodoHierarquico): void => {
-    const id = nodo.camada.id;
-    if (busca && !busca.camadasVisiveis.has(id)) return;
-    if (!busca && !camadasExpandidas.has(id)) return;
-    nodo.subcamadas.forEach(visitar);
-    const lista = (busca ? busca.feicoesPorCamada.get(id) : featsByLayer!.get(id)) || [];
-    const lf = lista.slice(0, limitePorCamada);
-    for (let j = 0; j < lf.length; j++) ids.push(lf[j].id);
-  };
-  construirHierarquiaCamadas(camadas).forEach(visitar);
-  return ids;
-}
+  const hierarquia = construirHierarquiaCamadas(camadas);
 
-/**
- * Feições de cada camada somadas às das suas subcamadas (o "ramo"), como a árvore as mostra:
- * com busca, só as que a busca exibe. É o que o alvo de seleção de um grupo marca e desmarca.
- */
-export function feicoesPorRamo(
-  camadas: CamadaItem[],
-  feicoes: FeicaoItem[],
-  termoBusca = ''
-): Map<string, FeicaoItem[]> {
-  const busca = filtrarCamadasPorBusca(camadas, feicoes, termoBusca);
-  const diretas = busca ? busca.feicoesPorCamada : agruparPorCamada(feicoes);
-  const ramos = new Map<string, FeicaoItem[]>();
+  function visitarNodo(nodo: CamadaNodoHierarquico): void {
+    const l = nodo.camada;
+    if (busca && !busca.camadasVisiveis.has(l.id)) return;
 
-  const somar = (nodo: CamadaNodoHierarquico): FeicaoItem[] => {
-    const id = nodo.camada.id;
-    if (busca && !busca.camadasVisiveis.has(id)) {
-      ramos.set(id, []);
-      return [];
+    const expandida = busca ? true : camadasExpandidas.has(l.id);
+    if (!expandida) return;
+
+    // Na renderização do DOM (camadas-arvore-renderer.ts), subcamadas vêm primeiro, depois feições
+    for (const sub of nodo.subcamadas) {
+      visitarNodo(sub);
     }
-    const ramo = [...(diretas.get(id) || [])];
-    for (const sub of nodo.subcamadas) ramo.push(...somar(sub));
-    ramos.set(id, ramo);
-    return ramo;
-  };
-  construirHierarquiaCamadas(camadas).forEach(somar);
-  return ramos;
+
+    const lista = busca ? busca.feicoesPorCamada.get(l.id) || [] : featsByLayer.get(l.id) || [];
+    const maxFeats = limitesCustomizados?.get(l.id) ?? limitePorCamada;
+    const lf = lista.slice(0, maxFeats);
+    for (let j = 0; j < lf.length; j++) {
+      ids.push(lf[j].id);
+    }
+  }
+
+  for (const raiz of hierarquia) {
+    visitarNodo(raiz);
+  }
+
+  return ids;
 }
 
 /**

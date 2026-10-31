@@ -88,7 +88,7 @@ export function renderizarGridMapasBase(
     .join('');
 
   return `
-    <div class="ui-basemap-section ${recolhido ? 'recolhido' : ''}">
+    <div class="ui-basemap-section ${recolhido ? 'recolhido' : ''}" part="mapas-base">
       <button type="button" class="ui-basemap-toggle" data-basemap-toggle="alternar" aria-expanded="${!recolhido}" aria-controls="ui-basemap-grid" title="${recolhido ? 'Mostrar mapas base' : 'Recolher mapas base'}">
         <span class="ui-basemap-title">Mapa Base</span>
         <span class="ui-basemap-atual" data-basemap-atual>${escapeHtml(nomeDoMapaBase(mapasBase, mapaBaseAtivo))}</span>
