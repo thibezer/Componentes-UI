@@ -11,6 +11,7 @@ export * from './components/ui-lista-flutuante';
 export * from './components/ui-texto';
 export * from './components/ui-campo-texto';
 export * from './components/ui-area-texto';
+export * from './components/ui-texto-editavel';
 export * from './components/ui-icone';
 
 // 3. Camada 2: Controles e Seleção de Dados
