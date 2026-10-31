@@ -1,5 +1,19 @@
 # Changelog
 
+## 2.12.2 — 2026-10-30
+
+### `<ui-camadas>`: cabeçalho e rodapé simplificados
+
+- **Barras unificadas**: cabeçalho (título + contador) e rodapé usam a mesma altura (`--camada-barra-altura`, 28px), coladas nas bordas do painel e com linha divisória de ponta a ponta.
+- **Botões sem borda dupla**: olho, chevron, `Grupo` e `Camada` perdem a borda própria; ficam só com fundo sutil.
+- **Criação no rodapé**: `Grupo` e `Camada` saíram da toolbar do topo e ficam à direita do rodapé (eventos `ui-camada-adicionar` e `ui-camada-grupo-adicionar` inalterados). Os ids `btn-add-layer` e `btn-add-group` deixam de existir; use `btn-footer-new-layer` e `btn-footer-new-group`.
+- **Rodapé enxuto**: o texto "N camadas" virou ícone de camadas + número (o texto fica em `title`/`aria-label`). Saíram o olho e o cadeado coletivos, a bolinha de cor, a métrica de área e o botão "X" (o `Esc` limpa a seleção).
+- **Ações em massa**: `visibilidade`, `bloqueio` e `cor` deixam de ser disparadas pelo painel; seguem `mover` e `excluir`. O seletor de camada de destino ocupa o espaço livre.
+
+### `<ui-texto-editavel>` (novo)
+
+- Novo componente de texto editável inline, exportado em `src/index.ts` e registrado em `src/register.ts`.
+
 ## 2.12.0 — 2026-10-26
 
 ### `<ui-camadas>`: Verificação e Correção Profunda, Robustez e UX Avançada
