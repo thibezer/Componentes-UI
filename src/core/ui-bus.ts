@@ -350,10 +350,4 @@ function temaForcado(html: HTMLElement): 'claro' | 'escuro' | null {
   return null;
 }
 
-function sistemaPrefereClaro(): boolean {
-  return typeof window !== 'undefined'
-    && typeof window.matchMedia === 'function'
-    && window.matchMedia('(prefers-color-scheme: light)').matches;
-}
-
 export const UIBus = new UIBusManager();
