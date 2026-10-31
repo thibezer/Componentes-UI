@@ -23,7 +23,9 @@
   - Aninhamento de camadas ao soltar no centro de outra camada (`drop-into`) com proteção contra ciclos.
   - Reordenação de feições internas e transferência de feições entre camadas distintas arrastando sobre o grupo.
 - **Busca por camada e feição**: o campo filtra a árvore inteira. Casar pelo nome de uma camada (ou grupo) mostra a camada com todas as suas feições (e as subcamadas, no caso de grupo); casar por uma feição mostra a camada e o grupo ancestral só com as feições que casam. Sem resultado, aparece uma mensagem única.
-- **Edição Inline de Nomes**: Duplo-clique no nome da camada ou feição para editar (`Enter` para confirmar, `Esc` para cancelar).
+- **Edição Inline de Nomes**: Duplo-clique no nome da camada ou feição, ou `F2` na linha focada, para editar (`Enter` para confirmar, `Esc` para cancelar; nos dois casos o foco volta para a linha).
+- **Estado herdado do grupo**: ocultar um grupo esmaece as subcamadas e feições (`herdado-oculto`); travar um grupo trava as feições das subcamadas (`herdado-travado`). O estado próprio de cada camada não muda. Camada travada (ou sob grupo travado) não recebe nem perde feições, nem por arraste nem pelo "Mover para..." do rodapé (onde aparece desabilitada com 🔒).
+- **Contagem por ramo**: o chip de contagem de um grupo soma as feições das subcamadas; o título detalha quantas são da própria camada.
 - **Drawer de Configurações**: Ajuste contínuo de opacidade, seletor de cor HEX/nativo, definição de camada pai (`parentId`), botão de adicionar subcamada e exclusão com confirmação em 2 passos.
 - **Cálculo Geodésico Automático (WGS84)**: Cálculo de área em hectares/m² com desconto de furos/ilhas interiores (*donut polygons*) e comprimento em metros/km com base esférica precisa.
 - **Adaptadores de Compatibilidade**: Utilitários prontos (`converterCanvasLayerParaCamadaItem`, `converterCamadaItemParaCanvasLayer`, `converterFeicaoParaItem`) para interoperabilidade direta com o `<ui-canvas-cad>` e motores cartográficos.
@@ -118,7 +120,7 @@ painel.definirCamadas([
 ```
 
 ### 3. Recursos de UX da Hierarquia:
-- **Arraste Hierárquico (`drop-into`)**: Arraste uma camada sobre a área central de outra para aninhá-la automaticamente como subcamada. O sistema previne loops/ciclos (não permite soltar um elemento pai dentro de seus próprios filhos).
+- **Arraste Hierárquico (`drop-into`)**: Arraste uma camada sobre a área central de outra para aninhá-la automaticamente como subcamada. O sistema previne loops/ciclos (não permite soltar um elemento pai dentro de seus próprios filhos, nem acima/abaixo deles).
 - **Ajuste via Drawer de Configurações**: O drawer lateral permite alterar a camada pai diretamente por um menu suspenso ou clicar em `+ Subcamada`.
 - **Criação Rápida de Grupos**: Clique em `Grupo` no rodapé para criar uma pasta organizada.
 - **Cascata e Proteção**: Colapsar a camada pai oculta todas as suas subcamadas e feições. Ao excluir uma pasta pai, as subcamadas filhas são preservadas e promovidas ao nível raiz (`parentId: null`).
@@ -257,7 +259,7 @@ Todos os eventos disparam com `{ bubbles: true, composed: true }`.
 | `ui-camadas-reordenadas`| `{ camadas }` | Nova ordem das camadas pós Drag & Drop |
 | `ui-camada-adicionar` | `{}` ou `{ parentId }` | **Pedido** de nova camada (botão `Camada` do rodapé, ou `+ Subcamada` no drawer, que envia `parentId`). O painel não cria nada sozinho: o aplicativo trata o evento e chama `adicionarCamada()` |
 | `ui-camada-grupo-adicionar` | `{ isGroup: true }` | **Pedido** de novo grupo/pasta (botão `Grupo`). O payload não traz id nem nome: o aplicativo escolhe ambos e chama `adicionarCamada({ id, name, isGroup: true })` |
-| `ui-camada-mover-hierarquia` | `{ camadaId, novoParentId, parentAnteriorId }` | Camada movida para dentro de outra ou para raiz |
+| `ui-camada-mover-hierarquia` | `{ camadaId, novoParentId, parentAnteriorId, camada }` | Camada mudou de pai (arrastada para dentro de outra, solta junto de uma subcamada de outro grupo ou trocada no drawer; `null` = raiz) |
 | `ui-feicao-selecionada` | `{ feicaoId, feicao }` | Feição individual selecionada |
 | `ui-feicoes-selecionadas`| `{ feicoesIds, feicoes }`| Conjunto de feições selecionadas |
 | `ui-feicao-movida` | `{ feicaoId, camadaOrigemId, camadaDestinoId }` | Feição transferida de camada via DnD |
@@ -297,6 +299,8 @@ O `<ui-camadas>` possui suporte nativo à persistência transparente de estado p
 | **Nome Renomeado** | Preserva a edição inline de nome realizada pelo usuário. |
 | **Mapa Base Ativo** | Lembra o mapa base orbital/vetorial selecionado no grid. |
 
+> O estado salvo é validado campo a campo ao ser lido: conteúdo editado à mão, de outra versão ou corrompido cai para o padrão em vez de derrubar o painel.
+
 ---
 
 ## ⌨️ Atalhos de Teclado e Acessibilidade
@@ -308,7 +312,7 @@ O componente é totalmente operável por teclado, respeitando as diretrizes WAI-
 | `↑` / `↓` | Foco em linha | Navega verticalmente entre camadas e feições |
 | `Home` / `End` | Foco em linha | Pula diretamente para o primeiro ou último elemento da árvore |
 | `Enter` / `Espaço` | Foco em camada | Alterna a seleção ou expande/recolhe o grupo |
-| `F2` | Foco em linha | Inicia a renomeação inline do nome da camada ou feição |
+| `F2` | Foco em linha | Inicia a renomeação inline do nome da camada ou feição; ao confirmar ou cancelar, o foco volta para a linha |
 | `Ctrl+A` / `Cmd+A` | Foco na árvore | Seleciona todas as feições visíveis (respeitando busca e colapso) |
 | `Delete` | Feições selecionadas | Inicia exclusão das feições com confirmação de segurança em dois passos |
 | `Escape` | Qualquer | Cancela confirmação pendente de exclusão ou fecha o drawer de configurações |

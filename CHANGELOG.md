@@ -1,6 +1,32 @@
 # Changelog
 
-## Não publicado
+## 2.12.3 — 2026-10-31
+
+Junta à 2.12.2 o que estava fora do npm: os complementos do `<ui-tabela-propriedades>` (PR #16) e o restante da revisão do `<ui-camadas>`. Corrige também o CI, que falhava desde a 2.12.0.
+
+### `<ui-camadas>`: estado herdado do grupo e robustez
+
+O que a 2.12.0 ainda não cobria (cada item com teste de regressão em `ui-camadas.regressao.test.ts` ou `camadas-drop-ops.test.ts`):
+
+- **Estado herdado do grupo:** sob um grupo oculto, subcamadas e feições ficam esmaecidas (classe `herdado-oculto`) sem mudar o próprio estado; sob um grupo travado, as feições das subcamadas ficam travadas ("Bloqueada pela camada") e a linha da subcamada ganha `herdado-travado`. Vale na renderização e na troca do olho/cadeado do grupo, sem redesenhar a árvore.
+- **Camada travada não recebe nem perde feições:** o arraste é recusado e, no "Mover para..." do rodapé, a camada aparece desabilitada com 🔒.
+- **Ciclo ao reordenar:** soltar um grupo acima/abaixo de um descendente dele é recusado (antes o grupo virava filho de si mesmo).
+- **`localStorage` corrompido** (listas que não são listas, opacidade fora de [0, 1], JSON que não é objeto) não derruba mais o painel: o estado é validado campo a campo (`normalizarEstadoPersistido`).
+- `adicionarCamada` com `children` cadastra as subcamadas (antes apareciam na árvore sem existir na lista, e o olho/cadeado delas não respondiam).
+- Remover ou trocar as feições solta a âncora do Shift, que não aponta mais para uma feição que saiu.
+- `F2`: ao confirmar (Enter) ou cancelar (Esc) a renomeação, o foco volta para a linha.
+- O chip de contagem de um grupo soma as feições das subcamadas (o título detalha quantas são da própria camada).
+- `aria-level` nos itens da árvore.
+- Camada sem itens diz "Camada vazia" (antes, "Nenhum elemento neste grupo"); o aviso "Mostrar mais" perde os estilos inline, que sobrepunham o CSS com tokens já existente.
+- O botão "Excluir" do drawer volta ao rótulo original quando a confirmação expira (voltava como "Excluir Camada").
+
+### `<ui-seletor-cor>`
+
+- Removido do DOM por fora (sem `fechar()`), o seletor aberto por `abrirSeletorCor()` mantinha os ouvintes de `window`, e o de teclado continuava engolindo o Esc da página inteira. Agora solta ao desconectar (Regra #2).
+
+### CI
+
+- `package-lock.json` regerado com npm 10: o lock gerado com npm 11 omitia os *peers* opcionais `@emnapi/core`/`@emnapi/runtime`, e o `npm ci` do workflow (Node 20) falhava desde a 2.12.0.
 
 ### `<ui-tabela-propriedades>`: complementos à revisão da 2.12.0
 
