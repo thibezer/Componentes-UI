@@ -1,4 +1,4 @@
-import { CategoriaPropriedades, UIPropertyChangeDetail } from './tipos';
+import { CategoriaPropriedades, UIAplicarDetail, UIPropertyChangeDetail } from './tipos';
 import { buscarLinhaPropriedade } from './propriedades-dom-utils';
 import { isValorMisto, valorInicialDaPropriedade, valoresIguais } from './propriedades-valor-misto';
 
@@ -94,8 +94,29 @@ export class GerenciadorValoresPropriedades {
     }
   }
 
+  /**
+   * Volta uma propriedade ao valor do último carregar/aplicar. Emite `ui-propriedade-alterada`
+   * fora do modo manual. Devolve `false` se não havia o que restaurar.
+   */
+  public reverter(propId: string): boolean {
+    if (!(propId in this.valoresOriginais) || !this.isModificada(propId)) return false;
+    const valorAnterior = this.valoresAtuais[propId];
+    const original = this.valoresOriginais[propId];
+    this.valoresAtuais[propId] = original;
+    this.aposAlterar(propId);
+    this.ctx.onAtualizarCampoVisual(propId, original);
+    if (!this.ctx.isModoManual()) {
+      this.emitirAlteracao(propId, original, valorAnterior, this.categoriaDe(propId));
+    }
+    return true;
+  }
+
   public aplicar(): void {
     if (!this.isDirty) return;
+    const alterados: Record<string, any> = {};
+    Object.keys(this.valoresAtuais).forEach(id => {
+      if (this.isModificada(id)) alterados[id] = this.valoresAtuais[id];
+    });
     this.valoresOriginais = { ...this.valoresAtuais };
     this.ctx.onAtualizarBotoesFooter(false);
 
@@ -103,10 +124,10 @@ export class GerenciadorValoresPropriedades {
     linhasModificadas?.forEach(el => el.classList.remove('ui-prop__linha--modificada'));
 
     this.ctx.hostElement.dispatchEvent(
-      new CustomEvent('ui-aplicar', {
+      new CustomEvent<UIAplicarDetail>('ui-aplicar', {
         bubbles: true,
         composed: true,
-        detail: { valores: { ...this.valoresAtuais } }
+        detail: { valores: { ...this.valoresAtuais }, alterados }
       })
     );
   }

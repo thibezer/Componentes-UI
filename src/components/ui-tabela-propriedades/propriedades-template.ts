@@ -76,12 +76,12 @@ export function criarTemplateTabelaPropriedades(): string {
           <circle cx="11" cy="11" r="8"></circle>
           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
         </svg>
-        <input type="text" class="ui-prop__filtro-input" id="filtro-input" placeholder="Filtrar propriedades..." />
+        <input type="text" class="ui-prop__filtro-input" id="filtro-input" placeholder="Filtrar propriedades..." aria-label="Filtrar propriedades" autocomplete="off" spellcheck="false" />
       </div>
 
       <!-- 4. Corpo Rolável com Grade de Categorias -->
       <div class="ui-prop__corpo-wrapper" id="corpo-wrapper">
-        <div class="ui-prop__splitter" id="splitter"></div>
+        <div class="ui-prop__splitter" id="splitter" role="separator" tabindex="0" aria-orientation="vertical" aria-label="Largura da coluna de rótulos" aria-valuemin="20" aria-valuemax="65" aria-valuenow="45" title="Arraste ou use ←/→ para ajustar; duplo-clique ou Enter volta ao padrão"></div>
         <div class="ui-prop__corpo" id="corpo">
           <div class="ui-prop__lista-categorias" id="lista-categorias"></div>
         </div>

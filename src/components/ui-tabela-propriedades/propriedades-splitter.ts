@@ -28,8 +28,20 @@ export function criarControladorSplitter(ctx: ContextoSplitterPropriedades): Con
     ctx.hostElement.style.setProperty('--ui-prop-rotulo-largura', `${clamped}%`);
     if (ctx.splitterElement) {
       ctx.splitterElement.style.left = `calc(${clamped}% - 4px)`;
+      ctx.splitterElement.setAttribute('aria-valuenow', String(Math.round(clamped)));
     }
     return clamped;
+  }
+
+  function emitirResize(): void {
+    ctx.onLarguraAlterada(larguraRotuloPorcentagem);
+    ctx.hostElement.dispatchEvent(
+      new CustomEvent('ui-splitter-resize', {
+        bubbles: true,
+        composed: true,
+        detail: { larguraPorcentagem: larguraRotuloPorcentagem }
+      })
+    );
   }
 
   function init(): void {
@@ -81,14 +93,7 @@ export function criarControladorSplitter(ctx: ContextoSplitterPropriedades): Con
         ctx.splitterElement!.removeEventListener('pointerup', onPointerUp);
         ctx.splitterElement!.removeEventListener('pointercancel', onPointerUp);
 
-        ctx.onLarguraAlterada(larguraRotuloPorcentagem);
-        ctx.hostElement.dispatchEvent(
-          new CustomEvent('ui-splitter-resize', {
-            bubbles: true,
-            composed: true,
-            detail: { larguraPorcentagem: larguraRotuloPorcentagem }
-          })
-        );
+        emitirResize();
       };
 
       ctx.splitterElement!.addEventListener('pointermove', onPointerMove);
@@ -101,14 +106,22 @@ export function criarControladorSplitter(ctx: ContextoSplitterPropriedades): Con
     // Duplo-clique no splitter reseta para 45% (posição padrão de equilíbrio CAD)
     ctx.splitterListeners.add(ctx.splitterElement, 'dblclick', () => {
       definirLarguraRotulo(45);
-      ctx.onLarguraAlterada(45);
-      ctx.hostElement.dispatchEvent(
-        new CustomEvent('ui-splitter-resize', {
-          bubbles: true,
-          composed: true,
-          detail: { larguraPorcentagem: 45 }
-        })
-      );
+      emitirResize();
+    });
+
+    // Teclado (separador ARIA): ←/→ 1% (Shift 5%), Home/End nos limites, Enter volta a 45%
+    ctx.splitterListeners.add(ctx.splitterElement, 'keydown', (e: KeyboardEvent) => {
+      const passo = e.shiftKey ? 5 : 1;
+      let alvo: number | null = null;
+      if (e.key === 'ArrowLeft') alvo = larguraRotuloPorcentagem - passo;
+      else if (e.key === 'ArrowRight') alvo = larguraRotuloPorcentagem + passo;
+      else if (e.key === 'Home') alvo = 20;
+      else if (e.key === 'End') alvo = 65;
+      else if (e.key === 'Enter') alvo = 45;
+      if (alvo === null) return;
+      e.preventDefault();
+      definirLarguraRotulo(alvo);
+      emitirResize();
     });
   }
 

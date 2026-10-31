@@ -69,9 +69,17 @@ export function conectarPainelControles(ctx: ContextoPainelControles): void {
 
   const filtroInput = shadow.getElementById('filtro-input') as HTMLInputElement | null;
   if (filtroInput) {
+    // O termo vai como digitado; a renderização ignora caixa e acentos
     listeners.add(filtroInput, 'input', () => {
-      const termo = (filtroInput.value || '').trim().toLowerCase();
-      onFiltrar(termo);
+      onFiltrar((filtroInput.value || '').trim());
+    });
+    // Esc limpa a busca (com a busca já vazia, o Esc segue para a aplicação)
+    listeners.add(filtroInput, 'keydown', (e: KeyboardEvent) => {
+      if (e.key !== 'Escape' || !filtroInput.value) return;
+      e.preventDefault();
+      e.stopPropagation();
+      filtroInput.value = '';
+      onFiltrar('');
     });
   }
 

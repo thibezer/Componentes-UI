@@ -1,5 +1,30 @@
 # Changelog
 
+## Não publicado
+
+### `<ui-tabela-propriedades>`: revisão profunda (correções e experiência de uso)
+
+**Correções**
+
+- Só focar e sair de um campo numérico não altera mais o valor: antes, um valor com mais casas que `casasDecimais` era arredondado e um número guardado como texto (`"10"`) virava `10`, marcando a linha como alterada e emitindo `ui-propriedade-alterada`.
+- Enter (próximo campo) pula as categorias recolhidas; antes parava no último campo antes de uma categoria fechada.
+- Entradas hostis não derrubam o painel: categorias ou propriedades `null`, `propriedades`/`opcoes` que não são lista, propriedade sem `id` (descartada) ou sem `rotulo` (usa o id), tipos `null` no seletor. Entradas válidas mantêm a identidade (o estado `aberto` continua no objeto da aplicação).
+- Somente leitura mostra o rótulo da opção, "Sim"/"Não" e as casas decimais, em vez do id ou de `true`/`false`.
+- Tipo e espessura de linha com ids numéricos devolvem o número, como a seleção comum.
+- Os seletores de tipo ganham rótulo acessível; `tipoSelecionado` devolve o tipo que o seletor mostra (o primeiro, sem seleção válida).
+- O scrubber arrastando usa `--ui-cor-texto-sobre-primaria` em vez de preto fixo (legível no tema claro).
+
+**Melhorias**
+
+- Números: `min`, `max` e `passo` em `ItemPropriedade`. Digitação, setas e scrubber respeitam o intervalo; as setas e o scrubber usam o `passo`. A unidade pode ser digitada junto (`"25 mm"`, `"90°"`), e o resultado de uma expressão sai sem ruído de ponto flutuante (`0.1+0.2` = `0.3`).
+- Prévia do resultado enquanto se digita uma expressão (`= 15`, ou `= ?` se ainda inválida). Expressão inválida volta ao valor e o campo pisca em vermelho.
+- Linha alterada ganha uma faixa à esquerda e o botão **↺ Restaurar valor original**; também por código: `reverterPropriedade(id)` (devolve `false` se não havia o que restaurar; fora do modo manual emite `ui-propriedade-alterada`).
+- `ui-aplicar` traz `alterados` (só o que mudou) além de `valores`; novo tipo `UIAplicarDetail`.
+- Teclado: Shift+Enter volta ao campo anterior; Ctrl/⌘+Enter aplica no modo manual (o valor em edição entra junto); Esc limpa a busca.
+- Busca ignora acentos e caixa ("angulo" acha "Ângulo") e procura também no título da categoria; sem resultado, mostra "Nenhuma propriedade corresponde a …".
+- Splitter acessível: `role="separator"` com `aria-valuenow`, ←/→ (Shift: 5%), Home/End e Enter (volta a 45%), emitindo `ui-splitter-resize`.
+- Funções puras exportadas: `interpretarEntradaNumerica`, `limitarAoIntervalo`, `ajustarNumero`, `passoNumerico`, `formatarNumero`, `normalizarTermoBusca`, `filtrarPropriedades`, `normalizarCategorias`, `normalizarTipos` e `formatarValorExibicao`.
+
 ## 2.11.1 — 2026-10-23
 
 Junta à 2.11.0 o que estava fora do npm (PR #14): o redesign compacto do seletor de cor no estilo Illustrator.

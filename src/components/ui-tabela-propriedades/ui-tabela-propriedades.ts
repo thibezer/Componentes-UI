@@ -20,8 +20,11 @@ import {
   conectarPainelControles,
   sincronizarPainelControles
 } from './propriedades-painel-controles';
+import { conectarTecladoPainel } from './propriedades-teclado';
+import { normalizarCategorias, normalizarTipos } from './propriedades-normalizacao';
 import {
   focarProximoEditor,
+  focarEditorAnterior,
   atualizarCampoVisual,
   expandirTodasCategorias,
   colapsarTodasCategorias,
@@ -40,6 +43,11 @@ export * from './propriedades-dom-utils';
 export * from './propriedades-flutuante';
 export * from './propriedades-densidade';
 export * from './propriedades-valor-misto';
+export * from './propriedades-numero';
+export * from './propriedades-filtro';
+export * from './propriedades-normalizacao';
+export * from './propriedades-exibicao';
+export * from './propriedades-teclado';
 import { TEXTO_MISTO_PADRAO } from './propriedades-valor-misto';
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 
@@ -134,6 +142,13 @@ export class UITabelaPropriedades extends SafeHTMLElement {
       onAlternarColapsoHorizontal: () => this.alternarColapsoHorizontal()
     });
 
+    conectarTecladoPainel({
+      shadow: this.shadow,
+      listeners: this.listeners,
+      isModoManual: () => this.getAttribute('modo-aplicar') === 'manual',
+      onAplicar: () => this.aplicar()
+    });
+
     conectarArrastoFlutuante(this, this.shadow, this.listeners);
     this.controladorSplitter.init();
     this.syncState();
@@ -182,7 +197,8 @@ export class UITabelaPropriedades extends SafeHTMLElement {
   }
 
   set categorias(novasCategorias: CategoriaPropriedades[]) {
-    this._categorias = Array.isArray(novasCategorias) ? novasCategorias : [];
+    // Entradas externas são hostis: categorias/propriedades nulas ou sem id são descartadas
+    this._categorias = normalizarCategorias(novasCategorias);
     this.gerenciadorValores.inicializarCategorias(this._categorias);
     this.renderCategorias();
   }
@@ -209,16 +225,19 @@ export class UITabelaPropriedades extends SafeHTMLElement {
   }
 
   set tipos(novosTipos: SeletorTipoItem[]) {
-    this._tipos = Array.isArray(novosTipos) ? novosTipos : [];
+    this._tipos = normalizarTipos(novosTipos);
     this.renderSeletorTipos();
   }
 
+  /** Id do tipo exibido no seletor: sem seleção válida, o seletor mostra (e devolve) o primeiro. */
   get tipoSelecionado(): string {
+    const existe = this._tipos.some(t => String(t.id) === String(this._tipoSelecionadoId));
+    if (!existe && this._tipos.length > 0) return String(this._tipos[0].id);
     return this._tipoSelecionadoId;
   }
 
   set tipoSelecionado(idTipo: string) {
-    this._tipoSelecionadoId = idTipo;
+    this._tipoSelecionadoId = idTipo == null ? '' : String(idTipo);
     this.renderSeletorTipos();
   }
 
@@ -253,6 +272,14 @@ export class UITabelaPropriedades extends SafeHTMLElement {
 
   public desfazer(): void {
     this.gerenciadorValores.desfazer();
+  }
+
+  /**
+   * Volta uma propriedade ao valor do último carregar/aplicar (o mesmo que o botão ↺ da linha).
+   * Fora do modo manual emite `ui-propriedade-alterada`. Devolve `false` se não havia o que restaurar.
+   */
+  public reverterPropriedade(propId: string): boolean {
+    return this.gerenciadorValores.reverter(propId);
   }
 
   public expandirTudo(): void {
@@ -409,12 +436,14 @@ export class UITabelaPropriedades extends SafeHTMLElement {
         valoresAtuais: this.gerenciadorValores.getValores(),
         valoresOriginais: this.gerenciadorValores.getValoresOriginais(),
         onAtualizarCampoVisual: (propId, novoValor) => atualizarCampoVisual(this.shadow, propId, novoValor),
+        onReverter: (propId) => this.reverterPropriedade(propId),
         editorCtx: {
           obterValorAtual: (id: string) => this.gerenciadorValores.obterValor(id),
           registrarAlteracao: (catId: string, id: string, val: any) => {
             this.gerenciadorValores.registrarAlteracao(catId, id, val);
           },
           focarProximoEditor: (el: HTMLElement) => focarProximoEditor(this.shadow, el),
+          focarEditorAnterior: (el: HTMLElement) => focarEditorAnterior(this.shadow, el),
           obterTextoMisto: () => this.textoMisto,
           despacharEventoAcao: (p: ItemPropriedade, catId: string) => {
             this.dispatchEvent(

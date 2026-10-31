@@ -32,7 +32,7 @@ export function criarEditorValor(
 ): HTMLElement {
   // 1. Somente leitura ou tipo 'readonly'
   if (prop.somenteLeitura || prop.tipo === 'readonly') {
-    return criarEditorReadonly(valorAtual, ctx.obterTextoMisto);
+    return criarEditorReadonly(valorAtual, ctx.obterTextoMisto, prop);
   }
 
   // 2. Tipo Booleano (Checkbox compacto)

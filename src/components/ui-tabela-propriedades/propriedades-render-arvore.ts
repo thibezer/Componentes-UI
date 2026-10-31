@@ -1,6 +1,8 @@
 import { ItemPropriedade, CategoriaPropriedades } from './tipos';
 import { criarEditorValor, ContextoEditorPropriedade } from './propriedades-editores';
 import { isValorMisto, valorInicialDaPropriedade, valoresIguais } from './propriedades-valor-misto';
+import { filtrarPropriedades, normalizarTermoBusca } from './propriedades-filtro';
+import { ajustarNumero } from './propriedades-numero';
 
 export interface ContextoLinhaPropriedade {
   valoresAtuais: Record<string, any>;
@@ -10,6 +12,8 @@ export interface ContextoLinhaPropriedade {
   isDirty?: boolean;
   editorCtx: ContextoEditorPropriedade;
   onAtualizarCampoVisual: (propId: string, novoValor: any) => void;
+  /** Restaura o valor original da propriedade (botão ↺ das linhas modificadas). */
+  onReverter?: (propId: string) => void;
 }
 
 export interface OpcoesRenderArvore {
@@ -36,22 +40,19 @@ export function renderizarCategoriasETree(opcoes: OpcoesRenderArvore): void {
   }
 
   const fragment = document.createDocumentFragment();
+  const termo = normalizarTermoBusca(termoBusca);
+  let algumaVisivel = false;
 
   categorias.forEach(cat => {
-    const propriedadesFiltradas = (cat.propriedades || []).filter(prop => {
-      if (!termoBusca) return true;
-      return (
-        prop.rotulo.toLowerCase().includes(termoBusca) ||
-        String(prop.id).toLowerCase().includes(termoBusca)
-      );
-    });
+    const propriedadesFiltradas = filtrarPropriedades(cat, termo);
 
-    if (termoBusca && propriedadesFiltradas.length === 0) {
+    if (termo && propriedadesFiltradas.length === 0) {
       return;
     }
+    algumaVisivel = true;
 
     // Durante a busca as categorias com resultado ficam abertas (sem alterar cat.aberto)
-    const isAberta = Boolean(termoBusca) || cat.aberto !== false;
+    const isAberta = Boolean(termo) || cat.aberto !== false;
     const catEl = document.createElement('div');
     catEl.className = `ui-prop__categoria ${isAberta ? 'ui-prop__categoria--aberta' : ''}`;
     catEl.setAttribute('data-cat-id', cat.id);
@@ -106,6 +107,14 @@ export function renderizarCategoriasETree(opcoes: OpcoesRenderArvore): void {
     fragment.appendChild(catEl);
   });
 
+  if (!algumaVisivel) {
+    const vazio = document.createElement('div');
+    vazio.className = 'ui-prop__vazio ui-prop__vazio--filtro';
+    vazio.setAttribute('role', 'status');
+    vazio.textContent = `Nenhuma propriedade corresponde a “${String(termoBusca).trim()}”.`;
+    fragment.appendChild(vazio);
+  }
+
   listaContainer.appendChild(fragment);
 }
 
@@ -149,6 +158,24 @@ export function criarLinhaPropriedade(
   spanRotulo.textContent = prop.rotulo;
   colRotulo.appendChild(spanRotulo);
 
+  // Restaurar o valor original: visível só enquanto a linha está modificada (CSS)
+  const editavel = !prop.somenteLeitura && prop.tipo !== 'readonly' && prop.tipo !== 'acao';
+  if (editavel && ctx.onReverter) {
+    const onReverter = ctx.onReverter;
+    const btnReverter = document.createElement('button');
+    btnReverter.type = 'button';
+    btnReverter.className = 'ui-prop__btn-reverter';
+    btnReverter.title = 'Restaurar valor original';
+    btnReverter.setAttribute('aria-label', `Restaurar valor original de ${prop.rotulo}`);
+    btnReverter.textContent = '↺';
+    btnReverter.addEventListener('click', (e) => {
+      e.stopPropagation();
+      onReverter(prop.id);
+    });
+    btnReverter.addEventListener('dblclick', (e) => e.stopPropagation());
+    colRotulo.appendChild(btnReverter);
+  }
+
   // Scrubber numérico (estilo CAD / Blender / Figma)
   if (prop.tipo === 'numero' && !prop.somenteLeitura) {
     configurarScrubberNumerico(colRotulo, categoriaId, prop, ctx);
@@ -188,6 +215,7 @@ function configurarScrubberNumerico(
 
   colRotulo.addEventListener('pointerdown', (e: PointerEvent) => {
     if (e.button !== 0) return;
+    if ((e.target as Element | null)?.closest?.('.ui-prop__btn-reverter')) return;
     // Sem valor de partida: arrastar a partir de "Varia" igualaria todos a um número arbitrário
     if (isValorMisto(ctx.editorCtx.obterValorAtual(prop.id))) return;
     startX = e.clientX;
@@ -213,14 +241,10 @@ function configurarScrubberNumerico(
         else if (moveEvent.ctrlKey || moveEvent.metaKey) fator = 10;
 
         const casas = prop.casasDecimais !== undefined ? prop.casasDecimais : 2;
-        const passoBase = Math.pow(10, -Math.min(casas, 2));
-        let novo = valorInicial + (deltaX * passoBase * fator);
-
-        if (prop.casasDecimais !== undefined) {
-          novo = Number(novo.toFixed(prop.casasDecimais));
-        } else {
-          novo = Math.round(novo * 100) / 100;
-        }
+        const temPasso = typeof prop.passo === 'number' && Number.isFinite(prop.passo) && prop.passo > 0;
+        const passoBase = temPasso ? (prop.passo as number) : Math.pow(10, -Math.min(casas, 2));
+        const bruto = valorInicial + (deltaX * passoBase * fator);
+        const novo = ajustarNumero(prop.casasDecimais !== undefined ? bruto : Math.round(bruto * 100) / 100, prop);
 
         ctx.editorCtx.registrarAlteracao(categoriaId, prop.id, novo);
         ctx.onAtualizarCampoVisual(prop.id, novo);

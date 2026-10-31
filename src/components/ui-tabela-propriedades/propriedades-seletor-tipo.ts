@@ -74,6 +74,7 @@ export function renderizarSeletorTipos(ctx: ContextoSeletorTipo): void {
 
     const select = document.createElement('select');
     select.className = 'ui-prop__tipo-select';
+    select.setAttribute('aria-label', 'Tipo de objeto');
     ctx.tipos.forEach(t => {
       const opt = document.createElement('option');
       opt.value = t.id;
@@ -112,6 +113,7 @@ export function renderizarSeletorTipos(ctx: ContextoSeletorTipo): void {
 
     const select = document.createElement('select');
     select.className = 'ui-prop__tipo-select';
+    select.setAttribute('aria-label', 'Tipo de objeto');
     ctx.tipos.forEach(t => {
       const opt = document.createElement('option');
       opt.value = t.id;

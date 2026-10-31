@@ -31,6 +31,12 @@ export interface ItemPropriedade {
   misto?: boolean;
   unidade?: string;
   casasDecimais?: number;
+  /** Menor valor aceito (números): digitação, setas e scrubber são limitados a ele. */
+  min?: number;
+  /** Maior valor aceito (números). */
+  max?: number;
+  /** Passo das setas ↑/↓ e do scrubber (números); padrão: 10^-casasDecimais ou 1. */
+  passo?: number;
   opcoes?: OpcaoPropriedade[];
   placeholder?: string;
   somenteLeitura?: boolean;
@@ -62,10 +68,19 @@ export interface UIPropertyChangeDetail {
   todosValores: Record<string, any>;
 }
 
+export interface UIAplicarDetail {
+  /** Todos os valores atuais. */
+  valores: Record<string, any>;
+  /** Só as propriedades que mudaram desde o último carregar/aplicar. */
+  alterados: Record<string, any>;
+}
+
 export interface ContextoEditorPropriedade {
   obterValorAtual: (propId: string) => any;
   registrarAlteracao: (categoriaId: string, propId: string, novoValor: any) => void;
   focarProximoEditor: (elementoAtual: HTMLElement) => void;
+  /** Shift+Enter: volta ao editor anterior. */
+  focarEditorAnterior?: (elementoAtual: HTMLElement) => void;
   despacharEventoAcao: (prop: ItemPropriedade, categoriaId: string) => void;
   /** Texto exibido para valores mistos (atributo `texto-misto`); padrão "Varia". */
   obterTextoMisto?: () => string;

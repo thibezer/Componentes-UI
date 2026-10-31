@@ -1,4 +1,4 @@
-import { CategoriaPropriedades } from './tipos';
+import { CategoriaPropriedades, ContextoEditorPropriedade } from './tipos';
 
 /** Editores focáveis pela navegação Enter → próximo campo (inclui booleano e amostra de cor). */
 const SELETOR_EDITORES =
@@ -84,16 +84,38 @@ export function marcarSelectMisto(select: HTMLSelectElement, texto: string): voi
 
 /* ---------- Navegação e categorias ---------- */
 
-export function focarProximoEditor(shadow: ShadowRoot, atual: HTMLElement): void {
-  const editores = Array.from(shadow.querySelectorAll<HTMLElement>(SELETOR_EDITORES));
+/** Editores navegáveis: os de categorias recolhidas (display: none) não recebem foco e são pulados. */
+function editoresVisiveis(shadow: ShadowRoot): HTMLElement[] {
+  return Array.from(shadow.querySelectorAll<HTMLElement>(SELETOR_EDITORES)).filter(el => {
+    const cat = el.closest('.ui-prop__categoria');
+    return !cat || cat.classList.contains('ui-prop__categoria--aberta');
+  });
+}
+
+function focarEditorRelativo(shadow: ShadowRoot, atual: HTMLElement, delta: 1 | -1): void {
+  const editores = editoresVisiveis(shadow);
   const idx = editores.indexOf(atual);
-  if (idx !== -1 && idx + 1 < editores.length) {
-    const prox = editores[idx + 1];
+  const prox = idx === -1 ? undefined : editores[idx + delta];
+  if (prox) {
     prox.focus();
     if (prox instanceof HTMLInputElement) {
       prox.select();
     }
   }
+}
+
+export function focarProximoEditor(shadow: ShadowRoot, atual: HTMLElement): void {
+  focarEditorRelativo(shadow, atual, 1);
+}
+
+export function focarEditorAnterior(shadow: ShadowRoot, atual: HTMLElement): void {
+  focarEditorRelativo(shadow, atual, -1);
+}
+
+/** Enter vai ao próximo campo; Shift+Enter volta ao anterior (como numa planilha). */
+export function navegarAposEnter(ctx: ContextoEditorPropriedade, el: HTMLElement, evento: KeyboardEvent): void {
+  if (evento.shiftKey && ctx.focarEditorAnterior) ctx.focarEditorAnterior(el);
+  else ctx.focarProximoEditor(el);
 }
 
 function marcarCategoria(el: Element, aberta: boolean): void {

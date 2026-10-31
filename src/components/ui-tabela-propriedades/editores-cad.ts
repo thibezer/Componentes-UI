@@ -1,9 +1,15 @@
 import { ItemPropriedade, OpcaoPropriedade } from './tipos';
 import { ContextoEditorPropriedade } from './tipos';
-import { marcarSelectMisto, registrarAtualizadorEditor, sincronizarSelect } from './propriedades-dom-utils';
+import { marcarSelectMisto, navegarAposEnter, registrarAtualizadorEditor, sincronizarSelect } from './propriedades-dom-utils';
 import { isValorMisto, textoMistoDe } from './propriedades-valor-misto';
 
 const mesmoTextoSemCaixa = (opcao: string, valor: any) => opcao.toLowerCase() === String(valor ?? '').toLowerCase();
+
+/** Devolve o id no tipo original da opção (número continua número). */
+function idDaOpcao(opcoes: OpcaoPropriedade[] | undefined, valorSelect: string): string | number {
+  const opcao = (opcoes || []).find(op => String(op.id) === valorSelect);
+  return opcao ? opcao.id : valorSelect;
+}
 
 function preencherOpcoes(select: HTMLSelectElement, opcoes: OpcaoPropriedade[]): void {
   opcoes.forEach(op => {
@@ -80,13 +86,13 @@ export function criarEditorLinetype(
   registrarAtualizadorEditor(container, atualizar);
 
   select.addEventListener('change', () => {
-    ctx.registrarAlteracao(categoriaId, prop.id, select.value);
-    atualizar(select.value);
+    ctx.registrarAlteracao(categoriaId, prop.id, idDaOpcao(prop.opcoes, select.value));
+    atualizar(ctx.obterValorAtual(prop.id));
   });
 
   select.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
-      ctx.focarProximoEditor(select);
+      navegarAposEnter(ctx, select, e);
     }
   });
 
@@ -162,13 +168,13 @@ export function criarEditorLineweight(
   registrarAtualizadorEditor(container, atualizar);
 
   select.addEventListener('change', () => {
-    ctx.registrarAlteracao(categoriaId, prop.id, select.value);
-    atualizar(select.value);
+    ctx.registrarAlteracao(categoriaId, prop.id, idDaOpcao(prop.opcoes, select.value));
+    atualizar(ctx.obterValorAtual(prop.id));
   });
 
   select.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
-      ctx.focarProximoEditor(select);
+      navegarAposEnter(ctx, select, e);
     }
   });
 
@@ -293,7 +299,7 @@ export function criarEditorCorCad(
 
   select.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
-      ctx.focarProximoEditor(select);
+      navegarAposEnter(ctx, select, e);
     }
   });
 
@@ -362,7 +368,10 @@ export function criarEditorCorSwatch(
     if (e.target !== picker) picker.click();
   });
   container.addEventListener('keydown', (e) => {
-    if (e.key === ' ' || e.key === 'Enter') {
+    if (e.key === 'Enter' && e.shiftKey) {
+      e.preventDefault();
+      navegarAposEnter(ctx, container, e);
+    } else if (e.key === ' ' || e.key === 'Enter') {
       e.preventDefault();
       picker.click();
     }
