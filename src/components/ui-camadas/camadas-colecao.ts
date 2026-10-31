@@ -25,20 +25,35 @@ export interface HostColecao {
   solicitarRenderizacao(): void;
 }
 
-/** Transforma a árvore (`children`) em lista plana, herdando `parentId` do pai quando não informado. */
-export function achatarCamadas(camadas: CamadaItem[], parentId: string | null = null): CamadaItem[] {
+/**
+ * Transforma a árvore (`children`) em lista plana, herdando `parentId` do pai quando não informado.
+ * Itens sem `id` são descartados; um `children` que referencia um ancestral (ou repete um id) não recursa sem fim.
+ */
+export function achatarCamadas(
+  camadas: CamadaItem[],
+  parentId: string | null = null,
+  vistos: Set<string> = new Set()
+): CamadaItem[] {
   const resultado: CamadaItem[] = [];
   for (const c of camadas) {
+    if (!c || typeof c.id !== 'string' || !c.id || vistos.has(c.id)) continue;
+    vistos.add(c.id);
     const item = { ...c };
     if (parentId && item.parentId === undefined) {
       item.parentId = parentId;
     }
     resultado.push(item);
     if (Array.isArray(c.children) && c.children.length > 0) {
-      resultado.push(...achatarCamadas(c.children, c.id));
+      resultado.push(...achatarCamadas(c.children, c.id, vistos));
     }
   }
   return resultado;
+}
+
+/** A âncora do Shift não pode apontar para uma feição que saiu da lista. */
+function soltarAncoraInvalida(host: HostColecao): void {
+  const ancora = host.lastClickedFeatureId;
+  if (ancora && !host.feicoes.some((f) => f.id === ancora)) host.lastClickedFeatureId = null;
 }
 
 export function definirCamadasNoHost(host: HostColecao, camadas: CamadaItem[], feicoes?: FeicaoItem[]): void {
@@ -72,6 +87,7 @@ export function definirCamadasNoHost(host: HostColecao, camadas: CamadaItem[], f
       );
     }
     removerSelecoesInvalidas(host.selectedFeatureIds, host.feicoes);
+    soltarAncoraInvalida(host);
   }
 
   // Sem camada ativa, ou com uma que a nova lista não tem mais: a primeira assume
@@ -87,6 +103,7 @@ export function definirCamadasNoHost(host: HostColecao, camadas: CamadaItem[], f
 export function definirFeicoesNoHost(host: HostColecao, feicoes: FeicaoItem[]): void {
   host.feicoes = Array.isArray(feicoes) ? feicoes.map((f) => ({ ...f })) : [];
   removerSelecoesInvalidas(host.selectedFeatureIds, host.feicoes);
+  soltarAncoraInvalida(host);
   host.solicitarRenderizacao();
 }
 
@@ -96,12 +113,20 @@ export function adicionarCamadaNoHost(host: HostColecao, camada: CamadaItem): vo
     console.warn(`[UI-Camadas] adicionarCamada ignorado: já existe uma camada com id '${camada.id}'.`);
     return;
   }
-  const nova = { ...camada };
-  host.camadas.push(nova);
-  host.lembranca.registrarOrigem(nova);
-  host.expandedLayers.add(nova.id);
-  if (nova.parentId) {
-    host.expandedLayers.add(nova.parentId);
+  // `children` entra achatado, como em definirCamadas: senão as subcamadas apareceriam sem existir na lista
+  const idsExistentes = new Set(host.camadas.map((l) => l.id));
+  for (const nova of achatarCamadas([camada])) {
+    if (idsExistentes.has(nova.id)) {
+      console.warn(`[UI-Camadas] adicionarCamada: subcamada '${nova.id}' ignorada, o id já existe.`);
+      continue;
+    }
+    idsExistentes.add(nova.id);
+    host.camadas.push(nova);
+    host.lembranca.registrarOrigem(nova);
+    host.expandedLayers.add(nova.id);
+    if (nova.parentId) {
+      host.expandedLayers.add(nova.parentId);
+    }
   }
   host.salvarLembrancaEstado();
   host.solicitarRenderizacao();
@@ -138,6 +163,7 @@ export function adicionarFeicaoNoHost(host: HostColecao, feicao: FeicaoItem): vo
 }
 
 export function atualizarFeicaoNoHost(host: HostColecao, feicaoAtualizada: FeicaoItem): void {
+  if (!feicaoAtualizada || typeof feicaoAtualizada.id !== 'string') return;
   const idx = host.feicoes.findIndex((f) => f.id === feicaoAtualizada.id);
   if (idx !== -1) {
     host.feicoes[idx] = { ...host.feicoes[idx], ...feicaoAtualizada };
@@ -148,5 +174,6 @@ export function atualizarFeicaoNoHost(host: HostColecao, feicaoAtualizada: Feica
 export function removerFeicaoNoHost(host: HostColecao, feicaoId: string): void {
   host.feicoes = host.feicoes.filter((f) => f.id !== feicaoId);
   host.selectedFeatureIds.delete(feicaoId);
+  if (host.lastClickedFeatureId === feicaoId) host.lastClickedFeatureId = null;
   host.solicitarRenderizacao();
 }

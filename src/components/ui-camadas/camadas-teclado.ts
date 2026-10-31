@@ -1,12 +1,14 @@
 /* ====================================================
    UI Camadas - Teclado e Acessibilidade
-   Escape, ativação por Enter/Espaço dos controles-ícone e
-   navegação por setas entre as linhas da árvore (roving tabindex)
+   Escape, ativação por Enter/Espaço dos controles-ícone,
+   navegação por setas entre as linhas da árvore (roving tabindex),
+   F2 para renomear e Ctrl/Cmd+A para selecionar as feições visíveis
    ==================================================== */
 
 import { ListenerBag } from '../../core/listener-bag';
 import { CamadasHostCompleto } from './camadas-host';
 import { buscarPorAtributo } from './camadas-utils';
+import { obterIdsVisiveisFeicoes } from './camadas-selecao';
 
 const SEL_CONTROLES = '[role="button"][tabindex]';
 const SEL_LINHAS = '[data-layer-row], [data-feat-row]';
@@ -64,7 +66,19 @@ function aoPressionarEscape(host: CamadasHostCompleto, shadow: ShadowRoot, e: Ke
   }
 }
 
-function aoPressionarTeclaNoCorpo(corpo: HTMLElement, shadow: ShadowRoot, e: KeyboardEvent): void {
+/** F2 (como no Explorer, QGIS e Illustrator): abre o renomear inline da linha focada. */
+function iniciarRenomear(linha: HTMLElement): void {
+  linha
+    .querySelector('[data-layer-name-trigger], [data-feat-name-trigger]')
+    ?.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+}
+
+function aoPressionarTeclaNoCorpo(
+  host: CamadasHostCompleto,
+  corpo: HTMLElement,
+  shadow: ShadowRoot,
+  e: KeyboardEvent
+): void {
   const alvo = e.composedPath()[0];
   if (!(alvo instanceof HTMLElement) || ehCampoDeTexto(alvo)) return;
 
@@ -76,6 +90,19 @@ function aoPressionarTeclaNoCorpo(corpo: HTMLElement, shadow: ShadowRoot, e: Key
   }
 
   if (!alvo.matches(SEL_LINHAS)) return;
+  if (e.key === 'F2') {
+    e.preventDefault();
+    iniciarRenomear(alvo);
+    return;
+  }
+
+  if ((e.ctrlKey || e.metaKey) && (e.key === 'a' || e.key === 'A')) {
+    e.preventDefault();
+    const ids = obterIdsVisiveisFeicoes(host.camadas, host.feicoes, host.expandedLayers, host.searchQuery);
+    host.selecionarFeicoes(ids, true);
+    return;
+  }
+
   const linhas = linhasNavegaveis(corpo);
   const idx = linhas.indexOf(alvo);
 
@@ -127,7 +154,7 @@ export function conectarTecladoEAcessibilidade(
     if (e.key === 'Escape') aoPressionarEscape(host, shadow, e);
   });
 
-  listeners.add(corpo, 'keydown', (e: KeyboardEvent) => aoPressionarTeclaNoCorpo(corpo, shadow, e));
+  listeners.add(corpo, 'keydown', (e: KeyboardEvent) => aoPressionarTeclaNoCorpo(host, corpo, shadow, e));
 
   // Mantém exatamente uma linha na ordem de Tab: a que recebeu o foco por último
   listeners.add(corpo, 'focusin', (e: FocusEvent) => {

@@ -1,7 +1,7 @@
 /* ====================================================
    UI Camadas - Renomear inline
-   Responsabilidade única: edição do nome de camadas e feições por duplo clique (Enter confirma, Esc cancela,
-   perder o foco confirma). Camada e feição compartilham o mesmo fluxo; só mudam os atributos e o evento.
+   Responsabilidade única: edição do nome de camadas e feições por duplo clique ou F2 (Enter confirma, Esc cancela,
+   perder o foco confirma). Com Enter/Esc o foco volta para a linha, para seguir navegando pelo teclado. Camada e feição compartilham o mesmo fluxo; só mudam os atributos e o evento.
    ==================================================== */
 
 import type { CamadaItem, FeicaoItem } from './tipos';
@@ -23,6 +23,8 @@ interface Alvo {
   gatilho: string;
   /** Atributo do `<input>` que aparece no lugar do nome. */
   input: string;
+  /** Atributo da linha que recebe o foco de volta ao fim da edição pelo teclado. */
+  linha: string;
   marcarEditando(id: string | null): void;
   /** Aplica o novo nome; devolve o que deve ser emitido, ou `null` se nada mudou. */
   aplicar(id: string, novoNome: string): { detalhe: unknown; salvar: boolean } | null;
@@ -35,6 +37,7 @@ function alvos(host: HostRenomear): Alvo[] {
     {
       gatilho: 'data-layer-name-trigger',
       input: 'data-inline-layer-input',
+      linha: 'data-layer-row',
       marcarEditando: (id) => { host.editingLayerId = id; },
       aplicar: (id, novoNome) => {
         const camada = host.camadas.find((l) => l.id === id);
@@ -47,6 +50,7 @@ function alvos(host: HostRenomear): Alvo[] {
     {
       gatilho: 'data-feat-name-trigger',
       input: 'data-inline-feat-input',
+      linha: 'data-feat-row',
       marcarEditando: (id) => { host.editingFeatureId = id; },
       aplicar: (id, novoNome) => {
         const feicao = host.feicoes.find((f) => f.id === id);
@@ -76,7 +80,7 @@ export function vincularRenomearInline(host: HostRenomear, shadow: ShadowRoot): 
         input.select();
         let concluido = false;
 
-        const concluir = (salvar: boolean): void => {
+        const concluir = (salvar: boolean, devolverFoco = false): void => {
           if (concluido) return;
           concluido = true;
           alvo.marcarEditando(null);
@@ -88,15 +92,16 @@ export function vincularRenomearInline(host: HostRenomear, shadow: ShadowRoot): 
             }
           }
           host.solicitarRenderizacao();
+          if (devolverFoco) buscarPorAtributo(shadow, alvo.linha, id)?.focus();
         };
 
         input.addEventListener('keydown', (ke) => {
           if (ke.key === 'Enter') {
             ke.preventDefault();
-            concluir(true);
+            concluir(true, true);
           } else if (ke.key === 'Escape') {
             ke.preventDefault();
-            concluir(false);
+            concluir(false, true);
           }
         });
         input.addEventListener('blur', () => concluir(true));

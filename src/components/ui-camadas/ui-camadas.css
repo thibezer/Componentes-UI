@@ -1449,6 +1449,25 @@
   max-width: 100%;
 }
 
+/* Estado herdado do grupo: oculto ou travado por um ancestral, sem mudar o estado próprio */
+.ui-layer-row.herdado-oculto, .ui-feat-row.herdado-oculto {
+  opacity: 0.52;
+}
+
+.ui-layer-row.herdado-travado .ui-col-lock.ui-lock-open {
+  color: var(--ui-cor-texto-secundario, #888899);
+  opacity: 0.7;
+}
+
+/* Aviso de feições além do limite de linhas por camada */
+.ui-truncate-notice {
+  padding: 4px 10px;
+  font-size: 10px;
+  font-style: italic;
+  color: var(--ui-cor-texto-secundario, #888899);
+  background: var(--ui-cor-fundo-recuado, rgba(0, 0, 0, 0.2));
+}
+
 /* Ocultação Rápida da Busca */
 .ui-search-hidden {
   display: none !important;

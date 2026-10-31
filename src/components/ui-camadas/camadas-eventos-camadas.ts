@@ -7,7 +7,9 @@
 import { CamadasHostCompleto } from './camadas-host';
 import { ICONES } from './camadas-icones';
 import { sanitizarCorCss, buscarPorAtributo, definirRotuloControle } from './camadas-utils';
-import { filtrarFeicoesPorBusca } from './camadas-selecao';
+import { feicoesPorRamo } from './camadas-selecao';
+import { ehDescendente } from './camadas-drop-ops';
+import { sincronizarHerancaDOM } from './camadas-sincronizacao-dom';
 import { abrirSeletorCor } from '../ui-cores/ui-seletor-cor';
 
 export function conectarEventosCamadas(host: CamadasHostCompleto, shadow: ShadowRoot): void {
@@ -69,6 +71,7 @@ export function conectarEventosCamadas(host: CamadasHostCompleto, shadow: Shadow
         const row = btn.closest('.ui-layer-row');
         if (row) row.classList.toggle('hidden-layer', !isVis);
         atualizarIconeVisibilidadeGlobal(host, shadow);
+        sincronizarHerancaDOM(host, shadow);
 
         host.salvarLembrancaEstado();
         host.dispararEvento('ui-camada-visibilidade', {
@@ -90,7 +93,7 @@ export function conectarEventosCamadas(host: CamadasHostCompleto, shadow: Shadow
         btn.innerHTML = layer.locked ? ICONES.cadeadoTrancado : ICONES.cadeadoAberto;
         btn.classList.toggle('ui-lock-open', !layer.locked);
         definirRotuloControle(btn, layer.locked ? 'Desbloquear Camada' : 'Bloquear Camada');
-        propagarBloqueioParaFeicoes(host, shadow, layer.id, layer.locked === true);
+        sincronizarHerancaDOM(host, shadow);
         host.salvarLembrancaEstado();
         host.dispararEvento('ui-camada-bloqueio', {
           camadaId: layer.id,
@@ -241,7 +244,7 @@ export function conectarEventosCamadas(host: CamadasHostCompleto, shadow: Shadow
 
         confirmTimeout = setTimeout(() => {
           btn.classList.remove('confirming');
-          if (label) label.textContent = 'Excluir Camada';
+          if (label) label.textContent = 'Excluir';
         }, 3500);
       } else {
         if (confirmTimeout) clearTimeout(confirmTimeout);
@@ -264,16 +267,28 @@ export function conectarEventosCamadas(host: CamadasHostCompleto, shadow: Shadow
       const layerId = selectEl.getAttribute('data-layer-parent-select');
       const novoParentId = selectEl.value || null;
       const layer = host.camadas.find((l) => l.id === layerId);
-      if (layer) {
-        layer.parentId = novoParentId;
-        host.salvarLembrancaEstado();
-        host.dispararEvento('ui-camada-mover-hierarquia', {
-          camadaId: layer.id,
-          novoParentId,
-          camada: layer
-        });
-        host.solicitarRenderizacao();
+      if (!layer) return;
+      const parentAnteriorId = layer.parentId ?? null;
+      // Pai inexistente, a própria camada ou um descendente dela (ciclo): volta ao valor atual
+      const invalido =
+        novoParentId !== null &&
+        (novoParentId === layer.id ||
+          !host.camadas.some((l) => l.id === novoParentId) ||
+          ehDescendente(host.camadas, novoParentId, layer.id));
+      if (invalido || novoParentId === parentAnteriorId) {
+        selectEl.value = parentAnteriorId ?? '';
+        return;
       }
+      layer.parentId = novoParentId;
+      if (novoParentId) host.expandedLayers.add(novoParentId);
+      host.salvarLembrancaEstado();
+      host.dispararEvento('ui-camada-mover-hierarquia', {
+        camadaId: layer.id,
+        novoParentId,
+        parentAnteriorId,
+        camada: layer
+      });
+      host.solicitarRenderizacao();
     });
   });
 
@@ -292,10 +307,9 @@ export function conectarEventosCamadas(host: CamadasHostCompleto, shadow: Shadow
       e.stopPropagation();
       const me = e as MouseEvent;
       const layerId = target.getAttribute('data-layer-target');
-      const layerFeats = filtrarFeicoesPorBusca(
-        host.feicoes.filter((f) => f.layerId === layerId),
-        host.searchQuery
-      );
+      if (!layerId) return;
+      // Num grupo, o alvo vale para o ramo inteiro (feições das subcamadas incluídas)
+      const layerFeats = feicoesPorRamo(host.camadas, host.feicoes, host.searchQuery).get(layerId) || [];
       if (layerFeats.length === 0) return;
 
       const allSelected = layerFeats.every((f) => host.selectedFeatureIds.has(f.id));
@@ -319,28 +333,4 @@ function atualizarIconeVisibilidadeGlobal(host: CamadasHostCompleto, shadow: Sha
   const todasVisiveis = host.camadas.every((l) => l.visible !== false);
   btn.innerHTML = todasVisiveis ? ICONES.olhoAberto : ICONES.olhoFechado;
   definirRotuloControle(btn, todasVisiveis ? 'Ocultar Todas as Camadas' : 'Exibir Todas as Camadas');
-}
-
-/** Reflete no DOM das feições o bloqueio herdado da camada (sem redesenhar a árvore) */
-function propagarBloqueioParaFeicoes(
-  host: CamadasHostCompleto,
-  shadow: ShadowRoot,
-  layerId: string,
-  camadaTravada: boolean
-): void {
-  host.feicoes
-    .filter((f) => f.layerId === layerId)
-    .forEach((f) => {
-      const el = buscarPorAtributo(shadow, 'data-feat-lock', f.id);
-      if (!el) return;
-      const travada = f.locked === true || camadaTravada;
-      el.innerHTML = travada ? ICONES.cadeadoTrancado : ICONES.cadeadoAberto;
-      el.classList.toggle('ui-lock-open', !travada);
-      if (camadaTravada) el.setAttribute('data-locked-by-layer', 'true');
-      else el.removeAttribute('data-locked-by-layer');
-      definirRotuloControle(
-        el,
-        camadaTravada ? 'Bloqueada pela camada' : travada ? 'Desbloquear Feição' : 'Bloquear Feição'
-      );
-    });
 }

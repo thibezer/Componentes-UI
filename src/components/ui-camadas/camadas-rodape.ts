@@ -7,41 +7,35 @@ import { CamadaItem, FeicaoItem } from './tipos';
 import { formatarMetricaFeicoes } from './camadas-metricas';
 import { ICONES } from './camadas-icones';
 import { escapeHtml } from './camadas-utils';
+import {
+  construirHierarquiaCamadas,
+  calcularEstadoHerdado,
+  type CamadaNodoHierarquico
+} from './camadas-hierarquia';
 
 /**
- * Formata opções de camadas para o select de mover, preservando
- * a hierarquia visual com recuo e ícones de pasta
+ * Formata opções de camadas para o select de mover, preservando a hierarquia visual com recuo e
+ * ícones de pasta. Camada travada (ou sob grupo travado) aparece desabilitada: não recebe feições.
  */
 export function formatarOpcoesCamadasHierarquicas(camadas: CamadaItem[]): string {
-  const mapaCamadas = new Map<string, CamadaItem>();
-  camadas.forEach((l) => mapaCamadas.set(l.id, l));
+  const herdado = calcularEstadoHerdado(camadas);
 
-  const filhasPorPai = new Map<string, CamadaItem[]>();
-  const raizes: CamadaItem[] = [];
-
-  camadas.forEach((l) => {
-    if (l.parentId && mapaCamadas.has(l.parentId)) {
-      if (!filhasPorPai.has(l.parentId)) filhasPorPai.set(l.parentId, []);
-      filhasPorPai.get(l.parentId)!.push(l);
-    } else {
-      raizes.push(l);
-    }
-  });
-
-  const renderOpcao = (l: CamadaItem, depth: number): string => {
-    const filhas = filhasPorPai.get(l.id) || (Array.isArray(l.children) ? l.children : []);
+  const renderOpcao = (nodo: CamadaNodoHierarquico): string => {
+    const l = nodo.camada;
     const prefixo =
-      depth > 0
-        ? '&nbsp;&nbsp;'.repeat(depth) + '↳ '
-        : filhas.length > 0 || l.isGroup
+      nodo.depth > 0
+        ? '&nbsp;&nbsp;'.repeat(nodo.depth) + '↳ '
+        : nodo.subcamadas.length > 0 || l.isGroup
         ? '📁 '
         : '';
-    const optionHtml = `<option value="${escapeHtml(l.id)}">${prefixo}${escapeHtml(l.name)}</option>`;
-    const filhasHtml = filhas.map((f) => renderOpcao(f, depth + 1)).join('');
-    return optionHtml + filhasHtml;
+    const travada = l.locked === true || herdado.get(l.id)?.travadaPorAncestral === true;
+    const optionHtml = `<option value="${escapeHtml(l.id)}"${travada ? ' disabled' : ''}>${prefixo}${escapeHtml(l.name)}${
+      travada ? ' 🔒' : ''
+    }</option>`;
+    return optionHtml + nodo.subcamadas.map(renderOpcao).join('');
   };
 
-  return raizes.map((r) => renderOpcao(r, 0)).join('');
+  return construirHierarquiaCamadas(camadas).map(renderOpcao).join('');
 }
 
 export function renderizarRodapeAcoes(

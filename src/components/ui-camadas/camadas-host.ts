@@ -26,6 +26,7 @@ export interface CamadasHostCompleto extends UICamadasHost {
     intervalo?: boolean,
     emitirEvento?: boolean
   ): void;
+  selecionarFeicoes(ids: string[], emitirEvento?: boolean): void;
   limparSelecao(emitirEvento?: boolean): void;
   notificarMudancaSelecao(): void;
   alternarVisibilidadeTodas(emitirEvento?: boolean): void;

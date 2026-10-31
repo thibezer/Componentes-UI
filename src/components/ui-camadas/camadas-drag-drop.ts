@@ -14,6 +14,7 @@ import {
   moverFeicaoParaCamada,
   reordenarFeicao
 } from './camadas-drop-ops';
+import { camadaTravadaEfetiva } from './camadas-hierarquia';
 
 export interface UICamadasHost {
   camadas: CamadaItem[];
@@ -76,6 +77,13 @@ export class CamadasDragDropManager {
       camadaDestinoId: r.camadaDestinoId,
       feicao: r.feicao
     });
+  }
+
+  /** Camada travada (ou sob grupo travado) não recebe nem perde feições pelo arraste. */
+  private trocaEntreCamadasTravada(feicaoId: string, camadaDestinoId: string | null): boolean {
+    const origemId = this.host.feicoes.find((f) => f.id === feicaoId)?.layerId;
+    if (!camadaDestinoId || origemId === camadaDestinoId) return false;
+    return camadaTravadaEfetiva(this.host.camadas, origemId) || camadaTravadaEfetiva(this.host.camadas, camadaDestinoId);
   }
 
   private arrasteBloqueado(alvo: HTMLElement): boolean {
@@ -147,17 +155,21 @@ export class CamadasDragDropManager {
           if (!this.host.camadas.some((l) => l.id === camadaArrastadaId) || !this.host.camadas.some((l) => l.id === camadaId)) return;
 
           const resultado = moverCamada(this.host.camadas, camadaArrastadaId, camadaId, zona);
-          if (resultado?.tipo === 'hierarquia') {
-            this.host.expandedLayers?.add(resultado.novoParentId);
+          if (!resultado) return;
+          const novoParentId = resultado.camada.parentId ?? null;
+          // Soltar acima/abaixo de uma subcamada de outro grupo também troca o pai: o aplicativo precisa saber
+          if (resultado.tipo === 'hierarquia' || novoParentId !== resultado.parentAnteriorId) {
+            if (novoParentId) this.host.expandedLayers?.add(novoParentId);
             this.host.dispararEvento('ui-camada-mover-hierarquia', {
               camadaId: resultado.camada.id,
-              novoParentId: resultado.novoParentId,
+              novoParentId,
+              parentAnteriorId: resultado.parentAnteriorId,
               camada: resultado.camada
             });
           }
           this.aposReordenarCamadas();
         } else if (tipoArrastado === 'feature') {
-          if (!feicaoArrastadaId) return;
+          if (!feicaoArrastadaId || this.trocaEntreCamadasTravada(feicaoArrastadaId, camadaId)) return;
           const movida = moverFeicaoParaCamada(this.host.feicoes, this.host.camadas, feicaoArrastadaId, camadaId);
           if (movida) {
             this.emitirFeicaoMovida(movida);
@@ -227,6 +239,7 @@ export class CamadasDragDropManager {
         const acima = linha.classList.contains('drop-above');
         this.limparClassesDeArraste();
 
+        if (this.trocaEntreCamadasTravada(feicaoArrastadaId, camadaDaFeicaoId)) return;
         const resultado = reordenarFeicao(this.host.feicoes, feicaoArrastadaId, feicaoId, acima);
         if (!resultado) return;
         if (resultado.mudouDeCamada) this.emitirFeicaoMovida(resultado);

@@ -131,3 +131,55 @@ describe('reordenarFeicao', () => {
     expect(ids(f)).toEqual(['1', '2']);
   });
 });
+
+describe('revisão: ciclos de hierarquia (falhavam antes)', () => {
+  it('moverCamada recusa pôr um grupo acima/abaixo do próprio descendente', () => {
+    const l = [cam('g'), cam('m', 'g'), cam('c', 'm')];
+    expect(moverCamada(l, 'g', 'c', 'acima')).toBeNull();
+    expect(moverCamada(l, 'g', 'm', 'abaixo')).toBeNull();
+    expect(l.find((x) => x.id === 'g')!.parentId).toBeNull();
+  });
+
+  it('camadas num ciclo de parentId continuam na árvore, sem recursão infinita', async () => {
+    const { construirHierarquiaCamadas } = await import('./camadas-hierarquia');
+    const arvore = construirHierarquiaCamadas([cam('a', 'b'), cam('b', 'a'), cam('x')]);
+    const todos: string[] = [];
+    const andar = (n: { camada: CamadaItem; subcamadas: any[] }) => { todos.push(n.camada.id); n.subcamadas.forEach(andar); };
+    arvore.forEach(andar);
+    expect(todos.sort()).toEqual(['a', 'b', 'x']);
+  });
+
+  it('children que contém a si mesmo não recursa sem fim', async () => {
+    const { construirHierarquiaCamadas } = await import('./camadas-hierarquia');
+    const g = cam('g');
+    g.children = [g];
+    expect(() => construirHierarquiaCamadas([g])).not.toThrow();
+  });
+});
+
+describe('revisão: área geodésica (superestimava ~64%)', () => {
+  it('quadrado de 0,01° em −23,5° tem ≈ 1,136 km², aberto ou fechado', async () => {
+    const { calcularAreaPoligono } = await import('./camadas-metricas');
+    const sq = [[-23.5, -46.6], [-23.51, -46.6], [-23.51, -46.61], [-23.5, -46.61], [-23.5, -46.6]];
+    expect(calcularAreaPoligono(sq) / 1_136_380).toBeCloseTo(1, 2);
+    expect(calcularAreaPoligono(sq.slice(0, 4)) / 1_136_380).toBeCloseTo(1, 2);
+  });
+
+  it('vértice inválido é ignorado em vez de zerar ou gerar NaN', async () => {
+    const { calcularAreaPoligono } = await import('./camadas-metricas');
+    const r = calcularAreaPoligono([[-23.5, -46.6], [NaN, 'x'], [-23.51, -46.6], [-23.51, -46.61], [-23.5, -46.61]]);
+    expect(r).toBeGreaterThan(1_000_000);
+    expect(Number.isFinite(r)).toBe(true);
+  });
+});
+
+describe('revisão: achatarCamadas com entrada hostil', () => {
+  it('children que referencia a si mesmo ou repete id não recursa sem fim; itens sem id saem', async () => {
+    const { achatarCamadas } = await import('./camadas-colecao');
+    const g = cam('g');
+    g.children = [g, cam('s'), cam('s'), null as unknown as CamadaItem, { name: 'sem id' } as CamadaItem];
+    const plano = achatarCamadas([g]);
+    expect(ids(plano)).toEqual(['g', 's']);
+    expect(plano[1].parentId).toBeNull();
+  });
+});

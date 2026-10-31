@@ -58,23 +58,22 @@ export function calcularAreaAnelSimples(coords: unknown): number {
   const len = coords.length;
   if (len < 3) return 0;
 
+  // Excesso esférico (mesma fórmula do Leaflet.draw/Turf): soma (λ2 − λ1)·(2 + sen φ1 + sen φ2).
+  // Pontos [lat, lon]; vértices não numéricos são ignorados em vez de zerar a área inteira.
+  const rad = Math.PI / 180;
+  const pontos = coords.filter(
+    (p): p is number[] => Array.isArray(p) && Number.isFinite(p[0]) && Number.isFinite(p[1])
+  );
+  if (pontos.length < 3) return 0;
   let total = 0;
-  for (let i = 0; i < len; i++) {
-    const p1 = coords[i];
-    const p2 = coords[(i + 1) % len];
-    const p3 = coords[(i + 2) % len];
-    if (!Array.isArray(p1) || !Array.isArray(p2) || !Array.isArray(p3)) continue;
-
-    const x1 = (p2[1] - p1[1]) * (Math.PI / 180);
-    const y1 = (p2[0] - p1[0]) * (Math.PI / 180);
-    const x2 = (p3[1] - p2[1]) * (Math.PI / 180);
-    const y2 = (p3[0] - p2[0]) * (Math.PI / 180);
-
-    total += x1 * y2 - y1 * x2;
+  for (let i = 0; i < pontos.length; i++) {
+    const p1 = pontos[i];
+    const p2 = pontos[(i + 1) % pontos.length];
+    total += (p2[1] - p1[1]) * rad * (2 + Math.sin(p1[0] * rad) + Math.sin(p2[0] * rad));
   }
 
-  const area = Math.abs((total * (RAIO_TERRA * RAIO_TERRA)) / 2);
-  return isNaN(area) ? 0 : area;
+  const area = Math.abs((total * RAIO_TERRA * RAIO_TERRA) / 2);
+  return Number.isFinite(area) ? area : 0;
 }
 
 /**

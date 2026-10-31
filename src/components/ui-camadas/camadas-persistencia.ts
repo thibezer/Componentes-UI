@@ -49,8 +49,63 @@ export function gerarChaveStorage(chaveProp?: string | null, elementId?: string 
   return `${PREFIXO_STORAGE}${identificador}`;
 }
 
+function ehObjeto(v: unknown): v is Record<string, unknown> {
+  return !!v && typeof v === 'object' && !Array.isArray(v);
+}
+
+function listaDeIds(v: unknown): string[] {
+  return Array.isArray(v) ? v.filter((id): id is string => typeof id === 'string') : [];
+}
+
+/** Mantém só as propriedades com o tipo esperado; opacidade fora de [0, 1] é descartada. */
+function normalizarProps(v: unknown): CamadaPropsPersistidas | undefined {
+  if (!ehObjeto(v)) return undefined;
+  const props: CamadaPropsPersistidas = {};
+  if (typeof v.name === 'string') props.name = v.name;
+  if (typeof v.visible === 'boolean') props.visible = v.visible;
+  if (typeof v.locked === 'boolean') props.locked = v.locked;
+  if (typeof v.opacity === 'number' && Number.isFinite(v.opacity) && v.opacity >= 0 && v.opacity <= 1) {
+    props.opacity = v.opacity;
+  }
+  if (typeof v.color === 'string') props.color = v.color;
+  if (typeof v.parentId === 'string' || v.parentId === null) props.parentId = v.parentId;
+  return props;
+}
+
 /**
- * Lê o estado persistido do localStorage com tolerância a falhas (SSR, restrições de sandbox)
+ * Valida o que veio do storage (editado à mão, de outra versão ou corrompido): campos com tipo errado
+ * caem para o padrão em vez de derrubar o painel. Algo que nem é objeto vira `null`.
+ */
+export function normalizarEstadoPersistido(bruto: unknown): EstadoPersistidoCamadas | null {
+  if (!ehObjeto(bruto)) return null;
+  const overrides: Record<string, CamadaOverridePersistido> = {};
+  if (ehObjeto(bruto.camadasOverrides)) {
+    for (const [id, ov] of Object.entries(bruto.camadasOverrides)) {
+      const props = normalizarProps(ov);
+      if (!props) continue;
+      const origem = normalizarProps((ov as Record<string, unknown>).origem);
+      overrides[id] = origem ? { ...props, origem } : props;
+    }
+  }
+  const altura = bruto.altura;
+  return {
+    versao: typeof bruto.versao === 'number' ? bruto.versao : 1,
+    expandedLayerIds: listaDeIds(bruto.expandedLayerIds),
+    collapsedLayerIds: listaDeIds(bruto.collapsedLayerIds),
+    camadaAtivaId: typeof bruto.camadaAtivaId === 'string' ? bruto.camadaAtivaId : null,
+    painelColapsado: typeof bruto.painelColapsado === 'boolean' ? bruto.painelColapsado : undefined,
+    ordemCamadasIds: listaDeIds(bruto.ordemCamadasIds),
+    ordemOrigemIds: Array.isArray(bruto.ordemOrigemIds) ? listaDeIds(bruto.ordemOrigemIds) : undefined,
+    mapaBaseAtivo: typeof bruto.mapaBaseAtivo === 'string' ? bruto.mapaBaseAtivo : undefined,
+    densidade: bruto.densidade === 'compacto' || bruto.densidade === 'normal' ? bruto.densidade : undefined,
+    altura: typeof altura === 'number' && Number.isFinite(altura) && altura > 0 ? altura : null,
+    camadasOverrides: overrides,
+    ultimaAtualizacao: typeof bruto.ultimaAtualizacao === 'number' ? bruto.ultimaAtualizacao : undefined
+  };
+}
+
+/**
+ * Lê o estado persistido do localStorage com tolerância a falhas (SSR, restrições de sandbox, conteúdo corrompido)
  */
 export function carregarEstadoPersistido(storageKey: string): EstadoPersistidoCamadas | null {
   if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
@@ -59,10 +114,7 @@ export function carregarEstadoPersistido(storageKey: string): EstadoPersistidoCa
   try {
     const raw = localStorage.getItem(storageKey);
     if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    if (parsed && typeof parsed === 'object') {
-      return parsed as EstadoPersistidoCamadas;
-    }
+    return normalizarEstadoPersistido(JSON.parse(raw));
   } catch (err) {
     console.warn(`[UI-Camadas] Não foi possível carregar o estado persistido (${storageKey}):`, err);
   }
@@ -230,6 +282,8 @@ export function montarEstadoPersistido(entrada: EntradaMontagemEstado): EstadoPe
         locked: !!l.locked,
         opacity: typeof l.opacity === 'number' ? l.opacity : 1,
         color: l.color || '#00E08A',
+        // A hierarquia montada pelo usuário (arrastar para dentro, drawer) também é lembrada
+        parentId: l.parentId ?? null,
         origem: entrada.origensCamadas?.get(l.id) ?? overrides[l.id]?.origem
       };
     });

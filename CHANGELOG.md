@@ -1,5 +1,35 @@
 # Changelog
 
+## Não publicado
+
+### `<ui-camadas>`: revisão profunda (correções e experiência de uso)
+
+Correções (cada uma com teste de regressão em `ui-camadas.regressao.test.ts` ou `camadas-drop-ops.test.ts`):
+
+- **Área do rodapé ~64 % acima do real.** A fórmula somava produtos de arestas consecutivas e ignorava o cosseno da latitude (um quadrado de 0,01° em −23,5° saía com 1,86 km² em vez de 1,14 km²; aberto, 2,48 km²). Agora usa o excesso esférico (a mesma fórmula do Leaflet.draw/Turf); vértice não numérico é ignorado em vez de zerar a área.
+- **Camadas sumiam da árvore** com `parentId` em ciclo (A → B → A): agora sobem para a raiz. `children` que referencia a si mesmo não recursa mais sem fim (nem na árvore nem em `definirCamadas`/`adicionarCamada`).
+- **Ciclos criados pelo próprio painel:** o seletor "Pertence ao Grupo" do drawer não oferece mais a própria camada nem os descendentes (e recusa uma opção forjada); arrastar um grupo para acima/abaixo de um descendente é recusado (antes o grupo virava filho de si mesmo).
+- **`ui-camada-mover-hierarquia`** traz `parentAnteriorId` (já documentado, nunca enviado) e passa a ser emitido também quando soltar acima/abaixo de uma subcamada de outro grupo troca o pai (antes a hierarquia mudava em silêncio). `DetalheEventoMoverHierarquiaCamada` ganha o campo.
+- **Seleção com Shift** segue a ordem da tela (hierarquia, subcamadas antes das feições) e ignora feições sob um grupo recolhido; antes seguia a ordem da lista plana e selecionava feições escondidas.
+- **Alvo de seleção do grupo** marca as feições das subcamadas (antes não fazia nada num grupo sem feições próprias); o estado cheio/parcial considera o ramo inteiro, inclusive no arraste sobre os alvos.
+- **`localStorage` corrompido** (listas que não são listas, opacidade fora de [0, 1], JSON que não é objeto) não derruba mais o painel: o estado é validado campo a campo.
+- **Hierarquia montada pelo usuário é lembrada**: o `parentId` entra na persistência (antes só a ordem voltava). Se o aplicativo mudar o pai depois, o dele vence, como nos demais campos.
+- `atualizarFeicao(null)` não lança; `adicionarCamada` com `children` cadastra as subcamadas (antes apareciam na árvore sem existir na lista, e o olho/cadeado delas não respondiam); remover ou trocar as feições solta a âncora do Shift.
+- O botão "Excluir" do drawer volta ao rótulo original quando a confirmação expira (voltava como "Excluir Camada").
+
+Experiência de uso:
+
+- **Estado herdado do grupo:** sob um grupo oculto, subcamadas e feições ficam esmaecidas (classe `herdado-oculto`), sem mudar o próprio estado; sob um grupo travado, as feições das subcamadas ficam travadas ("Bloqueada pela camada") e a linha da subcamada ganha `herdado-travado`.
+- **Camada travada não recebe nem perde feições**: o arraste é recusado e, no "Mover para..." do rodapé, a camada aparece desabilitada com 🔒.
+- **Teclado:** `F2` renomeia a camada ou feição focada; ao confirmar (Enter) ou cancelar (Esc), o foco volta para a linha. `Ctrl/Cmd+A` numa linha seleciona todas as feições visíveis (emite `ui-feicoes-selecionadas`); no campo de busca continua selecionando o texto.
+- O chip de contagem de um grupo soma as feições das subcamadas (o título detalha quantas são da própria camada).
+- Acessibilidade: `aria-level` nos itens da árvore; o botão "Limpar seleção" criado na sincronização ganha `aria-label`.
+- Camada sem itens diz "Camada vazia" (antes, "Nenhum elemento neste grupo"); o aviso de feições truncadas vira a classe `.ui-truncate-notice`, com tokens, em vez de estilo inline.
+
+### `<ui-seletor-cor>`
+
+- Removido do DOM por fora (sem `fechar()`), o seletor aberto por `abrirSeletorCor()` soltava os ouvintes de `window` só ao fechar: o de teclado continuava engolindo o Esc da página inteira. Agora solta ao desconectar (Regra #2).
+
 ## 2.11.1 — 2026-10-23
 
 Junta à 2.11.0 o que estava fora do npm (PR #14): o redesign compacto do seletor de cor no estilo Illustrator.

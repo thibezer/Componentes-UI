@@ -787,3 +787,375 @@ describe('UICamadas - regressões', () => {
     });
   });
 });
+
+describe('UICamadas - revisão profunda (falhavam antes)', () => {
+  beforeEach(() => {
+    document.body.innerHTML = '';
+    localStorage.clear();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    document.querySelector('ui-seletor-cor')?.remove();
+  });
+
+  // g (grupo) > m > c  |  x na raiz
+  const arvore = (): CamadaItem[] => [
+    { id: 'g', name: 'Grupo', isGroup: true },
+    { id: 'm', name: 'Meio', parentId: 'g' },
+    { id: 'c', name: 'Fundo', parentId: 'm' },
+    { id: 'x', name: 'Solta' }
+  ];
+
+  // Lista em ordem diferente da tela: r (raiz) vem antes de s (dentro de g)
+  const foraDeOrdem = (): CamadaItem[] => [
+    { id: 'g', name: 'Grupo', isGroup: true },
+    { id: 'r', name: 'Raiz' },
+    { id: 's', name: 'Sub', parentId: 'g' }
+  ];
+  const feicoesForaDeOrdem = (): FeicaoItem[] => [
+    { id: 'fr1', name: 'R1', layerId: 'r' },
+    { id: 'fs1', name: 'S1', layerId: 's' },
+    { id: 'fs2', name: 'S2', layerId: 's' }
+  ];
+
+  const abrirDrawer = (el: UICamadas, id: string) => q(el, `[data-layer-settings="${id}"]`).click();
+  const tecla = (alvo: Element, key: string, extra: KeyboardEventInit = {}) =>
+    alvo.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, composed: true, cancelable: true, ...extra }));
+
+  describe('hierarquia', () => {
+    it('o seletor de grupo pai do drawer não oferece a própria camada nem os descendentes', () => {
+      const el = criarPainel(arvore(), []);
+      abrirDrawer(el, 'g');
+      const sel = q<HTMLSelectElement>(el, '[data-layer-parent-select="g"]');
+      expect(Array.from(sel.options).map((o) => o.value)).toEqual(['', 'x']);
+    });
+
+    it('mudar o pai pelo drawer informa parentAnteriorId', () => {
+      const el = criarPainel(arvore(), []);
+      const spy = vi.fn();
+      el.addEventListener('ui-camada-mover-hierarquia', spy);
+      abrirDrawer(el, 'm');
+      const sel = q<HTMLSelectElement>(el, '[data-layer-parent-select="m"]');
+      sel.value = 'x';
+      sel.dispatchEvent(new Event('change'));
+      expect(spy.mock.calls[0][0].detail).toMatchObject({ camadaId: 'm', novoParentId: 'x', parentAnteriorId: 'g' });
+    });
+
+    it('o drawer recusa um pai que criaria ciclo, mesmo com <option> forjada', () => {
+      const el = criarPainel(arvore(), []);
+      const spy = vi.fn();
+      el.addEventListener('ui-camada-mover-hierarquia', spy);
+      abrirDrawer(el, 'g');
+      const sel = q<HTMLSelectElement>(el, '[data-layer-parent-select="g"]');
+      const forjada = document.createElement('option');
+      forjada.value = 'c';
+      sel.appendChild(forjada);
+      sel.value = 'c';
+      sel.dispatchEvent(new Event('change'));
+      expect(spy).not.toHaveBeenCalled();
+      expect(el.obterCamada('g')!.parentId ?? null).toBeNull();
+      expect(q(el, '[data-layer-row="c"]')).toBeTruthy();
+    });
+
+    it('camadas com parentId em ciclo continuam visíveis na árvore', () => {
+      const el = criarPainel([{ id: 'a', name: 'A', parentId: 'b' }, { id: 'b', name: 'B', parentId: 'a' }], []);
+      expect(q(el, '[data-layer-row="a"]')).toBeTruthy();
+      expect(q(el, '[data-layer-row="b"]')).toBeTruthy();
+    });
+
+    it('arrastar para acima de uma subcamada de outro grupo avisa a troca de pai', () => {
+      const el = criarPainel(arvore(), []);
+      const spy = vi.fn();
+      el.addEventListener('ui-camada-mover-hierarquia', spy);
+      q(el, '[data-layer-row="x"]').dispatchEvent(new Event('dragstart', { bubbles: true }));
+      const alvo = q(el, '[data-layer-row="c"]');
+      alvo.classList.add('drop-above');
+      alvo.dispatchEvent(new Event('drop', { bubbles: true, cancelable: true }));
+      expect(el.obterCamada('x')!.parentId).toBe('m');
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(spy.mock.calls[0][0].detail).toMatchObject({ camadaId: 'x', novoParentId: 'm', parentAnteriorId: null });
+    });
+
+    it('aninhar arrastando para dentro também informa parentAnteriorId', () => {
+      const el = criarPainel(arvore(), []);
+      const spy = vi.fn();
+      el.addEventListener('ui-camada-mover-hierarquia', spy);
+      q(el, '[data-layer-row="c"]').dispatchEvent(new Event('dragstart', { bubbles: true }));
+      const alvo = q(el, '[data-layer-row="x"]');
+      alvo.classList.add('drop-into');
+      alvo.dispatchEvent(new Event('drop', { bubbles: true, cancelable: true }));
+      expect(spy.mock.calls[0][0].detail).toMatchObject({ camadaId: 'c', novoParentId: 'x', parentAnteriorId: 'm' });
+    });
+  });
+
+  describe('seleção pela ordem da tela', () => {
+    it('Shift seleciona o intervalo na ordem exibida (hierarquia), não na ordem da lista', () => {
+      const el = criarPainel(foraDeOrdem(), feicoesForaDeOrdem());
+      el.selecionarFeicao('fs2');
+      el.selecionarFeicao('fr1', false, true);
+      expect([...el.selectedFeatureIds].sort()).toEqual(['fr1', 'fs2']);
+    });
+
+    it('feições de subcamada sob grupo recolhido não contam como visíveis', () => {
+      const ids = obterIdsVisiveisFeicoes(foraDeOrdem(), feicoesForaDeOrdem(), new Set(['r', 's']));
+      expect(ids).toEqual(['fr1']);
+      const todas = obterIdsVisiveisFeicoes(foraDeOrdem(), feicoesForaDeOrdem(), new Set(['g', 'r', 's']));
+      expect(todas).toEqual(['fs1', 'fs2', 'fr1']);
+    });
+
+    it('o alvo do grupo seleciona as feições das subcamadas e desmarca no 2º clique', () => {
+      const el = criarPainel(foraDeOrdem(), feicoesForaDeOrdem());
+      const spy = vi.fn();
+      el.addEventListener('ui-feicoes-selecionadas', spy);
+      q(el, '[data-layer-target="g"]').click();
+      expect([...el.selectedFeatureIds].sort()).toEqual(['fs1', 'fs2']);
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(q(el, '[data-layer-target="g"] .ui-target-circle').classList.contains('selected')).toBe(true);
+      q(el, '[data-layer-target="g"]').click();
+      expect(el.selectedFeatureIds.size).toBe(0);
+    });
+
+    it('seleção parcial dentro do ramo deixa o alvo do grupo parcial', () => {
+      const el = criarPainel(foraDeOrdem(), feicoesForaDeOrdem());
+      el.selecionarFeicao('fs1');
+      expect(q(el, '[data-layer-target="g"] .ui-target-circle').classList.contains('partial')).toBe(true);
+    });
+
+    it('Ctrl+A numa linha seleciona todas as feições visíveis e avisa o aplicativo', () => {
+      const el = criarPainel(foraDeOrdem(), feicoesForaDeOrdem());
+      const spy = vi.fn();
+      el.addEventListener('ui-feicoes-selecionadas', spy);
+      const linha = q(el, '[data-feat-row="fs1"]');
+      linha.focus();
+      tecla(linha, 'a', { ctrlKey: true });
+      expect([...el.selectedFeatureIds].sort()).toEqual(['fr1', 'fs1', 'fs2']);
+      expect(spy).toHaveBeenCalledTimes(1);
+    });
+
+    it('Ctrl+A no campo de busca continua selecionando o texto do campo', () => {
+      const el = criarPainel(foraDeOrdem(), feicoesForaDeOrdem());
+      tecla(q(el, '#input-layer-search'), 'a', { ctrlKey: true });
+      expect(el.selectedFeatureIds.size).toBe(0);
+    });
+  });
+
+  describe('estado herdado do grupo', () => {
+    it('ocultar o grupo esmaece subcamadas e feições sem mudar o estado delas', () => {
+      const el = criarPainel(foraDeOrdem(), feicoesForaDeOrdem());
+      q(el, '[data-layer-eye="g"]').click();
+      expect(q(el, '[data-layer-row="s"]').classList.contains('herdado-oculto')).toBe(true);
+      expect(q(el, '[data-feat-row="fs1"]').classList.contains('herdado-oculto')).toBe(true);
+      expect(q(el, '[data-layer-row="r"]').classList.contains('herdado-oculto')).toBe(false);
+      expect(el.obterCamada('s')!.visible).not.toBe(false);
+      q(el, '[data-layer-eye="g"]').click();
+      expect(q(el, '[data-layer-row="s"]').classList.contains('herdado-oculto')).toBe(false);
+    });
+
+    it('grupo oculto ao carregar já esmaece os descendentes', () => {
+      const camadas = foraDeOrdem();
+      camadas[0].visible = false;
+      const el = criarPainel(camadas, feicoesForaDeOrdem());
+      expect(q(el, '[data-feat-row="fs2"]').classList.contains('herdado-oculto')).toBe(true);
+    });
+
+    it('travar o grupo trava as feições das subcamadas', () => {
+      const el = criarPainel(foraDeOrdem(), feicoesForaDeOrdem());
+      q(el, '[data-layer-lock="g"]').click();
+      const cadeado = q(el, '[data-feat-lock="fs1"]');
+      expect(cadeado.hasAttribute('data-locked-by-layer')).toBe(true);
+      expect(q(el, '[data-layer-row="s"]').classList.contains('herdado-travado')).toBe(true);
+      cadeado.click();
+      expect(el.obterFeicao('fs1')!.locked).not.toBe(true);
+      q(el, '[data-layer-lock="g"]').click();
+      expect(q(el, '[data-feat-lock="fs1"]').hasAttribute('data-locked-by-layer')).toBe(false);
+    });
+
+    it('grupo travado ao carregar já trava as feições dos descendentes', () => {
+      const camadas = foraDeOrdem();
+      camadas[0].locked = true;
+      const el = criarPainel(camadas, feicoesForaDeOrdem());
+      expect(q(el, '[data-feat-lock="fs1"]').hasAttribute('data-locked-by-layer')).toBe(true);
+    });
+
+    it('não move feição para camada travada, nem arrastando nem pelo rodapé', () => {
+      const camadas = foraDeOrdem();
+      camadas[1].locked = true; // r
+      const el = criarPainel(camadas, feicoesForaDeOrdem());
+      const spy = vi.fn();
+      el.addEventListener('ui-feicao-movida', spy);
+
+      q(el, '[data-feat-row="fs1"]').dispatchEvent(new Event('dragstart', { bubbles: true }));
+      q(el, '[data-layer-row="r"]').dispatchEvent(new Event('drop', { bubbles: true, cancelable: true }));
+      expect(el.obterFeicao('fs1')!.layerId).toBe('s');
+
+      el.selecionarFeicao('fs1');
+      const sel = q<HTMLSelectElement>(el, '#select-footer-move');
+      expect((sel.querySelector('option[value="r"]') as HTMLOptionElement).disabled).toBe(true);
+      sel.value = 'r';
+      sel.dispatchEvent(new Event('change'));
+      expect(el.obterFeicao('fs1')!.layerId).toBe('s');
+      expect(spy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('persistência', () => {
+    it('estado corrompido no localStorage não derruba o painel', () => {
+      localStorage.setItem(
+        'ui_camadas_estado_corrompido',
+        JSON.stringify({
+          expandedLayerIds: 5,
+          collapsedLayerIds: 'x',
+          ordemCamadasIds: [1, null, 'c1'],
+          camadasOverrides: { c0: { opacity: 50, visible: 'sim', parentId: 7 }, c1: null },
+          altura: 'alta'
+        })
+      );
+      const el = document.createElement('ui-camadas') as UICamadas;
+      el.setAttribute('storage-key', 'corrompido');
+      expect(() => document.body.appendChild(el)).not.toThrow();
+      expect(() => el.definirCamadas(camadasPadrao(), [])).not.toThrow();
+      const c0 = el.obterCamada('c0')!;
+      expect(c0.opacity ?? 1).toBeLessThanOrEqual(1);
+      expect(c0.visible).not.toBe('sim');
+      expect(c0.parentId ?? null).toBeNull();
+      expect(q(el, '[data-layer-row="c0"]')).toBeTruthy();
+    });
+
+    it('JSON que não é objeto (array, número) é ignorado', () => {
+      localStorage.setItem('ui_camadas_estado_lista', '[1,2,3]');
+      const el = document.createElement('ui-camadas') as UICamadas;
+      el.setAttribute('storage-key', 'lista');
+      document.body.appendChild(el);
+      expect(() => el.definirCamadas(camadasPadrao(), [])).not.toThrow();
+    });
+
+    it('a hierarquia montada pelo usuário sobrevive ao recarregar; mudança do aplicativo vence', () => {
+      const montar = (camadas: CamadaItem[]) => {
+        document.body.innerHTML = '';
+        const el = document.createElement('ui-camadas') as UICamadas;
+        el.setAttribute('storage-key', 'hierarquia');
+        document.body.appendChild(el);
+        el.definirCamadas(camadas, []);
+        return el;
+      };
+      const base = (): CamadaItem[] => [
+        { id: 'g', name: 'G', isGroup: true },
+        { id: 'c', name: 'C' }
+      ];
+      const s1 = montar(base());
+      abrirDrawer(s1, 'c');
+      const sel = q<HTMLSelectElement>(s1, '[data-layer-parent-select="c"]');
+      sel.value = 'g';
+      sel.dispatchEvent(new Event('change'));
+
+      const s2 = montar(base());
+      expect(s2.obterCamada('c')!.parentId).toBe('g');
+
+      const s3 = montar([{ id: 'g', name: 'G', isGroup: true }, { id: 'c', name: 'C', parentId: null }, { id: 'h', name: 'H' }]);
+      expect(s3.obterCamada('c')!.parentId).toBe('g');
+      const s4 = montar([{ id: 'g', name: 'G', isGroup: true }, { id: 'h', name: 'H', isGroup: true }, { id: 'c', name: 'C', parentId: 'h' }]);
+      expect(s4.obterCamada('c')!.parentId).toBe('h');
+    });
+  });
+
+  describe('coleções com entrada hostil', () => {
+    it('atualizarFeicao, removerFeicao e adicionarCamada toleram null/undefined', () => {
+      const el = criarPainel(camadasPadrao(), criarFeicoes(2));
+      expect(() => el.atualizarFeicao(null as unknown as FeicaoItem)).not.toThrow();
+      expect(() => el.atualizarFeicao(undefined as unknown as FeicaoItem)).not.toThrow();
+      expect(() => el.adicionarCamada(null as unknown as CamadaItem)).not.toThrow();
+      expect(() => el.removerFeicao(undefined as unknown as string)).not.toThrow();
+      expect(el.feicoes).toHaveLength(2);
+    });
+
+    it('adicionarCamada com children cadastra as subcamadas (controláveis)', () => {
+      const el = criarPainel(camadasPadrao(), []);
+      el.adicionarCamada({ id: 'g2', name: 'G2', isGroup: true, children: [{ id: 's2', name: 'S2' }] });
+      expect(el.obterCamada('s2')?.parentId).toBe('g2');
+      q(el, '[data-layer-eye="s2"]').click();
+      expect(el.obterCamada('s2')!.visible).toBe(false);
+    });
+
+    it('remover a feição âncora do Shift solta a âncora', () => {
+      const el = criarPainel(camadasPadrao(), criarFeicoes(3));
+      el.selecionarFeicao('f1');
+      el.removerFeicao('f1');
+      expect(el.lastClickedFeatureId).toBeNull();
+      el.selecionarFeicao('f0');
+      el.definirFeicoes(criarFeicoes(3).slice(1));
+      expect(el.lastClickedFeatureId).toBeNull();
+    });
+  });
+
+  describe('teclado e acessibilidade', () => {
+    it('F2 renomeia a camada e o foco volta para a linha ao confirmar', () => {
+      const el = criarPainel(camadasPadrao(), []);
+      const linha = q(el, '[data-layer-row="c0"]');
+      linha.focus();
+      tecla(linha, 'F2');
+      const input = q<HTMLInputElement>(el, '[data-inline-layer-input="c0"]');
+      expect(input).toBeTruthy();
+      expect(sr(el).activeElement).toBe(input);
+      input.value = 'Novo nome';
+      tecla(input, 'Enter');
+      expect(el.obterCamada('c0')!.name).toBe('Novo nome');
+      expect((sr(el).activeElement as HTMLElement | null)?.getAttribute('data-layer-row')).toBe('c0');
+    });
+
+    it('F2 renomeia a feição; Esc cancela e devolve o foco à linha', () => {
+      const el = criarPainel(camadasPadrao(), criarFeicoes(1));
+      const linha = q(el, '[data-feat-row="f0"]');
+      linha.focus();
+      tecla(linha, 'F2');
+      const input = q<HTMLInputElement>(el, '[data-inline-feat-input="f0"]');
+      input.value = 'Descartado';
+      tecla(input, 'Escape');
+      expect(el.obterFeicao('f0')!.name).toBe('Feicao 0');
+      expect((sr(el).activeElement as HTMLElement | null)?.getAttribute('data-feat-row')).toBe('f0');
+    });
+
+    it('itens da árvore expõem aria-level conforme a profundidade', () => {
+      const el = criarPainel(foraDeOrdem(), feicoesForaDeOrdem());
+      expect(q(el, '.ui-layer-group[data-layer-id="g"]').getAttribute('aria-level')).toBe('1');
+      expect(q(el, '.ui-layer-group[data-layer-id="s"]').getAttribute('aria-level')).toBe('2');
+      expect(q(el, '[data-feat-row="fs1"]').getAttribute('aria-level')).toBe('3');
+    });
+
+    it('o botão "limpar seleção" criado na sincronização tem rótulo acessível', () => {
+      const el = criarPainel(camadasPadrao(), criarFeicoes(1));
+      el.selecionarFeicao('f0');
+      expect(q(el, '#btn-footer-clear').getAttribute('aria-label')).toBe('Limpar seleção');
+    });
+  });
+
+  describe('textos e tokens', () => {
+    it('camada sem itens diz "Camada vazia", não fala em grupo', () => {
+      const el = criarPainel([{ id: 'v', name: 'V' }], []);
+      expect(q(el, '.ui-empty-row').textContent!.trim()).toBe('Camada vazia');
+    });
+
+    it('o aviso de feições truncadas usa classe, sem estilo inline', () => {
+      const el = criarPainel(camadasPadrao(), criarFeicoes(81));
+      const aviso = q(el, '.ui-truncate-notice');
+      expect(aviso).toBeTruthy();
+      expect(aviso.hasAttribute('style')).toBe(false);
+    });
+
+    it('o chip de contagem do grupo soma as feições das subcamadas', () => {
+      const el = criarPainel(foraDeOrdem(), feicoesForaDeOrdem());
+      expect(q(el, '[data-layer-row="g"] .ui-count-chip').textContent!.trim()).toBe('2');
+    });
+
+    it('o botão Excluir volta ao rótulo original quando a confirmação expira', () => {
+      vi.useFakeTimers();
+      const el = criarPainel(camadasPadrao(), []);
+      abrirDrawer(el, 'c0');
+      const btn = q(el, '[data-delete-layer="c0"]');
+      btn.click();
+      expect(btn.querySelector('.ui-btn-label')!.textContent).toBe('Confirmar Exclusão?');
+      vi.advanceTimersByTime(3600);
+      expect(btn.querySelector('.ui-btn-label')!.textContent).toBe('Excluir');
+    });
+  });
+});

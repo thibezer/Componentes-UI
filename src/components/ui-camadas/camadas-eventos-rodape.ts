@@ -5,6 +5,7 @@
 
 import { CamadasHostCompleto } from './camadas-host';
 import { definirRotuloControle } from './camadas-utils';
+import { idsCamadasTravadas } from './camadas-hierarquia';
 
 export function conectarEventosRodape(host: CamadasHostCompleto, shadow: ShadowRoot): void {
   // Visibilidade coletiva
@@ -79,7 +80,13 @@ export function conectarEventosRodape(host: CamadasHostCompleto, shadow: ShadowR
     selectFooterMove.addEventListener('change', (e) => {
       const targetLayerId = (e.target as HTMLSelectElement).value;
       if (!targetLayerId) return;
-      const selFeats = host.feicoes.filter((f) => host.selectedFeatureIds.has(f.id));
+      // Camada travada não recebe feições; as que estão em camada travada não saem dela
+      const travadas = idsCamadasTravadas(host.camadas);
+      if (travadas.has(targetLayerId)) {
+        selectFooterMove.value = '';
+        return;
+      }
+      const selFeats = host.feicoes.filter((f) => host.selectedFeatureIds.has(f.id) && !travadas.has(f.layerId));
       if (selFeats.length === 0) return;
       const origens = new Map(selFeats.map((f) => [f.id, f.layerId]));
       selFeats.forEach((f) => (f.layerId = targetLayerId));

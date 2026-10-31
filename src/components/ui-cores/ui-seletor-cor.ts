@@ -27,6 +27,8 @@ export type ConfiguracaoSeletorCor = Omit<
 export class UISeletorCor extends SafeHTMLElement {
   private raiz: ShadowRoot;
   private listeners = new ListenerBag();
+  /** @internal Aberto por `abrirSeletorCor()`: solta os ouvintes de `window` se alguém remover o elemento. */
+  public aoDesconectar: (() => void) | null = null;
 
   private _titulo = 'Seletor de cor';
   private _duplo = true;
@@ -59,6 +61,7 @@ export class UISeletorCor extends SafeHTMLElement {
 
   disconnectedCallback() {
     this.listeners.cleanup();
+    this.aoDesconectar?.();
   }
 
   /* ---------- API pública ---------- */
@@ -513,6 +516,9 @@ export function abrirSeletorCor(opcoes: OpcoesSeletorCor): SeletorCorAberto {
     if (seletorAtivo === controle) seletorAtivo = null;
     return true;
   };
+
+  // Removido por fora (sem fechar/descartar): os ouvintes de window não podem continuar vivos
+  el.aoDesconectar = () => encerrar();
 
   const controle = {
     elemento: el as HTMLElement,

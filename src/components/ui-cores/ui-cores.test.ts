@@ -577,3 +577,20 @@ describe('<ui-controle-cores>', () => {
     expect(amostra('traco').title).toContain('[X]');
   });
 });
+
+describe('abrirSeletorCor: remoção externa (Regra #2, falhava antes)', () => {
+  it('remover o elemento do DOM solta os ouvintes de window (Esc volta a chegar à página)', () => {
+    const ancora = document.createElement('button');
+    document.body.appendChild(ancora);
+    const aberto = abrirSeletorCor({ ancora, cor: '#10b981' });
+    seletorNoDom()!.remove();
+    expect(aberto.aberto).toBe(false);
+
+    const campo = document.createElement('input');
+    document.body.appendChild(campo);
+    let recebido = false;
+    campo.addEventListener('keydown', () => (recebido = true));
+    campo.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    expect(recebido).toBe(true);
+  });
+});

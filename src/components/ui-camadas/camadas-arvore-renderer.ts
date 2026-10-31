@@ -7,8 +7,13 @@ import { CamadaItem, FeicaoItem } from './tipos';
 import { ICONES } from './camadas-icones';
 import { escapeHtml, sanitizarCorCss, corParaHex } from './camadas-utils';
 import { renderizarThumbGeometria } from './camadas-thumb';
-import { construirHierarquiaCamadas, type CamadaNodoHierarquico } from './camadas-hierarquia';
-import { filtrarCamadasPorBusca, LIMITE_FEICOES_POR_CAMADA } from './camadas-selecao';
+import {
+  construirHierarquiaCamadas,
+  calcularEstadoHerdado,
+  idsDescendentes,
+  type CamadaNodoHierarquico
+} from './camadas-hierarquia';
+import { filtrarCamadasPorBusca, feicoesPorRamo, LIMITE_FEICOES_POR_CAMADA } from './camadas-selecao';
 
 export interface ParametrosRenderArvore {
   camadas: CamadaItem[];
@@ -26,6 +31,14 @@ export interface ParametrosRenderArvore {
 
 export { escapeHtml, renderizarThumbGeometria, construirHierarquiaCamadas };
 export type { CamadaNodoHierarquico };
+
+const plural = (n: number, um: string, varios: string) => `${n} ${n === 1 ? um : varios}`;
+
+/** Título do chip de contagem: total do ramo e, num grupo, quanto é da própria camada. */
+function tituloContagem(totalRamo: number, proprias: number, subcamadas: number): string {
+  if (subcamadas === 0) return plural(totalRamo, 'feição', 'feições');
+  return `${plural(totalRamo, 'feição', 'feições')} no grupo (${proprias} nesta camada) · ${plural(subcamadas, 'subcamada', 'subcamadas')}`;
+}
 
 export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string {
   const {
@@ -54,6 +67,11 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
     if (!featsByLayer.has(lid)) featsByLayer.set(lid, []);
     featsByLayer.get(lid)!.push(f);
   }
+
+  // O alvo de seleção de um grupo vale para o ramo inteiro (subcamadas incluídas)
+  const ramos = feicoesPorRamo(camadas, feicoes, q);
+  // Grupo oculto ou travado: descendentes ficam esmaecidos/travados sem mudar o próprio estado
+  const herdado = calcularEstadoHerdado(camadas);
 
   const allVisible = camadas.every((l) => l.visible !== false);
   const allExpanded = camadas.length > 0 && camadas.every((l) => expandedLayers.has(l.id));
@@ -123,13 +141,17 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
     const isExpanded = q ? true : expandedLayers.has(layer.id);
     const isSettingsOpen = activeSettingsLayerId === layer.id;
     const isActiveLayer = camadaAtivaId === layer.id;
+    const heranca = herdado.get(layer.id);
+    const ocultaPorAncestral = heranca?.ocultaPorAncestral === true;
+    const travadaPorAncestral = heranca?.travadaPorAncestral === true;
 
     const layerFeats = busca ? busca.feicoesPorCamada.get(layer.id) || [] : featsByLayer.get(layer.id) || [];
 
+    const ramoFeats = ramos.get(layer.id) || layerFeats;
     const allFeatsSelected =
-      layerFeats.length > 0 && layerFeats.every((f) => selectedFeatureIds.has(f.id));
+      ramoFeats.length > 0 && ramoFeats.every((f) => selectedFeatureIds.has(f.id));
     const someFeatsSelected =
-      !allFeatsSelected && layerFeats.some((f) => selectedFeatureIds.has(f.id));
+      !allFeatsSelected && ramoFeats.some((f) => selectedFeatureIds.has(f.id));
 
     const visibleFeats = layerFeats.slice(0, limiteFeicoesPorCamada);
     const hasTruncated = layerFeats.length > limiteFeicoesPorCamada;
@@ -140,7 +162,7 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
         const featName = escapeHtml(feat.name || 'Feição');
         const featColor = sanitizarCorCss(feat.color, safeColor);
         const isFeatVisible = feat.visible !== false;
-        const featTravadaPelaCamada = isLocked;
+        const featTravadaPelaCamada = isLocked || travadaPorAncestral;
         const isFeatLocked = feat.locked === true || featTravadaPelaCamada;
         const tituloLockFeicao = featTravadaPelaCamada
           ? 'Bloqueada pela camada'
@@ -158,7 +180,7 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
         return `
           <div class="ui-feat-row ${isFeatSelected ? 'selected-row' : ''} ${
           !isFeatVisible ? 'hidden-row' : ''
-        }" data-feat-row="${featId}" data-feat-select="${featId}" data-feat-layer="${safeId}" role="treeitem" aria-selected="${isFeatSelected}" tabindex="-1" draggable="true" style="--layer-depth: ${depth + 1};" title="Clique para selecionar | Arraste para reordenar">
+        } ${!isVisible || ocultaPorAncestral ? 'herdado-oculto' : ''}" data-feat-row="${featId}" data-feat-select="${featId}" data-feat-layer="${safeId}" role="treeitem" aria-level="${depth + 2}" aria-selected="${isFeatSelected}" tabindex="-1" draggable="true" style="--layer-depth: ${depth + 1};" title="Clique para selecionar | Arraste para reordenar">
             <div class="ui-col ui-col-eye" data-feat-eye="${featId}" role="button" tabindex="0" aria-label="${
           isFeatVisible ? 'Ocultar Feição' : 'Exibir Feição'
         }" title="${
@@ -200,15 +222,16 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
       .join('');
 
     const truncateNotice = hasTruncated
-      ? `<div style="padding: 4px 10px; font-size: 10px; color: var(--ui-cor-texto-secundario, #888899); font-style: italic; background: rgba(0,0,0,0.2);">Exibindo ${limiteFeicoesPorCamada} de ${layerFeats.length} feições. Use a busca acima para filtrar.</div>`
+      ? `<div class="ui-truncate-notice" role="note">Exibindo ${limiteFeicoesPorCamada} de ${layerFeats.length} feições. Use a busca acima para filtrar.</div>`
       : '';
 
     const currentOpacity = layer.opacity !== undefined ? layer.opacity : 1;
     const currentOpacityPct = Math.round(currentOpacity * 100);
 
-    // Opções de outras camadas para selecionar grupo pai no drawer
+    // Opções de grupo pai no drawer: nem a própria camada nem um descendente (criaria ciclo)
+    const descendentes = isSettingsOpen ? idsDescendentes(camadas, layer.id) : new Set<string>();
     const opcoesOutrosPais = camadas
-      .filter((l) => l.id !== layer.id)
+      .filter((l) => l.id !== layer.id && !descendentes.has(l.id))
       .map(
         (l) =>
           `<option value="${escapeHtml(l.id)}" ${layer.parentId === l.id ? 'selected' : ''}>${
@@ -292,10 +315,12 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
     const subcamadasHtml = subcamadasExibidas.map((sub) => renderizarNodo(sub)).join('');
 
     return `
-      <div class="ui-layer-group ${depth > 0 ? 'is-sublayer-group' : ''}" data-layer-id="${safeId}" data-layer-depth="${depth}" role="treeitem" aria-expanded="${isExpanded}" style="--layer-active-color: ${safeColor};">
+      <div class="ui-layer-group ${depth > 0 ? 'is-sublayer-group' : ''}" data-layer-id="${safeId}" data-layer-depth="${depth}" role="treeitem" aria-level="${depth + 1}" aria-expanded="${isExpanded}" style="--layer-active-color: ${safeColor};">
         <div class="ui-layer-row ${!isVisible ? 'hidden-layer' : ''} ${
       isActiveLayer ? 'active-drawing-layer' : ''
-    } ${depth > 0 ? 'is-sublayer' : ''} ${isGroup ? 'is-group-row' : ''}" data-layer-row="${safeId}" data-layer-id="${safeId}" tabindex="-1" draggable="true" ${isActiveLayer ? 'aria-current="true"' : ''} style="--layer-depth: ${depth};">
+    } ${depth > 0 ? 'is-sublayer' : ''} ${isGroup ? 'is-group-row' : ''} ${ocultaPorAncestral ? 'herdado-oculto' : ''} ${
+      travadaPorAncestral ? 'herdado-travado' : ''
+    }" data-layer-row="${safeId}" data-layer-id="${safeId}" tabindex="-1" draggable="true" ${isActiveLayer ? 'aria-current="true"' : ''} style="--layer-depth: ${depth};">
           <div class="ui-col ui-col-drag" title="Arrastar para reordenar Z-Index">${ICONES.dragHandle}</div>
 
           <div class="ui-col ui-col-eye" data-layer-eye="${safeId}" role="button" tabindex="0" aria-label="${
@@ -326,7 +351,7 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
                 ? `<input type="text" class="ui-inline-rename-input" data-inline-layer-input="${safeId}" value="${safeName}" />`
                 : `${isGroup ? `<span class="ui-group-folder-icon" title="Grupo/Pasta">${ICONES.moverPasta}</span>` : ''}
                    <span class="ui-name-text">${safeName}</span>
-                   ${layerFeats.length > 0 || !isGroup ? `<span class="ui-count-chip" title="${layerFeats.length} ${layerFeats.length === 1 ? 'feição' : 'feições'}${subcamadas.length > 0 ? ` · ${subcamadas.length} subcamadas` : ''}">${layerFeats.length}</span>` : ''}`
+                   ${ramoFeats.length > 0 || !isGroup ? `<span class="ui-count-chip" title="${tituloContagem(ramoFeats.length, layerFeats.length, subcamadas.length)}">${ramoFeats.length}</span>` : ''}`
             }
           </div>
 
@@ -350,7 +375,7 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
           ${truncateNotice}
           ${
             subcamadasExibidas.length === 0 && layerFeats.length === 0
-              ? `<div class="ui-empty-row"><span>${isGroup ? 'Grupo vazio (adicione subcamadas ou feições)' : 'Nenhum elemento neste grupo'}</span></div>`
+              ? `<div class="ui-empty-row"><span>${isGroup ? 'Grupo vazio (adicione subcamadas ou feições)' : 'Camada vazia'}</span></div>`
               : ''
           }
         </div>

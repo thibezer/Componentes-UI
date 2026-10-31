@@ -7,6 +7,9 @@
 import { CamadasHostCompleto } from './camadas-host';
 import { ICONES } from './camadas-icones';
 import { formatarMetricaFeicoes } from './camadas-metricas';
+import { feicoesPorRamo } from './camadas-selecao';
+import { calcularEstadoHerdado } from './camadas-hierarquia';
+import { definirRotuloControle } from './camadas-utils';
 
 export function sincronizarCamadaAtivaDOM(host: CamadasHostCompleto, shadow: ShadowRoot): void {
   const rows = shadow.querySelectorAll('[data-layer-row]');
@@ -30,10 +33,11 @@ export function sincronizarSelecaoDOM(host: CamadasHostCompleto, shadow: ShadowR
     if (circle) circle.classList.toggle('selected', isSelected);
   });
 
-  // 2. Atualizar targets de camadas (selected / partial / vazio)
+  // 2. Atualizar targets de camadas (selected / partial / vazio), considerando o ramo inteiro
+  const ramos = feicoesPorRamo(host.camadas, host.feicoes, host.searchQuery);
   shadow.querySelectorAll('.ui-layer-group').forEach((group) => {
     const lid = group.getAttribute('data-layer-id');
-    const feats = host.feicoes.filter((f) => f.layerId === lid);
+    const feats = (lid && ramos.get(lid)) || [];
     const circle = group.querySelector('.ui-layer-row .ui-target-circle');
     if (circle && feats.length > 0) {
       const allSel = feats.every((f) => host.selectedFeatureIds.has(f.id));
@@ -119,11 +123,48 @@ export function sincronizarSelecaoDOM(host: CamadasHostCompleto, shadow: ShadowR
     clearBtn = document.createElement('button');
     clearBtn.id = 'btn-footer-clear';
     clearBtn.className = 'ui-footer-btn btn-clear-footer';
-    clearBtn.title = 'Limpar seleção';
+    definirRotuloControle(clearBtn, 'Limpar seleção');
     clearBtn.innerHTML = ICONES.fechar;
     clearBtn.addEventListener('click', () => host.limparSelecao(true));
     rightFooter.appendChild(clearBtn);
   } else if (!temSel && clearBtn) {
     clearBtn.remove();
   }
+}
+
+/**
+ * Reflete no DOM o estado herdado dos grupos (sem redesenhar a árvore): esmaece o que está sob um
+ * grupo oculto e trava os cadeados das feições cuja camada, ou um grupo acima dela, está travada.
+ */
+export function sincronizarHerancaDOM(host: CamadasHostCompleto, shadow: ShadowRoot): void {
+  const herdado = calcularEstadoHerdado(host.camadas);
+  const camadaPorId = new Map(host.camadas.map((l) => [l.id, l]));
+
+  shadow.querySelectorAll('.ui-layer-row').forEach((row) => {
+    const estado = herdado.get(row.getAttribute('data-layer-row') || '');
+    row.classList.toggle('herdado-oculto', estado?.ocultaPorAncestral === true);
+    row.classList.toggle('herdado-travado', estado?.travadaPorAncestral === true);
+  });
+
+  const feicaoPorId = new Map(host.feicoes.map((f) => [f.id, f]));
+  shadow.querySelectorAll('.ui-feat-row').forEach((row) => {
+    const lid = row.getAttribute('data-feat-layer') || '';
+    const camada = camadaPorId.get(lid);
+    const estado = herdado.get(lid);
+    row.classList.toggle('herdado-oculto', camada?.visible === false || estado?.ocultaPorAncestral === true);
+
+    const cadeado = row.querySelector('[data-feat-lock]');
+    const feicao = feicaoPorId.get(row.getAttribute('data-feat-row') || '');
+    if (!cadeado || !feicao) return;
+    const travadaPelaCamada = camada?.locked === true || estado?.travadaPorAncestral === true;
+    const travada = feicao.locked === true || travadaPelaCamada;
+    cadeado.innerHTML = travada ? ICONES.cadeadoTrancado : ICONES.cadeadoAberto;
+    cadeado.classList.toggle('ui-lock-open', !travada);
+    if (travadaPelaCamada) cadeado.setAttribute('data-locked-by-layer', 'true');
+    else cadeado.removeAttribute('data-locked-by-layer');
+    definirRotuloControle(
+      cadeado,
+      travadaPelaCamada ? 'Bloqueada pela camada' : travada ? 'Desbloquear Feição' : 'Bloquear Feição'
+    );
+  });
 }

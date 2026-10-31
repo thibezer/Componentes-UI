@@ -4,6 +4,7 @@
    ==================================================== */
 
 import { CamadaItem, FeicaoItem } from './tipos';
+import { construirHierarquiaCamadas, type CamadaNodoHierarquico } from './camadas-hierarquia';
 
 export interface ResultadoSelecao {
   selecionados: Set<string>;
@@ -109,9 +110,21 @@ export function filtrarCamadasPorBusca(
   return { camadasVisiveis, feicoesPorCamada };
 }
 
+function agruparPorCamada(feicoes: FeicaoItem[]): Map<string, FeicaoItem[]> {
+  const porCamada = new Map<string, FeicaoItem[]>();
+  for (let i = 0; i < feicoes.length; i++) {
+    const f = feicoes[i];
+    const lid = f.layerId || '';
+    if (!porCamada.has(lid)) porCamada.set(lid, []);
+    porCamada.get(lid)!.push(f);
+  }
+  return porCamada;
+}
+
 /**
- * IDs de feições efetivamente exibidas na árvore, na ordem da tela:
- * respeita camadas expandidas (todas, durante uma busca), o filtro de busca e o limite de linhas.
+ * IDs de feições efetivamente exibidas na árvore, na ordem da tela: percorre a hierarquia como o
+ * renderizador (subcamadas antes das feições da camada), pula o que está sob um grupo recolhido
+ * (com busca, tudo fica aberto) e respeita o filtro de busca e o limite de linhas.
  */
 export function obterIdsVisiveisFeicoes(
   camadas: CamadaItem[],
@@ -121,32 +134,48 @@ export function obterIdsVisiveisFeicoes(
   limitePorCamada = LIMITE_FEICOES_POR_CAMADA
 ): string[] {
   const busca = filtrarCamadasPorBusca(camadas, feicoes, termoBusca);
+  const featsByLayer = busca ? null : agruparPorCamada(feicoes);
   const ids: string[] = [];
-  const featsByLayer = new Map<string, FeicaoItem[]>();
-  for (let i = 0; i < feicoes.length; i++) {
-    const f = feicoes[i];
-    const lid = f.layerId || '';
-    if (!featsByLayer.has(lid)) featsByLayer.set(lid, []);
-    featsByLayer.get(lid)!.push(f);
-  }
 
-  for (let i = 0; i < camadas.length; i++) {
-    const l = camadas[i];
-    let lista: FeicaoItem[];
-    if (busca) {
-      if (!busca.camadasVisiveis.has(l.id)) continue;
-      lista = busca.feicoesPorCamada.get(l.id) || [];
-    } else if (camadasExpandidas.has(l.id)) {
-      lista = featsByLayer.get(l.id) || [];
-    } else {
-      continue;
-    }
+  const visitar = (nodo: CamadaNodoHierarquico): void => {
+    const id = nodo.camada.id;
+    if (busca && !busca.camadasVisiveis.has(id)) return;
+    if (!busca && !camadasExpandidas.has(id)) return;
+    nodo.subcamadas.forEach(visitar);
+    const lista = (busca ? busca.feicoesPorCamada.get(id) : featsByLayer!.get(id)) || [];
     const lf = lista.slice(0, limitePorCamada);
-    for (let j = 0; j < lf.length; j++) {
-      ids.push(lf[j].id);
-    }
-  }
+    for (let j = 0; j < lf.length; j++) ids.push(lf[j].id);
+  };
+  construirHierarquiaCamadas(camadas).forEach(visitar);
   return ids;
+}
+
+/**
+ * Feições de cada camada somadas às das suas subcamadas (o "ramo"), como a árvore as mostra:
+ * com busca, só as que a busca exibe. É o que o alvo de seleção de um grupo marca e desmarca.
+ */
+export function feicoesPorRamo(
+  camadas: CamadaItem[],
+  feicoes: FeicaoItem[],
+  termoBusca = ''
+): Map<string, FeicaoItem[]> {
+  const busca = filtrarCamadasPorBusca(camadas, feicoes, termoBusca);
+  const diretas = busca ? busca.feicoesPorCamada : agruparPorCamada(feicoes);
+  const ramos = new Map<string, FeicaoItem[]>();
+
+  const somar = (nodo: CamadaNodoHierarquico): FeicaoItem[] => {
+    const id = nodo.camada.id;
+    if (busca && !busca.camadasVisiveis.has(id)) {
+      ramos.set(id, []);
+      return [];
+    }
+    const ramo = [...(diretas.get(id) || [])];
+    for (const sub of nodo.subcamadas) ramo.push(...somar(sub));
+    ramos.set(id, ramo);
+    return ramo;
+  };
+  construirHierarquiaCamadas(camadas).forEach(somar);
+  return ramos;
 }
 
 /**
