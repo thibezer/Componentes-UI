@@ -15,6 +15,8 @@
   height: var(--ui-camadas-altura, 100%);
   min-height: var(--ui-camadas-min-altura, 140px);
   position: relative;
+  --camada-respiro: 8px;
+  --camada-barra-altura: 28px;
   --camada-linha-altura: 25px;
   --camada-thumb-tamanho: 20px;
   --camada-transicao: 0.16s cubic-bezier(0.16, 1, 0.3, 1);
@@ -110,9 +112,9 @@
 
 /* Cabeçalho do Painel / Abas */
 .ui-camadas-header {
-  height: 32px;
-  min-height: 32px;
-  max-height: 32px;
+  height: var(--camada-barra-altura);
+  min-height: var(--camada-barra-altura);
+  max-height: var(--camada-barra-altura);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -185,7 +187,7 @@
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 6px 6px 4px 6px;
+  padding: 0 var(--camada-respiro) var(--camada-respiro);
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -209,7 +211,13 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1px 2px 3px 2px;
+  box-sizing: border-box;
+  height: var(--camada-barra-altura);
+  min-height: var(--camada-barra-altura);
+  flex-shrink: 0;
+  margin: 0 calc(-1 * var(--camada-respiro));
+  padding: 0 var(--camada-respiro);
+  gap: 8px;
   border-bottom: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.06));
 }
 
@@ -246,11 +254,11 @@
 
 .ui-tree-action-btn {
   background: transparent;
-  border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.1));
+  border: none;
   color: var(--ui-cor-texto-secundario, #888899);
   border-radius: var(--ui-raio-sm, 4px);
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   padding: 0;
   cursor: pointer;
   display: flex;
@@ -261,16 +269,15 @@
 
 .ui-tree-action-btn:hover {
   color: var(--ui-cor-texto, #ffffff);
-  border-color: var(--ui-cor-primaria, #00E08A);
   background: var(--ui-cor-hover-menu, rgba(255, 255, 255, 0.09));
 }
 
 .ui-tree-btn-new {
-  background: color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 12%, transparent);
-  border: 1px solid color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 35%, transparent);
+  background: color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 14%, transparent);
+  border: none;
   color: var(--ui-cor-primaria, #00E08A);
   border-radius: var(--ui-raio-sm, 4px);
-  height: 22px;
+  height: 24px;
   padding: 0 8px;
   font-size: 10px;
   font-weight: 600;
@@ -284,7 +291,6 @@
 .ui-tree-btn-new:hover {
   background: var(--ui-cor-primaria, #00E08A);
   color: var(--ui-cor-texto-sobre-primaria, #000000);
-  box-shadow: 0 0 10px color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 35%, transparent);
 }
 
 /* Barra de Busca */
@@ -1042,18 +1048,20 @@
 
 /* Rodapé de Ações em Massa (Ações Coletivas) */
 .ui-tree-footer {
-  height: 32px;
-  min-height: 32px;
+  height: var(--camada-barra-altura);
+  min-height: var(--camada-barra-altura);
   background: var(--ui-cor-fundo-elevado, #121216);
   border-top: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.08));
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 8px;
+  padding: 0 var(--camada-respiro);
   gap: 6px;
   box-sizing: border-box;
   overflow: hidden;
   position: relative;
+  flex-shrink: 0;
+  margin: 0 calc(-1 * var(--camada-respiro));
 }
 
 .ui-footer-left {
@@ -1077,27 +1085,9 @@
 }
 
 .ui-footer-label {
-  font-size: 10px;
-  font-weight: 500;
-  color: var(--ui-cor-texto-secundario, #888899);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.ui-footer-metric {
-  font-size: 9.5px;
-  font-family: var(--ui-fonte-codigo, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
-  font-variant-numeric: tabular-nums;
-  color: var(--ui-cor-primaria, #00E08A);
   display: inline-flex;
   align-items: center;
-  gap: 3px;
-  white-space: nowrap;
-  background: color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 12%, transparent);
-  padding: 1px 5px;
-  border-radius: 3px;
-  border: 1px solid color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 24%, transparent);
+  color: var(--ui-cor-texto-secundario, #888899);
   flex-shrink: 0;
 }
 
@@ -1110,14 +1100,14 @@
 }
 
 .ui-footer-chip-btn {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.1));
+  background: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 6%, transparent);
+  border: none;
   color: var(--ui-cor-texto-secundario, #a0a0b0);
   font-size: 10px;
   font-weight: 600;
   height: 22px;
-  padding: 0 7px;
-  border-radius: 4px;
+  padding: 0 8px;
+  border-radius: var(--ui-raio-sm, 4px);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -1126,29 +1116,27 @@
 }
 
 .ui-footer-chip-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--ui-cor-hover-menu, rgba(255, 255, 255, 0.12));
   color: var(--ui-cor-texto, #ffffff);
-  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .ui-footer-chip-btn.primario {
-  background: color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 12%, transparent);
-  border-color: color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 32%, transparent);
+  background: color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 14%, transparent);
   color: var(--ui-cor-primaria, #00E08A);
 }
 
 .ui-footer-chip-btn.primario:hover {
-  background: color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 22%, transparent);
-  border-color: var(--ui-cor-primaria, #00E08A);
-  color: #ffffff;
+  background: var(--ui-cor-primaria, #00E08A);
+  color: var(--ui-cor-texto-sobre-primaria, #000000);
 }
 
 /* Ações em Massa no Rodapé (quando há seleção) */
 .ui-footer-right {
   display: flex;
   align-items: center;
-  gap: 3px;
-  flex-shrink: 0;
+  gap: 4px;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .ui-footer-btn {
@@ -1187,95 +1175,54 @@
   color: #ffffff !important;
 }
 
-.ui-footer-btn.btn-clear-footer {
-  color: var(--ui-cor-texto-secundario, #888899);
-  margin-left: 2px;
-}
-
-.ui-footer-btn.btn-clear-footer:hover {
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.12);
-}
-
-/* Seletor de Cor Redondo Estilizado */
-.ui-footer-color-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.ui-footer-color-preview {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  border: 1.5px solid rgba(255, 255, 255, 0.35);
-  box-shadow: 0 0 4px rgba(0, 0, 0, 0.4);
-  pointer-events: none;
-  transition: transform 0.15s ease, border-color 0.15s ease;
-}
-
-.ui-footer-color-wrapper:hover .ui-footer-color-preview {
-  transform: scale(1.15);
-  border-color: #ffffff;
-}
-
-.ui-footer-color {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  cursor: pointer;
-  padding: 0;
-  margin: 0;
-  border: none;
-}
-
 /* Seletor de Camada Destino Compacto */
 .ui-footer-move-wrapper {
   position: relative;
   display: flex;
   align-items: center;
-  max-width: 95px;
-  flex-shrink: 0;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .ui-footer-select {
-  background: var(--ui-cor-fundo, #16161c);
-  border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 6%, transparent);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888899' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 6px center;
+  background-size: 10px;
+  border: none;
   color: var(--ui-cor-texto, #e1e1e6);
-  border-radius: 4px;
+  border-radius: var(--ui-raio-sm, 4px);
+  font: inherit;
   font-size: 10px;
+  font-weight: 500;
   height: 22px;
-  padding: 0 4px;
+  padding: 0 22px 0 8px;
   cursor: pointer;
-  max-width: 95px;
+  width: 100%;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .ui-footer-select:hover:not(:disabled) {
-  border-color: rgba(255, 255, 255, 0.25);
+  background-color: var(--ui-cor-hover-menu, rgba(255, 255, 255, 0.12));
 }
 
-.ui-footer-select:focus {
-  outline: none;
-  border-color: var(--ui-cor-primaria, #00E08A);
+.ui-footer-select:focus-visible {
+  outline: 1px solid var(--ui-cor-primaria, #00E08A);
 }
 
 /* Botão Grupo na Toolbar */
 .ui-tree-btn-group {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
+  background: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 6%, transparent);
+  border: none;
   color: var(--ui-cor-texto-secundario, #a0a0b0);
   border-radius: var(--ui-raio-sm, 4px);
-  height: 22px;
+  height: 24px;
   padding: 0 7px;
   font-size: 10px;
   font-weight: 600;
@@ -1287,9 +1234,8 @@
 }
 
 .ui-tree-btn-group:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--ui-cor-hover-menu, rgba(255, 255, 255, 0.12));
   color: var(--ui-cor-texto, #ffffff);
-  border-color: rgba(255, 255, 255, 0.25);
 }
 
 /* Botão Subcamada e Seletor no Drawer */

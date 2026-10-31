@@ -51,15 +51,10 @@ describe('UICamadas - regressões', () => {
   });
 
   describe('rodapé e métricas', () => {
-    it('mostra a métrica ao selecionar, mesmo que o rodapé tenha sido renderizado sem seleção', () => {
+    it('não exibe métrica de área no rodapé ao selecionar', () => {
       const el = criarPainel(camadasPadrao(), criarFeicoes(3));
-      expect(q(el, '.ui-footer-metric').style.display).toBe('none');
-
       el.selecionarFeicao('f0');
-
-      const metrica = q(el, '.ui-footer-metric');
-      expect(metrica.style.display).not.toBe('none');
-      expect(metrica.textContent!.trim().length).toBeGreaterThan(0);
+      expect(el.shadowRoot!.querySelector('.ui-footer-metric')).toBeNull();
     });
 
     it('exige confirmação em 2 passos para excluir feições pelo rodapé', () => {

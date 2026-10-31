@@ -9,7 +9,7 @@
 - **Zero Dependências Externas**: Criado puramente com Web Standards W3C (Custom Elements v1, Shadow DOM, CSS Variables).
 - **Hierarquia Profissional em Árvore (Camadas e Subcamadas)**: Suporte completo a camadas dentro de camadas (pastas/grupos com profundidade arbitrária, guias tracejadas, badge de contagem de subcamadas e arraste hierárquico `drop-into`).
 - **Rodapé Ergonômico Dual-Mode**:
-  - **Modo Resumo**: Exibe contagem limpa e elegante (`X camadas`) com botões de criação rápida `+ Grupo` e `+ Camada`, sem sobreposições visuais.
+  - **Modo Resumo**: Exibe no rodapé só o contador (ícone de camadas + número, estilo Illustrator); os botões `Grupo` e `Camada` ficam à direita do rodapé.
   - **Modo Ações em Massa**: Habilita dinamicamente operações em lote (visibilidade, trava, exclusão, preview de cor circular com aro brilhante e migração hierárquica) apenas quando há itens selecionados.
 - **Estabilidade de Altura Profissional**: O componente mantém a altura exata definida pelo layout ou barra de arraste sem colapsar nem retrair quando há poucas ou nenhuma camada.
 - **Barra de Arraste de Altura (Splitter / Resizer)**:
@@ -120,7 +120,7 @@ painel.definirCamadas([
 ### 3. Recursos de UX da Hierarquia:
 - **Arraste Hierárquico (`drop-into`)**: Arraste uma camada sobre a área central de outra para aninhá-la automaticamente como subcamada. O sistema previne loops/ciclos (não permite soltar um elemento pai dentro de seus próprios filhos).
 - **Ajuste via Drawer de Configurações**: O drawer lateral permite alterar a camada pai diretamente por um menu suspenso ou clicar em `+ Subcamada`.
-- **Criação Rápida de Grupos**: Clique no botão de pasta na toolbar superior ou no botão `+ Grupo` no rodapé limpo para criar uma pasta organizada.
+- **Criação Rápida de Grupos**: Clique em `Grupo` no rodapé para criar uma pasta organizada.
 - **Cascata e Proteção**: Colapsar a camada pai oculta todas as suas subcamadas e feições. Ao excluir uma pasta pai, as subcamadas filhas são preservadas e promovidas ao nível raiz (`parentId: null`).
 
 ---
@@ -255,18 +255,18 @@ Todos os eventos disparam com `{ bubbles: true, composed: true }`.
 | `ui-camada-renomeada` | `{ camadaId, novoNome }` | Camada renomeada via duplo-clique |
 | `ui-camada-excluida` | `{ camadaId }` | Camada removida pelo usuário |
 | `ui-camadas-reordenadas`| `{ camadas }` | Nova ordem das camadas pós Drag & Drop |
-| `ui-camada-adicionar` | `{}` ou `{ parentId }` | **Pedido** de nova camada (botão `+ Camada` da toolbar e do rodapé, ou `+ Subcamada` no drawer, que envia `parentId`). O painel não cria nada sozinho: o aplicativo trata o evento e chama `adicionarCamada()` |
+| `ui-camada-adicionar` | `{}` ou `{ parentId }` | **Pedido** de nova camada (botão `Camada` do rodapé, ou `+ Subcamada` no drawer, que envia `parentId`). O painel não cria nada sozinho: o aplicativo trata o evento e chama `adicionarCamada()` |
 | `ui-camada-grupo-adicionar` | `{ isGroup: true }` | **Pedido** de novo grupo/pasta (botão `Grupo`). O payload não traz id nem nome: o aplicativo escolhe ambos e chama `adicionarCamada({ id, name, isGroup: true })` |
 | `ui-camada-mover-hierarquia` | `{ camadaId, novoParentId, parentAnteriorId }` | Camada movida para dentro de outra ou para raiz |
 | `ui-feicao-selecionada` | `{ feicaoId, feicao }` | Feição individual selecionada |
 | `ui-feicoes-selecionadas`| `{ feicoesIds, feicoes }`| Conjunto de feições selecionadas |
 | `ui-feicao-movida` | `{ feicaoId, camadaOrigemId, camadaDestinoId }` | Feição transferida de camada via DnD |
-| `ui-acao-massa` | `{ acao, feicoesIds, feicoes }` | Ação coletiva disparada no rodapé |
+| `ui-acao-massa` | `{ acao, feicoesIds, feicoes }` | Ação coletiva disparada no rodapé (mover, cor, excluir) |
 | `ui-mapa-base-alterado` | `{ mapaBaseId }` | Mapa base alterado no seletor |
 | `ui-colapso-alterado` | `{ colapsado: boolean }` | Painel colapsado ou expandido |
 | `ui-mapas-base-recolhimento` | `{ recolhido: boolean }` | Seção "Mapa Base" recolhida ou aberta pelo usuário (cabeçalho da seção) |
 
-> **Sem handler, `+ Camada` e `Grupo` não fazem nada.** Exemplo mínimo:
+> **Sem handler, `Camada` e `Grupo` não fazem nada.** Exemplo mínimo:
 >
 > ```typescript
 > painel.addEventListener('ui-camada-adicionar', (e) => {

@@ -7,72 +7,6 @@ import { CamadasHostCompleto } from './camadas-host';
 import { definirRotuloControle } from './camadas-utils';
 
 export function conectarEventosRodape(host: CamadasHostCompleto, shadow: ShadowRoot): void {
-  // Visibilidade coletiva
-  const btnFooterVis = shadow.getElementById('btn-footer-vis');
-  if (btnFooterVis) {
-    btnFooterVis.addEventListener('click', () => {
-      const selFeats = host.feicoes.filter((f) => host.selectedFeatureIds.has(f.id));
-      if (selFeats.length === 0) return;
-      const someVis = selFeats.some((f) => f.visible !== false);
-      const novoVis = !someVis;
-      selFeats.forEach((f) => (f.visible = novoVis));
-      host.dispararEvento('ui-acao-massa', {
-        acao: 'visibilidade',
-        feicoesIds: selFeats.map((f) => f.id),
-        feicoes: selFeats,
-        valor: novoVis
-      });
-      host.solicitarRenderizacao();
-    });
-  }
-
-  // Trava coletiva
-  const btnFooterLock = shadow.getElementById('btn-footer-lock');
-  if (btnFooterLock) {
-    btnFooterLock.addEventListener('click', () => {
-      const selFeats = host.feicoes.filter((f) => host.selectedFeatureIds.has(f.id));
-      if (selFeats.length === 0) return;
-      const someLock = selFeats.some((f) => f.locked === true);
-      const novoLock = !someLock;
-      selFeats.forEach((f) => (f.locked = novoLock));
-      host.dispararEvento('ui-acao-massa', {
-        acao: 'bloqueio',
-        feicoesIds: selFeats.map((f) => f.id),
-        feicoes: selFeats,
-        valor: novoLock
-      });
-      host.solicitarRenderizacao();
-    });
-  }
-
-  // Cor coletiva
-  const inputFooterColor = shadow.getElementById('input-footer-color') as HTMLInputElement | null;
-  const previewFooterColor = shadow.getElementById('preview-footer-color') as HTMLElement | null;
-  if (inputFooterColor) {
-    inputFooterColor.addEventListener('input', (e) => {
-      const cor = (e.target as HTMLInputElement).value;
-      if (previewFooterColor) previewFooterColor.style.backgroundColor = cor;
-    });
-
-    inputFooterColor.addEventListener('change', (e) => {
-      const cor = (e.target as HTMLInputElement).value;
-      if (previewFooterColor) previewFooterColor.style.backgroundColor = cor;
-      const selFeats = host.feicoes.filter((f) => host.selectedFeatureIds.has(f.id));
-      if (selFeats.length === 0) return;
-      selFeats.forEach((f) => {
-        f.color = cor;
-        f.style = { ...(f.style || {}), fillColor: cor, strokeColor: cor };
-      });
-      host.dispararEvento('ui-acao-massa', {
-        acao: 'cor',
-        feicoesIds: selFeats.map((f) => f.id),
-        feicoes: selFeats,
-        valor: cor
-      });
-      host.solicitarRenderizacao();
-    });
-  }
-
   // Mover para outra camada
   const selectFooterMove = shadow.getElementById('select-footer-move') as HTMLSelectElement | null;
   if (selectFooterMove) {
@@ -152,11 +86,5 @@ export function conectarEventosRodape(host: CamadasHostCompleto, shadow: ShadowR
       host.notificarMudancaSelecao();
       host.solicitarRenderizacao();
     });
-  }
-
-  // Limpar seleção
-  const btnFooterClear = shadow.getElementById('btn-footer-clear');
-  if (btnFooterClear) {
-    btnFooterClear.addEventListener('click', () => host.limparSelecao(true));
   }
 }

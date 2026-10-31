@@ -105,12 +105,6 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
         }">
           <span class="ui-chevron-icon ${allExpanded ? 'open' : ''}">${ICONES.chevronDir}</span>
         </button>
-        <button id="btn-add-group" class="ui-tree-btn-group" title="Criar grupo / pasta de camadas" aria-label="Criar grupo de camadas">
-          ${ICONES.moverPasta} Grupo
-        </button>
-        <button id="btn-add-layer" class="ui-tree-btn-new" title="Adicionar nova camada vetorial">
-          ${ICONES.mais} Camada
-        </button>
         ${
           mostrarBotaoColapsar
             ? `<button id="btn-colapsar" class="ui-camadas-btn-colapsar" title="Recolher painel" aria-label="Recolher painel">${ICONES.recolherPainel}</button>`
