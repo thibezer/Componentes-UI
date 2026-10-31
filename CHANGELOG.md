@@ -1,5 +1,21 @@
 # Changelog
 
+## Não publicado
+
+### `<ui-tabela-propriedades>`: complementos à revisão da 2.12.0
+
+**Correções**
+
+- Só focar e sair de um campo numérico não altera mais o valor: um valor com mais casas que `casasDecimais` era arredondado e um número guardado como texto (`"10"`) virava `10`, marcando a linha como alterada e emitindo `ui-propriedade-alterada`.
+- `tipoSelecionado` devolve o tipo que o seletor mostra (o primeiro, sem seleção válida), em vez de `''`.
+
+**Melhorias**
+
+- A unidade pode ser digitada junto do número (`"25 mm"`, `"90°"`), e o resultado de uma expressão sai sem ruído de ponto flutuante (`0.1+0.2` = `0.3`). Função pura `interpretarEntradaNumerica(texto, prop)`.
+- Prévia visível do resultado ao lado do campo enquanto se digita uma expressão (`= 15`, ou `= ?` se ainda inválida), além do `title`. Expressão inválida volta ao valor e o campo pisca em vermelho (`.ui-prop__editor-input--invalido`).
+- Linha alterada ganha uma faixa à esquerda e o botão **↺ Restaurar valor original** (`::part(restaurar)`), que chama `redefinirValor(id)`. `redefinirValor` agora devolve `false` quando não havia o que restaurar.
+- `ui-aplicar` traz `alterados` (só o que mudou) além de `valores`; novo tipo `UIAplicarDetail`.
+
 ## 2.12.2 — 2026-10-30
 
 ### `<ui-camadas>`: cabeçalho e rodapé simplificados

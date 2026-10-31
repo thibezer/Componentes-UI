@@ -67,6 +67,13 @@ export interface SeletorTipoItem {
   iconeSvg?: string;
 }
 
+export interface UIAplicarDetail {
+  /** Todos os valores atuais. */
+  valores: Record<string, any>;
+  /** Só as propriedades que mudaram desde o último carregar/aplicar. */
+  alterados: Record<string, any>;
+}
+
 export interface UIPropertyChangeDetail {
   id: string;
   categoriaId: string;

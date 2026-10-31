@@ -291,7 +291,11 @@ export class UITabelaPropriedades extends SafeHTMLElement {
     this.renderSeletorTipos();
   }
 
+  /** Id do tipo exibido no seletor: sem seleção válida, o seletor mostra (e devolve) o primeiro. */
   get tipoSelecionado(): string {
+    const validos = this._tipos.filter(t => t && t.id !== null && t.id !== undefined);
+    const existe = validos.some(t => String(t.id) === this._tipoSelecionadoId);
+    if (!existe && validos.length > 0) return String(validos[0].id);
     return this._tipoSelecionadoId;
   }
 
@@ -325,8 +329,12 @@ export class UITabelaPropriedades extends SafeHTMLElement {
     this.gerenciadorValores.definirValor(propId, novoValor, emitirEvento);
   }
 
-  public redefinirValor(propId: string, emitirEvento: boolean = true): void {
-    this.gerenciadorValores.redefinirValor(propId, emitirEvento);
+  /**
+   * Volta uma propriedade ao valor do último carregar/aplicar (o mesmo que o botão ↺ da linha).
+   * Fora do modo manual emite `ui-propriedade-alterada`. Devolve `false` se não havia o que restaurar.
+   */
+  public redefinirValor(propId: string, emitirEvento: boolean = true): boolean {
+    return this.gerenciadorValores.redefinirValor(propId, emitirEvento);
   }
 
   public aplicar(): void {
@@ -496,6 +504,7 @@ export class UITabelaPropriedades extends SafeHTMLElement {
         valoresAtuais: this.gerenciadorValores.getValores(),
         valoresOriginais: this.gerenciadorValores.getValoresOriginais(),
         onAtualizarCampoVisual: (propId, novoValor) => atualizarCampoVisual(this.shadow, propId, novoValor),
+        onRedefinir: (propId) => this.redefinirValor(propId),
         editorCtx: {
           obterValorAtual: (id: string) => this.gerenciadorValores.obterValor(id),
           registrarAlteracao: (catId: string, id: string, val: any) => {

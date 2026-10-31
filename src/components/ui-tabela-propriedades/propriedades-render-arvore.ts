@@ -12,6 +12,8 @@ export interface ContextoLinhaPropriedade {
   isDirty?: boolean;
   editorCtx: ContextoEditorPropriedade;
   onAtualizarCampoVisual: (propId: string, novoValor: any) => void;
+  /** Restaura o valor original da propriedade (botão ↺ das linhas modificadas). */
+  onRedefinir?: (propId: string) => void;
 }
 
 export interface OpcoesRenderArvore {
@@ -224,6 +226,25 @@ export function criarLinhaPropriedade(
   spanRotulo.textContent = rotuloTexto;
   colRotulo.appendChild(spanRotulo);
 
+  // Restaurar o valor original: visível só enquanto a linha está modificada (CSS)
+  const editavel = !prop.somenteLeitura && prop.tipo !== 'readonly' && prop.tipo !== 'acao';
+  if (editavel && ctx.onRedefinir) {
+    const onRedefinir = ctx.onRedefinir;
+    const btnRedefinir = document.createElement('button');
+    btnRedefinir.type = 'button';
+    btnRedefinir.className = 'ui-prop__btn-reverter';
+    btnRedefinir.title = 'Restaurar valor original';
+    btnRedefinir.setAttribute('aria-label', `Restaurar valor original de ${rotuloTexto}`);
+    btnRedefinir.setAttribute('part', 'restaurar');
+    btnRedefinir.textContent = '↺';
+    btnRedefinir.addEventListener('click', (e) => {
+      e.stopPropagation();
+      onRedefinir(String(prop.id));
+    });
+    btnRedefinir.addEventListener('dblclick', (e) => e.stopPropagation());
+    colRotulo.appendChild(btnRedefinir);
+  }
+
   // Scrubber numérico (estilo CAD / Blender / Figma)
   if (prop.tipo === 'numero' && !prop.somenteLeitura) {
     configurarScrubberNumerico(colRotulo, categoriaId, prop, ctx);
@@ -267,6 +288,7 @@ function configurarScrubberNumerico(
 
   colRotulo.addEventListener('pointerdown', (e: PointerEvent) => {
     if (e.button !== 0) return;
+    if ((e.target as Element | null)?.closest?.('.ui-prop__btn-reverter')) return;
     // Sem valor de partida: arrastar a partir de "Varia" igualaria todos a um número arbitrário
     if (isValorMisto(ctx.editorCtx.obterValorAtual(prop.id))) return;
     startX = e.clientX;

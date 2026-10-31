@@ -1416,3 +1416,82 @@ select.ui-prop__editor--misto option:not([data-misto]) {
     transparent calc(50% + 1px)
   );
 }
+
+/* ====================================================
+   Revisão de UX: alteração, restauração, cálculo e acessibilidade
+   ==================================================== */
+
+/* Linha alterada: além do fundo, uma faixa na borda esquerda (legível com qualquer tema) */
+.ui-prop__linha--modificada .ui-prop__col-rotulo {
+  box-shadow: inset 2px 0 0 var(--ui-cor-destaque, #00E08A);
+}
+
+/* Botão ↺ "Restaurar valor original": aparece só nas linhas alteradas */
+.ui-prop__btn-reverter {
+  display: none;
+  margin-left: auto;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: none;
+  border-radius: var(--ui-raio-sm, 3px);
+  background: transparent;
+  color: var(--ui-cor-destaque, #00E08A);
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ui-prop__linha--modificada .ui-prop__btn-reverter {
+  display: inline-flex;
+}
+
+.ui-prop__btn-reverter:hover {
+  background-color: color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 15%, transparent);
+}
+
+.ui-prop__btn-reverter:focus-visible {
+  outline: 1px solid var(--ui-cor-destaque, #00E08A);
+  outline-offset: -1px;
+}
+
+/* Prévia do resultado ao digitar uma expressão ("= 15"), à esquerda do número */
+.ui-prop__previa-calculo {
+  position: absolute;
+  left: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  font-size: 10px;
+  font-family: var(--ui-fonte-codigo, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+  font-variant-numeric: tabular-nums;
+  color: var(--ui-cor-texto-secundario, #9696a6);
+  white-space: nowrap;
+}
+
+.ui-prop__previa-calculo[hidden] {
+  display: none;
+}
+
+/* Expressão inválida: o campo volta ao valor e pisca em vermelho */
+.ui-prop__editor-input--invalido {
+  animation: ui-prop-invalido 0.6s ease;
+}
+
+.ui-prop__col-valor:has(.ui-prop__editor-input--invalido) {
+  box-shadow: inset 0 0 0 1px var(--ui-cor-texto-erro, #ff5555);
+}
+
+@keyframes ui-prop-invalido {
+  0%, 60% { color: var(--ui-cor-texto-erro, #ff5555); }
+  100% { color: inherit; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-prop__editor-input--invalido {
+    animation-duration: 0.01ms;
+  }
+}

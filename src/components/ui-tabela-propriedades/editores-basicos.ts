@@ -26,6 +26,26 @@ export function aplicarLimitesNumericos(valor: number, prop: ItemPropriedade): n
   return res;
 }
 
+/**
+ * Texto digitado num campo numérico → número final, ou `null` se inválido. Aceita a unidade
+ * da propriedade no fim ("25 mm", "90°"), aplica min/max e as casas decimais e remove o ruído
+ * de ponto flutuante (0.1 + 0.2 = 0.3).
+ */
+export function interpretarEntradaNumerica(texto: string, prop: ItemPropriedade): number | null {
+  if (typeof texto !== 'string') return null;
+  let s = texto.trim();
+  const unidade = typeof prop.unidade === 'string' ? prop.unidade.trim() : '';
+  if (unidade && s.length > unidade.length && s.toLowerCase().endsWith(unidade.toLowerCase())) {
+    s = s.slice(0, s.length - unidade.length).trim();
+  }
+  if (!s) return null;
+  const calculado = avaliarExpressaoMatematica(s);
+  if (calculado === null || !Number.isFinite(calculado)) return null;
+  const casas = obterCasasDecimais(prop);
+  const limitado = aplicarLimitesNumericos(calculado, prop);
+  return casas !== undefined ? Number(limitado.toFixed(casas)) : Number(limitado.toPrecision(15));
+}
+
 /** Campo de texto no estado misto: vazio, com "Varia" no placeholder (some ao digitar). */
 function aplicarMistoNoInput(input: HTMLInputElement, prop: ItemPropriedade, misto: boolean, texto: string): void {
   input.classList.toggle('ui-prop__editor--misto', misto);
@@ -240,45 +260,70 @@ export function criarEditorNumero(
   atualizar(valorAtual);
   registrarAtualizadorEditor(input, atualizar);
 
+  /** Prévia visível do resultado ("= 15") ao lado do campo, criada sob demanda. */
+  let previa: HTMLSpanElement | null = null;
+  const esconderPrevia = () => {
+    input.classList.remove('ui-prop__editor-input--calculando');
+    input.title = '';
+    if (previa) previa.hidden = true;
+  };
+  const mostrarPrevia = (texto: string) => {
+    if (!previa) {
+      if (!input.parentElement) return;
+      previa = document.createElement('span');
+      previa.className = 'ui-prop__previa-calculo';
+      previa.setAttribute('aria-hidden', 'true');
+      input.parentElement.appendChild(previa);
+    }
+    previa.textContent = texto;
+    previa.hidden = false;
+  };
+
   input.addEventListener('focus', () => {
+    input.classList.remove('ui-prop__editor-input--invalido');
     input.select();
   });
+  input.addEventListener('animationend', () => input.classList.remove('ui-prop__editor-input--invalido'));
 
   input.addEventListener('input', () => {
+    input.classList.remove('ui-prop__editor-input--invalido');
     const val = input.value.trim();
     const ehNumeroSimples = /^[+-]?[0-9]*[.,]?[0-9]*$/.test(val);
     const contemOperadores = !ehNumeroSimples && (val.startsWith('=') || /[\+\-\*\/\^\%\(\);]|^[a-zA-Z_π]/.test(val));
     input.classList.toggle('ui-prop__editor-input--calculando', contemOperadores);
     if (contemOperadores) {
-      const previa = avaliarExpressaoMatematica(val);
-      input.title = previa !== null ? `= ${casas !== undefined ? Number(previa.toFixed(casas)) : previa}` : '';
+      const resultado = interpretarEntradaNumerica(val, prop);
+      const texto = resultado !== null ? `= ${formatarValor(resultado)}` : '= ?';
+      input.title = resultado !== null ? texto : '';
+      mostrarPrevia(texto);
     } else {
-      input.title = '';
+      esconderPrevia();
     }
   });
 
   const commitNumero = () => {
-    input.classList.remove('ui-prop__editor-input--calculando');
-    input.title = '';
+    esconderPrevia();
     const raw = input.value.trim();
+    const vAtual = ctx.obterValorAtual(prop.id);
+    // Texto igual ao exibido: nada foi digitado. Sem isto, só passar pelo campo arredondaria
+    // o valor às casas decimais ou trocaria "10" (texto) por 10 (número).
+    if (raw === formatarValor(vAtual)) return;
     if (raw === '') {
       // Sair de "Varia" sem digitar mantém o valor de cada objeto
-      if (isValorMisto(ctx.obterValorAtual(prop.id))) return;
+      if (isValorMisto(vAtual)) return;
       // O gerenciador ignora valor igual: change + blur não registram null duas vezes
       ctx.registrarAlteracao(categoriaId, prop.id, null);
       return;
     }
 
-    const calculado = avaliarExpressaoMatematica(raw);
-    if (calculado !== null && !isNaN(calculado)) {
-      let finalVal = aplicarLimitesNumericos(calculado, prop);
-      if (casas !== undefined) {
-        finalVal = Number(finalVal.toFixed(casas));
-      }
+    const finalVal = interpretarEntradaNumerica(raw, prop);
+    if (finalVal !== null) {
       ctx.registrarAlteracao(categoriaId, prop.id, finalVal);
-      atualizar(finalVal);
-    } else {
       atualizar(ctx.obterValorAtual(prop.id));
+    } else {
+      // Expressão inválida: volta ao valor e o campo pisca (some ao digitar de novo)
+      atualizar(vAtual);
+      input.classList.add('ui-prop__editor-input--invalido');
     }
   };
 
@@ -293,14 +338,14 @@ export function criarEditorNumero(
     } else if (e.key === 'Escape') {
       e.preventDefault();
       e.stopPropagation();
-      input.classList.remove('ui-prop__editor-input--calculando');
-      input.title = '';
+      esconderPrevia();
       atualizar(ctx.obterValorAtual(prop.id));
       input.blur();
     } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
       e.preventDefault();
+      esconderPrevia();
       // Expressão em edição ("10+5") é resolvida antes de incrementar
-      const avaliado = avaliarExpressaoMatematica(input.value);
+      const avaliado = interpretarEntradaNumerica(input.value, prop);
       const vAtual = ctx.obterValorAtual(prop.id);
       // "Varia" não tem valor de partida: só incrementa o que o usuário já digitou
       if (avaliado === null && isValorMisto(vAtual)) return;

@@ -5,6 +5,7 @@ import {
   UIPainelPropriedades,
   UIPropriedades,
   CategoriaPropriedades,
+  SeletorTipoItem,
   avaliarExpressaoMatematica
 } from './ui-tabela-propriedades';
 
@@ -402,5 +403,108 @@ describe('avaliarExpressaoMatematica — regressões', () => {
     expect(avaliarExpressaoMatematica('atan2(1; 1)')).toBe(45);
     expect(avaliarExpressaoMatematica('mod(17; 5)')).toBe(2);
     expect(avaliarExpressaoMatematica('trunc(12.75)')).toBe(12);
+  });
+});
+
+describe('ui-tabela-propriedades — regressões da revisão profunda', () => {
+  beforeEach(() => { document.body.innerHTML = ''; });
+
+  const sair = (input: HTMLInputElement) => {
+    input.dispatchEvent(new Event('focus'));
+    input.dispatchEvent(new Event('change'));
+    input.dispatchEvent(new Event('blur'));
+  };
+
+  it('focar e sair de um número com mais casas que casasDecimais não altera o valor', () => {
+    const painel = criarPainel([{ id: 'g', titulo: 'G', propriedades: [
+      { id: 'x', rotulo: 'X', tipo: 'numero', valor: 1.23456, casasDecimais: 2 }
+    ] }]);
+    const espiao = vi.fn();
+    painel.addEventListener('ui-propriedade-alterada', espiao);
+    sair(linha(painel, 'x').querySelector('input')!);
+    expect(painel.obterValor('x')).toBe(1.23456);
+    expect(painel.dirty).toBe(false);
+    expect(espiao).not.toHaveBeenCalled();
+  });
+
+  it('número guardado como texto ("10") não vira alteração só por passar pelo campo', () => {
+    const painel = criarPainel([{ id: 'g', titulo: 'G', propriedades: [
+      { id: 'x', rotulo: 'X', tipo: 'numero', valor: '10' }
+    ] }]);
+    sair(linha(painel, 'x').querySelector('input')!);
+    expect(painel.obterValor('x')).toBe('10');
+    expect(painel.dirty).toBe(false);
+  });
+
+  it('Enter pula os campos de categorias recolhidas', () => {
+    const painel = criarPainel([
+      { id: 'a', titulo: 'A', propriedades: [{ id: 'a1', rotulo: 'A1', tipo: 'texto', valor: '' }] },
+      { id: 'b', titulo: 'B', aberto: false, propriedades: [{ id: 'b1', rotulo: 'B1', tipo: 'texto', valor: '' }] },
+      { id: 'c', titulo: 'C', propriedades: [{ id: 'c1', rotulo: 'C1', tipo: 'texto', valor: '' }] }
+    ]);
+    const a1 = linha(painel, 'a1').querySelector('input')!;
+    a1.focus();
+    a1.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    expect(painel.shadowRoot!.activeElement).toBe(linha(painel, 'c1').querySelector('input'));
+  });
+
+  it('categorias, propriedades e opções hostis não derrubam o painel nem o filtro', () => {
+    const painel = document.createElement('ui-tabela-propriedades') as UITabelaPropriedades;
+    document.body.appendChild(painel);
+    painel.setAttribute('filtro', '');
+    expect(() => {
+      painel.categorias = [
+        null,
+        { id: 'x', titulo: 'X', propriedades: null },
+        { id: 'y', titulo: 'Y', propriedades: [null, { id: 'semRotulo', tipo: 'selecao', valor: 1, opcoes: 'lixo' }] }
+      ] as unknown as CategoriaPropriedades[];
+      const filtro = painel.shadowRoot!.getElementById('filtro-input') as HTMLInputElement;
+      filtro.value = 'sem';
+      filtro.dispatchEvent(new Event('input'));
+    }).not.toThrow();
+    expect(linha(painel, 'semRotulo')).toBeTruthy();
+  });
+
+  it('busca sem resultado mostra uma mensagem em vez de um painel em branco', () => {
+    const painel = criarPainel(categoriasBase());
+    painel.setAttribute('filtro', '');
+    const filtro = painel.shadowRoot!.getElementById('filtro-input') as HTMLInputElement;
+    filtro.value = 'inexistente';
+    filtro.dispatchEvent(new Event('input'));
+    const vazio = painel.shadowRoot!.querySelector('.ui-prop__vazio');
+    expect(vazio?.textContent).toContain('inexistente');
+  });
+
+  it('somente leitura mostra o rótulo da opção e Sim/Não, não o id cru', () => {
+    const painel = criarPainel([{ id: 'g', titulo: 'G', propriedades: [
+      { id: 'm', rotulo: 'Modo', tipo: 'selecao', valor: 'a', somenteLeitura: true, opcoes: [{ id: 'a', rotulo: 'Alfa' }] },
+      { id: 'b', rotulo: 'Bloq', tipo: 'booleano', valor: true, somenteLeitura: true }
+    ] }]);
+    expect(linha(painel, 'm').querySelector('.ui-prop__valor-readonly')!.textContent).toBe('Alfa');
+    expect(linha(painel, 'b').querySelector('.ui-prop__valor-readonly')!.textContent).toBe('Sim');
+  });
+
+  it('tipo de linha com ids numéricos devolve o número, não o texto', () => {
+    const painel = criarPainel([{ id: 'g', titulo: 'G', propriedades: [
+      { id: 'lt', rotulo: 'Linha', tipo: 'linetype', valor: 1, opcoes: [{ id: 1, rotulo: 'Contínua' }, { id: 2, rotulo: 'Tracejada' }] },
+      { id: 'lw', rotulo: 'Espessura', tipo: 'lineweight', valor: 1, opcoes: [{ id: 1, rotulo: 'Fina' }, { id: 2, rotulo: 'Grossa' }] }
+    ] }]);
+    for (const id of ['lt', 'lw']) {
+      const select = linha(painel, id).querySelector('select') as HTMLSelectElement;
+      select.value = '2';
+      select.dispatchEvent(new Event('change'));
+      expect(painel.obterValor(id)).toBe(2);
+    }
+  });
+
+  it('seletor de tipos: rótulo acessível, entradas nulas ignoradas e tipo exibido refletido', () => {
+    const painel = criarPainel(categoriasBase());
+    expect(() => {
+      painel.tipos = [null, { id: 'p', rotulo: 'Parede' }, { id: 'j', rotulo: 'Janela' }] as unknown as SeletorTipoItem[];
+    }).not.toThrow();
+    const select = painel.shadowRoot!.querySelector('.ui-prop__tipo-select') as HTMLSelectElement;
+    expect(select.getAttribute('aria-label')).toBeTruthy();
+    expect(select.options.length).toBe(2);
+    expect(painel.tipoSelecionado).toBe('p');
   });
 });

@@ -1,4 +1,4 @@
-import { CategoriaPropriedades, UIPropertyChangeDetail } from './tipos';
+import { CategoriaPropriedades, UIAplicarDetail, UIPropertyChangeDetail } from './tipos';
 import { buscarLinhaPropriedade } from './propriedades-dom-utils';
 import { isValorMisto, valorInicialDaPropriedade, valoresIguais } from './propriedades-valor-misto';
 import { alternarPart } from '../../core/parts';
@@ -90,11 +90,15 @@ export class GerenciadorValoresPropriedades {
     }
   }
 
-  /** Restaura uma propriedade individual ao seu valor original (antes da edição). */
-  public redefinirValor(propId: string, emitirEvento: boolean = true): void {
-    if (!(propId in this.valoresOriginais)) return;
+  /**
+   * Restaura uma propriedade individual ao seu valor original (antes da edição).
+   * Devolve `false` se não havia o que restaurar.
+   */
+  public redefinirValor(propId: string, emitirEvento: boolean = true): boolean {
+    if (!(propId in this.valoresOriginais) || !this.isModificada(propId)) return false;
     const valorOriginal = this.valoresOriginais[propId];
     this.definirValor(propId, valorOriginal, emitirEvento && !this.ctx.isModoManual());
+    return true;
   }
 
   /** Alteração feita pelo usuário num editor. Em modo manual só emite no Aplicar. */
@@ -111,6 +115,10 @@ export class GerenciadorValoresPropriedades {
 
   public aplicar(): void {
     if (!this.isDirty) return;
+    const alterados: Record<string, any> = {};
+    Object.keys(this.valoresAtuais).forEach(id => {
+      if (this.isModificada(id)) alterados[id] = this.valoresAtuais[id];
+    });
     this.valoresOriginais = { ...this.valoresAtuais };
     this.ctx.onAtualizarBotoesFooter(false);
 
@@ -121,10 +129,10 @@ export class GerenciadorValoresPropriedades {
     });
 
     this.ctx.hostElement.dispatchEvent(
-      new CustomEvent('ui-aplicar', {
+      new CustomEvent<UIAplicarDetail>('ui-aplicar', {
         bubbles: true,
         composed: true,
-        detail: { valores: { ...this.valoresAtuais } }
+        detail: { valores: { ...this.valoresAtuais }, alterados }
       })
     );
   }
