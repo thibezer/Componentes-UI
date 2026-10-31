@@ -300,7 +300,7 @@ class UIBusManager {
     if (typeof document === 'undefined') return 'escuro';
     const forcado = temaForcado(document.documentElement);
     if (forcado) return forcado;
-    return 'escuro';
+    return sistemaPrefereClaro() ? 'claro' : 'escuro';
   }
 
   /**
