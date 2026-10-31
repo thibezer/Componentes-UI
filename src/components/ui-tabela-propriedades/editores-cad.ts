@@ -1,21 +1,15 @@
-import { ItemPropriedade, OpcaoPropriedade } from './tipos';
-import { ContextoEditorPropriedade } from './tipos';
-import { marcarSelectMisto, navegarAposEnter, registrarAtualizadorEditor, sincronizarSelect } from './propriedades-dom-utils';
+import { ItemPropriedade, OpcaoPropriedade, ContextoEditorPropriedade } from './tipos';
+import { marcarSelectMisto, registrarAtualizadorEditor, sincronizarSelect } from './propriedades-dom-utils';
 import { isValorMisto, textoMistoDe } from './propriedades-valor-misto';
 
 const mesmoTextoSemCaixa = (opcao: string, valor: any) => opcao.toLowerCase() === String(valor ?? '').toLowerCase();
 
-/** Devolve o id no tipo original da opção (número continua número). */
-function idDaOpcao(opcoes: OpcaoPropriedade[] | undefined, valorSelect: string): string | number {
-  const opcao = (opcoes || []).find(op => String(op.id) === valorSelect);
-  return opcao ? opcao.id : valorSelect;
-}
-
 function preencherOpcoes(select: HTMLSelectElement, opcoes: OpcaoPropriedade[]): void {
-  opcoes.forEach(op => {
+  (Array.isArray(opcoes) ? opcoes : []).forEach(op => {
+    if (!op || typeof op !== 'object') return;
     const opt = document.createElement('option');
     opt.value = String(op.id);
-    opt.textContent = op.rotulo;
+    opt.textContent = String(op.rotulo ?? op.id);
     select.appendChild(opt);
   });
 }
@@ -35,6 +29,7 @@ export function criarEditorLinetype(
   const svgAmostra = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svgAmostra.setAttribute('class', 'ui-prop__linha-amostra-svg');
   svgAmostra.setAttribute('viewBox', '0 0 44 12');
+  svgAmostra.setAttribute('aria-hidden', 'true');
 
   const lineSvg = document.createElementNS('http://www.w3.org/2000/svg', 'line');
   lineSvg.setAttribute('x1', '0');
@@ -59,9 +54,9 @@ export function criarEditorLinetype(
 
   const select = document.createElement('select');
   select.className = 'ui-prop__linha-select';
-  select.setAttribute('aria-label', prop.rotulo);
+  select.setAttribute('aria-label', String(prop.rotulo ?? prop.id));
 
-  preencherOpcoes(select, prop.opcoes && prop.opcoes.length > 0 ? prop.opcoes : [
+  const opcoesEfetivas = prop.opcoes && prop.opcoes.length > 0 ? prop.opcoes : [
     { id: 'ByLayer', rotulo: 'ByLayer' },
     { id: 'ByBlock', rotulo: 'ByBlock' },
     { id: 'Continuous', rotulo: 'Continuous' },
@@ -69,7 +64,8 @@ export function criarEditorLinetype(
     { id: 'Hidden', rotulo: 'Hidden' },
     { id: 'Center', rotulo: 'Center' },
     { id: 'Dotted', rotulo: 'Dotted' }
-  ]);
+  ];
+  preencherOpcoes(select, opcoesEfetivas);
 
   const atualizar = (valor: any) => {
     const misto = isValorMisto(valor);
@@ -86,13 +82,15 @@ export function criarEditorLinetype(
   registrarAtualizadorEditor(container, atualizar);
 
   select.addEventListener('change', () => {
-    ctx.registrarAlteracao(categoriaId, prop.id, idDaOpcao(prop.opcoes, select.value));
+    const opcao = opcoesEfetivas.find(op => op && String(op.id) === select.value);
+    ctx.registrarAlteracao(categoriaId, prop.id, opcao ? opcao.id : select.value);
     atualizar(ctx.obterValorAtual(prop.id));
   });
 
   select.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
-      navegarAposEnter(ctx, select, e);
+      if (e.shiftKey && ctx.focarEditorAnterior) ctx.focarEditorAnterior(select);
+      else ctx.focarProximoEditor(select);
     }
   });
 
@@ -116,6 +114,7 @@ export function criarEditorLineweight(
   const svgAmostra = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svgAmostra.setAttribute('class', 'ui-prop__espessura-amostra-svg');
   svgAmostra.setAttribute('viewBox', '0 0 38 12');
+  svgAmostra.setAttribute('aria-hidden', 'true');
 
   const lineSvg = document.createElementNS('http://www.w3.org/2000/svg', 'line');
   lineSvg.setAttribute('x1', '0');
@@ -133,9 +132,9 @@ export function criarEditorLineweight(
 
   const select = document.createElement('select');
   select.className = 'ui-prop__espessura-select';
-  select.setAttribute('aria-label', prop.rotulo);
+  select.setAttribute('aria-label', String(prop.rotulo ?? prop.id));
 
-  preencherOpcoes(select, prop.opcoes && prop.opcoes.length > 0 ? prop.opcoes : [
+  const opcoesEfetivas = prop.opcoes && prop.opcoes.length > 0 ? prop.opcoes : [
     { id: 'ByLayer', rotulo: 'ByLayer' },
     { id: 'ByBlock', rotulo: 'ByBlock' },
     { id: '0.00 mm', rotulo: '0.00 mm' },
@@ -155,7 +154,8 @@ export function criarEditorLineweight(
     { id: '1.00 mm', rotulo: '1.00 mm' },
     { id: '1.40 mm', rotulo: '1.40 mm' },
     { id: '2.00 mm', rotulo: '2.00 mm' }
-  ]);
+  ];
+  preencherOpcoes(select, opcoesEfetivas);
 
   const atualizar = (valor: any) => {
     const misto = isValorMisto(valor);
@@ -168,13 +168,15 @@ export function criarEditorLineweight(
   registrarAtualizadorEditor(container, atualizar);
 
   select.addEventListener('change', () => {
-    ctx.registrarAlteracao(categoriaId, prop.id, idDaOpcao(prop.opcoes, select.value));
+    const opcao = opcoesEfetivas.find(op => op && String(op.id) === select.value);
+    ctx.registrarAlteracao(categoriaId, prop.id, opcao ? opcao.id : select.value);
     atualizar(ctx.obterValorAtual(prop.id));
   });
 
   select.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
-      navegarAposEnter(ctx, select, e);
+      if (e.shiftKey && ctx.focarEditorAnterior) ctx.focarEditorAnterior(select);
+      else ctx.focarProximoEditor(select);
     }
   });
 
@@ -234,7 +236,7 @@ export function criarEditorCorCad(
 
   const select = document.createElement('select');
   select.className = 'ui-prop__cor-cad-select';
-  select.setAttribute('aria-label', prop.rotulo);
+  select.setAttribute('aria-label', String(prop.rotulo ?? prop.id));
 
   preencherOpcoes(select, [
     { id: 'ByLayer', rotulo: 'ByLayer' },
@@ -252,6 +254,7 @@ export function criarEditorCorCad(
   picker.type = 'color';
   picker.className = 'ui-prop__cor-picker-oculto';
   picker.tabIndex = -1;
+  picker.setAttribute('aria-hidden', 'true');
 
   const atualizar = (valor: any) => {
     const misto = isValorMisto(valor);
@@ -299,7 +302,8 @@ export function criarEditorCorCad(
 
   select.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
-      navegarAposEnter(ctx, select, e);
+      if (e.shiftKey && ctx.focarEditorAnterior) ctx.focarEditorAnterior(select);
+      else ctx.focarProximoEditor(select);
     }
   });
 
@@ -333,6 +337,7 @@ export function criarEditorCorSwatch(
   picker.type = 'color';
   picker.className = 'ui-prop__cor-picker-oculto';
   picker.tabIndex = -1;
+  picker.setAttribute('aria-hidden', 'true');
 
   const atualizar = (valor: any) => {
     const misto = isValorMisto(valor);
@@ -343,14 +348,14 @@ export function criarEditorCorSwatch(
       amostra.style.backgroundColor = '';
       texto.textContent = rotuloMisto;
       picker.value = '#ffffff';
-      container.setAttribute('aria-label', `${prop.rotulo}: ${rotuloMisto}`);
+      container.setAttribute('aria-label', `${prop.rotulo ?? prop.id}: ${rotuloMisto}`);
       return;
     }
     const hex = typeof valor === 'string' && HEX_VALIDO.test(valor) ? hexLongo(valor) : null;
     amostra.style.backgroundColor = valor || '#ffffff';
     texto.textContent = prop.textoAmostra || String(valor || 'ByLayer');
     picker.value = hex ?? '#ffffff';
-    container.setAttribute('aria-label', `${prop.rotulo}: ${valor || 'ByLayer'}`);
+    container.setAttribute('aria-label', `${prop.rotulo ?? prop.id}: ${valor || 'ByLayer'}`);
   };
   atualizar(valorAtual);
   registrarAtualizadorEditor(container, atualizar);
@@ -368,10 +373,7 @@ export function criarEditorCorSwatch(
     if (e.target !== picker) picker.click();
   });
   container.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && e.shiftKey) {
-      e.preventDefault();
-      navegarAposEnter(ctx, container, e);
-    } else if (e.key === ' ' || e.key === 'Enter') {
+    if (e.key === ' ' || e.key === 'Enter') {
       e.preventDefault();
       picker.click();
     }

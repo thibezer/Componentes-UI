@@ -1,6 +1,13 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import './ui-tabela-propriedades';
-import { UITabelaPropriedades, CategoriaPropriedades, SeletorTipoItem, avaliarExpressaoMatematica } from './ui-tabela-propriedades';
+import {
+  UITabelaPropriedades,
+  UIPainelPropriedades,
+  UIPropriedades,
+  CategoriaPropriedades,
+  SeletorTipoItem,
+  avaliarExpressaoMatematica
+} from './ui-tabela-propriedades';
 
 function criarPainel(categorias: CategoriaPropriedades[]): UITabelaPropriedades {
   const painel = document.createElement('ui-tabela-propriedades') as UITabelaPropriedades;
@@ -226,6 +233,131 @@ describe('ui-tabela-propriedades — regressões', () => {
     expect(html).not.toMatch(/script|onload|onclick|javascript:|https:/i);
     expect(mini.querySelector('a')).toBeNull();
   });
+
+  /* ---------- Novas melhorias de robustez e experiência do usuário ---------- */
+
+  it('trata entradas hostis graciosamente sem lançar exceção (Regra #0)', () => {
+    const painel = document.createElement('ui-tabela-propriedades') as UITabelaPropriedades;
+    document.body.appendChild(painel);
+
+    // Array com null, objetos sem campos obrigatórios
+    expect(() => {
+      painel.categorias = [
+        null as any,
+        undefined as any,
+        { id: 'invalida', titulo: null as any, propriedades: [null as any, { id: 'p_sem_rotulo', tipo: 'numero', valor: 42 } as any] }
+      ];
+    }).not.toThrow();
+
+    expect(() => {
+      painel.tipos = [null as any, { id: 't_ok', rotulo: 'Tipo OK' }];
+    }).not.toThrow();
+
+    expect(painel.obterValor('p_sem_rotulo')).toBe(42);
+  });
+
+  it('redefinirValor restaura o valor original de uma propriedade individual', () => {
+    const painel = criarPainel(categoriasBase());
+    painel.definirValor('largura', 99);
+    expect(painel.obterValor('largura')).toBe(99);
+    expect(painel.isDirty).toBe(true);
+
+    painel.redefinirValor('largura');
+    expect(painel.obterValor('largura')).toBe(10);
+    expect(painel.isDirty).toBe(false);
+    expect(linha(painel, 'largura').classList.contains('ui-prop__linha--modificada')).toBe(false);
+  });
+
+  it('aplica limites min e max em campos numéricos', () => {
+    const painel = criarPainel([{
+      id: 'limites',
+      titulo: 'Limites',
+      propriedades: [
+        { id: 'opacidade', rotulo: 'Opacidade', tipo: 'numero', valor: 50, min: 0, max: 100 }
+      ]
+    }]);
+
+    const input = linha(painel, 'opacidade').querySelector('input')!;
+    input.value = '150';
+    input.dispatchEvent(new Event('change'));
+    expect(painel.obterValor('opacidade')).toBe(100);
+
+    input.value = '-20';
+    input.dispatchEvent(new Event('change'));
+    expect(painel.obterValor('opacidade')).toBe(0);
+  });
+
+  it('suporta botão de limpar filtro e atalho Escape no campo de busca', () => {
+    const painel = criarPainel(categoriasBase());
+    painel.filtro = true;
+    const shadow = painel.shadowRoot!;
+    const filtroInput = shadow.getElementById('filtro-input') as HTMLInputElement;
+    const btnLimpar = shadow.getElementById('btn-limpar-filtro') as HTMLButtonElement;
+
+    filtroInput.value = 'larg';
+    filtroInput.dispatchEvent(new Event('input'));
+    expect(btnLimpar.style.display).toBe('inline-flex');
+
+    btnLimpar.click();
+    expect(filtroInput.value).toBe('');
+    expect(btnLimpar.style.display).toBe('none');
+
+    // Tecla Escape com texto
+    filtroInput.value = 'alt';
+    filtroInput.dispatchEvent(new Event('input'));
+    expect(shadow.querySelectorAll('.ui-prop__linha').length).toBe(1);
+
+    const ev = new KeyboardEvent('keydown', { key: 'Escape', cancelable: true });
+    filtroInput.dispatchEvent(ev);
+    expect(filtroInput.value).toBe('');
+    expect(shadow.querySelectorAll('.ui-prop__linha').length).toBe(6);
+  });
+
+  it('busca encontra propriedades pelo título da categoria e exibe estado vazio se nada coincidir', () => {
+    const painel = criarPainel(categoriasBase());
+    painel.termoBusca = 'geral';
+    // Categoria 'Geral' casou: todas as suas 6 propriedades são exibidas
+    expect(painel.shadowRoot!.querySelectorAll('.ui-prop__linha').length).toBe(6);
+
+    painel.termoBusca = 'termo_inexistente_xyz';
+    const vazio = painel.shadowRoot!.querySelector('.ui-prop__vazio');
+    expect(vazio).not.toBeNull();
+    expect(vazio?.textContent).toContain('Nenhuma propriedade encontrada');
+  });
+
+  it('divisor splitter responde às setas do teclado para acessibilidade (WAI-ARIA)', () => {
+    const painel = criarPainel(categoriasBase());
+    const shadow = painel.shadowRoot!;
+    const splitter = shadow.getElementById('splitter') as HTMLElement;
+    expect(splitter.getAttribute('role')).toBe('separator');
+    expect(splitter.getAttribute('aria-orientation')).toBe('vertical');
+
+    const antes = painel.larguraRotulo;
+    splitter.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
+    expect(painel.larguraRotulo).toBe(antes + 2);
+
+    splitter.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft' }));
+    expect(painel.larguraRotulo).toBe(antes);
+
+    splitter.dispatchEvent(new KeyboardEvent('keydown', { key: 'Home' }));
+    expect(painel.larguraRotulo).toBe(20);
+
+    splitter.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+    expect(painel.larguraRotulo).toBe(45);
+  });
+
+  it('registra classes e Custom Elements aliases com sucesso', () => {
+    expect(customElements.get('ui-painel-propriedades')).toBeDefined();
+    expect(customElements.get('ui-propriedades')).toBeDefined();
+
+    const elAlias = document.createElement('ui-painel-propriedades');
+    expect(elAlias).toBeInstanceOf(UIPainelPropriedades);
+    expect(elAlias).toBeInstanceOf(UITabelaPropriedades);
+
+    const elProp = document.createElement('ui-propriedades');
+    expect(elProp).toBeInstanceOf(UIPropriedades);
+    expect(elProp).toBeInstanceOf(UITabelaPropriedades);
+  });
 });
 
 describe('avaliarExpressaoMatematica — regressões', () => {
@@ -242,6 +374,35 @@ describe('avaliarExpressaoMatematica — regressões', () => {
     expect(avaliarExpressaoMatematica('(2+3')).toBeNull();
     expect(avaliarExpressaoMatematica('sqrt(16')).toBeNull();
     expect(avaliarExpressaoMatematica('sqrt(16)')).toBe(4);
+  });
+
+  it('aceita prefixo de fórmula igual (=) estilo CAD / Revit', () => {
+    expect(avaliarExpressaoMatematica('=10.5 * 2 + (4 / 2)')).toBe(23);
+    expect(avaliarExpressaoMatematica('= 100 - 25')).toBe(75);
+    expect(avaliarExpressaoMatematica('=sqrt(144)')).toBe(12);
+  });
+
+  it('avalia notação científica corretamente', () => {
+    expect(avaliarExpressaoMatematica('1e3')).toBe(1000);
+    expect(avaliarExpressaoMatematica('2.5e2 + 50')).toBe(300);
+    expect(avaliarExpressaoMatematica('1e-2')).toBe(0.01);
+  });
+
+  it('calcula porcentagens contextuais e compostas com precisão', () => {
+    expect(avaliarExpressaoMatematica('100 + 10%')).toBe(110);
+    expect(avaliarExpressaoMatematica('100 - 20%')).toBe(80);
+    expect(avaliarExpressaoMatematica('100 + 50 * 10%')).toBe(105);
+    expect(avaliarExpressaoMatematica('50 * 20%')).toBe(10);
+  });
+
+  it('suporta funções matemáticas avançadas (min, max, pow, hypot, atan2, mod, trunc)', () => {
+    expect(avaliarExpressaoMatematica('min(10; 20; 5)')).toBe(5);
+    expect(avaliarExpressaoMatematica('max(10; 25; 15)')).toBe(25);
+    expect(avaliarExpressaoMatematica('pow(2; 4)')).toBe(16);
+    expect(avaliarExpressaoMatematica('hypot(3; 4)')).toBe(5);
+    expect(avaliarExpressaoMatematica('atan2(1; 1)')).toBe(45);
+    expect(avaliarExpressaoMatematica('mod(17; 5)')).toBe(2);
+    expect(avaliarExpressaoMatematica('trunc(12.75)')).toBe(12);
   });
 });
 

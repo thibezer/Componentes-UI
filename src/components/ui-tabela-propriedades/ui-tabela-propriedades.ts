@@ -20,11 +20,10 @@ import {
   conectarPainelControles,
   sincronizarPainelControles
 } from './propriedades-painel-controles';
-import { conectarTecladoPainel } from './propriedades-teclado';
-import { normalizarCategorias, normalizarTipos } from './propriedades-normalizacao';
 import {
   focarProximoEditor,
   focarEditorAnterior,
+  focarPrimeiroEditor,
   atualizarCampoVisual,
   expandirTodasCategorias,
   colapsarTodasCategorias,
@@ -43,11 +42,6 @@ export * from './propriedades-dom-utils';
 export * from './propriedades-flutuante';
 export * from './propriedades-densidade';
 export * from './propriedades-valor-misto';
-export * from './propriedades-numero';
-export * from './propriedades-filtro';
-export * from './propriedades-normalizacao';
-export * from './propriedades-exibicao';
-export * from './propriedades-teclado';
 import { TEXTO_MISTO_PADRAO } from './propriedades-valor-misto';
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 
@@ -78,6 +72,7 @@ export class UITabelaPropriedades extends SafeHTMLElement {
   private _tipoSelecionadoId: string = '';
   private _termoBusca: string = '';
   private _larguraRotuloPorcentagem: number = 45;
+  private _sincronizandoFlutuante = false;
 
   public get larguraRotuloPorcentagem(): number {
     return this._larguraRotuloPorcentagem;
@@ -139,14 +134,8 @@ export class UITabelaPropriedades extends SafeHTMLElement {
       onDesfazer: () => this.desfazer(),
       onAlternarDensidade: () => this.alternarDensidade(),
       onAlternarFlutuante: () => this.alternarFlutuante(),
-      onAlternarColapsoHorizontal: () => this.alternarColapsoHorizontal()
-    });
-
-    conectarTecladoPainel({
-      shadow: this.shadow,
-      listeners: this.listeners,
-      isModoManual: () => this.getAttribute('modo-aplicar') === 'manual',
-      onAplicar: () => this.aplicar()
+      onAlternarColapsoHorizontal: () => this.alternarColapsoHorizontal(),
+      onFocarPrimeiroEditor: () => focarPrimeiroEditor(this.shadow)
     });
 
     conectarArrastoFlutuante(this, this.shadow, this.listeners);
@@ -187,9 +176,83 @@ export class UITabelaPropriedades extends SafeHTMLElement {
           this.renderCategorias();
         }
         return;
+      case 'flutuante':
+        if (!this._sincronizandoFlutuante) {
+          sincronizarPainelControles(this.shadow, this);
+        }
+        return;
       default:
         sincronizarPainelControles(this.shadow, this);
     }
+  }
+
+  // --- Propriedades Públicas Espelhadas (Getters e Setters Tipados) ---
+
+  get titulo(): string {
+    return this.getAttribute('titulo') || 'Propriedades';
+  }
+
+  set titulo(val: string) {
+    if (val) this.setAttribute('titulo', val);
+    else this.removeAttribute('titulo');
+  }
+
+  get estiloVisual(): 'autocad' | 'revit' {
+    return (this.getAttribute('estilo-visual') as 'autocad' | 'revit') || 'autocad';
+  }
+
+  set estiloVisual(val: 'autocad' | 'revit') {
+    if (val && val !== 'autocad') this.setAttribute('estilo-visual', val);
+    else this.removeAttribute('estilo-visual');
+  }
+
+  get modoAplicar(): 'imediato' | 'manual' {
+    return (this.getAttribute('modo-aplicar') as 'imediato' | 'manual') || 'imediato';
+  }
+
+  set modoAplicar(val: 'imediato' | 'manual') {
+    if (val === 'manual') this.setAttribute('modo-aplicar', 'manual');
+    else this.removeAttribute('modo-aplicar');
+  }
+
+  get filtro(): boolean {
+    return this.hasAttribute('filtro');
+  }
+
+  set filtro(val: boolean) {
+    if (val) this.setAttribute('filtro', '');
+    else this.removeAttribute('filtro');
+  }
+
+  get termoBusca(): string {
+    return this._termoBusca;
+  }
+
+  set termoBusca(val: string) {
+    this._termoBusca = (val || '').trim().toLowerCase();
+    const input = this.shadow.getElementById('filtro-input') as HTMLInputElement | null;
+    if (input) input.value = val || '';
+    this.renderCategorias();
+  }
+
+  get larguraRotulo(): number {
+    return this._larguraRotuloPorcentagem;
+  }
+
+  set larguraRotulo(pct: number) {
+    const num = typeof pct === 'number' ? pct : parseFloat(String(pct));
+    if (!isNaN(num)) {
+      this.setAttribute('largura-rotulo', String(num));
+    }
+  }
+
+  get fechavel(): boolean {
+    return this.hasAttribute('fechavel');
+  }
+
+  set fechavel(val: boolean) {
+    if (val) this.setAttribute('fechavel', '');
+    else this.removeAttribute('fechavel');
   }
 
   get categorias(): CategoriaPropriedades[] {
@@ -197,8 +260,7 @@ export class UITabelaPropriedades extends SafeHTMLElement {
   }
 
   set categorias(novasCategorias: CategoriaPropriedades[]) {
-    // Entradas externas são hostis: categorias/propriedades nulas ou sem id são descartadas
-    this._categorias = normalizarCategorias(novasCategorias);
+    this._categorias = Array.isArray(novasCategorias) ? novasCategorias : [];
     this.gerenciadorValores.inicializarCategorias(this._categorias);
     this.renderCategorias();
   }
@@ -225,19 +287,20 @@ export class UITabelaPropriedades extends SafeHTMLElement {
   }
 
   set tipos(novosTipos: SeletorTipoItem[]) {
-    this._tipos = normalizarTipos(novosTipos);
+    this._tipos = Array.isArray(novosTipos) ? novosTipos : [];
     this.renderSeletorTipos();
   }
 
   /** Id do tipo exibido no seletor: sem seleção válida, o seletor mostra (e devolve) o primeiro. */
   get tipoSelecionado(): string {
-    const existe = this._tipos.some(t => String(t.id) === String(this._tipoSelecionadoId));
-    if (!existe && this._tipos.length > 0) return String(this._tipos[0].id);
+    const validos = this._tipos.filter(t => t && t.id !== null && t.id !== undefined);
+    const existe = validos.some(t => String(t.id) === this._tipoSelecionadoId);
+    if (!existe && validos.length > 0) return String(validos[0].id);
     return this._tipoSelecionadoId;
   }
 
   set tipoSelecionado(idTipo: string) {
-    this._tipoSelecionadoId = idTipo == null ? '' : String(idTipo);
+    this._tipoSelecionadoId = String(idTipo ?? '');
     this.renderSeletorTipos();
   }
 
@@ -266,20 +329,20 @@ export class UITabelaPropriedades extends SafeHTMLElement {
     this.gerenciadorValores.definirValor(propId, novoValor, emitirEvento);
   }
 
+  /**
+   * Volta uma propriedade ao valor do último carregar/aplicar (o mesmo que o botão ↺ da linha).
+   * Fora do modo manual emite `ui-propriedade-alterada`. Devolve `false` se não havia o que restaurar.
+   */
+  public redefinirValor(propId: string, emitirEvento: boolean = true): boolean {
+    return this.gerenciadorValores.redefinirValor(propId, emitirEvento);
+  }
+
   public aplicar(): void {
     this.gerenciadorValores.aplicar();
   }
 
   public desfazer(): void {
     this.gerenciadorValores.desfazer();
-  }
-
-  /**
-   * Volta uma propriedade ao valor do último carregar/aplicar (o mesmo que o botão ↺ da linha).
-   * Fora do modo manual emite `ui-propriedade-alterada`. Devolve `false` se não havia o que restaurar.
-   */
-  public reverterPropriedade(propId: string): boolean {
-    return this.gerenciadorValores.reverter(propId);
   }
 
   public expandirTudo(): void {
@@ -347,20 +410,25 @@ export class UITabelaPropriedades extends SafeHTMLElement {
   }
 
   public alternarFlutuante(): boolean {
-    const novoEstado = alternarPosicionamentoFlutuante(this);
-    sincronizarPainelControles(this.shadow, this);
-    this.dispatchEvent(new CustomEvent('ui-flutuante-alterado', {
-      bubbles: true,
-      composed: true,
-      detail: {
-        flutuante: novoEstado,
-        left: this.style.left,
-        top: this.style.top,
-        width: this.style.width,
-        height: this.style.height
-      }
-    }));
-    return novoEstado;
+    this._sincronizandoFlutuante = true;
+    try {
+      const novoEstado = alternarPosicionamentoFlutuante(this);
+      sincronizarPainelControles(this.shadow, this);
+      this.dispatchEvent(new CustomEvent('ui-flutuante-alterado', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          flutuante: novoEstado,
+          left: this.style.left,
+          top: this.style.top,
+          width: this.style.width,
+          height: this.style.height
+        }
+      }));
+      return novoEstado;
+    } finally {
+      this._sincronizandoFlutuante = false;
+    }
   }
 
   public alternarColapsoHorizontal(): boolean {
@@ -396,7 +464,7 @@ export class UITabelaPropriedades extends SafeHTMLElement {
   }
 
   private toggleExpandirTodas() {
-    const algumaFechada = this._categorias.some(c => c.aberto === false);
+    const algumaFechada = this._categorias.some(c => (c.aberto !== undefined ? c.aberto === false : c.aberta === false));
     if (algumaFechada) {
       this.expandirTudo();
     } else {
@@ -413,7 +481,7 @@ export class UITabelaPropriedades extends SafeHTMLElement {
       onSelecionarTipo: (id) => {
         this._tipoSelecionadoId = id;
         this.renderSeletorTipos();
-        const item = this._tipos.find(t => String(t.id) === String(id));
+        const item = this._tipos.find(t => t && String(t.id) === String(id));
         this.dispatchEvent(new CustomEvent('ui-tipo-alterado', { bubbles: true, composed: true, detail: { id, tipo: item } }));
       },
       onEditarTipo: (tipo) => this.dispatchEvent(new CustomEvent('ui-editar-tipo-clique', { bubbles: true, composed: true, detail: { tipo } })),
@@ -436,7 +504,7 @@ export class UITabelaPropriedades extends SafeHTMLElement {
         valoresAtuais: this.gerenciadorValores.getValores(),
         valoresOriginais: this.gerenciadorValores.getValoresOriginais(),
         onAtualizarCampoVisual: (propId, novoValor) => atualizarCampoVisual(this.shadow, propId, novoValor),
-        onReverter: (propId) => this.reverterPropriedade(propId),
+        onRedefinir: (propId) => this.redefinirValor(propId),
         editorCtx: {
           obterValorAtual: (id: string) => this.gerenciadorValores.obterValor(id),
           registrarAlteracao: (catId: string, id: string, val: any) => {
@@ -460,4 +528,9 @@ export class UITabelaPropriedades extends SafeHTMLElement {
   }
 }
 
+export class UIPainelPropriedades extends UITabelaPropriedades {}
+export class UIPropriedades extends UITabelaPropriedades {}
+
 definirCustomElement('ui-tabela-propriedades', UITabelaPropriedades);
+definirCustomElement('ui-painel-propriedades', UIPainelPropriedades);
+definirCustomElement('ui-propriedades', UIPropriedades);

@@ -22,20 +22,27 @@ export interface ContextoSeletorTipo {
 export function renderizarSeletorTipos(ctx: ContextoSeletorTipo): void {
   if (!ctx.tipoContainerElement) return;
 
-  if (!ctx.tipos || ctx.tipos.length === 0) {
+  const tiposValidos = (Array.isArray(ctx.tipos) ? ctx.tipos : []).filter(
+    (t): t is SeletorTipoItem => Boolean(t && typeof t === 'object' && t.id !== undefined && t.id !== null)
+  );
+
+  if (tiposValidos.length === 0) {
     ctx.tipoContainerElement.style.display = 'none';
+    ctx.tipoContainerElement.innerHTML = '';
     return;
   }
 
   ctx.tipoContainerElement.style.display = 'flex';
   ctx.tipoContainerElement.innerHTML = '';
 
-  const tipoAtual = ctx.tipos.find(t => String(t.id) === String(ctx.tipoSelecionadoId)) || ctx.tipos[0];
+  const tipoAtual = tiposValidos.find(t => String(t.id) === String(ctx.tipoSelecionadoId)) || tiposValidos[0];
 
   if (ctx.estiloVisual === 'revit') {
     // 1. Card Grande de Tipo (Estilo Revit)
     const card = document.createElement('div');
     card.className = 'ui-prop__tipo-revit-card';
+    card.title = 'Editar tipo de família';
+    card.addEventListener('click', () => ctx.onEditarTipo(tipoAtual));
 
     const miniatura = document.createElement('div');
     miniatura.className = 'ui-prop__tipo-miniatura';
@@ -45,7 +52,7 @@ export function renderizarSeletorTipos(ctx: ContextoSeletorTipo): void {
       miniatura.appendChild(iconeSeguro);
     } else {
       miniatura.innerHTML = `
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <rect x="3" y="3" width="18" height="18" rx="2"></rect>
           <path d="M3 9h18M9 21V9"></path>
         </svg>
@@ -57,7 +64,7 @@ export function renderizarSeletorTipos(ctx: ContextoSeletorTipo): void {
 
     const nome = document.createElement('div');
     nome.className = 'ui-prop__tipo-nome';
-    nome.textContent = tipoAtual.rotulo;
+    nome.textContent = String(tipoAtual.rotulo ?? tipoAtual.id);
 
     const subtexto = document.createElement('div');
     subtexto.className = 'ui-prop__tipo-subtexto';
@@ -74,12 +81,12 @@ export function renderizarSeletorTipos(ctx: ContextoSeletorTipo): void {
 
     const select = document.createElement('select');
     select.className = 'ui-prop__tipo-select';
-    select.setAttribute('aria-label', 'Tipo de objeto');
-    ctx.tipos.forEach(t => {
+    select.setAttribute('aria-label', 'Selecionar tipo de família');
+    tiposValidos.forEach(t => {
       const opt = document.createElement('option');
-      opt.value = t.id;
-      opt.textContent = `${t.rotulo}${t.subtipo ? ` : ${t.subtipo}` : ''}`;
-      if (String(t.id) === String(ctx.tipoSelecionadoId)) opt.selected = true;
+      opt.value = String(t.id);
+      opt.textContent = `${t.rotulo ?? t.id}${t.subtipo ? ` : ${t.subtipo}` : ''}`;
+      if (String(t.id) === String(tipoAtual.id)) opt.selected = true;
       select.appendChild(opt);
     });
 
@@ -91,7 +98,7 @@ export function renderizarSeletorTipos(ctx: ContextoSeletorTipo): void {
     btnEditarTipo.type = 'button';
     btnEditarTipo.className = 'ui-prop__btn-editar-tipo';
     btnEditarTipo.innerHTML = `
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px; vertical-align: -1px;">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px; vertical-align: -1px;" aria-hidden="true">
         <rect x="3" y="3" width="12" height="12" rx="1"></rect>
         <rect x="9" y="9" width="12" height="12" rx="1"></rect>
       </svg>
@@ -113,12 +120,12 @@ export function renderizarSeletorTipos(ctx: ContextoSeletorTipo): void {
 
     const select = document.createElement('select');
     select.className = 'ui-prop__tipo-select';
-    select.setAttribute('aria-label', 'Tipo de objeto');
-    ctx.tipos.forEach(t => {
+    select.setAttribute('aria-label', 'Selecionar tipo de objeto');
+    tiposValidos.forEach(t => {
       const opt = document.createElement('option');
-      opt.value = t.id;
-      opt.textContent = t.rotulo;
-      if (String(t.id) === String(ctx.tipoSelecionadoId)) opt.selected = true;
+      opt.value = String(t.id);
+      opt.textContent = String(t.rotulo ?? t.id);
+      if (String(t.id) === String(tipoAtual.id)) opt.selected = true;
       select.appendChild(opt);
     });
 
@@ -137,7 +144,7 @@ export function renderizarSeletorTipos(ctx: ContextoSeletorTipo): void {
     btnQuickSelect.title = 'Seleção rápida';
     btnQuickSelect.setAttribute('aria-label', 'Seleção rápida');
     btnQuickSelect.innerHTML = `
-      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
         <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
       </svg>
     `;
@@ -152,7 +159,7 @@ export function renderizarSeletorTipos(ctx: ContextoSeletorTipo): void {
     btnSelectObjects.title = 'Selecionar objetos';
     btnSelectObjects.setAttribute('aria-label', 'Selecionar objetos');
     btnSelectObjects.innerHTML = `
-      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
         <circle cx="12" cy="12" r="7"></circle>
         <line x1="12" y1="2" x2="12" y2="7"></line>
         <line x1="12" y1="17" x2="12" y2="22"></line>
@@ -173,7 +180,7 @@ export function renderizarSeletorTipos(ctx: ContextoSeletorTipo): void {
     btnCalc.title = 'Calculadora rápida';
     btnCalc.setAttribute('aria-label', 'Calculadora rápida');
     btnCalc.innerHTML = `
-      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
         <rect x="4" y="2" width="16" height="20" rx="2"></rect>
         <line x1="8" y1="6" x2="16" y2="6"></line>
         <circle cx="8" cy="11" r="1" fill="currentColor"></circle>

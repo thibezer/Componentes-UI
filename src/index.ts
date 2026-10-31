@@ -111,7 +111,7 @@ import type { UIMapaMarcador } from './components/ui-mapa/ui-mapa-marcador';
 import type { UIMapaLinha } from './components/ui-mapa/ui-mapa-linha';
 import type { UISkeleton, UIEsqueleto } from './components/ui-skeleton';
 import type { UICanvasCAD } from './components/ui-canvas-cad';
-import type { UITabelaPropriedades } from './components/ui-tabela-propriedades';
+import type { UITabelaPropriedades, UIPainelPropriedades, UIPropriedades } from './components/ui-tabela-propriedades';
 import type { UIRibbon, UIPaletaFerramentas } from './components/ui-barra-ferramentas';
 import type { UICamadas, UIPainelCamadas, UILayerPanel } from './components/ui-camadas';
 import type { UISeletorMapaBase } from './components/ui-seletor-mapa-base';
@@ -162,8 +162,8 @@ declare global {
     'ui-esqueleto': UIEsqueleto;
     'ui-canvas-cad': UICanvasCAD;
     'ui-tabela-propriedades': UITabelaPropriedades;
-    'ui-painel-propriedades': UITabelaPropriedades;
-    'ui-propriedades': UITabelaPropriedades;
+    'ui-painel-propriedades': UIPainelPropriedades;
+    'ui-propriedades': UIPropriedades;
     'ui-ribbon': UIRibbon;
     'ui-paleta-ferramentas': UIPaletaFerramentas;
     'ui-camadas': UICamadas;
@@ -175,4 +175,5 @@ declare global {
     'ui-seletor-cor': UISeletorCor;
   }
 }
+
 

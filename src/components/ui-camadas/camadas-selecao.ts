@@ -4,6 +4,7 @@
    ==================================================== */
 
 import { CamadaItem, FeicaoItem } from './tipos';
+import { construirHierarquiaCamadas, type CamadaNodoHierarquico } from './camadas-hierarquia';
 
 export interface ResultadoSelecao {
   selecionados: Set<string>;
@@ -111,41 +112,53 @@ export function filtrarCamadasPorBusca(
 
 /**
  * IDs de feições efetivamente exibidas na árvore, na ordem da tela:
- * respeita camadas expandidas (todas, durante uma busca), o filtro de busca e o limite de linhas.
+ * respeita hierarquia da árvore, camadas expandidas (e seus ancestrais), o filtro de busca e o limite de linhas.
  */
 export function obterIdsVisiveisFeicoes(
   camadas: CamadaItem[],
   feicoes: FeicaoItem[],
   camadasExpandidas: Set<string>,
   termoBusca = '',
-  limitePorCamada = LIMITE_FEICOES_POR_CAMADA
+  limitePorCamada = LIMITE_FEICOES_POR_CAMADA,
+  limitesCustomizados?: ReadonlyMap<string, number>
 ): string[] {
   const busca = filtrarCamadasPorBusca(camadas, feicoes, termoBusca);
   const ids: string[] = [];
   const featsByLayer = new Map<string, FeicaoItem[]>();
   for (let i = 0; i < feicoes.length; i++) {
     const f = feicoes[i];
+    if (!f || !f.id) continue;
     const lid = f.layerId || '';
     if (!featsByLayer.has(lid)) featsByLayer.set(lid, []);
     featsByLayer.get(lid)!.push(f);
   }
 
-  for (let i = 0; i < camadas.length; i++) {
-    const l = camadas[i];
-    let lista: FeicaoItem[];
-    if (busca) {
-      if (!busca.camadasVisiveis.has(l.id)) continue;
-      lista = busca.feicoesPorCamada.get(l.id) || [];
-    } else if (camadasExpandidas.has(l.id)) {
-      lista = featsByLayer.get(l.id) || [];
-    } else {
-      continue;
+  const hierarquia = construirHierarquiaCamadas(camadas);
+
+  function visitarNodo(nodo: CamadaNodoHierarquico): void {
+    const l = nodo.camada;
+    if (busca && !busca.camadasVisiveis.has(l.id)) return;
+
+    const expandida = busca ? true : camadasExpandidas.has(l.id);
+    if (!expandida) return;
+
+    // Na renderização do DOM (camadas-arvore-renderer.ts), subcamadas vêm primeiro, depois feições
+    for (const sub of nodo.subcamadas) {
+      visitarNodo(sub);
     }
-    const lf = lista.slice(0, limitePorCamada);
+
+    const lista = busca ? busca.feicoesPorCamada.get(l.id) || [] : featsByLayer.get(l.id) || [];
+    const maxFeats = limitesCustomizados?.get(l.id) ?? limitePorCamada;
+    const lf = lista.slice(0, maxFeats);
     for (let j = 0; j < lf.length; j++) {
       ids.push(lf[j].id);
     }
   }
+
+  for (const raiz of hierarquia) {
+    visitarNodo(raiz);
+  }
+
   return ids;
 }
 

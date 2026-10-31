@@ -3,17 +3,17 @@ import estilos from './ui-tabela-propriedades.css?inline';
 export function criarTemplateTabelaPropriedades(): string {
   return `
     <style>${estilos}</style>
-    <div class="ui-prop__container" id="container">
+    <div class="ui-prop__container" id="container" part="base">
       <!-- 0. Faixa Vertical da Coluna Estreita (visível quando colapsado) -->
-      <div class="ui-prop__faixa-estreita" id="faixa-estreita" title="Clique para expandir painel">
-        <span class="ui-prop__faixa-icone">
+      <div class="ui-prop__faixa-estreita" id="faixa-estreita" part="faixa-estreita" title="Clique para expandir painel">
+        <span class="ui-prop__faixa-icone" aria-hidden="true">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
             <line x1="3" y1="9" x2="21" y2="9"></line>
             <line x1="9" y1="21" x2="9" y2="9"></line>
           </svg>
         </span>
-        <button type="button" class="ui-prop__faixa-btn-expandir" id="btn-expandir-faixa" title="Expandir painel de propriedades">
+        <button type="button" class="ui-prop__faixa-btn-expandir" id="btn-expandir-faixa" title="Expandir painel de propriedades" aria-label="Expandir painel de propriedades">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
             <polyline points="9 18 15 12 9 6"></polyline>
             <line x1="5" y1="5" x2="5" y2="19"></line>
@@ -23,18 +23,18 @@ export function criarTemplateTabelaPropriedades(): string {
       </div>
 
       <!-- 1. Header Superior -->
-      <header class="ui-prop__header" id="header">
+      <header class="ui-prop__header" id="header" part="cabecalho">
         <div class="ui-prop__header-titulo">
-          <span class="ui-prop__header-icone">
+          <span class="ui-prop__header-icone" aria-hidden="true">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
               <line x1="3" y1="9" x2="21" y2="9"></line>
               <line x1="9" y1="21" x2="9" y2="9"></line>
             </svg>
           </span>
-          <span id="header-titulo-texto">Propriedades</span>
+          <span id="header-titulo-texto" part="titulo">Propriedades</span>
         </div>
-        <div class="ui-prop__header-acoes">
+        <div class="ui-prop__header-acoes" part="acoes-cabecalho">
           <button type="button" class="ui-prop__btn-icone" id="btn-flutuante" title="Desacoplar / Modo flutuante (CAD)" aria-label="Modo flutuante">
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
               <rect x="3" y="3" width="14" height="14" rx="2"></rect>
@@ -68,31 +68,32 @@ export function criarTemplateTabelaPropriedades(): string {
       </header>
 
       <!-- 2. Seletor de Tipo (AutoCAD / Revit) -->
-      <div class="ui-prop__tipo-seletor-container" id="tipo-container" style="display: none;"></div>
+      <div class="ui-prop__tipo-seletor-container" id="tipo-container" part="seletor-tipo" style="display: none;"></div>
 
       <!-- 3. Busca Rápida de Propriedades -->
-      <div class="ui-prop__filtro-container" id="filtro-container" style="display: none;">
-        <svg class="ui-prop__filtro-icone" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <div class="ui-prop__filtro-container" id="filtro-container" part="filtro" style="display: none;">
+        <svg class="ui-prop__filtro-icone" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <circle cx="11" cy="11" r="8"></circle>
           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
         </svg>
-        <input type="text" class="ui-prop__filtro-input" id="filtro-input" placeholder="Filtrar propriedades..." aria-label="Filtrar propriedades" autocomplete="off" spellcheck="false" />
+        <input type="text" class="ui-prop__filtro-input" id="filtro-input" part="filtro-input" placeholder="Filtrar propriedades..." aria-label="Filtrar propriedades" autocomplete="off" spellcheck="false" />
+        <button type="button" class="ui-prop__filtro-limpar" id="btn-limpar-filtro" title="Limpar filtro (Esc)" aria-label="Limpar filtro" style="display: none;">✕</button>
       </div>
 
       <!-- 4. Corpo Rolável com Grade de Categorias -->
       <div class="ui-prop__corpo-wrapper" id="corpo-wrapper">
-        <div class="ui-prop__splitter" id="splitter" role="separator" tabindex="0" aria-orientation="vertical" aria-label="Largura da coluna de rótulos" aria-valuemin="20" aria-valuemax="65" aria-valuenow="45" title="Arraste ou use ←/→ para ajustar; duplo-clique ou Enter volta ao padrão"></div>
-        <div class="ui-prop__corpo" id="corpo">
-          <div class="ui-prop__lista-categorias" id="lista-categorias"></div>
+        <div class="ui-prop__splitter" id="splitter" part="splitter" role="separator" tabindex="0" aria-orientation="vertical" aria-valuemin="20" aria-valuemax="65" aria-valuenow="45" aria-label="Redimensionar coluna de rótulos" title="Arraste para redimensionar colunas (duplo-clique reseta para 45%)"></div>
+        <div class="ui-prop__corpo" id="corpo" part="corpo">
+          <div class="ui-prop__lista-categorias" id="lista-categorias" part="lista-categorias"></div>
         </div>
       </div>
 
       <!-- 5. Rodapé com Ações (Aplicar / Desfazer) -->
-      <footer class="ui-prop__footer" id="footer" style="display: none;">
-        <a class="ui-prop__link-ajuda" id="link-ajuda" href="#" role="button">Ajuda de propriedades</a>
+      <footer class="ui-prop__footer" id="footer" part="rodape" style="display: none;">
+        <a class="ui-prop__link-ajuda" id="link-ajuda" part="ajuda" href="#" role="button">Ajuda de propriedades</a>
         <div class="ui-prop__footer-botoes">
-          <button type="button" class="ui-prop__btn-desfazer" id="btn-desfazer" disabled>Desfazer</button>
-          <button type="button" class="ui-prop__btn-aplicar" id="btn-aplicar" disabled>Aplicar</button>
+          <button type="button" class="ui-prop__btn-desfazer" id="btn-desfazer" part="desfazer" disabled>Desfazer</button>
+          <button type="button" class="ui-prop__btn-aplicar" id="btn-aplicar" part="aplicar" disabled>Aplicar</button>
         </div>
       </footer>
 

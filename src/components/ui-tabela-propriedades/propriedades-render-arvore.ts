@@ -1,8 +1,8 @@
 import { ItemPropriedade, CategoriaPropriedades } from './tipos';
 import { criarEditorValor, ContextoEditorPropriedade } from './propriedades-editores';
 import { isValorMisto, valorInicialDaPropriedade, valoresIguais } from './propriedades-valor-misto';
-import { filtrarPropriedades, normalizarTermoBusca } from './propriedades-filtro';
-import { ajustarNumero } from './propriedades-numero';
+import { alternarPart } from '../../core/parts';
+import { obterCasasDecimais, aplicarLimitesNumericos } from './editores-basicos';
 
 export interface ContextoLinhaPropriedade {
   valoresAtuais: Record<string, any>;
@@ -13,7 +13,7 @@ export interface ContextoLinhaPropriedade {
   editorCtx: ContextoEditorPropriedade;
   onAtualizarCampoVisual: (propId: string, novoValor: any) => void;
   /** Restaura o valor original da propriedade (botão ↺ das linhas modificadas). */
-  onReverter?: (propId: string) => void;
+  onRedefinir?: (propId: string) => void;
 }
 
 export interface OpcoesRenderArvore {
@@ -31,35 +31,57 @@ export function renderizarCategoriasETree(opcoes: OpcoesRenderArvore): void {
   const { listaContainer, categorias, termoBusca, onToggleCategoria, linhaCtx } = opcoes;
   listaContainer.innerHTML = '';
 
-  if (!categorias || categorias.length === 0) {
+  const categoriasValidas = (Array.isArray(categorias) ? categorias : []).filter(
+    (c): c is CategoriaPropriedades => Boolean(c && typeof c === 'object')
+  );
+
+  if (categoriasValidas.length === 0) {
     const vazio = document.createElement('div');
     vazio.className = 'ui-prop__vazio';
+    vazio.setAttribute('part', 'vazio');
     vazio.textContent = 'Nenhuma propriedade disponível.';
     listaContainer.appendChild(vazio);
     return;
   }
 
   const fragment = document.createDocumentFragment();
-  const termo = normalizarTermoBusca(termoBusca);
-  let algumaVisivel = false;
+  const termo = (termoBusca || '').trim().toLowerCase();
+  let totalExibidas = 0;
 
-  categorias.forEach(cat => {
-    const propriedadesFiltradas = filtrarPropriedades(cat, termo);
+  categoriasValidas.forEach(cat => {
+    const tituloCat = String(cat.titulo ?? cat.id ?? '').toLowerCase();
+    const categoriaCasou = Boolean(termo) && tituloCat.includes(termo);
+
+    const propriedadesFiltradas = (Array.isArray(cat.propriedades) ? cat.propriedades : []).filter(prop => {
+      if (!prop || typeof prop !== 'object' || prop.id === undefined || prop.id === null) return false;
+      if (!termo || categoriaCasou) return true;
+
+      const rotulo = String(prop.rotulo ?? '').toLowerCase();
+      const id = String(prop.id).toLowerCase();
+      const valorStr = String(linhaCtx.valoresAtuais[prop.id] ?? '').toLowerCase();
+      return rotulo.includes(termo) || id.includes(termo) || valorStr.includes(termo);
+    });
 
     if (termo && propriedadesFiltradas.length === 0) {
       return;
     }
-    algumaVisivel = true;
+
+    totalExibidas += propriedadesFiltradas.length;
 
     // Durante a busca as categorias com resultado ficam abertas (sem alterar cat.aberto)
-    const isAberta = Boolean(termo) || cat.aberto !== false;
+    const abertoPadrao = cat.aberto !== undefined ? cat.aberto !== false : cat.aberta !== false;
+    const isAberta = Boolean(termo) || abertoPadrao;
+
     const catEl = document.createElement('div');
     catEl.className = `ui-prop__categoria ${isAberta ? 'ui-prop__categoria--aberta' : ''}`;
-    catEl.setAttribute('data-cat-id', cat.id);
+    catEl.setAttribute('data-cat-id', String(cat.id));
+    catEl.setAttribute('part', 'categoria');
+    alternarPart(catEl, 'categoria-aberta', isAberta);
 
     // Header da Categoria (botão de expandir/recolher acessível por teclado)
     const headerEl = document.createElement('div');
     headerEl.className = 'ui-prop__categoria-header';
+    headerEl.setAttribute('part', 'categoria-cabecalho');
     headerEl.setAttribute('role', 'button');
     headerEl.tabIndex = 0;
     headerEl.setAttribute('aria-expanded', String(isAberta));
@@ -69,10 +91,11 @@ export function renderizarCategoriasETree(opcoes: OpcoesRenderArvore): void {
 
     const setaEl = document.createElement('span');
     setaEl.className = 'ui-prop__categoria-seta';
+    setaEl.setAttribute('aria-hidden', 'true');
     setaEl.textContent = '▶';
 
     const tituloTexto = document.createElement('span');
-    tituloTexto.textContent = cat.titulo;
+    tituloTexto.textContent = String(cat.titulo ?? cat.id);
 
     tituloBloco.appendChild(setaEl);
     tituloBloco.appendChild(tituloTexto);
@@ -84,21 +107,54 @@ export function renderizarCategoriasETree(opcoes: OpcoesRenderArvore): void {
     headerEl.appendChild(tituloBloco);
     headerEl.appendChild(contador);
 
-    // Só click: um duplo clique já gera dois clicks (dblclick extra alternaria 3 vezes)
-    headerEl.addEventListener('click', () => onToggleCategoria(cat.id));
+    // Clique e interação acessível por teclado (WAI-ARIA Accordion)
+    headerEl.addEventListener('click', () => onToggleCategoria(String(cat.id)));
     headerEl.addEventListener('keydown', (e: KeyboardEvent) => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
-        onToggleCategoria(cat.id);
+        onToggleCategoria(String(cat.id));
+      } else if (e.key === 'ArrowRight') {
+        if (!catEl.classList.contains('ui-prop__categoria--aberta')) {
+          e.preventDefault();
+          onToggleCategoria(String(cat.id));
+        }
+      } else if (e.key === 'ArrowLeft') {
+        if (catEl.classList.contains('ui-prop__categoria--aberta')) {
+          e.preventDefault();
+          onToggleCategoria(String(cat.id));
+        }
+      } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        const todosHeaders = Array.from(listaContainer.querySelectorAll<HTMLElement>('.ui-prop__categoria-header'));
+        const idx = todosHeaders.indexOf(headerEl);
+        if (idx !== -1) {
+          const proxIdx = e.key === 'ArrowDown' ? idx + 1 : idx - 1;
+          if (proxIdx >= 0 && proxIdx < todosHeaders.length) {
+            e.preventDefault();
+            todosHeaders[proxIdx].focus();
+          }
+        }
+      } else if (e.key === 'Home') {
+        const primeiro = listaContainer.querySelector<HTMLElement>('.ui-prop__categoria-header');
+        if (primeiro) {
+          e.preventDefault();
+          primeiro.focus();
+        }
+      } else if (e.key === 'End') {
+        const todos = listaContainer.querySelectorAll<HTMLElement>('.ui-prop__categoria-header');
+        if (todos.length > 0) {
+          e.preventDefault();
+          todos[todos.length - 1].focus();
+        }
       }
     });
 
     // Conteúdo da Categoria (Linhas)
     const conteudoEl = document.createElement('div');
     conteudoEl.className = 'ui-prop__categoria-conteudo';
+    conteudoEl.setAttribute('part', 'categoria-conteudo');
 
     propriedadesFiltradas.forEach(prop => {
-      const linhaEl = criarLinhaPropriedade(cat.id, prop, linhaCtx);
+      const linhaEl = criarLinhaPropriedade(String(cat.id), prop, linhaCtx);
       conteudoEl.appendChild(linhaEl);
     });
 
@@ -107,12 +163,13 @@ export function renderizarCategoriasETree(opcoes: OpcoesRenderArvore): void {
     fragment.appendChild(catEl);
   });
 
-  if (!algumaVisivel) {
+  if (termo && totalExibidas === 0) {
     const vazio = document.createElement('div');
-    vazio.className = 'ui-prop__vazio ui-prop__vazio--filtro';
-    vazio.setAttribute('role', 'status');
-    vazio.textContent = `Nenhuma propriedade corresponde a “${String(termoBusca).trim()}”.`;
-    fragment.appendChild(vazio);
+    vazio.className = 'ui-prop__vazio';
+    vazio.setAttribute('part', 'vazio');
+    vazio.textContent = `Nenhuma propriedade encontrada para "${termoBusca}".`;
+    listaContainer.appendChild(vazio);
+    return;
   }
 
   listaContainer.appendChild(fragment);
@@ -128,15 +185,23 @@ export function criarLinhaPropriedade(
 ): HTMLDivElement {
   const linha = document.createElement('div');
   linha.className = 'ui-prop__linha';
-  linha.setAttribute('data-prop-id', prop.id);
+  linha.setAttribute('data-prop-id', String(prop.id));
+  linha.setAttribute('part', 'linha');
 
   const valorAtual = ctx.valoresAtuais[prop.id] !== undefined ? ctx.valoresAtuais[prop.id] : valorInicialDaPropriedade(prop);
   const valorOriginal = prop.id in ctx.valoresOriginais ? ctx.valoresOriginais[prop.id] : valorInicialDaPropriedade(prop);
 
-  if (!valoresIguais(valorAtual, valorOriginal)) {
+  const modificada = !valoresIguais(valorAtual, valorOriginal);
+  const mista = isValorMisto(valorAtual);
+
+  if (modificada) {
     linha.classList.add('ui-prop__linha--modificada');
+    alternarPart(linha, 'linha-modificada', true);
   }
-  linha.classList.toggle('ui-prop__linha--misto', isValorMisto(valorAtual));
+  if (mista) {
+    linha.classList.add('ui-prop__linha--misto');
+    alternarPart(linha, 'linha-mista', true);
+  }
 
   linha.addEventListener('dblclick', () => {
     const editor = linha.querySelector<HTMLElement>(
@@ -153,27 +218,31 @@ export function criarLinhaPropriedade(
   // Coluna 1: Rótulo
   const colRotulo = document.createElement('div');
   colRotulo.className = 'ui-prop__col-rotulo';
-  colRotulo.title = prop.rotulo;
+  colRotulo.setAttribute('part', 'rotulo');
+  const rotuloTexto = String(prop.rotulo ?? prop.id);
+  colRotulo.title = prop.dica ? `${rotuloTexto} — ${prop.dica}` : rotuloTexto;
+
   const spanRotulo = document.createElement('span');
-  spanRotulo.textContent = prop.rotulo;
+  spanRotulo.textContent = rotuloTexto;
   colRotulo.appendChild(spanRotulo);
 
   // Restaurar o valor original: visível só enquanto a linha está modificada (CSS)
   const editavel = !prop.somenteLeitura && prop.tipo !== 'readonly' && prop.tipo !== 'acao';
-  if (editavel && ctx.onReverter) {
-    const onReverter = ctx.onReverter;
-    const btnReverter = document.createElement('button');
-    btnReverter.type = 'button';
-    btnReverter.className = 'ui-prop__btn-reverter';
-    btnReverter.title = 'Restaurar valor original';
-    btnReverter.setAttribute('aria-label', `Restaurar valor original de ${prop.rotulo}`);
-    btnReverter.textContent = '↺';
-    btnReverter.addEventListener('click', (e) => {
+  if (editavel && ctx.onRedefinir) {
+    const onRedefinir = ctx.onRedefinir;
+    const btnRedefinir = document.createElement('button');
+    btnRedefinir.type = 'button';
+    btnRedefinir.className = 'ui-prop__btn-reverter';
+    btnRedefinir.title = 'Restaurar valor original';
+    btnRedefinir.setAttribute('aria-label', `Restaurar valor original de ${rotuloTexto}`);
+    btnRedefinir.setAttribute('part', 'restaurar');
+    btnRedefinir.textContent = '↺';
+    btnRedefinir.addEventListener('click', (e) => {
       e.stopPropagation();
-      onReverter(prop.id);
+      onRedefinir(String(prop.id));
     });
-    btnReverter.addEventListener('dblclick', (e) => e.stopPropagation());
-    colRotulo.appendChild(btnReverter);
+    btnRedefinir.addEventListener('dblclick', (e) => e.stopPropagation());
+    colRotulo.appendChild(btnRedefinir);
   }
 
   // Scrubber numérico (estilo CAD / Blender / Figma)
@@ -184,6 +253,7 @@ export function criarLinhaPropriedade(
   // Coluna 2: Editor de Valor
   const colValor = document.createElement('div');
   colValor.className = 'ui-prop__col-valor';
+  colValor.setAttribute('part', 'valor');
 
   const editorEl = criarEditorValor(categoriaId, prop, valorAtual, ctx.editorCtx);
   colValor.appendChild(editorEl);
@@ -191,6 +261,7 @@ export function criarLinhaPropriedade(
   if (prop.unidade) {
     const unidadeSpan = document.createElement('span');
     unidadeSpan.className = 'ui-prop__unidade-sufixo';
+    unidadeSpan.setAttribute('part', 'unidade');
     unidadeSpan.textContent = prop.unidade;
     colValor.appendChild(unidadeSpan);
   }
@@ -207,7 +278,9 @@ function configurarScrubberNumerico(
   ctx: ContextoLinhaPropriedade
 ): void {
   colRotulo.classList.add('ui-prop__col-rotulo--scrub');
-  colRotulo.title = `${prop.rotulo} (Arraste para ajustar, duplo-clique para editar)`;
+  const rotuloTexto = String(prop.rotulo ?? prop.id);
+  const dicaBase = prop.dica ? `${rotuloTexto} — ${prop.dica}` : rotuloTexto;
+  colRotulo.title = `${dicaBase} (Arraste para ajustar, duplo-clique para editar)`;
 
   let startX = 0;
   let valorInicial = 0;
@@ -240,11 +313,21 @@ function configurarScrubberNumerico(
         if (moveEvent.shiftKey) fator = 0.1;
         else if (moveEvent.ctrlKey || moveEvent.metaKey) fator = 10;
 
-        const casas = prop.casasDecimais !== undefined ? prop.casasDecimais : 2;
-        const temPasso = typeof prop.passo === 'number' && Number.isFinite(prop.passo) && prop.passo > 0;
-        const passoBase = temPasso ? (prop.passo as number) : Math.pow(10, -Math.min(casas, 2));
-        const bruto = valorInicial + (deltaX * passoBase * fator);
-        const novo = ajustarNumero(prop.casasDecimais !== undefined ? bruto : Math.round(bruto * 100) / 100, prop);
+        const casas = obterCasasDecimais(prop);
+        const sensibilidade = (typeof prop.passo === 'number' && prop.passo > 0)
+          ? prop.passo * 0.01
+          : (typeof prop.step === 'number' && prop.step > 0)
+            ? prop.step * 0.01
+            : Math.pow(10, -Math.min(casas !== undefined ? casas : 2, 2));
+
+        let novo = valorInicial + (deltaX * sensibilidade * fator);
+        novo = aplicarLimitesNumericos(novo, prop);
+
+        if (casas !== undefined) {
+          novo = Number(novo.toFixed(casas));
+        } else {
+          novo = Math.round(novo * 100) / 100;
+        }
 
         ctx.editorCtx.registrarAlteracao(categoriaId, prop.id, novo);
         ctx.onAtualizarCampoVisual(prop.id, novo);

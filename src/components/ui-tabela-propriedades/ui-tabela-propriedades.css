@@ -104,7 +104,7 @@
 
 .ui-prop__faixa-btn-expandir:hover {
   background-color: var(--ui-cor-destaque, #00E08A);
-  color: #000000;
+  color: var(--ui-cor-texto-sobre-primaria, #000000);
   border-color: var(--ui-cor-destaque, #00E08A);
 }
 
@@ -403,7 +403,7 @@
 
 .ui-prop__tipo-select:hover {
   background-color: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 5%, transparent);
-  color: #ffffff;
+  color: var(--ui-cor-texto, #ffffff);
 }
 
 .ui-prop__tipo-select:focus {
@@ -537,6 +537,24 @@
   padding: 3px 0;
 }
 
+.ui-prop__filtro-limpar {
+  background: transparent;
+  border: none;
+  color: var(--ui-cor-texto-secundario, #888899);
+  cursor: pointer;
+  font-size: 11px;
+  padding: 0 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2px;
+}
+
+.ui-prop__filtro-limpar:hover {
+  color: var(--ui-cor-texto, #ffffff);
+  background-color: var(--ui-cor-hover-menu, rgba(255, 255, 255, 0.08));
+}
+
 .ui-prop__filtro-input::placeholder {
   color: var(--ui-cor-texto-secundario, #666677);
 }
@@ -622,6 +640,11 @@
   height: 17px;
   font-size: 9.5px;
   padding: 0 4px;
+}
+
+.ui-prop__categoria-header:focus-visible {
+  outline: 1.5px solid var(--ui-cor-destaque, #00E08A);
+  outline-offset: -1.5px;
 }
 
 .ui-prop__categoria-header:hover {
@@ -784,6 +807,15 @@
 
 .ui-prop__splitter:hover::after,
 .ui-prop__splitter--ativo::after {
+  background-color: var(--ui-cor-destaque, #00E08A);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 50%, transparent);
+}
+
+.ui-prop__splitter:focus-visible {
+  outline: none;
+}
+
+.ui-prop__splitter:focus-visible::after {
   background-color: var(--ui-cor-destaque, #00E08A);
   box-shadow: 0 0 6px color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 50%, transparent);
 }
@@ -1159,7 +1191,7 @@
 .ui-prop__checkbox-custom--marcado {
   background-color: var(--ui-cor-destaque, #00E08A);
   border-color: var(--ui-cor-destaque, #00E08A);
-  color: #000000;
+  color: var(--ui-cor-texto-sobre-primaria, #000000);
 }
 
 .ui-prop__booleano-rotulo {
@@ -1267,7 +1299,7 @@
   height: 24px;
   padding: 0 12px;
   background-color: var(--ui-cor-destaque, #00E08A);
-  color: #000000;
+  color: var(--ui-cor-texto-sobre-primaria, #000000);
   border: none;
   border-radius: 3px;
   font-size: 11px;
@@ -1462,18 +1494,4 @@ select.ui-prop__editor--misto option:not([data-misto]) {
   .ui-prop__editor-input--invalido {
     animation-duration: 0.01ms;
   }
-}
-
-/* Splitter focável pelo teclado */
-.ui-prop__splitter:focus {
-  outline: none;
-}
-
-.ui-prop__splitter:focus-visible::after {
-  background-color: var(--ui-cor-destaque, #00E08A);
-}
-
-/* Busca sem resultado */
-.ui-prop__vazio--filtro {
-  font-style: italic;
 }

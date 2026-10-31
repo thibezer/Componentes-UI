@@ -1,10 +1,50 @@
-import { ItemPropriedade } from './tipos';
-import { ContextoEditorPropriedade } from './tipos';
+import { ItemPropriedade, ContextoEditorPropriedade } from './tipos';
 import { avaliarExpressaoMatematica } from './avaliador-expressao';
-import { marcarSelectMisto, navegarAposEnter, registrarAtualizadorEditor, sincronizarSelect } from './propriedades-dom-utils';
-import { ajustarNumero, formatarNumero, interpretarEntradaNumerica, passoNumerico } from './propriedades-numero';
-import { formatarValorExibicao } from './propriedades-exibicao';
+import { marcarSelectMisto, registrarAtualizadorEditor, sincronizarSelect } from './propriedades-dom-utils';
 import { isValorMisto, textoMistoDe, TEXTO_MISTO_PADRAO } from './propriedades-valor-misto';
+
+export function obterCasasDecimais(prop: ItemPropriedade): number | undefined {
+  if (typeof prop.casasDecimais === 'number' && prop.casasDecimais >= 0) return prop.casasDecimais;
+  if (typeof prop.precisao === 'number' && prop.precisao >= 0) return prop.precisao;
+  return undefined;
+}
+
+export function obterPassoNumerico(prop: ItemPropriedade, casas?: number): number {
+  if (typeof prop.passo === 'number' && prop.passo > 0) return prop.passo;
+  if (typeof prop.step === 'number' && prop.step > 0) return prop.step;
+  return casas !== undefined ? Math.pow(10, -casas) : 1;
+}
+
+export function aplicarLimitesNumericos(valor: number, prop: ItemPropriedade): number {
+  let res = valor;
+  if (typeof prop.min === 'number' && Number.isFinite(prop.min)) {
+    res = Math.max(prop.min, res);
+  }
+  if (typeof prop.max === 'number' && Number.isFinite(prop.max)) {
+    res = Math.min(prop.max, res);
+  }
+  return res;
+}
+
+/**
+ * Texto digitado num campo numérico → número final, ou `null` se inválido. Aceita a unidade
+ * da propriedade no fim ("25 mm", "90°"), aplica min/max e as casas decimais e remove o ruído
+ * de ponto flutuante (0.1 + 0.2 = 0.3).
+ */
+export function interpretarEntradaNumerica(texto: string, prop: ItemPropriedade): number | null {
+  if (typeof texto !== 'string') return null;
+  let s = texto.trim();
+  const unidade = typeof prop.unidade === 'string' ? prop.unidade.trim() : '';
+  if (unidade && s.length > unidade.length && s.toLowerCase().endsWith(unidade.toLowerCase())) {
+    s = s.slice(0, s.length - unidade.length).trim();
+  }
+  if (!s) return null;
+  const calculado = avaliarExpressaoMatematica(s);
+  if (calculado === null || !Number.isFinite(calculado)) return null;
+  const casas = obterCasasDecimais(prop);
+  const limitado = aplicarLimitesNumericos(calculado, prop);
+  return casas !== undefined ? Number(limitado.toFixed(casas)) : Number(limitado.toPrecision(15));
+}
 
 /** Campo de texto no estado misto: vazio, com "Varia" no placeholder (some ao digitar). */
 function aplicarMistoNoInput(input: HTMLInputElement, prop: ItemPropriedade, misto: boolean, texto: string): void {
@@ -14,23 +54,46 @@ function aplicarMistoNoInput(input: HTMLInputElement, prop: ItemPropriedade, mis
   else input.removeAttribute('placeholder');
 }
 
-/**
- * Valor somente leitura. Com `prop`, mostra o rótulo da opção, Sim/Não e as casas decimais
- * em vez do valor cru.
- */
-export function criarEditorReadonly(valorAtual: any, obterTextoMisto?: () => string, prop?: ItemPropriedade): HTMLElement {
+export function criarEditorReadonly(
+  valorAtual: any,
+  obterTextoMisto?: () => string,
+  prop?: ItemPropriedade
+): HTMLElement {
   const span = document.createElement('span');
+  const casas = prop ? obterCasasDecimais(prop) : undefined;
+
   const atualizar = (valor: any) => {
     if (isValorMisto(valor)) {
       span.className = 'ui-prop__valor-readonly ui-prop__editor--misto';
       span.textContent = obterTextoMisto ? textoMistoDe({ obterTextoMisto }) : TEXTO_MISTO_PADRAO;
       return;
     }
+    if (valor === undefined || valor === null) {
+      span.className = 'ui-prop__valor-readonly';
+      span.textContent = '—';
+      return;
+    }
+    if (prop?.tipo === 'booleano' && typeof valor === 'boolean') {
+      span.className = 'ui-prop__valor-readonly';
+      span.textContent = valor ? 'Sim' : 'Não';
+      return;
+    }
+    if (prop?.opcoes && prop.opcoes.length > 0) {
+      const op = prop.opcoes.find(o => o && String(o.id) === String(valor));
+      if (op) {
+        span.className = 'ui-prop__valor-readonly';
+        span.textContent = op.rotulo;
+        return;
+      }
+    }
     const isNumero = typeof valor === 'number' || (typeof valor === 'string' && /^-?\d+(\.\d+)?$/.test(valor.trim()));
     span.className = `ui-prop__valor-readonly ${isNumero ? 'ui-prop__valor-readonly--numero' : ''}`.trim();
-    span.textContent = prop
-      ? formatarValorExibicao(prop, valor)
-      : valor !== undefined && valor !== null ? String(valor) : '—';
+    if (isNumero && casas !== undefined) {
+      const n = Number(valor);
+      span.textContent = Number.isFinite(n) ? n.toFixed(casas) : String(valor);
+    } else {
+      span.textContent = String(valor);
+    }
   };
   atualizar(valorAtual);
   registrarAtualizadorEditor(span, atualizar);
@@ -48,7 +111,7 @@ export function criarEditorBooleano(
   // Checkbox customizado: precisa de papel, foco e teclado próprios
   container.setAttribute('role', 'checkbox');
   container.tabIndex = 0;
-  container.setAttribute('aria-label', prop.rotulo);
+  container.setAttribute('aria-label', String(prop.rotulo ?? prop.id));
 
   const customCheck = document.createElement('div');
   customCheck.className = 'ui-prop__checkbox-custom';
@@ -91,7 +154,8 @@ export function criarEditorBooleano(
       alternar();
     } else if (e.key === 'Enter') {
       e.preventDefault();
-      navegarAposEnter(ctx, container, e);
+      if (e.shiftKey && ctx.focarEditorAnterior) ctx.focarEditorAnterior(container);
+      else ctx.focarProximoEditor(container);
     }
   });
 
@@ -106,12 +170,13 @@ export function criarEditorSelecao(
 ): HTMLElement {
   const select = document.createElement('select');
   select.className = 'ui-prop__editor-select';
-  select.setAttribute('aria-label', prop.rotulo);
+  select.setAttribute('aria-label', String(prop.rotulo ?? prop.id));
 
-  (prop.opcoes || []).forEach(op => {
+  (Array.isArray(prop.opcoes) ? prop.opcoes : []).forEach(op => {
+    if (!op || typeof op !== 'object') return;
     const opt = document.createElement('option');
     opt.value = String(op.id);
-    opt.textContent = op.rotulo;
+    opt.textContent = String(op.rotulo ?? op.id);
     select.appendChild(opt);
   });
 
@@ -125,14 +190,15 @@ export function criarEditorSelecao(
 
   select.addEventListener('change', () => {
     // Devolve o id no tipo original da opção (número continua número)
-    const opcao = (prop.opcoes || []).find(op => String(op.id) === select.value);
+    const opcao = (prop.opcoes || []).find(op => op && String(op.id) === select.value);
     ctx.registrarAlteracao(categoriaId, prop.id, opcao ? opcao.id : select.value);
     atualizar(ctx.obterValorAtual(prop.id));
   });
 
   select.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
-      navegarAposEnter(ctx, select, e);
+      if (e.shiftKey && ctx.focarEditorAnterior) ctx.focarEditorAnterior(select);
+      else ctx.focarProximoEditor(select);
     }
   });
 
@@ -160,9 +226,6 @@ export function criarEditorAcao(
   return btn;
 }
 
-const TEM_OPERADOR = /[+\-*/^%()x]/i;
-const NUMERO_SIMPLES = /^[+-]?[0-9]*[.,]?[0-9]*$/;
-
 export function criarEditorNumero(
   categoriaId: string,
   prop: ItemPropriedade,
@@ -175,15 +238,33 @@ export function criarEditorNumero(
   input.autocomplete = 'off';
   input.spellcheck = false;
   input.className = 'ui-prop__editor-input ui-prop__editor-input--numero';
-  input.setAttribute('aria-label', prop.rotulo);
+  input.setAttribute('aria-label', String(prop.rotulo ?? prop.id));
   if (prop.placeholder) input.placeholder = prop.placeholder;
 
-  const formatarValor = (val: any) => (isValorMisto(val) ? '' : formatarNumero(val, prop.casasDecimais));
+  const casas = obterCasasDecimais(prop);
 
-  /** Prévia do resultado ("= 15") ao digitar uma expressão; criada sob demanda ao lado do campo. */
+  const formatarValor = (val: any) => {
+    if (val === undefined || val === null || val === '' || isValorMisto(val)) return '';
+    const n = Number(val);
+    if (isNaN(n)) return String(val);
+    if (casas !== undefined) {
+      return n.toFixed(casas);
+    }
+    return String(n);
+  };
+
+  const atualizar = (valor: any) => {
+    input.value = formatarValor(valor);
+    aplicarMistoNoInput(input, prop, isValorMisto(valor), textoMistoDe(ctx));
+  };
+  atualizar(valorAtual);
+  registrarAtualizadorEditor(input, atualizar);
+
+  /** Prévia visível do resultado ("= 15") ao lado do campo, criada sob demanda. */
   let previa: HTMLSpanElement | null = null;
   const esconderPrevia = () => {
     input.classList.remove('ui-prop__editor-input--calculando');
+    input.title = '';
     if (previa) previa.hidden = true;
   };
   const mostrarPrevia = (texto: string) => {
@@ -198,29 +279,26 @@ export function criarEditorNumero(
     previa.hidden = false;
   };
 
-  const atualizar = (valor: any) => {
-    input.value = formatarValor(valor);
-    aplicarMistoNoInput(input, prop, isValorMisto(valor), textoMistoDe(ctx));
-  };
-  atualizar(valorAtual);
-  registrarAtualizadorEditor(input, atualizar);
-
   input.addEventListener('focus', () => {
     input.classList.remove('ui-prop__editor-input--invalido');
     input.select();
   });
+  input.addEventListener('animationend', () => input.classList.remove('ui-prop__editor-input--invalido'));
 
   input.addEventListener('input', () => {
     input.classList.remove('ui-prop__editor-input--invalido');
     const val = input.value.trim();
-    const calculando = TEM_OPERADOR.test(val) && !NUMERO_SIMPLES.test(val);
-    input.classList.toggle('ui-prop__editor-input--calculando', calculando);
-    if (!calculando) {
+    const ehNumeroSimples = /^[+-]?[0-9]*[.,]?[0-9]*$/.test(val);
+    const contemOperadores = !ehNumeroSimples && (val.startsWith('=') || /[\+\-\*\/\^\%\(\);]|^[a-zA-Z_π]/.test(val));
+    input.classList.toggle('ui-prop__editor-input--calculando', contemOperadores);
+    if (contemOperadores) {
+      const resultado = interpretarEntradaNumerica(val, prop);
+      const texto = resultado !== null ? `= ${formatarValor(resultado)}` : '= ?';
+      input.title = resultado !== null ? texto : '';
+      mostrarPrevia(texto);
+    } else {
       esconderPrevia();
-      return;
     }
-    const resultado = interpretarEntradaNumerica(val, prop);
-    mostrarPrevia(resultado === null ? '= ?' : `= ${formatarNumero(resultado, prop.casasDecimais)}`);
   });
 
   const commitNumero = () => {
@@ -243,7 +321,7 @@ export function criarEditorNumero(
       ctx.registrarAlteracao(categoriaId, prop.id, finalVal);
       atualizar(ctx.obterValorAtual(prop.id));
     } else {
-      // Expressão inválida: volta ao valor e sinaliza o campo (some ao digitar de novo)
+      // Expressão inválida: volta ao valor e o campo pisca (some ao digitar de novo)
       atualizar(vAtual);
       input.classList.add('ui-prop__editor-input--invalido');
     }
@@ -251,29 +329,39 @@ export function criarEditorNumero(
 
   input.addEventListener('change', commitNumero);
   input.addEventListener('blur', commitNumero);
-  input.addEventListener('animationend', () => input.classList.remove('ui-prop__editor-input--invalido'));
 
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       commitNumero();
-      navegarAposEnter(ctx, input, e);
+      if (e.shiftKey && ctx.focarEditorAnterior) ctx.focarEditorAnterior(input);
+      else ctx.focarProximoEditor(input);
     } else if (e.key === 'Escape') {
+      e.preventDefault();
+      e.stopPropagation();
       esconderPrevia();
       atualizar(ctx.obterValorAtual(prop.id));
       input.blur();
     } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
       e.preventDefault();
+      esconderPrevia();
       // Expressão em edição ("10+5") é resolvida antes de incrementar
-      const avaliado = interpretarEntradaNumerica(input.value, prop) ?? avaliarExpressaoMatematica(input.value);
+      const avaliado = interpretarEntradaNumerica(input.value, prop);
       const vAtual = ctx.obterValorAtual(prop.id);
       // "Varia" não tem valor de partida: só incrementa o que o usuário já digitou
       if (avaliado === null && isValorMisto(vAtual)) return;
       const atual = avaliado ?? (Number(vAtual) || 0);
-      const passo = passoNumerico(prop, { shift: e.shiftKey, alt: e.altKey });
-      const bruto = e.key === 'ArrowUp' ? atual + passo : atual - passo;
-      const novo = ajustarNumero(prop.casasDecimais === undefined ? Math.round(bruto * 100) / 100 : bruto, prop);
+      let passo = obterPassoNumerico(prop, casas);
+      if (e.shiftKey) passo *= 10;
+      else if (e.altKey && casas === undefined) passo *= 0.1;
 
-      esconderPrevia();
+      let novo = e.key === 'ArrowUp' ? atual + passo : atual - passo;
+      novo = aplicarLimitesNumericos(novo, prop);
+      if (casas !== undefined) {
+        novo = Number(novo.toFixed(casas));
+      } else {
+        novo = Math.round(novo * 10000) / 10000;
+      }
+
       ctx.registrarAlteracao(categoriaId, prop.id, novo);
       atualizar(novo);
     }
@@ -291,7 +379,7 @@ export function criarEditorTexto(
   const input = document.createElement('input');
   input.type = 'text';
   input.className = 'ui-prop__editor-input';
-  input.setAttribute('aria-label', prop.rotulo);
+  input.setAttribute('aria-label', String(prop.rotulo ?? prop.id));
   if (prop.placeholder) input.placeholder = prop.placeholder;
   const atualizar = (valor: any) => {
     const misto = isValorMisto(valor);
@@ -313,11 +401,15 @@ export function criarEditorTexto(
   };
 
   input.addEventListener('change', commitTexto);
+  input.addEventListener('blur', commitTexto);
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       commitTexto();
-      navegarAposEnter(ctx, input, e);
+      if (e.shiftKey && ctx.focarEditorAnterior) ctx.focarEditorAnterior(input);
+      else ctx.focarProximoEditor(input);
     } else if (e.key === 'Escape') {
+      e.preventDefault();
+      e.stopPropagation();
       atualizar(ctx.obterValorAtual(prop.id));
       input.blur();
     }

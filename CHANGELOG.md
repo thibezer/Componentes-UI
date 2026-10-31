@@ -2,28 +2,80 @@
 
 ## Não publicado
 
-### `<ui-tabela-propriedades>`: revisão profunda (correções e experiência de uso)
+### `<ui-tabela-propriedades>`: complementos à revisão da 2.12.0
 
 **Correções**
 
-- Só focar e sair de um campo numérico não altera mais o valor: antes, um valor com mais casas que `casasDecimais` era arredondado e um número guardado como texto (`"10"`) virava `10`, marcando a linha como alterada e emitindo `ui-propriedade-alterada`.
-- Enter (próximo campo) pula as categorias recolhidas; antes parava no último campo antes de uma categoria fechada.
-- Entradas hostis não derrubam o painel: categorias ou propriedades `null`, `propriedades`/`opcoes` que não são lista, propriedade sem `id` (descartada) ou sem `rotulo` (usa o id), tipos `null` no seletor. Entradas válidas mantêm a identidade (o estado `aberto` continua no objeto da aplicação).
-- Somente leitura mostra o rótulo da opção, "Sim"/"Não" e as casas decimais, em vez do id ou de `true`/`false`.
-- Tipo e espessura de linha com ids numéricos devolvem o número, como a seleção comum.
-- Os seletores de tipo ganham rótulo acessível; `tipoSelecionado` devolve o tipo que o seletor mostra (o primeiro, sem seleção válida).
-- O scrubber arrastando usa `--ui-cor-texto-sobre-primaria` em vez de preto fixo (legível no tema claro).
+- Só focar e sair de um campo numérico não altera mais o valor: um valor com mais casas que `casasDecimais` era arredondado e um número guardado como texto (`"10"`) virava `10`, marcando a linha como alterada e emitindo `ui-propriedade-alterada`.
+- `tipoSelecionado` devolve o tipo que o seletor mostra (o primeiro, sem seleção válida), em vez de `''`.
 
 **Melhorias**
 
-- Números: `min`, `max` e `passo` em `ItemPropriedade`. Digitação, setas e scrubber respeitam o intervalo; as setas e o scrubber usam o `passo`. A unidade pode ser digitada junto (`"25 mm"`, `"90°"`), e o resultado de uma expressão sai sem ruído de ponto flutuante (`0.1+0.2` = `0.3`).
-- Prévia do resultado enquanto se digita uma expressão (`= 15`, ou `= ?` se ainda inválida). Expressão inválida volta ao valor e o campo pisca em vermelho.
-- Linha alterada ganha uma faixa à esquerda e o botão **↺ Restaurar valor original**; também por código: `reverterPropriedade(id)` (devolve `false` se não havia o que restaurar; fora do modo manual emite `ui-propriedade-alterada`).
+- A unidade pode ser digitada junto do número (`"25 mm"`, `"90°"`), e o resultado de uma expressão sai sem ruído de ponto flutuante (`0.1+0.2` = `0.3`). Função pura `interpretarEntradaNumerica(texto, prop)`.
+- Prévia visível do resultado ao lado do campo enquanto se digita uma expressão (`= 15`, ou `= ?` se ainda inválida), além do `title`. Expressão inválida volta ao valor e o campo pisca em vermelho (`.ui-prop__editor-input--invalido`).
+- Linha alterada ganha uma faixa à esquerda e o botão **↺ Restaurar valor original** (`::part(restaurar)`), que chama `redefinirValor(id)`. `redefinirValor` agora devolve `false` quando não havia o que restaurar.
 - `ui-aplicar` traz `alterados` (só o que mudou) além de `valores`; novo tipo `UIAplicarDetail`.
-- Teclado: Shift+Enter volta ao campo anterior; Ctrl/⌘+Enter aplica no modo manual (o valor em edição entra junto); Esc limpa a busca.
-- Busca ignora acentos e caixa ("angulo" acha "Ângulo") e procura também no título da categoria; sem resultado, mostra "Nenhuma propriedade corresponde a …".
-- Splitter acessível: `role="separator"` com `aria-valuenow`, ←/→ (Shift: 5%), Home/End e Enter (volta a 45%), emitindo `ui-splitter-resize`.
-- Funções puras exportadas: `interpretarEntradaNumerica`, `limitarAoIntervalo`, `ajustarNumero`, `passoNumerico`, `formatarNumero`, `normalizarTermoBusca`, `filtrarPropriedades`, `normalizarCategorias`, `normalizarTipos` e `formatarValorExibicao`.
+
+## 2.12.0 — 2026-10-26
+
+### `<ui-camadas>`: Verificação e Correção Profunda, Robustez e UX Avançada
+
+- **Proteção Numérica e Degradação Graciosa (Regra #0 do AGENTS.md)**:
+  - Eliminação de recursão infinita e loops em `construirHierarquiaCamadas` e `achatarCamadas`: proteção com detecção de ciclos via `Set` de nós visitados e quebra do ciclo elegendo a raiz sem perder camadas da árvore nem travar a UI.
+  - Correção do cálculo de área geodésica em `camadas-metricas.ts`: substituição da soma de produtos vetoriais de arestas por Shoelace projetado na esfera WGS84 com projeção local ($\phi_m$), blindagem contra `NaN`/`Infinity`, divisão por zero e clamp trigonométrico na distância esférica.
+  - Saneamento defensivo em `atualizarFeicaoNoHost`: proteção contra objetos `feicao` nulos ou indefinidos e clonagem segura de propriedades.
+- **Persistência Completa de Hierarquia**:
+  - `montarEstadoPersistido` e `aplicarEstadoPersistido` agora salvam e restauram `parentId`, impedindo o "desaninhamento" de subcamadas após reload da página. Saneamento preventivo contra reidratação de ciclos (`ehDescendente`).
+- **UX de Paginação Incremental ("Mostrar mais")**:
+  - Em camadas densas com centenas de feições, o componente limita a renderização inicial a 80 itens por camada e disponibiliza o botão "Mostrar mais (+80)" e o método público `incrementarLimiteFeicoes(camadaId)`.
+  - A seleção em intervalo (Shift+Clique) e seleções em lote respeitam estritamente a hierarquia real das subcamadas e o limite visível.
+- **Acessibilidade e Atalhos de Teclado**:
+  - `F2`: Inicia a renomeação inline da camada ou feição focada.
+  - `Ctrl+A` / `Cmd+A`: Seleciona todas as feições visíveis na árvore (respeitando busca ativa e nós colapsados).
+  - `Delete`: Aciona o fluxo de exclusão segura das feições selecionadas com confirmação em dois passos.
+  - `Escape`: Cancela o estado de confirmação pendente ou fecha o drawer lateral de configurações.
+- **Sincronização de Estado e Rodapé**:
+  - O alvo de seleção da camada (`ui-target-circle`) agora monitora a subárvore completa (camada pai e subcamadas filhas), aplicando corretamente os estados `selected`, `partial` ou vazio.
+  - O preview de cor do rodapé é atualizado com a cor real da primeira feição selecionada.
+  - O evento `ui-camada-mover-hierarquia` agora informa `parentAnteriorId` para rastreabilidade e histórico de operações.
+  - Adicionado método público `alternarExpansao(camadaId)`.
+- **Customização e Shadow Parts (`::part()`)**:
+  - Exposição de partes padronizadas: `base`, `corpo`, `toolbar`, `busca`, `arvore`, `grupo`, `camada`, `camada-ativa`, `feicao`, `feicao-selecionada`, `mapas-base`, `rodape`, `drawer`, `resizer` e `botao-expandir`.
+
+### `<ui-tabela-propriedades>`: Verificação e Correção Profunda, Robustez, UX e Acessibilidade CAD/Revit
+
+- **Proteção e Degradação Graciosa (Regra #0 do AGENTS.md)**:
+  - Higienização e tolerância a entradas hostis em `categorias` e `tipos` (itens `null`, propriedades sem rótulo ou malformadas são aceitas sem disparar `TypeError`).
+  - Blindagem do parser matemático contra divisão por zero, `NaN`, `Infinity` e estouro de pilha por parênteses recursivos profundos (`MAX_PROFUNDIDADE = 64`).
+  - Tratamento seguro de `flutuante`: prevenção contra ciclo de recursão de mutação em `attributeChangedCallback`.
+- **Motor Matemático e Expressões Inline CAD/Revit (`avaliador-expressao.ts`)**:
+  - Suporte a prefixo `=` opcional de fórmula (ex.: `=10.5 * 2 + (4 / 2)`).
+  - Suporte completo a números em notação científica (ex.: `1e-5`, `2.5e3`).
+  - Correção na avaliação contextual de porcentagem em termos compostos (`100 + 50 * 10% = 105`).
+  - Suporte a funções matemáticas avançadas: `min`, `max`, `pow`, `hypot`, `atan2`, `mod`, `trunc`, `sign`, `log`, `ln`, `deg`, `rad`.
+  - Preview visual em tempo real no atributo `title` do campo numérico enquanto uma fórmula é digitada (`.ui-prop__editor-input--calculando`).
+- **Ergonomia e UX Técnica (AutoCAD, Revit, Blender e Figma)**:
+  - Suporte a limites numéricos `min` e `max` em propriedades numéricas (com clamp automático na digitação, no teclado e no scrubber).
+  - Suporte a `passo` e `step` customizados para ajuste fino e grosso via setas `ArrowUp`/`ArrowDown` e scrubber.
+  - Suporte a aliases `precisao` (para `casasDecimais`) e `aberta` (para `aberto` em categorias).
+  - Exibição de dicas técnicas (`dica?: string` em `ItemPropriedade`) no `title` do rótulo e em `aria-description` do editor.
+  - Formatação e cópia de valores somente leitura (`readonly`), suportando casas decimais, resolução de labels de seleção e booleanos.
+  - Novo método público `redefinirValor(propId)` para reverter uma propriedade individual ao seu valor original sem descartar as demais alterações.
+  - Novo botão de limpar busca (`#btn-limpar-filtro`) e atalho `Escape` para limpar o filtro de busca instantaneamente.
+  - Busca expandida: agora localiza propriedades também pelo título da categoria (`cat.titulo`) e pelo valor atual.
+  - Exibição de estado vazio informativo quando nenhum resultado coincidir com o filtro.
+  - Atalho `Ctrl+Enter` / `Cmd+Enter` para aplicar alterações no modo manual.
+  - Tecla `Escape` durante a edição de campos numéricos e de texto cancela a alteração sem propagar o evento para modais ou overlays pais.
+  - Suporte a `Shift+Enter` para navegar ao editor anterior, e navegação restrita estritamente a editores visíveis de categorias abertas.
+- **Acessibilidade e WAI-ARIA**:
+  - Splitter vertical (`#splitter`) agora é um separador acessível (`role="separator"`, `tabindex="0"`, `aria-orientation="vertical"`, `aria-valuenow` dinâmico) ajustável via teclado com `ArrowLeft`, `ArrowRight`, `Home`, `End` e `Enter` para restaurar os 45% padrão.
+  - Cabeçalhos de categorias (`.ui-prop__categoria-header`) navegáveis por teclado via `ArrowDown`, `ArrowUp`, `ArrowLeft` (recolhe), `ArrowRight` (expande), `Home` e `End`.
+  - Correção de contraste para conformidade WCAG AA no tema claro (`[data-tema="claro"]`).
+  - Adição de `aria-label` descritivo nos seletores de tipo e de linha.
+- **Shadow Parts (`::part()`) e Registro de Aliases**:
+  - Exposição completa de shadow parts: `base`, `faixa-estreita`, `cabecalho`, `titulo`, `acoes-cabecalho`, `seletor-tipo`, `filtro`, `filtro-input`, `splitter`, `corpo`, `lista-categorias`, `vazio`, `categoria`, `categoria-aberta`, `categoria-cabecalho`, `categoria-conteudo`, `linha`, `linha-modificada`, `linha-mista`, `rotulo`, `valor`, `editor`, `unidade`, `rodape`, `ajuda`, `desfazer`, `aplicar`.
+  - Registro oficial dos Custom Elements aliases `<ui-painel-propriedades>` e `<ui-propriedades>` (classes `UIPainelPropriedades` e `UIPropriedades`), com tipagem completa gerada para HTML nativo, React e Vue.
+
 
 ## 2.11.1 — 2026-10-23
 

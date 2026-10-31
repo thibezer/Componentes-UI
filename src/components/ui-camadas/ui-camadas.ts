@@ -102,6 +102,7 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
   public mapasBase: MapaBaseItem[] = [...MAPAS_BASE_PADRAO];
 
   public expandedLayers = new Set<string>();
+  public expandedFeatureLimits = new Map<string, number>();
   public selectedFeatureIds = new Set<string>();
   public lastClickedFeatureId: string | null = null;
   public activeSettingsLayerId: string | null = null;
@@ -117,13 +118,13 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
     this.shadow = this.attachShadow({ mode: 'open' });
     this.shadow.innerHTML = `
       <style>${estilos}</style>
-      <div class="ui-camadas-container" id="panel-container" role="region" aria-label="Painel de Camadas">
-        <div class="ui-camadas-corpo" id="painel-corpo"></div>
-        <div class="ui-camadas-resizer-altura" id="resizer-altura" title="Arraste para redimensionar a altura (duplo-clique para resetar)" aria-label="Redimensionar altura">
+      <div class="ui-camadas-container" id="panel-container" part="base" role="region" aria-label="Painel de Camadas">
+        <div class="ui-camadas-corpo" id="painel-corpo" part="corpo"></div>
+        <div class="ui-camadas-resizer-altura" id="resizer-altura" part="resizer" title="Arraste para redimensionar a altura (duplo-clique para resetar)" aria-label="Redimensionar altura">
           <span class="ui-camadas-resizer-grip"></span>
         </div>
       </div>
-      <button class="ui-camadas-toggle-flutuante" id="btn-expandir-flutuante" title="Expandir Painel de Camadas" aria-label="Expandir Painel de Camadas">
+      <button class="ui-camadas-toggle-flutuante" id="btn-expandir-flutuante" part="botao-expandir" title="Expandir Painel de Camadas" aria-label="Expandir Painel de Camadas">
         ${ICONES.camadas}
       </button>
     `;
@@ -219,9 +220,12 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
     } else if (name === 'camada-ativa') {
       this.sincronizarCamadaAtivaDOM();
       this.salvarLembrancaEstado();
+    } else if (name === 'densidade') {
+      this.salvarLembrancaEstado();
     } else if (name === 'mapa-base-ativo') {
       if (newVal) this.marcarMapaBaseAtivoNoDOM(newVal);
     } else if (
+      name === 'titulo' ||
       name === 'mostrar-mapas-base' ||
       name === 'mapas-base-recolhido' ||
       name === 'mostrar-rodape' ||
@@ -232,6 +236,10 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
       this.solicitarRenderizacao();
     } else if (name === 'altura') {
       this.resizerController?.definirAltura(newVal, false);
+    } else if (name === 'min-altura' || name === 'max-altura') {
+      if (this.alturaCustomizada !== null) {
+        this.resizerController?.definirAltura(this.alturaCustomizada, false);
+      }
     }
   }
 
@@ -435,6 +443,7 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
   }
 
   public limparLembranca(): void {
+    this.expandedFeatureLimits.clear();
     this.lembranca.limpar();
   }
 
@@ -558,6 +567,24 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
   public colapsarTodas(): void {
     this.expandedLayers.clear();
     this.salvarLembrancaEstado();
+    this.solicitarRenderizacao();
+  }
+
+  public alternarExpansao(camadaId: string): void {
+    if (!camadaId) return;
+    if (this.expandedLayers.has(camadaId)) {
+      this.expandedLayers.delete(camadaId);
+    } else {
+      this.expandedLayers.add(camadaId);
+    }
+    this.salvarLembrancaEstado();
+    this.solicitarRenderizacao();
+  }
+
+  public incrementarLimiteFeicoes(camadaId: string): void {
+    if (!camadaId) return;
+    const atual = this.expandedFeatureLimits.get(camadaId) ?? 80;
+    this.expandedFeatureLimits.set(camadaId, atual + 80);
     this.solicitarRenderizacao();
   }
 

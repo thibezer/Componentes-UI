@@ -6,6 +6,7 @@
    ==================================================== */
 
 import { CamadasHostCompleto } from './camadas-host';
+import { obterFeicoesDoEscopoCamada } from './camadas-hierarquia';
 import { filtrarFeicoesPorBusca } from './camadas-selecao';
 
 type TipoControle = 'olho' | 'cadeado' | 'selecao';
@@ -67,7 +68,7 @@ function estadoDoControle(host: CamadasHostCompleto, el: Element): boolean | nul
   if (def.entidade === 'feicao') return host.selectedFeatureIds.has(id);
 
   const feicoes = filtrarFeicoesPorBusca(
-    host.feicoes.filter((f) => f.layerId === id),
+    obterFeicoesDoEscopoCamada(host.camadas, host.feicoes, id),
     host.searchQuery
   );
   if (feicoes.length === 0) return null;

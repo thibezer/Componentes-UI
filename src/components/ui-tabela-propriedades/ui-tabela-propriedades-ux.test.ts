@@ -137,16 +137,16 @@ describe('ui-tabela-propriedades — restaurar valor original', () => {
     expect(espiao.mock.calls[0][0].detail).toMatchObject({ id: 'nome', valor: 'Parede', valorAnterior: 'Muro', categoriaId: 'geo' });
   });
 
-  it('reverterPropriedade() devolve se havia o que restaurar e respeita o modo manual', () => {
+  it('redefinirValor() devolve se havia o que restaurar e respeita o modo manual', () => {
     const painel = criarPainel(geometria(), { 'modo-aplicar': 'manual' });
-    expect(painel.reverterPropriedade('nome')).toBe(false);
-    expect(painel.reverterPropriedade('inexistente')).toBe(false);
+    expect(painel.redefinirValor('nome')).toBe(false);
+    expect(painel.redefinirValor('inexistente')).toBe(false);
     digitar(input(painel, 'nome'), 'Muro');
     expect(painel.dirty).toBe(true);
 
     const espiao = vi.fn();
     painel.addEventListener('ui-propriedade-alterada', espiao);
-    expect(painel.reverterPropriedade('nome')).toBe(true);
+    expect(painel.redefinirValor('nome')).toBe(true);
     expect(painel.dirty).toBe(false);
     expect(espiao).not.toHaveBeenCalled();
     expect((sr(painel).getElementById('btn-aplicar') as HTMLButtonElement).disabled).toBe(true);
@@ -264,10 +264,10 @@ describe('ui-tabela-propriedades — splitter acessível pelo teclado', () => {
     const espiao = vi.fn();
     painel.addEventListener('ui-splitter-resize', espiao);
     tecla(splitter, 'ArrowRight');
-    expect(painel.larguraRotuloPorcentagem).toBe(46);
+    expect(painel.larguraRotuloPorcentagem).toBe(47);
     tecla(splitter, 'ArrowLeft', { shiftKey: true });
-    expect(painel.larguraRotuloPorcentagem).toBe(41);
-    expect(splitter.getAttribute('aria-valuenow')).toBe('41');
+    expect(painel.larguraRotuloPorcentagem).toBe(42);
+    expect(splitter.getAttribute('aria-valuenow')).toBe('42');
     tecla(splitter, 'End');
     expect(painel.larguraRotuloPorcentagem).toBe(65);
     tecla(splitter, 'Home');

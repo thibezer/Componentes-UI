@@ -31,12 +31,16 @@ export interface ItemPropriedade {
   misto?: boolean;
   unidade?: string;
   casasDecimais?: number;
-  /** Menor valor aceito (números): digitação, setas e scrubber são limitados a ele. */
-  min?: number;
-  /** Maior valor aceito (números). */
-  max?: number;
-  /** Passo das setas ↑/↓ e do scrubber (números); padrão: 10^-casasDecimais ou 1. */
+  /** Alias para `casasDecimais`. */
+  precisao?: number;
+  /** Passo de incremento para teclado (ArrowUp/ArrowDown) e scrubber. */
   passo?: number;
+  /** Alias para `passo`. */
+  step?: number;
+  /** Limite numérico mínimo permitido. */
+  min?: number;
+  /** Limite numérico máximo permitido. */
+  max?: number;
   opcoes?: OpcaoPropriedade[];
   placeholder?: string;
   somenteLeitura?: boolean;
@@ -50,6 +54,9 @@ export interface CategoriaPropriedades {
   id: string;
   titulo: string;
   aberto?: boolean;
+  /** Alias para `aberto`. */
+  aberta?: boolean;
+  icone?: string;
   propriedades: ItemPropriedade[];
 }
 
@@ -60,6 +67,13 @@ export interface SeletorTipoItem {
   iconeSvg?: string;
 }
 
+export interface UIAplicarDetail {
+  /** Todos os valores atuais. */
+  valores: Record<string, any>;
+  /** Só as propriedades que mudaram desde o último carregar/aplicar. */
+  alterados: Record<string, any>;
+}
+
 export interface UIPropertyChangeDetail {
   id: string;
   categoriaId: string;
@@ -68,18 +82,10 @@ export interface UIPropertyChangeDetail {
   todosValores: Record<string, any>;
 }
 
-export interface UIAplicarDetail {
-  /** Todos os valores atuais. */
-  valores: Record<string, any>;
-  /** Só as propriedades que mudaram desde o último carregar/aplicar. */
-  alterados: Record<string, any>;
-}
-
 export interface ContextoEditorPropriedade {
   obterValorAtual: (propId: string) => any;
   registrarAlteracao: (categoriaId: string, propId: string, novoValor: any) => void;
   focarProximoEditor: (elementoAtual: HTMLElement) => void;
-  /** Shift+Enter: volta ao editor anterior. */
   focarEditorAnterior?: (elementoAtual: HTMLElement) => void;
   despacharEventoAcao: (prop: ItemPropriedade, categoriaId: string) => void;
   /** Texto exibido para valores mistos (atributo `texto-misto`); padrão "Varia". */

@@ -4,8 +4,10 @@
    in-place, sem redesenhar a árvore inteira
    ==================================================== */
 
+import { alternarPart } from '../../core/parts';
 import { CamadasHostCompleto } from './camadas-host';
 import { ICONES } from './camadas-icones';
+import { obterFeicoesDoEscopoCamada } from './camadas-hierarquia';
 import { formatarMetricaFeicoes } from './camadas-metricas';
 
 export function sincronizarCamadaAtivaDOM(host: CamadasHostCompleto, shadow: ShadowRoot): void {
@@ -14,6 +16,7 @@ export function sincronizarCamadaAtivaDOM(host: CamadasHostCompleto, shadow: Sha
     const lid = row.getAttribute('data-layer-row');
     const isAtiva = lid === host.camadaAtivaId;
     row.classList.toggle('active-drawing-layer', isAtiva);
+    alternarPart(row, 'camada-ativa', isAtiva);
     if (isAtiva) row.setAttribute('aria-current', 'true');
     else row.removeAttribute('aria-current');
   });
@@ -25,15 +28,16 @@ export function sincronizarSelecaoDOM(host: CamadasHostCompleto, shadow: ShadowR
     const featId = row.getAttribute('data-feat-row');
     const isSelected = featId ? host.selectedFeatureIds.has(featId) : false;
     row.classList.toggle('selected-row', isSelected);
+    alternarPart(row, 'feicao-selecionada', isSelected);
     row.setAttribute('aria-selected', String(isSelected));
     const circle = row.querySelector('.ui-target-circle');
     if (circle) circle.classList.toggle('selected', isSelected);
   });
 
-  // 2. Atualizar targets de camadas (selected / partial / vazio)
+  // 2. Atualizar targets de camadas (selected / partial / vazio) considerando subárvore
   shadow.querySelectorAll('.ui-layer-group').forEach((group) => {
     const lid = group.getAttribute('data-layer-id');
-    const feats = host.feicoes.filter((f) => f.layerId === lid);
+    const feats = obterFeicoesDoEscopoCamada(host.camadas, host.feicoes, lid ?? '');
     const circle = group.querySelector('.ui-layer-row .ui-target-circle');
     if (circle && feats.length > 0) {
       const allSel = feats.every((f) => host.selectedFeatureIds.has(f.id));
@@ -111,7 +115,18 @@ export function sincronizarSelecaoDOM(host: CamadasHostCompleto, shadow: ShadowR
   if (colorWrap) colorWrap.classList.toggle('disabled', !temSel);
 
   const inputColor = shadow.getElementById('input-footer-color') as HTMLInputElement | null;
-  if (inputColor) inputColor.disabled = !temSel;
+  const previewColor = shadow.getElementById('preview-footer-color') as HTMLElement | null;
+  if (inputColor) {
+    inputColor.disabled = !temSel;
+    if (temSel) {
+      const primeira = feicoesSel[0];
+      const corFeicao = (primeira?.properties?.color as string) || (primeira?.properties?.cor as string) || '#3b82f6';
+      inputColor.value = corFeicao.startsWith('#') && corFeicao.length === 7 ? corFeicao : '#3b82f6';
+      if (previewColor) {
+        previewColor.style.backgroundColor = inputColor.value;
+      }
+    }
+  }
 
   let clearBtn = shadow.getElementById('btn-footer-clear');
   const rightFooter = shadow.querySelector('.ui-footer-right');

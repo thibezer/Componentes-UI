@@ -8,10 +8,13 @@ import { UICamadasHost } from './camadas-drag-drop';
 
 export interface CamadasHostCompleto extends UICamadasHost {
   expandedLayers: Set<string>;
+  expandedFeatureLimits: Map<string, number>;
   selectedFeatureIds: Set<string>;
   lastClickedFeatureId: string | null;
   activeSettingsLayerId: string | null;
   searchQuery: string;
+  readonly titulo: string;
+  readonly mostrarBusca: boolean;
   salvarLembrancaEstado(): void;
   agendarSalvarLembranca(): void;
   colapsar(emitirEvento?: boolean): void;
@@ -26,9 +29,12 @@ export interface CamadasHostCompleto extends UICamadasHost {
     intervalo?: boolean,
     emitirEvento?: boolean
   ): void;
+  selecionarFeicoes(ids: string[], emitirEvento?: boolean): void;
   limparSelecao(emitirEvento?: boolean): void;
   notificarMudancaSelecao(): void;
   alternarVisibilidadeTodas(emitirEvento?: boolean): void;
+  alternarExpansao(camadaId: string): void;
+  incrementarLimiteFeicoes(camadaId: string): void;
   expandirTodas(): void;
   colapsarTodas(): void;
   removerCamada(camadaId: string): void;
