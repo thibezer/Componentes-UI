@@ -1,6 +1,8 @@
 # Changelog
 
-## Correções do motor do canvas (aguarda versão)
+## 2.12.4 — 2026-11-05
+
+Correções do motor do canvas
 
 Revisão profunda do motor sobre o Leaflet (testes em `tests/layer-manager-opacidade.regressao.test.ts`):
 
