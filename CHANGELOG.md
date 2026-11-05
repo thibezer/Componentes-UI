@@ -1,6 +1,8 @@
 # Changelog
 
-## `<ui-camadas>`: mutação de feição atualiza só as linhas afetadas (aguarda versão)
+## 2.12.5 — 2026-11-05
+
+### `<ui-camadas>`: mutação de feição atualiza só as linhas afetadas
 
 Antes, cada `adicionarFeicao`/`atualizarFeicao`/`removerFeicao`/`definirFeicoes` redesenhava o painel inteiro (`innerHTML` da árvore e religação de todos os eventos). Agora o DOM é atualizado de forma cirúrgica, mantendo o contrato síncrono (na volta da chamada o painel já está atualizado):
 
@@ -9,7 +11,7 @@ Antes, cada `adicionarFeicao`/`atualizarFeicao`/`removerFeicao`/`definirFeicoes`
 - Novos micro-módulos: `camadas-linha-feicao.ts` (marcação da linha, do chip, do aviso e da linha vazia, compartilhada com o render completo) e `camadas-atualizacao-incremental.ts` (decisão pura `decidirAtualizacao` + aplicação no DOM). Os ligadores de eventos (`conectarEventosFeicoes`, `conectarArrasteControles`, `vincularRenomearInline`, arraste das feições) passaram a aceitar uma raiz, e o estado do arraste HTML5 subiu para o `CamadasDragDropManager` (linhas novas enxergam o arraste iniciado numa linha antiga).
 - Medições e metodologia em `docs/desempenho-feicoes.md`; testes em `ui-camadas.regressao.test.ts`, `camadas-atualizacao-incremental.test.ts` e `tests/feicoes-desempenho.test.ts`. `emLote` continua sendo a forma ideal para cargas grandes.
 
-## `<ui-camadas>`: opacidade, miniaturas e grade de mapas base (aguarda versão)
+### `<ui-camadas>`: opacidade, miniaturas e grade de mapas base
 
 Testes em `ui-camadas.regressao.test.ts`:
 
