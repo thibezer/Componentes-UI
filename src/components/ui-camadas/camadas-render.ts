@@ -4,11 +4,14 @@
    preservando scroll e foco, e religar eventos e arraste depois do innerHTML.
    ==================================================== */
 
-import type { MapaBaseItem } from './tipos';
+import type { MapaBaseItem, MudancaFeicoes } from './tipos';
 import { renderizarArvoreCamadas } from './camadas-arvore-renderer';
 import { renderizarRodapeAcoes } from './camadas-rodape';
 import { renderizarGridMapasBase } from './camadas-mapas-base';
-import { conectarEventosArvore } from './camadas-eventos-arvore';
+import { conectarEventosArvore, conectarEventosFeicoes } from './camadas-eventos-arvore';
+import { conectarMostrarMais } from './camadas-eventos-camadas';
+import { conectarArrasteControles } from './camadas-arraste-controles';
+import { tentarAtualizacaoIncremental } from './camadas-atualizacao-incremental';
 import { buscarPorAtributo } from './camadas-utils';
 import { ICONES } from './camadas-icones';
 import type { CamadasHostCompleto } from './camadas-host';
@@ -121,4 +124,28 @@ export function renderizarPainel(
 
     conectarEventosArvore(host, shadow);
     dragDrop.bindAll();
+}
+
+/**
+ * Tenta atualizar só as linhas de feição afetadas pela `mudanca`, sem tocar no resto do painel (foco, scroll e
+ * listeners das linhas existentes ficam como estão). Devolve `false` quando o chamador deve redesenhar tudo.
+ */
+export function renderizarFeicoesIncremental(
+  host: HostRenderizavel,
+  shadow: ShadowRoot,
+  dragDrop: CamadasDragDropManager,
+  mudanca: MudancaFeicoes
+): boolean {
+  try {
+    return tentarAtualizacaoIncremental(host, shadow, mudanca, (raiz) => {
+      conectarEventosFeicoes(host, raiz);
+      conectarMostrarMais(host, raiz);
+      conectarArrasteControles(host, shadow, raiz);
+      dragDrop.bindLinhasFeicao(raiz);
+    });
+  } catch (erro) {
+    // Entrada hostil ou DOM inesperado: o render completo reconstrói tudo a partir do modelo
+    console.warn('[UI-Camadas] atualização incremental falhou; redesenhando o painel.', erro);
+    return false;
+  }
 }

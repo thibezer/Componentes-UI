@@ -152,6 +152,50 @@ export interface DetalheEventoMoverFeicao {
   feicao: FeicaoItem;
 }
 
+/**
+ * O que uma mutação de feição (`adicionarFeicao`, `atualizarFeicao`, `removerFeicao`, `definirFeicoes`) alterou.
+ * Permite ao painel atualizar só as linhas afetadas em vez de redesenhar a árvore inteira.
+ */
+export interface MudancaFeicoes {
+  /** Camadas cujas feições mudaram (`''` = feição sem camada), ou `'todas'` (troca da lista inteira). */
+  camadas: ReadonlySet<string> | 'todas';
+  /** Ids de feições cuja linha precisa ser refeita (as demais linhas da camada continuam como estão). */
+  idsAlterados: ReadonlySet<string>;
+  /** A seleção mudou nesta mutação (o rodapé precisa ser atualizado mesmo sem seleção restante). */
+  selecaoAfetada: boolean;
+}
+
+/** Por que o painel desistiu da atualização incremental e redesenhou tudo. */
+export type MotivoRenderCompleto =
+  | 'arvore-nao-renderizada'
+  | 'busca-ativa'
+  | 'edicao-inline'
+  | 'camada-orfa'
+  | 'camada-fora-do-dom'
+  | 'drawer-aberto'
+  | 'ids-duplicados';
+
+/** Situação de uma camada afetada por uma mutação de feição. */
+export interface SituacaoCamadaAfetada {
+  /** A camada existe em `host.camadas`. */
+  existeNoModelo: boolean;
+  /** O grupo da camada está desenhado na árvore. */
+  renderizadaNoDom: boolean;
+  /** O drawer de configurações dessa camada está aberto (ele mostra a contagem de feições). */
+  drawerAberto: boolean;
+}
+
+export interface EntradaDecisaoIncremental {
+  arvoreRenderizada: boolean;
+  buscaAtiva: boolean;
+  editandoCamada: boolean;
+  editandoFeicao: boolean;
+  idsDuplicados: boolean;
+  camadasAfetadas: readonly SituacaoCamadaAfetada[];
+}
+
+export type DecisaoAtualizacao = { incremental: true } | { incremental: false; motivo: MotivoRenderCompleto };
+
 export interface DetalheEventoAcaoMassa {
   feicoesIds: string[];
   feicoes: FeicaoItem[];

@@ -6,6 +6,7 @@
 
 import { alternarPart } from '../../core/parts';
 import { CamadasHostCompleto } from './camadas-host';
+import type { FeicaoItem } from './tipos';
 import { obterFeicoesDoEscopoCamada, calcularEstadoHerdado } from './camadas-hierarquia';
 import { ICONES } from './camadas-icones';
 import { definirRotuloControle } from './camadas-utils';
@@ -39,18 +40,35 @@ export function sincronizarSelecaoDOM(host: CamadasHostCompleto, shadow: ShadowR
   shadow.querySelectorAll('.ui-layer-group').forEach((group) => {
     const lid = group.getAttribute('data-layer-id');
     const feats = obterFeicoesDoEscopoCamada(host.camadas, host.feicoes, lid ?? '');
-    const circle = group.querySelector('.ui-layer-row .ui-target-circle');
-    if (circle && feats.length > 0) {
-      const allSel = feats.every((f) => host.selectedFeatureIds.has(f.id));
-      const someSel = !allSel && feats.some((f) => host.selectedFeatureIds.has(f.id));
-      circle.classList.toggle('selected', allSel);
-      circle.classList.toggle('partial', someSel);
-    } else if (circle) {
-      circle.classList.remove('selected', 'partial');
-    }
+    aplicarEstadoTarget(group.querySelector('.ui-layer-row .ui-target-circle'), feats, host.selectedFeatureIds);
   });
 
   // 3. Atualizar rodapé de ações
+  sincronizarRodapeDOM(host, shadow);
+}
+
+/** Estado do círculo de seleção de uma camada: tudo selecionado, parte, ou nada (camada sem feições). */
+export function aplicarEstadoTarget(
+  circle: Element | null,
+  feats: readonly FeicaoItem[],
+  selecionadas: ReadonlySet<string>
+): void {
+  if (!circle) return;
+  if (feats.length === 0) {
+    circle.classList.remove('selected', 'partial');
+    return;
+  }
+  const allSel = feats.every((f) => selecionadas.has(f.id));
+  const someSel = !allSel && feats.some((f) => selecionadas.has(f.id));
+  circle.classList.toggle('selected', allSel);
+  circle.classList.toggle('partial', someSel);
+}
+
+/** Contador, rótulo e modo (resumo × ações em massa) do rodapé, conforme a seleção atual. */
+export function sincronizarRodapeDOM(
+  host: Pick<CamadasHostCompleto, 'camadas' | 'feicoes' | 'selectedFeatureIds'>,
+  shadow: ShadowRoot
+): void {
   const feicoesSel = host.feicoes.filter((f) => host.selectedFeatureIds.has(f.id));
   const temSel = feicoesSel.length > 0;
   const countEl = shadow.getElementById('footer-count');

@@ -11,9 +11,10 @@ import {
   CamadaItem,
   FeicaoItem,
   MapaBaseItem,
-  AbaPainelCamadas
+  AbaPainelCamadas,
+  MudancaFeicoes
 } from './tipos';
-import { renderizarPainel } from './camadas-render';
+import { renderizarPainel, renderizarFeicoesIncremental } from './camadas-render';
 import { MAPAS_BASE_PADRAO, nomeDoMapaBase } from './camadas-mapas-base';
 import { CamadasDragDropManager } from './camadas-drag-drop';
 import { CamadasHostCompleto } from './camadas-host';
@@ -79,6 +80,8 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
   private conectado = false;
   private profundidadeLote = 0;
   private renderPendente = false;
+  /** Mudança de feições à espera do `render()` (consumida nele): permite atualizar só as linhas afetadas. */
+  private mudancaFeicoes: MudancaFeicoes | null = null;
   /** Painéis conectados sem `id` nem `storage-key`: dividem a mesma chave de persistência. */
   private static instanciasChavePadrao = new Set<UICamadas>();
   /** @internal */
@@ -632,8 +635,23 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
   }
 
   /**
+   * Caminho das mutações de feição: o DOM fica atualizado na volta da chamada, mas só as linhas afetadas são
+   * refeitas quando possível. Em `emLote` vale o adiamento de sempre (uma renderização completa no fim).
+   * Qualquer caso que o caminho incremental não garanta (busca, edição inline, drawer, camada fora da árvore…)
+   * cai no render completo.
+   */
+  public solicitarAtualizacaoFeicoes(mudanca: MudancaFeicoes): void {
+    if (this.profundidadeLote > 0) {
+      this.renderPendente = true;
+      return;
+    }
+    this.mudancaFeicoes = mudanca;
+    this.render();
+  }
+
+  /**
    * Agrupa várias mutações (`adicionarFeicao` em laço, por exemplo) em uma só renderização, ao fim de `fn`.
-   * Sem isto, cada chamada redesenha a árvore inteira.
+   * Mesmo com a atualização incremental, é a forma ideal para cargas grandes: o DOM é refeito uma só vez.
    */
   public emLote(fn: () => void): void {
     this.profundidadeLote++;
@@ -659,7 +677,10 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
   }
 
   private render(): void {
+    const mudanca = this.mudancaFeicoes;
+    this.mudancaFeicoes = null;
     if (!this.corpoElement) return;
+    if (mudanca && renderizarFeicoesIncremental(this, this.shadow, this.dragDropManager, mudanca)) return;
     renderizarPainel(this, this.shadow, this.corpoElement, this.dragDropManager);
   }
 

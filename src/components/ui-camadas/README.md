@@ -230,6 +230,22 @@ painel.colapsar(true);                            // dispara ui-colapso-alterado
 painel.limparLembranca();
 ```
 
+### Mutações de feição e desempenho
+
+`adicionarFeicao`, `atualizarFeicao`, `removerFeicao` e `definirFeicoes` atualizam o DOM **de forma síncrona** (na volta da chamada o painel já reflete a lista) e **cirúrgica**: só as linhas afetadas são criadas, trocadas ou removidas, junto com o chip de contagem da camada e dos grupos ancestrais, o círculo de seleção, o aviso "Exibindo X de Y", a linha "Camada vazia" e o rodapé. Foco, rolagem, `tabindex` das demais linhas e os listeners das linhas existentes não são tocados.
+
+O painel redesenha tudo (como antes) quando não consegue garantir o mesmo resultado: busca ativa, renomeação inline aberta, drawer da camada afetada aberto, feição com `layerId` que não existe nas camadas, ids repetidos na lista ou árvore ainda não desenhada. Camadas recolhidas e o limite de 80 linhas por camada são tratados no caminho incremental.
+
+> **Cargas grandes: use `emLote`.** O caminho incremental torna cada mutação barata (~1 ms com 5.000 feições), mas o custo de cada chamada ainda cresce com o tamanho da lista. Para importar milhares de feições de uma vez, agrupe-as: o DOM é refeito uma só vez ao fim. Números em [`docs/desempenho-feicoes.md`](../../../docs/desempenho-feicoes.md).
+>
+> ```typescript
+> painel.emLote(() => {
+>   for (const f of feicoes) painel.adicionarFeicao(f);
+> });
+> // ou, para trocar a lista inteira:
+> painel.definirFeicoes(feicoes);
+> ```
+
 ---
 
 ## 📡 Eventos Customizados Disparados

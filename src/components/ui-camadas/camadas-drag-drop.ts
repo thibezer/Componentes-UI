@@ -35,6 +35,15 @@ export class CamadasDragDropManager {
   private shadow: ShadowRoot;
   /** Cancela um arraste por toque em andamento (remove os ouvintes de `window`). */
   private cancelarToque: (() => void) | null = null;
+  /**
+   * Arraste HTML5 em andamento. Fica no gerenciador (e não numa closure de `bindDragAndDrop`) para que linhas
+   * ligadas depois, na atualização incremental, enxerguem o arraste iniciado numa linha mais antiga.
+   */
+  private arraste: { tipo: 'layer' | 'feature' | null; camadaId: string | null; feicaoId: string | null } = {
+    tipo: null,
+    camadaId: null,
+    feicaoId: null
+  };
 
   constructor(host: UICamadasHost, shadow: ShadowRoot) {
     this.host = host;
@@ -91,15 +100,24 @@ export class CamadasDragDropManager {
     return !!alvo.closest('input, button, select') || !!this.host.editingLayerId || !!this.host.editingFeatureId;
   }
 
+  /** Render completo: zera o arraste e liga camadas e feições do painel todo. */
   public bindDragAndDrop(): void {
-    let tipoArrastado: 'layer' | 'feature' | null = null;
-    let camadaArrastadaId: string | null = null;
-    let feicaoArrastadaId: string | null = null;
+    this.arraste = { tipo: null, camadaId: null, feicaoId: null };
+    this.vincularArrasteCamadas(this.shadow);
+    this.vincularArrasteFeicoes(this.shadow);
+  }
 
+  /** Atualização incremental: liga renomear e arraste só nas linhas de feição novas dentro de `raiz`. */
+  public bindLinhasFeicao(raiz: ParentNode): void {
+    vincularRenomearInline(this.host, this.shadow, raiz);
+    this.vincularArrasteFeicoes(raiz);
+  }
+
+  private vincularArrasteCamadas(raiz: ParentNode): void {
     // -------------------------------------------------------------
     // 1. Drag & Drop de Camadas (Reordenação de Z-Index e aninhamento)
     // -------------------------------------------------------------
-    this.shadow.querySelectorAll('.ui-layer-row[draggable="true"]').forEach((linha) => {
+    raiz.querySelectorAll('.ui-layer-row[draggable="true"]').forEach((linha) => {
       const camadaId = linha.getAttribute('data-layer-id');
       if (!camadaId) return;
 
@@ -109,8 +127,8 @@ export class CamadasDragDropManager {
           de.preventDefault();
           return;
         }
-        tipoArrastado = 'layer';
-        camadaArrastadaId = camadaId;
+        this.arraste.tipo = 'layer';
+        this.arraste.camadaId = camadaId;
         if (de.dataTransfer) {
           de.dataTransfer.setData('text/plain', JSON.stringify({ type: 'layer', id: camadaId }));
           de.dataTransfer.effectAllowed = 'move';
@@ -124,15 +142,15 @@ export class CamadasDragDropManager {
         de.stopPropagation();
         if (de.dataTransfer) de.dataTransfer.dropEffect = 'move';
 
-        if (tipoArrastado === 'layer') {
-          if (camadaArrastadaId === camadaId) return;
+        if (this.arraste.tipo === 'layer') {
+          if (this.arraste.camadaId === camadaId) return;
           const rect = linha.getBoundingClientRect();
           const zona = zonaDeDropCamada((de.clientY - rect.top) / rect.height);
           linha.classList.toggle('drop-above', zona === 'acima');
           linha.classList.toggle('drop-below', zona === 'abaixo');
           // Zona central: soltar para dentro como subcamada
           linha.classList.toggle('drop-into', zona === 'dentro');
-        } else if (tipoArrastado === 'feature') {
+        } else if (this.arraste.tipo === 'feature') {
           linha.classList.add('drop-into');
         }
       });
@@ -151,11 +169,11 @@ export class CamadasDragDropManager {
         const zona = linha.classList.contains('drop-into') ? 'dentro' : linha.classList.contains('drop-above') ? 'acima' : 'abaixo';
         this.limparClassesDeArraste();
 
-        if (tipoArrastado === 'layer') {
-          if (!camadaArrastadaId || camadaArrastadaId === camadaId) return;
-          if (!this.host.camadas.some((l) => l.id === camadaArrastadaId) || !this.host.camadas.some((l) => l.id === camadaId)) return;
+        if (this.arraste.tipo === 'layer') {
+          if (!this.arraste.camadaId || this.arraste.camadaId === camadaId) return;
+          if (!this.host.camadas.some((l) => l.id === this.arraste.camadaId) || !this.host.camadas.some((l) => l.id === camadaId)) return;
 
-          const resultado = moverCamada(this.host.camadas, camadaArrastadaId, camadaId, zona);
+          const resultado = moverCamada(this.host.camadas, this.arraste.camadaId, camadaId, zona);
           if (resultado?.tipo === 'hierarquia') {
             this.host.expandedLayers?.add(resultado.novoParentId);
             this.host.dispararEvento('ui-camada-mover-hierarquia', {
@@ -173,9 +191,9 @@ export class CamadasDragDropManager {
             });
           }
           this.aposReordenarCamadas();
-        } else if (tipoArrastado === 'feature') {
-          if (!feicaoArrastadaId || this.trocaEntreCamadasTravada(feicaoArrastadaId, camadaId)) return;
-          const movida = moverFeicaoParaCamada(this.host.feicoes, this.host.camadas, feicaoArrastadaId, camadaId);
+        } else if (this.arraste.tipo === 'feature') {
+          if (!this.arraste.feicaoId || this.trocaEntreCamadasTravada(this.arraste.feicaoId, camadaId)) return;
+          const movida = moverFeicaoParaCamada(this.host.feicoes, this.host.camadas, this.arraste.feicaoId, camadaId);
           if (movida) {
             this.emitirFeicaoMovida(movida);
             this.host.solicitarRenderizacao();
@@ -184,17 +202,16 @@ export class CamadasDragDropManager {
       });
 
       linha.addEventListener('dragend', () => {
-        tipoArrastado = null;
-        camadaArrastadaId = null;
-        feicaoArrastadaId = null;
+        this.arraste.tipo = null;
+        this.arraste.camadaId = null;
+        this.arraste.feicaoId = null;
         this.limparClassesDeArraste();
       });
     });
+  }
 
-    // -------------------------------------------------------------
-    // 2. Drag & Drop de Feições (Reordenação interna e entre camadas)
-    // -------------------------------------------------------------
-    this.shadow.querySelectorAll('.ui-feat-row[draggable="true"]').forEach((linha) => {
+  private vincularArrasteFeicoes(raiz: ParentNode): void {
+    raiz.querySelectorAll('.ui-feat-row[draggable="true"]').forEach((linha) => {
       const feicaoId = linha.getAttribute('data-feat-row');
       const camadaDaFeicaoId = linha.getAttribute('data-feat-layer');
       if (!feicaoId) return;
@@ -206,9 +223,9 @@ export class CamadasDragDropManager {
           return;
         }
         de.stopPropagation();
-        tipoArrastado = 'feature';
-        feicaoArrastadaId = feicaoId;
-        camadaArrastadaId = camadaDaFeicaoId;
+        this.arraste.tipo = 'feature';
+        this.arraste.feicaoId = feicaoId;
+        this.arraste.camadaId = camadaDaFeicaoId;
         if (de.dataTransfer) {
           de.dataTransfer.setData('text/plain', JSON.stringify({ type: 'feature', id: feicaoId, layerId: camadaDaFeicaoId }));
           de.dataTransfer.effectAllowed = 'move';
@@ -218,7 +235,7 @@ export class CamadasDragDropManager {
 
       linha.addEventListener('dragover', (e: Event) => {
         const de = e as DragEvent;
-        if (tipoArrastado !== 'feature' || feicaoArrastadaId === feicaoId) return;
+        if (this.arraste.tipo !== 'feature' || this.arraste.feicaoId === feicaoId) return;
         de.preventDefault();
         de.stopPropagation();
         if (de.dataTransfer) de.dataTransfer.dropEffect = 'move';
@@ -237,15 +254,15 @@ export class CamadasDragDropManager {
 
       linha.addEventListener('drop', (e: Event) => {
         const de = e as DragEvent;
-        if (tipoArrastado !== 'feature' || !feicaoArrastadaId || feicaoArrastadaId === feicaoId) return;
+        if (this.arraste.tipo !== 'feature' || !this.arraste.feicaoId || this.arraste.feicaoId === feicaoId) return;
         de.preventDefault();
         de.stopPropagation();
 
         const acima = linha.classList.contains('drop-above');
         this.limparClassesDeArraste();
 
-        if (this.trocaEntreCamadasTravada(feicaoArrastadaId, camadaDaFeicaoId)) return;
-        const resultado = reordenarFeicao(this.host.feicoes, feicaoArrastadaId, feicaoId, acima);
+        if (this.trocaEntreCamadasTravada(this.arraste.feicaoId, camadaDaFeicaoId)) return;
+        const resultado = reordenarFeicao(this.host.feicoes, this.arraste.feicaoId, feicaoId, acima);
         if (!resultado) return;
         if (resultado.mudouDeCamada) this.emitirFeicaoMovida(resultado);
         this.host.dispararEvento('ui-feicoes-reordenadas', { feicoes: [...this.host.feicoes] });
@@ -254,9 +271,9 @@ export class CamadasDragDropManager {
 
       linha.addEventListener('dragend', (e: Event) => {
         e.stopPropagation();
-        tipoArrastado = null;
-        feicaoArrastadaId = null;
-        camadaArrastadaId = null;
+        this.arraste.tipo = null;
+        this.arraste.feicaoId = null;
+        this.arraste.camadaId = null;
         this.limparClassesDeArraste();
       });
     });

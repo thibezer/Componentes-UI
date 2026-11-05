@@ -94,9 +94,14 @@ export function cancelarArrasteControles(host: CamadasHostCompleto): void {
   if (gestoAtivo?.host === host) gestoAtivo.cancelar();
 }
 
-export function conectarArrasteControles(host: CamadasHostCompleto, shadow: ShadowRoot): void {
+/** Liga o arraste sobre os controles dentro de `raiz` (padrão: o painel todo; na atualização incremental, só as linhas novas). */
+export function conectarArrasteControles(
+  host: CamadasHostCompleto,
+  shadow: ShadowRoot,
+  raiz: ParentNode = shadow
+): void {
   (Object.keys(SELETOR_POR_TIPO) as TipoControle[]).forEach((tipo) => {
-    shadow.querySelectorAll(SELETOR_POR_TIPO[tipo]).forEach((origem) => {
+    raiz.querySelectorAll(SELETOR_POR_TIPO[tipo]).forEach((origem) => {
       origem.addEventListener('pointerdown', (e: Event) => iniciarGesto(host, shadow, tipo, origem, e as PointerEvent));
     });
   });

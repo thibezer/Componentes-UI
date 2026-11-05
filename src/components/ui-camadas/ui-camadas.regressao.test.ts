@@ -1479,3 +1479,459 @@ describe('UICamadas - miniaturas de mapa base', () => {
     expect(() => substituirMiniaturaQuebrada(img)).not.toThrow();
   });
 });
+
+describe('UICamadas - atualização incremental de feições', () => {
+  beforeEach(() => {
+    document.body.innerHTML = '';
+    localStorage.clear();
+  });
+
+  /**
+   * Compara a marcação sem o que não muda o resultado: nós de texto só com espaço entre as linhas e a ordem e o
+   * espaçamento das classes (o `classList.toggle` do caminho incremental não reproduz o texto do atributo).
+   */
+  const normalizar = (html: string): string =>
+    html
+      .replace(/>\s+</g, '><')
+      .replace(/class="([^"]*)"/g, (_, c: string) => `class="${c.split(/\s+/).filter(Boolean).sort().join(' ')}"`)
+      .trim();
+  const corpoHtml = (el: UICamadas): string => normalizar(sr(el).getElementById('painel-corpo')!.innerHTML);
+  const linha = (el: UICamadas, id: string): HTMLElement | null => buscarPorAtributo(sr(el), 'data-feat-row', id);
+  const nova = (id: string, layerId = 'c0', extra: Partial<FeicaoItem> = {}): FeicaoItem => ({
+    id,
+    name: `Nova ${id}`,
+    layerId,
+    type: 'Polygon',
+    coordinates: QUADRADO,
+    ...extra
+  });
+
+  /** O DOM atual (incremental) tem de ser idêntico ao de um render completo feito logo depois. */
+  function igualAoCompleto(el: UICamadas): void {
+    const incremental = corpoHtml(el);
+    el.solicitarRenderizacao();
+    expect(corpoHtml(el)).toBe(incremental);
+  }
+
+  describe('equivalência com o render completo', () => {
+    it('adicionarFeicao insere só a linha nova e mantém as existentes', () => {
+      const el = criarPainel(camadasPadrao(), criarFeicoes(5));
+      const antiga = linha(el, 'f0');
+      el.adicionarFeicao(nova('f9'));
+      expect(linha(el, 'f0')).toBe(antiga);
+      expect(linha(el, 'f9')).not.toBeNull();
+      igualAoCompleto(el);
+    });
+
+    it('atualizarFeicao troca só a linha alterada', () => {
+      const el = criarPainel(camadasPadrao(), criarFeicoes(5));
+      const vizinha = linha(el, 'f2');
+      const alterada = linha(el, 'f1');
+      el.atualizarFeicao({ id: 'f1', name: 'Renomeada', color: '#ff0000', visible: false, locked: true } as FeicaoItem);
+      expect(linha(el, 'f2')).toBe(vizinha);
+      expect(linha(el, 'f1')).not.toBe(alterada);
+      expect(linha(el, 'f1')!.textContent).toContain('Renomeada');
+      expect(linha(el, 'f1')!.classList.contains('hidden-row')).toBe(true);
+      igualAoCompleto(el);
+    });
+
+    it('removerFeicao remove só a linha e atualiza o chip de contagem', () => {
+      const el = criarPainel(camadasPadrao(), criarFeicoes(5));
+      const vizinha = linha(el, 'f3');
+      el.removerFeicao('f2');
+      expect(linha(el, 'f2')).toBeNull();
+      expect(linha(el, 'f3')).toBe(vizinha);
+      expect(q(el, '[data-layer-row="c0"] .ui-count-chip').textContent).toBe('4');
+      igualAoCompleto(el);
+    });
+
+    it('definirFeicoes mantém as linhas que não mudaram', () => {
+      const el = criarPainel(camadasPadrao(), criarFeicoes(6));
+      const intacta = linha(el, 'f0');
+      const lista = criarFeicoes(6).map((f) => (f.id === 'f3' ? { ...f, name: 'Trocada' } : f));
+      lista.push(nova('f10', 'c1'));
+      el.definirFeicoes(lista.filter((f) => f.id !== 'f5'));
+      expect(linha(el, 'f0')).toBe(intacta);
+      expect(linha(el, 'f5')).toBeNull();
+      expect(linha(el, 'f3')!.textContent).toContain('Trocada');
+      expect(q(el, '[data-layer-row="c1"] .ui-count-chip').textContent).toBe('1');
+      igualAoCompleto(el);
+    });
+
+    it('definirFeicoes com a ordem trocada segue a ordem da lista', () => {
+      const el = criarPainel(camadasPadrao(), criarFeicoes(4));
+      el.definirFeicoes(criarFeicoes(4).reverse());
+      const ids = Array.from(sr(el).querySelectorAll('[data-feat-row]')).map((n) => n.getAttribute('data-feat-row'));
+      expect(ids).toEqual(['f3', 'f2', 'f1', 'f0']);
+      igualAoCompleto(el);
+    });
+
+    it('é síncrono: a linha existe na volta da chamada', () => {
+      const el = criarPainel(camadasPadrao(), criarFeicoes(1));
+      el.adicionarFeicao(nova('s1'));
+      expect(linha(el, 's1')).not.toBeNull();
+      el.removerFeicao('s1');
+      expect(linha(el, 's1')).toBeNull();
+    });
+
+    it('camada recolhida também é atualizada sem render completo', () => {
+      const el = criarPainel(camadasPadrao(), criarFeicoes(3));
+      el.colapsarTodas();
+      const antiga = linha(el, 'f0');
+      el.adicionarFeicao(nova('f9'));
+      expect(linha(el, 'f0')).toBe(antiga);
+      expect(linha(el, 'f9')).not.toBeNull();
+      igualAoCompleto(el);
+    });
+
+    it('feição movida de camada por atualizarFeicao atualiza as duas camadas', () => {
+      const el = criarPainel(camadasPadrao(), [...criarFeicoes(3), nova('x', 'c1')]);
+      el.atualizarFeicao({ id: 'f1', layerId: 'c1' } as FeicaoItem);
+      expect(q(el, '[data-layer-row="c0"] .ui-count-chip').textContent).toBe('2');
+      expect(q(el, '[data-layer-row="c1"] .ui-count-chip').textContent).toBe('2');
+      igualAoCompleto(el);
+    });
+
+    it('subcamada atualiza o chip dela e o do grupo, que ganha chip ao deixar de estar vazio', () => {
+      const el = criarPainel(
+        [
+          { id: 'g', name: 'Grupo', isGroup: true },
+          { id: 's', name: 'Sub', parentId: 'g' }
+        ],
+        []
+      );
+      expect(sr(el).querySelector('[data-layer-row="g"] .ui-count-chip')).toBeNull();
+      el.adicionarFeicao(nova('a', 's'));
+      expect(q(el, '[data-layer-row="g"] .ui-count-chip').textContent).toBe('1');
+      expect(q(el, '[data-layer-row="s"] .ui-count-chip').textContent).toBe('1');
+      igualAoCompleto(el);
+      el.removerFeicao('a');
+      expect(sr(el).querySelector('[data-layer-row="g"] .ui-count-chip')).toBeNull();
+      igualAoCompleto(el);
+    });
+
+    it('alterna a linha "Camada vazia" ao adicionar e remover', () => {
+      const el = criarPainel(camadasPadrao(), []);
+      expect(sr(el).textContent).toContain('Camada vazia');
+      el.adicionarFeicao(nova('a'));
+      expect(sr(el).querySelectorAll('.ui-empty-row')).toHaveLength(1);
+      expect(sr(el).querySelector('[data-layer-id="c0"] .ui-empty-row')).toBeNull();
+      igualAoCompleto(el);
+      el.removerFeicao('a');
+      expect(sr(el).querySelector('[data-layer-id="c0"] .ui-empty-row')).not.toBeNull();
+      igualAoCompleto(el);
+    });
+
+    it('estado do target da camada e rodapé acompanham a seleção', () => {
+      const el = criarPainel(camadasPadrao(), criarFeicoes(2));
+      el.selecionarFeicoes(['f0', 'f1']);
+      expect(q(el, '[data-layer-target="c0"] .ui-target-circle').classList.contains('selected')).toBe(true);
+      el.adicionarFeicao(nova('f2'));
+      const circulo = q(el, '[data-layer-target="c0"] .ui-target-circle');
+      expect(circulo.classList.contains('selected')).toBe(false);
+      expect(circulo.classList.contains('partial')).toBe(true);
+      igualAoCompleto(el);
+
+      el.removerFeicao('f0');
+      expect(q(el, '#footer-count').textContent).toBe('1');
+      igualAoCompleto(el);
+      el.removerFeicao('f1');
+      expect(q(el, '#footer-count').textContent).toBe('2');
+      expect(q(el, '.ui-tree-footer').classList.contains('sem-selecao')).toBe(true);
+      igualAoCompleto(el);
+    });
+
+    it('feição adicionada com id já selecionado nasce selecionada', () => {
+      const el = criarPainel(camadasPadrao(), criarFeicoes(1));
+      el.selecionarFeicoes(['futura']);
+      el.adicionarFeicao(nova('futura'));
+      expect(linha(el, 'futura')!.classList.contains('selected-row')).toBe(true);
+      igualAoCompleto(el);
+    });
+
+    it('feição de camada travada ou sob grupo oculto nasce travada e esmaecida', () => {
+      const el = criarPainel(
+        [
+          { id: 'g', name: 'G', isGroup: true, visible: false, locked: true },
+          { id: 's', name: 'S', parentId: 'g' }
+        ],
+        []
+      );
+      el.adicionarFeicao(nova('a', 's'));
+      expect(linha(el, 'a')!.classList.contains('herdado-oculto')).toBe(true);
+      expect(linha(el, 'a')!.querySelector('[data-locked-by-layer]')).not.toBeNull();
+      igualAoCompleto(el);
+    });
+  });
+
+  describe('limite de linhas por camada', () => {
+    it('além do limite só atualiza o aviso, sem criar linha', () => {
+      const el = criarPainel(camadasPadrao(), criarFeicoes(85));
+      expect(sr(el).querySelectorAll('[data-feat-row]')).toHaveLength(80);
+      const primeira = linha(el, 'f0');
+      el.adicionarFeicao(nova('extra'));
+      expect(sr(el).querySelectorAll('[data-feat-row]')).toHaveLength(80);
+      expect(linha(el, 'f0')).toBe(primeira);
+      expect(q(el, '.ui-truncate-notice').textContent).toContain('Exibindo 80 de 86');
+      igualAoCompleto(el);
+    }, 30_000);
+
+    it('cria o aviso ao passar de 80 e o "Mostrar mais" funciona', () => {
+      const el = criarPainel(camadasPadrao(), criarFeicoes(80));
+      expect(sr(el).querySelector('.ui-truncate-notice')).toBeNull();
+      el.adicionarFeicao(nova('f80'));
+      expect(q(el, '.ui-truncate-notice').textContent).toContain('Exibindo 80 de 81');
+      igualAoCompleto(el);
+      q(el, '[data-layer-show-more="c0"]').click();
+      expect(sr(el).querySelectorAll('[data-feat-row]')).toHaveLength(81);
+      expect(sr(el).querySelector('.ui-truncate-notice')).toBeNull();
+    }, 30_000);
+
+    it('remover uma linha exibida promove a primeira escondida e atualiza o aviso', () => {
+      const el = criarPainel(camadasPadrao(), criarFeicoes(82));
+      el.removerFeicao('f5');
+      expect(sr(el).querySelectorAll('[data-feat-row]')).toHaveLength(80);
+      expect(linha(el, 'f80')).not.toBeNull();
+      expect(q(el, '.ui-truncate-notice').textContent).toContain('Exibindo 80 de 81');
+      igualAoCompleto(el);
+      el.removerFeicao('f81');
+      expect(sr(el).querySelector('.ui-truncate-notice')).toBeNull();
+      igualAoCompleto(el);
+    }, 30_000);
+
+    it('respeita o limite ampliado por "Mostrar mais"', () => {
+      const el = criarPainel(camadasPadrao(), criarFeicoes(100));
+      el.incrementarLimiteFeicoes('c0');
+      el.adicionarFeicao(nova('extra'));
+      expect(sr(el).querySelectorAll('[data-feat-row]')).toHaveLength(101);
+      igualAoCompleto(el);
+   }, 30_000);
+  });
+
+  describe('fallback para o render completo', () => {
+    it('camada inexistente ou feição sem camada não derruba nem deixa DOM inconsistente', () => {
+      const el = criarPainel(camadasPadrao(), criarFeicoes(2));
+      expect(() => el.adicionarFeicao(nova('o1', 'nao-existe'))).not.toThrow();
+      expect(() => el.adicionarFeicao({ id: 'o2', name: 'Sem camada' } as FeicaoItem)).not.toThrow();
+      expect(linha(el, 'o1')).toBeNull();
+      expect(el.feicoes).toHaveLength(4);
+      igualAoCompleto(el);
+    });
+
+    it('com busca ativa o resultado é o do render completo', () => {
+      const el = criarPainel(camadasPadrao(), criarFeicoes(3));
+      el.searchQuery = 'Feicao 1';
+      el.solicitarRenderizacao();
+      el.adicionarFeicao(nova('f10', 'c0', { name: 'Feicao 10' }));
+      expect(linha(el, 'f10')).not.toBeNull();
+      expect(linha(el, 'f0')).toBeNull();
+      igualAoCompleto(el);
+      el.removerFeicao('f1');
+      expect(linha(el, 'f1')).toBeNull();
+      igualAoCompleto(el);
+    });
+
+    it('com renomeação inline aberta preserva o campo de edição', () => {
+      const el = criarPainel(camadasPadrao(), criarFeicoes(3));
+      el.editingFeatureId = 'f1';
+      el.solicitarRenderizacao();
+      el.adicionarFeicao(nova('f9'));
+      expect(sr(el).querySelector('[data-inline-feat-input="f1"]')).not.toBeNull();
+      igualAoCompleto(el);
+    });
+
+    it('com o drawer da camada aberto a contagem do drawer acompanha', () => {
+      const el = criarPainel(camadasPadrao(), criarFeicoes(2));
+      el.activeSettingsLayerId = 'c0';
+      el.solicitarRenderizacao();
+      el.adicionarFeicao(nova('f9'));
+      expect(q(el, '.ui-drawer-meta-info').textContent).toContain('3 feições');
+      igualAoCompleto(el);
+    });
+
+    it('dentro de emLote o DOM só muda no fim, e fica igual ao completo', () => {
+      const el = criarPainel(camadasPadrao(), criarFeicoes(2));
+      el.emLote(() => {
+        el.adicionarFeicao(nova('l1'));
+        el.removerFeicao('f0');
+        expect(linha(el, 'l1')).toBeNull();
+        expect(linha(el, 'f0')).not.toBeNull();
+      });
+      expect(linha(el, 'l1')).not.toBeNull();
+      expect(linha(el, 'f0')).toBeNull();
+      igualAoCompleto(el);
+    });
+  });
+
+  describe('entradas hostis', () => {
+    it('id duplicado, null e undefined são ignorados', () => {
+      const el = criarPainel(camadasPadrao(), criarFeicoes(2));
+      const antes = corpoHtml(el);
+      expect(() => el.adicionarFeicao(nova('f0'))).not.toThrow();
+      expect(() => el.adicionarFeicao(null as unknown as FeicaoItem)).not.toThrow();
+      expect(() => el.adicionarFeicao(undefined as unknown as FeicaoItem)).not.toThrow();
+      expect(() => el.atualizarFeicao({ id: 'nao-existe' } as FeicaoItem)).not.toThrow();
+      expect(() => el.removerFeicao('nao-existe')).not.toThrow();
+      expect(corpoHtml(el)).toBe(antes);
+    });
+
+    it('nomes e cores com HTML não viram marcação', () => {
+      const el = criarPainel(camadasPadrao(), criarFeicoes(1));
+      const nomeHostil = `<img src=x onerror=alert(1)>"'&`;
+      el.adicionarFeicao(nova('x', 'c0', { name: nomeHostil, color: 'red;background:url(x)' }));
+      const l = linha(el, 'x')!;
+      expect(l.querySelector('img')).toBeNull();
+      expect(l.querySelector('.ui-name-text')!.textContent).toBe(nomeHostil);
+      expect(l.querySelector<HTMLElement>('.ui-col-colorbar')!.getAttribute('style')).not.toContain('url(');
+      igualAoCompleto(el);
+    });
+
+    it('id com aspas e colchetes funciona em adicionar, atualizar e remover', () => {
+      const el = criarPainel(camadasPadrao(), criarFeicoes(1));
+      const id = 'a"]b\\[c';
+      el.adicionarFeicao(nova(id));
+      expect(linha(el, id)).not.toBeNull();
+      el.atualizarFeicao({ id, name: 'Outro' } as FeicaoItem);
+      expect(linha(el, id)!.textContent).toContain('Outro');
+      el.removerFeicao(id);
+      expect(linha(el, id)).toBeNull();
+      igualAoCompleto(el);
+    });
+
+    it('definirFeicoes tolera null, itens inválidos e ids duplicados', () => {
+      const el = criarPainel(camadasPadrao(), criarFeicoes(3));
+      el.definirFeicoes([null, undefined, { id: '' }, nova('d'), nova('d')] as unknown as FeicaoItem[]);
+      expect(sr(el).querySelectorAll('[data-feat-row]')).toHaveLength(1);
+      igualAoCompleto(el);
+      el.definirFeicoes(null as unknown as FeicaoItem[]);
+      expect(sr(el).querySelectorAll('[data-feat-row]')).toHaveLength(0);
+      igualAoCompleto(el);
+    });
+
+    it('sem render prévio (painel fora do DOM) mutações não lançam', () => {
+      const el = document.createElement('ui-camadas') as UICamadas;
+      el.setAttribute('persistir', 'false');
+      expect(() => {
+        el.adicionarFeicao(nova('a'));
+        el.atualizarFeicao({ id: 'a', name: 'B' } as FeicaoItem);
+        el.removerFeicao('a');
+      }).not.toThrow();
+    });
+  });
+
+  describe('eventos nas linhas', () => {
+    it('100 mutações não duplicam listeners nas linhas existentes', () => {
+      const el = criarPainel(camadasPadrao(), criarFeicoes(3));
+      for (let i = 0; i < 100; i++) {
+        el.adicionarFeicao(nova(`n${i}`));
+        if (i % 3 === 0) el.atualizarFeicao({ id: `n${i}`, name: `Alterada ${i}` } as FeicaoItem);
+        if (i % 2 === 0) el.removerFeicao(`n${i}`);
+      }
+      const selecionadas: unknown[] = [];
+      const visibilidade: unknown[] = [];
+      el.addEventListener('ui-feicao-selecionada', (e) => selecionadas.push((e as CustomEvent).detail));
+      el.addEventListener('ui-feicao-visibilidade', (e) => visibilidade.push((e as CustomEvent).detail));
+
+      linha(el, 'f0')!.click();
+      expect(selecionadas).toHaveLength(1);
+      q(el, '[data-feat-eye="f1"]').click();
+      expect(visibilidade).toHaveLength(1);
+      // linha criada incrementalmente e linha que sofreu update
+      linha(el, 'n1')!.click();
+      expect(selecionadas).toHaveLength(2);
+      q(el, '[data-feat-eye="n3"]').click();
+      expect(visibilidade).toHaveLength(2);
+    });
+
+    it('linha nova responde a seleção, olho, cadeado, enquadrar e renomear', () => {
+      const el = criarPainel(camadasPadrao(), criarFeicoes(1));
+      el.adicionarFeicao(nova('n'));
+      const eventos: string[] = [];
+      ['ui-feicao-selecionada', 'ui-feicao-visibilidade', 'ui-feicao-bloqueio', 'ui-feicao-enquadrar', 'ui-feicao-renomeada'].forEach((nome) =>
+        el.addEventListener(nome, () => eventos.push(nome))
+      );
+      linha(el, 'n')!.click();
+      q(el, '[data-feat-eye="n"]').click();
+      q(el, '[data-feat-lock="n"]').click();
+      q(el, '[data-feat-fit="n"]').click();
+      expect(eventos).toEqual(['ui-feicao-selecionada', 'ui-feicao-visibilidade', 'ui-feicao-bloqueio', 'ui-feicao-enquadrar']);
+
+      q(el, '[data-feat-name-trigger="n"]').dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+      const input = q<HTMLInputElement>(el, '[data-inline-feat-input="n"]');
+      input.value = 'Renomeada';
+      input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+      expect(eventos[eventos.length - 1]).toBe('ui-feicao-renomeada');
+      expect(el.obterFeicao('n')!.name).toBe('Renomeada');
+    });
+
+    it('arrastar uma linha antiga sobre uma linha nova reordena (estado de arraste compartilhado)', () => {
+      const el = criarPainel(camadasPadrao(), criarFeicoes(2));
+      el.adicionarFeicao(nova('n'));
+      const reordenadas: unknown[] = [];
+      el.addEventListener('ui-feicoes-reordenadas', (e) => reordenadas.push((e as CustomEvent).detail));
+      linha(el, 'f0')!.dispatchEvent(new Event('dragstart', { bubbles: true }));
+      linha(el, 'n')!.dispatchEvent(new Event('dragover', { bubbles: true, cancelable: true }));
+      linha(el, 'n')!.dispatchEvent(new Event('drop', { bubbles: true, cancelable: true }));
+      expect(reordenadas).toHaveLength(1);
+      expect(el.feicoes.map((f) => f.id)).toEqual(['f1', 'n', 'f0']);
+    });
+
+    it('arrastar uma linha nova sobre uma camada a move', () => {
+      const el = criarPainel(camadasPadrao(), criarFeicoes(1));
+      el.adicionarFeicao(nova('n'));
+      linha(el, 'n')!.dispatchEvent(new Event('dragstart', { bubbles: true }));
+      q(el, '[data-layer-row="c1"]').dispatchEvent(new Event('drop', { bubbles: true, cancelable: true }));
+      expect(el.obterFeicao('n')!.layerId).toBe('c1');
+    });
+  });
+
+  describe('foco e acessibilidade', () => {
+    it('adicionar e remover outras linhas não tira o foco da linha focada', () => {
+      const el = criarPainel(camadasPadrao(), criarFeicoes(3));
+      const foco = linha(el, 'f1')!;
+      foco.focus();
+      el.adicionarFeicao(nova('n'));
+      el.removerFeicao('f2');
+      expect(sr(el).activeElement).toBe(foco);
+    });
+
+    it('atualizar a linha focada devolve o foco e o tabindex à linha nova', () => {
+      const el = criarPainel(camadasPadrao(), criarFeicoes(3));
+      const foco = linha(el, 'f1')!;
+      foco.focus();
+      foco.setAttribute('tabindex', '0');
+      el.atualizarFeicao({ id: 'f1', name: 'Mudou' } as FeicaoItem);
+      const depois = linha(el, 'f1')!;
+      expect(depois).not.toBe(foco);
+      expect(sr(el).activeElement).toBe(depois);
+      expect(depois.getAttribute('tabindex')).toBe('0');
+    });
+
+    it('linha nova tem os mesmos atributos ARIA e parts do render completo', () => {
+      const el = criarPainel(camadasPadrao(), criarFeicoes(1));
+      el.adicionarFeicao(nova('n'));
+      const l = linha(el, 'n')!;
+      expect(l.getAttribute('role')).toBe('treeitem');
+      expect(l.getAttribute('aria-level')).toBe('2');
+      expect(l.getAttribute('aria-selected')).toBe('false');
+      expect(l.getAttribute('tabindex')).toBe('-1');
+      expect(l.getAttribute('part')).toBe('feicao');
+      expect(l.getAttribute('draggable')).toBe('true');
+    });
+  });
+
+  describe('volume', () => {
+    it('10.000 feições: mutações isoladas mantêm o DOM igual ao completo', () => {
+      const camadas = Array.from({ length: 4 }, (_, i) => ({ id: `c${i}`, name: `C${i}` }));
+      const feicoes = Array.from({ length: 10000 }, (_, i) => ({ ...criarFeicoes(1)[0], id: `v${i}`, layerId: `c${i % 4}` }));
+      const el = criarPainel(camadas, feicoes);
+      const antiga = linha(el, 'v0');
+      el.adicionarFeicao(nova('extra', 'c2'));
+      el.atualizarFeicao({ id: 'v4', name: 'Mudou' } as FeicaoItem);
+      el.removerFeicao('v8');
+      expect(linha(el, 'v0')).toBe(antiga);
+      expect(q(el, '[data-layer-row="c2"] .ui-count-chip').textContent).toBe('2501');
+      igualAoCompleto(el);
+   }, 60_000);
+  });
+});

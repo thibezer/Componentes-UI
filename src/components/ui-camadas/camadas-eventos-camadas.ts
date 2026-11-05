@@ -301,14 +301,7 @@ export function conectarEventosCamadas(host: CamadasHostCompleto, shadow: Shadow
     });
   });
 
-  // Botão Mostrar mais feições por camada (paginação incremental)
-  shadow.querySelectorAll('[data-layer-show-more]').forEach((btn) => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const layerId = btn.getAttribute('data-layer-show-more');
-      if (layerId) host.incrementarLimiteFeicoes(layerId);
-    });
-  });
+  conectarMostrarMais(host, shadow);
 
   // Target circle da camada (seleção em lote das feições da camada e suas subcamadas)
   shadow.querySelectorAll('[data-layer-target]').forEach((target) => {
@@ -332,6 +325,17 @@ export function conectarEventosCamadas(host: CamadasHostCompleto, shadow: Shadow
       host.lastClickedFeatureId = layerFeats[layerFeats.length - 1].id;
       host.sincronizarSelecaoDOM();
       host.notificarMudancaSelecao();
+    });
+  });
+}
+
+/** Botão "Mostrar mais" do aviso de truncamento (paginação incremental das feições de uma camada). */
+export function conectarMostrarMais(host: CamadasHostCompleto, raiz: ParentNode): void {
+  raiz.querySelectorAll('[data-layer-show-more]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const layerId = btn.getAttribute('data-layer-show-more');
+      if (layerId) host.incrementarLimiteFeicoes(layerId);
     });
   });
 }

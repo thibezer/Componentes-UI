@@ -63,9 +63,10 @@ function alvos(host: HostRenomear): Alvo[] {
   ];
 }
 
-export function vincularRenomearInline(host: HostRenomear, shadow: ShadowRoot): void {
+/** Liga o duplo clique de renomear nos nomes dentro de `raiz` (padrão: o painel todo). */
+export function vincularRenomearInline(host: HostRenomear, shadow: ShadowRoot, raiz: ParentNode = shadow): void {
   for (const alvo of alvos(host)) {
-    shadow.querySelectorAll(`[${alvo.gatilho}]`).forEach((nomeEl) => {
+    raiz.querySelectorAll(`[${alvo.gatilho}]`).forEach((nomeEl) => {
       nomeEl.addEventListener('dblclick', (e) => {
         e.stopPropagation();
         const id = nomeEl.getAttribute(alvo.gatilho);

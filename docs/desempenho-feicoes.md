@@ -270,6 +270,41 @@ Protocolo completo do bench (`__bench.protocoloGPU()`), Chrome 155. Tabelas comp
   GPU a perda na faixa 180–500 é de ~15–20 ms, sem GPU repintar é 3× melhor. Algumas células da medição de limite saíram com
   0 ms (janela sem foco naquele trecho) e foram descartadas.
 
+## Painel de camadas (`<ui-camadas>`): mutação de feição
+
+Antes, `adicionarFeicao`, `atualizarFeicao`, `removerFeicao` e `definirFeicoes` redesenhavam o painel inteiro (`innerHTML` da
+árvore e religação de todos os eventos): o custo de **cada** chamada era o de um render completo. Agora o DOM é atualizado
+só nas linhas afetadas (e no chip de contagem, no círculo de seleção, no aviso "Exibindo X de Y", na linha "Camada vazia" e
+no rodapé), mantendo o contrato síncrono. Detalhes em [`src/components/ui-camadas/README.md`](../src/components/ui-camadas/README.md).
+
+**Metodologia.** 5.000 feições (polígonos de 5 vértices) em 5 camadas de ~1.000 feições (80 linhas desenhadas em cada) mais uma
+camada pequena, onde a feição nova ganha linha: 400 linhas no DOM. Navegador do painel de preview (Chromium), medido com
+`performance.now()` (resolução de 0,1 ms), mediana de 60–100 chamadas, painel visível no DOM.
+
+| Operação (síncrona) | Antes (= render completo) | Depois |
+|---|---|---|
+| render completo (`solicitarRenderizacao`) | 208 ms | 208 ms (não mudou: é o caminho de fallback) |
+| `adicionarFeicao` em camada que passa do limite (só aviso e contagem) | ~208 ms | **0,8 ms** |
+| `adicionarFeicao` que cria linha | ~208 ms | **1,0 ms** |
+| `atualizarFeicao` (troca a linha) | ~208 ms | **1,0 ms** |
+| `removerFeicao` (linha ou só contagem) | ~208 ms | **0,6–0,8 ms** |
+| laço de 200 `adicionarFeicao` sem `emLote` | ~42 s (200 × 208 ms, extrapolado) | **132 ms** |
+| 200 `adicionarFeicao` dentro de `emLote` | 335 ms (um render completo ao fim) | 335 ms (inalterado) |
+| `definirFeicoes` com 5.000 e 1 alterada | ~208 ms | 22 ms |
+
+Meta do prompt (mutação isolada com 5.000 feições ≤ 4 ms): **cumprida** (0,6–1,0 ms). O "antes" do laço é extrapolação (não foi
+medido o laço de 200 no código antigo); o render completo de 208 ms é medido neste mesmo cenário. Os números absolutos
+dependem da máquina; o que importa é a razão.
+
+**O que continua proporcional ao tamanho da lista.** Cada mutação ainda varre `host.feicoes` algumas vezes (checagem de id
+repetido, agrupamento por camada, escopo do grupo): ~0,3–0,8 ms com 5.000 feições, linear. Para **cargas grandes** (milhares de
+`adicionarFeicao` seguidos) `emLote` (ou um único `definirFeicoes`) continua sendo a forma ideal: o DOM é refeito uma só vez.
+
+**No happy-dom** (suíte de testes) o analisador de HTML custa ~4 ms por linha criada e um render completo com 400 linhas ~2,6–3 s;
+as medianas ficam em ~1,5 ms (feição além do limite) e ~9 ms (feição que ganha linha). Por isso `tests/feicoes-desempenho.test.ts`
+usa orçamentos folgados (< 8 ms e < 60 ms por chamada, e uma fração do render completo) e um laço de 200 adições < 1 s; a meta de
+4 ms vale para o navegador.
+
 ## Regressão
 
 `tests/feicoes-lote.test.ts`:
@@ -279,6 +314,10 @@ Protocolo completo do bench (`__bench.protocoloGPU()`), Chrome 155. Tabelas comp
 - renderizador incremental = renderizador completo: sequências aleatórias de lotes comparadas, feição a feição e cluster
   a cluster, com a camada reconstruída do zero (pontos sem cluster, com cluster, com seleção no meio, linhas acima do
   corte por viewport, travessia do limite de 300, oficial × prévia).
+
+`<ui-camadas>`: `src/components/ui-camadas/ui-camadas.regressao.test.ts` ("atualização incremental de feições": DOM igual ao do
+render completo para adicionar/atualizar/remover/definir, limite de 80, fallbacks, entradas hostis, listeners não duplicados
+após 100 mutações, foco, 10.000 feições) e `camadas-atualizacao-incremental.test.ts` (decisão pura).
 
 Motor de formas (Fases 0 e 1):
 

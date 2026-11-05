@@ -4,7 +4,8 @@
    mantendo seleção, expansão, camada ativa e lembrança coerentes. Renderizar fica por conta do host.
    ==================================================== */
 
-import type { CamadaItem, FeicaoItem } from './tipos';
+import type { CamadaItem, FeicaoItem, MudancaFeicoes } from './tipos';
+import { mesmaLinhaFeicao } from './camadas-linha-feicao';
 import type { LembrancaCamadas } from './camadas-lembranca';
 import { removerSelecoesInvalidas } from './camadas-selecao';
 
@@ -23,6 +24,8 @@ export interface HostColecao {
   getAttribute(nome: string): string | null;
   salvarLembrancaEstado(): void;
   solicitarRenderizacao(): void;
+  /** Mutação de feição: atualiza só as linhas afetadas quando possível (ver `UICamadas`). */
+  solicitarAtualizacaoFeicoes(mudanca: MudancaFeicoes): void;
 }
 
 /** Transforma a árvore (`children`) em lista plana, herdando `parentId` do pai quando não informado. */
@@ -117,11 +120,28 @@ export function definirCamadasNoHost(host: HostColecao, camadas: CamadaItem[], f
   host.solicitarRenderizacao();
 }
 
+/** Ids cuja linha precisa ser refeita ao trocar a lista: feições novas ou com algum campo exibido diferente. */
+function idsAlterados(antigas: FeicaoItem[], novas: FeicaoItem[]): Set<string> {
+  const porId = new Map(antigas.map((f) => [f.id, f]));
+  const alterados = new Set<string>();
+  for (const f of novas) {
+    const antiga = porId.get(f.id);
+    if (!antiga || !mesmaLinhaFeicao(antiga, f)) alterados.add(f.id);
+  }
+  return alterados;
+}
+
 export function definirFeicoesNoHost(host: HostColecao, feicoes: FeicaoItem[]): void {
+  const antigas = host.feicoes;
   host.feicoes = sanitizarListaFeicoes(feicoes);
+  const selecaoAntes = host.selectedFeatureIds.size;
   removerSelecoesInvalidas(host.selectedFeatureIds, host.feicoes);
   soltarAncoraInvalida(host);
-  host.solicitarRenderizacao();
+  host.solicitarAtualizacaoFeicoes({
+    camadas: 'todas',
+    idsAlterados: idsAlterados(antigas, host.feicoes),
+    selecaoAfetada: host.selectedFeatureIds.size !== selecaoAntes
+  });
 }
 
 export function adicionarCamadaNoHost(host: HostColecao, camada: CamadaItem): void {
@@ -176,21 +196,35 @@ export function adicionarFeicaoNoHost(host: HostColecao, feicao: FeicaoItem): vo
     return;
   }
   host.feicoes.push({ ...feicao });
-  host.solicitarRenderizacao();
+  host.solicitarAtualizacaoFeicoes({
+    camadas: new Set([feicao.layerId || '']),
+    idsAlterados: new Set(),
+    selecaoAfetada: host.selectedFeatureIds.has(feicao.id)
+  });
 }
 
 export function atualizarFeicaoNoHost(host: HostColecao, feicaoAtualizada: FeicaoItem): void {
   if (!feicaoAtualizada || typeof feicaoAtualizada !== 'object' || !feicaoAtualizada.id) return;
   const idx = host.feicoes.findIndex((f) => f.id === feicaoAtualizada.id);
   if (idx !== -1) {
+    const camadaAntes = host.feicoes[idx].layerId || '';
     host.feicoes[idx] = { ...host.feicoes[idx], ...feicaoAtualizada };
-    host.solicitarRenderizacao();
+    host.solicitarAtualizacaoFeicoes({
+      camadas: new Set([camadaAntes, host.feicoes[idx].layerId || '']),
+      idsAlterados: new Set([feicaoAtualizada.id]),
+      selecaoAfetada: false
+    });
   }
 }
 
 export function removerFeicaoNoHost(host: HostColecao, feicaoId: string): void {
+  const removida = host.feicoes.find((f) => f.id === feicaoId);
   host.feicoes = host.feicoes.filter((f) => f.id !== feicaoId);
-  host.selectedFeatureIds.delete(feicaoId);
+  const estavaSelecionada = host.selectedFeatureIds.delete(feicaoId);
   if (host.lastClickedFeatureId === feicaoId) host.lastClickedFeatureId = null;
-  host.solicitarRenderizacao();
+  host.solicitarAtualizacaoFeicoes({
+    camadas: new Set(removida ? [removida.layerId || ''] : []),
+    idsAlterados: new Set(),
+    selecaoAfetada: estavaSelecionada
+  });
 }

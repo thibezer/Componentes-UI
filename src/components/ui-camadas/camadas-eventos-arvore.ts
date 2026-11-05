@@ -77,9 +77,13 @@ function conectarBusca(host: CamadasHostCompleto, shadow: ShadowRoot): void {
   }
 }
 
-function conectarEventosFeicoes(host: CamadasHostCompleto, shadow: ShadowRoot): void {
+/**
+ * Liga os eventos das linhas de feição que estão dentro de `raiz` (a árvore toda, no render completo; só as
+ * linhas novas, na atualização incremental, para nunca duplicar listeners em linhas existentes).
+ */
+export function conectarEventosFeicoes(host: CamadasHostCompleto, raiz: ParentNode): void {
   // 6. Linhas de Feições
-  shadow.querySelectorAll('[data-feat-select]').forEach((node) => {
+  raiz.querySelectorAll('[data-feat-select]').forEach((node) => {
     node.addEventListener('click', (e: Event) => {
       if (host.editingFeatureId) return;
       const me = e as MouseEvent;
@@ -99,7 +103,7 @@ function conectarEventosFeicoes(host: CamadasHostCompleto, shadow: ShadowRoot): 
   });
 
   // Target circle da feição
-  shadow.querySelectorAll('[data-feat-target]').forEach((target) => {
+  raiz.querySelectorAll('[data-feat-target]').forEach((target) => {
     target.addEventListener('click', (e: Event) => {
       e.stopPropagation();
       const me = e as MouseEvent;
@@ -111,7 +115,7 @@ function conectarEventosFeicoes(host: CamadasHostCompleto, shadow: ShadowRoot): 
   });
 
   // Olho (visibilidade) da feição (cirúrgico in-place 0ms)
-  shadow.querySelectorAll('[data-feat-eye]').forEach((btn) => {
+  raiz.querySelectorAll('[data-feat-eye]').forEach((btn) => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const featId = btn.getAttribute('data-feat-eye');
@@ -133,7 +137,7 @@ function conectarEventosFeicoes(host: CamadasHostCompleto, shadow: ShadowRoot): 
   });
 
   // Bloqueio da feição
-  shadow.querySelectorAll('[data-feat-lock]').forEach((btn) => {
+  raiz.querySelectorAll('[data-feat-lock]').forEach((btn) => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       // Enquanto a camada estiver travada, o bloqueio da feição não pode ser alterado individualmente
@@ -154,7 +158,7 @@ function conectarEventosFeicoes(host: CamadasHostCompleto, shadow: ShadowRoot): 
   });
 
   // Enquadrar feição
-  shadow.querySelectorAll('[data-feat-fit]').forEach((btn) => {
+  raiz.querySelectorAll('[data-feat-fit]').forEach((btn) => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const featId = btn.getAttribute('data-feat-fit');

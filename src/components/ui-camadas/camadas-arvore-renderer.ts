@@ -8,6 +8,13 @@ import { ICONES } from './camadas-icones';
 import { escapeHtml, sanitizarCorCss, corParaHex } from './camadas-utils';
 import { renderizarThumbGeometria } from './camadas-thumb';
 import {
+  criarContextoLinhaFeicao,
+  renderizarLinhaFeicao,
+  renderizarAvisoTruncamento,
+  renderizarChipContagem,
+  renderizarLinhaVazia
+} from './camadas-linha-feicao';
+import {
   construirHierarquiaCamadas,
   obterFeicoesDoEscopoCamada,
   calcularEstadoHerdado,
@@ -35,14 +42,6 @@ export interface ParametrosRenderArvore {
 
 export { escapeHtml, renderizarThumbGeometria, construirHierarquiaCamadas };
 export type { CamadaNodoHierarquico };
-
-const plural = (n: number, um: string, varios: string) => `${n} ${n === 1 ? um : varios}`;
-
-/** Título do chip de contagem: total do ramo e, num grupo, quanto é da própria camada. */
-function tituloContagem(totalRamo: number, proprias: number, subcamadas: number): string {
-  if (subcamadas === 0) return plural(totalRamo, 'feição', 'feições');
-  return `${plural(totalRamo, 'feição', 'feições')} no grupo (${proprias} nesta camada) · ${plural(subcamadas, 'subcamada', 'subcamadas')}`;
-}
 
 export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string {
   const {
@@ -161,81 +160,15 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
     const maxFeats = limitesPorCamada?.get(layer.id) ?? limiteFeicoesPorCamada;
     const visibleFeats = layerFeats.slice(0, maxFeats);
     const hasTruncated = layerFeats.length > maxFeats;
-    const restantes = layerFeats.length - maxFeats;
 
+    const ctxLinha = criarContextoLinhaFeicao(layer, depth, heranca);
     const feicoesHtml = visibleFeats
-      .map((feat) => {
-        const featId = escapeHtml(feat.id);
-        const featName = escapeHtml(feat.name || 'Feição');
-        const featColor = sanitizarCorCss(feat.color, safeColor);
-        const isFeatVisible = feat.visible !== false;
-        const featTravadaPelaCamada = isLocked || travadaPorAncestral;
-        const isFeatLocked = feat.locked === true || featTravadaPelaCamada;
-        const tituloLockFeicao = featTravadaPelaCamada
-          ? 'Bloqueada pela camada'
-          : isFeatLocked
-            ? 'Desbloquear Feição'
-            : 'Bloquear Feição';
-        const isFeatSelected = selectedFeatureIds.has(feat.id);
-
-        // Estilo Adobe: o estado padrão (oficial) não ganha selo; só a exceção (prévia) é sinalizada
-        const statusTag =
-          feat.status === 'previa'
-            ? `<span class="ui-previa-dot" title="Geometria prévia" aria-label="Geometria prévia"></span>`
-            : '';
-
-        return `
-          <div class="ui-feat-row ${isFeatSelected ? 'selected-row' : ''} ${
-          !isFeatVisible ? 'hidden-row' : ''
-        } ${!isVisible || ocultaPorAncestral ? 'herdado-oculto' : ''}" data-feat-row="${featId}" data-feat-select="${featId}" data-feat-layer="${safeId}" role="treeitem" aria-level="${depth + 2}" aria-selected="${isFeatSelected}" tabindex="-1" draggable="true" part="${
-          isFeatSelected ? 'feicao feicao-selecionada' : 'feicao'
-        }" style="--layer-depth: ${depth + 1};" title="Clique para selecionar | Arraste para reordenar">
-            <div class="ui-col ui-col-eye" data-feat-eye="${featId}" role="button" tabindex="0" aria-label="${
-          isFeatVisible ? 'Ocultar Feição' : 'Exibir Feição'
-        }" title="${
-          isFeatVisible ? 'Ocultar Feição' : 'Exibir Feição'
-        }">
-              ${isFeatVisible ? ICONES.olhoAberto : ICONES.olhoFechado}
-            </div>
-
-            <div class="ui-col ui-col-lock ${!isFeatLocked ? 'ui-lock-open' : ''}" data-feat-lock="${featId}" ${
-          featTravadaPelaCamada ? 'data-locked-by-layer="true"' : ''
-        } role="button" tabindex="0" aria-label="${tituloLockFeicao}" title="${tituloLockFeicao}">
-              ${isFeatLocked ? ICONES.cadeadoTrancado : ICONES.cadeadoAberto}
-            </div>
-
-            <div class="ui-col ui-col-colorbar" style="background: ${featColor};"></div>
-            <div class="ui-col ui-col-branch"><span style="opacity: 0.35;">└─</span></div>
-            <div class="ui-col ui-col-thumb">
-              <div class="ui-thumb-box">${renderizarThumbGeometria(feat.type || feat.geometryType, featColor, feat.coordinates)}</div>
-            </div>
-
-            <div class="ui-col ui-col-name" data-feat-name-trigger="${featId}" title="Duplo clique para renomear">
-              ${
-                editingFeatureId === feat.id
-                  ? `<input type="text" class="ui-inline-rename-input" data-inline-feat-input="${featId}" value="${featName}" />`
-                  : `<span class="ui-name-text">${featName}</span>${statusTag}`
-              }
-            </div>
-
-            <div class="ui-col ui-col-actions">
-              <button class="ui-micro-btn" data-feat-fit="${featId}" title="Enquadrar no mapa" aria-label="Enquadrar feição no mapa">${ICONES.alvoEnquadrar}</button>
-            </div>
-
-            <div class="ui-col ui-col-target" data-feat-target="${featId}" role="button" tabindex="0" aria-label="Selecionar feição" title="Selecionar feição">
-              <div class="ui-target-circle ${isFeatSelected ? 'selected' : ''}"></div>
-            </div>
-          </div>
-        `;
-      })
+      .map((feat) =>
+        renderizarLinhaFeicao(feat, ctxLinha, selectedFeatureIds.has(feat.id), editingFeatureId === feat.id)
+      )
       .join('');
 
-    const truncateNotice = hasTruncated
-      ? `<div class="ui-truncate-notice" role="note">
-          <span>Exibindo ${maxFeats} de ${layerFeats.length} feições. Use a busca acima para filtrar.</span>
-          <button type="button" class="ui-truncate-more-btn" data-layer-show-more="${safeId}">Mostrar mais (+${Math.min(80, restantes)})</button>
-        </div>`
-      : '';
+    const truncateNotice = hasTruncated ? renderizarAvisoTruncamento(safeId, maxFeats, layerFeats.length) : '';
 
     // Opacidade vinda de fora pode ser NaN, string ou fora de [0, 1]: normaliza só para exibição
     const opacidadeBruta = Number(layer.opacity ?? 1);
@@ -367,7 +300,7 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
                 ? `<input type="text" class="ui-inline-rename-input" data-inline-layer-input="${safeId}" value="${safeName}" />`
                 : `${isGroup ? `<span class="ui-group-folder-icon" title="Grupo/Pasta">${ICONES.moverPasta}</span>` : ''}
                    <span class="ui-name-text">${safeName}</span>
-                   ${escopoFeats.length > 0 || !isGroup ? `<span class="ui-count-chip" title="${tituloContagem(escopoFeats.length, layerFeats.length, subcamadas.length)}">${escopoFeats.length}</span>` : ''}`
+                   ${renderizarChipContagem(escopoFeats.length, layerFeats.length, subcamadas.length, isGroup)}`
             }
           </div>
 
@@ -391,7 +324,7 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
           ${truncateNotice}
           ${
             subcamadasExibidas.length === 0 && layerFeats.length === 0
-              ? `<div class="ui-empty-row"><span>${isGroup ? 'Grupo vazio (adicione subcamadas ou feições)' : 'Camada vazia'}</span></div>`
+              ? renderizarLinhaVazia(isGroup)
               : ''
           }
         </div>

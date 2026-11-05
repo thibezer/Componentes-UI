@@ -11,6 +11,9 @@ import type { CanvasLayerDef, CanvasRenderContext } from '../src/gerencigeo-canv
 import { MotorFormas } from '../src/gerencigeo-canvas/motor/motor-formas';
 import { projetarMercator } from '../src/gerencigeo-canvas/feature_lod';
 import type { ListaDesenho, Vista } from '../src/gerencigeo-canvas/motor/tipos';
+import '../src/components/ui-camadas/ui-camadas';
+import type { UICamadas } from '../src/components/ui-camadas/ui-camadas';
+import type { FeicaoItem } from '../src/components/ui-camadas/tipos';
 
 afterEach(() => { document.body.innerHTML = ''; });
 
@@ -496,4 +499,66 @@ describe('motor das formas (Fases 2–3): orçamentos do caminho canvas com 100 
     expect(media).toBeLessThan(16);
     expect(pior).toBeLessThan(500); // uma pausa isolada de GC não reprova; a meta é a média
   }, 30_000);
+});
+
+describe('<ui-camadas>: mutação de feição com 5.000 feições carregadas (docs/desempenho-feicoes.md)', () => {
+  const QUADRADO: [number, number][] = [[-23.5, -46.6], [-23.51, -46.6], [-23.51, -46.61], [-23.5, -46.61], [-23.5, -46.6]];
+  const feicao = (id: string, layerId: string): FeicaoItem => ({ id, name: `Feição ${id}`, layerId, type: 'Polygon', coordinates: QUADRADO });
+
+  /** 5 camadas com ~1.000 feições (só 80 linhas cada) e uma camada pequena, onde a feição nova ganha linha. */
+  function painelCarregado(): UICamadas {
+    const el = document.createElement('ui-camadas') as UICamadas;
+    el.setAttribute('persistir', 'false');
+    document.body.appendChild(el);
+    const camadas = [...Array.from({ length: 5 }, (_, i) => ({ id: `c${i}`, name: `Camada ${i}` })), { id: 'p', name: 'Pequena' }];
+    el.definirCamadas(camadas, Array.from({ length: 5000 }, (_, i) => feicao(`f${i}`, `c${i % 5}`)));
+    return el;
+  }
+
+  const mediana = (v: number[]): number => [...v].sort((a, b) => a - b)[Math.floor(v.length / 2)];
+  function medirChamadas(n: number, fn: (i: number) => void): number {
+    const tempos: number[] = [];
+    for (let i = 0; i < n; i++) {
+      const t = performance.now();
+      fn(i);
+      tempos.push(performance.now() - t);
+    }
+    return mediana(tempos);
+  }
+
+  // O alvo de ≤ 4 ms vale para o navegador (conferido no preview). No happy-dom o analisador de HTML custa ~4 ms por
+  // linha criada, então os orçamentos abaixo são folgados e comparam com o render completo, que refaz centenas de linhas.
+  it('feição além do limite de linhas (só atualiza contagem e aviso) custa uma fração do render completo', () => {
+    const el = painelCarregado();
+    const completo = medirChamadas(2, () => el.solicitarRenderizacao());
+    const adicionar = medirChamadas(50, (i) => el.adicionarFeicao(feicao(`n${i}`, `c${i % 5}`)));
+    const remover = medirChamadas(50, (i) => el.removerFeicao(`n${i}`));
+    expect(el.feicoes).toHaveLength(5000);
+    for (const ms of [adicionar, remover]) {
+      expect(ms).toBeLessThan(8);
+      expect(ms).toBeLessThan(completo / 100);
+    }
+  }, 60_000);
+
+  it('feição que ganha linha (adicionar, atualizar, remover) custa uma fração do render completo', () => {
+    const el = painelCarregado();
+    const completo = medirChamadas(2, () => el.solicitarRenderizacao());
+    const adicionar = medirChamadas(40, (i) => el.adicionarFeicao(feicao(`p${i}`, 'p')));
+    const atualizar = medirChamadas(40, (i) => el.atualizarFeicao({ id: `p${i}`, name: `Alterada ${i}` } as FeicaoItem));
+    const remover = medirChamadas(40, (i) => el.removerFeicao(`p${i}`));
+    expect(el.feicoes).toHaveLength(5000);
+    for (const ms of [adicionar, atualizar, remover]) {
+      expect(ms).toBeLessThan(60);
+      expect(ms).toBeLessThan(completo / 20);
+    }
+  }, 60_000);
+
+  it('um laço de 200 adicionarFeicao sem emLote termina bem abaixo de 1 s', () => {
+    const el = painelCarregado();
+    const t = performance.now();
+    for (let i = 0; i < 200; i++) el.adicionarFeicao(feicao(`x${i}`, `c${i % 5}`));
+    const total = performance.now() - t;
+    expect(el.feicoes).toHaveLength(5200);
+    expect(total).toBeLessThan(1000);
+  }, 60_000);
 });
