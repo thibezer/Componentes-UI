@@ -40,9 +40,14 @@ export class PonteiroFeicoes {
     const { clientX, clientY } = e;
     // um quadro; se a aba/painel não desenha (rAF parado), um timer garante que o hover não trave
     let feito = false;
+    let timerId: ReturnType<typeof setTimeout> | undefined;
     const executar = (): void => {
       if (feito) return;
       feito = true;
+      if (timerId !== undefined) {
+        clearTimeout(timerId);
+        timerId = undefined;
+      }
       this.hoverAgendado = false;
       const r = this.p.feicaoSob(clientX, clientY);
       const id = r?.feicao ? `${r.feicao.camadaId}\u0000${r.feicao.id}` : null;
@@ -51,7 +56,7 @@ export class PonteiroFeicoes {
       this.p.emitir('cad-feicao-hover', { feicao: r?.feicao ?? null });
     };
     if (typeof requestAnimationFrame === 'function') requestAnimationFrame(executar);
-    setTimeout(executar, 100);
+    timerId = setTimeout(executar, 100);
   }
 
   /** Botão direito: emite `cad-feicao-menu` com a feição sob o cursor (ou `null`), para o consumidor abrir o próprio menu. */

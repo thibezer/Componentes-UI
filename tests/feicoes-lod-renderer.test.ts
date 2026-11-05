@@ -203,14 +203,20 @@ describe('LOD: a feição de 1 px continua clicável (hit-test central, na geome
     expect(acoes).toHaveLength(0);
   });
 
-  it('Ctrl/Shift/Meta no clique é aditivo', () => {
+  it('Shift no clique é aditivo e Ctrl/Meta é subtrativo', () => {
     acoes.length = 0;
     const map = mapa(12);
     const r = new FeicoesLayerRenderer();
     const d = def([quadrado('a', -23.5, -46.6, 40)]);
     r.render(d, map, ctx);
-    clicar(map, [d], noCentro(20, 20), { ctrlKey: true });
+    clicar(map, [d], noCentro(20, 20), { shiftKey: true });
     expect(acoes[0][1].aditivo).toBe(true);
+    expect(acoes[0][1].subtrativo).toBe(false);
+
+    acoes.length = 0;
+    clicar(map, [d], noCentro(20, 20), { ctrlKey: true });
+    expect(acoes[0][1].aditivo).toBe(false);
+    expect(acoes[0][1].subtrativo).toBe(true);
   });
 
   it('marcas de duas camadas no mesmo ponto: UMA ação por clique, da camada do topo (linha antes de área)', () => {

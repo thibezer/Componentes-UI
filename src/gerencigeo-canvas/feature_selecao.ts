@@ -64,6 +64,25 @@ export class SelecaoFeicoes {
   }
 
   /** Alterna uma feição na seleção (Ctrl/Shift+clique). */
+  /** Adiciona várias feições à seleção existente (Shift + caixa ou Shift + clique). */
+  public adicionar(refs: RefFeicao[]): void {
+    this.selecionar(refs, true);
+  }
+
+  /** Remove várias feições da seleção existente (Ctrl + caixa ou Ctrl + clique). */
+  public subtrair(refs: RefFeicao[]): void {
+    const antes = this.assinatura();
+    const afetadas = new Set<string>();
+    for (const r of refs) {
+      const k = chave(r);
+      if (this.itens.has(k)) {
+        this.itens.delete(k);
+        afetadas.add(r.camadaId);
+      }
+    }
+    this.finalizar(antes, afetadas);
+  }
+
   public alternar(ref: RefFeicao): void {
     const antes = this.assinatura();
     const k = chave(ref);

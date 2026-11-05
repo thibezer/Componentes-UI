@@ -156,6 +156,10 @@ export class EdicaoFeicoes {
     return this.iniciarEdicao(sel[0].camadaId, sel[0].id);
   }
 
+  public cancelar(): void {
+    this.editor?.cancelar();
+  }
+
   public parar(): void {
     this.editor?.parar();
   }

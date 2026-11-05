@@ -20,6 +20,90 @@ export const formatUTM = (val: number | null | undefined, casas = 3): string => 
   });
 };
 
+export interface CoordenadaUTM {
+  este: number;
+  norte: number;
+  fuso: number;
+  hemisferio: 'N' | 'S';
+}
+
+/**
+ * Converte latitude e longitude (graus decimais WGS-84 / SIRGAS 2000) para coordenadas planas UTM.
+ * Elipsoide GRS80 (a = 6378137.0, f = 1 / 298.257222101).
+ * @param lat Latitude em graus decimais (-84 a 84)
+ * @param lon Longitude em graus decimais (-180 a 180)
+ * @param fusoForcado Fuso UTM opcional (1 a 60). Se omitido, calcula o fuso natural.
+ */
+export function latLonParaUtm(lat: number, lon: number, fusoForcado?: number): CoordenadaUTM | null {
+  if (!Number.isFinite(lat) || !Number.isFinite(lon) || Math.abs(lat) > 84 || Math.abs(lon) > 180) {
+    return null;
+  }
+
+  const a = 6378137.0;
+  const f = 1 / 298.257222101;
+  const k0 = 0.9996;
+  const e2 = f * (2 - f);
+  const ePrime2 = e2 / (1 - e2);
+
+  const fuso = Number.isInteger(fusoForcado) && fusoForcado! >= 1 && fusoForcado! <= 60
+    ? fusoForcado!
+    : Math.floor((lon + 180) / 6) + 1;
+
+  const lon0 = (fuso * 6 - 183) * (Math.PI / 180);
+  const phi = lat * (Math.PI / 180);
+  const lambda = lon * (Math.PI / 180);
+
+  const sinPhi = Math.sin(phi);
+  const cosPhi = Math.cos(phi);
+  const tanPhi = Math.tan(phi);
+
+  const N = a / Math.sqrt(1 - e2 * sinPhi * sinPhi);
+  const T = tanPhi * tanPhi;
+  const C = ePrime2 * cosPhi * cosPhi;
+  const A = (lambda - lon0) * cosPhi;
+
+  const e4 = e2 * e2;
+  const e6 = e4 * e2;
+  const M = a * (
+    (1 - e2 / 4 - 3 * e4 / 64 - 5 * e6 / 256) * phi
+    - (3 * e2 / 8 + 3 * e4 / 32 + 45 * e6 / 1024) * Math.sin(2 * phi)
+    + (15 * e4 / 256 + 45 * e6 / 1024) * Math.sin(4 * phi)
+    - (35 * e6 / 3072) * Math.sin(6 * phi)
+  );
+
+  const A2 = A * A;
+  const A3 = A2 * A;
+  const A4 = A2 * A2;
+  const A5 = A4 * A;
+  const A6 = A3 * A3;
+
+  const este = k0 * N * (
+    A
+    + (1 - T + C) * A3 / 6
+    + (5 - 18 * T + T * T + 72 * C - 58 * ePrime2) * A5 / 120
+  ) + 500000;
+
+  let norte = k0 * (
+    M + N * tanPhi * (
+      A2 / 2
+      + (5 - T + 9 * C + 4 * C * C) * A4 / 24
+      + (61 - 58 * T + T * T + 600 * C - 330 * ePrime2) * A6 / 720
+    )
+  );
+
+  const hemisferio: 'N' | 'S' = lat < 0 ? 'S' : 'N';
+  if (lat < 0) {
+    norte += 10000000;
+  }
+
+  return {
+    este: Math.round(este * 1000) / 1000,
+    norte: Math.round(norte * 1000) / 1000,
+    fuso,
+    hemisferio
+  };
+}
+
 export interface CoordenadaGeo {
   lat: number;
   lon: number;

@@ -16,8 +16,12 @@ export interface PortasSelecaoRegiao {
   desenhada: (f: Feicao) => boolean;
   desativarFerramenta: () => void;
   selecionar: (refs: RefFeicao[]) => void;
+  adicionar?: (refs: RefFeicao[]) => void;
+  subtrair?: (refs: RefFeicao[]) => void;
   alternarVarias: (refs: RefFeicao[]) => void;
 }
+
+export type OperacaoSelecaoCaixa = 'substituir' | 'adicionar' | 'subtrair' | boolean;
 
 export class SelecaoPorRegiao {
   constructor(private p: PortasSelecaoRegiao) {}
@@ -36,8 +40,9 @@ export class SelecaoPorRegiao {
     this.p.selecionar(refs);
   }
 
+  
   /** Caixa de seleção: só feições de camadas visíveis, interativas e desbloqueadas, com toque geométrico real. */
-  public selecionarNaCaixa(caixa: CaixaPx, modo: ModoCaixa, aditivo: boolean): void {
+  public selecionarNaCaixa(caixa: CaixaPx, modo: ModoCaixa, operacao: OperacaoSelecaoCaixa): void {
     const map = this.p.obterMapa();
     if (!map) return;
     const projetar = (p: [number, number]) => map.latLngToContainerPoint(p);
@@ -48,7 +53,15 @@ export class SelecaoPorRegiao {
         if (this.p.desenhada(f) && feicaoNaCaixa(f, caixa, projetar, modo)) refs.push({ camadaId: camada.id, id: f.id });
       }
     }
-    if (aditivo) this.p.alternarVarias(refs);
+    if (operacao === 'adicionar') {
+      if (this.p.adicionar) this.p.adicionar(refs);
+      else this.p.alternarVarias(refs);
+    } else if (operacao === 'subtrair') {
+      if (this.p.subtrair) this.p.subtrair(refs);
+      else this.p.alternarVarias(refs);
+    } else if (operacao === true) {
+      this.p.alternarVarias(refs);
+    }
     else this.p.selecionar(refs);
   }
 }

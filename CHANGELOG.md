@@ -2,6 +2,15 @@
 
 ## 2.13.0 — 2026-11-05
 
+### `<ui-canvas-cad>` & `gerencigeo-canvas`: auditoria, seleção avançada, navegação e HUD de coordenadas
+
+- **Seleção aditiva e subtrativa:** Suporte a `Shift` (adicionar à seleção) e `Ctrl`/`Cmd` (remover/subtrair da seleção) tanto no clique em feições quanto na caixa de seleção por arraste (caixa vermelha estilizada para operação subtrativa).
+- **Escape na Edição de Vértices:** Pressionar `Escape` com nó selecionado desmarca o nó; pressionar `Escape` sem nó selecionado cancela a edição e reverte a feição para a geometria original (`cancelar()`).
+- **Navegação com Barra de Espaço (`Hand Tool`):** Segurar a barra de espaço permite pan fluido com botão esquerdo do mouse (ideal para notebooks e trackpads), respeitando campos digitáveis.
+- **HUD de Coordenadas em Tempo Real:** Rodapé do canvas exibindo coordenadas UTM (Fuso, Hemisfério, Este e Norte formatados no padrão brasileiro) e coordenadas geográficas (Lat/Lon decimais), com suporte ao atributo `sem-hud-coordenadas`.
+- **Desempenho & GC:** Otimização de Garbage Collection em `feature_snap.ts` eliminando alocações de arrays e tuplas intermediárias durante o hot-path do cursor; cancelamento de timers concorrentes no hover de feições.
+- Testes abrangentes em `tests/canvas-melhorias-auditoria.test.ts`.
+
 ### `<ui-canvas-cad>`: atributo `qualidade` (`alta` | `media` | `baixa`)
 
 Perfis que priorizam desempenho sobre o visual no canvas (pan/zoom com muitas feições e seleção em lote). `alta` é o padrão e não muda nada. `media` e `baixa` usam o renderizador `canvas` (se `renderizador` não foi dado), marcas de LOD e simplificação em px mais agressivas e zoom em passos maiores; `baixa` ainda usa DPR 1, linhas sem tracejado, sem animação de zoom nem inércia e menos tiles em memória. Tabela completa em `src/gerencigeo-canvas/README.md`.

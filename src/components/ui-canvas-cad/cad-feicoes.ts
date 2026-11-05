@@ -129,6 +129,8 @@ export class GerenciadorFeicoes {
       desenhada: (f) => this.desenhada(f),
       desativarFerramenta: () => this.ferramentas.desativarFerramenta(),
       selecionar: (refs) => this.selecao.selecionar(refs),
+      adicionar: (refs) => this.selecao.adicionar(refs),
+      subtrair: (refs) => this.selecao.subtrair(refs),
       alternarVarias: (refs) => this.selecao.alternarVarias(refs)
     });
     this.edicao = new EdicaoFeicoes({
@@ -304,7 +306,7 @@ export class GerenciadorFeicoes {
   }
 
   /** Traduz as ações vindas do renderizador no evento a disparar pelo componente. */
-  public tratarAcaoCamada(acao: string, detalhe: { camadaId: string; feicao: Feicao; aditivo?: boolean }): string | null {
+  public tratarAcaoCamada(acao: string, detalhe: { camadaId: string; feicao: Feicao; aditivo?: boolean; subtrativo?: boolean }): string | null {
     if (acao === 'feicao-movida') {
       this.substituir(detalhe.camadaId, detalhe.feicao);
       return 'cad-feicao-atualizada';
@@ -312,7 +314,8 @@ export class GerenciadorFeicoes {
     if (acao === 'feicao-clique') {
       if (this.ferramentas.ativo) return null; // com uma ferramenta ativa, o clique é do desenho
       const ref = { camadaId: detalhe.camadaId, id: detalhe.feicao.id };
-      if (detalhe.aditivo) this.selecao.alternar(ref);
+      if (detalhe.subtrativo) this.selecao.subtrair([ref]);
+      else if (detalhe.aditivo) this.selecao.adicionar([ref]);
       else this.selecao.selecionar([ref]);
       return 'cad-feicao-clique';
     }
@@ -336,7 +339,7 @@ export class GerenciadorFeicoes {
   /** Esc ou clique no vazio: durante a edição só encerra a edição; fora dela, limpa a seleção. */
   public aoPedirLimpeza(): void {
     if (this.ferramentas.ativo) return; // Esc é tratado pela própria ferramenta
-    if (this.edicao.editando) this.edicao.parar();
+    if (this.edicao.editando) this.edicao.cancelar();
     else this.selecao.limpar();
   }
 
@@ -350,8 +353,8 @@ export class GerenciadorFeicoes {
   }
 
   /** Caixa de seleção: só feições de camadas visíveis, interativas e desbloqueadas, com toque geométrico real. */
-  public selecionarNaCaixa(caixa: CaixaPx, modo: ModoCaixa, aditivo: boolean): void {
-    this.regiao.selecionarNaCaixa(caixa, modo, aditivo);
+  public selecionarNaCaixa(caixa: CaixaPx, modo: ModoCaixa, operacao: import('./cad-feicoes-selecao-regiao').OperacaoSelecaoCaixa): void {
+    this.regiao.selecionarNaCaixa(caixa, modo, operacao);
   }
 
   // ---- popup e câmera ----

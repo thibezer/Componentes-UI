@@ -441,7 +441,8 @@ export class FeicoesCanvasRenderer implements IRenderizadorFeicoes {
     estado.context.onLayerAction?.('feicao-clique', {
       camadaId: estado.layerDef.id,
       feicao: estado.motor.feicao(estado.layerDef.id, feicao.id) ?? feicao,
-      aditivo: !!(o && (o.ctrlKey || o.metaKey || o.shiftKey))
+      aditivo: !!(o && o.shiftKey),
+      subtrativo: !!(o && (o.ctrlKey || o.metaKey))
     });
   }
 
@@ -657,7 +658,8 @@ export class FeicoesCanvasRenderer implements IRenderizadorFeicoes {
       estado.context.onLayerAction?.('feicao-clique', {
         camadaId: estado.layerDef.id,
         feicao: feicaoHit,
-        aditivo: !!(o && (o.ctrlKey || o.metaKey || o.shiftKey))
+        aditivo: !!(o && o.shiftKey),
+      subtrativo: !!(o && (o.ctrlKey || o.metaKey))
       });
     });
   }

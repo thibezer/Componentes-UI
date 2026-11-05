@@ -156,6 +156,7 @@ export class EditorVertices {
     if (!f || !inicial) return;
     if (!mesmaGeometria(inicial.geometria, f.geometria)) {
       const volta = { ...f, geometria: inicial.geometria };
+      this.feicaoAtual = volta;
       this.dep.previsualizar(volta);
       this.gravar(volta);
     }
@@ -704,6 +705,12 @@ export class EditorVertices {
     } else if (e.key === 'Delete' || e.key === 'Backspace') {
       if (this.selecionado === null) return; // sem nó selecionado, a tecla segue o rumo normal
       this.excluir(this.selecionado);
+    } else if (e.key === 'Escape') {
+      if (this.selecionado !== null) {
+        this.selecionarNo(null);
+      } else {
+        this.cancelar();
+      }
     } else if (e.key === 'Enter') {
       this.parar();
     } else {

@@ -359,8 +359,10 @@ describe('renderizador canvas: marcadores DOM e curvas (híbrido)', () => {
     const icone = marcadores.find((m) => !m.options.draggable)!;
     icone.fire('click', { originalEvent: {} });
     expect(g.obterFeicoesSelecionadas().map((f) => f.id)).toEqual(['icone']);
-    texto.fire('click', { originalEvent: { ctrlKey: true } });
+    texto.fire('click', { originalEvent: { shiftKey: true } });
     expect(g.obterFeicoesSelecionadas().map((f) => f.id).sort()).toEqual(['icone', 'texto']);
+    texto.fire('click', { originalEvent: { ctrlKey: true } });
+    expect(g.obterFeicoesSelecionadas().map((f) => f.id)).toEqual(['icone']);
     texto.setLatLng([-23.5, -46.61]);
     texto.fire('dragend');
     expect(ev('cad-feicao-atualizada').length).toBeGreaterThan(0);
@@ -449,7 +451,7 @@ describe('renderizador canvas: clique e consultas pela geometria original', () =
     expect(g.obterFeicoesSelecionadas().map((f) => f.id)).toEqual(['mini']);
   });
 
-  it('formas empilhadas: o menor polígono vence e cliques repetidos alternam; Ctrl é aditivo', async () => {
+  it('formas empilhadas: o menor polígono vence e cliques repetidos alternam; Shift é aditivo e Ctrl subtrai', async () => {
     const { g, clicar } = novo(16);
     g.definirFeicoes('c', [quad('grande', -23.5, -46.6, 200), quad('pequeno', -23.5 + 50 * mLat, -46.6 + 50 * mLon, 60)]);
     await quadro();
@@ -457,8 +459,10 @@ describe('renderizador canvas: clique e consultas pela geometria original', () =
     expect(g.obterFeicoesSelecionadas().map((f) => f.id)).toEqual(['pequeno']);
     clicar(noCentro(80, 80));
     expect(g.obterFeicoesSelecionadas().map((f) => f.id)).toEqual(['grande']);
-    clicar(noCentro(80, 80), { ctrlKey: true });
+    clicar(noCentro(80, 80), { shiftKey: true });
     expect(g.obterFeicoesSelecionadas().map((f) => f.id).sort()).toEqual(['grande', 'pequeno']);
+    clicar(noCentro(80, 80), { ctrlKey: true });
+    expect(g.obterFeicoesSelecionadas().map((f) => f.id)).toEqual(['pequeno']);
   });
 
   it('camada bloqueada, não interativa ou oculta não captura clique; feição oculta não é clicável', async () => {

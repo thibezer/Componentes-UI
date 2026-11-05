@@ -502,7 +502,8 @@ export class FeicoesLayerRenderer implements ILayerRenderer {
         estado.context.onLayerAction?.('feicao-clique', {
           camadaId: estado.layerDef.id,
           feicao: feicaoHit,
-          aditivo: !!(o && (o.ctrlKey || o.metaKey || o.shiftKey))
+          aditivo: !!(o && o.shiftKey),
+          subtrativo: !!(o && (o.ctrlKey || o.metaKey))
         });
       });
       estado.fonteHit = this.fonteDeMarcas(estado, camada);
@@ -1073,7 +1074,8 @@ export class FeicoesLayerRenderer implements ILayerRenderer {
       context.onLayerAction?.('feicao-clique', {
         camadaId: layerDef.id,
         feicao: entrada.feicao,
-        aditivo: !!(o && (o.ctrlKey || o.metaKey || o.shiftKey))
+        aditivo: !!(o && o.shiftKey),
+        subtrativo: !!(o && (o.ctrlKey || o.metaKey))
       });
     });
 

@@ -1,4 +1,4 @@
-import type L from 'leaflet';
+import L from 'leaflet';
 import type {
   Ponto, Segmento, BancoPonto, Confrontante, CanvasLayerState, CanvasGraphicScale,
   ScaleMode, PontoCAD, ConexaoCAD, PoligonoCAD, DestacarElementoOpcoes
@@ -34,10 +34,11 @@ import type { Feicao } from '../../gerencigeo-canvas/feature_types';
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 import { EstilosExternosShadow, type EstilosExternos } from './cad-estilos-externos';
 import { ehAtributoLinhaPadrao, lerLinhaPadrao, mesclarLinhaPadrao, opcaoDoAtributo } from './cad-linha-padrao';
+import { latLonParaUtm, formatUTM } from '../../gerencigeo-canvas/utils';
 
 export class UICanvasCAD extends SafeHTMLElement {
   static get observedAttributes() {
-    return ['sat-opacity', 'scale-mode', 'crosshair', 'modo-sequencial', 'chave-grupo', 'zona-projecao', 'fuso', 'canal-configuracao', 'ferramentas', 'sem-atalho-snap', 'aceitar-origem', 'sem-camadas-padrao', 'sem-painel-camadas', 'sem-barra-rapida', 'popups', 'renderizador', 'qualidade', 'sem-avisos',
+    return ['sat-opacity', 'scale-mode', 'crosshair', 'modo-sequencial', 'chave-grupo', 'zona-projecao', 'fuso', 'canal-configuracao', 'ferramentas', 'sem-atalho-snap', 'aceitar-origem', 'sem-camadas-padrao', 'sem-painel-camadas', 'sem-barra-rapida', 'popups', 'renderizador', 'qualidade', 'sem-avisos', 'sem-hud-coordenadas',
       // linha padrão (`cad-linha-padrao.ts`); literais para o manifesto e os tipos React/Vue enxergarem
       'linha-cor', 'linha-espessura', 'linha-tipo', 'linha-escala', 'linha-tracejado', 'linha-deslocamento', 'linha-opacidade', 'linha-terminacao', 'linha-juncao'];
   }
@@ -139,8 +140,8 @@ export class UICanvasCAD extends SafeHTMLElement {
       ferramentaAtiva: () => this.feicoes.ferramentaAtiva !== null,
       edicaoAtiva: () => this.feicoes.editando,
       aoLimparSelecao: () => this.feicoes.aoPedirLimpeza(),
-      selecionarFeicoesNaCaixa: (caixa: { x1: number; y1: number; x2: number; y2: number }, modo: 'window' | 'crossing', aditivo: boolean) =>
-        this.feicoes.selecionarNaCaixa(caixa, modo, aditivo)
+      selecionarFeicoesNaCaixa: (caixa: { x1: number; y1: number; x2: number; y2: number }, modo: 'window' | 'crossing', operacao: any) =>
+        this.feicoes.selecionarNaCaixa(caixa, modo, operacao)
     });
     nomearBotoesDaBarra(this.shadow);
     marcarSnap(this.shadow, true);
@@ -161,7 +162,10 @@ export class UICanvasCAD extends SafeHTMLElement {
     this.feicoes.conectarTeclado();
     this.hoverListeners.cleanup();
     if (this.mapContainer) {
-      this.hoverListeners.add(this.mapContainer, 'mousemove', (e: MouseEvent) => this.feicoes.aoMoverMouse(e));
+      this.hoverListeners.add(this.mapContainer, 'mousemove', (e: MouseEvent) => {
+        this.feicoes.aoMoverMouse(e);
+        this.atualizarHudCoordenadas(e);
+      });
       this.hoverListeners.add(this.mapContainer, 'dblclick', (e: MouseEvent) => this.feicoes.aoDuploClique(e));
     }
     this.hoverListeners.add(this, 'mouseenter', () => { this.ponteiroSobre = true; });
@@ -172,6 +176,37 @@ export class UICanvasCAD extends SafeHTMLElement {
     this.desligarAnuncios = conectarAnuncios(this, this.shadow);
     this.estilosExternos.aplicar();
     this.initTimeout = window.setTimeout(() => { this.initTimeout = undefined; this.inicializarAgora(); }, 0);
+  }
+
+  private hudCoordAgendado = false;
+  private atualizarHudCoordenadas(e: MouseEvent): void {
+    if (this.hasAttribute('sem-hud-coordenadas') || this.hudCoordAgendado) return;
+    this.hudCoordAgendado = true;
+    const { clientX, clientY } = e;
+    const atualizar = () => {
+      this.hudCoordAgendado = false;
+      const map = this.controller.getMap();
+      if (!map || !this.mapContainer) return;
+      const rect = this.mapContainer.getBoundingClientRect();
+      const pt = L.point(clientX - rect.left, clientY - rect.top);
+      const latlng = map.containerPointToLatLng(pt);
+      if (!latlng || !Number.isFinite(latlng.lat) || !Number.isFinite(latlng.lng)) return;
+
+      const utm = latLonParaUtm(latlng.lat, latlng.lng, this.zonaProjecao);
+      const hudFuso = this.shadow.getElementById('cad-coord-fuso');
+      const hudUtm = this.shadow.getElementById('cad-coord-utm');
+      const hudGeo = this.shadow.getElementById('cad-coord-geo');
+
+      if (hudFuso && utm) hudFuso.textContent = `${utm.fuso}${utm.hemisferio}`;
+      if (hudUtm && utm) {
+        hudUtm.textContent = `E: ${formatUTM(utm.este, 2)} m | N: ${formatUTM(utm.norte, 2)} m`;
+      }
+      if (hudGeo) {
+        hudGeo.textContent = `Lat: ${latlng.lat.toFixed(6)}° Lon: ${latlng.lng.toFixed(6)}°`;
+      }
+    };
+    if (typeof requestAnimationFrame === 'function') requestAnimationFrame(atualizar);
+    else setTimeout(atualizar, 16);
   }
 
   private montarBarra(valor: string | null): void {

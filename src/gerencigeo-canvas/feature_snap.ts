@@ -101,10 +101,10 @@ export function buscarSnap(
       if (usaAresta) {
         const apoio = verticesDe(g);
         const px = apoio.map(projetar);
-        const pares: Array<[number, number]> = [];
-        for (let i = 0; i < apoio.length - 1; i++) pares.push([i, i + 1]);
-        if (g.tipo === 'Polygon' && apoio.length > 2) pares.push([apoio.length - 1, 0]);
-        for (const [i, j] of pares) {
+        const totalPares = g.tipo === 'Polygon' && apoio.length > 2 ? apoio.length : apoio.length - 1;
+        for (let k = 0; k < totalPares; k++) {
+          const i = k;
+          const j = (k + 1) % apoio.length;
           const { t, d } = projetarNoSegmento(cursor, px[i], px[j]);
           if (d <= tol) {
             const c: LatLonPar = [apoio[i][0] + t * (apoio[j][0] - apoio[i][0]), apoio[i][1] + t * (apoio[j][1] - apoio[i][1])];
@@ -132,10 +132,10 @@ export function buscarSnap(
       }
 
       if (!usaMeio && !usaAresta) continue;
-      const pares: Array<[number, number]> = [];
-      for (let i = 0; i < pts.length - 1; i++) pares.push([i, i + 1]);
-      if (fechado && pts.length > 2) pares.push([pts.length - 1, 0]);
-      for (const [i, j] of pares) {
+      const totalPares = fechado && pts.length > 2 ? pts.length : pts.length - 1;
+      for (let k = 0; k < totalPares; k++) {
+        const i = k;
+        const j = (k + 1) % pts.length;
         if (arrastado !== undefined && (i === arrastado || j === arrastado)) continue;
         if (propria && arrastado === undefined) continue;
         if (usaMeio) {

@@ -1,4 +1,4 @@
-import { focoEmCampoDeTexto } from '../core/alvo-digitavel';
+import { focoEmCampoDeTexto, focoEmControleAcionavel } from '../core/alvo-digitavel';
 import L from 'leaflet';
 import type { Ponto } from './types';
 import type { CanvasLayerManager } from './layer_manager';
@@ -29,7 +29,7 @@ export interface CanvasInteracaoContext {
   /** Botão direito sobre o mapa (o menu nativo é sempre suprimido). */
   aoMenuContexto?: (e: MouseEvent) => void;
   /** Seleção por caixa sobre feições genéricas; `aditivo` = Ctrl/Cmd. */
-  selecionarFeicoesNaCaixa?: (caixa: { x1: number; y1: number; x2: number; y2: number }, modo: 'window' | 'crossing', aditivo: boolean) => void;
+  selecionarFeicoesNaCaixa?: (caixa: { x1: number; y1: number; x2: number; y2: number }, modo: 'window' | 'crossing', operacao: 'adicionar' | 'subtrair' | 'substituir' | boolean) => void;
 }
 
 /**
@@ -52,6 +52,8 @@ export class CanvasInteracao {
 
   // Estados de Pan (Rodinha)
   private isPanning: boolean = false;
+  private isSpacePressed: boolean = false;
+  private isSpacePanning: boolean = false;
   private lastMousePos = { x: 0, y: 0 };
   private lastMiddleClickTime: number = 0;
 
@@ -99,6 +101,8 @@ export class CanvasInteracao {
     window.addEventListener('mouseup', this.handleMouseUp);
     this.mapContainer.addEventListener('contextmenu', this.handleContextMenu);
     window.addEventListener('keydown', this.handleKeyDown);
+    window.addEventListener('keyup', this.handleKeyUp);
+    window.addEventListener('blur', this.handleBlur);
 
     this.mapContainer.addEventListener('touchstart', this.handleTouchStart, { passive: false });
     this.mapContainer.addEventListener('touchmove', this.handleTouchMove, { passive: false });
@@ -119,6 +123,10 @@ export class CanvasInteracao {
     }
     window.removeEventListener('mouseup', this.handleMouseUp);
     window.removeEventListener('keydown', this.handleKeyDown);
+    window.removeEventListener('keyup', this.handleKeyUp);
+    window.removeEventListener('blur', this.handleBlur);
+    this.isSpacePressed = false;
+    this.isSpacePanning = false;
     this.cancelarSupressaoClique();
 
     if (this.selecaoBox) {
@@ -209,7 +217,8 @@ export class CanvasInteracao {
     // se o click da seleção anterior nunca chegou (soltou fora da janela), não engole o próximo
     this.cancelarSupressaoClique();
 
-    if (e.button === 1) {
+    const panPorEspaco = e.button === 0 && this.isSpacePressed;
+    if (e.button === 1 || panPorEspaco) {
       e.preventDefault();
       // Só um clique limpo anterior (sem arraste, registrado ao soltar) forma o duplo clique;
       // dois arrastes seguidos são pan, não um pedido de "zoom extents"
@@ -220,6 +229,7 @@ export class CanvasInteracao {
       }
 
       this.isPanning = true;
+      this.isSpacePanning = panPorEspaco;
       this.panHappened = false;
       this.lastMousePos = { x: e.clientX, y: e.clientY };
       this.mapContainer.style.cursor = 'grabbing';
@@ -252,19 +262,27 @@ export class CanvasInteracao {
       return;
     }
 
+    if (this.isSpacePressed) {
+      if (this.mapContainer) this.mapContainer.style.cursor = 'grab';
+      return;
+    }
+
     this.selecaoBox?.atualizarSelecao(e);
   };
 
   private handleMouseUp = (e: MouseEvent): void => {
     if (this.isPanning) {
       this.isPanning = false;
+      const eraEspaco = this.isSpacePanning;
+      this.isSpacePanning = false;
       if (e.button === 1 && !this.panHappened) this.lastMiddleClickTime = Date.now();
       if (this.mapContainer) {
-        this.mapContainer.style.cursor = 'grab';
+        this.mapContainer.style.cursor = this.isSpacePressed ? 'grab' : (this.ctx.mapaController?.config?.crosshair ? 'crosshair' : '');
       }
       setTimeout(() => {
         this.panHappened = false;
       }, 120);
+      if (eraEspaco) return;
     }
 
     if (this.selecaoBox && this.selecaoBox.isSelecting) {
@@ -283,8 +301,42 @@ export class CanvasInteracao {
   private handleKeyDown = (e: KeyboardEvent): void => {
     if (e.key === 'Escape') {
       if (focoEmCampoDeTexto(e)) return;
+
+      if (this.ctx.edicaoAtiva?.() || this.ctx.ferramentaAtiva?.()) return;
+
       this.selecaoBox?.cancelarSelecao();
       this.limparSelecao();
+
+      return;
+    }
+
+    if (e.code === 'Space' || e.key === ' ') {
+      if (focoEmCampoDeTexto(e) || focoEmControleAcionavel(e)) return;
+      if (!this.isSpacePressed) {
+        this.isSpacePressed = true;
+        if (this.mapContainer && !this.isPanning) {
+          this.mapContainer.style.cursor = 'grab';
+        }
+      }
+      if (this.mapContainer && (this.mapContainer.matches(':hover') || (this.ctx.containerHost as HTMLElement | undefined)?.matches?.(':focus-within'))) {
+        e.preventDefault();
+      }
+    }
+  };
+
+  private handleKeyUp = (e: KeyboardEvent): void => {
+    if (e.code === 'Space' || e.key === ' ') {
+      this.isSpacePressed = false;
+      if (!this.isPanning && this.mapContainer) {
+        this.mapContainer.style.cursor = this.ctx.mapaController?.config?.crosshair ? 'crosshair' : '';
+      }
+    }
+  };
+
+  private handleBlur = (): void => {
+    this.isSpacePressed = false;
+    if (!this.isPanning && this.mapContainer) {
+      this.mapContainer.style.cursor = this.ctx.mapaController?.config?.crosshair ? 'crosshair' : '';
     }
   };
 

@@ -90,8 +90,13 @@ export class CanvasSelecaoBox {
     this.selectionDiv.style.width = `${Math.round(width)}px`;
     this.selectionDiv.style.height = `${Math.round(height)}px`;
 
-    // Direção do arrasto:
-    if (currentX >= this.selectStartPos.x) {
+    // Direção e modificador do arrasto:
+    const subtraindo = e.ctrlKey || e.metaKey;
+    if (subtraindo) {
+      // Modo Subtração (Ctrl/Cmd): Vermelho translúcido
+      this.selectionDiv.style.background = 'rgba(239, 68, 68, 0.22)';
+      this.selectionDiv.style.border = currentX >= this.selectStartPos.x ? '1px solid #ef4444' : '1px dashed #ef4444';
+    } else if (currentX >= this.selectStartPos.x) {
       // Window Selection (Esquerda -> Direita): Azul Sólida
       this.selectionDiv.style.background = 'rgba(14, 116, 144, 0.22)';
       this.selectionDiv.style.border = '1px solid #06b6d4';
@@ -151,7 +156,10 @@ export class CanvasSelecaoBox {
 
     // Esquerda → direita = window (tudo dentro); direita → esquerda = crossing (basta tocar)
     const modo = endPoint.x >= this.selectStartPoint.x ? 'window' : 'crossing';
-    this.ctx.selecionarFeicoesNaCaixa?.(rect, modo, e.ctrlKey || e.metaKey);
+    const subtraindo = !!(e.ctrlKey || e.metaKey);
+    const adicionando = !!e.shiftKey;
+    const operacao = adicionando ? 'adicionar' : subtraindo ? 'subtrair' : 'substituir';
+    this.ctx.selecionarFeicoesNaCaixa?.(rect, modo, operacao);
 
     const markers = (this.ctx.mapaController?.getMarkers() || []) as L.Marker[];
     const vizinhosMarkers = (this.ctx.mapaController?.getVizinhosMarkers() || []) as L.Marker[];
@@ -184,22 +192,21 @@ export class CanvasSelecaoBox {
       });
     }
 
-    if (e.ctrlKey || e.metaKey) {
+    if (adicionando) {
       selectedIds.forEach(id => {
-        if (this.ctx.selectedPontoIds.includes(id)) {
-          this.ctx.selectedPontoIds = this.ctx.selectedPontoIds.filter((sid: number) => sid !== id);
-        } else {
+        if (!this.ctx.selectedPontoIds.includes(id)) {
           this.ctx.selectedPontoIds.push(id);
         }
       });
 
       selectedVizinhoIds.forEach(id => {
-        if (this.ctx.selectedVizinhoPontoIds.includes(id)) {
-          this.ctx.selectedVizinhoPontoIds = this.ctx.selectedVizinhoPontoIds.filter((sid: number) => sid !== id);
-        } else {
+        if (!this.ctx.selectedVizinhoPontoIds.includes(id)) {
           this.ctx.selectedVizinhoPontoIds.push(id);
         }
       });
+    } else if (subtraindo) {
+      this.ctx.selectedPontoIds = this.ctx.selectedPontoIds.filter((sid: number) => !selectedIds.includes(sid));
+      this.ctx.selectedVizinhoPontoIds = this.ctx.selectedVizinhoPontoIds.filter((sid: number) => !selectedVizinhoIds.includes(sid));
     } else {
       this.ctx.selectedPontoIds = selectedIds;
       this.ctx.selectedVizinhoPontoIds = selectedVizinhoIds;
