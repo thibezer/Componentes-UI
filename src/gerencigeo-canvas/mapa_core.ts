@@ -141,8 +141,17 @@ export class MapaCore {
     }
   }
 
+  private fecharBroadcast(): void {
+    if (!this.bc) return;
+    try {
+      this.bc.close();
+    } catch {}
+    this.bc = undefined;
+  }
+
   private listenConfigBroadcast() {
     if (typeof BroadcastChannel === 'undefined') return;
+    this.fecharBroadcast(); // init() repetido não deixa o canal anterior (e o onmessage) vivo
     try {
       this.bc = new BroadcastChannel('gerencigeo_map_config');
       this.bc.onmessage = (event) => {
@@ -160,12 +169,7 @@ export class MapaCore {
       this.sigefState.currentAbortController.abort();
       this.sigefState.currentAbortController = undefined;
     }
-    if (this.bc) {
-      try {
-        this.bc.close();
-      } catch {}
-      this.bc = undefined;
-    }
+    this.fecharBroadcast();
 
     if (this.map) {
       this.popups?.destruir();

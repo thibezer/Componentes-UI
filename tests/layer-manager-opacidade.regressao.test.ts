@@ -67,3 +67,53 @@ describe('LayerManager: opacidade é do pane', () => {
     expect(lm.getLayer('a')!.zIndex).toBe(500);
   });
 });
+
+describe('LayerManager.destroy e MapaCore/CanvasInteracao: ciclo de vida', () => {
+  it('updateContext depois de destroy não re-renderiza num mapa removido', async () => {
+    const map = mapa();
+    const lm = new CanvasLayerManager([def('a', 'vetorial-poligonos', 1)] as never);
+    lm.attachMap(map, ctx);
+    lm.destroy();
+    lm.updateContext({ pontos: [] } as never);
+    await Promise.resolve();
+    expect(lm.getLayerInstance('a')).toBeUndefined();
+  });
+
+  it('MapaCore.init repetido fecha o BroadcastChannel anterior', async () => {
+    const { MapaCore } = await import('../src/gerencigeo-canvas/mapa_core');
+    const fechados: number[] = [];
+    const Original = globalThis.BroadcastChannel;
+    let n = 0;
+    class Falso { id = ++n; onmessage: unknown = null; close() { fechados.push(this.id); } postMessage() {} }
+    (globalThis as unknown as { BroadcastChannel: unknown }).BroadcastChannel = Falso;
+    try {
+      const core = new MapaCore({});
+      const el = document.createElement('div');
+      Object.defineProperty(el, 'clientWidth', { value: 800 });
+      Object.defineProperty(el, 'clientHeight', { value: 600 });
+      document.body.appendChild(el);
+      core.init(el);
+      core.init(el);
+      expect(fechados).toEqual([1]);
+      core.destroy();
+      expect(fechados).toEqual([1, 2]);
+    } finally {
+      (globalThis as unknown as { BroadcastChannel: unknown }).BroadcastChannel = Original;
+    }
+  });
+
+  it('CanvasInteracao.ativar duas vezes destrói a caixa de seleção anterior', async () => {
+    const { CanvasInteracao } = await import('../src/gerencigeo-canvas/canvas_interacao');
+    const map = mapa();
+    const ci = new CanvasInteracao();
+    const ctl = { getMap: () => map, context: {} };
+    ci.ativar(ctl);
+    const primeira = (ci as unknown as { selecaoBox: unknown }).selecaoBox;
+    ci.ativar(ctl);
+    const segunda = (ci as unknown as { selecaoBox: unknown }).selecaoBox;
+    expect(segunda).not.toBe(primeira);
+    expect(map.dragging.enabled()).toBe(false);
+    ci.desativar();
+    expect(map.dragging.enabled()).toBe(true);
+  });
+});

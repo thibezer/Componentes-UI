@@ -1,5 +1,16 @@
 # Changelog
 
+## Correções do motor do canvas (aguarda versão)
+
+Revisão profunda do motor sobre o Leaflet (testes em `tests/layer-manager-opacidade.regressao.test.ts`):
+
+- **Opacidade da camada é só do pane:** o `attachMap` e o `importState` agora a aplicam ao pane (antes camadas de feições com `opacidade < 1` apareciam a 100% até o primeiro `setLayerOpacity`), e `tile`, `wms`, linhas e polígonos não a reaplicam nos objetos (antes ela valia duas vezes).
+- `importState`, `setLayerOpacity` e `setLayerZIndex` rejeitam `NaN`/valores fora da faixa e itens nulos (antes viravam `z-index: NaN` no pane).
+- `MapaCore.init()` repetido fecha o `BroadcastChannel` anterior (vazava um canal por init).
+- `CanvasInteracao.ativar()` repetido solta a ativação anterior (caixa de seleção e ouvintes órfãos).
+- `CanvasLayerManager.destroy()` zera mapa e contexto: `updateContext` pós-destroy não re-renderiza mais num mapa removido.
+- Removido código morto: `layer_defaults.ts`, `layer_state_ops.ts`, `layer_instance_ops.ts` e os helpers sem uso de `layer_pane_ops.ts`.
+
 ## 2.12.3 — 2026-10-31
 
 Junta à 2.12.2 o que estava fora do npm: os complementos do `<ui-tabela-propriedades>` (PR #16) e o restante da revisão do `<ui-camadas>`. Corrige também o CI, que falhava desde a 2.12.0.

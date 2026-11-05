@@ -74,6 +74,8 @@ export class CanvasInteracao {
   }
 
   public ativar(mapaController: any, containerHost?: HTMLElement | ShadowRoot): void {
+    // ativar de novo (ou em outro mapa) solta antes a ativação anterior: sem caixa de seleção nem ouvintes órfãos
+    if (this.mapContainer) this.desativar();
     this.ctx.mapaController = mapaController;
     if (containerHost) this.ctx.containerHost = containerHost;
 
@@ -129,6 +131,9 @@ export class CanvasInteracao {
       this.map.doubleClickZoom.enable();
       this.map.boxZoom.enable();
     }
+    this.mapContainer = null;
+    this.isPanning = false;
+    this.isTouchPanning = false;
   }
 
   private handleTouchStart = (e: TouchEvent): void => {

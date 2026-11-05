@@ -554,6 +554,9 @@ export class CanvasLayerManager {
       });
       this.layerInstances.clear();
     }
+    // sem mapa e contexto, updateContext/setGraphicScale/clearLayers pós-destroy viram no-op (antes re-renderizavam num mapa removido)
+    this.map = null;
+    this.context = null;
     this.listeners = [];
   }
 }
