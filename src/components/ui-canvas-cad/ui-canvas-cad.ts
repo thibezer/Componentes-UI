@@ -9,7 +9,8 @@ import { ListenerBag } from '../../core/listener-bag';
 import { RegraVersoes } from '../../gerencigeo-canvas/feature_versoes';
 import { lerModoPopups, liberarPopups, type ModoPopups } from '../../gerencigeo-canvas/popup_gate';
 import { LayerRendererFactory } from '../../gerencigeo-canvas/layer_renderer_factory';
-import { lerModoRenderizador, type ModoRenderizador } from '../../gerencigeo-canvas/renderers/feicoes_despachante';
+import type { ModoRenderizador } from '../../gerencigeo-canvas/renderers/feicoes_despachante';
+import { aplicarPerfilAoMapa, lerNivelQualidade, modoRenderizadorEfetivo, perfilDe, type NivelQualidade, type PerfilQualidade } from '../../gerencigeo-canvas/qualidade';
 import type { EstatisticasFeicoes, IRenderizadorFeicoes } from '../../gerencigeo-canvas/renderers/renderizador_feicoes_tipos';
 import type { UsuarioRemoto } from '../../gerencigeo-canvas/feature_cursores';
 import { renderizarPainelCamadas } from './cad-painel-camadas';
@@ -36,7 +37,7 @@ import { ehAtributoLinhaPadrao, lerLinhaPadrao, mesclarLinhaPadrao, opcaoDoAtrib
 
 export class UICanvasCAD extends SafeHTMLElement {
   static get observedAttributes() {
-    return ['sat-opacity', 'scale-mode', 'crosshair', 'modo-sequencial', 'chave-grupo', 'zona-projecao', 'fuso', 'canal-configuracao', 'ferramentas', 'sem-atalho-snap', 'aceitar-origem', 'sem-camadas-padrao', 'sem-painel-camadas', 'sem-barra-rapida', 'popups', 'renderizador', 'sem-avisos',
+    return ['sat-opacity', 'scale-mode', 'crosshair', 'modo-sequencial', 'chave-grupo', 'zona-projecao', 'fuso', 'canal-configuracao', 'ferramentas', 'sem-atalho-snap', 'aceitar-origem', 'sem-camadas-padrao', 'sem-painel-camadas', 'sem-barra-rapida', 'popups', 'renderizador', 'qualidade', 'sem-avisos',
       // linha padrão (`cad-linha-padrao.ts`); literais para o manifesto e os tipos React/Vue enxergarem
       'linha-cor', 'linha-espessura', 'linha-tipo', 'linha-escala', 'linha-tracejado', 'linha-deslocamento', 'linha-opacidade', 'linha-terminacao', 'linha-juncao'];
   }
@@ -104,7 +105,7 @@ export class UICanvasCAD extends SafeHTMLElement {
     // Object.assign (e não `obj.x = ...`): o analisador do manifesto confundiria a atribuição com propriedades do elemento
     const contextoRender = this.controller.context;
     const contextoInteracao = this.controller.canvasInteracao.ctx;
-    Object.assign(contextoRender, { regraVersoes, renderizador: () => this.renderizador });
+    Object.assign(contextoRender, { regraVersoes, renderizador: () => this.renderizador, qualidade: () => this.perfilQualidade });
     this.feicoes = new GerenciadorFeicoes({
       obterLayerManager: () => this.controller.layerManager,
       obterMapa: () => this.controller.getMap(),
@@ -236,7 +237,15 @@ export class UICanvasCAD extends SafeHTMLElement {
     }
     if (name === 'renderizador') {
       // as camadas de feições já desenhadas são refeitas no novo caminho; as demais camadas não são tocadas
-      if (lerModoRenderizador(oldVal) !== lerModoRenderizador(newVal)) this.controller?.layerManager.recriarCamadasDoTipo('feicoes');
+      const perfil = this.perfilQualidade;
+      if (modoRenderizadorEfetivo(oldVal, perfil) !== modoRenderizadorEfetivo(newVal, perfil)) this.controller?.layerManager.recriarCamadasDoTipo('feicoes');
+      return;
+    }
+    if (name === 'qualidade') {
+      // opções do mapa na hora; as camadas de feições são refeitas para ler LOD, dpr e tracejado do perfil novo
+      if (lerNivelQualidade(oldVal) === lerNivelQualidade(newVal)) return;
+      this.aplicarQualidadeAoMapa();
+      this.controller?.layerManager.recriarCamadasDoTipo('feicoes');
       return;
     }
     if (ehAtributoLinhaPadrao(name)) {
@@ -308,6 +317,7 @@ export class UICanvasCAD extends SafeHTMLElement {
       tratarCliqueLivreCanvas: (e, latlng, point) => this.tratarCliqueLivreCanvas(e, latlng, point),
       dispararAcaoPopup: (acao, id, elem) => this.dispararAcaoPopup(acao, id, elem)
     });
+    this.aplicarQualidadeAoMapa();
   }
 
   private obterContextoEventos(): ContextoEventosCanvas {
@@ -386,8 +396,25 @@ export class UICanvasCAD extends SafeHTMLElement {
    * como marcas em lote, só um objeto Leaflet por marcador de ícone, texto, cluster e rótulo). Valor inválido usa
    * `leaflet`. Ao mudar, as camadas de feições são recriadas; a API, os eventos e os dados não mudam.
    */
-  public get renderizador(): ModoRenderizador { return lerModoRenderizador(this.getAttribute('renderizador')); }
+  public get renderizador(): ModoRenderizador { return modoRenderizadorEfetivo(this.getAttribute('renderizador'), this.perfilQualidade); }
   public set renderizador(val: ModoRenderizador) { this.setAttribute('renderizador', String(val)); }
+
+  /**
+   * Perfil de desempenho do canvas (atributo `qualidade`): `alta` (padrão, comportamento de sempre), `media` ou `baixa`.
+   * `media` e `baixa` trocam fidelidade visual por velocidade: renderizador `canvas` (se `renderizador` não foi dado),
+   * marcas e simplificação mais agressivas, zoom em passos maiores; `baixa` ainda usa dpr 1, linhas sem tracejado e
+   * sem animação de zoom nem inércia. Valor inválido usa `alta`. Ao mudar, o mapa é ajustado e as camadas de feições
+   * são recriadas; a API, os eventos e os dados não mudam.
+   */
+  public get qualidade(): NivelQualidade { return lerNivelQualidade(this.getAttribute('qualidade')); }
+  public set qualidade(val: NivelQualidade) { this.setAttribute('qualidade', String(val)); }
+
+  /** Perfil completo vigente (valores numéricos do nível em `qualidade`). */
+  public get perfilQualidade(): PerfilQualidade { return perfilDe(this.qualidade); }
+
+  private aplicarQualidadeAoMapa(): void {
+    aplicarPerfilAoMapa(this.controller?.getMap() as unknown as Parameters<typeof aplicarPerfilAoMapa>[0], this.perfilQualidade);
+  }
 
   /**
    * Contadores do desenho de uma camada de feições (`total`, `materializadas`, `desenhadas`, `marcasLOD`, `clusters`,

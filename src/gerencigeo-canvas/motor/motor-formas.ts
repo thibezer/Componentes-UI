@@ -2,7 +2,7 @@ import { partesDaLinha, type Feicao, type LatLonPar } from '../feature_types';
 import type { CaixaGeo } from '../feature_indice';
 import { caixasSeTocam } from '../feature_indice';
 import { AgrupadorCluster, deveAgrupar } from '../feature_cluster';
-import { OPACIDADE_MARCA, diagonalPx, ehMarca, ladoMarca } from '../feature_lod';
+import { LIMITE_MARCA_PX, OPACIDADE_MARCA, diagonalPx, ehMarca, ladoMarca } from '../feature_lod';
 import { MIN_VERTICES_SIMPLIFICAR, ZOOM_SEM_SIMPLIFICACAO } from '../feature_simplificacao';
 import { nosDaGeometria } from '../feature_curvas';
 import { textoRotulo } from '../feature_metricas';
@@ -83,6 +83,26 @@ const vistaValida = (v: Vista | null | undefined): v is Vista =>
 export class MotorFormas {
   private camadas = new Map<string, EstadoCamada>();
   private regra: RegraVisivel | null = null;
+  private limiteMarcaPx = LIMITE_MARCA_PX;
+  private toleranciaPx = TOLERANCIA_PX;
+
+  /**
+   * Ajusta o LOD (diagonal em px abaixo da qual a feição vira marca) e a tolerância da simplificação em px (perfis de
+   * `qualidade.ts`). Valor inválido (NaN, <= 0) mantém o atual. Ao mudar de verdade, os caches por zoom são descartados.
+   */
+  public definirQualidade(opcoes: { limiteMarcaPx?: number; toleranciaPx?: number }): void {
+    const limite = Number.isFinite(opcoes?.limiteMarcaPx) && (opcoes.limiteMarcaPx as number) > 0 ? (opcoes.limiteMarcaPx as number) : this.limiteMarcaPx;
+    const tol = Number.isFinite(opcoes?.toleranciaPx) && (opcoes.toleranciaPx as number) > 0 ? (opcoes.toleranciaPx as number) : this.toleranciaPx;
+    if (limite === this.limiteMarcaPx && tol === this.toleranciaPx) return;
+    this.limiteMarcaPx = limite;
+    this.toleranciaPx = tol;
+    for (const est of this.camadas.values()) {
+      est.geom.clear();
+      est.lod.clear();
+      est.zoomCache = -1;
+      est.dados.revisao++; // a lista de desenho em cache (se houver) deixa de valer
+    }
+  }
 
   // ---------------------------------------------------------------- camadas
 
@@ -356,7 +376,7 @@ export class MotorFormas {
     const guardado = est.lod.get(f.id);
     if (guardado !== undefined) return guardado;
     est.avaliacoesLOD++;
-    const r = ehMarca(est.dados.indice.caixaDe(f.id), zoom);
+    const r = ehMarca(est.dados.indice.caixaDe(f.id), zoom, this.limiteMarcaPx);
     est.lod.set(f.id, r);
     return r;
   }
@@ -373,7 +393,7 @@ export class MotorFormas {
 
   private construirGeometria(est: EstadoCamada, f: Feicao, zoom: number, rev: number): EntradaGeom | null {
     const g = f.geometria;
-    const tol = zoom < ZOOM_SEM_SIMPLIFICACAO ? TOLERANCIA_PX : 0;
+    const tol = zoom < ZOOM_SEM_SIMPLIFICACAO ? this.toleranciaPx : 0;
     if (g.tipo === 'Polygon') {
       const partes: Float64Array[] = [];
       for (const anel of g.aneis ?? []) {

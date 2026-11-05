@@ -16,6 +16,7 @@ import { iconeCluster, iconeSvg, iconeTexto, opcoesPath } from './marcadores_fei
 import { selecaoVisual } from './selecao_visual';
 import type { DeltaFeicoes } from './feicoes_renderer';
 import type { EstatisticasFeicoes, IRenderizadorFeicoes } from './renderizador_feicoes_tipos';
+import { perfilDe, type PerfilQualidade } from '../qualidade';
 
 /*
  * Renderizador de feições em Canvas 2D (`renderizador="canvas"`). Três camadas, de baixo para cima:
@@ -137,6 +138,15 @@ function pedirSobreposicao(sob: Sobreposicao): void {
   });
 }
 
+/** Perfil de qualidade do contexto (`alta` se ausente ou se a leitura falhar: Regra #0). */
+function perfilDoContexto(context: CanvasRenderContext): PerfilQualidade {
+  try {
+    return context.qualidade?.() ?? perfilDe('alta');
+  } catch {
+    return perfilDe('alta');
+  }
+}
+
 export class FeicoesCanvasRenderer implements IRenderizadorFeicoes {
   private estados = new WeakMap<L.LayerGroup, Estado>();
   /** Por definição de camada, para a seleção sobreviver à recriação do grupo (ocultar e exibir a camada). */
@@ -147,6 +157,8 @@ export class FeicoesCanvasRenderer implements IRenderizadorFeicoes {
   public render(layerDef: CanvasLayerDef, map: L.Map, context: CanvasRenderContext): L.LayerGroup {
     const grupo = L.layerGroup();
     const motor = new MotorFormas();
+    const perfil = perfilDoContexto(context);
+    motor.definirQualidade({ limiteMarcaPx: perfil.limiteMarcaPx, toleranciaPx: perfil.toleranciaPx });
     const regra = context.regraVersoes;
     if (regra) motor.definirRegra((f, comOficial) => regra.visivel(f, comOficial));
     motor.definirCamada(this.defMotor(layerDef));
@@ -159,8 +171,9 @@ export class FeicoesCanvasRenderer implements IRenderizadorFeicoes {
       camada: () => (estado.quadro ? { ctx: estado.quadro.ctx, largura: estado.quadro.larguraPx, altura: estado.quadro.alturaPx, dpr: estado.quadro.dpr } : null),
       sobreposicao: () => null
     });
+    estado.pintor.definirTracejado(perfil.tracejado);
     if (!map.getPane(nomePane(layerDef.id))) map.createPane(nomePane(layerDef.id));
-    estado.base = new CanvasFormas({ pane: nomePane(layerDef.id), padding: 0.1, incremental: true }, (q) => this.pintarBase(estado, q));
+    estado.base = new CanvasFormas({ pane: nomePane(layerDef.id), padding: 0.1, incremental: true, dprMaximo: perfil.dprMaximo }, (q) => this.pintarBase(estado, q));
     this.estados.set(grupo, estado);
 
     // o canvas só entra com o mapa já com vista (o Leaflet exige centro e zoom para dimensionar o canvas)
@@ -168,6 +181,8 @@ export class FeicoesCanvasRenderer implements IRenderizadorFeicoes {
       if (estado.vivo) grupo.addLayer(estado.base);
     });
     const sob = sobreposicaoDe(map);
+    sob.pintor.definirTracejado(perfil.tracejado);
+    sob.canvas.definirDprMaximo(perfil.dprMaximo);
     sob.estados.add(estado);
     anexarSobreposicao(map, sob);
     this.registrarHit(estado);

@@ -62,6 +62,8 @@ export interface OpcoesCanvasFormas extends L.RendererOptions {
   incremental?: boolean;
   /** Pan incremental com até tantos itens no bitmap: repinta inteiro em vez de deslocar (padrão: `CanvasFormas.limiteRepintar`). */
   limiteRepintar?: number;
+  /** Teto do multiplicador de retina (padrão 2 = o do Leaflet; 1 = nunca acima de 1×). */
+  dprMaximo?: 1 | 2;
 }
 
 /** Regiões que ficam vazias quando o conteúdo se desloca de (`dx`, `dy`) px: a faixa vertical inteira e a horizontal sem a quina. */
@@ -100,12 +102,41 @@ export class CanvasFormas extends L.Canvas {
   /** Quantas pinturas falharam (e a última causa): diagnóstico, já que a falha é engolida. */
   public falhas = 0;
   public ultimoErro: unknown = null;
+  /** Teto do multiplicador de retina (perfil `qualidade`): 1 pinta 4× menos pixels num monitor retina. */
+  private dprTeto: 1 | 2 = 2;
 
   constructor(opcoes: OpcoesCanvasFormas, aoPintar: PintarQuadro) {
     super(opcoes);
     this.aoPintar = aoPintar;
     this.incremental = !!opcoes.incremental;
     this.limiteProprio = opcoes.limiteRepintar;
+    this.dprTeto = opcoes.dprMaximo === 1 ? 1 : 2;
+  }
+
+  /** Multiplicador de retina efetivo: o do Leaflet limitado pelo teto do perfil. */
+  private get multiplicador(): number {
+    return L.Browser.retina ? this.dprTeto : 1;
+  }
+
+  /**
+   * Troca o teto do multiplicador em execução. Se o canvas já está no mapa e o efetivo mudou, reposiciona (o bitmap é
+   * redimensionado) e repinta tudo.
+   */
+  public definirDprMaximo(teto: number): void {
+    const novo: 1 | 2 = teto === 1 ? 1 : 2;
+    if (novo === this.dprTeto) return;
+    const antes = this.multiplicador;
+    this.dprTeto = novo;
+    if (this.multiplicador === antes) return;
+    this.conteudoValido = false;
+    const i = this as unknown as InternosCanvas;
+    if (!i._map || !i._bounds) return;
+    try {
+      this._update();
+      this._updatePaths();
+    } catch {
+      // Regra #0: sem vista ainda; o próximo moveend refaz
+    }
   }
 
   private get limiteRepintar(): number {
@@ -143,7 +174,7 @@ export class CanvasFormas extends L.Canvas {
     const container = i._container!;
     const ctx = i._ctx!;
     const tamanho = b.getSize();
-    const m = L.Browser.retina ? 2 : 1;
+    const m = this.multiplicador;
     L.DomUtil.setPosition(container, b.min!);
 
     const mesmoQuadro = this.incremental && this.conteudoValido && !!antes && antes.zoom === i._zoom && antes.x === tamanho.x && antes.y === tamanho.y &&
@@ -230,7 +261,7 @@ export class CanvasFormas extends L.Canvas {
       const inf = map.layerPointToLatLng(b.max!);
       return {
         ctx,
-        dpr: L.Browser.retina ? 2 : 1,
+        dpr: this.multiplicador,
         larguraPx: tamanho.x,
         alturaPx: tamanho.y,
         origemPx: { x: origem.x + b.min!.x, y: origem.y + b.min!.y },

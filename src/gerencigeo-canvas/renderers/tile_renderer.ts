@@ -3,7 +3,13 @@ import type { ILayerRenderer } from '../layer_renderer_factory';
 import type { CanvasLayerDef, CanvasRenderContext } from '../types';
 
 export class TileLayerRenderer implements ILayerRenderer {
-  public render(layerDef: CanvasLayerDef, _map: L.Map, _context: CanvasRenderContext): L.Layer | null {
+  public render(layerDef: CanvasLayerDef, _map: L.Map, context: CanvasRenderContext): L.Layer | null {
+    let keepBuffer = 16;
+    try {
+      keepBuffer = context?.qualidade?.().keepBuffer ?? 16;
+    } catch {
+      // Regra #0: contexto sem perfil usa o padrão
+    }
     const url = layerDef.dados?.url || 'https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}';
     const subdomains = layerDef.dados?.subdomains || ['mt0', 'mt1', 'mt2', 'mt3'];
     const attribution = layerDef.dados?.attribution || 'Google Satélite';
@@ -13,7 +19,7 @@ export class TileLayerRenderer implements ILayerRenderer {
       maxNativeZoom: 20,
       subdomains,
       attribution,
-      keepBuffer: 16,
+      keepBuffer,
       updateWhenZooming: false,
       updateWhenIdle: true,
       className: 'smooth-zoom-layer',

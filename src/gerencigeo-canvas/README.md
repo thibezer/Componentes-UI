@@ -111,6 +111,30 @@ Caminho opt-in que desenha as camadas de feições sem um objeto Leaflet por fei
 O motor sai sozinho em `@thibezer/ui-components-kit/motor` (`src/motor.ts`), sem Leaflet: dá para rodá-lo em Node ou num
 Web Worker.
 
+### Perfis de qualidade (`qualidade="alta|media|baixa"`)
+
+`qualidade.ts` (puro, sem Leaflet) define três perfis que trocam fidelidade visual por desempenho no `<ui-canvas-cad>`. O
+padrão `alta` é o comportamento de sempre. O foco é pan/zoom com muitas feições e a seleção em lote.
+
+| | `alta` (padrão) | `media` | `baixa` |
+|---|---|---|---|
+| Renderizador, se `renderizador` não foi dado | `leaflet` | `canvas` | `canvas` |
+| DPR máximo dos canvases de feições | retina (2) | retina (2) | **1** (4× menos pixels em tela retina) |
+| LOD: diagonal abaixo da qual vira marca | 3 px | 6 px | 10 px |
+| Tolerância da simplificação (px) | 1,2 | 2 | 3 |
+| `dashArray` (tracejado) | sim | sim | **não** (linha contínua) |
+| Animação de zoom/fade/marcadores, inércia | sim | sim | **não** |
+| `zoomSnap` / `zoomDelta` | 0,25 / 0,5 | 0,5 / 0,5 | **1 / 1** (o cache do motor é por zoom) |
+| `keepBuffer` dos tiles | 16 | 8 | 4 |
+
+- O atributo `renderizador`, quando dado, sempre vence o padrão do perfil. Com `renderizador="leaflet"` valem só as opções
+  do mapa (animações, zoom e tiles); LOD, DPR e tracejado são do caminho `canvas`.
+- Mudar o atributo em execução ajusta o mapa na hora (`aplicarPerfilAoMapa`, reversível: o que o Leaflet calculou na criação
+  é guardado e restaurado) e recria as camadas de feições; API, eventos e dados não mudam. Hit-test, snap e seleção usam a
+  geometria original, então uma feição que virou marca continua clicável.
+- `MotorFormas.definirQualidade({ limiteMarcaPx, toleranciaPx })` e `CanvasFormas.definirDprMaximo(1|2)` são os ganchos de baixo
+  nível; valor inválido mantém o atual.
+
 ### LOD por tamanho em pixels (marcas)
 
 Feição (linha, polígono ou círculo) cuja **diagonal** na tela fica abaixo de `LIMITE_MARCA_PX` (3 px) não vira objeto Leaflet:

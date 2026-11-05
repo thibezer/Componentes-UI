@@ -115,7 +115,14 @@ export class PintorCanvas2D implements RenderizadorFormas {
   /** Estatística da última pintura (diagnóstico e testes). */
   public ultima: EstatisticasPintura = { itens: 0, marcas: 0, preenchimentos: 0, tracos: 0, chamadas: 0 };
 
+  /** Perfil de qualidade `baixa`: ignora `dash` (linha contínua, mais barata no Canvas 2D). */
+  private semTracejado = false;
+
   constructor(private readonly alvos: AlvosPintura) {}
+
+  public definirTracejado(ligado: boolean): void {
+    this.semTracejado = !ligado;
+  }
 
   public destacar(ids: Iterable<string>): void {
     this.destaques = new Set(ids);
@@ -274,8 +281,8 @@ export class PintorCanvas2D implements RenderizadorFormas {
       if (tracar) {
         ctx.strokeStyle = e.cor;
         ctx.lineWidth = e.peso;
-        ctx.setLineDash(parseDash(e.dash));
-        ctx.lineDashOffset = e.deslocamentoDash ?? 0;
+        ctx.setLineDash(this.semTracejado ? [] : parseDash(e.dash));
+        ctx.lineDashOffset = this.semTracejado ? 0 : (e.deslocamentoDash ?? 0);
         ctx.lineCap = e.terminacao ?? 'round';
         ctx.lineJoin = e.juncao ?? 'round';
       }

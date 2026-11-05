@@ -1,5 +1,15 @@
 # Changelog
 
+## Não publicado
+
+### `<ui-canvas-cad>`: atributo `qualidade` (`alta` | `media` | `baixa`)
+
+Perfis que priorizam desempenho sobre o visual no canvas (pan/zoom com muitas feições e seleção em lote). `alta` é o padrão e não muda nada. `media` e `baixa` usam o renderizador `canvas` (se `renderizador` não foi dado), marcas de LOD e simplificação em px mais agressivas e zoom em passos maiores; `baixa` ainda usa DPR 1, linhas sem tracejado, sem animação de zoom nem inércia e menos tiles em memória. Tabela completa em `src/gerencigeo-canvas/README.md`.
+
+- Novo módulo puro `qualidade.ts` (`lerNivelQualidade`, `perfilDe`, `modoRenderizadorEfetivo`, `aplicarPerfilAoMapa`); ganchos `MotorFormas.definirQualidade`, `CanvasFormas.definirDprMaximo` e `PintorCanvas2D.definirTracejado`. Propriedades `qualidade` e `perfilQualidade` no componente.
+- Mudar o atributo em execução ajusta o mapa (reversível) e recria as camadas de feições; dados, API e eventos não mudam.
+- Testes em `tests/qualidade.test.ts` (perfil, motor, pintor, DPR, componente e entradas hostis).
+
 ## 2.12.5 — 2026-11-05
 
 ### `<ui-camadas>`: mutação de feição atualiza só as linhas afetadas

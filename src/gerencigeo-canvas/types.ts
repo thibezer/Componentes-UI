@@ -203,4 +203,6 @@ export interface CanvasRenderContext {
   regraVersoes?: import('./feature_versoes').RegraVersoes;
   /** Qual renderizador desenha as camadas de feições (atributo `renderizador` do componente). Ausente = `leaflet`. */
   renderizador?: () => 'leaflet' | 'canvas';
+  /** Perfil de qualidade vigente (atributo `qualidade` do componente). Ausente = `alta` (comportamento de sempre). */
+  qualidade?: () => import('./qualidade').PerfilQualidade;
 }
