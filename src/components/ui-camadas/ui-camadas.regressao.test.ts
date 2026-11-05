@@ -3,6 +3,7 @@ import './ui-camadas';
 import type { UICamadas } from './ui-camadas';
 import type { CamadaItem, FeicaoItem } from './tipos';
 import { sanitizarCorCss, corParaHex, buscarPorAtributo } from './camadas-utils';
+import { substituirMiniaturaQuebrada } from './camadas-render';
 import { obterIdsVisiveisFeicoes, filtrarFeicoesPorBusca, filtrarCamadasPorBusca } from './camadas-selecao';
 
 const QUADRADO: [number, number][] = [
@@ -1409,5 +1410,72 @@ describe('UICamadas - revisão profunda (falhavam antes)', () => {
       vi.advanceTimersByTime(3600);
       expect(btn.querySelector('.ui-btn-label')!.textContent).toBe('Excluir');
     });
+  });
+});
+
+describe('UICamadas - opacidade fora do intervalo', () => {
+  beforeEach(() => {
+    document.body.innerHTML = '';
+    localStorage.clear();
+  });
+
+  it('opacidade inválida ou fora de [0, 1] é exibida normalizada no drawer', () => {
+    const el = document.createElement('ui-camadas') as UICamadas;
+    el.setAttribute('persistir', 'false');
+    document.body.appendChild(el);
+    el.definirCamadas(
+      [
+        { id: 'a', name: 'A', opacity: 7 },
+        { id: 'b', name: 'B', opacity: NaN },
+        { id: 'c', name: 'C', opacity: -2 }
+      ],
+      []
+    );
+    const badge = (id: string): string => {
+      el.activeSettingsLayerId = id;
+      el.solicitarRenderizacao();
+      return el.shadowRoot!.querySelector('[id^="badge-op-"]')!.textContent!;
+    };
+    expect(badge('a')).toBe('100%');
+    expect(badge('b')).toBe('100%');
+    expect(badge('c')).toBe('0%');
+  });
+});
+
+describe('UICamadas - miniaturas de mapa base', () => {
+  beforeEach(() => {
+    document.body.innerHTML = '';
+    localStorage.clear();
+  });
+
+  it('miniatura que falha ao carregar vira o placeholder neutro e o card segue selecionável', () => {
+    const el = document.createElement('ui-camadas') as UICamadas;
+    el.setAttribute('persistir', 'false');
+    document.body.appendChild(el);
+    el.definirMapasBase([
+      { id: 'm1', nome: 'M1', thumbnailUrl: 'https://exemplo.invalid/a.jpg' },
+      { id: 'm2', nome: 'M2' }
+    ]);
+    const sr = el.shadowRoot!;
+    // No jsdom a imagem sem rede já nasce "completa e vazia": o placeholder entra na renderização
+    // Em navegador o evento 'error' dispara depois; os dois caminhos usam a mesma troca
+    const card = sr.querySelector('[data-basemap-id="m1"]')!;
+    expect(card.querySelector('.ui-basemap-preview-none')).toBeTruthy();
+    expect(card.querySelector('img[data-basemap-thumb]')).toBeNull();
+    el.selecionarMapaBase('m1');
+    expect(el.mapaBaseAtivo).toBe('m1');
+  });
+
+  it('substituirMiniaturaQuebrada troca a <img> em evento de erro tardio', () => {
+    const host = document.createElement('div');
+    const img = document.createElement('img');
+    img.setAttribute('data-basemap-thumb', '');
+    host.appendChild(img);
+    document.body.appendChild(host);
+    substituirMiniaturaQuebrada(img);
+    expect(host.querySelector('img')).toBeNull();
+    expect(host.querySelector('.ui-basemap-preview-none')).toBeTruthy();
+    // chamada repetida com a imagem já fora do DOM não lança
+    expect(() => substituirMiniaturaQuebrada(img)).not.toThrow();
   });
 });

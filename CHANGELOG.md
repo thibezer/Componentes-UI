@@ -1,5 +1,13 @@
 # Changelog
 
+## `<ui-camadas>`: opacidade, miniaturas e grade de mapas base (aguarda versão)
+
+Testes em `ui-camadas.regressao.test.ts`:
+
+- **Opacidade fora de [0, 1]:** o drawer mostrava "700%" para `opacity: 7` e "NaN%" para `NaN`; agora exibe o valor limitado a 0–100% (inválido vira 100%), e o slider só emite `ui-camada-opacidade` com valor finito dentro da faixa.
+- **Miniatura de mapa base que não carrega** (offline, CSP, link quebrado) vira o placeholder neutro em vez de um card em branco.
+- **Grade de mapas base** passa a 3 colunas a partir de 260 px e 4 a partir de 340 px de largura (container query), devolvendo altura à árvore de camadas.
+
 ## 2.12.4 — 2026-11-05
 
 Correções do motor do canvas

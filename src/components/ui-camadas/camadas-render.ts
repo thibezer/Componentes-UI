@@ -10,6 +10,7 @@ import { renderizarRodapeAcoes } from './camadas-rodape';
 import { renderizarGridMapasBase } from './camadas-mapas-base';
 import { conectarEventosArvore } from './camadas-eventos-arvore';
 import { buscarPorAtributo } from './camadas-utils';
+import { ICONES } from './camadas-icones';
 import type { CamadasHostCompleto } from './camadas-host';
 import type { CamadasDragDropManager } from './camadas-drag-drop';
 
@@ -23,6 +24,15 @@ export interface HostRenderizavel extends CamadasHostCompleto {
   readonly mapasBaseRecolhido: boolean;
   readonly mostrarRodape: boolean;
   getAttribute(nome: string): string | null;
+}
+
+/** Troca uma <img> de miniatura que não carregou pelo mesmo placeholder usado por "Sem Mapa". */
+export function substituirMiniaturaQuebrada(img: HTMLImageElement): void {
+  if (!img.isConnected) return;
+  const placeholder = document.createElement('div');
+  placeholder.className = 'ui-basemap-preview-none';
+  placeholder.innerHTML = ICONES.gradeCad;
+  img.replaceWith(placeholder);
 }
 
 export function renderizarPainel(
@@ -100,6 +110,14 @@ export function renderizarPainel(
 
     // Roving tabindex: apenas a primeira linha entra na ordem de Tab; as demais usam setas
     shadow.querySelector<HTMLElement>('[data-layer-row], [data-feat-row]')?.setAttribute('tabindex', '0');
+
+    // Miniaturas remotas podem falhar (offline, CSP, link quebrado): troca pelo placeholder neutro
+    corpo.querySelectorAll<HTMLImageElement>('img[data-basemap-thumb]').forEach((img) => {
+      const trocarPorPlaceholder = (): void => substituirMiniaturaQuebrada(img);
+      img.addEventListener('error', trocarPorPlaceholder, { once: true });
+      // O erro pode ter ocorrido antes de o ouvinte existir
+      if (img.complete && img.naturalWidth === 0 && img.getAttribute('src')) trocarPorPlaceholder();
+    });
 
     conectarEventosArvore(host, shadow);
     dragDrop.bindAll();

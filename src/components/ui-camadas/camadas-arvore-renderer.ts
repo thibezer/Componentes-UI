@@ -237,7 +237,9 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
         </div>`
       : '';
 
-    const currentOpacity = layer.opacity !== undefined ? layer.opacity : 1;
+    // Opacidade vinda de fora pode ser NaN, string ou fora de [0, 1]: normaliza só para exibição
+    const opacidadeBruta = Number(layer.opacity ?? 1);
+    const currentOpacity = Number.isFinite(opacidadeBruta) ? Math.min(1, Math.max(0, opacidadeBruta)) : 1;
     const currentOpacityPct = Math.round(currentOpacity * 100);
 
     // Opções de outras camadas para selecionar grupo pai no drawer (exclui a si mesma e seus descendentes)

@@ -1334,6 +1334,23 @@
   gap: 4px;
 }
 
+/* Em painéis mais largos os cards cabem em mais colunas: menos linhas roubando altura da árvore */
+.ui-basemap-section {
+  container-type: inline-size;
+}
+
+@container (min-width: 260px) {
+  .ui-basemap-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@container (min-width: 340px) {
+  .ui-basemap-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
 .ui-basemap-card {
   display: flex;
   flex-direction: column;

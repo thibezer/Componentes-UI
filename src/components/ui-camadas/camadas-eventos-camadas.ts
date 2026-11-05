@@ -228,7 +228,8 @@ export function conectarEventosCamadas(host: CamadasHostCompleto, shadow: Shadow
       const layerId = slider.getAttribute('data-layer-opacity-slider');
       if (!layerId) return;
       const val = parseFloat((e.target as HTMLInputElement).value);
-      atualizarOpacidadeNoDOM(layerId, val);
+      if (!Number.isFinite(val)) return;
+      atualizarOpacidadeNoDOM(layerId, Math.min(1, Math.max(0, val)));
     });
   });
 
