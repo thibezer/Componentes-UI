@@ -1,6 +1,6 @@
 # Changelog
 
-## Não publicado
+## 2.13.0 — 2026-11-05
 
 ### `<ui-canvas-cad>`: atributo `qualidade` (`alta` | `media` | `baixa`)
 
