@@ -20,19 +20,14 @@ export class WmsLayerRenderer implements ILayerRenderer {
       keepBuffer: 8,
       updateWhenZooming: false,
       updateWhenIdle: true,
-      opacity: layerDef.opacidade !== undefined ? layerDef.opacidade : 0.85
+      opacity: 1 // a opacidade da camada é do pane (LayerManager)
     });
 
     return wmsLayer;
   }
 
-  public update(_layerDef: CanvasLayerDef, layerInstance: L.Layer, changes: Partial<CanvasLayerDef>): void {
-    if (layerInstance instanceof L.TileLayer.WMS) {
-      if (changes.opacidade !== undefined) {
-        layerInstance.setOpacity(changes.opacidade);
-      }
-    }
-  }
+  /** Opacidade, z-index e visibilidade são do pane da camada (LayerManager): nada a atualizar aqui. */
+  public update(): void {}
 
   public destroy(layerInstance: L.Layer, map: L.Map): void {
     if (map.hasLayer(layerInstance)) {

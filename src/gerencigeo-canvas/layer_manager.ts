@@ -148,6 +148,11 @@ export const DEFAULT_LAYERS: CanvasLayerDef[] = [
 // mudança de contexto só baixava de novo os tiles do satélite/SIGEF e redesenhava a grade.
 const TIPOS_INDEPENDENTES_DO_CONTEXTO = new Set(['tile', 'wms', 'grid']);
 
+/** Opacidade finita em [0, 1]; qualquer outra coisa (NaN, texto, fora da faixa) cai no fallback ou é limitada. */
+function opacidadeValida(v: unknown, fallback: number): number {
+  return typeof v === 'number' && Number.isFinite(v) ? Math.max(0, Math.min(1, v)) : fallback;
+}
+
 export class CanvasLayerManager {
   private layers: CanvasLayerDef[] = [];
   private layerInstances = new Map<string, L.Layer | L.LayerGroup>();
@@ -192,6 +197,8 @@ export class CanvasLayerManager {
       if (pane) {
         pane.style.zIndex = String(layer.zIndex);
         pane.style.pointerEvents = layer.interativo && !layer.bloqueada && layer.visivel ? 'auto' : 'none';
+        // a opacidade da camada é do pane (os renderizadores não a aplicam de novo nos objetos)
+        pane.style.opacity = String(opacidadeValida(layer.opacidade, 1));
       }
     });
   }
@@ -309,7 +316,7 @@ export class CanvasLayerManager {
     const layer = this.layers.find(l => l.id === id);
     if (!layer) return;
 
-    layer.opacidade = Math.max(0, Math.min(1, opacidade));
+    layer.opacidade = opacidadeValida(opacidade, layer.opacidade);
 
     if (this.map) {
       const pane = this.map.getPane(`pane-${id}`);
@@ -331,7 +338,7 @@ export class CanvasLayerManager {
 
   public setLayerZIndex(id: string, zIndex: number): void {
     const layer = this.layers.find(l => l.id === id);
-    if (!layer) return;
+    if (!layer || !Number.isFinite(zIndex)) return;
 
     layer.zIndex = zIndex;
     if (this.map) {
@@ -416,11 +423,12 @@ export class CanvasLayerManager {
     if (!state || !Array.isArray(state)) return;
 
     state.forEach(saved => {
+      if (!saved) return;
       const layer = this.layers.find(l => l.id === saved.id);
       if (layer) {
         if (saved.visivel !== undefined) layer.visivel = saved.visivel;
-        if (saved.opacidade !== undefined) layer.opacidade = saved.opacidade;
-        if (saved.zIndex !== undefined) layer.zIndex = saved.zIndex;
+        if (saved.opacidade !== undefined) layer.opacidade = opacidadeValida(saved.opacidade, layer.opacidade);
+        if (Number.isFinite(saved.zIndex)) layer.zIndex = saved.zIndex;
         if (saved.bloqueada !== undefined) layer.bloqueada = saved.bloqueada;
         if (saved.estilo) layer.estilo = { ...layer.estilo, ...saved.estilo };
       }

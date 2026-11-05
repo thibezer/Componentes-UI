@@ -58,7 +58,7 @@ export function rebuildVectorLines(
   const segmentos = (layerDef.dados?.segmentos || context.segmentos || []) as Segmento[];
   const pontosOriginais = (layerDef.dados?.pontos || (isHomologadoLayer ? (context.bancoPontos || []) : context.pontos) || []) as any[];
   const weight = calculateLineWeight(layerDef, map, context);
-  const opacity = layerDef.opacidade !== undefined ? layerDef.opacidade : 1.0;
+  const opacity = 1; // a opacidade da camada é do pane (LayerManager)
   const isInteractive = layerDef.interativo && !layerDef.bloqueada;
 
   const pontos: any[] = [];

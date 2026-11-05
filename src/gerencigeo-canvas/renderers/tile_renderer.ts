@@ -17,20 +17,15 @@ export class TileLayerRenderer implements ILayerRenderer {
       updateWhenZooming: false,
       updateWhenIdle: true,
       className: 'smooth-zoom-layer',
-      opacity: layerDef.opacidade !== undefined ? layerDef.opacidade : 1.0,
+      opacity: 1, // a opacidade da camada é do pane (LayerManager)
       pane: `pane-${layerDef.id}`
     });
 
     return tileLayer;
   }
 
-  public update(_layerDef: CanvasLayerDef, layerInstance: L.Layer, changes: Partial<CanvasLayerDef>): void {
-    if (layerInstance instanceof L.TileLayer) {
-      if (changes.opacidade !== undefined) {
-        layerInstance.setOpacity(changes.opacidade);
-      }
-    }
-  }
+  /** Opacidade, z-index e visibilidade são do pane da camada (LayerManager): nada a atualizar aqui. */
+  public update(): void {}
 
   public destroy(layerInstance: L.Layer, map: L.Map): void {
     if (map.hasLayer(layerInstance)) {

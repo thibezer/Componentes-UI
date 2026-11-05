@@ -24,7 +24,7 @@ export class VectorPolygonsLayerRenderer implements ILayerRenderer {
     const isInteractive = layerDef.interativo && !layerDef.bloqueada;
     const defaultColor = layerDef.estilo.corPrimaria || '#a855f7';
     const defaultWeight = layerDef.estilo.espessuraLinha || 1;
-    const defaultOpacity = layerDef.opacidade !== undefined ? layerDef.opacidade : 0.8;
+    const defaultOpacity = 1; // a opacidade da camada é do pane (LayerManager)
 
     confrontantes.forEach(c => {
       if (!c) return;
