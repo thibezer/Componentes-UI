@@ -4,6 +4,7 @@ import { TabelaRemotaController } from './tabela-remota';
 import { TabelaSelecaoController } from './tabela-selecao';
 import { TabelaOrquestradorDados } from './tabela-orquestrador-dados';
 import { getRowHeight } from './tabela-dom';
+import type { ModoRenderCorpo } from './tabela-corpo';
 import {
   executarOrquestracaoHeader,
   executarOrquestracaoCorpo,
@@ -59,7 +60,7 @@ export class UITabela extends SafeHTMLElement {
     tbody: () => this._tbodyElement,
     cabecalho: () => this._theadElement,
     alturaLinha: () => this.getRowHeight(),
-    renderizarCorpo: () => this.renderBody(),
+    renderizarCorpo: () => this.renderBody('rolagem'),
     aoLinhaAtiva: (indice) => { this._indiceAtivo = indice; }
   });
 
@@ -384,7 +385,7 @@ export class UITabela extends SafeHTMLElement {
     this.renderBody();
 
     if (this._virtualizar && this._containerElement && !this._scrollHandler) {
-      this._scrollHandler = inicializarScrollVirtualizacao(this._containerElement, () => this.renderBody());
+      this._scrollHandler = inicializarScrollVirtualizacao(this._containerElement, () => this.renderBody('rolagem'));
     }
 
     if (this._tbodyElement && this._corpoListeners.size === 0) {
@@ -431,8 +432,9 @@ export class UITabela extends SafeHTMLElement {
     else this.rolagem.focar(acao.indice);
   };
 
-  private obterContextoRenderizador(): ContextoOrquestradorRender {
+  private obterContextoRenderizador(modoCorpo: ModoRenderCorpo = 'completo'): ContextoOrquestradorRender {
     return {
+      modoCorpo,
       host: this,
       shadow: this.shadow,
       theadElement: this._theadElement,
@@ -458,8 +460,12 @@ export class UITabela extends SafeHTMLElement {
   }
 
   private renderHeader() { executarOrquestracaoHeader(this.obterContextoRenderizador()); }
-  public renderBody() {
-    executarOrquestracaoCorpo(this.obterContextoRenderizador());
+  /**
+   * Renderiza o corpo. `completo` (padrão) recria as linhas e roda o `render` das colunas de novo;
+   * `rolagem` só ajusta a janela virtual e mantém as linhas que continuam visíveis (foco e texto digitado intactos).
+   */
+  public renderBody(modo: ModoRenderCorpo = 'completo') {
+    executarOrquestracaoCorpo(this.obterContextoRenderizador(modo));
     this.anunciarResultado();
     this.medirAlturaLinha();
   }

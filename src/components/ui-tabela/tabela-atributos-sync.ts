@@ -58,7 +58,9 @@ export function tratarMudancaAtributoTabela(
     }
     return;
   }
-  if (name === 'densidade' || name === 'density') {
+  // Rótulo e textos de estado não mudam as linhas: o host os aplica (sincronizarAria) sem recriar o corpo
+  if (name === 'aria-label' || name === 'texto-erro' || name === 'texto-carregando') return;
+  if (name === 'texto-sem-resultados' || name === 'densidade' || name === 'density') {
     ctx.onRenderBody();
     return;
   }

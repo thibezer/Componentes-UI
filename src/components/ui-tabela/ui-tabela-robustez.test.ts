@@ -1,5 +1,6 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import './ui-tabela';
+import '../ui-checkbox/ui-checkbox';
 import type { UITabela, TabelaColuna } from './ui-tabela';
 import { aplicarOrdenacaoTabela } from './tabela-ordenacao';
 
@@ -308,5 +309,189 @@ describe('modo remoto', () => {
     await t.carregarDoEndpoint('/b');
     await t.recarregar();
     expect(f.mock.calls.map((c) => (c as unknown[])[0])).toEqual(['/b', '/b']);
+  });
+});
+
+describe('células interativas: foco, valor digitado e cliques em controles', () => {
+  const dadosN = (n: number) => Array.from({ length: n }, (_, i) => ({ id: i, nome: `n${i}`, ativo: false }));
+  const colunaInput: TabelaColuna = {
+    id: 'nome',
+    rotulo: 'Nome',
+    render: (v: string) => { const i = document.createElement('input'); i.value = String(v); return i; }
+  };
+  const corpo = (t: UITabela) => t.shadowRoot!.querySelector('tbody')!;
+  const inputDaLinha = (t: UITabela, indice: number) => corpo(t).querySelector<HTMLInputElement>(`tr[data-index="${indice}"] input`)!;
+  const rolar = (t: UITabela, topo: number) => {
+    t.shadowRoot!.querySelector<HTMLElement>('.ui-tabela-container')!.scrollTop = topo;
+    t.renderBody('rolagem');
+  };
+
+  it('rolar a janela virtual mantém o input em edição (mesmo nó, foco e texto digitado)', () => {
+    const t = criar([colunaInput], dadosN(200));
+    const input = inputDaLinha(t, 3);
+    input.focus();
+    input.value = 'digitando...';
+    rolar(t, 120); // a linha 3 continua dentro da janela
+    expect(inputDaLinha(t, 3)).toBe(input);
+    expect(input.isConnected).toBe(true);
+    expect(t.shadowRoot!.activeElement).toBe(input);
+    expect(input.value).toBe('digitando...');
+  });
+
+  it('a rolagem incremental produz o mesmo DOM de uma renderização completa', () => {
+    const t = criar([{ id: 'nome', rotulo: 'N' }, { id: 'id', rotulo: 'I' }], dadosN(300));
+    t.indiceSelecionado = 120;
+    // `class=""` sobra do classList.toggle da seleção em linhas que nunca foram selecionadas: não é diferença de estrutura
+    const html = () => corpo(t).innerHTML.replace(/ class=""/g, '');
+    for (const topo of [0, 300, 900, 2500, 2400, 12000, 0]) {
+      rolar(t, topo);
+      const incremental = html();
+      t.renderBody(); // completa
+      expect(incremental).toBe(html());
+    }
+  });
+
+  it('linhas que saem da janela são removidas e as novas entram em ordem, com espaçadores coerentes', () => {
+    const t = criar([colunaInput], dadosN(200));
+    rolar(t, 4000);
+    const indices = Array.from(corpo(t).querySelectorAll('tr[data-index]')).map((tr) => Number(tr.getAttribute('data-index')));
+    expect(indices.length).toBeGreaterThan(0);
+    expect(indices).toEqual([...indices].sort((a, b) => a - b));
+    expect(indices[0]).toBeGreaterThan(50);
+    expect(corpo(t).querySelectorAll('tr.ui-tabela__virtual-spacer').length).toBe(2);
+    expect(corpo(t).querySelector('tr[data-index="3"]')).toBeNull();
+  });
+
+  it('trocar `dados` (renderização completa) devolve o foco ao mesmo campo da mesma linha', () => {
+    const itens = dadosN(5);
+    const t = criar([colunaInput], itens);
+    inputDaLinha(t, 2).focus();
+    t.dados = [...itens];
+    const novo = inputDaLinha(t, 2);
+    expect(t.shadowRoot!.activeElement).toBe(novo);
+  });
+
+  it('o foco volta ao campo certo mesmo quando a linha mudou de posição (ordenar/filtrar)', () => {
+    const itens = [{ id: 1, nome: 'b' }, { id: 2, nome: 'a' }, { id: 3, nome: 'c' }];
+    const t = criar([{ ...colunaInput, ordenavel: true }], itens);
+    inputDaLinha(t, 0).focus(); // item b
+    t.colunaOrdenada = 'nome'; // b passa para o índice 1
+    const ativo = t.shadowRoot!.activeElement as HTMLInputElement;
+    expect(ativo?.tagName).toBe('INPUT');
+    expect(ativo.value).toBe('b');
+  });
+
+  it('texto digitado e ainda não gravado no item sobrevive a trocar `dados`, filtrar e ordenar', () => {
+    const itens = [{ id: 1, nome: 'b' }, { id: 2, nome: 'a' }, { id: 3, nome: 'c' }];
+    const t = criar([{ ...colunaInput, ordenavel: true }], itens);
+    const input = inputDaLinha(t, 0);
+    input.focus();
+    input.value = 'bXYZ';
+    input.setSelectionRange(1, 3);
+    t.dados = [...itens];
+    let ativo = t.shadowRoot!.activeElement as HTMLInputElement;
+    expect(ativo.value).toBe('bXYZ');
+    expect([ativo.selectionStart, ativo.selectionEnd]).toEqual([1, 3]);
+    t.colunaOrdenada = 'nome'; // a linha muda de posição
+    ativo = t.shadowRoot!.activeElement as HTMLInputElement;
+    expect(ativo.value).toBe('bXYZ');
+    t.filtrar('b');
+    ativo = t.shadowRoot!.activeElement as HTMLInputElement;
+    expect(ativo.value).toBe('bXYZ');
+    expect(itens[0].nome).toBe('b'); // a tabela nunca grava nos dados
+  });
+
+  it('se o dado mudou por baixo da edição, o dado novo prevalece sobre o texto digitado', () => {
+    const itens = [{ id: 1, nome: 'b' }];
+    const t = criar([colunaInput], itens);
+    const input = inputDaLinha(t, 0);
+    input.focus();
+    input.value = 'digitado';
+    itens[0].nome = 'vindo do servidor';
+    t.dados = [...itens];
+    expect((t.shadowRoot!.activeElement as HTMLInputElement).value).toBe('vindo do servidor');
+  });
+
+  it('checkbox marcado e ainda não gravado sobrevive à renderização completa', () => {
+    const itens = [{ id: 1, ativo: false }];
+    const t = criar([{ id: 'ativo', rotulo: 'A', render: (v: boolean) => { const c = document.createElement('input'); c.type = 'checkbox'; c.checked = v; return c; } }], itens);
+    const caixa = inputDaLinha(t, 0);
+    caixa.focus();
+    caixa.checked = true;
+    t.dados = [...itens];
+    const novo = t.shadowRoot!.activeElement as HTMLInputElement;
+    expect(novo).not.toBe(caixa);
+    expect(novo.checked).toBe(true);
+  });
+
+  it('o foco não é roubado se estava fora da tabela', () => {
+    const t = criar([colunaInput], dadosN(5));
+    const fora = document.createElement('button');
+    document.body.appendChild(fora);
+    fora.focus();
+    t.dados = dadosN(5);
+    expect(document.activeElement).toBe(fora);
+  });
+
+  it('clicar em ui-checkbox, switch, label ou contenteditable dentro da célula não seleciona a linha', () => {
+    const t = criar([
+      { id: 'a', rotulo: 'A', render: () => document.createElement('ui-checkbox') },
+      { id: 'b', rotulo: 'B', render: () => { const d = document.createElement('div'); d.setAttribute('contenteditable', 'true'); return d; } },
+      { id: 'c', rotulo: 'C', render: () => { const l = document.createElement('label'); l.textContent = 'x'; return l; } },
+      { id: 'd', rotulo: 'D', render: () => { const s = document.createElement('span'); s.setAttribute('role', 'switch'); return s; } }
+    ], dadosN(2));
+    const ouvinte = vi.fn();
+    t.addEventListener('ui-linha-clique', ouvinte);
+    const raiz = t.shadowRoot!;
+    (raiz.querySelector('ui-checkbox')!.shadowRoot!.querySelector('[part="base"]') as HTMLElement).click();
+    (raiz.querySelector('[contenteditable]') as HTMLElement).click();
+    (raiz.querySelector('label') as HTMLElement).click();
+    (raiz.querySelector('[role="switch"]') as HTMLElement).click();
+    expect(ouvinte).not.toHaveBeenCalled();
+    // célula de texto simples continua selecionando a linha
+    const t2 = criar([{ id: 'nome', rotulo: 'N' }], dadosN(2));
+    const ouvinte2 = vi.fn();
+    t2.addEventListener('ui-linha-clique', ouvinte2);
+    (t2.shadowRoot!.querySelector('tbody tr td') as HTMLElement).click();
+    expect(ouvinte2).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('indiceDados no render e região de anúncio', () => {
+  it('render recebe como 4º argumento a posição do item em `dados` (estável ao ordenar e filtrar)', () => {
+    const vistos: Array<[string, number, number]> = [];
+    const itens = [{ id: 1, nome: 'b' }, { id: 2, nome: 'a' }, { id: 3, nome: 'c' }];
+    const t = criar([{ id: 'nome', rotulo: 'N', ordenavel: true, render: (v: string, _item: any, idx: number, indiceDados: number) => { vistos.push([v, idx, indiceDados]); return v; } }], itens);
+    vistos.length = 0;
+    t.colunaOrdenada = 'nome';
+    expect(vistos).toEqual([['a', 0, 1], ['b', 1, 0], ['c', 2, 2]]);
+    vistos.length = 0;
+    t.filtrar('c');
+    expect(vistos).toEqual([['c', 0, 2]]);
+  });
+
+  it('a região de anúncio do filtro não é reescrita quando o texto não mudou (rolagem com filtro ativo)', () => {
+    const t = criar([{ id: 'n', rotulo: 'N' }], Array.from({ length: 100 }, (_, i) => ({ id: i, n: `v${i}` })));
+    t.filtrar('v');
+    const regiao = t.shadowRoot!.querySelector('.ui-tabela__sr')!;
+    const mo = new MutationObserver(() => {});
+    mo.observe(regiao, { childList: true, characterData: true, subtree: true });
+    t.renderBody('rolagem'); t.renderBody('rolagem'); t.renderBody();
+    expect(mo.takeRecords().length).toBe(0);
+    t.filtrar('v1'); // texto novo: aí sim escreve
+    expect(mo.takeRecords().length).toBeGreaterThan(0);
+    mo.disconnect();
+  });
+
+  it('mudar aria-label não recria as linhas (nem o campo em edição)', () => {
+    const t = criar([{ id: 'nome', rotulo: 'N', render: (v: string) => { const i = document.createElement('input'); i.value = v; return i; } }], [{ id: 1, nome: 'a' }]);
+    const input = t.shadowRoot!.querySelector('input')!;
+    input.focus();
+    t.setAttribute('aria-label', 'Vértices');
+    t.setAttribute('texto-erro', 'Falhou');
+    t.setAttribute('texto-carregando', 'Aguarde');
+    expect(t.shadowRoot!.querySelector('input')).toBe(input);
+    expect(t.shadowRoot!.activeElement).toBe(input);
+    expect(t.shadowRoot!.querySelector('table')!.getAttribute('aria-label')).toBe('Vértices');
   });
 });

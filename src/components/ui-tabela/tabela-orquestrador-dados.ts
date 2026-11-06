@@ -9,6 +9,7 @@ export function normalizarTexto(t: string): string {
 export class TabelaOrquestradorDados {
   private dadosOriginais: Record<string, any>[] = [];
   private dadosExibicao: Record<string, any>[] = [];
+  private indicePorItem: Map<Record<string, any>, number> | null = null;
   private colunaOrdenada: string | null = null;
   private direcaoOrdenacao: 'asc' | 'desc' | 'original' = 'original';
   private ultimoFiltro: string = '';
@@ -48,7 +49,19 @@ export class TabelaOrquestradorDados {
   public setDadosOriginais(dados: Record<string, any>[]): void {
     // entradas nulas/undefined são descartadas (quebrariam ordenação, filtro e render)
     this.dadosOriginais = Array.isArray(dados) ? dados.filter((d) => d != null) : [];
+    this.indicePorItem = null;
     this.aplicarOrdenacao();
+  }
+
+  /** Posição do item em `dados` (-1 se não pertence). Índice por objeto montado sob demanda, uma vez por troca de dados. */
+  public indiceOriginal(item: Record<string, any>): number {
+    if (!this.indicePorItem) {
+      this.indicePorItem = new Map();
+      this.dadosOriginais.forEach((d, i) => { if (!this.indicePorItem!.has(d)) this.indicePorItem!.set(d, i); });
+    }
+    const i = this.indicePorItem.get(item);
+    // o consumidor pode ter reordenado o array devolvido por `dados`: confere antes de confiar no índice
+    return i !== undefined && this.dadosOriginais[i] === item ? i : this.dadosOriginais.indexOf(item);
   }
 
   public getDadosExibicao(): Record<string, any>[] {

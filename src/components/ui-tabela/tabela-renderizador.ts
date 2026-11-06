@@ -1,6 +1,6 @@
 import { TabelaColuna } from './tipos';
 import { renderizarHeaderTabela } from './tabela-header';
-import { renderizarCorpoTabela } from './tabela-corpo';
+import { renderizarCorpoTabela, type ModoRenderCorpo } from './tabela-corpo';
 import { ListenerBag } from '../../core/listener-bag';
 import {
   formatWidth,
@@ -34,6 +34,8 @@ export interface ContextoOrquestradorRender {
   virtualizar: boolean;
   rowHeight: number;
   indiceAtivo: number | null;
+  /** `rolagem` preserva as linhas que seguem visíveis na janela virtual (padrão: `completo`). */
+  modoCorpo?: ModoRenderCorpo;
   textoVazio?: string;
   textoSemResultados?: string;
   onSetIsResizing: (resizing: boolean) => void;
@@ -106,6 +108,8 @@ export function executarOrquestracaoCorpo(ctx: ContextoOrquestradorRender): void
     rowHeight: ctx.rowHeight,
     indiceAtivo: ctx.indiceAtivo,
     filtroAtivo: ctx.dadosController.temFiltro(),
+    modo: ctx.modoCorpo,
+    indiceOriginal: (item) => ctx.dadosController.indiceOriginal(item),
     textoVazio: ctx.textoVazio,
     textoSemResultados: ctx.textoSemResultados,
     isItemSelecionado: (item, idx) => ctx.selecaoController.isItemSelecionado(item, idx),

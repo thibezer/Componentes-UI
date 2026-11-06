@@ -19,7 +19,13 @@ export interface TabelaColuna<T = any> {
   comparador?: (a: any, b: any, itemA: T, itemB: T) => number;
   /** Texto pesquisável da célula (o filtro padrão olha o valor bruto); útil quando `render` formata o valor. */
   textoFiltro?: (valor: any, item: T) => string;
-  render?: (valor: any, item: T, index: number) => HTMLElement | string;
+  /**
+   * Conteúdo da célula: `HTMLElement` (botão, checkbox, campo...) ou texto (nunca HTML).
+   * `index` é a posição **exibida** (muda ao ordenar e filtrar); `indiceDados` é a posição do item em `dados`
+   * (estável). Para editar ou remover, prefira `item` ou `indiceDados` a `index`.
+   * Na rolagem com virtualização, linhas que continuam visíveis não são renderizadas de novo.
+   */
+  render?: (valor: any, item: T, index: number, indiceDados: number) => HTMLElement | string;
 }
 
 export interface UISortDetail {

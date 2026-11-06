@@ -37,9 +37,11 @@ export function anunciarResultadoFiltro(
   textoSemResultados: string
 ): void {
   if (!regiao) return;
-  regiao.textContent = temFiltro
+  const texto = temFiltro
     ? (quantidade === 0 ? textoSemResultados : `${quantidade} ${quantidade === 1 ? 'registro encontrado' : 'registros encontrados'}`)
     : '';
+  // Só escreve quando muda: reescrever o mesmo texto a cada quadro de rolagem faria o leitor de tela reanunciar
+  if (regiao.textContent !== texto) regiao.textContent = texto;
 }
 
 export interface ElementosAria {
