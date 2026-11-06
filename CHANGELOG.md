@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.13.0 — 2026-11-05
+## 2.14.0 — 2026-11-05
 
 ### `<ui-canvas-cad>` & `gerencigeo-canvas`: auditoria, seleção avançada, navegação e HUD de coordenadas
 
@@ -10,6 +10,8 @@
 - **HUD de Coordenadas em Tempo Real:** Rodapé do canvas exibindo coordenadas UTM (Fuso, Hemisfério, Este e Norte formatados no padrão brasileiro) e coordenadas geográficas (Lat/Lon decimais), com suporte ao atributo `sem-hud-coordenadas`.
 - **Desempenho & GC:** Otimização de Garbage Collection em `feature_snap.ts` eliminando alocações de arrays e tuplas intermediárias durante o hot-path do cursor; cancelamento de timers concorrentes no hover de feições.
 - Testes abrangentes em `tests/canvas-melhorias-auditoria.test.ts`.
+
+## 2.13.0 — 2026-11-05
 
 ### `<ui-canvas-cad>`: atributo `qualidade` (`alta` | `media` | `baixa`)
 
