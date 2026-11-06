@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.15.0 — 2026-11-05
+
+### `<ui-tabela>`: células interativas (botão, checkbox, campo editável) sem perder foco nem texto
+
+- **Rolagem virtual preserva as linhas visíveis:** novo modo `renderBody('rolagem')` (usado pelo scroll e pela rolagem programática). Linhas com o mesmo item, a mesma posição e as mesmas colunas ficam intactas; só as que entram na janela são criadas. O campo em edição mantém o nó, o foco e o texto digitado, e o `render` roda só para as linhas novas.
+- **Foco devolvido após renderização completa** (trocar `dados`, filtrar, ordenar): o foco volta ao mesmo controle da mesma linha (achada pelo objeto, pelo `data-id` ou pela posição), com texto digitado, checkbox marcado e seleção de texto de `input`/`textarea`/`select` nativos, se o dado não mudou nesse meio-tempo (senão o dado novo prevalece). A tabela nunca grava nos dados. Novo micro-módulo `tabela-foco.ts`.
+- **Cliques em controles não selecionam a linha:** além de `button`, `input`, `select`, `textarea`, `a` e `summary`, agora também `label`, `contenteditable` e elementos com `role` de controle (`checkbox`, `switch`, `radio`, `textbox`, `combobox`, `slider`, `spinbutton`, `menuitem`, `tab`, `link`), como `<ui-checkbox>` e `<ui-switch>`.
+- **`render(valor, item, indice, indiceDados)`:** novo 4º argumento com a posição do item em `dados` (estável ao ordenar e filtrar). `indice` continua sendo a posição exibida.
+- **Leitor de tela:** a região de anúncio do filtro só é escrita quando o texto muda (antes era reescrita a cada quadro de rolagem com filtro ativo).
+- **Atributos:** mudar `aria-label`, `texto-erro` ou `texto-carregando` não recria mais as linhas.
+- Testes de regressão em `ui-tabela-robustez.test.ts`; README com o contrato de células interativas.
+
 ## 2.14.0 — 2026-11-05
 
 ### `<ui-canvas-cad>` & `gerencigeo-canvas`: auditoria, seleção avançada, navegação e HUD de coordenadas
