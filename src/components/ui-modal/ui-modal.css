@@ -229,3 +229,14 @@
   display: block !important;
 }
 
+
+/* Customização Squarecircles */
+:host(.squarecircle) .ui-modal__painel,
+:host(.squarecircles) .ui-modal__painel,
+:host(.ui-squarecircle) .ui-modal__painel,
+:host(.ui-squarecircles) .ui-modal__painel,
+:host([formato="squarecircle"]) .ui-modal__painel,
+:host([formato="squarecircles"]) .ui-modal__painel,
+:host([formato="squircle"]) .ui-modal__painel {
+  border-radius: var(--ui-raio-xl, 16px);
+}

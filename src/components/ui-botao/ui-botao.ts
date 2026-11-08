@@ -22,7 +22,7 @@ export class UIBotao extends SafeHTMLElement {
 
   static get observedAttributes() {
     return [
-      'disabled', 'variante', 'carregando', 'loading', 'estado', 'tamanho', 'size', 'altura', 'height', 'densidade',
+      'disabled', 'variante', 'carregando', 'loading', 'estado', 'tamanho', 'size', 'altura', 'height', 'densidade', 'formato',
       'title', ...ATRIBUTOS_ARIA_REPASSADOS
     ];
   }

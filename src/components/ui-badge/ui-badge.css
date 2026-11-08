@@ -162,3 +162,14 @@
   opacity: 1;
   background-color: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 20%, transparent);
 }
+
+/* Customização Squarecircles */
+:host(.squarecircle) .ui-badge,
+:host(.squarecircles) .ui-badge,
+:host(.ui-squarecircle) .ui-badge,
+:host(.ui-squarecircles) .ui-badge,
+:host([formato="squarecircle"]) .ui-badge,
+:host([formato="squarecircles"]) .ui-badge,
+:host([formato="squircle"]) .ui-badge {
+  border-radius: var(--ui-raio-sm, 4px);
+}

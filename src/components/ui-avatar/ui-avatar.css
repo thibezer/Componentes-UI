@@ -99,3 +99,12 @@
   --ui-tamanho-avatar: 64px;
   --ui-avatar-font-size: 24px;
 }
+
+/* Formato Squarecircle / Squircle */
+:host(.squarecircle) .ui-avatar,
+:host(.squarecircles) .ui-avatar,
+:host(.ui-squarecircle) .ui-avatar,
+:host(.ui-squarecircles) .ui-avatar,
+.ui-avatar--squarecircle {
+  border-radius: var(--ui-raio-squircle, 24%);
+}

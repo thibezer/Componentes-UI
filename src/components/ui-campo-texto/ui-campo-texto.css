@@ -229,3 +229,14 @@
     min-height: 32px;
   }
 }
+
+/* Customização Squarecircles */
+:host(.squarecircle) .ui-campo-texto__container,
+:host(.squarecircles) .ui-campo-texto__container,
+:host(.ui-squarecircle) .ui-campo-texto__container,
+:host(.ui-squarecircles) .ui-campo-texto__container,
+:host([formato="squarecircle"]) .ui-campo-texto__container,
+:host([formato="squarecircles"]) .ui-campo-texto__container,
+:host([formato="squircle"]) .ui-campo-texto__container {
+  border-radius: var(--ui-raio-lg, 10px);
+}

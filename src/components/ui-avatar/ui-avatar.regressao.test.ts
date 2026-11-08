@@ -82,6 +82,10 @@ describe('tamanho e formato', () => {
   it.each(['-10', '0', '999999', 'abc', ''])('tamanho inválido (%s) não define a variável (falhava antes para negativos/enormes)', (t) => {
     expect(raiz(montar({ tamanho: t })).style.getPropertyValue('--ui-tamanho-avatar')).toBe('');
   });
+
+  it.each(['squarecircle', 'squarecircles', 'squircle'])('formato %s adiciona classe ui-avatar--squarecircle', (fmt) => {
+    expect(raiz(montar({ formato: fmt })).classList.contains('ui-avatar--squarecircle')).toBe(true);
+  });
 });
 
 describe('imagem', () => {

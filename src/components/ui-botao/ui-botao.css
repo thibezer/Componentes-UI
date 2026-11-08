@@ -244,3 +244,31 @@
   }
 }
 
+
+/* Customização Squarecircles */
+:host(.squarecircle) .ui-botao-primario,
+:host(.squarecircles) .ui-botao-primario,
+:host(.ui-squarecircle) .ui-botao-primario,
+:host(.ui-squarecircles) .ui-botao-primario,
+:host([formato="squarecircle"]) .ui-botao-primario,
+:host([formato="squarecircles"]) .ui-botao-primario,
+:host([formato="squircle"]) .ui-botao-primario {
+  border-radius: var(--ui-raio-lg, 10px);
+}
+
+:host(.squarecircle[variante="icon-only"]) .ui-botao-primario,
+:host(.squarecircle[variante="icone"]) .ui-botao-primario,
+:host(.squarecircles[variante="icon-only"]) .ui-botao-primario,
+:host(.squarecircles[variante="icone"]) .ui-botao-primario,
+:host(.ui-squarecircle[variante="icon-only"]) .ui-botao-primario,
+:host(.ui-squarecircle[variante="icone"]) .ui-botao-primario,
+:host(.ui-squarecircles[variante="icon-only"]) .ui-botao-primario,
+:host(.ui-squarecircles[variante="icone"]) .ui-botao-primario,
+:host([formato="squarecircle"][variante="icon-only"]) .ui-botao-primario,
+:host([formato="squarecircle"][variante="icone"]) .ui-botao-primario,
+:host([formato="squarecircles"][variante="icon-only"]) .ui-botao-primario,
+:host([formato="squarecircles"][variante="icone"]) .ui-botao-primario,
+:host([formato="squircle"][variante="icon-only"]) .ui-botao-primario,
+:host([formato="squircle"][variante="icone"]) .ui-botao-primario {
+  border-radius: var(--ui-raio-squircle, 24%);
+}

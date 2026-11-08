@@ -7,6 +7,7 @@
   --ui-raio-lg: calc(var(--ui-raio-borda) * 5 / 3);   /* 10px: contêineres de mapa/CAD */
   --ui-raio-xl: calc(var(--ui-raio-borda) * 8 / 3);   /* 16px: bottom sheets */
   --ui-raio-pill: 999px;                              /* pílulas e badges arredondados */
+  --ui-raio-squircle: 24%;                            /* formato squircle / squarecircle para elementos simétricos */
 
   /* Espaçamentos (Escala de Espaço) */
   --ui-espaco-xs: 4px;
@@ -26,4 +27,21 @@
   --ui-altura-lg: 42px;
   --ui-altura-minima: var(--ui-altura-md);
   --ui-campo-altura: var(--ui-altura-minima);
+}
+
+/* Customização de Formato: Squarecircles / Squircle (Cantos Suaves / Superelipse)
+   Aplicável no :root, no body ou em contêineres ancestrais para modular a curvatura de toda a interface. */
+:root.squarecircles,
+:root.squarecircle,
+:root.ui-squarecircles,
+:root.ui-squarecircle,
+.squarecircles,
+.squarecircle,
+.ui-squarecircles,
+.ui-squarecircle {
+  --ui-raio-borda: 10px;
+  --ui-raio-sm: calc(var(--ui-raio-borda) * 2 / 3);
+  --ui-raio-lg: calc(var(--ui-raio-borda) * 5 / 3);
+  --ui-raio-xl: calc(var(--ui-raio-borda) * 8 / 3);
+  --ui-raio-squircle: 28%;
 }

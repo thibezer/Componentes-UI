@@ -172,3 +172,14 @@
     transition: none;
   }
 }
+
+/* Customização Squarecircles */
+:host(.squarecircle) .ui-area-texto__wrapper,
+:host(.squarecircles) .ui-area-texto__wrapper,
+:host(.ui-squarecircle) .ui-area-texto__wrapper,
+:host(.ui-squarecircles) .ui-area-texto__wrapper,
+:host([formato="squarecircle"]) .ui-area-texto__wrapper,
+:host([formato="squarecircles"]) .ui-area-texto__wrapper,
+:host([formato="squircle"]) .ui-area-texto__wrapper {
+  border-radius: var(--ui-raio-lg, 10px);
+}

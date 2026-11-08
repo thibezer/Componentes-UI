@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.16.0 — 2026-11-08
+
+### Customização: classe e formato `squarecircles` (Squircle / Cantos Suaves)
+
+- **Tokens Globais ($L_0$):** Adicionado token `--ui-raio-squircle: 24%` em `src/tokens/spacing.css` e suporte às classes utilitárias/contextuais `.squarecircles`, `.squarecircle`, `.ui-squarecircles` e `.ui-squarecircle` que elevam os raios base e derivam uma escala contínua com curvatura orgânica.
+- **Componentes ($L_3$):** Suporte nativo ao formato e classe nos componentes:
+  - `<ui-avatar>`: atributo `formato="squarecircle" | "squircle"` e classe `.squarecircle` aplicando o squircle (~24%).
+  - `<ui-botao>`: suporte a `:host(.squarecircle)` e `:host([formato="squarecircle"])` (raio refinado para botões e squircle simétrico para variantes `icone` / `icon-only`).
+  - `<ui-badge>`: suporte a formato squircle além da tradicional pílula.
+  - `<ui-card>`, `<ui-checkbox>`, `<ui-campo-texto>`, `<ui-area-texto>`, `<ui-modal>` e `<ui-alerta>`: cantos suaves estilizados.
+- **Testes e Contratos:** Nova suíte em `tests/customizacao.test.ts` e testes de regressão em `src/components/ui-avatar/ui-avatar.regressao.test.ts`.
+
 ## 2.15.0 — 2026-11-05
 
 ### `<ui-tabela>`: células interativas (botão, checkbox, campo editável) sem perder foco nem texto

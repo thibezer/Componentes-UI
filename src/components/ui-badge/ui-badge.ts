@@ -12,6 +12,7 @@ export class UIBadge extends SafeHTMLElement {
       'variante',
       'variant',
       'estilo',
+      'formato',
       'removivel',
       'removable',
       'disabled',

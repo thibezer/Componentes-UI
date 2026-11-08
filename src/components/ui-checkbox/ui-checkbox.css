@@ -119,3 +119,14 @@
   }
 }
 
+
+/* Customização Squarecircles */
+:host(.squarecircle) .ui-checkbox__box,
+:host(.squarecircles) .ui-checkbox__box,
+:host(.ui-squarecircle) .ui-checkbox__box,
+:host(.ui-squarecircles) .ui-checkbox__box,
+:host([formato="squarecircle"]) .ui-checkbox__box,
+:host([formato="squarecircles"]) .ui-checkbox__box,
+:host([formato="squircle"]) .ui-checkbox__box {
+  border-radius: var(--ui-raio-squircle, 24%);
+}

@@ -122,6 +122,8 @@ export class UIAvatar extends SafeHTMLElement {
 
     if (formato === 'quadrado') {
       this.avatarElement.classList.add('ui-avatar--quadrado');
+    } else if (formato === 'squarecircle' || formato === 'squarecircles' || formato === 'squircle') {
+      this.avatarElement.classList.add('ui-avatar--squarecircle');
     }
 
     // Renderização do Conteúdo (Foto vs Iniciais vs Ícone Fallback)

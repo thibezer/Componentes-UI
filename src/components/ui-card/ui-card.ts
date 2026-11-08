@@ -34,6 +34,7 @@ export class UICard extends SafeHTMLElement {
       'elevation',
       'variante',
       'variant',
+      'formato',
       'clicavel',
       'clickable',
       'compacto',

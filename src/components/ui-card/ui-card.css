@@ -141,3 +141,14 @@
 .ui-card--compacto .ui-card__footer {
   padding: 8px 12px 10px 12px;
 }
+
+/* Customização Squarecircles */
+:host(.squarecircle) .ui-card,
+:host(.squarecircles) .ui-card,
+:host(.ui-squarecircle) .ui-card,
+:host(.ui-squarecircles) .ui-card,
+:host([formato="squarecircle"]) .ui-card,
+:host([formato="squarecircles"]) .ui-card,
+:host([formato="squircle"]) .ui-card {
+  border-radius: var(--ui-raio-lg, 12px);
+}

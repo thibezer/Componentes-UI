@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import fs from 'fs';
 import path from 'path';
+import '../src/components/ui-avatar';
 import '../src/components/ui-botao';
 import '../src/components/ui-campo-texto';
 import '../src/components/ui-area-texto';
@@ -167,5 +168,50 @@ describe('Shadow parts (::part) para customização', () => {
     tabela.itemSelecionado = dados[1];
     const linhas = Array.from(raiz.querySelectorAll('tbody tr'));
     expect(linhas.map((tr) => tr.getAttribute('part'))).toEqual(['linha', 'linha linha-selecionada']);
+  });
+});
+
+describe('Customização de formato squarecircles', () => {
+  const espacamento = fs.readFileSync(path.join(SRC, 'tokens/spacing.css'), 'utf-8');
+
+  it('--ui-raio-squircle deve estar definido no :root de spacing.css', () => {
+    expect(espacamento).toMatch(/--ui-raio-squircle:\s*24%/);
+  });
+
+  it('classes .squarecircle e .squarecircles devem existir em spacing.css e sobrescrever a escala de raio', () => {
+    expect(espacamento).toMatch(/\.squarecircles/);
+    expect(espacamento).toMatch(/\.squarecircle/);
+    expect(espacamento).toMatch(/--ui-raio-squircle:\s*28%/);
+  });
+
+  it('componentes devem aceitar classe e atributo squarecircle sem erros', () => {
+    const avatar = document.createElement('ui-avatar');
+    avatar.className = 'squarecircle';
+    avatar.setAttribute('formato', 'squarecircle');
+
+    const botao = document.createElement('ui-botao');
+    botao.className = 'squarecircles';
+    botao.setAttribute('formato', 'squarecircle');
+
+    const card = document.createElement('ui-card');
+    card.className = 'ui-squarecircles';
+
+    const badge = document.createElement('ui-badge');
+    badge.className = 'squarecircle';
+
+    const checkbox = document.createElement('ui-checkbox');
+    checkbox.className = 'squarecircle';
+
+    document.body.appendChild(avatar);
+    document.body.appendChild(botao);
+    document.body.appendChild(card);
+    document.body.appendChild(badge);
+    document.body.appendChild(checkbox);
+
+    expect(avatar.shadowRoot!.querySelector('.ui-avatar--squarecircle')).not.toBeNull();
+    expect(botao.shadowRoot!.querySelector('button')).not.toBeNull();
+    expect(card.shadowRoot!.querySelector('.ui-card')).not.toBeNull();
+    expect(badge.shadowRoot!.querySelector('.ui-badge')).not.toBeNull();
+    expect(checkbox.shadowRoot!.querySelector('.ui-checkbox__box')).not.toBeNull();
   });
 });

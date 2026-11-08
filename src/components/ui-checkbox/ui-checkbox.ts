@@ -13,6 +13,7 @@ export class UICheckbox extends FormAssociatedElement {
       'indeterminado',
       'indeterminate',
       'disabled',
+      'formato',
       'value',
       'label',
       'posicao-label',
