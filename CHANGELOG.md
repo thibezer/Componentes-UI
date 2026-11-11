@@ -1,5 +1,20 @@
 # Changelog
 
+## 2.16.1 — 2026-11-10
+
+### `<ui-tabela-propriedades>`: memória e persistência automática das abas/categorias abertas
+
+- **Memória em execução + persistência no `localStorage`:**
+  - Novo módulo puro e SSR-safe `propriedades-persistencia.ts` (`LembrancaCategoriasPropriedades` e helpers de normalização, chave de storage e proteção contra `Object.freeze`, `JSON` corrompido e poluição de protótipo).
+  - Preserva automaticamente quais categorias/abas estavam abertas ou fechadas ao reatribuir `categorias` em memória (mesmo com `persistir="false"` ou antes de conectar ao DOM) e entre sessões no `localStorage` usando o prefixo `ui_tabela_propriedades_estado_`.
+  - Suporte aos atributos/propriedades `persistir` (padrão `true`; defina `persistir="false"` para manter apenas em memória) e `storage-key` (com fallback para `id` do elemento ou `'default'`, emitindo `console.warn` caso múltiplos painéis persistentes sem identificador compartilhem a mesma chave padrão), alinhado ao contrato de `<ui-camadas>`.
+  - A busca/filtragem continua expandindo temporariamente categorias filtradas na visualização sem sobrescrever nem corromper as preferências salvas.
+- **API programática e evento unificado (`ui-categorias-estado`):**
+  - Novos métodos públicos `obterEstadoCategorias()`, `definirEstadoCategorias(estado, opcoes?)`, `limparEstadoCategorias()`, `limparLembranca()` e `obterChaveStorageAtual()`, além de `expandirTudo()`, `colapsarTudo()` e `toggleCategoria(id)` sincronizados com a lembrança e tolerantes a objetos `Object.freeze`.
+  - Emissão do evento `CustomEvent<UICategoriasEstadoDetail>('ui-categorias-estado')` (`{ estado, abertas, fechadas }`) nas alternâncias de abas e ações em lote, com sincronização cirúrgica do DOM (`sincronizarDomCategorias`) para preservar foco de campos em edição.
+- **Testes:**
+  - Novos testes unitários em `propriedades-persistencia.test.ts` e ampliação das suítes `ui-tabela-propriedades.test.ts` e `ui-tabela-propriedades.regressao.test.ts` (103 testes no módulo).
+
 ## 2.16.0 — 2026-11-08
 
 ### Customização: classe e formato `squarecircles` (Squircle / Cantos Suaves)

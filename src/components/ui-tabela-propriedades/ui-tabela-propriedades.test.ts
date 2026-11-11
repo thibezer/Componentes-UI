@@ -35,6 +35,7 @@ describe('UITabelaPropriedades - Paleta CAD & Revit', () => {
 
   beforeEach(() => {
     document.body.innerHTML = '';
+    localStorage.clear();
     tabela = document.createElement('ui-tabela-propriedades') as UITabelaPropriedades;
     document.body.appendChild(tabela);
   });
@@ -378,6 +379,136 @@ describe('UITabelaPropriedades - Paleta CAD & Revit', () => {
 
     const btnsAcao = shadow.querySelectorAll('.ui-prop__btn-autocad');
     expect(btnsAcao.length).toBe(3);
+  });
+
+  describe('Memória e Persistência das Abas/Categorias Abertas', () => {
+    it('deve lembrar em memória quais categorias estavam abertas/fechadas ao trocar `categorias` (mesmo com persistir="false")', () => {
+      tabela.setAttribute('persistir', 'false');
+      tabela.categorias = [
+        { id: 'geral', titulo: 'Geral', aberto: true, propriedades: [{ id: 'cor', rotulo: 'Cor', tipo: 'texto', valor: 'Red' }] },
+        { id: 'avancado', titulo: 'Avançado', aberto: false, propriedades: [{ id: 'tag', rotulo: 'Tag', tipo: 'texto', valor: 'X' }] }
+      ];
+
+      // Usuário fecha "geral" e abre "avancado"
+      const shadow = tabela.shadowRoot!;
+      (shadow.querySelector('[data-cat-id="geral"] .ui-prop__categoria-header') as HTMLElement).click();
+      (shadow.querySelector('[data-cat-id="avancado"] .ui-prop__categoria-header') as HTMLElement).click();
+
+      expect(shadow.querySelector('[data-cat-id="geral"]')!.classList.contains('ui-prop__categoria--aberta')).toBe(false);
+      expect(shadow.querySelector('[data-cat-id="avancado"]')!.classList.contains('ui-prop__categoria--aberta')).toBe(true);
+
+      // Aplicação seleciona outro objeto e reatribui novos objetos de categoria com os padrões iniciais
+      tabela.categorias = [
+        { id: 'geral', titulo: 'Geral', aberto: true, propriedades: [{ id: 'cor', rotulo: 'Cor', tipo: 'texto', valor: 'Blue' }] },
+        { id: 'avancado', titulo: 'Avançado', aberto: false, propriedades: [{ id: 'tag', rotulo: 'Tag', tipo: 'texto', valor: 'Y' }] },
+        { id: 'extras', titulo: 'Extras', aberto: false, propriedades: [{ id: 'obs', rotulo: 'Obs', tipo: 'texto', valor: '' }] }
+      ];
+
+      expect(shadow.querySelector('[data-cat-id="geral"]')!.classList.contains('ui-prop__categoria--aberta')).toBe(false);
+      expect(shadow.querySelector('[data-cat-id="avancado"]')!.classList.contains('ui-prop__categoria--aberta')).toBe(true);
+      // Categoria nova nunca tocada respeita seu padrão
+      expect(shadow.querySelector('[data-cat-id="extras"]')!.classList.contains('ui-prop__categoria--aberta')).toBe(false);
+    });
+
+    it('deve persistir e restaurar categorias abertas/fechadas no localStorage entre sessões', () => {
+      tabela.id = 'painel-props-sessao';
+      tabela.categorias = [
+        { id: 'geral', titulo: 'Geral', aberto: true, propriedades: [{ id: 'cor', rotulo: 'Cor', tipo: 'texto', valor: 'Red' }] },
+        { id: 'geometria', titulo: 'Geometria', aberto: true, propriedades: [{ id: 'x', rotulo: 'X', tipo: 'numero', valor: 10 }] },
+        { id: 'avancado', titulo: 'Avançado', aberto: false, propriedades: [{ id: 'tag', rotulo: 'Tag', tipo: 'texto', valor: 'A' }] }
+      ];
+
+      const shadow1 = tabela.shadowRoot!;
+      (shadow1.querySelector('[data-cat-id="geral"] .ui-prop__categoria-header') as HTMLElement).click();
+      (shadow1.querySelector('[data-cat-id="avancado"] .ui-prop__categoria-header') as HTMLElement).click();
+
+      // Simula recarregamento da página criando uma nova instância com o mesmo id
+      const retorno = document.createElement('ui-tabela-propriedades') as UITabelaPropriedades;
+      retorno.id = 'painel-props-sessao';
+      document.body.appendChild(retorno);
+      retorno.categorias = [
+        { id: 'geral', titulo: 'Geral', aberto: true, propriedades: [{ id: 'cor', rotulo: 'Cor', tipo: 'texto', valor: 'Red' }] },
+        { id: 'geometria', titulo: 'Geometria', aberto: true, propriedades: [{ id: 'x', rotulo: 'X', tipo: 'numero', valor: 10 }] },
+        { id: 'avancado', titulo: 'Avançado', aberto: false, propriedades: [{ id: 'tag', rotulo: 'Tag', tipo: 'texto', valor: 'A' }] }
+      ];
+
+      const shadow2 = retorno.shadowRoot!;
+      expect(shadow2.querySelector('[data-cat-id="geral"]')!.classList.contains('ui-prop__categoria--aberta')).toBe(false);
+      expect(shadow2.querySelector('[data-cat-id="geometria"]')!.classList.contains('ui-prop__categoria--aberta')).toBe(true);
+      expect(shadow2.querySelector('[data-cat-id="avancado"]')!.classList.contains('ui-prop__categoria--aberta')).toBe(true);
+    });
+
+    it('deve persistir expandirTudo/colapsarTudo e emitir ui-categorias-estado', () => {
+      tabela.storageKey = 'painel-bulk';
+      tabela.categorias = mockCategorias;
+
+      const spy = vi.fn();
+      tabela.addEventListener('ui-categorias-estado', spy);
+
+      tabela.colapsarTudo();
+      expect(spy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          detail: expect.objectContaining({
+            estado: { geral: false, geometria: false },
+            abertas: [],
+            fechadas: ['geral', 'geometria']
+          })
+        })
+      );
+
+      const retorno = document.createElement('ui-tabela-propriedades') as UITabelaPropriedades;
+      retorno.storageKey = 'painel-bulk';
+      document.body.appendChild(retorno);
+      retorno.categorias = [
+        { id: 'geral', titulo: 'Geral', aberto: true, propriedades: [] },
+        { id: 'geometria', titulo: 'Geometria', aberto: true, propriedades: [] }
+      ];
+      expect(retorno.shadowRoot!.querySelector('[data-cat-id="geral"]')!.classList.contains('ui-prop__categoria--aberta')).toBe(false);
+      expect(retorno.shadowRoot!.querySelector('[data-cat-id="geometria"]')!.classList.contains('ui-prop__categoria--aberta')).toBe(false);
+
+      retorno.expandirTudo();
+      expect(retorno.obterEstadoCategorias()).toEqual({ geral: true, geometria: true });
+    });
+
+    it('deve respeitar persistir="false" sem ler nem gravar no localStorage', () => {
+      localStorage.setItem(
+        'ui_tabela_propriedades_estado_sem-persist',
+        JSON.stringify({ versao: 1, categorias: { geral: false } })
+      );
+
+      const painel = document.createElement('ui-tabela-propriedades') as UITabelaPropriedades;
+      painel.storageKey = 'sem-persist';
+      painel.persistir = false;
+      document.body.appendChild(painel);
+      painel.categorias = [
+        { id: 'geral', titulo: 'Geral', aberto: true, propriedades: [] }
+      ];
+
+      expect(painel.shadowRoot!.querySelector('[data-cat-id="geral"]')!.classList.contains('ui-prop__categoria--aberta')).toBe(true);
+      painel.toggleCategoria('geral');
+
+      // Mantém exatamente o valor pré-existente no storage sem sobrescrever
+      expect(JSON.parse(localStorage.getItem('ui_tabela_propriedades_estado_sem-persist')!).categorias).toEqual({ geral: false });
+    });
+
+    it('deve suportar obterEstadoCategorias(), definirEstadoCategorias(), obterChaveStorageAtual() e limparLembranca()', () => {
+      tabela.storageKey = 'api-estado';
+      expect(tabela.obterChaveStorageAtual()).toBe('ui_tabela_propriedades_estado_api-estado');
+
+      tabela.categorias = [
+        { id: 'geral', titulo: 'Geral', aberto: true, propriedades: [] },
+        { id: 'geometria', titulo: 'Geometria', aberto: true, propriedades: [] }
+      ];
+
+      tabela.definirEstadoCategorias({ geral: false });
+      expect(tabela.obterEstadoCategorias()).toEqual({ geral: false, geometria: true });
+      expect(tabela.shadowRoot!.querySelector('[data-cat-id="geral"]')!.classList.contains('ui-prop__categoria--aberta')).toBe(false);
+      expect(localStorage.getItem(tabela.obterChaveStorageAtual())).toBeTruthy();
+
+      tabela.limparLembranca();
+      expect(localStorage.getItem(tabela.obterChaveStorageAtual())).toBeNull();
+      expect(tabela.shadowRoot!.querySelector('[data-cat-id="geral"]')!.classList.contains('ui-prop__categoria--aberta')).toBe(true);
+    });
   });
 });
 

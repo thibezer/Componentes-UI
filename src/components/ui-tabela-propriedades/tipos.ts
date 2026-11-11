@@ -91,3 +91,22 @@ export interface ContextoEditorPropriedade {
   /** Texto exibido para valores mistos (atributo `texto-misto`); padrão "Varia". */
   obterTextoMisto?: () => string;
 }
+
+export interface EstadoPersistidoPropriedades {
+  versao: number;
+  /** Mapa `categoriaId -> aberto` das preferências de expansão salvas. */
+  categorias: Record<string, boolean>;
+  ultimaAtualizacao?: number;
+}
+
+export interface UICategoriasEstadoDetail {
+  /** Mapa `categoriaId -> aberto` das categorias atuais e lembradas. */
+  estado: Record<string, boolean>;
+  abertas: string[];
+  fechadas: string[];
+}
+
+export interface DefinirEstadoCategoriasOpcoes {
+  persistir?: boolean;
+  emitirEvento?: boolean;
+}

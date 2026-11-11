@@ -21,6 +21,7 @@ export interface OpcoesRenderArvore {
   categorias: CategoriaPropriedades[];
   termoBusca: string;
   onToggleCategoria: (idCategoria: string) => void;
+  obterCategoriaAberta?: (categoria: CategoriaPropriedades) => boolean;
   linhaCtx: ContextoLinhaPropriedade;
 }
 
@@ -69,7 +70,9 @@ export function renderizarCategoriasETree(opcoes: OpcoesRenderArvore): void {
     totalExibidas += propriedadesFiltradas.length;
 
     // Durante a busca as categorias com resultado ficam abertas (sem alterar cat.aberto)
-    const abertoPadrao = cat.aberto !== undefined ? cat.aberto !== false : cat.aberta !== false;
+    const abertoPadrao = opcoes.obterCategoriaAberta
+      ? opcoes.obterCategoriaAberta(cat)
+      : (cat.aberto !== undefined ? cat.aberto !== false : cat.aberta !== false);
     const isAberta = Boolean(termo) || abertoPadrao;
 
     const catEl = document.createElement('div');

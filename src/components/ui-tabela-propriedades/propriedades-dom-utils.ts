@@ -1,5 +1,6 @@
 import { CategoriaPropriedades } from './tipos';
 import { alternarPart } from '../../core/parts';
+import { abertoPadraoDaCategoria, idDaCategoria, sincronizarCampoAberto } from './propriedades-persistencia';
 
 /** Editores focáveis pela navegação Enter → próximo campo (apenas em categorias abertas). */
 const SELETOR_EDITORES =
@@ -125,20 +126,36 @@ function marcarCategoria(el: Element, aberta: boolean): void {
   el.querySelector('.ui-prop__categoria-header')?.setAttribute('aria-expanded', String(aberta));
 }
 
+export function sincronizarDomCategorias(
+  shadow: ShadowRoot,
+  categorias: CategoriaPropriedades[],
+  obterCategoriaAberta: (cat: CategoriaPropriedades) => boolean
+): void {
+  const mapaElementos = new Map<string, Element>();
+  shadow.querySelectorAll('.ui-prop__categoria[data-cat-id]').forEach(el => {
+    const id = el.getAttribute('data-cat-id');
+    if (id !== null) mapaElementos.set(id, el);
+  });
+
+  (Array.isArray(categorias) ? categorias : []).forEach(cat => {
+    const id = idDaCategoria(cat);
+    if (id === null) return;
+    const aberta = obterCategoriaAberta(cat);
+    const el = mapaElementos.get(id);
+    if (el) marcarCategoria(el, aberta);
+  });
+}
+
 export function expandirTodasCategorias(shadow: ShadowRoot, categorias: CategoriaPropriedades[]): void {
-  categorias.forEach(cat => {
-    if (!cat || typeof cat !== 'object') return;
-    cat.aberto = true;
-    if ('aberta' in cat) cat.aberta = true;
+  (Array.isArray(categorias) ? categorias : []).forEach(cat => {
+    sincronizarCampoAberto(cat, true);
   });
   shadow.querySelectorAll('.ui-prop__categoria').forEach(el => marcarCategoria(el, true));
 }
 
 export function colapsarTodasCategorias(shadow: ShadowRoot, categorias: CategoriaPropriedades[]): void {
-  categorias.forEach(cat => {
-    if (!cat || typeof cat !== 'object') return;
-    cat.aberto = false;
-    if ('aberta' in cat) cat.aberta = false;
+  (Array.isArray(categorias) ? categorias : []).forEach(cat => {
+    sincronizarCampoAberto(cat, false);
   });
   shadow.querySelectorAll('.ui-prop__categoria').forEach(el => marcarCategoria(el, false));
 }
@@ -147,25 +164,30 @@ export function alternarCategoria(
   shadow: ShadowRoot,
   host: HTMLElement,
   categorias: CategoriaPropriedades[],
-  idCategoria: string
-): void {
-  const cat = categorias.find(c => c && String(c.id) === String(idCategoria));
-  if (cat) {
-    const el = Array.from(shadow.querySelectorAll('[data-cat-id]'))
-      .find(c => c.getAttribute('data-cat-id') === String(idCategoria));
-    const abertaAtual = el
+  idCategoria: string,
+  estadoAtualOverride?: boolean
+): boolean | undefined {
+  const cat = (Array.isArray(categorias) ? categorias : []).find(
+    c => c && typeof c === 'object' && String(c.id) === String(idCategoria)
+  );
+  if (!cat) return undefined;
+
+  const el = Array.from(shadow.querySelectorAll('[data-cat-id]'))
+    .find(c => c.getAttribute('data-cat-id') === String(idCategoria));
+  const abertaAtual = estadoAtualOverride !== undefined
+    ? estadoAtualOverride
+    : el
       ? el.classList.contains('ui-prop__categoria--aberta')
-      : (cat.aberto !== undefined ? cat.aberto !== false : cat.aberta !== false);
-    const novoEstado = !abertaAtual;
-    cat.aberto = novoEstado;
-    if ('aberta' in cat) cat.aberta = novoEstado;
-    if (el) marcarCategoria(el, novoEstado);
-    host.dispatchEvent(
-      new CustomEvent('ui-categoria-toggle', {
-        bubbles: true,
-        composed: true,
-        detail: { id: idCategoria, aberto: novoEstado }
-      })
-    );
-  }
+      : abertoPadraoDaCategoria(cat);
+  const novoEstado = !abertaAtual;
+  sincronizarCampoAberto(cat, novoEstado);
+  if (el) marcarCategoria(el, novoEstado);
+  host.dispatchEvent(
+    new CustomEvent('ui-categoria-toggle', {
+      bubbles: true,
+      composed: true,
+      detail: { id: idCategoria, aberto: novoEstado }
+    })
+  );
+  return novoEstado;
 }

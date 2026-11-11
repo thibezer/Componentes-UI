@@ -7,7 +7,9 @@ import { ListenerBag } from '../../core/listener-bag';
 import {
   CategoriaPropriedades,
   SeletorTipoItem,
-  ItemPropriedade
+  ItemPropriedade,
+  DefinirEstadoCategoriasOpcoes,
+  UICategoriasEstadoDetail
 } from './tipos';
 import { renderizarSeletorTipos } from './propriedades-seletor-tipo';
 import { criarControladorSplitter, ControladorSplitterPropriedades } from './propriedades-splitter';
@@ -27,8 +29,13 @@ import {
   atualizarCampoVisual,
   expandirTodasCategorias,
   colapsarTodasCategorias,
-  alternarCategoria
+  alternarCategoria,
+  sincronizarDomCategorias
 } from './propriedades-dom-utils';
+import {
+  LembrancaCategoriasPropriedades,
+  idDaCategoria
+} from './propriedades-persistencia';
 
 export * from './tipos';
 export { avaliarExpressaoMatematica } from './avaliador-expressao';
@@ -39,6 +46,7 @@ export * from './propriedades-render-arvore';
 export * from './propriedades-gerenciador-valores';
 export * from './propriedades-painel-controles';
 export * from './propriedades-dom-utils';
+export * from './propriedades-persistencia';
 export * from './propriedades-flutuante';
 export * from './propriedades-densidade';
 export * from './propriedades-valor-misto';
@@ -46,6 +54,8 @@ import { TEXTO_MISTO_PADRAO } from './propriedades-valor-misto';
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 
 export class UITabelaPropriedades extends SafeHTMLElement {
+  private static instanciasChavePadrao = new Set<UITabelaPropriedades>();
+
   static get observedAttributes() {
     return [
       'titulo',
@@ -57,7 +67,9 @@ export class UITabelaPropriedades extends SafeHTMLElement {
       'fechavel',
       'colapsado',
       'flutuante',
-      'texto-misto'
+      'texto-misto',
+      'persistir',
+      'storage-key'
     ];
   }
 
@@ -66,6 +78,13 @@ export class UITabelaPropriedades extends SafeHTMLElement {
   private splitterListeners = new ListenerBag();
   private controladorSplitter!: ControladorSplitterPropriedades;
   private gerenciadorValores: GerenciadorValoresPropriedades;
+  private _conectado = false;
+  private readonly lembranca = new LembrancaCategoriasPropriedades(() => ({
+    persistir: this.persistir,
+    conectado: this._conectado,
+    storageKey: this.storageKey,
+    id: this.id
+  }));
 
   private _categorias: CategoriaPropriedades[] = [];
   private _tipos: SeletorTipoItem[] = [];
@@ -120,6 +139,14 @@ export class UITabelaPropriedades extends SafeHTMLElement {
 
   connectedCallback() {
     this.listeners.cleanup();
+    this._conectado = true;
+    this.atualizarRegistroChavePadrao();
+
+    if (this.persistir) {
+      this.lembranca.sincronizarSeChaveMudou();
+      this.lembranca.restaurarOrigensEmCategorias(this._categorias);
+      this.lembranca.aplicarEmCategorias(this._categorias);
+    }
 
     conectarPainelControles({
       shadow: this.shadow,
@@ -144,6 +171,8 @@ export class UITabelaPropriedades extends SafeHTMLElement {
   }
 
   disconnectedCallback() {
+    this._conectado = false;
+    this.atualizarRegistroChavePadrao();
     this.listeners.cleanup();
     this.splitterListeners.cleanup();
   }
@@ -179,6 +208,24 @@ export class UITabelaPropriedades extends SafeHTMLElement {
       case 'flutuante':
         if (!this._sincronizandoFlutuante) {
           sincronizarPainelControles(this.shadow, this);
+        }
+        return;
+      case 'persistir':
+        this.atualizarRegistroChavePadrao();
+        if (this._conectado && this.persistir) {
+          this.lembranca.sincronizarSeChaveMudou();
+          this.lembranca.restaurarOrigensEmCategorias(this._categorias);
+          this.lembranca.aplicarEmCategorias(this._categorias);
+          this.atualizarVisaoCategorias();
+        }
+        return;
+      case 'storage-key':
+        this.atualizarRegistroChavePadrao();
+        if (this._conectado && this.persistir) {
+          this.lembranca.carregarDoStorage(true);
+          this.lembranca.restaurarOrigensEmCategorias(this._categorias);
+          this.lembranca.aplicarEmCategorias(this._categorias);
+          this.atualizarVisaoCategorias();
         }
         return;
       default:
@@ -255,6 +302,32 @@ export class UITabelaPropriedades extends SafeHTMLElement {
     else this.removeAttribute('fechavel');
   }
 
+  /**
+   * Habilita a persistência das abas/categorias abertas no `localStorage`.
+   * Ativo por padrão (`true`); defina `persistir="false"` para manter apenas em memória.
+   */
+  get persistir(): boolean {
+    return this.getAttribute('persistir') !== 'false';
+  }
+
+  set persistir(val: boolean) {
+    if (val === false) this.setAttribute('persistir', 'false');
+    else this.removeAttribute('persistir');
+  }
+
+  /**
+   * Chave customizada de armazenamento no `localStorage` (`storage-key`).
+   * Quando omitida, usa o atributo `id` do componente ou `'default'`.
+   */
+  get storageKey(): string | null {
+    return this.getAttribute('storage-key');
+  }
+
+  set storageKey(val: string | null) {
+    if (val && val.trim()) this.setAttribute('storage-key', val.trim());
+    else this.removeAttribute('storage-key');
+  }
+
   get categorias(): CategoriaPropriedades[] {
     return this._categorias;
   }
@@ -262,6 +335,11 @@ export class UITabelaPropriedades extends SafeHTMLElement {
   set categorias(novasCategorias: CategoriaPropriedades[]) {
     this._categorias = Array.isArray(novasCategorias) ? novasCategorias : [];
     this.gerenciadorValores.inicializarCategorias(this._categorias);
+    this.lembranca.registrarOrigens(this._categorias);
+    if (this._conectado && this.persistir) {
+      this.lembranca.sincronizarSeChaveMudou();
+    }
+    this.lembranca.aplicarEmCategorias(this._categorias);
     this.renderCategorias();
   }
 
@@ -346,15 +424,95 @@ export class UITabelaPropriedades extends SafeHTMLElement {
   }
 
   public expandirTudo(): void {
+    const entradas: Array<[string, boolean]> = [];
+    for (const cat of this._categorias) {
+      const id = idDaCategoria(cat);
+      if (id !== null) entradas.push([id, true]);
+    }
+    this.lembranca.registrarVarias(entradas);
     expandirTodasCategorias(this.shadow, this._categorias);
+    if (entradas.length > 0) {
+      this.emitirEstadoCategorias();
+    }
   }
 
   public colapsarTudo(): void {
+    const entradas: Array<[string, boolean]> = [];
+    for (const cat of this._categorias) {
+      const id = idDaCategoria(cat);
+      if (id !== null) entradas.push([id, false]);
+    }
+    this.lembranca.registrarVarias(entradas);
     colapsarTodasCategorias(this.shadow, this._categorias);
+    if (entradas.length > 0) {
+      this.emitirEstadoCategorias();
+    }
   }
 
   public toggleCategoria(idCategoria: string): void {
-    alternarCategoria(this.shadow, this, this._categorias, idCategoria);
+    const cat = this._categorias.find((c) => idDaCategoria(c) === idCategoria);
+    if (!cat) return;
+
+    const estadoAtual = this.lembranca.estaAberta(cat);
+    const novoEstado = alternarCategoria(this.shadow, this, this._categorias, idCategoria, estadoAtual);
+    if (typeof novoEstado === 'boolean') {
+      this.lembranca.registrar(idCategoria, novoEstado);
+      this.emitirEstadoCategorias();
+    }
+  }
+
+  /**
+   * Retorna a chave completa de armazenamento utilizada por esta instância no `localStorage`.
+   */
+  public obterChaveStorageAtual(): string {
+    return this.lembranca.chaveAtual();
+  }
+
+  /**
+   * Retorna um mapa `{ categoriaId: aberto }` refletindo as abas atualmente lembradas e visíveis.
+   */
+  public obterEstadoCategorias(): Record<string, boolean> {
+    return this.lembranca.obterEstado(this._categorias);
+  }
+
+  /**
+   * Define programaticamente o estado aberto/fechado de um conjunto de categorias.
+   */
+  public definirEstadoCategorias(
+    estado: Record<string, boolean>,
+    opcoes?: DefinirEstadoCategoriasOpcoes
+  ): void {
+    if (!estado || typeof estado !== 'object') return;
+    const entradas: Array<[string, boolean]> = [];
+    for (const [id, aberto] of Object.entries(estado)) {
+      if (typeof aberto === 'boolean') {
+        entradas.push([id, aberto]);
+      }
+    }
+    if (entradas.length === 0) return;
+
+    this.lembranca.registrarVarias(entradas, opcoes?.persistir !== false);
+    this.lembranca.aplicarEmCategorias(this._categorias);
+    this.atualizarVisaoCategorias();
+
+    if (opcoes?.emitirEvento) {
+      this.emitirEstadoCategorias();
+    }
+  }
+
+  /**
+   * Remove as preferências lembradas em memória e no `localStorage`, restaurando o padrão das categorias.
+   */
+  public limparEstadoCategorias(): void {
+    this.lembranca.limpar(this._categorias);
+    this.atualizarVisaoCategorias();
+  }
+
+  /**
+   * Alias compatível com `<ui-camadas>` para limpar a memória persistida das categorias.
+   */
+  public limparLembranca(): void {
+    this.limparEstadoCategorias();
   }
 
   get densidade(): 'padrao' | 'compacta' | 'ultracompacta' | 'relaxada' {
@@ -464,12 +622,54 @@ export class UITabelaPropriedades extends SafeHTMLElement {
   }
 
   private toggleExpandirTodas() {
-    const algumaFechada = this._categorias.some(c => (c.aberto !== undefined ? c.aberto === false : c.aberta === false));
+    const algumaFechada = this._categorias.some(
+      (c) => Boolean(c && typeof c === 'object') && !this.lembranca.estaAberta(c)
+    );
     if (algumaFechada) {
       this.expandirTudo();
     } else {
       this.colapsarTudo();
     }
+  }
+
+  private atualizarRegistroChavePadrao(): void {
+    const usaChavePadrao =
+      this._conectado &&
+      this.persistir &&
+      !this.getAttribute('storage-key')?.trim() &&
+      !this.id?.trim();
+
+    if (usaChavePadrao) {
+      const jaRegistrada = UITabelaPropriedades.instanciasChavePadrao.has(this);
+      UITabelaPropriedades.instanciasChavePadrao.add(this);
+      if (!jaRegistrada && UITabelaPropriedades.instanciasChavePadrao.size > 1) {
+        console.warn(
+          '[ui-tabela-propriedades] Múltiplos painéis persistentes conectados sem "id" ou "storage-key". Todos compartilharão a mesma chave de armazenamento.'
+        );
+      }
+    } else {
+      UITabelaPropriedades.instanciasChavePadrao.delete(this);
+    }
+  }
+
+  private atualizarVisaoCategorias(): void {
+    const temCategoriasRenderizadas = this.shadow.querySelectorAll('.ui-prop__categoria').length > 0;
+    if (!this._termoBusca && temCategoriasRenderizadas) {
+      sincronizarDomCategorias(this.shadow, this._categorias, (cat) => this.lembranca.estaAberta(cat));
+      return;
+    }
+    this.renderCategorias();
+  }
+
+  private emitirEstadoCategorias(): void {
+    const detail = this.lembranca.montarDetalheEvento(this._categorias);
+    this.dispatchEvent(
+      new CustomEvent<UICategoriasEstadoDetail>('ui-categorias-estado', {
+        bubbles: true,
+        composed: true,
+        detail
+      })
+    );
   }
 
   private renderSeletorTipos() {
@@ -500,6 +700,7 @@ export class UITabelaPropriedades extends SafeHTMLElement {
       categorias: this._categorias,
       termoBusca: this._termoBusca,
       onToggleCategoria: (id) => this.toggleCategoria(id),
+      obterCategoriaAberta: (categoria) => this.lembranca.estaAberta(categoria),
       linhaCtx: {
         valoresAtuais: this.gerenciadorValores.getValores(),
         valoresOriginais: this.gerenciadorValores.getValoresOriginais(),

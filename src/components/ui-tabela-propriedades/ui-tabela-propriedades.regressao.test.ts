@@ -32,7 +32,10 @@ const categoriasBase = (): CategoriaPropriedades[] => [{
 const linha = (p: UITabelaPropriedades, id: string) => p.shadowRoot!.querySelector(`[data-prop-id="${id}"]`) as HTMLElement;
 
 describe('ui-tabela-propriedades — regressões', () => {
-  beforeEach(() => { document.body.innerHTML = ''; });
+  beforeEach(() => {
+    document.body.innerHTML = '';
+    localStorage.clear();
+  });
 
   it('re-renderizar (filtro) destaca só as linhas realmente modificadas', () => {
     const painel = criarPainel(categoriasBase());
@@ -407,7 +410,10 @@ describe('avaliarExpressaoMatematica — regressões', () => {
 });
 
 describe('ui-tabela-propriedades — regressões da revisão profunda', () => {
-  beforeEach(() => { document.body.innerHTML = ''; });
+  beforeEach(() => {
+    document.body.innerHTML = '';
+    localStorage.clear();
+  });
 
   const sair = (input: HTMLInputElement) => {
     input.dispatchEvent(new Event('focus'));
@@ -506,5 +512,128 @@ describe('ui-tabela-propriedades — regressões da revisão profunda', () => {
     expect(select.getAttribute('aria-label')).toBeTruthy();
     expect(select.options.length).toBe(2);
     expect(painel.tipoSelecionado).toBe('p');
+  });
+
+  describe('persistência e memória de abas/categorias', () => {
+    it('funciona independente da ordem de atributos/categorias antes ou depois de conectar ao DOM', () => {
+      localStorage.setItem(
+        'ui_tabela_propriedades_estado_ordem-props',
+        JSON.stringify({ versao: 1, categorias: { geral: false } })
+      );
+
+      // Caso 1: categorias atribuídas ANTES de conectar ao DOM com atributos no HTML
+      const p1 = document.createElement('ui-tabela-propriedades') as UITabelaPropriedades;
+      p1.setAttribute('storage-key', 'ordem-props');
+      p1.categorias = categoriasBase();
+      document.body.appendChild(p1);
+      expect(p1.shadowRoot!.querySelector('[data-cat-id="geral"]')!.classList.contains('ui-prop__categoria--aberta')).toBe(false);
+
+      // Caso 2: painel já conectado sem persistir="false" no HTML inicial
+      document.body.innerHTML = '<ui-tabela-propriedades persistir="false" storage-key="ordem-props"></ui-tabela-propriedades>';
+      const p2 = document.body.firstElementChild as UITabelaPropriedades;
+      p2.categorias = categoriasBase();
+      expect(p2.shadowRoot!.querySelector('[data-cat-id="geral"]')!.classList.contains('ui-prop__categoria--aberta')).toBe(true);
+    });
+
+    it('trocar storage-key dinamicamente recarrega o estado salvo da nova chave', () => {
+      localStorage.setItem('ui_tabela_propriedades_estado_chave-a', JSON.stringify({ versao: 1, categorias: { geral: false } }));
+      localStorage.setItem('ui_tabela_propriedades_estado_chave-b', JSON.stringify({ versao: 1, categorias: { geral: true } }));
+
+      const painel = document.createElement('ui-tabela-propriedades') as UITabelaPropriedades;
+      painel.setAttribute('storage-key', 'chave-a');
+      document.body.appendChild(painel);
+      painel.categorias = categoriasBase();
+      expect(painel.shadowRoot!.querySelector('[data-cat-id="geral"]')!.classList.contains('ui-prop__categoria--aberta')).toBe(false);
+
+      painel.setAttribute('storage-key', 'chave-b');
+      expect(painel.shadowRoot!.querySelector('[data-cat-id="geral"]')!.classList.contains('ui-prop__categoria--aberta')).toBe(true);
+    });
+
+    it('tolera objetos de categoria congelados (Object.freeze) e itens nulos ao alternar e expandir/recolher', () => {
+      const congeladas = [
+        Object.freeze({
+          id: 'geral',
+          titulo: 'Geral',
+          aberto: true,
+          propriedades: [{ id: 'nome', rotulo: 'Nome', tipo: 'texto', valor: 'x' }]
+        }),
+        null
+      ] as unknown as CategoriaPropriedades[];
+
+      const painel = criarPainel(congeladas);
+      const btnExpandirTudo = painel.shadowRoot!.getElementById('btn-expandir-tudo') as HTMLButtonElement;
+
+      expect(() => {
+        painel.toggleCategoria('geral');
+        btnExpandirTudo.click();
+        btnExpandirTudo.click();
+      }).not.toThrow();
+
+      expect(painel.shadowRoot!.querySelector('[data-cat-id="geral"]')!.classList.contains('ui-prop__categoria--aberta')).toBe(false);
+    });
+
+    it('busca temporária abre categoria recolhida na tela sem corromper o estado salvo no storage', () => {
+      const painel = document.createElement('ui-tabela-propriedades') as UITabelaPropriedades;
+      painel.storageKey = 'busca-preserva-storage';
+      painel.setAttribute('filtro', '');
+      document.body.appendChild(painel);
+      painel.categorias = categoriasBase();
+
+      painel.toggleCategoria('geral');
+      expect(JSON.parse(localStorage.getItem('ui_tabela_propriedades_estado_busca-preserva-storage')!).categorias).toEqual({ geral: false });
+
+      const filtro = painel.shadowRoot!.getElementById('filtro-input') as HTMLInputElement;
+      filtro.value = 'larg';
+      filtro.dispatchEvent(new Event('input'));
+      expect(painel.shadowRoot!.querySelector('[data-cat-id="geral"]')!.classList.contains('ui-prop__categoria--aberta')).toBe(true);
+
+      // Ao limpar o filtro e recarregar em outra instância, "geral" continua fechada
+      filtro.value = '';
+      filtro.dispatchEvent(new Event('input'));
+      expect(painel.shadowRoot!.querySelector('[data-cat-id="geral"]')!.classList.contains('ui-prop__categoria--aberta')).toBe(false);
+      expect(JSON.parse(localStorage.getItem('ui_tabela_propriedades_estado_busca-preserva-storage')!).categorias).toEqual({ geral: false });
+    });
+
+    it('localStorage corrompido não derruba o painel e é ignorado com degradação graciosa', () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      localStorage.setItem('ui_tabela_propriedades_estado_corrompido-props', '{invalido');
+
+      const painel = document.createElement('ui-tabela-propriedades') as UITabelaPropriedades;
+      painel.storageKey = 'corrompido-props';
+      expect(() => {
+        document.body.appendChild(painel);
+        painel.categorias = categoriasBase();
+      }).not.toThrow();
+      expect(painel.shadowRoot!.querySelector('[data-cat-id="geral"]')!.classList.contains('ui-prop__categoria--aberta')).toBe(true);
+
+      localStorage.setItem('ui_tabela_propriedades_estado_corrompido-props', JSON.stringify({ versao: 1, categorias: { geral: 'talvez' } }));
+      const painel2 = document.createElement('ui-tabela-propriedades') as UITabelaPropriedades;
+      painel2.storageKey = 'corrompido-props';
+      document.body.appendChild(painel2);
+      painel2.categorias = categoriasBase();
+      expect(painel2.shadowRoot!.querySelector('[data-cat-id="geral"]')!.classList.contains('ui-prop__categoria--aberta')).toBe(true);
+
+      warnSpy.mockRestore();
+    });
+
+    it('emite aviso ao conectar 2+ painéis persistentes sem id nem storage-key e limpa ao desconectar', () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const p1 = document.createElement('ui-tabela-propriedades') as UITabelaPropriedades;
+      const p2 = document.createElement('ui-tabela-propriedades') as UITabelaPropriedades;
+
+      document.body.appendChild(p1);
+      expect(warnSpy).not.toHaveBeenCalled();
+
+      document.body.appendChild(p2);
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+
+      p1.remove();
+      p2.remove();
+      warnSpy.mockClear();
+
+      document.body.appendChild(p1);
+      expect(warnSpy).not.toHaveBeenCalled();
+      warnSpy.mockRestore();
+    });
   });
 });
