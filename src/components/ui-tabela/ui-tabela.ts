@@ -17,12 +17,13 @@ import { acaoDaTeclaLinha } from './tabela-teclado';
 import { renderizarErroTabela, anunciarResultadoFiltro, sincronizarAriaTabela, TEXTO_SEM_RESULTADOS_PADRAO } from './tabela-estados';
 import { RolagemLinhas } from './tabela-rolagem';
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
+import { ATRIBUTOS_DEGRADE, aplicarDegradeNoElemento, ehAtributoDegrade } from '../../core/degrade';
 
 export type { DensidadeTabela, TabelaColuna, TabelaFetcher, UISortDetail, UIColumnResizeDetail, UIRowScrollOptions, UISelecaoRemovidaDetail, UIFetchErroDetail };
 
 export class UITabela extends SafeHTMLElement {
   static get observedAttributes() {
-    return ['texto-vazio', 'empty-text', 'max-height', 'densidade', 'density', 'altura-linha', 'row-height', 'virtualizar', 'virtualize', 'src', 'carregando', 'loading', 'chave-id', 'id-key', 'aria-label', 'ordenacao-remota', 'texto-erro', 'texto-sem-resultados', 'texto-carregando'];
+    return ['texto-vazio', 'empty-text', 'max-height', 'densidade', 'density', 'altura-linha', 'row-height', 'virtualizar', 'virtualize', 'src', 'carregando', 'loading', 'chave-id', 'id-key', 'aria-label', 'ordenacao-remota', 'texto-erro', 'texto-sem-resultados', 'texto-carregando', ...ATRIBUTOS_DEGRADE];
   }
 
   private shadow: ShadowRoot;
@@ -104,6 +105,10 @@ export class UITabela extends SafeHTMLElement {
   disconnectedCallback() { this.cleanupEventListeners(); }
 
   attributeChangedCallback(name: string, _oldVal: string | null, newVal: string | null) {
+    if (ehAtributoDegrade(name)) {
+      aplicarDegradeNoElemento(this, this._containerElement);
+      return;
+    }
     if (name === 'ordenacao-remota') {
       this.dadosController.setOrdenacaoRemota(newVal !== null);
       this.atualizarContextoSelecao();
@@ -381,6 +386,7 @@ export class UITabela extends SafeHTMLElement {
         if (textSpan) textSpan.textContent = this._textoVazio;
       }
     }
+    aplicarDegradeNoElemento(this, this._containerElement);
     this.renderHeader();
     this.renderBody();
 

@@ -62,7 +62,7 @@
   width: 100%;
   max-width: 380px;
   min-width: 270px;
-  background: var(--ui-cor-superficie, #141417);
+  background: var(--ui-degrade-interno, var(--ui-camadas-fundo, var(--ui-fundo-superficie, var(--ui-cor-superficie, #141417))));
   border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
   border-radius: var(--ui-raio-borda, 8px);
   box-shadow: var(--ui-sombra-lg, 0 10px 30px -4px rgba(0, 0, 0, 0.5)), 0 0 0 1px color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 5%, transparent);
@@ -86,7 +86,7 @@
   top: 10px;
   right: 10px;
   z-index: calc(var(--ui-z-workspace-hud, 500) - 1);
-  background: var(--ui-cor-superficie, #141417);
+  background: var(--ui-camadas-toggle-fundo, var(--ui-fundo-superficie, var(--ui-cor-superficie, #141417)));
   border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.18));
   border-radius: var(--ui-raio-borda, 6px);
   color: var(--ui-cor-texto, #ffffff);
@@ -1187,11 +1187,10 @@
 .ui-footer-select {
   appearance: none;
   -webkit-appearance: none;
-  background-color: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 6%, transparent);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888899' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 6px center;
-  background-size: 10px;
+  --_chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888899' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background:
+    var(--_chevron) right 6px center / 10px no-repeat,
+    color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 6%, transparent);
   border: none;
   color: var(--ui-cor-texto, #e1e1e6);
   border-radius: var(--ui-raio-sm, 4px);
@@ -1209,7 +1208,9 @@
 }
 
 .ui-footer-select:hover:not(:disabled) {
-  background-color: var(--ui-cor-hover-menu, rgba(255, 255, 255, 0.12));
+  background:
+    var(--_chevron) right 6px center / 10px no-repeat,
+    var(--ui-cor-hover-menu, rgba(255, 255, 255, 0.12));
 }
 
 .ui-footer-select:focus-visible {
@@ -1572,4 +1573,12 @@
 .ui-truncate-more-btn:focus-visible {
   outline: 2px solid var(--ui-cor-primaria, #00E08A);
   outline-offset: 1px;
+}
+
+:host(.degrade),
+:host(.gradiente),
+:host([data-degrade]:not([data-degrade="false"])),
+.ui-camadas-container[data-degrade]:not([data-degrade="false"]) {
+  --ui-camadas-fundo: var(--ui-gradiente-superficie);
+  --ui-camadas-toggle-fundo: var(--ui-gradiente-superficie);
 }

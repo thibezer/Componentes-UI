@@ -27,7 +27,7 @@
   overscroll-behavior: contain;
   border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
   border-radius: var(--ui-raio-borda, 6px);
-  background-color: var(--ui-cor-superficie, #141417);
+  background: var(--ui-degrade-interno, var(--ui-tabela-fundo, var(--ui-fundo-superficie, var(--ui-cor-superficie, #141417))));
   box-sizing: border-box;
   position: relative;
 }
@@ -45,7 +45,7 @@
 
 /* Cabeçalho Fixo: o sticky fica só nos <th> (o thead sticky duplicava o empilhamento) */
 .ui-tabela thead {
-  background-color: var(--ui-cor-fundo-elevado, #1a1a1e);
+  background: var(--ui-tabela-cabecalho-fundo, var(--ui-fundo-elevado, var(--ui-cor-fundo-elevado, #1a1a1e)));
 }
 
 .ui-tabela th {
@@ -53,7 +53,7 @@
   top: 0;
   z-index: 10;
   padding: 10px 16px;
-  background-color: var(--ui-cor-fundo-elevado, #1a1a1e);
+  background: var(--ui-tabela-cabecalho-fundo, var(--ui-fundo-elevado, var(--ui-cor-fundo-elevado, #1a1a1e)));
   color: var(--ui-cor-texto-secundario, #9696a6);
   font-size: 13px;
   font-weight: 600;
@@ -160,7 +160,7 @@
 
 @media (hover: hover) {
   .ui-tabela th.ui-tabela__th--ordenavel:hover {
-    background-color: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 8%, var(--ui-cor-fundo-elevado, #1a1a1e));
+    background: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 8%, var(--ui-cor-fundo-elevado, #1a1a1e));
     color: var(--ui-cor-texto, #e1e1e6);
   }
 }
@@ -191,7 +191,7 @@
 .ui-tabela tbody tr:focus-visible {
   outline: 2px solid var(--ui-tabela-cor-foco, var(--ui-cor-texto, #e1e1e6));
   outline-offset: -2px;
-  background-color: var(--ui-tabela-hover, color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 8%, transparent));
+  background: var(--ui-tabela-hover, color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 8%, transparent));
 }
 
 /* Seta de ordenação: dois chevrons; o ativo fica pleno e o outro esmaece (inativa: ambos apagados) */
@@ -278,17 +278,17 @@
 }
 
 .ui-tabela tbody tr.ui-tabela__tr--par {
-  background-color: var(--ui-tabela-zebra, color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 4%, transparent));
+  background: var(--ui-tabela-zebra, color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 4%, transparent));
 }
 
 @media (hover: hover) {
   .ui-tabela tbody tr[data-index]:hover {
-    background-color: var(--ui-tabela-hover, color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 8%, transparent));
+    background: var(--ui-tabela-hover, color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 8%, transparent));
   }
 }
 
 .ui-tabela tbody tr[data-index]:active {
-  background-color: var(--ui-tabela-hover, color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 12%, transparent));
+  background: var(--ui-tabela-hover, color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 12%, transparent));
 }
 
 /* O clique na linha não seleciona o texto das células (opt-in: atributo selecionar-texto) */
@@ -299,7 +299,7 @@
 /* Linha Selecionada: a barra lateral vai na 1ª célula (box-shadow em <tr> não é pintado em todos os navegadores) */
 .ui-tabela tbody tr.ui-tabela__tr--selecionada,
 .ui-tabela tbody tr[data-selecionada="true"] {
-  background-color: var(--ui-tabela-selecionada, var(--ui-cor-linha-selecionada, color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 14%, transparent)));
+  background: var(--ui-tabela-selecionada, var(--ui-cor-linha-selecionada, color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 14%, transparent)));
 }
 
 .ui-tabela tbody tr.ui-tabela__tr--selecionada td:first-child,
@@ -310,7 +310,7 @@
 @media (hover: hover) {
   .ui-tabela tbody tr.ui-tabela__tr--selecionada:hover,
   .ui-tabela tbody tr[data-selecionada="true"]:hover {
-    background-color: var(--ui-tabela-selecionada-hover, var(--ui-cor-linha-selecionada-hover, color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 22%, transparent)));
+    background: var(--ui-tabela-selecionada-hover, var(--ui-cor-linha-selecionada-hover, color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 22%, transparent)));
   }
 }
 
@@ -421,7 +421,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: color-mix(in srgb, var(--ui-cor-superficie, #141417) 72%, transparent);
+  background: color-mix(in srgb, var(--ui-cor-superficie, #141417) 72%, transparent);
   backdrop-filter: blur(2px);
   display: flex;
   flex-direction: column;
@@ -454,7 +454,7 @@
   max-width: calc(100vw - 16px);
   border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.2));
   border-radius: var(--ui-raio-borda, 6px);
-  background-color: var(--ui-cor-fundo-elevado, #1a1a1e);
+  background: var(--ui-tabela-dialogo-fundo, var(--ui-fundo-elevado, var(--ui-cor-fundo-elevado, #1a1a1e)));
   color: var(--ui-cor-texto, #e1e1e6);
   padding: 12px;
   box-shadow: var(--ui-sombra-lg, 0 8px 32px rgba(0, 0, 0, 0.8));
@@ -536,4 +536,13 @@
   .ui-tabela__spinner {
     animation-duration: 2.4s;
   }
+}
+
+:host(.degrade),
+:host(.gradiente),
+:host([data-degrade]:not([data-degrade="false"])),
+.ui-tabela-container[data-degrade]:not([data-degrade="false"]) {
+  --ui-tabela-fundo: var(--ui-gradiente-superficie);
+  --ui-tabela-cabecalho-fundo: var(--ui-gradiente-elevado);
+  --ui-tabela-dialogo-fundo: var(--ui-gradiente-elevado);
 }

@@ -11,7 +11,7 @@
   padding: 12px 16px;
   border-radius: var(--ui-raio-borda, 8px);
   border: 1px solid transparent;
-  background-color: var(--ui-cor-fundo-elevado, #1a1a1e);
+  background: var(--ui-degrade-interno, var(--ui-alerta-fundo, var(--ui-fundo-elevado, var(--ui-cor-fundo-elevado, #1a1a1e))));
   color: var(--ui-cor-texto, #e1e1e6);
   box-sizing: border-box;
   position: relative;
@@ -69,12 +69,12 @@
 
 .ui-alerta__close:hover {
   opacity: 1;
-  background-color: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 15%, transparent);
+  background: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 15%, transparent);
 }
 
 /* Variantes Temáticas (Sucesso, Erro, Alerta, Info) */
 .ui-alerta--sucesso {
-  background-color: color-mix(in srgb, var(--ui-cor-texto-sucesso, #00E08A) 12%, transparent);
+  background: var(--ui-degrade-interno, var(--ui-alerta-fundo, var(--ui-fundo-sucesso, color-mix(in srgb, var(--ui-cor-texto-sucesso, #00E08A) 12%, transparent))));
   border-color: color-mix(in srgb, var(--ui-cor-texto-sucesso, #00E08A) 30%, transparent);
   color: var(--ui-cor-texto-sucesso, #00E08A);
 }
@@ -84,7 +84,7 @@
 }
 
 .ui-alerta--erro {
-  background-color: color-mix(in srgb, var(--ui-cor-texto-erro, #ff5555) 12%, transparent);
+  background: var(--ui-degrade-interno, var(--ui-alerta-fundo, var(--ui-fundo-erro, color-mix(in srgb, var(--ui-cor-texto-erro, #ff5555) 12%, transparent))));
   border-color: color-mix(in srgb, var(--ui-cor-texto-erro, #ff5555) 30%, transparent);
   color: var(--ui-cor-texto-erro, #ff5555);
 }
@@ -94,7 +94,7 @@
 }
 
 .ui-alerta--alerta {
-  background-color: color-mix(in srgb, var(--ui-cor-texto-alerta, #ffb86c) 12%, transparent);
+  background: var(--ui-degrade-interno, var(--ui-alerta-fundo, var(--ui-fundo-alerta, color-mix(in srgb, var(--ui-cor-texto-alerta, #ffb86c) 12%, transparent))));
   border-color: color-mix(in srgb, var(--ui-cor-texto-alerta, #ffb86c) 30%, transparent);
   color: var(--ui-cor-texto-alerta, #ffb86c);
 }
@@ -104,7 +104,7 @@
 }
 
 .ui-alerta--info {
-  background-color: color-mix(in srgb, var(--ui-cor-texto-info, #33b5ff) 12%, transparent);
+  background: var(--ui-degrade-interno, var(--ui-alerta-fundo, var(--ui-fundo-info, color-mix(in srgb, var(--ui-cor-texto-info, #33b5ff) 12%, transparent))));
   border-color: color-mix(in srgb, var(--ui-cor-texto-info, #33b5ff) 30%, transparent);
   color: var(--ui-cor-texto-info, #33b5ff);
 }
@@ -197,22 +197,22 @@
 
 /* Fundo equilibrado com vidro fosco translúcido (~82% opacidade) */
 .ui-toast__banner.ui-alerta--sucesso {
-  background-color: color-mix(in srgb, color-mix(in srgb, var(--ui-cor-fundo-elevado, #1a1a1e) 88%, var(--ui-cor-texto-sucesso, #00E08A) 12%) 60%, transparent);
+  background: var(--ui-degrade-interno, var(--ui-alerta-fundo, var(--ui-fundo-sucesso, color-mix(in srgb, color-mix(in srgb, var(--ui-cor-fundo-elevado, #1a1a1e) 88%, var(--ui-cor-texto-sucesso, #00E08A) 12%) 60%, transparent))));
   border-color: color-mix(in srgb, var(--ui-cor-texto-sucesso, #00E08A) 40%, transparent);
 }
 
 .ui-toast__banner.ui-alerta--erro {
-  background-color: color-mix(in srgb, color-mix(in srgb, var(--ui-cor-fundo-elevado, #1a1a1e) 88%, var(--ui-cor-texto-erro, #ff5555) 12%) 60%, transparent);
+  background: var(--ui-degrade-interno, var(--ui-alerta-fundo, var(--ui-fundo-erro, color-mix(in srgb, color-mix(in srgb, var(--ui-cor-fundo-elevado, #1a1a1e) 88%, var(--ui-cor-texto-erro, #ff5555) 12%) 60%, transparent))));
   border-color: color-mix(in srgb, var(--ui-cor-texto-erro, #ff5555) 40%, transparent);
 }
 
 .ui-toast__banner.ui-alerta--alerta {
-  background-color: color-mix(in srgb, color-mix(in srgb, var(--ui-cor-fundo-elevado, #1a1a1e) 88%, var(--ui-cor-texto-alerta, #ffb86c) 12%) 60%, transparent);
+  background: var(--ui-degrade-interno, var(--ui-alerta-fundo, var(--ui-fundo-alerta, color-mix(in srgb, color-mix(in srgb, var(--ui-cor-fundo-elevado, #1a1a1e) 88%, var(--ui-cor-texto-alerta, #ffb86c) 12%) 60%, transparent))));
   border-color: color-mix(in srgb, var(--ui-cor-texto-alerta, #ffb86c) 40%, transparent);
 }
 
 .ui-toast__banner.ui-alerta--info {
-  background-color: color-mix(in srgb, color-mix(in srgb, var(--ui-cor-fundo-elevado, #1a1a1e) 88%, var(--ui-cor-texto-info, #33b5ff) 12%) 60%, transparent);
+  background: var(--ui-degrade-interno, var(--ui-alerta-fundo, var(--ui-fundo-info, color-mix(in srgb, color-mix(in srgb, var(--ui-cor-fundo-elevado, #1a1a1e) 88%, var(--ui-cor-texto-info, #33b5ff) 12%) 60%, transparent))));
   border-color: color-mix(in srgb, var(--ui-cor-texto-info, #33b5ff) 40%, transparent);
 }
 
@@ -280,4 +280,18 @@
 :host([formato="squarecircles"]) .ui-alerta,
 :host([formato="squircle"]) .ui-alerta {
   border-radius: var(--ui-raio-lg, 10px);
+}
+
+:host(.degrade),
+:host(.ui-degrade),
+:host(.gradiente),
+:host(.ui-gradiente),
+:host([degrade]:not([degrade="false"]):not([degrade="none"]):not([degrade="0"]):not([degrade="off"])),
+:host([gradiente]:not([gradiente="false"]):not([gradiente="none"]):not([gradiente="0"]):not([gradiente="off"])),
+:host([gradient]:not([gradient="false"]):not([gradient="none"]):not([gradient="0"]):not([gradient="off"])) {
+  --ui-fundo-elevado: var(--ui-gradiente-elevado);
+  --ui-fundo-sucesso: var(--ui-gradiente-sucesso);
+  --ui-fundo-erro: var(--ui-gradiente-erro);
+  --ui-fundo-alerta: var(--ui-gradiente-alerta);
+  --ui-fundo-info: var(--ui-gradiente-info);
 }

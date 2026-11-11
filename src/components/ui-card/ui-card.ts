@@ -2,6 +2,7 @@ import estilos from './ui-card.css?inline';
 import { ListenerBag } from '../../core/listener-bag';
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 import { escolherOpcao, escolherOpcaoOpcional } from '../../core/opcoes';
+import { ATRIBUTOS_DEGRADE, aplicarDegradeNoElemento } from '../../core/degrade';
 import { ehControleInterno, teclaAtivaCard } from './card-interacao';
 import { secaoTemConteudo } from './card-secoes';
 
@@ -40,7 +41,8 @@ export class UICard extends SafeHTMLElement {
       'compacto',
       'compact',
       'disabled',
-      'aria-label'
+      'aria-label',
+      ...ATRIBUTOS_DEGRADE
     ];
   }
 
@@ -165,6 +167,7 @@ export class UICard extends SafeHTMLElement {
     if (isDisabled) {
       this.cardElement.classList.add('ui-card--disabled');
     }
+    aplicarDegradeNoElemento(this, this.cardElement);
 
     // Ocultar seções de slots se não tiverem elementos atribuídos
     const headerSlot = this.shadowRoot?.querySelector('.ui-card__header') as HTMLElement | null;

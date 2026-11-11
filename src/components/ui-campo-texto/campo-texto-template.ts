@@ -1,4 +1,5 @@
 import estilos from './ui-campo-texto.css?inline';
+import { ATRIBUTOS_DEGRADE } from '../../core/degrade';
 
 export const ATRIBUTOS_OBSERVADOS_CAMPO_TEXTO = [
   'label',
@@ -29,7 +30,8 @@ export const ATRIBUTOS_OBSERVADOS_CAMPO_TEXTO = [
   'altura',
   'height',
   'densidade',
-  'aria-label'
+  'aria-label',
+  ...ATRIBUTOS_DEGRADE
 ];
 
 export function criarTemplateCampoTexto(): string {

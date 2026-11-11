@@ -6,6 +6,7 @@ import {
 } from './campo-texto-estados';
 import { definirCustomElement } from '../../core/ssr-safe';
 import { aplicarAlturaControle } from '../../core/altura-controle';
+import { aplicarDegradeNoElemento } from '../../core/degrade';
 import { ListenerBag } from '../../core/listener-bag';
 import { inteiroOuNulo } from '../../core/opcoes';
 import { gerarIdUnico, obterRotuloExterno, cliqueVeioDeRotuloExterno } from '../../core/acessibilidade';
@@ -241,6 +242,7 @@ export class UICampoTexto extends FormAssociatedElement {
     }
 
     aplicarAlturaControle(this);
+    aplicarDegradeNoElemento(this, this.wrapperElement);
 
     sincronizarLabelEPlaceholder({
       labelElement: this.labelElement,

@@ -42,7 +42,7 @@
   height: var(--ui-campo-altura, 34px);
   min-height: var(--ui-campo-altura, 34px);
   padding: 0 8px;
-  background-color: var(--ui-cor-fundo-elevado, #1a1a1e);
+  background: var(--ui-degrade-interno, var(--ui-lista-flutuante-fundo, var(--ui-fundo-elevado, var(--ui-cor-fundo-elevado, #1a1a1e))));
   color: var(--ui-cor-texto, #e1e1e6);
   border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
   border-radius: var(--ui-raio-borda, 6px);
@@ -120,7 +120,7 @@
   margin: 0;
   padding: 4px;
   list-style: none;
-  background-color: var(--ui-cor-fundo-menu, #18181c);
+  background: var(--ui-degrade-interno, var(--ui-lista-flutuante-menu-fundo, var(--ui-fundo-elevado, var(--ui-cor-fundo-menu, #18181c))));
   border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.14));
   border-radius: var(--ui-raio-borda, 6px);
   box-shadow: var(--ui-sombra-lg, 0 8px 28px rgba(0, 0, 0, 0.55));
@@ -142,7 +142,7 @@
   width: 36px;
   height: 4px;
   border-radius: 2px;
-  background-color: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 25%, transparent);
+  background: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 25%, transparent);
   margin: 2px auto 8px auto;
 }
 
@@ -182,7 +182,7 @@
 
 .ui-lista-flutuante__sheet-close:hover {
   color: #fff;
-  background-color: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 8%, transparent);
+  background: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 8%, transparent);
 }
 
 .ui-lista-flutuante__item {
@@ -204,11 +204,11 @@
 }
 
 .ui-lista-flutuante__item:hover {
-  background-color: var(--ui-cor-hover-menu, rgba(255, 255, 255, 0.08));
+  background: var(--ui-cor-hover-menu, rgba(255, 255, 255, 0.08));
 }
 
 .ui-lista-flutuante__item--selecionado {
-  background-color: color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 15%, transparent);
+  background: color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 15%, transparent);
   color: var(--ui-cor-primaria, #00E08A);
   font-weight: 600;
 }
@@ -324,4 +324,14 @@
   to {
     transform: translateY(0);
   }
+}
+
+:host(.degrade),
+:host(.ui-degrade),
+:host(.gradiente),
+:host(.ui-gradiente),
+:host([degrade]:not([degrade="false"]):not([degrade="none"]):not([degrade="0"]):not([degrade="off"])),
+:host([gradiente]:not([gradiente="false"]):not([gradiente="none"]):not([gradiente="0"]):not([gradiente="off"])),
+:host([gradient]:not([gradient="false"]):not([gradient="none"]):not([gradient="0"]):not([gradient="off"])) {
+  --ui-fundo-elevado: var(--ui-gradiente-elevado);
 }

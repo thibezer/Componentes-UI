@@ -7,6 +7,7 @@ import {
   gerenciarTabTrap,
   atualizarScrollLockDrawer
 } from './drawer-acessibilidade';
+import { ATRIBUTOS_DEGRADE, aplicarDegradeNoElemento } from '../../core/degrade';
 
 export type PosicaoDrawer = 'direita' | 'esquerda' | 'baixo' | 'cima';
 
@@ -24,7 +25,8 @@ export class UIDrawer extends SafeHTMLElement {
       'largura',
       'width',
       'estatico',
-      'static'
+      'static',
+      ...ATRIBUTOS_DEGRADE
     ];
   }
 
@@ -187,6 +189,7 @@ export class UIDrawer extends SafeHTMLElement {
 
     // Acessibilidade
     this.painelElement.setAttribute('aria-hidden', String(!isAberto));
+    aplicarDegradeNoElemento(this, this.painelElement);
 
     // Título e Descrição (seguro com textContent)
     if (tituloText) {

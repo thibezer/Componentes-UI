@@ -1,5 +1,6 @@
 import estilos from './ui-segmented.css?inline';
 import { UISegmentedOpcao } from './ui-segmented';
+import { ATRIBUTOS_DEGRADE } from '../../core/degrade';
 
 export const ATRIBUTOS_OBSERVADOS_SEGMENTED = [
   'valor',
@@ -15,7 +16,8 @@ export const ATRIBUTOS_OBSERVADOS_SEGMENTED = [
   'full-width',
   'obrigatorio',
   'required',
-  'mensagem-validacao'
+  'mensagem-validacao',
+  ...ATRIBUTOS_DEGRADE
 ];
 
 export function criarTemplateSegmented(): string {

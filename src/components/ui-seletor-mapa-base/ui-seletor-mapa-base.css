@@ -65,7 +65,7 @@
   gap: 8px;
   height: 34px;
   padding: 0 12px 0 6px;
-  background: var(--ui-cor-fundo-elevado, rgba(18, 18, 24, 0.88));
+  background: var(--ui-degrade-interno, var(--ui-basemap-gatilho-fundo, var(--ui-fundo-elevado, var(--ui-cor-fundo-elevado, rgba(18, 18, 24, 0.88)))));
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
@@ -94,7 +94,7 @@
 
 .ui-basemap-trigger.active {
   border-color: var(--ui-cor-primaria, #00E08A);
-  background: var(--ui-cor-fundo-elevado, rgba(22, 26, 32, 0.95));
+  background: var(--ui-degrade-interno, var(--ui-basemap-gatilho-ativo-fundo, var(--ui-fundo-elevado, var(--ui-cor-fundo-elevado, rgba(22, 26, 32, 0.95)))));
   box-shadow: var(--ui-sombra-md, 0 4px 16px rgba(0, 0, 0, 0.4)), 0 0 10px color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 25%, transparent);
 }
 
@@ -170,7 +170,7 @@
   position: absolute;
   min-width: 210px;
   max-width: 250px;
-  background: var(--ui-cor-fundo-elevado, rgba(16, 16, 22, 0.95));
+  background: var(--ui-degrade-interno, var(--ui-basemap-popover-fundo, var(--ui-fundo-elevado, var(--ui-cor-fundo-elevado, rgba(16, 16, 22, 0.95)))));
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
@@ -393,5 +393,15 @@
 .ui-basemap-item-check svg {
   width: 13px;
   height: 13px;
+}
+
+:host(.degrade),
+:host(.gradiente),
+:host([data-degrade]:not([data-degrade="false"])),
+.ui-basemap-trigger[data-degrade]:not([data-degrade="false"]),
+.ui-basemap-popover[data-degrade]:not([data-degrade="false"]) {
+  --ui-basemap-gatilho-fundo: var(--ui-gradiente-elevado);
+  --ui-basemap-gatilho-ativo-fundo: var(--ui-gradiente-elevado);
+  --ui-basemap-popover-fundo: var(--ui-gradiente-elevado);
 }
 

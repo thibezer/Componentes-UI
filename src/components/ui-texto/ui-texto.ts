@@ -1,6 +1,7 @@
 import estilos from './ui-texto.css?inline';
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 import { escolherInteiro, escolherOpcao, escolherOpcaoOpcional } from '../../core/opcoes';
+import { ATRIBUTOS_DEGRADE, aplicarDegradeNoElemento } from '../../core/degrade';
 
 export type VarianteTexto = 
   | 'h1' 
@@ -48,7 +49,7 @@ const LINHAS_MAXIMO = 50;
  */
 export class UITexto extends SafeHTMLElement {
   static get observedAttributes() {
-    return ['variante', 'tag', 'cor', 'peso', 'alinhamento', 'truncar', 'linhas'];
+    return ['variante', 'tag', 'cor', 'peso', 'alinhamento', 'truncar', 'linhas', ...ATRIBUTOS_DEGRADE];
   }
 
   private container: HTMLElement | null = null;
@@ -141,6 +142,7 @@ export class UITexto extends SafeHTMLElement {
     alvo.className = classes.join(' ');
     if (linhas > 0) alvo.style.setProperty('--ui-texto-linhas', String(linhas));
     else alvo.style.removeProperty('--ui-texto-linhas');
+    aplicarDegradeNoElemento(this, alvo);
   }
 }
 

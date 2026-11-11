@@ -11,6 +11,7 @@ export * from './form-validacao';
 export * from './acessibilidade';
 export * from './altura-controle';
 export * from './svg-seguro';
+export * from './degrade';
 
 // Inicialização automática das ações declarativas Zero-JS
 import { initZeroJSTriggers } from './zero-js-triggers';

@@ -21,7 +21,7 @@
   gap: 2px;
   padding: var(--ui-paleta-padding);
   box-sizing: border-box;
-  background: var(--ui-cor-superficie, #141417);
+  background: var(--ui-degrade-interno, var(--ui-paleta-fundo, var(--ui-fundo-superficie, var(--ui-cor-superficie, #141417))));
   border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
   border-radius: var(--ui-paleta-raio);
   user-select: none;
@@ -206,4 +206,11 @@
   .ui-paleta__sep {
     background: CanvasText;
   }
+}
+
+:host(.degrade),
+:host(.gradiente),
+:host([data-degrade]:not([data-degrade="false"])),
+.ui-paleta[data-degrade]:not([data-degrade="false"]) {
+  --ui-paleta-fundo: var(--ui-gradiente-superficie);
 }

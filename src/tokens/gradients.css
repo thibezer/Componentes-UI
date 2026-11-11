@@ -1,0 +1,26 @@
+/* ====================================================
+   UI Components Kit - Tokens & Modos de Degradê Interno
+   Ativação global ou contextual sem alterar contratos --ui-cor-*
+   ==================================================== */
+
+:root.degrade,
+:root.ui-degrade,
+:root.gradiente,
+:root.ui-gradiente,
+:root[data-degrade]:not([data-degrade="false"]):not([data-degrade="none"]):not([data-degrade="0"]):not([data-degrade="off"]),
+.degrade,
+.ui-degrade,
+.gradiente,
+.ui-gradiente {
+  --ui-fundo-superficie: var(--ui-gradiente-superficie);
+  --ui-fundo-card: var(--ui-gradiente-card);
+  --ui-fundo-elevado: var(--ui-gradiente-elevado);
+  --ui-fundo-primario: var(--ui-gradiente-primario);
+  --ui-fundo-secundario: var(--ui-gradiente-secundario);
+  --ui-fundo-destaque: var(--ui-gradiente-destaque);
+  --ui-fundo-destrutivo: var(--ui-gradiente-destrutivo);
+  --ui-fundo-sucesso: var(--ui-gradiente-sucesso);
+  --ui-fundo-erro: var(--ui-gradiente-erro);
+  --ui-fundo-alerta: var(--ui-gradiente-alerta);
+  --ui-fundo-info: var(--ui-gradiente-info);
+}

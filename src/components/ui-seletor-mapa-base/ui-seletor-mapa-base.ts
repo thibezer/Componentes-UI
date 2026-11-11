@@ -4,6 +4,7 @@
    ==================================================== */
 
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
+import { ATRIBUTOS_DEGRADE, aplicarDegradeNoElemento, ehAtributoDegrade } from '../../core/degrade';
 import { ListenerBag } from '../../core/listener-bag';
 import estilos from './ui-seletor-mapa-base.css?inline';
 import {
@@ -86,6 +87,12 @@ const ICONE_CAD = `
 </svg>
 `;
 
+/**
+ * Seletor discreto/flutuante para alternar mapas base.
+ *
+ * @csspart base - Botão gatilho que exibe o mapa base ativo.
+ * @csspart lista - Popover com as opções de mapas base disponíveis.
+ */
 export class UISeletorMapaBase extends SafeHTMLElement {
   static get observedAttributes() {
     return [
@@ -94,7 +101,8 @@ export class UISeletorMapaBase extends SafeHTMLElement {
       'posicao',
       'aberto',
       'compacto',
-      'desabilitado'
+      'desabilitado',
+      ...ATRIBUTOS_DEGRADE
     ];
   }
 
@@ -114,13 +122,13 @@ export class UISeletorMapaBase extends SafeHTMLElement {
     this.shadow.innerHTML = `
       <style>${estilos}</style>
       <div class="ui-basemap-wrapper" id="basemap-wrapper">
-        <button class="ui-basemap-trigger" id="basemap-trigger" type="button" aria-haspopup="listbox" aria-expanded="false" title="Alternar Mapa Base">
+        <button class="ui-basemap-trigger" id="basemap-trigger" part="base" type="button" aria-haspopup="listbox" aria-expanded="false" title="Alternar Mapa Base">
           <span class="ui-basemap-thumb-container" id="thumb-container"></span>
           <span class="ui-basemap-label" id="basemap-label">Esri Satélite</span>
           <span class="ui-basemap-chevron">${ICONE_CHEVRON}</span>
         </button>
 
-        <div class="ui-basemap-popover" id="basemap-popover" role="listbox" aria-label="Selecione o Mapa Base">
+        <div class="ui-basemap-popover" id="basemap-popover" part="lista" role="listbox" aria-label="Selecione o Mapa Base">
           <div class="ui-basemap-popover-header">
             <span class="ui-basemap-popover-titulo">Mapa Base</span>
             <span class="ui-basemap-popover-badge" id="popover-count">7 opções</span>
@@ -139,6 +147,8 @@ export class UISeletorMapaBase extends SafeHTMLElement {
   }
 
   connectedCallback(): void {
+    aplicarDegradeNoElemento(this, this.triggerBtn);
+    aplicarDegradeNoElemento(this, this.popoverEl);
     this.atualizarPosicaoClasses();
     this.renderizarOpcoes();
     this.atualizarGatilho();
@@ -151,6 +161,12 @@ export class UISeletorMapaBase extends SafeHTMLElement {
 
   attributeChangedCallback(name: string, oldVal: string | null, newVal: string | null): void {
     if (oldVal === newVal) return;
+
+    if (ehAtributoDegrade(name)) {
+      aplicarDegradeNoElemento(this, this.triggerBtn);
+      aplicarDegradeNoElemento(this, this.popoverEl);
+      return;
+    }
 
     if (name === 'mapa-base-ativo' || name === 'valor') {
       this.atualizarSelecaoVisual();

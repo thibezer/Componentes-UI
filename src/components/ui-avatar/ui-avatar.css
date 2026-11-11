@@ -18,7 +18,7 @@
   min-width: var(--ui-tamanho-avatar, 36px);
   min-height: var(--ui-tamanho-avatar, 36px);
   border-radius: 50%;
-  background-color: var(--ui-cor-fundo-elevado, #22222a);
+  background: var(--ui-degrade-interno, var(--ui-avatar-fundo, var(--ui-fundo-elevado, var(--ui-cor-fundo-elevado, #22222a))));
   color: var(--ui-cor-primaria, #00E08A);
   font-weight: 600;
   font-size: var(--ui-avatar-font-size, 14px);
@@ -59,19 +59,19 @@
 }
 
 .ui-avatar__status--online {
-  background-color: var(--ui-cor-primaria, #00E08A);
+  background: var(--ui-cor-primaria, #00E08A);
 }
 
 .ui-avatar__status--offline {
-  background-color: #888899;
+  background: #888899;
 }
 
 .ui-avatar__status--ausente {
-  background-color: #ffb86c;
+  background: #ffb86c;
 }
 
 .ui-avatar__status--ocupado {
-  background-color: #ff5555;
+  background: #ff5555;
 }
 
 /* Tamanhos Pré-definidos */
@@ -107,4 +107,14 @@
 :host(.ui-squarecircles) .ui-avatar,
 .ui-avatar--squarecircle {
   border-radius: var(--ui-raio-squircle, 24%);
+}
+
+:host(.degrade),
+:host(.ui-degrade),
+:host(.gradiente),
+:host(.ui-gradiente),
+:host([degrade]:not([degrade="false"]):not([degrade="none"]):not([degrade="0"]):not([degrade="off"])),
+:host([gradiente]:not([gradiente="false"]):not([gradiente="none"]):not([gradiente="0"]):not([gradiente="off"])),
+:host([gradient]:not([gradient="false"]):not([gradient="none"]):not([gradient="0"]):not([gradient="off"])) {
+  --ui-fundo-elevado: var(--ui-gradiente-elevado);
 }

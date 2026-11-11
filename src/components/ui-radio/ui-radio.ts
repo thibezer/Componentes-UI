@@ -5,6 +5,7 @@ import { FormAssociatedElement } from '../../core/form-associated-element';
 import { ListenerBag } from '../../core/listener-bag';
 import { gerarIdUnico, cliqueVeioDeRotuloExterno } from '../../core/acessibilidade';
 import { sincronizarRotuloControle } from '../../core/rotulo-controle';
+import { ATRIBUTOS_DEGRADE, aplicarDegradeNoElemento } from '../../core/degrade';
 
 export class UIRadio extends FormAssociatedElement {
   static get observedAttributes() {
@@ -19,7 +20,8 @@ export class UIRadio extends FormAssociatedElement {
       'posicao-label',
       'obrigatorio',
       'required',
-      'mensagem-validacao'
+      'mensagem-validacao',
+      ...ATRIBUTOS_DEGRADE
     ];
   }
 
@@ -203,6 +205,7 @@ export class UIRadio extends FormAssociatedElement {
   }
 
   public syncState() {
+    aplicarDegradeNoElemento(this, this.containerElement);
     const isChecked = this.marcado;
     const isDisabled = this.disabled;
     const labelText = this.getAttribute('label');

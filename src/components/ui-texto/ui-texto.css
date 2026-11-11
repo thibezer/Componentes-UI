@@ -181,3 +181,27 @@
     overflow: visible;
   }
 }
+
+/* Degradê Interno Tipográfico (somente quando ativado diretamente no <ui-texto>) */
+:host(.degrade) .ui-texto:not(.ui-texto--codigo),
+:host(.ui-degrade) .ui-texto:not(.ui-texto--codigo),
+:host(.gradiente) .ui-texto:not(.ui-texto--codigo),
+:host(.ui-gradiente) .ui-texto:not(.ui-texto--codigo),
+:host([degrade]:not([degrade="false"]):not([degrade="none"]):not([degrade="0"]):not([degrade="off"])) .ui-texto:not(.ui-texto--codigo),
+:host([gradiente]:not([gradiente="false"]):not([gradiente="none"]):not([gradiente="0"]):not([gradiente="off"])) .ui-texto:not(.ui-texto--codigo),
+:host([gradient]:not([gradient="false"]):not([gradient="none"]):not([gradient="0"]):not([gradient="off"])) .ui-texto:not(.ui-texto--codigo),
+.ui-texto[data-degrade="ativo"]:not(.ui-texto--codigo) {
+  background: var(--ui-degrade-interno, var(--ui-texto-fundo, var(--ui-gradiente-texto, var(--ui-gradiente-primario))));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+:host(.degrade) .ui-texto--codigo,
+:host(.ui-degrade) .ui-texto--codigo,
+:host(.gradiente) .ui-texto--codigo,
+:host(.ui-gradiente) .ui-texto--codigo,
+.ui-texto--codigo[data-degrade="ativo"] {
+  background: var(--ui-degrade-interno, var(--ui-texto-fundo, var(--ui-fundo-elevado, var(--ui-cor-fundo-elevado, #1a1a1e))));
+}

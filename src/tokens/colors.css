@@ -55,6 +55,20 @@
   --ui-sombra-sm: 0 2px 6px rgba(0, 0, 0, 0.3);
   --ui-sombra-md: 0 4px 14px rgba(0, 0, 0, 0.4);
   --ui-sombra-lg: 0 16px 40px rgba(0, 0, 0, 0.6);
+
+  /* Gradientes / Degradês Semânticos (Tema Escuro) */
+  --ui-gradiente-superficie: linear-gradient(180deg, color-mix(in srgb, #ffffff 3%, var(--ui-cor-superficie)), var(--ui-cor-superficie));
+  --ui-gradiente-card: linear-gradient(145deg, color-mix(in srgb, #ffffff 4%, var(--ui-cor-fundo-card)), var(--ui-cor-fundo-card));
+  --ui-gradiente-elevado: linear-gradient(145deg, color-mix(in srgb, #ffffff 5%, var(--ui-cor-fundo-elevado)), var(--ui-cor-fundo-elevado));
+  --ui-gradiente-primario: linear-gradient(135deg, var(--ui-cor-primaria), color-mix(in srgb, var(--ui-cor-primaria) 78%, var(--ui-cor-texto-info)));
+  --ui-gradiente-secundario: linear-gradient(135deg, color-mix(in srgb, #ffffff 5%, var(--ui-cor-botao-secundario-fundo)), var(--ui-cor-botao-secundario-fundo));
+  --ui-gradiente-destaque: linear-gradient(135deg, color-mix(in srgb, var(--ui-cor-primaria) 16%, var(--ui-cor-fundo-card)), var(--ui-cor-fundo-card));
+  --ui-gradiente-destrutivo: linear-gradient(135deg, var(--ui-cor-botao-destrutivo-fundo), var(--ui-cor-botao-destrutivo-hover));
+  --ui-gradiente-sucesso: linear-gradient(135deg, color-mix(in srgb, var(--ui-cor-texto-sucesso) 20%, transparent), color-mix(in srgb, var(--ui-cor-texto-sucesso) 7%, transparent));
+  --ui-gradiente-erro: linear-gradient(135deg, color-mix(in srgb, var(--ui-cor-texto-erro) 20%, transparent), color-mix(in srgb, var(--ui-cor-texto-erro) 7%, transparent));
+  --ui-gradiente-alerta: linear-gradient(135deg, color-mix(in srgb, var(--ui-cor-texto-alerta) 20%, transparent), color-mix(in srgb, var(--ui-cor-texto-alerta) 7%, transparent));
+  --ui-gradiente-info: linear-gradient(135deg, color-mix(in srgb, var(--ui-cor-texto-info) 20%, transparent), color-mix(in srgb, var(--ui-cor-texto-info) 7%, transparent));
+  --ui-gradiente-texto: linear-gradient(135deg, var(--ui-cor-primaria), var(--ui-cor-texto-info));
 }
 
 /* Tema Claro - forçado por atributo/classe */
@@ -101,6 +115,20 @@
   --ui-sombra-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
   --ui-sombra-md: 0 4px 12px rgba(0, 0, 0, 0.08);
   --ui-sombra-lg: 0 12px 32px rgba(0, 0, 0, 0.15);
+
+  /* Gradientes / Degradês Semânticos (Tema Claro) */
+  --ui-gradiente-superficie: linear-gradient(180deg, var(--ui-cor-superficie), color-mix(in srgb, var(--ui-cor-texto) 3%, var(--ui-cor-superficie)));
+  --ui-gradiente-card: linear-gradient(145deg, var(--ui-cor-fundo-card), color-mix(in srgb, var(--ui-cor-texto) 2.5%, var(--ui-cor-fundo-card)));
+  --ui-gradiente-elevado: linear-gradient(145deg, var(--ui-cor-fundo-elevado), color-mix(in srgb, var(--ui-cor-texto) 3.5%, var(--ui-cor-fundo-elevado)));
+  --ui-gradiente-primario: linear-gradient(135deg, var(--ui-cor-primaria), color-mix(in srgb, var(--ui-cor-primaria) 80%, var(--ui-cor-texto-info)));
+  --ui-gradiente-secundario: linear-gradient(135deg, var(--ui-cor-botao-secundario-fundo), var(--ui-cor-botao-secundario-hover));
+  --ui-gradiente-destaque: linear-gradient(135deg, color-mix(in srgb, var(--ui-cor-primaria) 12%, var(--ui-cor-fundo-card)), var(--ui-cor-fundo-card));
+  --ui-gradiente-destrutivo: linear-gradient(135deg, var(--ui-cor-botao-destrutivo-fundo), var(--ui-cor-botao-destrutivo-hover));
+  --ui-gradiente-sucesso: linear-gradient(135deg, color-mix(in srgb, var(--ui-cor-texto-sucesso) 18%, transparent), color-mix(in srgb, var(--ui-cor-texto-sucesso) 6%, transparent));
+  --ui-gradiente-erro: linear-gradient(135deg, color-mix(in srgb, var(--ui-cor-texto-erro) 18%, transparent), color-mix(in srgb, var(--ui-cor-texto-erro) 6%, transparent));
+  --ui-gradiente-alerta: linear-gradient(135deg, color-mix(in srgb, var(--ui-cor-texto-alerta) 18%, transparent), color-mix(in srgb, var(--ui-cor-texto-alerta) 6%, transparent));
+  --ui-gradiente-info: linear-gradient(135deg, color-mix(in srgb, var(--ui-cor-texto-info) 18%, transparent), color-mix(in srgb, var(--ui-cor-texto-info) 6%, transparent));
+  --ui-gradiente-texto: linear-gradient(135deg, var(--ui-cor-primaria), var(--ui-cor-texto-info));
 }
 
 /* Tema Claro - automático pelo SO, quando nenhum tema foi forçado na raiz.
@@ -146,5 +174,19 @@
     --ui-sombra-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
     --ui-sombra-md: 0 4px 12px rgba(0, 0, 0, 0.08);
     --ui-sombra-lg: 0 12px 32px rgba(0, 0, 0, 0.15);
+
+    /* Gradientes / Degradês Semânticos (Tema Claro) */
+    --ui-gradiente-superficie: linear-gradient(180deg, var(--ui-cor-superficie), color-mix(in srgb, var(--ui-cor-texto) 3%, var(--ui-cor-superficie)));
+    --ui-gradiente-card: linear-gradient(145deg, var(--ui-cor-fundo-card), color-mix(in srgb, var(--ui-cor-texto) 2.5%, var(--ui-cor-fundo-card)));
+    --ui-gradiente-elevado: linear-gradient(145deg, var(--ui-cor-fundo-elevado), color-mix(in srgb, var(--ui-cor-texto) 3.5%, var(--ui-cor-fundo-elevado)));
+    --ui-gradiente-primario: linear-gradient(135deg, var(--ui-cor-primaria), color-mix(in srgb, var(--ui-cor-primaria) 80%, var(--ui-cor-texto-info)));
+    --ui-gradiente-secundario: linear-gradient(135deg, var(--ui-cor-botao-secundario-fundo), var(--ui-cor-botao-secundario-hover));
+    --ui-gradiente-destaque: linear-gradient(135deg, color-mix(in srgb, var(--ui-cor-primaria) 12%, var(--ui-cor-fundo-card)), var(--ui-cor-fundo-card));
+    --ui-gradiente-destrutivo: linear-gradient(135deg, var(--ui-cor-botao-destrutivo-fundo), var(--ui-cor-botao-destrutivo-hover));
+    --ui-gradiente-sucesso: linear-gradient(135deg, color-mix(in srgb, var(--ui-cor-texto-sucesso) 18%, transparent), color-mix(in srgb, var(--ui-cor-texto-sucesso) 6%, transparent));
+    --ui-gradiente-erro: linear-gradient(135deg, color-mix(in srgb, var(--ui-cor-texto-erro) 18%, transparent), color-mix(in srgb, var(--ui-cor-texto-erro) 6%, transparent));
+    --ui-gradiente-alerta: linear-gradient(135deg, color-mix(in srgb, var(--ui-cor-texto-alerta) 18%, transparent), color-mix(in srgb, var(--ui-cor-texto-alerta) 6%, transparent));
+    --ui-gradiente-info: linear-gradient(135deg, color-mix(in srgb, var(--ui-cor-texto-info) 18%, transparent), color-mix(in srgb, var(--ui-cor-texto-info) 6%, transparent));
+    --ui-gradiente-texto: linear-gradient(135deg, var(--ui-cor-primaria), var(--ui-cor-texto-info));
   }
 }

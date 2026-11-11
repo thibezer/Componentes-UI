@@ -9,6 +9,7 @@ import {
 import { renderizarItensLista, atualizarEstadoSelecaoLista } from './lista-flutuante-render';
 import { definirCustomElement } from '../../core/ssr-safe';
 import { aplicarAlturaControle } from '../../core/altura-controle';
+import { aplicarDegradeNoElemento, ehAtributoDegrade } from '../../core/degrade';
 import { FormAssociatedElement } from '../../core/form-associated-element';
 import { gerarIdUnico, obterRotuloExterno, cliqueVeioDeRotuloExterno } from '../../core/acessibilidade';
 import { renderizarRotulo } from '../../core/rotulo';
@@ -139,6 +140,10 @@ export class UIListaFlutuante extends FormAssociatedElement {
     }
     if (name === 'altura' || name === 'height' || name === 'tamanho' || name === 'size' || name === 'densidade') {
       aplicarAlturaControle(this);
+    }
+    if (ehAtributoDegrade(name)) {
+      aplicarDegradeNoElemento(this, this.button);
+      aplicarDegradeNoElemento(this, this.content);
     }
   }
 
@@ -362,6 +367,8 @@ export class UIListaFlutuante extends FormAssociatedElement {
 
   protected syncState() {
     aplicarAlturaControle(this);
+    aplicarDegradeNoElemento(this, this.button);
+    aplicarDegradeNoElemento(this, this.content);
     if (this.hasAttribute('value')) {
       this._value = this.getAttribute('value') || '';
       this.internals.setFormValue(this._value);

@@ -1,6 +1,7 @@
 import estilos from './ui-alerta.css?inline';
 import { ListenerBag } from '../../core/listener-bag';
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
+import { ATRIBUTOS_DEGRADE, aplicarDegradeNoElemento } from '../../core/degrade';
 
 export const ICONES_ALERTA: Record<string, string> = {
   sucesso: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>',
@@ -19,7 +20,8 @@ export class UIAlerta extends SafeHTMLElement {
       'title',
       'mensagem',
       'fechavel',
-      'dismissible'
+      'dismissible',
+      ...ATRIBUTOS_DEGRADE
     ];
   }
 
@@ -103,6 +105,7 @@ export class UIAlerta extends SafeHTMLElement {
 
     // Estilo e Tipo
     this.alertaElement.className = `ui-alerta ui-alerta--${tipo}`;
+    aplicarDegradeNoElemento(this, this.alertaElement);
 
     // Ícone SVG
     const iconeSvg = ICONES_ALERTA[tipo] || ICONES_ALERTA['info'];

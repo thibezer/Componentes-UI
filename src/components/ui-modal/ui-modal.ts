@@ -3,6 +3,7 @@ import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 import { ListenerBag } from '../../core/listener-bag';
 import { empilharModal, desempilharModal, ehModalDoTopo } from './modal-pilha';
 import { elementoAtivoProfundo, focarConteudoInicial, prenderTab } from './modal-foco';
+import { ATRIBUTOS_DEGRADE, aplicarDegradeNoElemento } from '../../core/degrade';
 
 export class UIModal extends SafeHTMLElement {
   static get observedAttributes() {
@@ -15,7 +16,8 @@ export class UIModal extends SafeHTMLElement {
       'aria-labelledby',
       'rotulo',
       'bottom-sheet',
-      'bloquear-fechamento'
+      'bloquear-fechamento',
+      ...ATRIBUTOS_DEGRADE
     ];
   }
 
@@ -150,6 +152,7 @@ export class UIModal extends SafeHTMLElement {
 
     // Acessibilidade semântica WAI-ARIA
     this.dialogElement.setAttribute('aria-hidden', String(!isAberto));
+    aplicarDegradeNoElemento(this, this.dialogElement);
 
     const ariaLabel = this.getAttribute('aria-label') || this.getAttribute('rotulo');
     const ariaLabelledby = this.getAttribute('aria-labelledby');

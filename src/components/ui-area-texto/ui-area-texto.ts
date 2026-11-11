@@ -9,6 +9,7 @@ import type {
 } from './tipos';
 import { sincronizarFeedbackErro } from '../ui-campo-texto/campo-texto-estados';
 import { ListenerBag } from '../../core/listener-bag';
+import { aplicarDegradeNoElemento } from '../../core/degrade';
 import { definirCustomElement } from '../../core/ssr-safe';
 import { gerarIdUnico, obterRotuloExterno, cliqueVeioDeRotuloExterno } from '../../core/acessibilidade';
 import { FormAssociatedElement } from '../../core/form-associated-element';
@@ -249,6 +250,7 @@ export class UIAreaTexto extends FormAssociatedElement {
   }
 
   protected syncState() {
+    aplicarDegradeNoElemento(this, this.wrapperElement);
     const ta = this.textareaElement;
     const autoAltura = this.hasAttribute('auto-altura');
 

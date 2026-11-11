@@ -4,6 +4,7 @@ import { definirCustomElement } from '../../core/ssr-safe';
 import { FormAssociatedElement } from '../../core/form-associated-element';
 import { gerarIdUnico, cliqueVeioDeRotuloExterno } from '../../core/acessibilidade';
 import { sincronizarRotuloControle } from '../../core/rotulo-controle';
+import { ATRIBUTOS_DEGRADE, aplicarDegradeNoElemento } from '../../core/degrade';
 
 export class UICheckbox extends FormAssociatedElement {
   static get observedAttributes() {
@@ -20,7 +21,8 @@ export class UICheckbox extends FormAssociatedElement {
       'name',
       'obrigatorio',
       'required',
-      'mensagem-validacao'
+      'mensagem-validacao',
+      ...ATRIBUTOS_DEGRADE
     ];
   }
 
@@ -200,6 +202,7 @@ export class UICheckbox extends FormAssociatedElement {
   }
 
   protected syncState() {
+    aplicarDegradeNoElemento(this, this.containerElement);
     const isChecked = this.marcado;
     const isIndeterminate = this.indeterminado;
     const isDisabled = this.disabled;

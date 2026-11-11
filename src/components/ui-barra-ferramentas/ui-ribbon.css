@@ -14,9 +14,16 @@
 .ui-ribbon {
   display: flex;
   flex-direction: column;
-  background: var(--ui-cor-superficie, #141417);
+  background: var(--ui-degrade-interno, var(--ui-ribbon-fundo, var(--ui-fundo-superficie, var(--ui-cor-superficie, #141417))));
   border-bottom: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
   user-select: none;
+}
+
+:host(.degrade),
+:host(.gradiente),
+:host([data-degrade]:not([data-degrade="false"])),
+.ui-ribbon[data-degrade]:not([data-degrade="false"]) {
+  --ui-ribbon-fundo: var(--ui-gradiente-superficie);
 }
 
 /* ---------- Cabeçalho (abas + fixar/recolher) ---------- */

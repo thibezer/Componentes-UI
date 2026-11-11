@@ -3,6 +3,7 @@ import { ListenerBag } from '../../core/listener-bag';
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 import { submeterFormulario } from '../../core/form-submissao';
 import { aplicarAlturaControle } from '../../core/altura-controle';
+import { ATRIBUTOS_DEGRADE, aplicarDegradeNoElemento } from '../../core/degrade';
 
 /** Atributos ARIA do host repassados ao <button> interno, que é quem recebe foco e é anunciado. */
 const ATRIBUTOS_ARIA_REPASSADOS = ['aria-label', 'aria-description', 'aria-pressed', 'aria-expanded', 'aria-haspopup'];
@@ -23,7 +24,7 @@ export class UIBotao extends SafeHTMLElement {
   static get observedAttributes() {
     return [
       'disabled', 'variante', 'carregando', 'loading', 'estado', 'tamanho', 'size', 'altura', 'height', 'densidade', 'formato',
-      'title', ...ATRIBUTOS_ARIA_REPASSADOS
+      'title', ...ATRIBUTOS_ARIA_REPASSADOS, ...ATRIBUTOS_DEGRADE
     ];
   }
 
@@ -236,6 +237,7 @@ export class UIBotao extends SafeHTMLElement {
     }
 
     this.button.className = classes.join(' ');
+    aplicarDegradeNoElemento(this, this.button);
     this.sincronizarAria(ehSomenteIcone);
   }
 

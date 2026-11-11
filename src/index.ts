@@ -51,6 +51,7 @@ export * from './core/listener-bag';
 export * from './core/leaflet-loader';
 export * from './core/ssr-safe';
 export * from './core/acessibilidade';
+export * from './core/degrade';
 
 // 6. Carregamento Sob Demanda (Lazy) para Componentes Geoespaciais (Leaflet Opcional)
 export const carregarModuloMapa = () => import('./mapa');

@@ -4,6 +4,7 @@ import { definirCustomElement } from '../../core/ssr-safe';
 import { FormAssociatedElement } from '../../core/form-associated-element';
 import { gerarIdUnico, cliqueVeioDeRotuloExterno } from '../../core/acessibilidade';
 import { sincronizarRotuloControle } from '../../core/rotulo-controle';
+import { ATRIBUTOS_DEGRADE, aplicarDegradeNoElemento } from '../../core/degrade';
 
 export class UISwitch extends FormAssociatedElement {
   static get observedAttributes() {
@@ -21,7 +22,8 @@ export class UISwitch extends FormAssociatedElement {
       'obrigatorio',
       'required',
       'mensagem-validacao',
-      'aria-label'
+      'aria-label',
+      ...ATRIBUTOS_DEGRADE
     ];
   }
 
@@ -188,6 +190,7 @@ export class UISwitch extends FormAssociatedElement {
     const posicaoLabel = this.getAttribute('posicao-label') || 'direita';
 
     // Acessibilidade
+    aplicarDegradeNoElemento(this, this.containerElement);
     this.containerElement.setAttribute('aria-checked', String(isChecked));
 
     if (isDisabled) {

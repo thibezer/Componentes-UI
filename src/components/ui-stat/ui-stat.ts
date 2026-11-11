@@ -2,11 +2,24 @@ import estilos from './ui-stat.css?inline';
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 import { escolherOpcao } from '../../core/opcoes';
 import { gerarIdUnico } from '../../core/acessibilidade';
+import { ATRIBUTOS_DEGRADE, aplicarDegradeNoElemento } from '../../core/degrade';
 
 export type TendenciaStat = 'alta' | 'positivo' | 'baixa' | 'negativo' | 'neutro';
 
 const ELEVACOES = ['baixa', 'media', 'alta'] as const;
 
+/**
+ * Cartão de métrica / KPI com tendência e slot para gráfico ou ação.
+ *
+ * @csspart base - Contêiner principal do indicador.
+ * @csspart cabecalho - Linha de título e ícone.
+ * @csspart rotulo - Rótulo da métrica.
+ * @csspart conteudo - Bloco do valor e variação.
+ * @csspart valor - Valor em destaque.
+ * @csspart indicador - Selo de variação/tendência.
+ * @csspart rodape - Rodapé descritivo ou slot auxiliar.
+ * @csspart descricao - Texto auxiliar do rodapé.
+ */
 export class UIStat extends SafeHTMLElement {
   static get observedAttributes() {
     return [
@@ -21,7 +34,8 @@ export class UIStat extends SafeHTMLElement {
       'descricao',
       'description',
       'elevacao',
-      'elevation'
+      'elevation',
+      ...ATRIBUTOS_DEGRADE
     ];
   }
 
@@ -38,20 +52,20 @@ export class UIStat extends SafeHTMLElement {
     const shadow = this.attachShadow({ mode: 'open' });
     shadow.innerHTML = `
       <style>${estilos}</style>
-      <div class="ui-stat" role="group">
-        <div class="ui-stat__cabecalho">
-          <span class="ui-stat__rotulo"></span>
+      <div class="ui-stat" part="base" role="group">
+        <div class="ui-stat__cabecalho" part="cabecalho">
+          <span class="ui-stat__rotulo" part="rotulo"></span>
           <div class="ui-stat__icone-slot"><slot name="icone"></slot></div>
         </div>
-        <div class="ui-stat__conteudo">
-          <div class="ui-stat__valor"></div>
-          <div class="ui-stat__indicador" style="display: none;">
+        <div class="ui-stat__conteudo" part="conteudo">
+          <div class="ui-stat__valor" part="valor"></div>
+          <div class="ui-stat__indicador" part="indicador" style="display: none;">
             <span class="ui-stat__seta" aria-hidden="true"></span>
             <span class="ui-stat__variacao"></span>
           </div>
         </div>
-        <div class="ui-stat__rodape">
-          <span class="ui-stat__descricao" style="display: none;"></span>
+        <div class="ui-stat__rodape" part="rodape">
+          <span class="ui-stat__descricao" part="descricao" style="display: none;"></span>
           <slot name="grafico"></slot>
           <slot></slot>
         </div>
@@ -129,6 +143,7 @@ export class UIStat extends SafeHTMLElement {
 
     // Classes de elevação
     this.statElement.className = `ui-stat ui-stat--${elevacao}`;
+    aplicarDegradeNoElemento(this, this.statElement);
 
     // O grupo é nomeado pelo rótulo; sem rótulo, não aponta para um elemento vazio
     if (rotuloText) this.statElement.setAttribute('aria-labelledby', this.rotuloElement.id);

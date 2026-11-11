@@ -5,6 +5,7 @@
    ==================================================== */
 
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
+import { ATRIBUTOS_DEGRADE, aplicarDegradeNoElemento, ehAtributoDegrade } from '../../core/degrade';
 import { ListenerBag } from '../../core/listener-bag';
 import estilos from './ui-camadas.css?inline';
 import {
@@ -68,7 +69,8 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
       'redimensionavel-altura',
       'altura',
       'min-altura',
-      'max-altura'
+      'max-altura',
+      ...ATRIBUTOS_DEGRADE
     ];
   }
 
@@ -195,6 +197,7 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
     }
 
     this.resizerController.init();
+    aplicarDegradeNoElemento(this, this.shadow.getElementById('panel-container'));
     this.render();
     this.conectarEventosGerais();
     conectarTecladoEAcessibilidade(this, this, this.shadow, this.corpoElement, this.listeners);
@@ -215,6 +218,11 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
 
   attributeChangedCallback(name: string, oldVal: string | null, newVal: string | null) {
     if (oldVal === newVal) return;
+
+    if (ehAtributoDegrade(name)) {
+      aplicarDegradeNoElemento(this, this.shadow.getElementById('panel-container'));
+      return;
+    }
 
     // Mudanças de atributo vêm do aplicativo consumidor (mutação programática):
     // apenas sincronizam o DOM interno, sem redisparar eventos para fora.

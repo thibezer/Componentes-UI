@@ -6,7 +6,7 @@
   --_pilha: calc(var(--_a) * 5 / 3);
   --_borda: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 30%, transparent);
   --_borda-forte: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 70%, transparent);
-  --_base: var(--ui-cor-superficie, #1d1d22);
+  --_base: var(--ui-fundo-superficie, var(--ui-cor-superficie, #1d1d22));
   --_destaque: var(--ui-cor-primaria, #00e08a);
   --_vermelho: #ef4444;
 

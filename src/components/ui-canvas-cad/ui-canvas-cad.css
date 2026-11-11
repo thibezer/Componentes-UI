@@ -11,7 +11,7 @@
   overflow: hidden;
   box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.6);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  background: #080d0a;
+  background: var(--ui-degrade-interno, var(--ui-canvas-cad-fundo, #080d0a));
   color: #ffffff;
   font-family: var(--ui-fonte-base, 'Inter', sans-serif);
   user-select: none;
@@ -33,7 +33,7 @@
 .cad-map-container {
   width: 100%;
   height: 100%;
-  background: #080d0a;
+  background: var(--ui-canvas-cad-viewport-fundo, #080d0a);
   z-index: 1;
 }
 
@@ -45,7 +45,7 @@
   z-index: var(--ui-z-workspace-hud, 500);
   width: 290px;
   max-height: calc(100% - 24px);
-  background: rgba(10, 18, 14, 0.92);
+  background: var(--ui-degrade-interno, var(--ui-canvas-cad-camadas-fundo, rgba(10, 18, 14, 0.92)));
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.15);
@@ -510,7 +510,7 @@
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background-color: var(--cad-pulse-cor, #00f5a0);
+  background: var(--cad-pulse-cor, #00f5a0);
   border: 2px solid #ffffff;
   box-sizing: border-box;
   pointer-events: none !important;
@@ -522,7 +522,7 @@
   height: 100%;
   border-radius: 50%;
   border: 2px solid var(--cad-pulse-cor, #00f5a0);
-  background-color: color-mix(in srgb, var(--cad-pulse-cor, #00f5a0) 14%, transparent);
+  background: color-mix(in srgb, var(--cad-pulse-cor, #00f5a0) 14%, transparent);
   box-sizing: border-box;
   pointer-events: none !important;
   opacity: 0;

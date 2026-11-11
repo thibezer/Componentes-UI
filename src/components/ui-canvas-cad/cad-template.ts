@@ -7,9 +7,9 @@ export function obterTemplateCanvasCAD(): string {
       ${leafletCss}
       ${estilos}
     </style>
-    <div class="cad-root" id="cad-root" role="region" aria-label="Mapa CAD">
-      <div class="cad-map-container" id="cad-map-container"></div>
-      <div class="qgis-layer-panel collapsed" id="qgis-layer-panel">
+    <div class="cad-root" id="cad-root" part="base" role="region" aria-label="Mapa CAD">
+      <div class="cad-map-container" id="cad-map-container" part="viewport"></div>
+      <div class="qgis-layer-panel collapsed" id="qgis-layer-panel" part="camadas">
         <div class="layer-panel-header">
           <div class="layer-panel-title">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>

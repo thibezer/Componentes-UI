@@ -215,3 +215,190 @@ describe('Customização de formato squarecircles', () => {
     expect(checkbox.shadowRoot!.querySelector('.ui-checkbox__box')).not.toBeNull();
   });
 });
+
+describe('Suporte a degradê interno, tokens e parts estruturais', () => {
+  const cores = fs.readFileSync(path.join(SRC, 'tokens/colors.css'), 'utf-8');
+  const gradientes = fs.readFileSync(path.join(SRC, 'tokens/gradients.css'), 'utf-8');
+  const tokensIndex = fs.readFileSync(path.join(SRC, 'tokens/index.css'), 'utf-8');
+
+  it('deve declarar todos os tokens --ui-gradiente-* e o módulo gradients.css', () => {
+    const tokensEsperados = [
+      '--ui-gradiente-superficie',
+      '--ui-gradiente-card',
+      '--ui-gradiente-elevado',
+      '--ui-gradiente-primario',
+      '--ui-gradiente-secundario',
+      '--ui-gradiente-destaque',
+      '--ui-gradiente-destrutivo',
+      '--ui-gradiente-sucesso',
+      '--ui-gradiente-erro',
+      '--ui-gradiente-alerta',
+      '--ui-gradiente-info',
+      '--ui-gradiente-texto'
+    ];
+    for (const token of tokensEsperados) {
+      expect(cores).toContain(token);
+    }
+    expect(tokensIndex).toContain('./gradients.css');
+    expect(gradientes).toMatch(/\.degrade\b/);
+    expect(gradientes).toMatch(/\.ui-degrade\b/);
+    expect(gradientes).toMatch(/--ui-fundo-card:\s*var\(--ui-gradiente-card\)/);
+    expect(gradientes).toMatch(/--ui-fundo-primario:\s*var\(--ui-gradiente-primario\)/);
+  });
+
+  it('estilos CSS de superfícies e controles não devem bloquear gradientes com background-color: var(--ui-*)', () => {
+    const arquivosCss = [
+      'components/ui-card/ui-card.css',
+      'components/ui-botao/ui-botao.css',
+      'components/ui-stat/ui-stat.css',
+      'components/ui-badge/ui-badge.css',
+      'components/ui-avatar/ui-avatar.css',
+      'components/ui-alerta/ui-alerta.css',
+      'components/ui-modal/ui-modal.css',
+      'components/ui-drawer/ui-drawer.css',
+      'components/ui-tooltip/ui-tooltip.css',
+      'components/ui-campo-texto/ui-campo-texto.css',
+      'components/ui-area-texto/ui-area-texto.css',
+      'components/ui-lista-flutuante/ui-lista-flutuante.css',
+      'components/ui-segmented/ui-segmented.css',
+      'components/ui-checkbox/ui-checkbox.css',
+      'components/ui-radio/ui-radio.css',
+      'components/ui-switch/ui-switch.css',
+      'components/ui-tabela/ui-tabela.css',
+      'components/ui-camadas/ui-camadas.css',
+      'components/ui-tabela-propriedades/ui-tabela-propriedades.css',
+      'components/ui-barra-ferramentas/ui-ribbon.css',
+      'components/ui-barra-ferramentas/ui-paleta-ferramentas.css',
+      'components/ui-barra-ferramentas/ferramentas-comum.css',
+      'components/ui-seletor-mapa-base/ui-seletor-mapa-base.css'
+    ];
+
+    for (const rel of arquivosCss) {
+      const css = fs.readFileSync(path.join(SRC, rel), 'utf-8');
+      expect(css, `${rel} ainda usa background-color com token --ui-`).not.toMatch(
+        /background-color:\s*var\(--ui-/
+      );
+    }
+  });
+
+  it('componentes antes sem ::part(base) devem expor parts estruturais', async () => {
+    await import('../src/components/ui-stat/ui-stat');
+    await import('../src/components/ui-skeleton/ui-skeleton');
+    await import('../src/components/ui-barra-ferramentas/ui-ribbon');
+    await import('../src/components/ui-barra-ferramentas/ui-paleta-ferramentas');
+    await import('../src/components/ui-seletor-mapa-base/ui-seletor-mapa-base');
+    await import('../src/components/ui-canvas-cad/ui-canvas-cad');
+    await import('../src/components/ui-mapa/ui-mapa');
+
+    const avatar = document.createElement('ui-avatar');
+    const stat = document.createElement('ui-stat');
+    const skeletonTexto = document.createElement('ui-skeleton');
+    const skeletonCard = document.createElement('ui-skeleton');
+    skeletonCard.setAttribute('variante', 'card');
+    const ribbon = document.createElement('ui-ribbon');
+    const paleta = document.createElement('ui-paleta-ferramentas');
+    const basemap = document.createElement('ui-seletor-mapa-base');
+    const canvasCad = document.createElement('ui-canvas-cad');
+    const mapa = document.createElement('ui-mapa');
+
+    document.body.append(avatar, stat, skeletonTexto, skeletonCard, ribbon, paleta, basemap, canvasCad, mapa);
+
+    expect(avatar.shadowRoot!.querySelector('[part="base"]')).not.toBeNull();
+    expect(avatar.shadowRoot!.querySelector('[part="status"]')).not.toBeNull();
+    expect(stat.shadowRoot!.querySelector('[part="base"]')).not.toBeNull();
+    expect(stat.shadowRoot!.querySelector('[part="valor"]')).not.toBeNull();
+    expect(skeletonTexto.shadowRoot!.querySelector('[part="base"]')).not.toBeNull();
+    expect(skeletonCard.shadowRoot!.querySelector('[part="base"]')).not.toBeNull();
+    expect(ribbon.shadowRoot!.querySelector('[part="base"]')).not.toBeNull();
+    expect(ribbon.shadowRoot!.querySelector('[part="abas"]')).not.toBeNull();
+    expect(paleta.shadowRoot!.querySelector('[part="base"]')).not.toBeNull();
+    expect(basemap.shadowRoot!.querySelector('[part="base"]')).not.toBeNull();
+    expect(canvasCad.shadowRoot!.querySelector('[part="base"]')).not.toBeNull();
+    expect(mapa.shadowRoot!.querySelector('[part="base"]')).not.toBeNull();
+  });
+
+  it('componentes devem aceitar degrade, gradiente, classe .degrade, presets e rejeitar valores hostis', async () => {
+    await import('../src/components/ui-alerta/ui-alerta');
+    await import('../src/components/ui-modal/ui-modal');
+    await import('../src/components/ui-drawer/ui-drawer');
+    await import('../src/components/ui-tooltip/ui-tooltip');
+    await import('../src/components/ui-campo-texto/ui-campo-texto');
+    await import('../src/components/ui-area-texto/ui-area-texto');
+    await import('../src/components/ui-radio/ui-radio');
+    await import('../src/components/ui-switch/ui-switch');
+    await import('../src/components/ui-texto/ui-texto');
+    await import('../src/components/ui-tabela/ui-tabela');
+    await import('../src/components/ui-camadas/ui-camadas');
+    await import('../src/components/ui-tabela-propriedades/ui-tabela-propriedades');
+
+    const casos: Array<{ tag: string; selector: string }> = [
+      { tag: 'ui-card', selector: '.ui-card' },
+      { tag: 'ui-botao', selector: '[part="base"]' },
+      { tag: 'ui-stat', selector: '.ui-stat' },
+      { tag: 'ui-badge', selector: '.ui-badge' },
+      { tag: 'ui-avatar', selector: '.ui-avatar' },
+      { tag: 'ui-alerta', selector: '.ui-alerta' },
+      { tag: 'ui-modal', selector: '.ui-modal__dialog' },
+      { tag: 'ui-drawer', selector: '.ui-drawer__painel' },
+      { tag: 'ui-tooltip', selector: '.ui-tooltip__bubble' },
+      { tag: 'ui-campo-texto', selector: '.ui-campo-texto__wrapper' },
+      { tag: 'ui-area-texto', selector: '.ui-area-texto__wrapper' },
+      { tag: 'ui-lista-flutuante', selector: '.ui-lista-flutuante__gatilho' },
+      { tag: 'ui-segmented', selector: '.ui-segmented' },
+      { tag: 'ui-checkbox', selector: '.ui-checkbox' },
+      { tag: 'ui-radio', selector: '.ui-radio' },
+      { tag: 'ui-switch', selector: '.ui-switch' },
+      { tag: 'ui-skeleton', selector: '.ui-skeleton-container' },
+      { tag: 'ui-texto', selector: '.ui-texto' },
+      { tag: 'ui-ribbon', selector: '.ui-ribbon' },
+      { tag: 'ui-paleta-ferramentas', selector: '.ui-paleta' },
+      { tag: 'ui-seletor-mapa-base', selector: '.ui-basemap-trigger' },
+      { tag: 'ui-tabela', selector: '.ui-tabela-container' },
+      { tag: 'ui-camadas', selector: '.ui-camadas-container' },
+      { tag: 'ui-tabela-propriedades', selector: '.ui-prop__container' }
+    ];
+
+    for (const { tag, selector } of casos) {
+      const el = document.createElement(tag);
+      document.body.appendChild(el);
+
+      const alvo = () => el.shadowRoot!.querySelector(selector) as HTMLElement;
+      expect(alvo(), `${tag} sem alvo ${selector}`).not.toBeNull();
+      expect(alvo().getAttribute('data-degrade')).toBeNull();
+
+      // Ativação booleana + alias
+      el.setAttribute('degrade', '');
+      expect(alvo().getAttribute('data-degrade'), `${tag} degrade=''`).toBe('ativo');
+      expect(alvo().style.getPropertyValue('--ui-degrade-interno')).toBe('');
+
+      // Preset semântico
+      el.setAttribute('degrade', 'primario');
+      expect(alvo().style.getPropertyValue('--ui-degrade-interno')).toBe('var(--ui-gradiente-primario)');
+
+      // Desativação explícita
+      el.setAttribute('degrade', 'false');
+      expect(alvo().getAttribute('data-degrade')).toBeNull();
+      expect(alvo().style.getPropertyValue('--ui-degrade-interno')).toBe('');
+
+      // Gradiente CSS customizado seguro via alias gradiente
+      el.removeAttribute('degrade');
+      el.setAttribute('gradiente', 'linear-gradient(135deg, #10b981, #06b6d4)');
+      expect(alvo().getAttribute('data-degrade')).toBe('ativo');
+      expect(alvo().style.getPropertyValue('--ui-degrade-interno')).toBe(
+        'linear-gradient(135deg, #10b981, #06b6d4)'
+      );
+
+      // Entrada hostil nunca é aplicada no CSS inline
+      el.setAttribute('gradiente', 'linear-gradient(red, url(https://evil.com/x.png))');
+      expect(alvo().getAttribute('data-degrade')).toBeNull();
+      expect(alvo().style.getPropertyValue('--ui-degrade-interno')).toBe('');
+
+      el.removeAttribute('gradiente');
+      el.classList.add('degrade');
+      // Força reavaliação quando o atributo muda ou via sync inicial em nova montagem
+      el.remove();
+      document.body.appendChild(el);
+      expect(alvo().getAttribute('data-degrade'), `${tag} class="degrade"`).toBe('ativo');
+    }
+  });
+});

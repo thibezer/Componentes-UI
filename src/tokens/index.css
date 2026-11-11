@@ -3,6 +3,7 @@
    ========================================== */
 
 @import './colors.css';
+@import './gradients.css';
 @import './spacing.css';
 @import './typography.css';
 @import './elevation.css';

@@ -1,4 +1,5 @@
 import estilos from './ui-lista-flutuante.css?inline';
+import { ATRIBUTOS_DEGRADE } from '../../core/degrade';
 
 export const ATRIBUTOS_OBSERVADOS_LISTA_FLUTUANTE = [
   'aberta',
@@ -19,7 +20,8 @@ export const ATRIBUTOS_OBSERVADOS_LISTA_FLUTUANTE = [
   'obrigatorio',
   'required',
   'mensagem-validacao',
-  'aria-label'
+  'aria-label',
+  ...ATRIBUTOS_DEGRADE
 ];
 
 export function criarTemplateListaFlutuante(): string {

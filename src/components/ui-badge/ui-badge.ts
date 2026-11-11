@@ -2,6 +2,7 @@ import estilos from './ui-badge.css?inline';
 import { ListenerBag } from '../../core/listener-bag';
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 import { escolherOpcao } from '../../core/opcoes';
+import { ATRIBUTOS_DEGRADE, aplicarDegradeNoElemento } from '../../core/degrade';
 
 const VARIANTES = ['neutro', 'primaria', 'sucesso', 'erro', 'alerta', 'info'] as const;
 const ESTILOS = ['suave', 'solido', 'contornado'] as const;
@@ -17,7 +18,8 @@ export class UIBadge extends SafeHTMLElement {
       'removable',
       'disabled',
       'label',
-      'value'
+      'value',
+      ...ATRIBUTOS_DEGRADE
     ];
   }
 
@@ -86,6 +88,7 @@ export class UIBadge extends SafeHTMLElement {
     this.badgeElement.className = 'ui-badge';
     this.badgeElement.classList.add(`ui-badge--${variante}`);
     this.badgeElement.classList.add(`ui-badge--${estilo}`);
+    aplicarDegradeNoElemento(this, this.badgeElement);
 
     // Rótulo por atributo (se fornecido)
     if (labelText) {

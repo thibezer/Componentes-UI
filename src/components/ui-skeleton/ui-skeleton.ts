@@ -1,5 +1,6 @@
 import estilos from './ui-skeleton.css?inline';
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
+import { ATRIBUTOS_DEGRADE, aplicarDegradeNoElemento } from '../../core/degrade';
 
 /** Limite de linhas: um atributo hostil (`linhas="100000000"`) não pode criar milhões de nós. */
 const MAX_LINHAS = 100;
@@ -7,6 +8,15 @@ const MAX_LINHAS = 100;
 export type VarianteSkeleton = 'texto' | 'circular' | 'retangular' | 'card';
 export type AnimacaoSkeleton = 'shimmer' | 'pulso' | 'nenhum';
 
+/**
+ * Placeholder estrutural animado (Skeleton Loader) para estados de carregamento.
+ *
+ * @csspart base - Elemento ou contêiner principal do esqueleto.
+ * @csspart midia - Bloco de mídia na variante `card`.
+ * @csspart avatar - Bloco circular na variante `card`.
+ * @csspart titulo - Bloco de título na variante `card`.
+ * @csspart linha - Cada linha individual de texto.
+ */
 export class UISkeleton extends SafeHTMLElement {
   static get observedAttributes() {
     return [
@@ -23,7 +33,8 @@ export class UISkeleton extends SafeHTMLElement {
       'count',
       'animado',
       'animated',
-      'aria-label'
+      'aria-label',
+      ...ATRIBUTOS_DEGRADE
     ];
   }
 
@@ -131,18 +142,22 @@ export class UISkeleton extends SafeHTMLElement {
     if (variante === 'card') {
       const card = document.createElement('div');
       card.className = 'ui-skeleton ui-skeleton--card';
+      card.setAttribute('part', 'base');
 
       const media = document.createElement('div');
       media.className = `ui-skeleton ui-skeleton__card-media ${animClasse}`;
+      media.setAttribute('part', 'midia');
 
       const header = document.createElement('div');
       header.className = 'ui-skeleton__card-header';
 
       const avatar = document.createElement('div');
       avatar.className = `ui-skeleton ui-skeleton__card-avatar ${animClasse}`;
+      avatar.setAttribute('part', 'avatar');
 
       const title = document.createElement('div');
       title.className = `ui-skeleton ui-skeleton__card-title ${animClasse}`;
+      title.setAttribute('part', 'titulo');
 
       header.appendChild(avatar);
       header.appendChild(title);
@@ -153,6 +168,7 @@ export class UISkeleton extends SafeHTMLElement {
       for (let i = 0; i < 2; i++) {
         const linha = document.createElement('div');
         linha.className = `ui-skeleton ui-skeleton--texto ${animClasse}`;
+        linha.setAttribute('part', 'linha');
         body.appendChild(linha);
       }
 
@@ -160,16 +176,19 @@ export class UISkeleton extends SafeHTMLElement {
       card.appendChild(header);
       card.appendChild(body);
       this.rootElement.appendChild(card);
+      aplicarDegradeNoElemento(this, this.rootElement);
       return;
     }
 
     if (totalLinhas > 1 && variante === 'texto') {
       const containerLinhas = document.createElement('div');
       containerLinhas.className = 'ui-skeleton__linhas';
+      containerLinhas.setAttribute('part', 'base');
 
       for (let i = 0; i < totalLinhas; i++) {
         const linha = document.createElement('div');
         linha.className = `ui-skeleton ui-skeleton--texto ${animClasse}`;
+        linha.setAttribute('part', 'linha');
         if (altura) linha.style.height = isNaN(Number(altura)) ? altura : `${altura}px`;
         if (raio) linha.style.borderRadius = isNaN(Number(raio)) ? raio : `${raio}px`;
         containerLinhas.appendChild(linha);
@@ -179,18 +198,21 @@ export class UISkeleton extends SafeHTMLElement {
         containerLinhas.style.width = isNaN(Number(largura)) ? largura : `${largura}px`;
       }
       this.rootElement.appendChild(containerLinhas);
+      aplicarDegradeNoElemento(this, this.rootElement);
       return;
     }
 
     // Item individual
     const el = document.createElement('div');
     el.className = `ui-skeleton ui-skeleton--${variante} ${animClasse}`.trim();
+    el.setAttribute('part', 'base');
 
     if (largura) el.style.width = isNaN(Number(largura)) ? largura : `${largura}px`;
     if (altura) el.style.height = isNaN(Number(altura)) ? altura : `${altura}px`;
     if (raio) el.style.borderRadius = isNaN(Number(raio)) ? raio : `${raio}px`;
 
     this.rootElement.appendChild(el);
+    aplicarDegradeNoElemento(this, this.rootElement);
   }
 }
 

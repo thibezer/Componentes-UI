@@ -57,21 +57,21 @@
 
 /* 1. Estilo Suave (Soft, Padrão) */
 .ui-badge--suave {
-  background-color: var(--ui-cor-badge-fundo, var(--ui-cor-hover-menu, rgba(255, 255, 255, 0.08)));
+  background: var(--ui-degrade-interno, var(--ui-badge-fundo, var(--ui-fundo-elevado, var(--ui-cor-badge-fundo, var(--ui-cor-hover-menu, rgba(255, 255, 255, 0.08))))));
   color: var(--ui-cor-badge-texto, var(--ui-cor-texto, #e1e1e6));
   border: 1px solid transparent;
 }
 
 /* 2. Estilo Sólido (Filled) */
 .ui-badge--solido {
-  background-color: var(--ui-cor-badge-solido, var(--ui-cor-texto-secundario, #888899));
+  background: var(--ui-degrade-interno, var(--ui-badge-fundo, var(--ui-cor-badge-solido, var(--ui-cor-texto-secundario, #888899))));
   color: var(--ui-cor-fundo, #0b0b0d);
   border: 1px solid transparent;
 }
 
 /* 3. Estilo Contornado (Outline) */
 .ui-badge--contornado {
-  background-color: transparent;
+  background: var(--ui-degrade-interno, var(--ui-badge-fundo, transparent));
   color: var(--ui-cor-badge-texto, var(--ui-cor-texto, #e1e1e6));
   border: 1px solid var(--ui-cor-badge-borda, var(--ui-cor-borda, rgba(255, 255, 255, 0.2)));
 }
@@ -79,11 +79,11 @@
 /* Variantes Temáticas */
 /* Sucesso */
 .ui-badge--sucesso.ui-badge--suave {
-  background-color: color-mix(in srgb, var(--ui-cor-texto-sucesso, #00E08A) 15%, transparent);
+  background: var(--ui-degrade-interno, var(--ui-badge-fundo, var(--ui-fundo-sucesso, color-mix(in srgb, var(--ui-cor-texto-sucesso, #00E08A) 15%, transparent))));
   color: var(--ui-cor-primaria, #00E08A);
 }
 .ui-badge--sucesso.ui-badge--solido {
-  background-color: var(--ui-cor-primaria, #00E08A);
+  background: var(--ui-degrade-interno, var(--ui-badge-fundo, var(--ui-fundo-primario, var(--ui-cor-primaria, #00E08A))));
   color: var(--ui-cor-texto-sobre-primaria, #000000);
 }
 .ui-badge--sucesso.ui-badge--contornado {
@@ -93,11 +93,11 @@
 
 /* Erro / Destrutivo */
 .ui-badge--erro.ui-badge--suave {
-  background-color: color-mix(in srgb, var(--ui-cor-texto-erro, #ff5555) 15%, transparent);
+  background: var(--ui-degrade-interno, var(--ui-badge-fundo, var(--ui-fundo-erro, color-mix(in srgb, var(--ui-cor-texto-erro, #ff5555) 15%, transparent))));
   color: var(--ui-cor-texto-erro, #ff5555);
 }
 .ui-badge--erro.ui-badge--solido {
-  background-color: var(--ui-cor-texto-erro, #ff5555);
+  background: var(--ui-degrade-interno, var(--ui-badge-fundo, var(--ui-fundo-erro-solido, var(--ui-cor-texto-erro, #ff5555))));
   color: var(--ui-cor-texto-sobre-status, #000000);
 }
 .ui-badge--erro.ui-badge--contornado {
@@ -107,11 +107,11 @@
 
 /* Alerta */
 .ui-badge--alerta.ui-badge--suave {
-  background-color: color-mix(in srgb, var(--ui-cor-texto-alerta, #ffb86c) 15%, transparent);
+  background: var(--ui-degrade-interno, var(--ui-badge-fundo, var(--ui-fundo-alerta, color-mix(in srgb, var(--ui-cor-texto-alerta, #ffb86c) 15%, transparent))));
   color: var(--ui-cor-texto-alerta, #ffb86c);
 }
 .ui-badge--alerta.ui-badge--solido {
-  background-color: var(--ui-cor-texto-alerta, #ffb86c);
+  background: var(--ui-degrade-interno, var(--ui-badge-fundo, var(--ui-fundo-alerta-solido, var(--ui-cor-texto-alerta, #ffb86c))));
   color: var(--ui-cor-texto-sobre-status, #000000);
 }
 .ui-badge--alerta.ui-badge--contornado {
@@ -122,12 +122,12 @@
 /* Info / Primária */
 .ui-badge--info.ui-badge--suave,
 .ui-badge--primaria.ui-badge--suave {
-  background-color: color-mix(in srgb, var(--ui-cor-texto-info, #33b5ff) 15%, transparent);
+  background: var(--ui-degrade-interno, var(--ui-badge-fundo, var(--ui-fundo-info, color-mix(in srgb, var(--ui-cor-texto-info, #33b5ff) 15%, transparent))));
   color: var(--ui-cor-texto-info, #33b5ff);
 }
 .ui-badge--info.ui-badge--solido,
 .ui-badge--primaria.ui-badge--solido {
-  background-color: var(--ui-cor-texto-info, #33b5ff);
+  background: var(--ui-degrade-interno, var(--ui-badge-fundo, var(--ui-fundo-info-solido, var(--ui-cor-texto-info, #33b5ff))));
   color: var(--ui-cor-texto-sobre-status, #000000);
 }
 .ui-badge--info.ui-badge--contornado,
@@ -138,7 +138,7 @@
 
 /* Neutro / Secundária */
 .ui-badge--neutro.ui-badge--suave {
-  background-color: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 8%, transparent);
+  background: var(--ui-degrade-interno, var(--ui-badge-fundo, color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 8%, transparent)));
   color: var(--ui-cor-texto-secundario, #888899);
 }
 
@@ -160,7 +160,7 @@
 
 .ui-badge__close:hover {
   opacity: 1;
-  background-color: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 20%, transparent);
+  background: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 20%, transparent);
 }
 
 /* Customização Squarecircles */
@@ -172,4 +172,22 @@
 :host([formato="squarecircles"]) .ui-badge,
 :host([formato="squircle"]) .ui-badge {
   border-radius: var(--ui-raio-sm, 4px);
+}
+
+:host(.degrade),
+:host(.ui-degrade),
+:host(.gradiente),
+:host(.ui-gradiente),
+:host([degrade]:not([degrade="false"]):not([degrade="none"]):not([degrade="0"]):not([degrade="off"])),
+:host([gradiente]:not([gradiente="false"]):not([gradiente="none"]):not([gradiente="0"]):not([gradiente="off"])),
+:host([gradient]:not([gradient="false"]):not([gradient="none"]):not([gradient="0"]):not([gradient="off"])) {
+  --ui-fundo-elevado: var(--ui-gradiente-elevado);
+  --ui-fundo-primario: var(--ui-gradiente-primario);
+  --ui-fundo-sucesso: var(--ui-gradiente-sucesso);
+  --ui-fundo-erro: var(--ui-gradiente-erro);
+  --ui-fundo-alerta: var(--ui-gradiente-alerta);
+  --ui-fundo-info: var(--ui-gradiente-info);
+  --ui-fundo-erro-solido: var(--ui-gradiente-destrutivo);
+  --ui-fundo-alerta-solido: linear-gradient(135deg, var(--ui-cor-texto-alerta, #ffb86c), color-mix(in srgb, var(--ui-cor-texto-alerta, #ffb86c) 75%, #b45309));
+  --ui-fundo-info-solido: linear-gradient(135deg, var(--ui-cor-texto-info, #33b5ff), color-mix(in srgb, var(--ui-cor-texto-info, #33b5ff) 75%, #0369a1));
 }

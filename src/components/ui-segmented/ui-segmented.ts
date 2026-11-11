@@ -9,6 +9,7 @@ import {
 import { definirCustomElement } from '../../core/ssr-safe';
 import { FormAssociatedElement } from '../../core/form-associated-element';
 import { alternarPart } from '../../core/parts';
+import { aplicarDegradeNoElemento } from '../../core/degrade';
 import { aplicarAlturaControle, normalizarTamanhoControle } from '../../core/altura-controle';
 
 export interface UISegmentedOpcao {
@@ -280,6 +281,7 @@ export class UISegmented extends FormAssociatedElement {
     if (isFull) {
       this.rootElement.classList.add('ui-segmented--full');
     }
+    aplicarDegradeNoElemento(this, this.rootElement);
 
     this.rootElement.setAttribute('aria-disabled', String(isDisabled));
 

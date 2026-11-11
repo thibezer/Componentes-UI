@@ -1,5 +1,20 @@
 # Changelog
 
+## 2.17.0 — 2026-11-10
+
+### Customização: suporte completo a degradê interno (`degrade`) e `::part()` estruturais
+
+- **Design Tokens ($L_0$):**
+  - Novos tokens temáticos `--ui-gradiente-*` (`superficie`, `card`, `elevado`, `primario`, `secundario`, `destaque`, `destrutivo`, `sucesso`, `erro`, `alerta`, `info`, `texto`) declarados de forma consistente nos temas escuro, claro forçado (`[data-tema="claro"]`) e claro automático (`prefers-color-scheme: light`) em `src/tokens/colors.css`.
+  - Novo módulo `src/tokens/gradients.css` (importado por `src/tokens/index.css`) com utilitários `.degrade`, `.ui-degrade`, `.gradiente`, `.ui-gradiente` e `[data-degrade]` mapeando `--ui-fundo-*` para gradientes do tema ativo.
+- **Fundação Core ($L_1$):**
+  - Novo módulo puro e SSR-safe `src/core/degrade.ts` (re-exportado em `src/core/index.ts` e `src/index.ts`) com resolução de presets semânticos, validação anti-XSS/CSS-injection (`gradienteSeguro`, `resolverDegrade`) e sincronização declarativa (`aplicarDegradeNoElemento`) aceitando atributos `degrade`, `gradiente`, `gradient` e classes `.degrade` / `.gradiente`.
+- **Estilização e APIs de Componentes ($L_3 / L_4$):**
+  - Substituição das declarações bloqueantes `background-color: var(--ui-*)` por `background: var(--ui-degrade-interno, var(--ui-*-fundo, var(--ui-fundo-*, var(--ui-cor-*))))` nos CSS dos componentes, preservando variantes `outline`/`ghost`/`transparent`, shimmer de `<ui-skeleton>`, rótulos flutuantes (`<ui-campo-texto>`, `<ui-area-texto>`), chevrons SVG de `<select>` (`<ui-camadas>`, `<ui-tabela-propriedades>`) e recorte de texto por gradiente (`background-clip: text` opt-in no `<ui-texto>`).
+  - Exposição de `::part(base)` e subparts estruturais com documentação `@csspart` em `<ui-stat>`, `<ui-avatar>`, `<ui-skeleton>`, `<ui-ribbon>`, `<ui-paleta-ferramentas>`, `<ui-seletor-mapa-base>`, `<ui-canvas-cad>` e `<ui-mapa>`.
+- **Testes e Contratos:**
+  - Suíte unitária e adversarial em `src/core/degrade.test.ts` e cobertura de tokens, parts estruturais, classes, presets e bloqueio de CSS hostil em `tests/customizacao.test.ts`.
+
 ## 2.16.1 — 2026-11-10
 
 ### `<ui-tabela-propriedades>`: memória e persistência automática das abas/categorias abertas

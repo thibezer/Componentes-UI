@@ -3,6 +3,7 @@ import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 import { ListenerBag } from '../../core/listener-bag';
 import { normalizarPosicao, calcularPosicaoBalao } from './tooltip-posicionamento';
 import { mostrarPopover, ocultarPopover } from './tooltip-popover';
+import { ATRIBUTOS_DEGRADE, aplicarDegradeNoElemento } from '../../core/degrade';
 
 /** Tempo para levar o ponteiro do gatilho até o balão sem que ele feche (WCAG 1.4.13). */
 const ATRASO_OCULTAR_MS = 120;
@@ -32,7 +33,8 @@ export class UITooltip extends SafeHTMLElement {
       'trigger',
       'aberto',
       'open',
-      'disabled'
+      'disabled',
+      ...ATRIBUTOS_DEGRADE
     ];
   }
 
@@ -158,6 +160,7 @@ export class UITooltip extends SafeHTMLElement {
     const textoSpan = this.shadowRoot?.querySelector('.ui-tooltip__texto') as HTMLElement | null;
 
     this.containerElement.className = `ui-tooltip ui-tooltip--${posicao}`;
+    aplicarDegradeNoElemento(this, this.bubbleElement);
 
     if (textoSpan) {
       textoSpan.textContent = texto;

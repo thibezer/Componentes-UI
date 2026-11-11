@@ -32,15 +32,24 @@ import { BarraFerramentas, interpretarFerramentas, barraPedeEdicao } from './cad
 import type { EstiloFeicao } from '../../gerencigeo-canvas/feature_types';
 import type { Feicao } from '../../gerencigeo-canvas/feature_types';
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
+import { ATRIBUTOS_DEGRADE, aplicarDegradeNoElemento, ehAtributoDegrade } from '../../core/degrade';
 import { EstilosExternosShadow, type EstilosExternos } from './cad-estilos-externos';
 import { ehAtributoLinhaPadrao, lerLinhaPadrao, mesclarLinhaPadrao, opcaoDoAtributo } from './cad-linha-padrao';
 import { latLonParaUtm, formatUTM } from '../../gerencigeo-canvas/utils';
 
+/**
+ * Viewport georreferenciada CAD/GIS com suporte a feições, snap, camadas e medição.
+ *
+ * @csspart base - Contêiner raiz interno do canvas CAD.
+ * @csspart viewport - Área onde o mapa e os renderizadores canvas/Leaflet são montados.
+ * @csspart camadas - Painel flutuante retrátil de gerenciamento de camadas.
+ */
 export class UICanvasCAD extends SafeHTMLElement {
   static get observedAttributes() {
     return ['sat-opacity', 'scale-mode', 'crosshair', 'modo-sequencial', 'chave-grupo', 'zona-projecao', 'fuso', 'canal-configuracao', 'ferramentas', 'sem-atalho-snap', 'aceitar-origem', 'sem-camadas-padrao', 'sem-painel-camadas', 'sem-barra-rapida', 'popups', 'renderizador', 'qualidade', 'sem-avisos', 'sem-hud-coordenadas',
       // linha padrão (`cad-linha-padrao.ts`); literais para o manifesto e os tipos React/Vue enxergarem
-      'linha-cor', 'linha-espessura', 'linha-tipo', 'linha-escala', 'linha-tracejado', 'linha-deslocamento', 'linha-opacidade', 'linha-terminacao', 'linha-juncao'];
+      'linha-cor', 'linha-espessura', 'linha-tipo', 'linha-escala', 'linha-tracejado', 'linha-deslocamento', 'linha-opacidade', 'linha-terminacao', 'linha-juncao',
+      ...ATRIBUTOS_DEGRADE];
   }
 
   private shadow: ShadowRoot;
@@ -175,6 +184,7 @@ export class UICanvasCAD extends SafeHTMLElement {
     this.desligarAnuncios?.();
     this.desligarAnuncios = conectarAnuncios(this, this.shadow);
     this.estilosExternos.aplicar();
+    aplicarDegradeNoElemento(this, this.layersPanel);
     this.initTimeout = window.setTimeout(() => { this.initTimeout = undefined; this.inicializarAgora(); }, 0);
   }
 
@@ -256,6 +266,10 @@ export class UICanvasCAD extends SafeHTMLElement {
   public invalidateSizeSafely(): void { this.controladorTamanho.invalidateSizeSafely(); }
 
   attributeChangedCallback(name: string, oldVal: string, newVal: string) {
+    if (ehAtributoDegrade(name)) {
+      aplicarDegradeNoElemento(this, this.layersPanel);
+      return;
+    }
     if (name === 'sem-atalho-snap') {
       this.feicoes?.definirAtalhoSnap(newVal === null);
       return;

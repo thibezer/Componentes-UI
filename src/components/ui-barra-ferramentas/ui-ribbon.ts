@@ -19,6 +19,7 @@ import {
   type MenuHandle
 } from './ferramentas-comum';
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
+import { ATRIBUTOS_DEGRADE, aplicarDegradeNoElemento, ehAtributoDegrade } from '../../core/degrade';
 import { criarBotaoAba, criarGrupoRibbon } from './ribbon-render';
 import { acaoDaTeclaAba } from './ribbon-teclado';
 
@@ -33,6 +34,13 @@ import { acaoDaTeclaAba } from './ribbon-teclado';
  *          ui-aba-change { id, aba }, ui-recolhido-change { recolhido }, ui-grupo-dialogo { id, grupo }
  *
  * `aba-ativa` pode ser definido antes de `abas`: o valor fica pendente até a aba existir/ficar visível.
+ *
+ * @csspart base - Contêiner raiz da faixa de opções (ribbon).
+ * @csspart cabecalho - Barra superior contendo as abas e o botão de fixar.
+ * @csspart abas - Lista rolável de abas (`role="tablist"`).
+ * @csspart fixar - Botão de fixar ou recolher a faixa de opções.
+ * @csspart painel - Painel da aba ativa (`role="tabpanel"`).
+ * @csspart grupos - Grade dos grupos de ferramentas (`role="toolbar"`).
  */
 let contadorRibbon = 0;
 
@@ -50,7 +58,8 @@ export class UIRibbon extends SafeHTMLElement {
       'aria-label',
       'rotulo-abas',
       'rotulo-fixar',
-      'rotulo-expandir'
+      'rotulo-expandir',
+      ...ATRIBUTOS_DEGRADE
     ];
   }
 
@@ -78,13 +87,13 @@ export class UIRibbon extends SafeHTMLElement {
     const shadow = this.attachShadow({ mode: 'open' });
     shadow.innerHTML = `
       <style>${estilosComuns}${estilos}</style>
-      <div class="ui-ribbon">
-        <div class="ui-ribbon__cabecalho">
-          <div class="ui-ribbon__abas" role="tablist"></div>
-          <button type="button" class="ui-ribbon__fixar"></button>
+      <div class="ui-ribbon" part="base">
+        <div class="ui-ribbon__cabecalho" part="cabecalho">
+          <div class="ui-ribbon__abas" part="abas" role="tablist"></div>
+          <button type="button" class="ui-ribbon__fixar" part="fixar"></button>
         </div>
-        <div class="ui-ribbon__painel" role="tabpanel">
-          <div class="ui-ribbon__grupos" role="toolbar" aria-label="Ferramentas"></div>
+        <div class="ui-ribbon__painel" part="painel" role="tabpanel">
+          <div class="ui-ribbon__grupos" part="grupos" role="toolbar" aria-label="Ferramentas"></div>
         </div>
       </div>
     `;
@@ -116,6 +125,7 @@ export class UIRibbon extends SafeHTMLElement {
 
     const inicial = this.getAttribute('aba-ativa');
     if (inicial && !this._abaAtiva) this._abaPendente = inicial;
+    aplicarDegradeNoElemento(this, this.rootElement);
     this.aplicarRotulos();
     this.renderizar();
     this._pronto = true;
@@ -133,6 +143,10 @@ export class UIRibbon extends SafeHTMLElement {
 
   attributeChangedCallback(name: string, old: string | null, value: string | null) {
     if (old === value) return;
+    if (ehAtributoDegrade(name)) {
+      aplicarDegradeNoElemento(this, this.rootElement);
+      return;
+    }
     if (name === 'aba-ativa') {
       if (!value || value === this._abaAtiva) return;
       if (this._abas.some(a => a.id === value && !a.oculta)) {

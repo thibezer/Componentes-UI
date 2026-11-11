@@ -8,7 +8,18 @@
 }
 
 .ui-skeleton {
-  background: var(--ui-cor-fundo-elevado, #1e1e24);
+  background: var(--ui-degrade-interno, var(--ui-skeleton-fundo, var(--ui-fundo-elevado, var(--ui-cor-fundo-elevado, #1e1e24))));
+  border-radius: var(--ui-raio-borda, 6px);
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.ui-skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
   background-image: linear-gradient(
     90deg,
     rgba(255, 255, 255, 0) 0%,
@@ -17,10 +28,6 @@
   );
   background-size: 200% 100%;
   background-repeat: no-repeat;
-  border-radius: var(--ui-raio-borda, 6px);
-  position: relative;
-  overflow: hidden;
-  box-sizing: border-box;
   animation: ui-skeleton-shimmer 1.6s ease-in-out infinite;
 }
 
@@ -36,8 +43,11 @@
 
 /* Animação Pulso Alternativa */
 .ui-skeleton--pulso {
-  background-image: none;
   animation: ui-skeleton-pulse 1.8s ease-in-out infinite;
+}
+
+.ui-skeleton--pulso::after {
+  display: none;
 }
 
 @keyframes ui-skeleton-pulse {
@@ -52,7 +62,10 @@
 /* Sem animação */
 .ui-skeleton--estatico {
   animation: none;
-  background-image: none;
+}
+
+.ui-skeleton--estatico::after {
+  display: none;
 }
 
 /* Variantes */
@@ -97,8 +110,12 @@
   padding: 16px;
   border-radius: var(--ui-raio-borda, 10px);
   border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.08));
-  background: var(--ui-cor-fundo-card, #18181c);
+  background: var(--ui-degrade-interno, var(--ui-skeleton-fundo, var(--ui-fundo-card, var(--ui-cor-fundo-card, #18181c))));
   animation: none;
+}
+
+.ui-skeleton--card::after {
+  display: none;
 }
 
 .ui-skeleton__card-media {
@@ -129,7 +146,20 @@
 @media (prefers-reduced-motion: reduce) {
   .ui-skeleton {
     animation: none !important;
-    background-image: none !important;
     opacity: 0.7;
   }
+  .ui-skeleton::after {
+    display: none !important;
+  }
+}
+
+:host(.degrade),
+:host(.ui-degrade),
+:host(.gradiente),
+:host(.ui-gradiente),
+:host([degrade]:not([degrade="false"]):not([degrade="none"]):not([degrade="0"]):not([degrade="off"])),
+:host([gradiente]:not([gradiente="false"]):not([gradiente="none"]):not([gradiente="0"]):not([gradiente="off"])),
+:host([gradient]:not([gradient="false"]):not([gradient="none"]):not([gradient="0"]):not([gradient="off"])) {
+  --ui-fundo-elevado: var(--ui-gradiente-elevado);
+  --ui-fundo-card: var(--ui-gradiente-card);
 }

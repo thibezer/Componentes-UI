@@ -25,6 +25,7 @@ const AVISO_SEM_LEAFLET = `
  * @attr {string} camadas - Camadas base separadas por vírgula (`osm`, `satelite`, `topografia`, `ruas`).
  * @attr {string} aria-label - Nome acessível da região do mapa (padrão: "Mapa").
  * @fires ui-mapa-pronto - O mapa foi criado (`detail.map`); é emitido de novo se o elemento for reconectado.
+ * @csspart base - Contêiner interno do mapa Leaflet.
  */
 export class UIMapa extends SafeHTMLElement {
   static get observedAttributes() {
@@ -46,7 +47,7 @@ export class UIMapa extends SafeHTMLElement {
         ${leafletCss}
         ${estilos}
       </style>
-      <div class="ui-mapa-container" id="map-container" role="region"></div>
+      <div class="ui-mapa-container" id="map-container" part="base" role="region"></div>
       <div style="display: none;"><slot></slot></div>
     `;
     this.mapContainer = shadow.getElementById('map-container') as HTMLDivElement;

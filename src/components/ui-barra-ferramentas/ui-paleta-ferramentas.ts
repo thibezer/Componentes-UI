@@ -18,6 +18,7 @@ import {
   type MenuHandle
 } from './ferramentas-comum';
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
+import { ATRIBUTOS_DEGRADE, aplicarDegradeNoElemento, ehAtributoDegrade } from '../../core/degrade';
 import { PressaoLonga } from './paleta-pressao-longa';
 import { atalhoBloqueadoPeloContexto, paletaDonaDosAtalhos, resolverAtalho } from './paleta-atalhos';
 
@@ -40,10 +41,12 @@ const TAMANHO_ICONE: Record<string, number> = { sm: 16, md: 18, lg: 22 };
  *          ui-ferramenta { id, item, pai?, ativo?, origem } (cancelável: preventDefault reverte a ação)
  *
  * `valor` pode ser definido antes de `ferramentas`: fica pendente até a ferramenta existir.
+ *
+ * @csspart base - Contêiner raiz da paleta de ferramentas.
  */
 export class UIPaletaFerramentas extends SafeHTMLElement {
   static get observedAttributes() {
-    return ['valor', 'value', 'orientacao', 'colunas', 'tamanho', 'size', 'aria-label', 'copiar-dados', 'modo-controlado'];
+    return ['valor', 'value', 'orientacao', 'colunas', 'tamanho', 'size', 'aria-label', 'copiar-dados', 'modo-controlado', ...ATRIBUTOS_DEGRADE];
   }
 
   private rootElement: HTMLDivElement;
@@ -62,7 +65,7 @@ export class UIPaletaFerramentas extends SafeHTMLElement {
     const shadow = this.attachShadow({ mode: 'open' });
     shadow.innerHTML = `
       <style>${estilosComuns}${estilos}</style>
-      <div class="ui-paleta ui-paleta--vertical" role="toolbar" aria-orientation="vertical" aria-label="Ferramentas"></div>
+      <div class="ui-paleta ui-paleta--vertical" part="base" role="toolbar" aria-orientation="vertical" aria-label="Ferramentas"></div>
     `;
     this.rootElement = shadow.querySelector('.ui-paleta')!;
   }
@@ -85,6 +88,7 @@ export class UIPaletaFerramentas extends SafeHTMLElement {
 
     const inicial = this.getAttribute('valor') || this.getAttribute('value');
     if (inicial && !this._ativo) this._pendente = inicial;
+    aplicarDegradeNoElemento(this, this.rootElement);
     this.aplicarPendente();
     this.renderizar();
   }
@@ -99,6 +103,10 @@ export class UIPaletaFerramentas extends SafeHTMLElement {
 
   attributeChangedCallback(name: string, old: string | null, value: string | null) {
     if (old === value) return;
+    if (ehAtributoDegrade(name)) {
+      aplicarDegradeNoElemento(this, this.rootElement);
+      return;
+    }
     if (name === 'valor' || name === 'value') {
       const v = this.getAttribute('valor') || this.getAttribute('value') || '';
       if (!v) this.limpar(false);

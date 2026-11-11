@@ -29,7 +29,7 @@
 .ui-drawer__painel {
   position: fixed;
   z-index: var(--ui-z-drawer, 700);
-  background-color: var(--ui-cor-fundo-card, #18181c);
+  background: var(--ui-degrade-interno, var(--ui-drawer-fundo, var(--ui-fundo-card, var(--ui-cor-fundo-card, #18181c))));
   border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
   box-shadow: var(--ui-sombra-lg, 0 16px 40px rgba(0, 0, 0, 0.7));
   display: flex;
@@ -190,7 +190,7 @@
 
 .ui-drawer__close:hover {
   color: var(--ui-cor-texto, #ffffff);
-  background-color: var(--ui-cor-hover-menu, rgba(255, 255, 255, 0.08));
+  background: var(--ui-cor-hover-menu, rgba(255, 255, 255, 0.08));
 }
 
 .ui-drawer__close:focus-visible {
@@ -214,7 +214,7 @@
   align-items: center;
   justify-content: flex-end;
   gap: 10px;
-  background-color: var(--ui-cor-fundo-recuado, rgba(0, 0, 0, 0.15));
+  background: var(--ui-drawer-rodape-fundo, var(--ui-cor-fundo-recuado, rgba(0, 0, 0, 0.15)));
   flex-shrink: 0;
 }
 
@@ -244,4 +244,14 @@
   :host([open]) .ui-drawer__backdrop {
     opacity: 0;
   }
+}
+
+:host(.degrade),
+:host(.ui-degrade),
+:host(.gradiente),
+:host(.ui-gradiente),
+:host([degrade]:not([degrade="false"]):not([degrade="none"]):not([degrade="0"]):not([degrade="off"])),
+:host([gradiente]:not([gradiente="false"]):not([gradiente="none"]):not([gradiente="0"]):not([gradiente="off"])),
+:host([gradient]:not([gradient="false"]):not([gradient="none"]):not([gradient="0"]):not([gradient="off"])) {
+  --ui-fundo-card: var(--ui-gradiente-card);
 }

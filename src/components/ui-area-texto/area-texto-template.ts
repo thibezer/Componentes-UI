@@ -1,4 +1,5 @@
 import estilos from './ui-area-texto.css?inline';
+import { ATRIBUTOS_DEGRADE } from '../../core/degrade';
 
 export const ATRIBUTOS_OBSERVADOS_AREA_TEXTO = [
   'label',
@@ -21,7 +22,8 @@ export const ATRIBUTOS_OBSERVADOS_AREA_TEXTO = [
   'auto-altura',
   'redimensionar',
   'contador',
-  'aria-label'
+  'aria-label',
+  ...ATRIBUTOS_DEGRADE
 ];
 
 export function criarTemplateAreaTexto(): string {

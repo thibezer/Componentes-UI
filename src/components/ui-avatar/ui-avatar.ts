@@ -1,6 +1,7 @@
 import estilos from './ui-avatar.css?inline';
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 import { escolherOpcao, escolherOpcaoOpcional } from '../../core/opcoes';
+import { ATRIBUTOS_DEGRADE, aplicarDegradeNoElemento } from '../../core/degrade';
 
 const TAMANHOS = ['xs', 'sm', 'md', 'lg', 'xl'] as const;
 const STATUS = ['online', 'offline', 'ausente', 'ocupado'] as const;
@@ -8,6 +9,13 @@ const STATUS = ['online', 'offline', 'ausente', 'ocupado'] as const;
 const TAMANHO_MIN_PX = 8;
 const TAMANHO_MAX_PX = 512;
 
+/**
+ * Avatar de usuário ou entidade com suporte a foto, iniciais automáticas, ícone padrão e status.
+ *
+ * @csspart base - O círculo/container do avatar.
+ * @csspart conteudo - Área interna da imagem ou iniciais.
+ * @csspart status - Indicador de presença.
+ */
 export class UIAvatar extends SafeHTMLElement {
   static get observedAttributes() {
     return [
@@ -18,7 +26,8 @@ export class UIAvatar extends SafeHTMLElement {
       'size',
       'formato',
       'status',
-      'aria-label'
+      'aria-label',
+      ...ATRIBUTOS_DEGRADE
     ];
   }
 
@@ -34,10 +43,10 @@ export class UIAvatar extends SafeHTMLElement {
     const shadow = this.attachShadow({ mode: 'open' });
     shadow.innerHTML = `
       <style>${estilos}</style>
-      <div class="ui-avatar">
-        <span class="ui-avatar__content"></span>
+      <div class="ui-avatar" part="base">
+        <span class="ui-avatar__content" part="conteudo"></span>
       </div>
-      <span class="ui-avatar__status" style="display: none;"></span>
+      <span class="ui-avatar__status" part="status" style="display: none;"></span>
     `;
 
     this.avatarElement = shadow.querySelector('.ui-avatar')!;
@@ -125,6 +134,8 @@ export class UIAvatar extends SafeHTMLElement {
     } else if (formato === 'squarecircle' || formato === 'squarecircles' || formato === 'squircle') {
       this.avatarElement.classList.add('ui-avatar--squarecircle');
     }
+
+    aplicarDegradeNoElemento(this, this.avatarElement);
 
     // Renderização do Conteúdo (Foto vs Iniciais vs Ícone Fallback)
     const contentSlot = this.avatarElement.querySelector('.ui-avatar__content');

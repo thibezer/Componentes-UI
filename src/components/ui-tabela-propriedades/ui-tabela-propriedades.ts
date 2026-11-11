@@ -52,6 +52,7 @@ export * from './propriedades-densidade';
 export * from './propriedades-valor-misto';
 import { TEXTO_MISTO_PADRAO } from './propriedades-valor-misto';
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
+import { ATRIBUTOS_DEGRADE, aplicarDegradeNoElemento, ehAtributoDegrade } from '../../core/degrade';
 
 export class UITabelaPropriedades extends SafeHTMLElement {
   private static instanciasChavePadrao = new Set<UITabelaPropriedades>();
@@ -69,7 +70,8 @@ export class UITabelaPropriedades extends SafeHTMLElement {
       'flutuante',
       'texto-misto',
       'persistir',
-      'storage-key'
+      'storage-key',
+      ...ATRIBUTOS_DEGRADE
     ];
   }
 
@@ -167,6 +169,7 @@ export class UITabelaPropriedades extends SafeHTMLElement {
 
     conectarArrastoFlutuante(this, this.shadow, this.listeners);
     this.controladorSplitter.init();
+    aplicarDegradeNoElemento(this, this.shadow.getElementById('container'));
     this.syncState();
   }
 
@@ -183,6 +186,10 @@ export class UITabelaPropriedades extends SafeHTMLElement {
    */
   attributeChangedCallback(name: string, oldVal: string | null, newVal: string | null) {
     if (oldVal === newVal) return;
+    if (ehAtributoDegrade(name)) {
+      aplicarDegradeNoElemento(this, this.shadow.getElementById('container'));
+      return;
+    }
     switch (name) {
       case 'largura-rotulo': {
         const pct = parseFloat(newVal ?? '');
