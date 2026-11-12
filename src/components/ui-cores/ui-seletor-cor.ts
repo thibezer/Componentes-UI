@@ -226,13 +226,13 @@ export class UISeletorCor extends SafeHTMLElement {
       ` : ''}
 
       <div class="previa" aria-label="Comparativo de cor antes e depois">
-        <div class="previa-metade" title="Cor original">
+        <div class="previa-metade previa-metade--original" title="Cor original">
           <div class="previa-cor previa-cor--original">
             <div class="previa-linha-traco previa-linha-traco--original"></div>
           </div>
           <span class="previa-badge">ORIGINAL</span>
         </div>
-        <div class="previa-metade" title="Nova cor">
+        <div class="previa-metade previa-metade--nova" data-acao="abrir-nativo" title="Nova cor — clique para escolher no seletor do sistema">
           <div class="previa-cor previa-cor--nova">
             <div class="previa-linha-traco previa-linha-traco--nova"></div>
           </div>
@@ -245,10 +245,11 @@ export class UISeletorCor extends SafeHTMLElement {
           <span class="hex-prefixo">#</span>
           <input type="text" class="hex-entrada" maxlength="7" spellcheck="false" autocomplete="off" aria-label="Cor em hexadecimal" />
         </label>
-        <label class="nativo" title="Abrir o seletor de cor do sistema">
-          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <circle cx="12" cy="12" r="10"/>
-            <path d="M12 2a10 10 0 0 1 10 10"/>
+        <label class="nativo" title="Escolher cor no seletor do sistema">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="m2 22 1-1h3l9-9"/>
+            <path d="M3 21v-3l9-9"/>
+            <path d="m15 6 3.4-3.4a2.1 2.1 0 1 1 3 3L18 9l.4.4a2.1 2.1 0 1 1-3 3l-3.8-3.8a2.1 2.1 0 1 1 3-3l.4.4Z"/>
           </svg>
           <input type="color" class="nativo-entrada" aria-label="Seletor de cor do sistema" />
         </label>
@@ -331,19 +332,20 @@ export class UISeletorCor extends SafeHTMLElement {
         linhaNova.style.setProperty('--traco-cor', semCor ? '' : cor);
       }
     } else {
-      // Modo preenchimento: preenchimento da área com opacidade
+      // Modo preenchimento: preenchimento da área com opacidade (se o controle de opacidade estiver visível)
       if (linhaOriginal) linhaOriginal.style.display = 'none';
       if (linhaNova) linhaNova.style.display = 'none';
 
+      const usarOpacidade = this.opacidadeVisivel;
       if (previaOriginal) {
         previaOriginal.classList.toggle('previa-cor--sem-cor', originalSemCor);
         previaOriginal.style.backgroundColor = originalSemCor ? '' : originalCor;
-        previaOriginal.style.opacity = originalSemCor ? '' : String(this.inicial.opacidade);
+        previaOriginal.style.opacity = originalSemCor || !usarOpacidade ? '' : String(this.inicial.opacidade);
       }
       if (previaNova) {
         previaNova.classList.toggle('previa-cor--sem-cor', semCor);
         previaNova.style.backgroundColor = semCor ? '' : cor;
-        previaNova.style.opacity = semCor ? '' : String(this._opacidade);
+        previaNova.style.opacity = semCor || !usarOpacidade ? '' : String(this._opacidade);
       }
     }
 
@@ -449,6 +451,9 @@ export class UISeletorCor extends SafeHTMLElement {
     const nativo = r.querySelector<HTMLInputElement>('.nativo-entrada');
     if (nativo) {
       this.listeners.add(nativo, 'input', () => this.definirCor(nativo.value));
+      this.listeners.add(r.querySelector('[data-acao="abrir-nativo"]'), 'click', () => {
+        nativo.click();
+      });
     }
 
     this.listeners.add(r.querySelector('[data-acao="fechar"]'), 'click', () => this.confirmar());

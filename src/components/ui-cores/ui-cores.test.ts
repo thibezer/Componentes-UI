@@ -141,16 +141,34 @@ describe('<ui-seletor-cor>', () => {
     expect(seletorNoDom()).toBeNull();
   });
 
-  it('modo simples edita uma cor e respeita mostrarOpacidade', () => {
+  it('modo simples edita uma cor e respeita mostrarOpacidade (prévia sólida sem transparência fantasma)', () => {
     let confirmado: DetalheSeletorCor | null = null;
     abrirSeletorCor({ ancora, cor: '#ABCDEF', mostrarOpacidade: false, aoConfirmar: (d) => (confirmado = d) });
     const el = seletorNoDom()!;
     expect(sr(el).querySelector('.abas')).toBeNull();
     expect((sr(el).querySelector('.opacidade') as HTMLElement).hidden).toBe(true);
+    expect((sr(el).querySelector('.previa-cor--original') as HTMLElement).style.opacity).toBe('');
+    expect((sr(el).querySelector('.previa-cor--nova') as HTMLElement).style.opacity).toBe('');
     expect(el.cor).toBe('#abcdef');
     el.definirCor('none');
     el.confirmar();
     expect(confirmado).toMatchObject({ cor: 'none' });
+  });
+
+  it('clicar na prévia NOVA aciona o seletor de cor do sistema e botão nativo usa ícone de conta-gotas', () => {
+    abrirSeletorCor({ ancora, cor: '#3b82f6', mostrarOpacidade: false });
+    const el = seletorNoDom()!;
+    const raiz = sr(el);
+    expect(raiz.querySelector('.nativo svg circle')).toBeNull();
+    expect(raiz.querySelector('.nativo svg path')).not.toBeNull();
+
+    const nativo = raiz.querySelector('.nativo-entrada') as HTMLInputElement;
+    let clicouNativo = 0;
+    nativo.addEventListener('click', () => clicouNativo++);
+
+    const previaNova = raiz.querySelector('.previa-metade--nova') as HTMLElement;
+    previaNova.click();
+    expect(clicouNativo).toBe(1);
   });
 
   it('sem paletas, faixas nem atalhos de opacidade: só campos numéricos', () => {
