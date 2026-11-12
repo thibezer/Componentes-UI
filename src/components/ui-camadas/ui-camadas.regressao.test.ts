@@ -2020,7 +2020,7 @@ describe('UICamadas - auditoria de melhorias, bugs e UX', () => {
     expect(circle.classList.contains('partial')).toBe(false);
   });
 
-  it('alterar a cor da camada no drawer atualiza in-place as feições que herdam a cor da camada', () => {
+  it('alterar a cor da camada no drawer atualiza in-place a barra de camada de todas as feições filhas e a miniatura das que herdam cor', () => {
     const feicoes: FeicaoItem[] = [
       { id: 'f-herdada', name: 'Herdada', layerId: 'c0' },
       { id: 'f-propria', name: 'Propria', layerId: 'c0', color: '#123456' }
@@ -2034,8 +2034,37 @@ describe('UICamadas - auditoria de melhorias, bugs e UX', () => {
 
     const barHerdada = q<HTMLElement>(el, '[data-feat-row="f-herdada"] .ui-col-colorbar');
     const barPropria = q<HTMLElement>(el, '[data-feat-row="f-propria"] .ui-col-colorbar');
+    const thumbHerdada = q<HTMLElement>(el, '[data-feat-row="f-herdada"] .ui-thumb-box');
+    const thumbPropria = q<HTMLElement>(el, '[data-feat-row="f-propria"] .ui-thumb-box');
     expect(barHerdada.style.backgroundColor).toMatch(/^(#ff0055|rgb\(255, 0, 85\))$/);
-    expect(barPropria.style.backgroundColor).toMatch(/^(#123456|rgb\(18, 52, 86\))$/);
+    expect(barPropria.style.backgroundColor).toMatch(/^(#ff0055|rgb\(255, 0, 85\))$/);
+    expect(thumbHerdada.innerHTML.toLowerCase()).toContain('#ff0055');
+    expect(thumbPropria.innerHTML.toLowerCase()).toContain('#123456');
+  });
+
+  it('hierarquia estilo Illustrator: feição da camada principal alinha no mesmo nível da subcamada irmã e usa a barra de cor da camada pai', () => {
+    const camadas: CamadaItem[] = [
+      { id: 'pai', name: 'Anotações & Alertas', color: '#ec4899', visible: true },
+      { id: 'sub', name: 'Loteamento & Parcelas', parentId: 'pai', color: '#10b981', visible: true }
+    ];
+    const feicoes: FeicaoItem[] = [
+      { id: 'f-pai', name: 'Polígono #897', layerId: 'pai', color: '#ffffff', type: 'polygon' }
+    ];
+    const el = criarPainel(camadas, feicoes);
+
+    const rowSub = q<HTMLElement>(el, '[data-layer-row="sub"]');
+    const rowFeatPai = q<HTMLElement>(el, '[data-feat-row="f-pai"]');
+    const childrenPai = q<HTMLElement>(el, '[data-layer-id="pai"] > .ui-children-container');
+
+    expect(rowSub.style.getPropertyValue('--layer-depth')).toBe('1');
+    expect(rowFeatPai.style.getPropertyValue('--layer-depth')).toBe('1');
+    expect(rowFeatPai.querySelector('.ui-col-branch')).toBeNull();
+    expect(childrenPai.style.getPropertyValue('--parent-layer-color').toLowerCase()).toBe('#ec4899');
+
+    const barFeatPai = rowFeatPai.querySelector<HTMLElement>('.ui-col-colorbar')!;
+    const thumbFeatPai = rowFeatPai.querySelector<HTMLElement>('.ui-thumb-box')!;
+    expect(barFeatPai.style.background).toMatch(/^(#ec4899|rgb\(236, 72, 153\))$/i);
+    expect(thumbFeatPai.innerHTML.toLowerCase()).toContain('#ffffff');
   });
 
   it('travar ou destravar camada atualiza imediatamente as opções do select "Mover para..." no rodapé', () => {

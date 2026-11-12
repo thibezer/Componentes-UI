@@ -126,8 +126,7 @@ export function renderizarLinhaFeicao(
               ${isFeatLocked ? ICONES.cadeadoTrancado : ICONES.cadeadoAberto}
             </div>
 
-            <div class="ui-col ui-col-colorbar" style="background: ${featColor};"></div>
-            <div class="ui-col ui-col-branch"><span style="opacity: 0.35;">└─</span></div>
+            <div class="ui-col ui-col-colorbar" style="background: ${corCamada};"></div>
             <div class="ui-col ui-col-thumb">
               <div class="ui-thumb-box">${renderizarThumbGeometria(feat.type || feat.geometryType, featColor, feat.coordinates)}</div>
             </div>

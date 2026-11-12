@@ -318,7 +318,7 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
 
         ${settingsDrawerHtml}
 
-        <div class="ui-children-container ${depth > 0 ? 'is-subchildren' : ''}" role="group" style="display: ${isExpanded ? 'block' : 'none'};">
+        <div class="ui-children-container ${depth > 0 ? 'is-subchildren' : ''}" role="group" style="--parent-depth: ${depth}; --parent-layer-color: ${safeColor}; display: ${isExpanded ? 'block' : 'none'};">
           ${subcamadasHtml}
           ${feicoesHtml}
           ${truncateNotice}

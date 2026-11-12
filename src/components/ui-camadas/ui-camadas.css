@@ -19,6 +19,7 @@
   --camada-barra-altura: 28px;
   --camada-linha-altura: 25px;
   --camada-thumb-tamanho: 20px;
+  --camada-indent-nivel: 16px;
   --camada-transicao: 0.16s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -502,7 +503,7 @@
 .ui-col-lock:hover { color: var(--ui-cor-texto-alerta, #ffb86c); }
 
 .ui-col-colorbar {
-  width: 3.5px;
+  width: 5px;
   height: 16px;
   margin: 0 3px 0 2px;
   border-radius: 1.5px;
@@ -529,9 +530,44 @@
   outline: none;
 }
 
+/* Guia vertical estilo Adobe Illustrator ligando a camada aos seus filhos diretos (subcamadas e feições) */
+.ui-children-container {
+  position: relative;
+}
+
+.ui-children-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 10px;
+  left: calc(64px + var(--parent-depth, 0) * var(--camada-indent-nivel, 16px) + 7px);
+  width: 1.5px;
+  background: color-mix(in srgb, var(--parent-layer-color, var(--layer-active-color, var(--ui-cor-primaria, #00E08A))) 48%, transparent);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.ui-children-container:has(> .ui-empty-row)::before {
+  display: none;
+}
+
 .ui-col-chevron,
-.ui-col-branch {
-  margin-left: calc(var(--layer-depth, 0) * 12px);
+.ui-feat-row .ui-col-thumb {
+  position: relative;
+  margin-left: calc(var(--layer-depth, 0) * var(--camada-indent-nivel, 16px));
+}
+
+.ui-layer-row.is-sublayer .ui-col-chevron::before,
+.ui-feat-row .ui-col-thumb::before {
+  content: '';
+  position: absolute;
+  left: -9px;
+  top: 50%;
+  width: 8px;
+  height: 1.5px;
+  transform: translateY(-50%);
+  background: color-mix(in srgb, var(--parent-layer-color, var(--layer-active-color, var(--ui-cor-primaria, #00E08A))) 48%, transparent);
+  pointer-events: none;
 }
 
 .ui-col-chevron {
@@ -552,16 +588,6 @@
 
 .ui-chevron-icon.open {
   transform: rotate(90deg);
-}
-
-.ui-col-branch {
-  width: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 22%, transparent);
-  font-size: 10px;
-  font-family: var(--ui-fonte-codigo, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
 }
 
 .ui-col-thumb {

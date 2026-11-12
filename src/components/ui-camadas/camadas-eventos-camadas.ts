@@ -159,17 +159,19 @@ export function conectarEventosCamadas(host: CamadasHostCompleto, shadow: Shadow
       const group = row.closest<HTMLElement>('.ui-layer-group');
       // A variável fica no grupo: a linha da camada e as suas feições herdam o destaque de seleção
       group?.style.setProperty('--layer-active-color', corSegura);
+      const childrenContainer = group?.querySelector<HTMLElement>(':scope > .ui-children-container');
+      childrenContainer?.style.setProperty('--parent-layer-color', corSegura);
       const bar = row.querySelector('.ui-col-colorbar') as HTMLElement;
       if (bar) bar.style.backgroundColor = corSegura;
 
-      // Atualiza in-place as feições desta camada que não possuem cor própria (herdam corCamada)
+      // Atualiza in-place a barra de cor da camada nas feições filhas e a miniatura das que herdam corCamada
       const feicaoPorId = new Map(host.feicoes.map((f) => [f.id, f]));
       group?.querySelectorAll<HTMLElement>('.ui-feat-row').forEach((featRow) => {
         if (featRow.getAttribute('data-feat-layer') !== layerId) return;
-        const feat = feicaoPorId.get(featRow.getAttribute('data-feat-row') || '');
-        if (!feat || feat.color) return;
         const featBar = featRow.querySelector<HTMLElement>('.ui-col-colorbar');
         if (featBar) featBar.style.backgroundColor = corSegura;
+        const feat = feicaoPorId.get(featRow.getAttribute('data-feat-row') || '');
+        if (!feat || feat.color) return;
         const thumbBox = featRow.querySelector<HTMLElement>('.ui-thumb-box');
         if (thumbBox) {
           thumbBox.innerHTML = renderizarThumbGeometria(feat.type || feat.geometryType, corSegura, feat.coordinates);
