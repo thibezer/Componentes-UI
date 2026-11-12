@@ -1,5 +1,20 @@
 # Changelog
 
+## 2.17.1 — 2026-11-12
+
+### `<ui-camadas>` & `<ui-seletor-cor>`: correções de seleção, bloqueio, teclado, DnD touch e usabilidade do seletor de cores
+
+- **`<ui-camadas>`:**
+  - **Seleção em intervalo (`Shift+Clique`):** `selecionarFeicao` agora respeita o limite expandido por *"Mostrar mais (+80)"* (`expandedFeatureLimits`), permitindo selecionar em intervalo feições além das 80 iniciais.
+  - **Proteção de bloqueio (`locked`):** movimentação e exclusão em lote pelo rodapé, bem como transferência de feições por Drag & Drop, agora ignoram feições individualmente bloqueadas ou pertencentes a camadas/grupos bloqueados; bloquear/desbloquear camada atualiza imediatamente o `<select>` de destino no rodapé.
+  - **Sincronização cirúrgica de DOM:** alterar a cor de uma camada atualiza *in-place* a barra lateral e a miniatura SVG das feições filhas que herdam a cor da camada; o círculo de seleção da camada (`.ui-target-circle`) respeita o filtro de busca ativo; `Escape` limpa o timer e restaura imediatamente os rótulos dos botões de exclusão em confirmação.
+  - **Navegação WAI-ARIA e Touch DnD:** `ArrowRight` em camada expandida move o foco para a primeira linha filha visível e `ArrowLeft` em feição/subcamada recolhida move o foco para a camada-mãe; arraste por toque (`touch`) suporta aninhamento hierárquico (`drop-into`) e emite `ui-camada-mover-hierarquia`; `.ui-col-actions` fica visível em `:focus-within` e com gaveta ativa.
+  - **Tokens e limpeza de estado:** substituição de variáveis CSS inexistentes em `.ui-truncate-notice` / `.ui-truncate-more-btn` pelos tokens oficiais `--ui-cor-fundo-elevado` e `--ui-cor-hover-menu`; limpeza automática de estados órfãos (`activeSettingsLayerId`, `editingLayerId`, `editingFeatureId`, `expandedFeatureLimits`) ao remover ou redefinir camadas/feições.
+- **`<ui-seletor-cor>`:**
+  - Substituição do ícone de círculo vazio com contorno duplo no botão do seletor do sistema (`.nativo`) por um ícone de conta-gotas (`pipeta`) claro e sem anéis fantasmas extras.
+  - Clique direto na metade `"NOVA"` da prévia (`.previa-metade--nova`) também abre o seletor de cor do sistema.
+  - No modo simples com `mostrarOpacidade: false`, a prévia antes/depois exibe a cor sólida real em vez de aplicar opacidade padrão de `35%`.
+
 ## 2.17.0 — 2026-11-10
 
 ### Customização: suporte completo a degradê interno (`degrade`) e `::part()` estruturais
