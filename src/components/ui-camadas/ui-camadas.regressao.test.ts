@@ -1935,3 +1935,173 @@ describe('UICamadas - atualização incremental de feições', () => {
    }, 60_000);
   });
 });
+
+describe('UICamadas - auditoria de melhorias, bugs e UX', () => {
+  beforeEach(() => {
+    document.body.innerHTML = '';
+    localStorage.clear();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('selecionarFeicao em intervalo (Shift+Click) alcança feições reveladas por "Mostrar mais"', () => {
+    const el = criarPainel(camadasPadrao(), criarFeicoes(120, 'c0'));
+    q(el, '[data-layer-show-more="c0"]').click();
+    expect(sr(el).querySelectorAll('.ui-feat-row').length).toBe(120);
+
+    el.selecionarFeicao('f75');
+    el.selecionarFeicao('f105', false, true);
+    expect(el.selectedFeatureIds.size).toBe(31);
+    expect(el.selectedFeatureIds.has('f105')).toBe(true);
+  });
+
+  it('Escape ao cancelar confirmação de exclusão restaura o rótulo original do drawer e do rodapé', () => {
+    const el = criarPainel(camadasPadrao(), criarFeicoes(2, 'c0'));
+    el.selecionarFeicao('f0');
+
+    // Rodapé
+    const btnFooterDel = q(el, '#btn-footer-del');
+    btnFooterDel.click();
+    expect(btnFooterDel.classList.contains('confirming')).toBe(true);
+    expect(btnFooterDel.getAttribute('aria-label')).toContain('Clique novamente');
+
+    el.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    expect(btnFooterDel.classList.contains('confirming')).toBe(false);
+    expect(btnFooterDel.getAttribute('aria-label')).toBe('Excluir selecionados');
+
+    // Drawer
+    q(el, '[data-layer-settings="c0"]').click();
+    const btnDrawerDel = q(el, '[data-delete-layer="c0"]');
+    btnDrawerDel.click();
+    expect(btnDrawerDel.classList.contains('confirming')).toBe(true);
+    expect(btnDrawerDel.querySelector('.ui-btn-label')?.textContent).toBe('Confirmar Exclusão?');
+
+    el.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    expect(btnDrawerDel.classList.contains('confirming')).toBe(false);
+    expect(btnDrawerDel.querySelector('.ui-btn-label')?.textContent).toBe('Excluir');
+  });
+
+  it('exclusão em massa pelo rodapé respeita feições bloqueadas ou em camadas bloqueadas', () => {
+    const camadas: CamadaItem[] = [
+      { id: 'c0', name: 'Camada Livre', locked: false },
+      { id: 'c1', name: 'Camada Travada', locked: true }
+    ];
+    const feicoes: FeicaoItem[] = [
+      { id: 'f-livre', name: 'Livre', layerId: 'c0', locked: false },
+      { id: 'f-travada', name: 'Travada Individual', layerId: 'c0', locked: true },
+      { id: 'f-camada-travada', name: 'Em Camada Travada', layerId: 'c1', locked: false }
+    ];
+    const el = criarPainel(camadas, feicoes);
+    el.selecionarFeicoes(['f-livre', 'f-travada', 'f-camada-travada']);
+
+    const btnDel = q(el, '#btn-footer-del');
+    btnDel.click();
+    btnDel.click();
+
+    expect(el.feicoes.map((f) => f.id)).toEqual(['f-travada', 'f-camada-travada']);
+    expect(el.obterFeicao('f-livre')).toBeUndefined();
+  });
+
+  it('sincronizarSelecaoDOM mantém o target-circle da camada consistente durante busca ativa', () => {
+    const feicoes: FeicaoItem[] = [
+      { id: 'f1', name: 'Lote Norte', layerId: 'c0' },
+      { id: 'f2', name: 'Lote Sul', layerId: 'c0' }
+    ];
+    const el = criarPainel(camadasPadrao(), feicoes);
+    el.searchQuery = 'Norte';
+    el.solicitarRenderizacao();
+
+    q(el, '[data-layer-target="c0"]').click();
+    expect([...el.selectedFeatureIds]).toEqual(['f1']);
+    const circle = q(el, '[data-layer-target="c0"] .ui-target-circle');
+    expect(circle.classList.contains('selected')).toBe(true);
+    expect(circle.classList.contains('partial')).toBe(false);
+  });
+
+  it('alterar a cor da camada no drawer atualiza in-place as feições que herdam a cor da camada', () => {
+    const feicoes: FeicaoItem[] = [
+      { id: 'f-herdada', name: 'Herdada', layerId: 'c0' },
+      { id: 'f-propria', name: 'Propria', layerId: 'c0', color: '#123456' }
+    ];
+    const el = criarPainel(camadasPadrao(), feicoes);
+    q(el, '[data-layer-settings="c0"]').click();
+
+    const picker = q<HTMLInputElement>(el, '[data-layer-color-picker="c0"]');
+    picker.value = '#ff0055';
+    picker.dispatchEvent(new Event('input', { bubbles: true }));
+
+    const barHerdada = q<HTMLElement>(el, '[data-feat-row="f-herdada"] .ui-col-colorbar');
+    const barPropria = q<HTMLElement>(el, '[data-feat-row="f-propria"] .ui-col-colorbar');
+    expect(barHerdada.style.backgroundColor).toMatch(/^(#ff0055|rgb\(255, 0, 85\))$/);
+    expect(barPropria.style.backgroundColor).toMatch(/^(#123456|rgb\(18, 52, 86\))$/);
+  });
+
+  it('travar ou destravar camada atualiza imediatamente as opções do select "Mover para..." no rodapé', () => {
+    const el = criarPainel(camadasPadrao(), criarFeicoes(1, 'c0'));
+    el.selecionarFeicao('f0');
+
+    const sel = q<HTMLSelectElement>(el, '#select-footer-move');
+    expect((sel.querySelector('option[value="c1"]') as HTMLOptionElement).disabled).toBe(false);
+
+    // Trava c1 clicando no cadeado (in-place)
+    q(el, '[data-layer-lock="c1"]').click();
+    expect((sel.querySelector('option[value="c1"]') as HTMLOptionElement).disabled).toBe(true);
+
+    // Destrava c1 clicando no cadeado (in-place)
+    q(el, '[data-layer-lock="c1"]').click();
+    expect((sel.querySelector('option[value="c1"]') as HTMLOptionElement).disabled).toBe(false);
+  });
+
+  it('navegação WAI-ARIA por setas: ArrowRight em camada expandida foca o 1º filho e ArrowLeft em feição foca a camada pai', () => {
+    const el = criarPainel(camadasPadrao(), criarFeicoes(2, 'c0'));
+    const linhaCamada = q(el, '[data-layer-row="c0"]');
+    linhaCamada.focus();
+
+    // Camada já está expandida: ArrowRight avança para o primeiro filho (f0)
+    linhaCamada.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, composed: true }));
+    expect(sr(el).activeElement?.getAttribute('data-feat-row')).toBe('f0');
+
+    // Em f0, ArrowLeft volta para a camada pai (c0)
+    const linhaF0 = q(el, '[data-feat-row="f0"]');
+    linhaF0.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true, composed: true }));
+    expect(sr(el).activeElement?.getAttribute('data-layer-row')).toBe('c0');
+  });
+
+  it('arraste por ponteiro/toque no handle suporta aninhamento (drop-into) e emite ui-camada-mover-hierarquia', () => {
+    const el = criarPainel(camadasPadrao(), []);
+    const spy = vi.fn();
+    el.addEventListener('ui-camada-mover-hierarquia', (e) => spy((e as CustomEvent).detail));
+
+    const handleC1 = q(el, '[data-layer-row="c1"] .ui-col-drag');
+    const rowC0 = q(el, '[data-layer-row="c0"]');
+    vi.spyOn(rowC0, 'getBoundingClientRect').mockReturnValue({
+      top: 100,
+      height: 25,
+      bottom: 125,
+      left: 0,
+      right: 200,
+      width: 200,
+      x: 0,
+      y: 100,
+      toJSON: () => ({})
+    });
+    Object.defineProperty(sr(el), 'elementFromPoint', { value: () => rowC0, configurable: true });
+
+    handleC1.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, button: 0, clientX: 10, clientY: 140 }));
+    // Move para o centro de c0 (clientY = 112 -> posição relativa = 12/25 = 0.48 -> zona 'dentro')
+    window.dispatchEvent(new MouseEvent('pointermove', { bubbles: true, clientX: 10, clientY: 112 }));
+    expect(rowC0.classList.contains('drop-into')).toBe(true);
+
+    window.dispatchEvent(new MouseEvent('pointerup', { bubbles: true }));
+    expect(el.obterCamada('c1')?.parentId).toBe('c0');
+    expect(spy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        camadaId: 'c1',
+        novoParentId: 'c0',
+        parentAnteriorId: null
+      })
+    );
+  });
+});

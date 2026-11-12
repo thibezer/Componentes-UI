@@ -14,9 +14,12 @@ export interface HostColecao {
   camadas: CamadaItem[];
   feicoes: FeicaoItem[];
   expandedLayers: Set<string>;
+  expandedFeatureLimits?: Map<string, number>;
   selectedFeatureIds: Set<string>;
   lastClickedFeatureId: string | null;
   activeSettingsLayerId: string | null;
+  editingLayerId?: string | null;
+  editingFeatureId?: string | null;
   camadaAtivaId: string | null;
   readonly persistir: boolean;
   /** @internal Guarda de origens/remoções e acesso ao storage. */
@@ -110,9 +113,22 @@ export function definirCamadasNoHost(host: HostColecao, camadas: CamadaItem[], f
     soltarAncoraInvalida(host);
   }
 
+  const idsCamadasAtuais = new Set(host.camadas.map((l) => l.id));
+  if (host.activeSettingsLayerId && !idsCamadasAtuais.has(host.activeSettingsLayerId)) {
+    host.activeSettingsLayerId = null;
+  }
+  if (host.editingLayerId && !idsCamadasAtuais.has(host.editingLayerId)) {
+    host.editingLayerId = null;
+  }
+  if (host.expandedFeatureLimits) {
+    for (const id of host.expandedFeatureLimits.keys()) {
+      if (!idsCamadasAtuais.has(id)) host.expandedFeatureLimits.delete(id);
+    }
+  }
+
   // Sem camada ativa, ou com uma que a nova lista não tem mais: a primeira assume
   const ativa = host.getAttribute('camada-ativa');
-  if (host.camadas.length > 0 && (!ativa || !host.camadas.some((l) => l.id === ativa))) {
+  if (host.camadas.length > 0 && (!ativa || !idsCamadasAtuais.has(ativa))) {
     host.camadaAtivaId = host.camadas[0].id;
   }
 
@@ -137,6 +153,9 @@ export function definirFeicoesNoHost(host: HostColecao, feicoes: FeicaoItem[]): 
   const selecaoAntes = host.selectedFeatureIds.size;
   removerSelecoesInvalidas(host.selectedFeatureIds, host.feicoes);
   soltarAncoraInvalida(host);
+  if (host.editingFeatureId && !host.feicoes.some((f) => f.id === host.editingFeatureId)) {
+    host.editingFeatureId = null;
+  }
   host.solicitarAtualizacaoFeicoes({
     camadas: 'todas',
     idsAlterados: idsAlterados(antigas, host.feicoes),
@@ -178,7 +197,12 @@ export function removerCamadaNoHost(host: HostColecao, camadaId: string): void {
   host.feicoes = host.feicoes.filter((f) => f.layerId !== camadaId);
   host.lembranca.esquecerCamada(camadaId);
   host.expandedLayers.delete(camadaId);
+  host.expandedFeatureLimits?.delete(camadaId);
   if (host.activeSettingsLayerId === camadaId) host.activeSettingsLayerId = null;
+  if (host.editingLayerId === camadaId) host.editingLayerId = null;
+  if (host.editingFeatureId && !host.feicoes.some((f) => f.id === host.editingFeatureId)) {
+    host.editingFeatureId = null;
+  }
   // Remove da seleção as feições que deixaram de existir junto com a camada
   removerSelecoesInvalidas(host.selectedFeatureIds, host.feicoes);
   if (host.selectedFeatureIds.size === 0) host.lastClickedFeatureId = null;
@@ -222,6 +246,7 @@ export function removerFeicaoNoHost(host: HostColecao, feicaoId: string): void {
   host.feicoes = host.feicoes.filter((f) => f.id !== feicaoId);
   const estavaSelecionada = host.selectedFeatureIds.delete(feicaoId);
   if (host.lastClickedFeatureId === feicaoId) host.lastClickedFeatureId = null;
+  if (host.editingFeatureId === feicaoId) host.editingFeatureId = null;
   host.solicitarAtualizacaoFeicoes({
     camadas: new Set(removida ? [removida.layerId || ''] : []),
     idsAlterados: new Set(),

@@ -7,6 +7,7 @@
 import { CamadasHostCompleto } from './camadas-host';
 import { ICONES } from './camadas-icones';
 import { sanitizarCorCss, buscarPorAtributo, definirRotuloControle } from './camadas-utils';
+import { renderizarThumbGeometria } from './camadas-thumb';
 import { filtrarFeicoesPorBusca } from './camadas-selecao';
 import { obterFeicoesDoEscopoCamada } from './camadas-hierarquia';
 import { ehDescendente } from './camadas-drop-ops';
@@ -155,10 +156,25 @@ export function conectarEventosCamadas(host: CamadasHostCompleto, shadow: Shadow
 
     const row = buscarPorAtributo(shadow, 'data-layer-row', layerId);
     if (row) {
+      const group = row.closest<HTMLElement>('.ui-layer-group');
       // A variável fica no grupo: a linha da camada e as suas feições herdam o destaque de seleção
-      row.closest<HTMLElement>('.ui-layer-group')?.style.setProperty('--layer-active-color', corSegura);
+      group?.style.setProperty('--layer-active-color', corSegura);
       const bar = row.querySelector('.ui-col-colorbar') as HTMLElement;
       if (bar) bar.style.backgroundColor = corSegura;
+
+      // Atualiza in-place as feições desta camada que não possuem cor própria (herdam corCamada)
+      const feicaoPorId = new Map(host.feicoes.map((f) => [f.id, f]));
+      group?.querySelectorAll<HTMLElement>('.ui-feat-row').forEach((featRow) => {
+        if (featRow.getAttribute('data-feat-layer') !== layerId) return;
+        const feat = feicaoPorId.get(featRow.getAttribute('data-feat-row') || '');
+        if (!feat || feat.color) return;
+        const featBar = featRow.querySelector<HTMLElement>('.ui-col-colorbar');
+        if (featBar) featBar.style.backgroundColor = corSegura;
+        const thumbBox = featRow.querySelector<HTMLElement>('.ui-thumb-box');
+        if (thumbBox) {
+          thumbBox.innerHTML = renderizarThumbGeometria(feat.type || feat.geometryType, corSegura, feat.coordinates);
+        }
+      });
     }
 
     if (persistirAgora) host.salvarLembrancaEstado();
@@ -236,6 +252,17 @@ export function conectarEventosCamadas(host: CamadasHostCompleto, shadow: Shadow
   // Botão excluir camada no drawer (com salvaguarda de confirmação em 2 passos)
   shadow.querySelectorAll('[data-delete-layer]').forEach((btn) => {
     let confirmTimeout: ReturnType<typeof setTimeout> | null = null;
+    const resetarConfirmacao = () => {
+      if (confirmTimeout) {
+        clearTimeout(confirmTimeout);
+        confirmTimeout = null;
+      }
+      btn.classList.remove('confirming');
+      const label = btn.querySelector('.ui-btn-label');
+      if (label) label.textContent = 'Excluir';
+    };
+    btn.addEventListener('ui-cancelar-confirmacao', resetarConfirmacao);
+
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const layerId = btn.getAttribute('data-delete-layer');
@@ -247,12 +274,9 @@ export function conectarEventosCamadas(host: CamadasHostCompleto, shadow: Shadow
         const label = btn.querySelector('.ui-btn-label');
         if (label) label.textContent = 'Confirmar Exclusão?';
 
-        confirmTimeout = setTimeout(() => {
-          btn.classList.remove('confirming');
-          if (label) label.textContent = 'Excluir';
-        }, 3500);
+        confirmTimeout = setTimeout(resetarConfirmacao, 3500);
       } else {
-        if (confirmTimeout) clearTimeout(confirmTimeout);
+        resetarConfirmacao();
         host.dispararEvento('ui-camada-excluida', { camadaId: layerId });
         const selecionadasAntes = host.selectedFeatureIds.size;
         // Promover subcamadas para raiz para evitar perda acidental de dados

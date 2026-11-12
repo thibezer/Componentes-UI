@@ -8,9 +8,10 @@ import { alternarPart } from '../../core/parts';
 import { CamadasHostCompleto } from './camadas-host';
 import type { FeicaoItem } from './tipos';
 import { obterFeicoesDoEscopoCamada, calcularEstadoHerdado } from './camadas-hierarquia';
+import { filtrarFeicoesPorBusca } from './camadas-selecao';
 import { ICONES } from './camadas-icones';
 import { definirRotuloControle } from './camadas-utils';
-import { rotuloRodape } from './camadas-rodape';
+import { rotuloRodape, formatarOpcoesCamadasHierarquicas } from './camadas-rodape';
 
 export function sincronizarCamadaAtivaDOM(host: CamadasHostCompleto, shadow: ShadowRoot): void {
   const rows = shadow.querySelectorAll('[data-layer-row]');
@@ -36,10 +37,11 @@ export function sincronizarSelecaoDOM(host: CamadasHostCompleto, shadow: ShadowR
     if (circle) circle.classList.toggle('selected', isSelected);
   });
 
-  // 2. Atualizar targets de camadas (selected / partial / vazio) considerando subárvore
+  // 2. Atualizar targets de camadas (selected / partial / vazio) considerando subárvore e busca ativa
   shadow.querySelectorAll('.ui-layer-group').forEach((group) => {
     const lid = group.getAttribute('data-layer-id');
-    const feats = obterFeicoesDoEscopoCamada(host.camadas, host.feicoes, lid ?? '');
+    const escopo = obterFeicoesDoEscopoCamada(host.camadas, host.feicoes, lid ?? '');
+    const feats = filtrarFeicoesPorBusca(escopo, host.searchQuery);
     aplicarEstadoTarget(group.querySelector('.ui-layer-row .ui-target-circle'), feats, host.selectedFeatureIds);
   });
 
@@ -152,4 +154,9 @@ export function sincronizarHerancaDOM(host: CamadasHostCompleto, shadow: ShadowR
       travadaPelaCamada ? 'Bloqueada pela camada' : travada ? 'Desbloquear Feição' : 'Bloquear Feição'
     );
   });
+
+  const selMove = shadow.getElementById('select-footer-move') as HTMLSelectElement | null;
+  if (selMove) {
+    selMove.innerHTML = `<option value="" disabled selected>Mover para...</option>${formatarOpcoesCamadasHierarquicas(host.camadas)}`;
+  }
 }

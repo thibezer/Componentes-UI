@@ -20,8 +20,13 @@ export function conectarEventosRodape(host: CamadasHostCompleto, shadow: ShadowR
         selectFooterMove.value = '';
         return;
       }
-      const selFeats = host.feicoes.filter((f) => host.selectedFeatureIds.has(f.id) && !travadas.has(f.layerId));
-      if (selFeats.length === 0) return;
+      const selFeats = host.feicoes.filter(
+        (f) => host.selectedFeatureIds.has(f.id) && !travadas.has(f.layerId) && f.locked !== true
+      );
+      if (selFeats.length === 0) {
+        selectFooterMove.value = '';
+        return;
+      }
       const origens = new Map(selFeats.map((f) => [f.id, f.layerId]));
       selFeats.forEach((f) => (f.layerId = targetLayerId));
       selFeats.forEach((f) => {
@@ -65,30 +70,42 @@ export function conectarEventosRodape(host: CamadasHostCompleto, shadow: ShadowR
   if (btnFooterDel) {
     let confirmTimeout: ReturnType<typeof setTimeout> | null = null;
     const rotuloPadrao = 'Excluir selecionados';
+    const resetarConfirmacao = () => {
+      if (confirmTimeout) {
+        clearTimeout(confirmTimeout);
+        confirmTimeout = null;
+      }
+      btnFooterDel.classList.remove('confirming');
+      definirRotuloControle(btnFooterDel, rotuloPadrao);
+    };
+    btnFooterDel.addEventListener('ui-cancelar-confirmacao', resetarConfirmacao);
 
     btnFooterDel.addEventListener('click', () => {
-      const ids = Array.from(host.selectedFeatureIds);
-      if (ids.length === 0) return;
+      const travadas = idsCamadasTravadas(host.camadas);
+      const excluiveis = host.feicoes.filter(
+        (f) => host.selectedFeatureIds.has(f.id) && !travadas.has(f.layerId) && f.locked !== true
+      );
+      if (excluiveis.length === 0) return;
+      const ids = excluiveis.map((f) => f.id);
 
       // Confirmação em 2 passos (mesma salvaguarda da exclusão de camada)
       if (!btnFooterDel.classList.contains('confirming')) {
         btnFooterDel.classList.add('confirming');
         definirRotuloControle(btnFooterDel, `Clique novamente para excluir ${ids.length} selecionado(s)`);
-        confirmTimeout = setTimeout(() => {
-          btnFooterDel.classList.remove('confirming');
-          definirRotuloControle(btnFooterDel, rotuloPadrao);
-        }, 3500);
+        confirmTimeout = setTimeout(resetarConfirmacao, 3500);
         return;
       }
-      if (confirmTimeout) clearTimeout(confirmTimeout);
-      const excluidas = host.feicoes.filter((f) => host.selectedFeatureIds.has(f.id));
-      host.feicoes = host.feicoes.filter((f) => !host.selectedFeatureIds.has(f.id));
-      host.selectedFeatureIds.clear();
-      host.lastClickedFeatureId = null;
+      resetarConfirmacao();
+      const idsExcluidosSet = new Set(ids);
+      host.feicoes = host.feicoes.filter((f) => !idsExcluidosSet.has(f.id));
+      ids.forEach((id) => host.selectedFeatureIds.delete(id));
+      if (host.lastClickedFeatureId && idsExcluidosSet.has(host.lastClickedFeatureId)) {
+        host.lastClickedFeatureId = null;
+      }
       host.dispararEvento('ui-acao-massa', {
         acao: 'excluir',
         feicoesIds: ids,
-        feicoes: excluidas
+        feicoes: excluiveis
       });
       host.notificarMudancaSelecao();
       host.solicitarRenderizacao();

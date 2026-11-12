@@ -11,9 +11,9 @@ import { idsCamadasTravadas } from './camadas-hierarquia';
 import {
   zonaDeDropCamada,
   moverCamada,
-  reordenarCamada,
   moverFeicaoParaCamada,
-  reordenarFeicao
+  reordenarFeicao,
+  type ZonaDrop
 } from './camadas-drop-ops';
 
 export interface UICamadasHost {
@@ -88,10 +88,12 @@ export class CamadasDragDropManager {
     });
   }
 
-  /** Camada travada (ou sob grupo travado) não recebe nem perde feições pelo arraste. */
+  /** Camada travada (ou sob grupo travado) ou feição individualmente travada não pode ser movida entre camadas. */
   private trocaEntreCamadasTravada(feicaoId: string, camadaDestinoId: string | null): boolean {
-    const origemId = this.host.feicoes.find((f) => f.id === feicaoId)?.layerId;
+    const feicao = this.host.feicoes.find((f) => f.id === feicaoId);
+    const origemId = feicao?.layerId;
     if (!camadaDestinoId || origemId === camadaDestinoId) return false;
+    if (feicao?.locked === true) return true;
     const travadas = idsCamadasTravadas(this.host.camadas);
     return travadas.has(camadaDestinoId) || (!!origemId && travadas.has(origemId));
   }
@@ -281,6 +283,8 @@ export class CamadasDragDropManager {
 
   /**
    * Suporte a arraste por toque e ponteiro no handle (.ui-col-drag) para tablets e mobile.
+   * Suporta tanto reordenação (acima/abaixo) quanto aninhamento hierárquico (drop-into),
+   * mantendo paridade total com o Drag & Drop HTML5.
    * Os ouvintes de `window` existem só durante o gesto e são soltos em `destruir()`.
    */
   public bindTouchDragAndDrop(): void {
@@ -298,7 +302,7 @@ export class CamadasDragDropManager {
 
         this.cancelarToque?.();
         let linhaAlvo: HTMLElement | null = null;
-        let acima = false;
+        let zonaAtual: ZonaDrop = 'abaixo';
 
         const aoMover = (me: PointerEvent): void => {
           me.preventDefault();
@@ -307,14 +311,17 @@ export class CamadasDragDropManager {
           const sob = this.shadow.elementFromPoint(me.clientX, me.clientY) as HTMLElement | null;
           const alvo = sob ? (sob.closest('.ui-layer-row') as HTMLElement | null) : null;
 
-          if (linhaAlvo && linhaAlvo !== alvo) linhaAlvo.classList.remove('drop-above', 'drop-below');
+          if (linhaAlvo && linhaAlvo !== alvo) {
+            linhaAlvo.classList.remove('drop-above', 'drop-below', 'drop-into');
+          }
 
           if (alvo && alvo !== linhaOrigem) {
             linhaAlvo = alvo;
             const rect = alvo.getBoundingClientRect();
-            acima = me.clientY - rect.top < rect.height / 2;
-            alvo.classList.toggle('drop-above', acima);
-            alvo.classList.toggle('drop-below', !acima);
+            zonaAtual = rect.height > 0 ? zonaDeDropCamada((me.clientY - rect.top) / rect.height) : 'abaixo';
+            alvo.classList.toggle('drop-above', zonaAtual === 'acima');
+            alvo.classList.toggle('drop-below', zonaAtual === 'abaixo');
+            alvo.classList.toggle('drop-into', zonaAtual === 'dentro');
           } else {
             linhaAlvo = null;
           }
@@ -331,9 +338,26 @@ export class CamadasDragDropManager {
           encerrar();
           const alvoId = linhaAlvo?.getAttribute('data-layer-id');
           this.limparClassesDeArraste();
-          if (alvoId && reordenarCamada(this.host.camadas, camadaId, alvoId, acima)) {
-            this.aposReordenarCamadas();
+          if (!alvoId || alvoId === camadaId) return;
+          const resultado = moverCamada(this.host.camadas, camadaId, alvoId, zonaAtual);
+          if (!resultado) return;
+          if (resultado.tipo === 'hierarquia') {
+            this.host.expandedLayers?.add(resultado.novoParentId);
+            this.host.dispararEvento('ui-camada-mover-hierarquia', {
+              camadaId: resultado.camada.id,
+              novoParentId: resultado.novoParentId,
+              parentAnteriorId: resultado.parentAnteriorId,
+              camada: resultado.camada
+            });
+          } else if (resultado.parentAnteriorId !== resultado.novoParentId) {
+            this.host.dispararEvento('ui-camada-mover-hierarquia', {
+              camadaId: resultado.camada.id,
+              novoParentId: resultado.novoParentId,
+              parentAnteriorId: resultado.parentAnteriorId,
+              camada: resultado.camada
+            });
           }
+          this.aposReordenarCamadas();
         };
 
         this.cancelarToque = () => {

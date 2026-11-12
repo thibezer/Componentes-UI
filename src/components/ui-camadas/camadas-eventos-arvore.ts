@@ -170,20 +170,6 @@ export function conectarEventosFeicoes(host: CamadasHostCompleto, raiz: ParentNo
 }
 
 function conectarEventosMapasBase(host: CamadasHostCompleto, shadow: ShadowRoot): void {
-  // Miniaturas remotas podem falhar (offline, CSP, bloqueio): troca por um ícone neutro
-  shadow.querySelectorAll<HTMLImageElement>('[data-basemap-thumb]').forEach((img) => {
-    img.addEventListener(
-      'error',
-      () => {
-        const fallback = document.createElement('div');
-        fallback.className = 'ui-basemap-preview-none';
-        fallback.innerHTML = ICONES.mapa;
-        img.replaceWith(fallback);
-      },
-      { once: true }
-    );
-  });
-
   shadow.querySelector('[data-basemap-toggle]')?.addEventListener('click', () => {
     host.alternarMapasBaseRecolhido(true);
   });

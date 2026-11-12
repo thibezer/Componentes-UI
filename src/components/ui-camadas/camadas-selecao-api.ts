@@ -12,6 +12,7 @@ export interface HostSelecao {
   camadas: CamadaItem[];
   feicoes: FeicaoItem[];
   expandedLayers: Set<string>;
+  expandedFeatureLimits?: ReadonlyMap<string, number>;
   selectedFeatureIds: Set<string>;
   lastClickedFeatureId: string | null;
   searchQuery: string;
@@ -27,7 +28,14 @@ export function selecionarFeicaoNoHost(
   intervalo: boolean,
   emitirEvento: boolean
 ): void {
-  const idsVisiveis = obterIdsVisiveisFeicoes(host.camadas, host.feicoes, host.expandedLayers, host.searchQuery);
+  const idsVisiveis = obterIdsVisiveisFeicoes(
+    host.camadas,
+    host.feicoes,
+    host.expandedLayers,
+    host.searchQuery,
+    undefined,
+    host.expandedFeatureLimits
+  );
   // Feição existente mas fora da tela (camada recolhida, além do limite de linhas): a seleção
   // programática vale mesmo assim; o clique em intervalo continua ignorando o que ninguém vê
   const escondida = !intervalo && !idsVisiveis.includes(feicaoId) && host.feicoes.some((f) => f.id === feicaoId);

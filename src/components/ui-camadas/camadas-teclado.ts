@@ -51,10 +51,11 @@ function ativarLinha(linha: HTMLElement, e: KeyboardEvent): void {
 function aoPressionarEscape(host: CamadasHostCompleto, shadow: ShadowRoot, e: KeyboardEvent): void {
   if (ehCampoDeTexto(e.composedPath()[0])) return;
 
-  // Cancela confirmação pendente de exclusão do rodapé ou drawer
+  // Cancela confirmação pendente de exclusão do rodapé ou drawer (restaurando rótulo e limpando timer)
   const delBtn = shadow.querySelector('.confirming') as HTMLElement | null;
   if (delBtn) {
     e.preventDefault();
+    delBtn.dispatchEvent(new Event('ui-cancelar-confirmacao'));
     delBtn.classList.remove('confirming');
     return;
   }
@@ -155,15 +156,47 @@ function aoPressionarTeclaNoCorpo(
       e.preventDefault();
       focarLinha(corpo, linhas[linhas.length - 1]);
       break;
-    case 'ArrowRight':
-    case 'ArrowLeft': {
+    case 'ArrowRight': {
       const layerId = alvo.getAttribute('data-layer-row');
       if (!layerId) return;
       const grupo = alvo.closest('.ui-layer-group');
       const expandida = grupo?.getAttribute('aria-expanded') === 'true';
-      if ((e.key === 'ArrowRight') !== expandida) {
+      if (!expandida) {
         e.preventDefault();
         buscarPorAtributo(shadow, 'data-layer-expand', layerId)?.click();
+      } else if (idx + 1 < linhas.length && grupo?.contains(linhas[idx + 1])) {
+        // WAI-ARIA Treeview: numa camada já expandida, ArrowRight move o foco para o primeiro filho visível
+        e.preventDefault();
+        focarLinha(corpo, linhas[idx + 1]);
+      }
+      break;
+    }
+    case 'ArrowLeft': {
+      const layerId = alvo.getAttribute('data-layer-row');
+      if (layerId) {
+        const grupo = alvo.closest('.ui-layer-group');
+        const expandida = grupo?.getAttribute('aria-expanded') === 'true';
+        if (expandida) {
+          e.preventDefault();
+          buscarPorAtributo(shadow, 'data-layer-expand', layerId)?.click();
+        } else {
+          // WAI-ARIA Treeview: numa subcamada recolhida, ArrowLeft move o foco para o grupo pai
+          const grupoPai = grupo?.parentElement?.closest('.ui-layer-group');
+          const idPai = grupoPai?.getAttribute('data-layer-id');
+          const linhaPai = idPai ? buscarPorAtributo(corpo, 'data-layer-row', idPai) : null;
+          if (linhaPai) {
+            e.preventDefault();
+            focarLinha(corpo, linhaPai);
+          }
+        }
+        return;
+      }
+      // WAI-ARIA Treeview: numa feição (folha), ArrowLeft move o foco para a linha da camada pai
+      const camadaPaiId = alvo.getAttribute('data-feat-layer');
+      const linhaCamada = camadaPaiId ? buscarPorAtributo(corpo, 'data-layer-row', camadaPaiId) : null;
+      if (linhaCamada) {
+        e.preventDefault();
+        focarLinha(corpo, linhaCamada);
       }
       break;
     }
