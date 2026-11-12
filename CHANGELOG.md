@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.17.2 — 2026-11-12
+
+### `<ui-camadas>`: alinhamento hierárquico de subcamadas e feições no padrão Adobe Illustrator
+
+- **Alinhamento horizontal no mesmo nível (`--layer-depth`):** removida a coluna `.ui-col-branch` (`└─`) das linhas de feição que empurrava a miniatura `.ui-col-thumb` um nível à direita das subcamadas irmãs; agora feições e subcamadas pertencentes à mesma camada-mãe iniciam exatamente na mesma coluna horizontal.
+- **Guias verticais e conectores coloridos por camada:** cada `.ui-children-container` expandido projeta uma linha-guia vertical contínua e conectores horizontais na cor da camada-mãe (`--parent-layer-color`), diferenciando visualmente os filhos diretos da camada principal dos filhos de uma subcamada.
+- **Barra de cor da camada nas feições:** `.ui-feat-row .ui-col-colorbar` passa a exibir sempre a cor da camada à qual a feição pertence (`corCamada`), enquanto `.ui-thumb-box` exibe a cor própria da geometria (`feat.color` ou `corCamada`).
+
 ## 2.17.1 — 2026-11-12
 
 ### `<ui-camadas>` & `<ui-seletor-cor>`: correções de seleção, bloqueio, teclado, DnD touch e usabilidade do seletor de cores
