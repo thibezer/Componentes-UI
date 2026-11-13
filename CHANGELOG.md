@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.17.4 — 2026-11-12
+
+### `<ui-camadas>`: faixa fina de separação entre o painel e o canvas
+
+- **Borda inteligente voltada ao canvas (`borda-canvas`):** no modo acoplado (`:not([flutuante])`), o painel passa a exibir uma faixa fina de `2px` (`--ui-camadas-borda-canvas`) apenas no lado voltado para o canvas, omitindo a borda que está encostada na extremidade da tela (detecção automática via `getBoundingClientRect()`/`window.innerWidth` com atualização em `resize` e `ResizeObserver`, ou controle explícito via atributo `borda-canvas="esquerda" | "direita" | "ambas" | "nenhuma"`).
+
 ## 2.17.3 — 2026-11-12
 
 ### `<ui-camadas>`: ordenação mista de subcamadas com feições e posição na transferência entre camadas
