@@ -98,7 +98,8 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
     painelColapsado: this.colapsado,
     mapaBaseAtivo: this.mapaBaseAtivo,
     densidade: this.densidade,
-    altura: this.alturaCustomizada
+    altura: this.alturaCustomizada,
+    ordemFilhosPorPai: this.ordemFilhosPorPai
   }));
 
   // Estado interno
@@ -108,6 +109,7 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
 
   public expandedLayers = new Set<string>();
   public expandedFeatureLimits = new Map<string, number>();
+  public ordemFilhosPorPai = new Map<string, string[]>();
   public selectedFeatureIds = new Set<string>();
   public lastClickedFeatureId: string | null = null;
   public activeSettingsLayerId: string | null = null;
@@ -455,6 +457,7 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
 
   public limparLembranca(): void {
     this.expandedFeatureLimits.clear();
+    this.ordemFilhosPorPai.clear();
     this.lembranca.limpar();
   }
 

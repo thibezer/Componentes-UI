@@ -44,6 +44,7 @@ export interface HostIncremental {
   editingFeatureId: string | null;
   activeSettingsLayerId: string | null;
   searchQuery: string;
+  ordemFilhosPorPai?: ReadonlyMap<string, readonly string[]>;
 }
 
 /** Liga os eventos dos elementos novos dentro de `raiz` (só deles: nunca religa linhas existentes). */
@@ -106,7 +107,7 @@ function mapearGrupos(arvore: Element): Map<string, Element> {
   const grupos = new Map<string, Element>();
   const visitar = (pai: Element): void => {
     for (let filho = pai.firstElementChild; filho; filho = filho.nextElementSibling) {
-      if (!filho.classList.contains('ui-layer-group')) break;
+      if (!filho.classList.contains('ui-layer-group')) continue;
       const id = filho.getAttribute('data-layer-id');
       if (id !== null) grupos.set(id, filho);
       const container = filhoDireto(filho, 'ui-children-container');
@@ -177,6 +178,8 @@ interface ContextoAplicacao {
 /** Deixa as linhas de feição da camada iguais às do render completo: remove, refaz e insere só o que difere. */
 function reconciliarLinhas(ctx: ContextoAplicacao, camadaId: string): boolean {
   const { host, shadow, mudanca } = ctx;
+  // Camada com ordem mista (subcamadas intercaladas com feições) cai no render completo para preservar posições
+  if (host.ordemFilhosPorPai?.get(camadaId)?.length) return false;
   const grupo = ctx.grupos.get(camadaId);
   const nodo = ctx.nodos.get(camadaId);
   const container = grupo ? filhoDireto(grupo, 'ui-children-container') : null;

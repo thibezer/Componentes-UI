@@ -127,3 +127,314 @@ export function reordenarFeicao(
   else feicoes.splice(acima ? destino : destino + 1, 0, movida);
   return { feicao: movida, camadaOrigemId, camadaDestinoId, mudouDeCamada };
 }
+
+// --- Ordenação mista (subcamadas + feições) dentro de uma camada pai ---
+
+export function chaveFilhoCamada(id: string): string {
+  return `L:${id}`;
+}
+
+export function chaveFilhoFeicao(id: string): string {
+  return `F:${id}`;
+}
+
+export type FilhoMisto<TNodo> =
+  | { tipo: 'layer'; nodo: TNodo }
+  | { tipo: 'feature'; feicao: FeicaoItem };
+
+/**
+ * Mescla subcamadas e feições de uma mesma camada pai respeitando `ordemSalva` (chaves `L:<id>` / `F:<id>`).
+ * Sem `ordemSalva`, mantém o padrão clássico: subcamadas primeiro, feições depois.
+ */
+export function mesclarFilhosOrdenados<TNodo extends { camada: CamadaItem }>(
+  subcamadas: TNodo[],
+  feicoes: FeicaoItem[],
+  ordemSalva?: readonly string[]
+): FilhoMisto<TNodo>[] {
+  if (!ordemSalva || ordemSalva.length === 0) {
+    return [
+      ...subcamadas.map((nodo) => ({ tipo: 'layer' as const, nodo })),
+      ...feicoes.map((feicao) => ({ tipo: 'feature' as const, feicao }))
+    ];
+  }
+
+  const subPorId = new Map(subcamadas.map((s) => [s.camada.id, s]));
+  const featPorId = new Map(feicoes.map((f) => [f.id, f]));
+  const usados = new Set<string>();
+  const resultado: FilhoMisto<TNodo>[] = [];
+
+  for (const chave of ordemSalva) {
+    if (usados.has(chave)) continue;
+    if (chave.startsWith('L:')) {
+      const id = chave.slice(2);
+      const nodo = subPorId.get(id);
+      if (nodo) {
+        usados.add(chave);
+        resultado.push({ tipo: 'layer', nodo });
+      }
+    } else if (chave.startsWith('F:')) {
+      const id = chave.slice(2);
+      const feicao = featPorId.get(id);
+      if (feicao) {
+        usados.add(chave);
+        resultado.push({ tipo: 'feature', feicao });
+      }
+    }
+  }
+
+  for (const nodo of subcamadas) {
+    const chave = chaveFilhoCamada(nodo.camada.id);
+    if (!usados.has(chave)) {
+      usados.add(chave);
+      resultado.push({ tipo: 'layer', nodo });
+    }
+  }
+
+  for (const feicao of feicoes) {
+    const chave = chaveFilhoFeicao(feicao.id);
+    if (!usados.has(chave)) {
+      usados.add(chave);
+      resultado.push({ tipo: 'feature', feicao });
+    }
+  }
+
+  return resultado;
+}
+
+/** Constrói/sincroniza a lista de chaves (`L:<id>` / `F:<id>`) dos filhos diretos de `parentId`. */
+function sincronizarListaFilhos(
+  ordemFilhosPorPai: Map<string, string[]>,
+  parentId: string,
+  camadas: CamadaItem[],
+  feicoes: FeicaoItem[]
+): string[] {
+  const subIds = camadas.filter((c) => c.parentId === parentId).map((c) => c.id);
+  const featIds = feicoes.filter((f) => f.layerId === parentId).map((f) => f.id);
+  const validos = new Set<string>([
+    ...subIds.map(chaveFilhoCamada),
+    ...featIds.map(chaveFilhoFeicao)
+  ]);
+
+  const atual = ordemFilhosPorPai.get(parentId);
+  const lista: string[] = [];
+  const vistos = new Set<string>();
+
+  if (atual) {
+    for (const chave of atual) {
+      if (validos.has(chave) && !vistos.has(chave)) {
+        vistos.add(chave);
+        lista.push(chave);
+      }
+    }
+  }
+  for (const id of subIds) {
+    const chave = chaveFilhoCamada(id);
+    if (!vistos.has(chave)) {
+      vistos.add(chave);
+      lista.push(chave);
+    }
+  }
+  for (const id of featIds) {
+    const chave = chaveFilhoFeicao(id);
+    if (!vistos.has(chave)) {
+      vistos.add(chave);
+      lista.push(chave);
+    }
+  }
+  return lista;
+}
+
+function inserirNaLista(lista: string[], chaveMovida: string, chaveAlvo: string, acima: boolean): void {
+  const semMovida = lista.filter((c) => c !== chaveMovida);
+  const idx = semMovida.indexOf(chaveAlvo);
+  if (idx === -1) semMovida.push(chaveMovida);
+  else semMovida.splice(acima ? idx : idx + 1, 0, chaveMovida);
+  lista.length = 0;
+  lista.push(...semMovida);
+}
+
+/** Remove uma chave da lista do pai anterior caso exista. */
+export function removerChaveDeOrdemFilhos(
+  ordemFilhosPorPai: Map<string, string[]>,
+  parentId: string | null | undefined,
+  chave: string
+): void {
+  if (!parentId) return;
+  const lista = ordemFilhosPorPai.get(parentId);
+  if (!lista) return;
+  const filtrada = lista.filter((c) => c !== chave);
+  if (filtrada.length === 0) ordemFilhosPorPai.delete(parentId);
+  else ordemFilhosPorPai.set(parentId, filtrada);
+}
+
+/** Alinha a ordem das subcamadas em `camadas` com a ordem relativa em `ordem`. */
+function alinharSubcamadasEmCamadas(camadas: CamadaItem[], ordem: readonly string[]): void {
+  const subOrdem = ordem.filter((c) => c.startsWith('L:')).map((c) => c.slice(2));
+  if (subOrdem.length < 2) return;
+  const subSet = new Set(subOrdem);
+  const indices: number[] = [];
+  const porId = new Map<string, CamadaItem>();
+  for (let i = 0; i < camadas.length; i++) {
+    if (subSet.has(camadas[i].id)) {
+      indices.push(i);
+      porId.set(camadas[i].id, camadas[i]);
+    }
+  }
+  if (indices.length !== subOrdem.length) return;
+  for (let i = 0; i < indices.length; i++) {
+    const item = porId.get(subOrdem[i]);
+    if (item) camadas[indices[i]] = item;
+  }
+}
+
+/** Alinha a ordem das feições em `feicoes` com a ordem relativa em `ordem`. */
+function alinharFeicoesEmLista(feicoes: FeicaoItem[], ordem: readonly string[]): void {
+  const featOrdem = ordem.filter((c) => c.startsWith('F:')).map((c) => c.slice(2));
+  if (featOrdem.length < 2) return;
+  const featSet = new Set(featOrdem);
+  const indices: number[] = [];
+  const porId = new Map<string, FeicaoItem>();
+  for (let i = 0; i < feicoes.length; i++) {
+    if (featSet.has(feicoes[i].id)) {
+      indices.push(i);
+      porId.set(feicoes[i].id, feicoes[i]);
+    }
+  }
+  if (indices.length !== featOrdem.length) return;
+  for (let i = 0; i < indices.length; i++) {
+    const item = porId.get(featOrdem[i]);
+    if (item) feicoes[indices[i]] = item;
+  }
+}
+
+/**
+ * Move uma camada/subcamada para ficar imediatamente acima ou abaixo de uma feição (`alvoFeicaoId`),
+ * adotando o `layerId` da feição alvo como seu `parentId` e registrando a posição mista.
+ */
+export function moverCamadaEmRelacaoAFeicao(
+  camadas: CamadaItem[],
+  feicoes: FeicaoItem[],
+  ordemFilhosPorPai: Map<string, string[]>,
+  movidaId: string,
+  alvoFeicaoId: string,
+  acima: boolean
+): ResultadoMoverCamada | null {
+  if (!movidaId || !alvoFeicaoId) return null;
+  const movida = camadas.find((c) => c.id === movidaId);
+  const alvoFeicao = feicoes.find((f) => f.id === alvoFeicaoId);
+  if (!movida || !alvoFeicao || !alvoFeicao.layerId) return null;
+
+  const novoParentId = alvoFeicao.layerId;
+  if (novoParentId === movidaId || ehDescendente(camadas, novoParentId, movidaId)) return null;
+
+  const parentAnteriorId = movida.parentId !== undefined ? movida.parentId : null;
+  if (parentAnteriorId && parentAnteriorId !== novoParentId) {
+    removerChaveDeOrdemFilhos(ordemFilhosPorPai, parentAnteriorId, chaveFilhoCamada(movidaId));
+  }
+
+  movida.parentId = novoParentId;
+  const lista = sincronizarListaFilhos(ordemFilhosPorPai, novoParentId, camadas, feicoes);
+  inserirNaLista(lista, chaveFilhoCamada(movidaId), chaveFilhoFeicao(alvoFeicaoId), acima);
+  ordemFilhosPorPai.set(novoParentId, lista);
+  alinharSubcamadasEmCamadas(camadas, lista);
+
+  return {
+    tipo: parentAnteriorId !== novoParentId ? 'hierarquia' : 'ordem',
+    camada: movida,
+    parentAnteriorId,
+    novoParentId
+  };
+}
+
+/**
+ * Move uma feição para ficar imediatamente acima ou abaixo de uma subcamada (`alvoCamadaId`),
+ * adotando o `parentId` da subcamada alvo. Retorna `null` se a camada alvo for raiz (sem pai).
+ */
+export function moverFeicaoEmRelacaoACamada(
+  camadas: CamadaItem[],
+  feicoes: FeicaoItem[],
+  ordemFilhosPorPai: Map<string, string[]>,
+  movidaFeicaoId: string,
+  alvoCamadaId: string,
+  acima: boolean
+): ResultadoMoverFeicao | null {
+  if (!movidaFeicaoId || !alvoCamadaId) return null;
+  const movida = feicoes.find((f) => f.id === movidaFeicaoId);
+  const alvoCamada = camadas.find((c) => c.id === alvoCamadaId);
+  if (!movida || !alvoCamada || !alvoCamada.parentId) return null;
+
+  const parentId = alvoCamada.parentId;
+  const camadaOrigemId = movida.layerId;
+  const mudouDeCamada = camadaOrigemId !== parentId;
+
+  if (mudouDeCamada) {
+    removerChaveDeOrdemFilhos(ordemFilhosPorPai, camadaOrigemId, chaveFilhoFeicao(movidaFeicaoId));
+    movida.layerId = parentId;
+  }
+
+  const lista = sincronizarListaFilhos(ordemFilhosPorPai, parentId, camadas, feicoes);
+  inserirNaLista(lista, chaveFilhoFeicao(movidaFeicaoId), chaveFilhoCamada(alvoCamadaId), acima);
+  ordemFilhosPorPai.set(parentId, lista);
+  alinharFeicoesEmLista(feicoes, lista);
+
+  return { feicao: movida, camadaOrigemId, camadaDestinoId: parentId, mudouDeCamada };
+}
+
+/** Mantém `ordemFilhosPorPai` coerente após `moverCamada`. */
+export function sincronizarOrdemFilhosAposMoverCamada(
+  camadas: CamadaItem[],
+  feicoes: FeicaoItem[],
+  ordemFilhosPorPai: Map<string, string[]>,
+  movidaId: string,
+  alvoId: string,
+  zona: ZonaDrop,
+  parentAnteriorId: string | null,
+  novoParentId: string | null
+): void {
+  const chave = chaveFilhoCamada(movidaId);
+  if (parentAnteriorId && (parentAnteriorId !== novoParentId || zona === 'dentro')) {
+    removerChaveDeOrdemFilhos(ordemFilhosPorPai, parentAnteriorId, chave);
+  }
+  if (zona !== 'dentro' && novoParentId && ordemFilhosPorPai.has(novoParentId)) {
+    const lista = sincronizarListaFilhos(ordemFilhosPorPai, novoParentId, camadas, feicoes);
+    inserirNaLista(lista, chave, chaveFilhoCamada(alvoId), zona === 'acima');
+    ordemFilhosPorPai.set(novoParentId, lista);
+  }
+}
+
+/** Mantém `ordemFilhosPorPai` coerente após `reordenarFeicao`. */
+export function sincronizarOrdemFilhosAposReordenarFeicao(
+  camadas: CamadaItem[],
+  feicoes: FeicaoItem[],
+  ordemFilhosPorPai: Map<string, string[]>,
+  movidaId: string,
+  alvoId: string,
+  acima: boolean,
+  camadaOrigemId: string | undefined,
+  camadaDestinoId: string | undefined
+): void {
+  const chave = chaveFilhoFeicao(movidaId);
+  if (camadaOrigemId && camadaOrigemId !== camadaDestinoId) {
+    removerChaveDeOrdemFilhos(ordemFilhosPorPai, camadaOrigemId, chave);
+  }
+  if (camadaDestinoId && ordemFilhosPorPai.has(camadaDestinoId)) {
+    const lista = sincronizarListaFilhos(ordemFilhosPorPai, camadaDestinoId, camadas, feicoes);
+    inserirNaLista(lista, chave, chaveFilhoFeicao(alvoId), acima);
+    ordemFilhosPorPai.set(camadaDestinoId, lista);
+  }
+}
+
+/** Mantém `ordemFilhosPorPai` coerente após `moverFeicaoParaCamada`. */
+export function sincronizarOrdemFilhosAposMoverFeicao(
+  ordemFilhosPorPai: Map<string, string[]>,
+  feicaoId: string,
+  camadaOrigemId: string | undefined,
+  camadaDestinoId: string | undefined
+): void {
+  const chave = chaveFilhoFeicao(feicaoId);
+  removerChaveDeOrdemFilhos(ordemFilhosPorPai, camadaOrigemId, chave);
+  if (camadaDestinoId && ordemFilhosPorPai.has(camadaDestinoId)) {
+    const lista = ordemFilhosPorPai.get(camadaDestinoId)!;
+    if (!lista.includes(chave)) lista.push(chave);
+  }
+}

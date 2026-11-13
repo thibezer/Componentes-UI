@@ -33,6 +33,8 @@ export interface EstadoPersistidoCamadas {
   ordemCamadasIds?: string[];
   /** Ordem em que a aplicação enviou as camadas quando `ordemCamadasIds` foi salva. */
   ordemOrigemIds?: string[];
+  /** Ordem mista (subcamadas + feições) por camada pai. */
+  ordemFilhosPorPai?: Record<string, string[]>;
   mapaBaseAtivo?: string;
   densidade?: 'compacto' | 'normal';
   altura?: number | null;
@@ -97,6 +99,15 @@ export function normalizarEstadoPersistido(bruto: unknown): EstadoPersistidoCama
     painelColapsado: typeof bruto.painelColapsado === 'boolean' ? bruto.painelColapsado : undefined,
     ordemCamadasIds: listaDeIds(bruto.ordemCamadasIds),
     ordemOrigemIds: Array.isArray(bruto.ordemOrigemIds) ? listaDeIds(bruto.ordemOrigemIds) : undefined,
+    ordemFilhosPorPai: (() => {
+      if (!ehObjeto(bruto.ordemFilhosPorPai)) return undefined;
+      const mapa: Record<string, string[]> = {};
+      for (const [k, v] of Object.entries(bruto.ordemFilhosPorPai)) {
+        const ids = listaDeIds(v);
+        if (ids.length > 0) mapa[k] = ids;
+      }
+      return Object.keys(mapa).length > 0 ? mapa : undefined;
+    })(),
     mapaBaseAtivo: typeof bruto.mapaBaseAtivo === 'string' ? bruto.mapaBaseAtivo : undefined,
     densidade: bruto.densidade === 'compacto' || bruto.densidade === 'normal' ? bruto.densidade : undefined,
     altura: typeof altura === 'number' && Number.isFinite(altura) && altura > 0 ? altura : null,
@@ -255,6 +266,7 @@ export interface EntradaMontagemEstado {
   altura: number | null;
   /** Camadas excluídas pelo usuário: seus overrides deixam de ser guardados. */
   camadasRemovidas?: Iterable<string>;
+  ordemFilhosPorPai?: ReadonlyMap<string, readonly string[]>;
 }
 
 /**
@@ -299,6 +311,17 @@ export function montarEstadoPersistido(entrada: EntradaMontagemEstado): EstadoPe
 
   for (const id of entrada.camadasRemovidas ?? []) delete overrides[id];
 
+  let ordemFilhosPorPai: Record<string, string[]> | undefined;
+  if (entrada.ordemFilhosPorPai && entrada.ordemFilhosPorPai.size > 0) {
+    ordemFilhosPorPai = {};
+    entrada.ordemFilhosPorPai.forEach((lista, paiId) => {
+      if (lista.length > 0) ordemFilhosPorPai![paiId] = [...lista];
+    });
+    if (Object.keys(ordemFilhosPorPai).length === 0) ordemFilhosPorPai = undefined;
+  } else if (!camadas.length && estadoAnterior?.ordemFilhosPorPai) {
+    ordemFilhosPorPai = estadoAnterior.ordemFilhosPorPai;
+  }
+
   return {
     versao: 1,
     expandedLayerIds: expandedList,
@@ -307,6 +330,7 @@ export function montarEstadoPersistido(entrada: EntradaMontagemEstado): EstadoPe
     painelColapsado: entrada.painelColapsado,
     ordemCamadasIds: ordemList,
     ordemOrigemIds: ordemOrigemList,
+    ordemFilhosPorPai,
     mapaBaseAtivo: entrada.mapaBaseAtivo,
     densidade: entrada.densidade,
     altura: entrada.altura,

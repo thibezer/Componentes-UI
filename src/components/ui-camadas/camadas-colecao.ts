@@ -8,6 +8,7 @@ import type { CamadaItem, FeicaoItem, MudancaFeicoes } from './tipos';
 import { mesmaLinhaFeicao } from './camadas-linha-feicao';
 import type { LembrancaCamadas } from './camadas-lembranca';
 import { removerSelecoesInvalidas } from './camadas-selecao';
+import { chaveFilhoCamada, chaveFilhoFeicao, removerChaveDeOrdemFilhos } from './camadas-drop-ops';
 
 /** Estado e ações do painel que as coleções usam. */
 export interface HostColecao {
@@ -15,6 +16,7 @@ export interface HostColecao {
   feicoes: FeicaoItem[];
   expandedLayers: Set<string>;
   expandedFeatureLimits?: Map<string, number>;
+  ordemFilhosPorPai?: Map<string, string[]>;
   selectedFeatureIds: Set<string>;
   lastClickedFeatureId: string | null;
   activeSettingsLayerId: string | null;
@@ -86,7 +88,7 @@ export function definirCamadasNoHost(host: HostColecao, camadas: CamadaItem[], f
   // Reidratação inteligente com suporte à lembrança de estado (expansão, visibilidade, travas, opacidade, cor, ordem)
   if (host.persistir) {
     const estado = host.lembranca.carregar();
-    host.lembranca.reidratar(host.camadas, estado, host.expandedLayers);
+    host.lembranca.reidratar(host.camadas, estado, host.expandedLayers, host.ordemFilhosPorPai);
     if (estado?.camadaAtivaId && host.camadas.some((l) => l.id === estado.camadaAtivaId)) {
       host.camadaAtivaId = estado.camadaAtivaId;
     }
@@ -189,12 +191,19 @@ export function adicionarCamadaNoHost(host: HostColecao, camada: CamadaItem): vo
 }
 
 export function removerCamadaNoHost(host: HostColecao, camadaId: string): void {
+  const removida = host.camadas.find((l) => l.id === camadaId);
   // Promover subcamadas para raiz para evitar perda acidental de dados
   host.camadas.forEach((l) => {
     if (l.parentId === camadaId) l.parentId = null;
   });
   host.camadas = host.camadas.filter((l) => l.id !== camadaId);
   host.feicoes = host.feicoes.filter((f) => f.layerId !== camadaId);
+  if (host.ordemFilhosPorPai) {
+    host.ordemFilhosPorPai.delete(camadaId);
+    if (removida?.parentId) {
+      removerChaveDeOrdemFilhos(host.ordemFilhosPorPai, removida.parentId, chaveFilhoCamada(camadaId));
+    }
+  }
   host.lembranca.esquecerCamada(camadaId);
   host.expandedLayers.delete(camadaId);
   host.expandedFeatureLimits?.delete(camadaId);
@@ -244,6 +253,9 @@ export function atualizarFeicaoNoHost(host: HostColecao, feicaoAtualizada: Feica
 export function removerFeicaoNoHost(host: HostColecao, feicaoId: string): void {
   const removida = host.feicoes.find((f) => f.id === feicaoId);
   host.feicoes = host.feicoes.filter((f) => f.id !== feicaoId);
+  if (removida?.layerId && host.ordemFilhosPorPai) {
+    removerChaveDeOrdemFilhos(host.ordemFilhosPorPai, removida.layerId, chaveFilhoFeicao(feicaoId));
+  }
   const estavaSelecionada = host.selectedFeatureIds.delete(feicaoId);
   if (host.lastClickedFeatureId === feicaoId) host.lastClickedFeatureId = null;
   if (host.editingFeatureId === feicaoId) host.editingFeatureId = null;

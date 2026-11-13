@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
-  ehDescendente, zonaDeDropCamada, moverCamada, reordenarCamada, moverFeicaoParaCamada, reordenarFeicao
+  ehDescendente, zonaDeDropCamada, moverCamada, reordenarCamada, moverFeicaoParaCamada, reordenarFeicao,
+  mesclarFilhosOrdenados, moverCamadaEmRelacaoAFeicao, moverFeicaoEmRelacaoACamada
 } from './camadas-drop-ops';
 import type { CamadaItem, FeicaoItem } from './tipos';
 
@@ -181,5 +182,48 @@ describe('revisão: achatarCamadas com entrada hostil', () => {
     const plano = achatarCamadas([g]);
     expect(ids(plano)).toEqual(['g', 's']);
     expect(plano[1].parentId).toBeNull();
+  });
+});
+
+describe('ordenação mista de subcamadas e feições dentro de uma camada', () => {
+  it('mesclarFilhosOrdenados mantém subcamadas antes quando não há ordem salva e intercala quando há', () => {
+    const subs = [{ camada: cam('s1', 'p') }, { camada: cam('s2', 'p') }];
+    const feats = [fei('f1', 'p'), fei('f2', 'p')];
+
+    const padrao = mesclarFilhosOrdenados(subs, feats);
+    expect(padrao.map((x) => (x.tipo === 'layer' ? `L:${x.nodo.camada.id}` : `F:${x.feicao.id}`))).toEqual([
+      'L:s1', 'L:s2', 'F:f1', 'F:f2'
+    ]);
+
+    const intercalado = mesclarFilhosOrdenados(subs, feats, ['F:f1', 'L:s2', 'F:f2', 'L:s1']);
+    expect(intercalado.map((x) => (x.tipo === 'layer' ? `L:${x.nodo.camada.id}` : `F:${x.feicao.id}`))).toEqual([
+      'F:f1', 'L:s2', 'F:f2', 'L:s1'
+    ]);
+  });
+
+  it('moverCamadaEmRelacaoAFeicao posiciona subcamada abaixo/acima de uma feição e recusa ciclos', () => {
+    const c = [cam('p'), cam('s1', 'p'), cam('s2', 's1')];
+    const f = [fei('f1', 'p'), fei('f2', 'p')];
+    const ordem = new Map<string, string[]>();
+
+    const r = moverCamadaEmRelacaoAFeicao(c, f, ordem, 's1', 'f1', false);
+    expect(r?.novoParentId).toBe('p');
+    expect(ordem.get('p')).toEqual(['F:f1', 'L:s1', 'F:f2']);
+
+    // Não pode mover camada pai 'p' para dentro de si mesma via feição filha
+    expect(moverCamadaEmRelacaoAFeicao(c, f, ordem, 'p', 'f1', true)).toBeNull();
+  });
+
+  it('moverFeicaoEmRelacaoACamada move feição para acima/abaixo de subcamada e recusa camada raiz', () => {
+    const c = [cam('raiz'), cam('p'), cam('s1', 'p')];
+    const f = [fei('f1', 'raiz'), fei('f2', 'p')];
+    const ordem = new Map<string, string[]>();
+
+    expect(moverFeicaoEmRelacaoACamada(c, f, ordem, 'f1', 'raiz', true)).toBeNull();
+
+    const r = moverFeicaoEmRelacaoACamada(c, f, ordem, 'f1', 's1', true);
+    expect(r).toMatchObject({ mudouDeCamada: true, camadaOrigemId: 'raiz', camadaDestinoId: 'p' });
+    expect(f.find((x) => x.id === 'f1')!.layerId).toBe('p');
+    expect(ordem.get('p')).toEqual(['F:f1', 'L:s1', 'F:f2']);
   });
 });

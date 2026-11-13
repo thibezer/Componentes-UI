@@ -2133,4 +2133,82 @@ describe('UICamadas - auditoria de melhorias, bugs e UX', () => {
       })
     );
   });
+
+  it('permite posicionar subcamada abaixo de feições da camada pai via drag-and-drop', () => {
+    const camadas: CamadaItem[] = [
+      { id: 'pai', name: 'Pai', isGroup: true },
+      { id: 'sub', name: 'Subcamada', parentId: 'pai' }
+    ];
+    const feicoes: FeicaoItem[] = [
+      { id: 'f1', name: 'Obj 1', layerId: 'pai' },
+      { id: 'f2', name: 'Obj 2', layerId: 'pai' }
+    ];
+    const el = criarPainel(camadas, feicoes);
+
+    const container = () => q(el, '.ui-layer-group[data-layer-id="pai"] > .ui-children-container');
+    const ordemVisual = () =>
+      Array.from(container().children)
+        .map((c) => c.getAttribute('data-layer-id') || c.getAttribute('data-feat-row'))
+        .filter(Boolean);
+
+    // Inicialmente subcamada fica no topo
+    expect(ordemVisual()).toEqual(['sub', 'f1', 'f2']);
+
+    // Arrasta 'sub' para baixo de 'f1' (entre f1 e f2)
+    const rowSub = q(el, '[data-layer-row="sub"]');
+    const rowF1 = q(el, '[data-feat-row="f1"]');
+    vi.spyOn(rowF1, 'getBoundingClientRect').mockReturnValue({
+      top: 100, height: 24, bottom: 124, left: 0, right: 200, width: 200, x: 0, y: 100, toJSON: () => ({})
+    });
+
+    rowSub.dispatchEvent(new Event('dragstart', { bubbles: true }));
+    const evOver = new MouseEvent('dragover', { bubbles: true, cancelable: true, clientY: 120 });
+    rowF1.dispatchEvent(evOver);
+    expect(rowF1.classList.contains('drop-below')).toBe(true);
+    rowF1.dispatchEvent(new MouseEvent('drop', { bubbles: true, cancelable: true, clientY: 120 }));
+
+    expect(ordemVisual()).toEqual(['f1', 'sub', 'f2']);
+  });
+
+  it('transferir feição entre camadas para o meio de outras 2 preserva a posição exata e emite ui-feicoes-reordenadas antes de ui-feicao-movida', () => {
+    const camadas: CamadaItem[] = [
+      { id: 'a', name: 'Camada A' },
+      { id: 'b', name: 'Camada B' }
+    ];
+    const feicoes: FeicaoItem[] = [
+      { id: '1', name: 'Obj 1', layerId: 'a' },
+      { id: '2', name: 'Obj 2', layerId: 'b' },
+      { id: '3', name: 'Obj 3', layerId: 'b' }
+    ];
+    const el = criarPainel(camadas, feicoes);
+    const ordemEventos: string[] = [];
+
+    // Simula consumidor que re-sincroniza ao ouvir os eventos: se ui-feicoes-reordenadas vier antes, o estado já está ordenado
+    let estadoExterno = [...feicoes];
+    el.addEventListener('ui-feicoes-reordenadas', (e) => {
+      ordemEventos.push('ui-feicoes-reordenadas');
+      estadoExterno = [...(e as CustomEvent).detail.feicoes];
+    });
+    el.addEventListener('ui-feicao-movida', () => {
+      ordemEventos.push('ui-feicao-movida');
+      el.definirFeicoes(estadoExterno);
+    });
+
+    const row1 = q(el, '[data-feat-row="1"]');
+    const row2 = q(el, '[data-feat-row="2"]');
+    vi.spyOn(row2, 'getBoundingClientRect').mockReturnValue({
+      top: 100, height: 24, bottom: 124, left: 0, right: 200, width: 200, x: 0, y: 100, toJSON: () => ({})
+    });
+
+    row1.dispatchEvent(new Event('dragstart', { bubbles: true }));
+    row2.dispatchEvent(new MouseEvent('dragover', { bubbles: true, cancelable: true, clientY: 120 }));
+    expect(row2.classList.contains('drop-below')).toBe(true);
+    row2.dispatchEvent(new MouseEvent('drop', { bubbles: true, cancelable: true, clientY: 120 }));
+
+    expect(ordemEventos).toEqual(['ui-feicoes-reordenadas', 'ui-feicao-movida']);
+    const linhasB = Array.from(q(el, '.ui-layer-group[data-layer-id="b"] > .ui-children-container').querySelectorAll('[data-feat-row]')).map(
+      (n) => n.getAttribute('data-feat-row')
+    );
+    expect(linhasB).toEqual(['2', '1', '3']);
+  });
 });

@@ -31,6 +31,7 @@ export interface InstantaneoPainel {
   mapaBaseAtivo: string;
   densidade: 'compacto' | 'normal';
   altura: number | null;
+  ordemFilhosPorPai?: ReadonlyMap<string, readonly string[]>;
 }
 
 export class LembrancaCamadas {
@@ -70,7 +71,8 @@ export class LembrancaCamadas {
       mapaBaseAtivo: i.mapaBaseAtivo,
       densidade: i.densidade,
       altura: i.altura,
-      camadasRemovidas: this.removidas
+      camadasRemovidas: this.removidas,
+      ordemFilhosPorPai: i.ordemFilhosPorPai
     });
     this.removidas.clear();
     salvarEstadoPersistido(chave, estado);
@@ -96,7 +98,22 @@ export class LembrancaCamadas {
   }
 
   /** Aplica por cima de `camadas` o que foi lembrado (expansão, visibilidade, travas, opacidade, cor, ordem). */
-  public reidratar(camadas: CamadaItem[], estado: EstadoPersistido | null, expandedLayers: Set<string>): void {
+  public reidratar(
+    camadas: CamadaItem[],
+    estado: EstadoPersistido | null,
+    expandedLayers: Set<string>,
+    ordemFilhosPorPai?: Map<string, string[]>
+  ): void {
     reidratarCamadasComOverrides(camadas, estado, expandedLayers, this.origens);
+    if (ordemFilhosPorPai) {
+      ordemFilhosPorPai.clear();
+      if (estado?.ordemFilhosPorPai) {
+        for (const [paiId, lista] of Object.entries(estado.ordemFilhosPorPai)) {
+          if (Array.isArray(lista) && lista.length > 0) {
+            ordemFilhosPorPai.set(paiId, [...lista]);
+          }
+        }
+      }
+    }
   }
 }

@@ -21,7 +21,7 @@ import {
   type CamadaNodoHierarquico
 } from './camadas-hierarquia';
 import { filtrarCamadasPorBusca, LIMITE_FEICOES_POR_CAMADA } from './camadas-selecao';
-import { ehDescendente } from './camadas-drop-ops';
+import { ehDescendente, mesclarFilhosOrdenados } from './camadas-drop-ops';
 
 export interface ParametrosRenderArvore {
   camadas: CamadaItem[];
@@ -38,6 +38,7 @@ export interface ParametrosRenderArvore {
   limitesPorCamada?: ReadonlyMap<string, number>;
   limiteFeicoesPorCamada?: number;
   mostrarBotaoColapsar?: boolean;
+  ordemFilhosPorPai?: ReadonlyMap<string, readonly string[]>;
 }
 
 export { escapeHtml, renderizarThumbGeometria, construirHierarquiaCamadas };
@@ -58,7 +59,8 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
     mostrarBusca = true,
     limitesPorCamada,
     limiteFeicoesPorCamada = LIMITE_FEICOES_POR_CAMADA,
-    mostrarBotaoColapsar = false
+    mostrarBotaoColapsar = false,
+    ordemFilhosPorPai
   } = params;
 
   const q = (searchQuery || '').trim().toLowerCase();
@@ -162,11 +164,8 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
     const hasTruncated = layerFeats.length > maxFeats;
 
     const ctxLinha = criarContextoLinhaFeicao(layer, depth, heranca);
-    const feicoesHtml = visibleFeats
-      .map((feat) =>
-        renderizarLinhaFeicao(feat, ctxLinha, selectedFeatureIds.has(feat.id), editingFeatureId === feat.id)
-      )
-      .join('');
+    const renderizarLinhaDaFeicao = (feat: FeicaoItem): string =>
+      renderizarLinhaFeicao(feat, ctxLinha, selectedFeatureIds.has(feat.id), editingFeatureId === feat.id);
 
     const truncateNotice = hasTruncated ? renderizarAvisoTruncamento(safeId, maxFeats, layerFeats.length) : '';
 
@@ -258,8 +257,15 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
     `
       : '';
 
-    // Renderiza subcamadas recursivamente
-    const subcamadasHtml = subcamadasExibidas.map((sub) => renderizarNodo(sub)).join('');
+    // Renderiza subcamadas e feições na ordem mista configurada (padrão: subcamadas primeiro, feições depois)
+    const filhosOrdenados = mesclarFilhosOrdenados(
+      subcamadasExibidas,
+      visibleFeats,
+      ordemFilhosPorPai?.get(layer.id)
+    );
+    const filhosHtml = filhosOrdenados
+      .map((item) => (item.tipo === 'layer' ? renderizarNodo(item.nodo) : renderizarLinhaDaFeicao(item.feicao)))
+      .join('');
 
     return `
       <div class="ui-layer-group ${depth > 0 ? 'is-sublayer-group' : ''}" data-layer-id="${safeId}" data-layer-depth="${depth}" role="treeitem" aria-level="${depth + 1}" aria-expanded="${isExpanded}" part="grupo" style="--layer-active-color: ${safeColor};">
@@ -298,8 +304,7 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
             ${
               editingLayerId === layer.id
                 ? `<input type="text" class="ui-inline-rename-input" data-inline-layer-input="${safeId}" value="${safeName}" />`
-                : `${isGroup ? `<span class="ui-group-folder-icon" title="Grupo/Pasta">${ICONES.moverPasta}</span>` : ''}
-                   <span class="ui-name-text">${safeName}</span>
+                : `<span class="ui-name-text">${safeName}</span>
                    ${renderizarChipContagem(escopoFeats.length, layerFeats.length, subcamadas.length, isGroup)}`
             }
           </div>
@@ -319,8 +324,7 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
         ${settingsDrawerHtml}
 
         <div class="ui-children-container ${depth > 0 ? 'is-subchildren' : ''}" role="group" style="--parent-depth: ${depth}; --parent-layer-color: ${safeColor}; display: ${isExpanded ? 'block' : 'none'};">
-          ${subcamadasHtml}
-          ${feicoesHtml}
+          ${filhosHtml}
           ${truncateNotice}
           ${
             subcamadasExibidas.length === 0 && layerFeats.length === 0

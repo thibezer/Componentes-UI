@@ -9,10 +9,16 @@ import { CamadaItem, FeicaoItem } from './tipos';
 import { vincularRenomearInline } from './camadas-renomear';
 import { idsCamadasTravadas } from './camadas-hierarquia';
 import {
+  ehDescendente,
   zonaDeDropCamada,
   moverCamada,
+  moverCamadaEmRelacaoAFeicao,
   moverFeicaoParaCamada,
+  moverFeicaoEmRelacaoACamada,
   reordenarFeicao,
+  sincronizarOrdemFilhosAposMoverCamada,
+  sincronizarOrdemFilhosAposReordenarFeicao,
+  sincronizarOrdemFilhosAposMoverFeicao,
   type ZonaDrop
 } from './camadas-drop-ops';
 
@@ -23,6 +29,8 @@ export interface UICamadasHost {
   editingFeatureId: string | null;
   /** Camadas expandidas; ao aninhar uma camada, o pai se expande. */
   expandedLayers?: Set<string>;
+  /** Ordem mista (subcamadas + feições) por camada pai (`L:<id>` / `F:<id>`). */
+  ordemFilhosPorPai?: Map<string, string[]>;
   solicitarRenderizacao(): void;
   dispararEvento(nome: string, detalhe: unknown): void;
   salvarLembrancaEstado?(): void;
@@ -84,7 +92,8 @@ export class CamadasDragDropManager {
       feicaoId: r.feicao.id,
       camadaOrigemId: r.camadaOrigemId,
       camadaDestinoId: r.camadaDestinoId,
-      feicao: r.feicao
+      feicao: r.feicao,
+      feicoes: [...this.host.feicoes]
     });
   }
 
@@ -153,7 +162,17 @@ export class CamadasDragDropManager {
           // Zona central: soltar para dentro como subcamada
           linha.classList.toggle('drop-into', zona === 'dentro');
         } else if (this.arraste.tipo === 'feature') {
-          linha.classList.add('drop-into');
+          const alvoCamada = this.host.camadas.find((c) => c.id === camadaId);
+          if (alvoCamada?.parentId) {
+            const rect = linha.getBoundingClientRect();
+            const zona = rect.height > 0 ? zonaDeDropCamada((de.clientY - rect.top) / rect.height) : 'dentro';
+            linha.classList.toggle('drop-above', zona === 'acima');
+            linha.classList.toggle('drop-below', zona === 'abaixo');
+            linha.classList.toggle('drop-into', zona === 'dentro');
+          } else {
+            linha.classList.remove('drop-above', 'drop-below');
+            linha.classList.add('drop-into');
+          }
         }
       });
 
@@ -176,6 +195,18 @@ export class CamadasDragDropManager {
           if (!this.host.camadas.some((l) => l.id === this.arraste.camadaId) || !this.host.camadas.some((l) => l.id === camadaId)) return;
 
           const resultado = moverCamada(this.host.camadas, this.arraste.camadaId, camadaId, zona);
+          if (resultado && this.host.ordemFilhosPorPai) {
+            sincronizarOrdemFilhosAposMoverCamada(
+              this.host.camadas,
+              this.host.feicoes,
+              this.host.ordemFilhosPorPai,
+              this.arraste.camadaId,
+              camadaId,
+              zona,
+              resultado.parentAnteriorId,
+              resultado.novoParentId
+            );
+          }
           if (resultado?.tipo === 'hierarquia') {
             this.host.expandedLayers?.add(resultado.novoParentId);
             this.host.dispararEvento('ui-camada-mover-hierarquia', {
@@ -194,11 +225,40 @@ export class CamadasDragDropManager {
           }
           this.aposReordenarCamadas();
         } else if (this.arraste.tipo === 'feature') {
-          if (!this.arraste.feicaoId || this.trocaEntreCamadasTravada(this.arraste.feicaoId, camadaId)) return;
-          const movida = moverFeicaoParaCamada(this.host.feicoes, this.host.camadas, this.arraste.feicaoId, camadaId);
-          if (movida) {
-            this.emitirFeicaoMovida(movida);
+          if (!this.arraste.feicaoId) return;
+          const alvoCamada = this.host.camadas.find((c) => c.id === camadaId);
+          if (alvoCamada?.parentId && (zona === 'acima' || zona === 'abaixo')) {
+            if (this.trocaEntreCamadasTravada(this.arraste.feicaoId, alvoCamada.parentId)) return;
+            if (!this.host.ordemFilhosPorPai) return;
+            const resultado = moverFeicaoEmRelacaoACamada(
+              this.host.camadas,
+              this.host.feicoes,
+              this.host.ordemFilhosPorPai,
+              this.arraste.feicaoId,
+              camadaId,
+              zona === 'acima'
+            );
+            if (!resultado) return;
+            this.host.dispararEvento('ui-feicoes-reordenadas', { feicoes: [...this.host.feicoes] });
+            if (resultado.mudouDeCamada) this.emitirFeicaoMovida(resultado);
+            this.host.salvarLembrancaEstado?.();
             this.host.solicitarRenderizacao();
+          } else {
+            if (this.trocaEntreCamadasTravada(this.arraste.feicaoId, camadaId)) return;
+            const movida = moverFeicaoParaCamada(this.host.feicoes, this.host.camadas, this.arraste.feicaoId, camadaId);
+            if (movida) {
+              if (this.host.ordemFilhosPorPai) {
+                sincronizarOrdemFilhosAposMoverFeicao(
+                  this.host.ordemFilhosPorPai,
+                  movida.feicao.id,
+                  movida.camadaOrigemId,
+                  movida.camadaDestinoId
+                );
+              }
+              this.emitirFeicaoMovida(movida);
+              this.host.salvarLembrancaEstado?.();
+              this.host.solicitarRenderizacao();
+            }
           }
         }
       });
@@ -237,7 +297,15 @@ export class CamadasDragDropManager {
 
       linha.addEventListener('dragover', (e: Event) => {
         const de = e as DragEvent;
-        if (this.arraste.tipo !== 'feature' || this.arraste.feicaoId === feicaoId) return;
+        const ehFeicaoValida = this.arraste.tipo === 'feature' && this.arraste.feicaoId !== feicaoId;
+        const ehCamadaValida =
+          this.arraste.tipo === 'layer' &&
+          !!this.arraste.camadaId &&
+          !!camadaDaFeicaoId &&
+          this.arraste.camadaId !== camadaDaFeicaoId &&
+          !ehDescendente(this.host.camadas, camadaDaFeicaoId, this.arraste.camadaId);
+        if (!ehFeicaoValida && !ehCamadaValida) return;
+
         de.preventDefault();
         de.stopPropagation();
         if (de.dataTransfer) de.dataTransfer.dropEffect = 'move';
@@ -256,19 +324,65 @@ export class CamadasDragDropManager {
 
       linha.addEventListener('drop', (e: Event) => {
         const de = e as DragEvent;
-        if (this.arraste.tipo !== 'feature' || !this.arraste.feicaoId || this.arraste.feicaoId === feicaoId) return;
-        de.preventDefault();
-        de.stopPropagation();
+        const rect = linha.getBoundingClientRect();
+        const acima = linha.classList.contains('drop-above')
+          ? true
+          : linha.classList.contains('drop-below')
+            ? false
+            : rect.height > 0 && de.clientY - rect.top < rect.height / 2;
 
-        const acima = linha.classList.contains('drop-above');
-        this.limparClassesDeArraste();
+        if (this.arraste.tipo === 'feature') {
+          if (!this.arraste.feicaoId || this.arraste.feicaoId === feicaoId) return;
+          de.preventDefault();
+          de.stopPropagation();
+          this.limparClassesDeArraste();
 
-        if (this.trocaEntreCamadasTravada(this.arraste.feicaoId, camadaDaFeicaoId)) return;
-        const resultado = reordenarFeicao(this.host.feicoes, this.arraste.feicaoId, feicaoId, acima);
-        if (!resultado) return;
-        if (resultado.mudouDeCamada) this.emitirFeicaoMovida(resultado);
-        this.host.dispararEvento('ui-feicoes-reordenadas', { feicoes: [...this.host.feicoes] });
-        this.host.solicitarRenderizacao();
+          if (this.trocaEntreCamadasTravada(this.arraste.feicaoId, camadaDaFeicaoId)) return;
+          const resultado = reordenarFeicao(this.host.feicoes, this.arraste.feicaoId, feicaoId, acima);
+          if (!resultado) return;
+          if (this.host.ordemFilhosPorPai) {
+            sincronizarOrdemFilhosAposReordenarFeicao(
+              this.host.camadas,
+              this.host.feicoes,
+              this.host.ordemFilhosPorPai,
+              this.arraste.feicaoId,
+              feicaoId,
+              acima,
+              resultado.camadaOrigemId,
+              resultado.camadaDestinoId
+            );
+          }
+          // Emite reordenação antes da transferência para que ouvintes que sincronizam em ui-feicao-movida já tenham a posição
+          this.host.dispararEvento('ui-feicoes-reordenadas', { feicoes: [...this.host.feicoes] });
+          if (resultado.mudouDeCamada) this.emitirFeicaoMovida(resultado);
+          this.host.salvarLembrancaEstado?.();
+          this.host.solicitarRenderizacao();
+        } else if (this.arraste.tipo === 'layer') {
+          if (!this.arraste.camadaId || !camadaDaFeicaoId || !this.host.ordemFilhosPorPai) return;
+          de.preventDefault();
+          de.stopPropagation();
+          this.limparClassesDeArraste();
+
+          const resultado = moverCamadaEmRelacaoAFeicao(
+            this.host.camadas,
+            this.host.feicoes,
+            this.host.ordemFilhosPorPai,
+            this.arraste.camadaId,
+            feicaoId,
+            acima
+          );
+          if (!resultado) return;
+          if (resultado.parentAnteriorId !== resultado.novoParentId && resultado.novoParentId) {
+            this.host.expandedLayers?.add(resultado.novoParentId);
+            this.host.dispararEvento('ui-camada-mover-hierarquia', {
+              camadaId: resultado.camada.id,
+              novoParentId: resultado.novoParentId,
+              parentAnteriorId: resultado.parentAnteriorId,
+              camada: resultado.camada
+            });
+          }
+          this.aposReordenarCamadas();
+        }
       });
 
       linha.addEventListener('dragend', (e: Event) => {
@@ -309,19 +423,35 @@ export class CamadasDragDropManager {
           linhaOrigem.classList.add('dragging');
 
           const sob = this.shadow.elementFromPoint(me.clientX, me.clientY) as HTMLElement | null;
-          const alvo = sob ? (sob.closest('.ui-layer-row') as HTMLElement | null) : null;
+          const alvo = sob ? (sob.closest('.ui-layer-row, .ui-feat-row') as HTMLElement | null) : null;
 
           if (linhaAlvo && linhaAlvo !== alvo) {
             linhaAlvo.classList.remove('drop-above', 'drop-below', 'drop-into');
           }
 
           if (alvo && alvo !== linhaOrigem) {
-            linhaAlvo = alvo;
-            const rect = alvo.getBoundingClientRect();
-            zonaAtual = rect.height > 0 ? zonaDeDropCamada((me.clientY - rect.top) / rect.height) : 'abaixo';
-            alvo.classList.toggle('drop-above', zonaAtual === 'acima');
-            alvo.classList.toggle('drop-below', zonaAtual === 'abaixo');
-            alvo.classList.toggle('drop-into', zonaAtual === 'dentro');
+            const ehFeicao = alvo.classList.contains('ui-feat-row');
+            if (ehFeicao) {
+              const camadaAlvo = alvo.getAttribute('data-feat-layer');
+              if (!camadaAlvo || camadaAlvo === camadaId || ehDescendente(this.host.camadas, camadaAlvo, camadaId)) {
+                linhaAlvo = null;
+                return;
+              }
+              linhaAlvo = alvo;
+              const rect = alvo.getBoundingClientRect();
+              const acima = rect.height > 0 && me.clientY - rect.top < rect.height / 2;
+              zonaAtual = acima ? 'acima' : 'abaixo';
+              alvo.classList.toggle('drop-above', acima);
+              alvo.classList.toggle('drop-below', !acima);
+              alvo.classList.remove('drop-into');
+            } else {
+              linhaAlvo = alvo;
+              const rect = alvo.getBoundingClientRect();
+              zonaAtual = rect.height > 0 ? zonaDeDropCamada((me.clientY - rect.top) / rect.height) : 'abaixo';
+              alvo.classList.toggle('drop-above', zonaAtual === 'acima');
+              alvo.classList.toggle('drop-below', zonaAtual === 'abaixo');
+              alvo.classList.toggle('drop-into', zonaAtual === 'dentro');
+            }
           } else {
             linhaAlvo = null;
           }
@@ -336,11 +466,48 @@ export class CamadasDragDropManager {
 
         const aoSoltar = (): void => {
           encerrar();
-          const alvoId = linhaAlvo?.getAttribute('data-layer-id');
+          const alvoCamadaId = linhaAlvo?.getAttribute('data-layer-id');
+          const alvoFeicaoId = linhaAlvo?.getAttribute('data-feat-row');
           this.limparClassesDeArraste();
-          if (!alvoId || alvoId === camadaId) return;
-          const resultado = moverCamada(this.host.camadas, camadaId, alvoId, zonaAtual);
+
+          if (alvoFeicaoId && this.host.ordemFilhosPorPai) {
+            const resultado = moverCamadaEmRelacaoAFeicao(
+              this.host.camadas,
+              this.host.feicoes,
+              this.host.ordemFilhosPorPai,
+              camadaId,
+              alvoFeicaoId,
+              zonaAtual === 'acima'
+            );
+            if (!resultado) return;
+            if (resultado.parentAnteriorId !== resultado.novoParentId && resultado.novoParentId) {
+              this.host.expandedLayers?.add(resultado.novoParentId);
+              this.host.dispararEvento('ui-camada-mover-hierarquia', {
+                camadaId: resultado.camada.id,
+                novoParentId: resultado.novoParentId,
+                parentAnteriorId: resultado.parentAnteriorId,
+                camada: resultado.camada
+              });
+            }
+            this.aposReordenarCamadas();
+            return;
+          }
+
+          if (!alvoCamadaId || alvoCamadaId === camadaId) return;
+          const resultado = moverCamada(this.host.camadas, camadaId, alvoCamadaId, zonaAtual);
           if (!resultado) return;
+          if (this.host.ordemFilhosPorPai) {
+            sincronizarOrdemFilhosAposMoverCamada(
+              this.host.camadas,
+              this.host.feicoes,
+              this.host.ordemFilhosPorPai,
+              camadaId,
+              alvoCamadaId,
+              zonaAtual,
+              resultado.parentAnteriorId,
+              resultado.novoParentId
+            );
+          }
           if (resultado.tipo === 'hierarquia') {
             this.host.expandedLayers?.add(resultado.novoParentId);
             this.host.dispararEvento('ui-camada-mover-hierarquia', {

@@ -58,7 +58,8 @@ export function renderizarPainel(
       titulo: host.titulo,
       mostrarBusca: host.mostrarBusca,
       limitesPorCamada: host.expandedFeatureLimits,
-      mostrarBotaoColapsar: host.flutuante && host.getAttribute('colapsavel') !== 'false'
+      mostrarBotaoColapsar: host.flutuante && host.getAttribute('colapsavel') !== 'false',
+      ordemFilhosPorPai: host.ordemFilhosPorPai
     });
 
     const mapasBaseHtml = host.mostrarMapasBase
