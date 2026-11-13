@@ -54,6 +54,18 @@
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
+
+/* Faixinha fina para delimitar onde o painel acaba e o canvas começa (apenas no lado voltado ao canvas) */
+:host(:not([flutuante])) .ui-camadas-container[data-borda-canvas="esquerda"] {
+  border-left: 2px solid var(--ui-camadas-borda-canvas, color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 18%, transparent));
+}
+:host(:not([flutuante])) .ui-camadas-container[data-borda-canvas="direita"] {
+  border-right: 2px solid var(--ui-camadas-borda-canvas, color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 18%, transparent));
+}
+:host(:not([flutuante])) .ui-camadas-container[data-borda-canvas="ambas"] {
+  border-left: 2px solid var(--ui-camadas-borda-canvas, color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 18%, transparent));
+  border-right: 2px solid var(--ui-camadas-borda-canvas, color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 18%, transparent));
+}
 .ui-camadas-container {
   display: flex;
   flex-direction: column;
@@ -302,8 +314,10 @@
 /* Árvore de Camadas */
 .ui-panel-box {
   background: var(--ui-cor-fundo, #0c0c0f);
-  border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.08));
-  border-radius: var(--ui-raio-borda, 6px);
+  border: none;
+  border-top: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.08));
+  border-radius: 0;
+  margin: 0 calc(-1 * var(--camada-respiro)) calc(-1 * var(--camada-respiro));
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -530,44 +544,9 @@
   outline: none;
 }
 
-/* Guia vertical estilo Adobe Illustrator ligando a camada aos seus filhos diretos (subcamadas e feições) */
-.ui-children-container {
-  position: relative;
-}
-
-.ui-children-container::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 10px;
-  left: calc(64px + var(--parent-depth, 0) * var(--camada-indent-nivel, 16px) + 7px);
-  width: 1.5px;
-  background: color-mix(in srgb, var(--parent-layer-color, var(--layer-active-color, var(--ui-cor-primaria, #00E08A))) 48%, transparent);
-  pointer-events: none;
-  z-index: 2;
-}
-
-.ui-children-container:has(> .ui-empty-row)::before {
-  display: none;
-}
-
 .ui-col-chevron,
 .ui-feat-row .ui-col-thumb {
-  position: relative;
   margin-left: calc(var(--layer-depth, 0) * var(--camada-indent-nivel, 16px));
-}
-
-.ui-layer-row.is-sublayer .ui-col-chevron::before,
-.ui-feat-row .ui-col-thumb::before {
-  content: '';
-  position: absolute;
-  left: -9px;
-  top: 50%;
-  width: 8px;
-  height: 1.5px;
-  transform: translateY(-50%);
-  background: color-mix(in srgb, var(--parent-layer-color, var(--layer-active-color, var(--ui-cor-primaria, #00E08A))) 48%, transparent);
-  pointer-events: none;
 }
 
 .ui-col-chevron {

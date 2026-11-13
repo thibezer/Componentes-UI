@@ -70,6 +70,7 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
       'altura',
       'min-altura',
       'max-altura',
+      'borda-canvas',
       ...ATRIBUTOS_DEGRADE
     ];
   }
@@ -78,6 +79,7 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
   private listeners = new ListenerBag();
   private dragDropManager!: CamadasDragDropManager;
   private resizerController!: ControladorResizerCamadas;
+  private bordaResizeObserver: ResizeObserver | null = null;
   private alturaCustomizada: number | null = null;
   private conectado = false;
   private profundidadeLote = 0;
@@ -200,6 +202,15 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
 
     this.resizerController.init();
     aplicarDegradeNoElemento(this, this.shadow.getElementById('panel-container'));
+    this.atualizarBordaCanvas();
+    if (typeof window !== 'undefined') {
+      this.listeners.add(window, 'resize', () => this.atualizarBordaCanvas());
+    }
+    if (typeof ResizeObserver !== 'undefined') {
+      this.bordaResizeObserver?.disconnect();
+      this.bordaResizeObserver = new ResizeObserver(() => this.atualizarBordaCanvas());
+      this.bordaResizeObserver.observe(this);
+    }
     this.render();
     this.conectarEventosGerais();
     conectarTecladoEAcessibilidade(this, this, this.shadow, this.corpoElement, this.listeners);
@@ -212,6 +223,8 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
   disconnectedCallback() {
     this.conectado = false;
     UICamadas.instanciasChavePadrao.delete(this);
+    this.bordaResizeObserver?.disconnect();
+    this.bordaResizeObserver = null;
     this.resizerController?.destruir();
     this.dragDropManager?.destruir();
     cancelarArrasteControles(this);
@@ -253,7 +266,39 @@ export class UICamadas extends SafeHTMLElement implements CamadasHostCompleto {
       if (this.alturaCustomizada !== null) {
         this.resizerController?.definirAltura(this.alturaCustomizada, false);
       }
+    } else if (name === 'borda-canvas') {
+      this.atualizarBordaCanvas();
     }
+  }
+
+  /**
+   * Define em qual lado do painel aparece a faixinha fina de separação com o canvas:
+   * nunca na borda encostada na tela, sempre no lado voltado ao canvas (ou ambos se solto).
+   */
+  public atualizarBordaCanvas(): void {
+    const container = this.shadow.getElementById('panel-container');
+    if (!container) return;
+
+    const explicito = this.getAttribute('borda-canvas');
+    if (explicito === 'esquerda' || explicito === 'direita' || explicito === 'ambas' || explicito === 'nenhuma') {
+      container.setAttribute('data-borda-canvas', explicito);
+      return;
+    }
+
+    let lado: 'esquerda' | 'direita' | 'ambas' | 'nenhuma' = 'esquerda';
+    if (typeof window !== 'undefined' && typeof this.getBoundingClientRect === 'function') {
+      const rect = this.getBoundingClientRect();
+      const larguraTela = window.innerWidth || 0;
+      if (rect.width > 0 && larguraTela > 0) {
+        const encostadoEsquerda = rect.left <= 2;
+        const encostadoDireita = larguraTela - rect.right <= 2;
+        if (encostadoDireita && !encostadoEsquerda) lado = 'esquerda';
+        else if (encostadoEsquerda && !encostadoDireita) lado = 'direita';
+        else if (encostadoEsquerda && encostadoDireita) lado = 'nenhuma';
+        else lado = 'ambas';
+      }
+    }
+    container.setAttribute('data-borda-canvas', lado);
   }
 
   // --- Getters e Setters de Propriedades Reativas ---

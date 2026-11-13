@@ -2211,4 +2211,28 @@ describe('UICamadas - auditoria de melhorias, bugs e UX', () => {
     );
     expect(linhasB).toEqual(['2', '1', '3']);
   });
+
+  it('aplica data-borda-canvas no lado voltado ao canvas e ignora a borda encostada na tela', () => {
+    const el = criarPainel(camadasPadrao(), []);
+    const container = q(el, '#panel-container');
+
+    // Encostado na borda direita da tela -> faixinha na esquerda
+    Object.defineProperty(window, 'innerWidth', { value: 1200, configurable: true });
+    vi.spyOn(el, 'getBoundingClientRect').mockReturnValue({
+      left: 900, right: 1200, top: 0, bottom: 800, width: 300, height: 800, x: 900, y: 0, toJSON: () => ({})
+    });
+    el.atualizarBordaCanvas();
+    expect(container.getAttribute('data-borda-canvas')).toBe('esquerda');
+
+    // Encostado na borda esquerda da tela -> faixinha na direita
+    vi.spyOn(el, 'getBoundingClientRect').mockReturnValue({
+      left: 0, right: 300, top: 0, bottom: 800, width: 300, height: 800, x: 0, y: 0, toJSON: () => ({})
+    });
+    el.atualizarBordaCanvas();
+    expect(container.getAttribute('data-borda-canvas')).toBe('direita');
+
+    // Atributo explícito sobrescreve
+    el.setAttribute('borda-canvas', 'nenhuma');
+    expect(container.getAttribute('data-borda-canvas')).toBe('nenhuma');
+  });
 });
