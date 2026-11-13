@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.17.3 — 2026-11-12
+
+### `<ui-camadas>`: ordenação mista de subcamadas com feições e posição na transferência entre camadas
+
+- **Ordenação mista dentro da camada (`ordemFilhosPorPai`):** subcamadas não ficam mais presas no topo acima das feições irmãs; agora é possível arrastar subcamadas para cima ou para baixo de feições (HTML5 DnD e toque/ponteiro) e arrastar feições para cima ou para baixo de subcamadas (soltar no centro continua movendo para dentro da subcamada), com persistência automática no `localStorage`.
+- **Transferência de feição entre camadas:** `ui-feicoes-reordenadas` passa a ser emitido antes de `ui-feicao-movida` (cujo `detail` também passa a incluir `feicoes` na nova ordem) e o cálculo de `acima`/`abaixo` no `drop` possui fallback direto por `clientY`, preservando a posição exata escolhida entre dois objetos mesmo quando a aplicação consumidora resincroniza no `ui-feicao-movida`.
+
 ## 2.17.2 — 2026-11-12
 
 ### `<ui-camadas>`: alinhamento hierárquico de subcamadas e feições no padrão Adobe Illustrator
