@@ -5,7 +5,8 @@
  * floor, ceil, trunc, sign, sin, cos, tan, asin, acos, atan, atan2, min, max, pow, hypot, mod,
  * log, ln, deg, rad).
  * Trigonometria em GRAUS, como nas calculadoras de CAD: sin(30) = 0.5, atan(1) = 45.
- * Função desconhecida, parêntese sem fechamento ou recursão excessiva invalidam a expressão (retorno null).
+ * Parênteses não fechados no fim da expressão são fechados automaticamente ("2*(2+5" = 14).
+ * Função desconhecida, ')' sobrando no meio ou recursão excessiva invalidam a expressão (retorno null).
  */
 const RAD = Math.PI / 180;
 const MAX_PROFUNDIDADE = 64;
@@ -72,6 +73,13 @@ export function avaliarExpressaoMatematica(expr: string): number | null {
     while (pos < s.length && /\s/.test(s[pos])) {
       pos++;
     }
+  }
+
+  /** Consome ')' ou aceita o fim da expressão (parêntese esquecido); qualquer outro caractere é erro. */
+  function fecharParentese(): void {
+    eatSpaces();
+    if (pos >= s.length) return;
+    if (get() !== ')') throw new Error('Parêntese sem fechamento');
   }
 
   function parseExpression(): number {
@@ -188,8 +196,7 @@ export function avaliarExpressaoMatematica(expr: string): number | null {
     if (ch === '(') {
       get();
       const val = parseExpression();
-      eatSpaces();
-      if (get() !== ')') throw new Error('Parêntese sem fechamento');
+      fecharParentese();
       eatSpaces();
       if (peek() === '%') {
         get();
@@ -218,7 +225,7 @@ export function avaliarExpressaoMatematica(expr: string): number | null {
         args.push(parseExpression());
         eatSpaces();
       }
-      if (get() !== ')') throw new Error('Parêntese sem fechamento');
+      fecharParentese();
       const res = fnVariadica
         ? fnVariadica(args)
         : (args.length === 1 && fnUnaria ? fnUnaria(args[0]) : NaN);

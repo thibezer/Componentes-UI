@@ -372,10 +372,11 @@ describe('avaliarExpressaoMatematica — regressões', () => {
     expect(avaliarExpressaoMatematica('asin(0.5)')).toBe(30);
   });
 
-  it('rejeita função desconhecida e parêntese sem fechamento', () => {
+  it('rejeita função desconhecida e parêntese fechado a mais; fecha o que falta no fim', () => {
     expect(avaliarExpressaoMatematica('foo(3)')).toBeNull();
-    expect(avaliarExpressaoMatematica('(2+3')).toBeNull();
-    expect(avaliarExpressaoMatematica('sqrt(16')).toBeNull();
+    expect(avaliarExpressaoMatematica('(2+3))')).toBeNull();
+    expect(avaliarExpressaoMatematica('(2+3')).toBe(5);
+    expect(avaliarExpressaoMatematica('sqrt(16')).toBe(4);
     expect(avaliarExpressaoMatematica('sqrt(16)')).toBe(4);
   });
 

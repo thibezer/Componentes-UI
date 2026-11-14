@@ -7,6 +7,7 @@
 - **Correções:** `valores = …` atualiza só os campos alterados (não perde foco nem arrasto do scrubber); chaves `__proto__`/`constructor`/`prototype` são ignoradas em `valores`; `definirValor` de id inexistente é ignorado; `-0` é igual a `0`; sair de `modo-aplicar="manual"` com edições pendentes as aplica (`ui-aplicar`); clicar numa categoria durante a busca alterna a partir do estado visível; reatribuir o mesmo objeto de categoria não perde o padrão original usado por `limparEstadoCategorias()`; a busca não casa mais o valor misto.
 - **Personalização:** nova propriedade `textos` (`TextosPropriedades`) para traduzir/trocar mensagens fixas; variáveis CSS `--ui-prop-flutuante-z|sombra|raio`, `--ui-prop-largura-colapsada` e `--ui-prop-fonte-compacta|ultracompacta|relaxada`; `!important` removido de sombra, raio e z-index do modo flutuante; atributo `flutuante` definido de fora agora recebe posição e tamanho; removida a alça `resize` nativa duplicada.
 - **Acessibilidade e cores:** o link de ajuda responde à tecla Espaço; cores nomeadas/`rgb()` abrem corretamente no seletor de cor.
+- **Calculadora:** parênteses não fechados no fim da expressão são fechados automaticamente (`2*(2+5` = 14); `)` sobrando continua inválido.
 - **Pendente:** `avaliarExpressaoMatematica` ainda interpreta `max(1,2)` como `max(1.2)` (vírgula sem espaço nos argumentos); decisão de correção em aberto.
 
 ## 2.17.4 — 2026-11-12

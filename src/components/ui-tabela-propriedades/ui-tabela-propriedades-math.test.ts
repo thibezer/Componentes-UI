@@ -123,3 +123,22 @@ describe('UITabelaPropriedades - Funções de Cálculo Matemático Inline & Spli
     );
   });
 });
+
+describe('avaliarExpressaoMatematica — parênteses não fechados', () => {
+  it('fecha automaticamente parênteses faltando no fim', () => {
+    expect(avaliarExpressaoMatematica('2*(2+5')).toBe(14);
+    expect(avaliarExpressaoMatematica('=2*(2+(3+1')).toBe(12);
+    expect(avaliarExpressaoMatematica('sqrt(16')).toBe(4);
+    expect(avaliarExpressaoMatematica('max(1; 2')).toBe(2);
+    expect(avaliarExpressaoMatematica('(2+3')).toBe(5);
+    expect(avaliarExpressaoMatematica('2*(2+5 ')).toBe(14);
+  });
+
+  it('continua rejeitando casos realmente inválidos', () => {
+    expect(avaliarExpressaoMatematica('2*(2+5))')).toBeNull();
+    expect(avaliarExpressaoMatematica('2*(')).toBeNull();
+    expect(avaliarExpressaoMatematica('(2 3')).toBeNull();
+    expect(avaliarExpressaoMatematica('foo(2')).toBeNull();
+    expect(avaliarExpressaoMatematica(')')).toBeNull();
+  });
+});
