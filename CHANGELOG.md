@@ -1,6 +1,6 @@
 # Changelog
 
-## Não publicado
+## 2.18.0 — 2026-11-14
 
 ### `<ui-tabela-propriedades>`: revisão do painel (correções e personalização)
 
