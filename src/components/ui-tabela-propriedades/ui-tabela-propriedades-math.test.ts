@@ -142,3 +142,31 @@ describe('avaliarExpressaoMatematica — parênteses não fechados', () => {
     expect(avaliarExpressaoMatematica(')')).toBeNull();
   });
 });
+
+describe('avaliarExpressaoMatematica — vírgula decimal e separadores de argumentos', () => {
+  it('separa argumentos por ; ou espaço', () => {
+    expect(avaliarExpressaoMatematica('max(1; 2)')).toBe(2);
+    expect(avaliarExpressaoMatematica('max(1;2)')).toBe(2);
+    expect(avaliarExpressaoMatematica('max(1 2)')).toBe(2);
+    expect(avaliarExpressaoMatematica('min(3 1 2)')).toBe(1);
+    expect(avaliarExpressaoMatematica('pow(2 3)')).toBe(8);
+    expect(avaliarExpressaoMatematica('hypot(3 4)')).toBe(5);
+    expect(avaliarExpressaoMatematica('max(1 2 + 5)')).toBe(7);
+    expect(avaliarExpressaoMatematica('max(2 3')).toBe(3);
+    expect(avaliarExpressaoMatematica('atan2(1 1)')).toBeCloseTo(45);
+  });
+
+  it('vírgula entre dígitos é sempre decimal', () => {
+    expect(avaliarExpressaoMatematica('max(1,2)')).toBe(1.2);
+    expect(avaliarExpressaoMatematica('10,5+2,5')).toBe(13);
+    expect(avaliarExpressaoMatematica('max(1,5; 2)')).toBe(2);
+    expect(avaliarExpressaoMatematica('round(2,5)')).toBe(3);
+  });
+
+  it('continua rejeitando entradas malformadas', () => {
+    expect(avaliarExpressaoMatematica('max(1 abc)')).toBeNull();
+    expect(avaliarExpressaoMatematica('2 3')).toBeNull();
+    expect(avaliarExpressaoMatematica('max(1 2))')).toBeNull();
+    expect(avaliarExpressaoMatematica('sqrt(4 9)')).toBeNull();
+  });
+});

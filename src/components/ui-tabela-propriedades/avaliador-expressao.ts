@@ -5,6 +5,8 @@
  * floor, ceil, trunc, sign, sin, cos, tan, asin, acos, atan, atan2, min, max, pow, hypot, mod,
  * log, ln, deg, rad).
  * Trigonometria em GRAUS, como nas calculadoras de CAD: sin(30) = 0.5, atan(1) = 45.
+ * Vírgula é sempre decimal ("10,5"); argumentos de função separam-se por ';' ou espaço: max(1; 2), max(1 2).
+ * Para argumento negativo use ';' (max(1 -2) é a subtração 1-2).
  * Parênteses não fechados no fim da expressão são fechados automaticamente ("2*(2+5" = 14).
  * Função desconhecida, ')' sobrando no meio ou recursão excessiva invalidam a expressão (retorno null).
  */
@@ -218,12 +220,20 @@ export function avaliarExpressaoMatematica(expr: string): number | null {
       }
       pos += funcMatch[0].length;
       const args: number[] = [parseExpression()];
-      eatSpaces();
-      while (peek() === ';' || peek() === ',') {
-        get();
+      // Argumentos separados por ';' ou por espaço (max(1 2) = max(1; 2)). A vírgula entre dígitos
+      // é sempre decimal (max(1,2) = max(1.2)).
+      for (;;) {
         eatSpaces();
-        args.push(parseExpression());
-        eatSpaces();
+        const prox = peek();
+        if (prox === ';' || prox === ',') {
+          get();
+          eatSpaces();
+          args.push(parseExpression());
+        } else if (prox !== '' && /[0-9.(a-zA-Zπ]/.test(prox)) {
+          args.push(parseExpression());
+        } else {
+          break;
+        }
       }
       fecharParentese();
       const res = fnVariadica
