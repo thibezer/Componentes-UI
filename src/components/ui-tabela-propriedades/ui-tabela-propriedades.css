@@ -185,6 +185,7 @@
   min-height: 0;
   flex: 1;
   overflow: hidden;
+  position: relative;
   box-sizing: border-box;
   background: var(--ui-degrade-interno, var(--ui-prop-container-fundo, transparent));
 }
@@ -1495,4 +1496,51 @@ select.ui-prop__editor--misto option:not([data-misto]) {
   --ui-prop-secao-fundo: transparent;
   --ui-prop-filtro-fundo: color-mix(in srgb, var(--ui-cor-fundo, #0b0b0d) 72%, transparent);
   --ui-prop-categoria-fundo: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 4%, transparent);
+}
+
+/* Guia de funções do campo numérico (autocompletar) */
+.ui-prop__ac {
+  position: absolute;
+  z-index: 5;
+  max-width: 100%;
+  box-sizing: border-box;
+  background: var(--ui-prop-ac-fundo, var(--ui-cor-fundo-elevado, #1a1a1e));
+  color: var(--ui-cor-texto, #e1e1e6);
+  border: 1px solid var(--ui-cor-destaque, #00E08A);
+  border-radius: var(--ui-raio-borda, 4px);
+  box-shadow: var(--ui-sombra-md, 0 6px 18px rgba(0, 0, 0, 0.5));
+  font-size: 11px;
+  overflow: hidden;
+}
+
+.ui-prop__ac-item {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  padding: 3px 8px;
+  cursor: pointer;
+  font-family: var(--ui-fonte-codigo, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+}
+
+.ui-prop__ac-item--ativo {
+  background: color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 22%, transparent);
+}
+
+.ui-prop__ac-nome {
+  font-weight: 600;
+  color: var(--ui-cor-destaque, #00E08A);
+}
+
+.ui-prop__ac-assinatura {
+  color: var(--ui-cor-texto-secundario, #9696a6);
+}
+
+.ui-prop__ac-dica {
+  padding: 4px 8px;
+  border-top: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
+  color: var(--ui-cor-texto-secundario, #9696a6);
+  font-size: 10px;
+  line-height: 1.3;
+  white-space: normal;
+  user-select: none;
 }

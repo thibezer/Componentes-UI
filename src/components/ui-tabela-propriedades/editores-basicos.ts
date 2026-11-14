@@ -1,5 +1,6 @@
 import { ItemPropriedade, ContextoEditorPropriedade, TEXTOS_PADRAO, TextosPropriedades } from './tipos';
 import { avaliarExpressaoMatematica } from './avaliador-expressao';
+import { anexarAutocompleteFuncoes } from './editores-autocomplete';
 import { marcarSelectMisto, registrarAtualizadorEditor, sincronizarSelect } from './propriedades-dom-utils';
 import { isValorMisto, textoMistoDe, TEXTO_MISTO_PADRAO } from './propriedades-valor-misto';
 
@@ -282,6 +283,8 @@ export function criarEditorNumero(
     previa.hidden = false;
   };
 
+  const guia = anexarAutocompleteFuncoes(input);
+
   input.addEventListener('focus', () => {
     input.classList.remove('ui-prop__editor-input--invalido');
     input.select();
@@ -334,6 +337,8 @@ export function criarEditorNumero(
   input.addEventListener('blur', commitNumero);
 
   input.addEventListener('keydown', (e) => {
+    // Com o guia de funções aberto, setas/Enter/Tab/Esc pertencem à lista
+    if (guia.tratarTecla(e)) return;
     if (e.key === 'Enter') {
       commitNumero();
       if (e.shiftKey && ctx.focarEditorAnterior) ctx.focarEditorAnterior(input);

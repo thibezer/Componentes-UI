@@ -8,6 +8,7 @@
 - **Personalização:** nova propriedade `textos` (`TextosPropriedades`) para traduzir/trocar mensagens fixas; variáveis CSS `--ui-prop-flutuante-z|sombra|raio`, `--ui-prop-largura-colapsada` e `--ui-prop-fonte-compacta|ultracompacta|relaxada`; `!important` removido de sombra, raio e z-index do modo flutuante; atributo `flutuante` definido de fora agora recebe posição e tamanho; removida a alça `resize` nativa duplicada.
 - **Acessibilidade e cores:** o link de ajuda responde à tecla Espaço; cores nomeadas/`rgb()` abrem corretamente no seletor de cor.
 - **Calculadora:** parênteses não fechados no fim da expressão são fechados automaticamente (`2*(2+5` = 14); `)` sobrando continua inválido.
+- **Guia de funções no campo numérico:** ao digitar letras (`m`), uma lista mostra as funções e constantes correspondentes (`max`, `min`, `mod`) com assinatura e explicação curta da opção destacada (mouse ou teclado). Setas navegam, Enter/Tab aceitam (inserem `nome(`), Esc fecha; `::part(autocomplete)`, `::part(autocomplete-item)` e `::part(autocomplete-dica)`. Catálogo em `CATALOGO_EXPRESSAO` (`avaliador-catalogo.ts`).
 - **Argumentos de função:** a vírgula é sempre decimal (`max(1,2)` = `max(1.2)`); os argumentos separam-se por `;` ou espaço (`max(1; 2)`, `max(1 2)`). Para argumento negativo use `;`, pois `max(1 -2)` é a subtração `1-2`.
 
 ## 2.17.4 — 2026-11-12

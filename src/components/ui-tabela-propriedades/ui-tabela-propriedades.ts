@@ -186,6 +186,7 @@ export class UITabelaPropriedades extends SafeHTMLElement {
     this.atualizarRegistroChavePadrao();
     this.listeners.cleanup();
     this.splitterListeners.cleanup();
+    this.shadow.querySelectorAll('.ui-prop__ac').forEach(el => el.remove());
   }
 
   /**
@@ -743,6 +744,8 @@ export class UITabelaPropriedades extends SafeHTMLElement {
   private renderCategorias() {
     const listaContainer = this.shadow.getElementById('lista-categorias');
     if (!listaContainer) return;
+    // O guia de funções vive fora da lista: não pode sobrar quando o campo some
+    this.shadow.querySelectorAll('.ui-prop__ac').forEach(el => el.remove());
 
     renderizarCategoriasETree({
       listaContainer,
