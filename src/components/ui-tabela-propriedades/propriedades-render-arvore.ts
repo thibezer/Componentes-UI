@@ -1,4 +1,4 @@
-import { ItemPropriedade, CategoriaPropriedades } from './tipos';
+import { ItemPropriedade, CategoriaPropriedades, TEXTOS_PADRAO, TextosPropriedades } from './tipos';
 import { criarEditorValor, ContextoEditorPropriedade } from './propriedades-editores';
 import { isValorMisto, valorInicialDaPropriedade, valoresIguais } from './propriedades-valor-misto';
 import { alternarPart } from '../../core/parts';
@@ -23,6 +23,7 @@ export interface OpcoesRenderArvore {
   onToggleCategoria: (idCategoria: string) => void;
   obterCategoriaAberta?: (categoria: CategoriaPropriedades) => boolean;
   linhaCtx: ContextoLinhaPropriedade;
+  obterTexto?: (chave: keyof TextosPropriedades) => string;
 }
 
 /**
@@ -30,6 +31,7 @@ export interface OpcoesRenderArvore {
  */
 export function renderizarCategoriasETree(opcoes: OpcoesRenderArvore): void {
   const { listaContainer, categorias, termoBusca, onToggleCategoria, linhaCtx } = opcoes;
+  const texto = (c: keyof TextosPropriedades) => opcoes.obterTexto?.(c) || TEXTOS_PADRAO[c];
   listaContainer.innerHTML = '';
 
   const categoriasValidas = (Array.isArray(categorias) ? categorias : []).filter(
@@ -40,7 +42,7 @@ export function renderizarCategoriasETree(opcoes: OpcoesRenderArvore): void {
     const vazio = document.createElement('div');
     vazio.className = 'ui-prop__vazio';
     vazio.setAttribute('part', 'vazio');
-    vazio.textContent = 'Nenhuma propriedade disponível.';
+    vazio.textContent = texto('vazio');
     listaContainer.appendChild(vazio);
     return;
   }
@@ -59,7 +61,9 @@ export function renderizarCategoriasETree(opcoes: OpcoesRenderArvore): void {
 
       const rotulo = String(prop.rotulo ?? '').toLowerCase();
       const id = String(prop.id).toLowerCase();
-      const valorStr = String(linhaCtx.valoresAtuais[prop.id] ?? '').toLowerCase();
+      const valorBruto = linhaCtx.valoresAtuais[prop.id];
+      // O estado misto é um símbolo interno: não deve casar com a busca
+      const valorStr = isValorMisto(valorBruto) ? '' : String(valorBruto ?? '').toLowerCase();
       return rotulo.includes(termo) || id.includes(termo) || valorStr.includes(termo);
     });
 
@@ -170,7 +174,7 @@ export function renderizarCategoriasETree(opcoes: OpcoesRenderArvore): void {
     const vazio = document.createElement('div');
     vazio.className = 'ui-prop__vazio';
     vazio.setAttribute('part', 'vazio');
-    vazio.textContent = `Nenhuma propriedade encontrada para "${termoBusca}".`;
+    vazio.textContent = texto('vazioBusca').split('{termo}').join(termoBusca);
     listaContainer.appendChild(vazio);
     return;
   }
@@ -236,8 +240,9 @@ export function criarLinhaPropriedade(
     const btnRedefinir = document.createElement('button');
     btnRedefinir.type = 'button';
     btnRedefinir.className = 'ui-prop__btn-reverter';
-    btnRedefinir.title = 'Restaurar valor original';
-    btnRedefinir.setAttribute('aria-label', `Restaurar valor original de ${rotuloTexto}`);
+    const textoRestaurar = ctx.editorCtx.obterTexto?.('restaurarValor') || TEXTOS_PADRAO.restaurarValor;
+    btnRedefinir.title = textoRestaurar;
+    btnRedefinir.setAttribute('aria-label', `${textoRestaurar}: ${rotuloTexto}`);
     btnRedefinir.setAttribute('part', 'restaurar');
     btnRedefinir.textContent = '↺';
     btnRedefinir.addEventListener('click', (e) => {

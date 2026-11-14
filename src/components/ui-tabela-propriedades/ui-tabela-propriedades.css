@@ -25,17 +25,17 @@
 
 :host([densidade="compacta"]) {
   --ui-prop-altura-linha: 19px;
-  font-size: 10.5px;
+  font-size: var(--ui-prop-fonte-compacta, 10.5px);
 }
 
 :host([densidade="ultracompacta"]) {
   --ui-prop-altura-linha: 17px;
-  font-size: 10px;
+  font-size: var(--ui-prop-fonte-ultracompacta, 10px);
 }
 
 :host([densidade="relaxada"]) {
   --ui-prop-altura-linha: 28px;
-  font-size: 12px;
+  font-size: var(--ui-prop-fonte-relaxada, 12px);
 }
 
 /* ====================================================
@@ -43,9 +43,9 @@
    ==================================================== */
 
 :host([colapsado]) {
-  width: 32px !important;
-  min-width: 32px !important;
-  max-width: 32px !important;
+  width: var(--ui-prop-largura-colapsada, 32px) !important;
+  min-width: var(--ui-prop-largura-colapsada, 32px) !important;
+  max-width: var(--ui-prop-largura-colapsada, 32px) !important;
   height: 100% !important;
   cursor: pointer;
   transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -132,12 +132,13 @@
 
 :host([flutuante]) {
   position: fixed !important;
-  z-index: var(--ui-z-docked-bar, 600) !important;
-  box-shadow: var(--ui-sombra-lg, 0 16px 48px rgba(0, 0, 0, 0.75)), 0 0 0 1px color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 14%, transparent), 0 6px 14px rgba(0, 0, 0, 0.5) !important;
-  border-radius: 6px !important;
+  /* Sem !important: o consumidor pode sobrescrever (ou usar as variáveis --ui-prop-flutuante-*) */
+  z-index: var(--ui-prop-flutuante-z, var(--ui-z-docked-bar, 600));
+  box-shadow: var(--ui-prop-flutuante-sombra, var(--ui-sombra-lg, 0 16px 48px rgba(0, 0, 0, 0.75)), 0 0 0 1px color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 14%, transparent), 0 6px 14px rgba(0, 0, 0, 0.5));
+  border-radius: var(--ui-prop-flutuante-raio, 6px);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  resize: both;
+  /* O redimensionamento é do grip interno (#resizer-canto); `resize` nativo duplicava a alça */
   overflow: hidden;
   max-width: 95vw;
   max-height: 95vh;

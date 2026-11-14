@@ -1,4 +1,4 @@
-import { ItemPropriedade, ContextoEditorPropriedade } from './tipos';
+import { ItemPropriedade, ContextoEditorPropriedade, TEXTOS_PADRAO, TextosPropriedades } from './tipos';
 import { avaliarExpressaoMatematica } from './avaliador-expressao';
 import { marcarSelectMisto, registrarAtualizadorEditor, sincronizarSelect } from './propriedades-dom-utils';
 import { isValorMisto, textoMistoDe, TEXTO_MISTO_PADRAO } from './propriedades-valor-misto';
@@ -57,7 +57,8 @@ function aplicarMistoNoInput(input: HTMLInputElement, prop: ItemPropriedade, mis
 export function criarEditorReadonly(
   valorAtual: any,
   obterTextoMisto?: () => string,
-  prop?: ItemPropriedade
+  prop?: ItemPropriedade,
+  obterTexto?: (chave: keyof TextosPropriedades) => string
 ): HTMLElement {
   const span = document.createElement('span');
   const casas = prop ? obterCasasDecimais(prop) : undefined;
@@ -75,7 +76,7 @@ export function criarEditorReadonly(
     }
     if (prop?.tipo === 'booleano' && typeof valor === 'boolean') {
       span.className = 'ui-prop__valor-readonly';
-      span.textContent = valor ? 'Sim' : 'Não';
+      span.textContent = valor ? (obterTexto?.('sim') || TEXTOS_PADRAO.sim) : (obterTexto?.('nao') || TEXTOS_PADRAO.nao);
       return;
     }
     if (prop?.opcoes && prop.opcoes.length > 0) {
@@ -126,7 +127,9 @@ export function criarEditorBooleano(
     customCheck.classList.toggle('ui-prop__checkbox-custom--marcado', marcado);
     customCheck.classList.toggle('ui-prop__checkbox-custom--misto', misto);
     customCheck.textContent = misto ? '–' : marcado ? '✓' : '';
-    rotulo.textContent = misto ? textoMistoDe(ctx) : marcado ? 'Sim' : 'Não';
+    rotulo.textContent = misto
+      ? textoMistoDe(ctx)
+      : marcado ? (ctx.obterTexto?.('sim') || TEXTOS_PADRAO.sim) : (ctx.obterTexto?.('nao') || TEXTOS_PADRAO.nao);
     container.setAttribute('aria-checked', misto ? 'mixed' : String(marcado));
   };
   atualizar(valorAtual);
@@ -213,7 +216,7 @@ export function criarEditorAcao(
   const btn = document.createElement('button');
   btn.type = 'button';
   btn.className = 'ui-prop__btn-acao-inline';
-  btn.textContent = prop.rotuloAcao || 'Editar...';
+  btn.textContent = prop.rotuloAcao || ctx.obterTexto?.('editarAcao') || TEXTOS_PADRAO.editarAcao;
 
   // Botão nativo já dispara click com Enter/Espaço; não repetir no keydown
   btn.addEventListener('click', () => {

@@ -9,13 +9,19 @@ import {
   SeletorTipoItem,
   ItemPropriedade,
   DefinirEstadoCategoriasOpcoes,
-  UICategoriasEstadoDetail
+  UICategoriasEstadoDetail,
+  TextosPropriedades,
+  TEXTOS_PADRAO
 } from './tipos';
 import { renderizarSeletorTipos } from './propriedades-seletor-tipo';
 import { criarControladorSplitter, ControladorSplitterPropriedades } from './propriedades-splitter';
 import { criarTemplateTabelaPropriedades } from './propriedades-template';
 import { renderizarCategoriasETree } from './propriedades-render-arvore';
-import { alternarPosicionamentoFlutuante, conectarArrastoFlutuante } from './propriedades-flutuante';
+import {
+  alternarPosicionamentoFlutuante,
+  conectarArrastoFlutuante,
+  sincronizarFlutuanteExterno
+} from './propriedades-flutuante';
 import { proximaDensidade } from './propriedades-densidade';
 import { GerenciadorValoresPropriedades } from './propriedades-gerenciador-valores';
 import {
@@ -94,6 +100,7 @@ export class UITabelaPropriedades extends SafeHTMLElement {
   private _termoBusca: string = '';
   private _larguraRotuloPorcentagem: number = 45;
   private _sincronizandoFlutuante = false;
+  private _textos: Partial<TextosPropriedades> = {};
 
   public get larguraRotuloPorcentagem(): number {
     return this._larguraRotuloPorcentagem;
@@ -167,6 +174,7 @@ export class UITabelaPropriedades extends SafeHTMLElement {
       onFocarPrimeiroEditor: () => focarPrimeiroEditor(this.shadow)
     });
 
+    if (this.hasAttribute('flutuante')) sincronizarFlutuanteExterno(this);
     conectarArrastoFlutuante(this, this.shadow, this.listeners);
     this.controladorSplitter.init();
     aplicarDegradeNoElemento(this, this.shadow.getElementById('container'));
@@ -214,8 +222,14 @@ export class UITabelaPropriedades extends SafeHTMLElement {
         return;
       case 'flutuante':
         if (!this._sincronizandoFlutuante) {
+          if (this._conectado) sincronizarFlutuanteExterno(this);
           sincronizarPainelControles(this.shadow, this);
         }
+        return;
+      case 'modo-aplicar':
+        // Sair do modo manual com edições pendentes as aplica: o rodapé some e elas ficariam presas
+        if (newVal !== 'manual' && this.gerenciadorValores.isDirty) this.aplicar();
+        sincronizarPainelControles(this.shadow, this);
         return;
       case 'persistir':
         this.atualizarRegistroChavePadrao();
@@ -367,6 +381,30 @@ export class UITabelaPropriedades extends SafeHTMLElement {
     }
   }
 
+  /** Textos fixos do painel (tradução/personalização). Chaves omitidas usam o padrão em português. */
+  get textos(): TextosPropriedades {
+    return { ...TEXTOS_PADRAO, ...this._textos };
+  }
+
+  set textos(novos: Partial<TextosPropriedades>) {
+    const limpos: Partial<TextosPropriedades> = {};
+    if (novos && typeof novos === 'object') {
+      (Object.keys(TEXTOS_PADRAO) as Array<keyof TextosPropriedades>).forEach(chave => {
+        const v = (novos as Record<string, unknown>)[chave];
+        if (typeof v === 'string' && v.trim()) limpos[chave] = v;
+      });
+    }
+    this._textos = limpos;
+    sincronizarPainelControles(this.shadow, this);
+    this.renderSeletorTipos();
+    this.renderCategorias();
+  }
+
+  /** Texto personalizado de uma chave (ou o padrão). */
+  public obterTexto(chave: keyof TextosPropriedades): string {
+    return this._textos[chave] || TEXTOS_PADRAO[chave];
+  }
+
   get tipos(): SeletorTipoItem[] {
     return this._tipos;
   }
@@ -395,7 +433,9 @@ export class UITabelaPropriedades extends SafeHTMLElement {
 
   set valores(novosValores: Record<string, any>) {
     this.gerenciadorValores.setValores(novosValores);
-    this.renderCategorias();
+    // Só os campos que mudaram são atualizados (foco e arrasto em andamento são preservados).
+    // Com busca ativa, o valor pode mudar quais linhas aparecem: redesenha.
+    if (this._termoBusca) this.renderCategorias();
   }
 
   get isDirty(): boolean {
@@ -460,7 +500,8 @@ export class UITabelaPropriedades extends SafeHTMLElement {
     const cat = this._categorias.find((c) => idDaCategoria(c) === idCategoria);
     if (!cat) return;
 
-    const estadoAtual = this.lembranca.estaAberta(cat);
+    // Durante a busca as categorias ficam abertas na tela: alterna a partir do que o usuário vê
+    const estadoAtual = this._termoBusca ? undefined : this.lembranca.estaAberta(cat);
     const novoEstado = alternarCategoria(this.shadow, this, this._categorias, idCategoria, estadoAtual);
     if (typeof novoEstado === 'boolean') {
       this.lembranca.registrar(idCategoria, novoEstado);
@@ -694,7 +735,8 @@ export class UITabelaPropriedades extends SafeHTMLElement {
       onEditarTipo: (tipo) => this.dispatchEvent(new CustomEvent('ui-editar-tipo-clique', { bubbles: true, composed: true, detail: { tipo } })),
       onQuickSelect: (tipo) => this.dispatchEvent(new CustomEvent('ui-quick-select', { bubbles: true, composed: true, detail: { tipo } })),
       onSelectObjects: (tipo) => this.dispatchEvent(new CustomEvent('ui-selecionar-objetos', { bubbles: true, composed: true, detail: { tipo } })),
-      onCalculadora: (tipo) => this.dispatchEvent(new CustomEvent('ui-calculadora', { bubbles: true, composed: true, detail: { tipo } }))
+      onCalculadora: (tipo) => this.dispatchEvent(new CustomEvent('ui-calculadora', { bubbles: true, composed: true, detail: { tipo } })),
+      obterTexto: (chave) => this.obterTexto(chave)
     });
   }
 
@@ -706,6 +748,7 @@ export class UITabelaPropriedades extends SafeHTMLElement {
       listaContainer,
       categorias: this._categorias,
       termoBusca: this._termoBusca,
+      obterTexto: (chave) => this.obterTexto(chave),
       onToggleCategoria: (id) => this.toggleCategoria(id),
       obterCategoriaAberta: (categoria) => this.lembranca.estaAberta(categoria),
       linhaCtx: {
@@ -721,6 +764,7 @@ export class UITabelaPropriedades extends SafeHTMLElement {
           focarProximoEditor: (el: HTMLElement) => focarProximoEditor(this.shadow, el),
           focarEditorAnterior: (el: HTMLElement) => focarEditorAnterior(this.shadow, el),
           obterTextoMisto: () => this.textoMisto,
+          obterTexto: (chave: keyof TextosPropriedades) => this.obterTexto(chave),
           despacharEventoAcao: (p: ItemPropriedade, catId: string) => {
             this.dispatchEvent(
               new CustomEvent('ui-acao-clique', {

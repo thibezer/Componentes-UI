@@ -34,7 +34,7 @@ export function criarEditorValor(
 
   // 1. Somente leitura ou tipo 'readonly'
   if (prop.somenteLeitura || prop.tipo === 'readonly') {
-    editor = criarEditorReadonly(valorAtual, ctx.obterTextoMisto, prop);
+    editor = criarEditorReadonly(valorAtual, ctx.obterTextoMisto, prop, ctx.obterTexto);
   } else if (prop.tipo === 'booleano') {
     // 2. Tipo Booleano (Checkbox compacto)
     editor = criarEditorBooleano(categoriaId, prop, valorAtual, ctx);

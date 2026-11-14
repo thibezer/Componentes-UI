@@ -165,6 +165,8 @@ export function sincronizarCampoAberto(cat: CategoriaPropriedades, aberto: boole
 export class LembrancaCategoriasPropriedades {
   private preferencias = new Map<string, boolean>();
   private origensAberto = new Map<string, boolean>();
+  /** Padrão original por objeto: reatribuir o mesmo objeto não grava como padrão o estado já alterado. */
+  private origemPorObjeto = new WeakMap<object, boolean>();
   private ultimaChaveCarregada: string | null = null;
 
   constructor(private readonly getContexto: () => ContextoLembrancaPropriedades) {}
@@ -216,7 +218,12 @@ export class LembrancaCategoriasPropriedades {
     for (const cat of categorias) {
       const id = idDaCategoria(cat);
       if (id !== null) {
-        this.origensAberto.set(id, abertoPadraoDaCategoria(cat));
+        let origem = this.origemPorObjeto.get(cat);
+        if (origem === undefined) {
+          origem = abertoPadraoDaCategoria(cat);
+          this.origemPorObjeto.set(cat, origem);
+        }
+        this.origensAberto.set(id, origem);
       }
     }
   }

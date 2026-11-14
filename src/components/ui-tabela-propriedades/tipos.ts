@@ -90,6 +90,8 @@ export interface ContextoEditorPropriedade {
   despacharEventoAcao: (prop: ItemPropriedade, categoriaId: string) => void;
   /** Texto exibido para valores mistos (atributo `texto-misto`); padrão "Varia". */
   obterTextoMisto?: () => string;
+  /** Textos fixos personalizáveis (propriedade `textos` do painel). */
+  obterTexto?: (chave: keyof TextosPropriedades) => string;
 }
 
 export interface EstadoPersistidoPropriedades {
@@ -109,4 +111,50 @@ export interface UICategoriasEstadoDetail {
 export interface DefinirEstadoCategoriasOpcoes {
   persistir?: boolean;
   emitirEvento?: boolean;
+}
+
+/** Textos fixos do painel, para tradução/personalização (propriedade `textos`). */
+export interface TextosPropriedades {
+  vazio: string;
+  /** Use `{termo}` onde o texto buscado deve aparecer. */
+  vazioBusca: string;
+  sim: string;
+  nao: string;
+  editarAcao: string;
+  selecionarCor: string;
+  editarTipo: string;
+  tipoFamilia: string;
+  restaurarValor: string;
+  filtroPlaceholder: string;
+  aplicar: string;
+  desfazer: string;
+  ajuda: string;
+}
+
+export const TEXTOS_PADRAO: Readonly<TextosPropriedades> = Object.freeze({
+  vazio: 'Nenhuma propriedade disponível.',
+  vazioBusca: 'Nenhuma propriedade encontrada para "{termo}".',
+  sim: 'Sim',
+  nao: 'Não',
+  editarAcao: 'Editar...',
+  selecionarCor: 'Selecionar cor...',
+  editarTipo: 'Editar tipo',
+  tipoFamilia: 'Tipo de Família',
+  restaurarValor: 'Restaurar valor original',
+  filtroPlaceholder: 'Filtrar propriedades...',
+  aplicar: 'Aplicar',
+  desfazer: 'Desfazer',
+  ajuda: 'Ajuda de propriedades'
+});
+
+/** Lê um texto personalizado do host (que expõe `obterTexto`), com o padrão como reserva. */
+export function textoDoHost(host: unknown, chave: keyof TextosPropriedades): string {
+  const fn = (host as { obterTexto?: (c: keyof TextosPropriedades) => string } | null)?.obterTexto;
+  if (typeof fn === 'function') {
+    try {
+      const t = fn.call(host, chave);
+      if (typeof t === 'string' && t) return t;
+    } catch (_e) {}
+  }
+  return TEXTOS_PADRAO[chave];
 }

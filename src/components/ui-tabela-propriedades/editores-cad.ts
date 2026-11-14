@@ -1,4 +1,4 @@
-import { ItemPropriedade, OpcaoPropriedade, ContextoEditorPropriedade } from './tipos';
+import { ItemPropriedade, OpcaoPropriedade, ContextoEditorPropriedade, TEXTOS_PADRAO } from './tipos';
 import { marcarSelectMisto, registrarAtualizadorEditor, sincronizarSelect } from './propriedades-dom-utils';
 import { isValorMisto, textoMistoDe } from './propriedades-valor-misto';
 
@@ -246,7 +246,7 @@ export function criarEditorCorCad(
   // "Selecionar cor..." é uma ação, não um valor: nunca fica selecionada
   const optEscolher = document.createElement('option');
   optEscolher.value = '__escolher';
-  optEscolher.textContent = 'Selecionar cor...';
+  optEscolher.textContent = ctx.obterTexto?.('selecionarCor') || TEXTOS_PADRAO.selecionarCor;
   optEscolher.setAttribute('data-acao', '');
   select.appendChild(optEscolher);
 
@@ -314,6 +314,25 @@ export function criarEditorCorCad(
 }
 
 /**
+ * Converte qualquer cor CSS opaca ("red", "rgb(...)", "hsl(...)") em #rrggbb via canvas;
+ * `null` onde o canvas não existe (SSR/jsdom) ou a cor é inválida.
+ */
+function hexDeCorCss(valor: string): string | null {
+  try {
+    const ctx = document.createElement('canvas').getContext('2d');
+    if (!ctx) return null;
+    ctx.fillStyle = '#000001';
+    ctx.fillStyle = valor;
+    const resultado = String(ctx.fillStyle);
+    // Cor inválida: o canvas ignora a atribuição e mantém o sentinela, que não é a cor pedida
+    if (resultado === '#000001' && valor.toLowerCase() !== '#000001') return null;
+    return HEX_VALIDO.test(resultado) ? hexLongo(resultado) : null;
+  } catch (_e) {
+    return null;
+  }
+}
+
+/**
  * Editor Cor Padrão (Swatch com Color Picker Nativo)
  */
 export function criarEditorCorSwatch(
@@ -351,7 +370,9 @@ export function criarEditorCorSwatch(
       container.setAttribute('aria-label', `${prop.rotulo ?? prop.id}: ${rotuloMisto}`);
       return;
     }
-    const hex = typeof valor === 'string' && HEX_VALIDO.test(valor) ? hexLongo(valor) : null;
+    const hex = typeof valor === 'string'
+      ? (HEX_VALIDO.test(valor) ? hexLongo(valor) : (valor.trim() ? hexDeCorCss(valor.trim()) : null))
+      : null;
     amostra.style.backgroundColor = valor || '#ffffff';
     texto.textContent = prop.textoAmostra || String(valor || 'ByLayer');
     picker.value = hex ?? '#ffffff';

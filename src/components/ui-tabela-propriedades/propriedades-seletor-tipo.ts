@@ -4,7 +4,7 @@
  * e o estilo 'autocad' (com dropdown compacto e ações rápidas: Quick Select, Select Objects e Calculadora).
  */
 
-import type { SeletorTipoItem } from './tipos';
+import { TEXTOS_PADRAO, type SeletorTipoItem, type TextosPropriedades } from './tipos';
 import { higienizarSvg } from '../../core/svg-seguro';
 
 export interface ContextoSeletorTipo {
@@ -17,6 +17,7 @@ export interface ContextoSeletorTipo {
   onQuickSelect: (tipo: SeletorTipoItem) => void;
   onSelectObjects: (tipo: SeletorTipoItem) => void;
   onCalculadora: (tipo: SeletorTipoItem) => void;
+  obterTexto?: (chave: keyof TextosPropriedades) => string;
 }
 
 export function renderizarSeletorTipos(ctx: ContextoSeletorTipo): void {
@@ -35,6 +36,7 @@ export function renderizarSeletorTipos(ctx: ContextoSeletorTipo): void {
   ctx.tipoContainerElement.style.display = 'flex';
   ctx.tipoContainerElement.innerHTML = '';
 
+  const texto = (c: keyof TextosPropriedades) => ctx.obterTexto?.(c) || TEXTOS_PADRAO[c];
   const tipoAtual = tiposValidos.find(t => String(t.id) === String(ctx.tipoSelecionadoId)) || tiposValidos[0];
 
   if (ctx.estiloVisual === 'revit') {
@@ -68,7 +70,7 @@ export function renderizarSeletorTipos(ctx: ContextoSeletorTipo): void {
 
     const subtexto = document.createElement('div');
     subtexto.className = 'ui-prop__tipo-subtexto';
-    subtexto.textContent = tipoAtual.subtipo || 'Tipo de Família';
+    subtexto.textContent = tipoAtual.subtipo || texto('tipoFamilia');
 
     info.appendChild(nome);
     info.appendChild(subtexto);
@@ -102,8 +104,10 @@ export function renderizarSeletorTipos(ctx: ContextoSeletorTipo): void {
         <rect x="3" y="3" width="12" height="12" rx="1"></rect>
         <rect x="9" y="9" width="12" height="12" rx="1"></rect>
       </svg>
-      <span>Editar tipo</span>
+      <span></span>
     `;
+    const spanEditar = btnEditarTipo.querySelector('span');
+    if (spanEditar) spanEditar.textContent = texto('editarTipo');
     btnEditarTipo.addEventListener('click', () => {
       ctx.onEditarTipo(tipoAtual);
     });

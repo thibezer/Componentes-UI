@@ -637,3 +637,113 @@ describe('ui-tabela-propriedades — regressões da revisão profunda', () => {
     });
   });
 });
+
+describe('ui-tabela-propriedades — revisão do painel', () => {
+  beforeEach(() => {
+    document.body.innerHTML = '';
+    localStorage.clear();
+  });
+
+  it('valores = … atualiza só os campos que mudaram e preserva o campo em edição', () => {
+    const painel = criarPainel(categoriasBase());
+    const inputAltura = linha(painel, 'altura').querySelector('input')!;
+    inputAltura.focus();
+    const linhaAntes = linha(painel, 'largura');
+    painel.valores = { largura: 42 };
+    expect(linha(painel, 'largura')).toBe(linhaAntes); // linha não foi recriada
+    expect((linhaAntes.querySelector('input') as HTMLInputElement).value).toBe('42');
+    expect(linha(painel, 'altura').querySelector('input')).toBe(inputAltura);
+    expect(painel.isDirty).toBe(false);
+  });
+
+  it('valores com chaves de protótipo não contaminam o objeto', () => {
+    const painel = criarPainel(categoriasBase());
+    painel.valores = JSON.parse('{"__proto__": {"hack": 1}, "largura": 11}');
+    expect(painel.obterValor('hack')).toBeUndefined();
+    expect(painel.obterValor('largura')).toBe(11);
+  });
+
+  it('definirValor de id inexistente é ignorado e não deixa o painel sujo', () => {
+    const painel = criarPainel(categoriasBase());
+    painel.definirValor('nao-existe', 5);
+    expect(painel.isDirty).toBe(false);
+  });
+
+  it('-0 não conta como alteração de 0', () => {
+    const painel = criarPainel([{ id: 'g', titulo: 'G', propriedades: [{ id: 'z', rotulo: 'Z', tipo: 'numero', valor: 0 }] }]);
+    painel.definirValor('z', -0);
+    expect(painel.isDirty).toBe(false);
+  });
+
+  it('sair do modo manual com edições pendentes aplica e emite ui-aplicar', () => {
+    const painel = criarPainel(categoriasBase());
+    painel.setAttribute('modo-aplicar', 'manual');
+    painel.definirValor('largura', 99, false);
+    expect(painel.isDirty).toBe(true);
+    const ouvinte = vi.fn();
+    painel.addEventListener('ui-aplicar', ouvinte);
+    painel.removeAttribute('modo-aplicar');
+    expect(ouvinte).toHaveBeenCalledTimes(1);
+    expect(painel.isDirty).toBe(false);
+  });
+
+  it('buscar por "symbol" não casa propriedades com valor misto', () => {
+    const painel = criarPainel([{ id: 'g', titulo: 'G', propriedades: [{ id: 'm', rotulo: 'Mista', tipo: 'texto', valor: null, misto: true }] }]);
+    painel.termoBusca = 'symbol';
+    expect(linha(painel, 'm')).toBeNull();
+  });
+
+  it('durante a busca, clicar numa categoria persistida como fechada a fecha de fato quando visível aberta', () => {
+    const painel = criarPainel([{ id: 'g', titulo: 'Geral', aberto: false, propriedades: [{ id: 'a', rotulo: 'Alpha', tipo: 'texto', valor: 'x' }] }]);
+    painel.termoBusca = 'alpha';
+    const cat = painel.shadowRoot!.querySelector('.ui-prop__categoria') as HTMLElement;
+    expect(cat.classList.contains('ui-prop__categoria--aberta')).toBe(true);
+    (cat.querySelector('.ui-prop__categoria-header') as HTMLElement).click();
+    expect(painel.shadowRoot!.querySelector('.ui-prop__categoria')!.classList.contains('ui-prop__categoria--aberta')).toBe(false);
+  });
+
+  it('reatribuir o mesmo objeto de categoria mantém o padrão original para limpar()', () => {
+    const cats = [{ id: 'g', titulo: 'G', aberto: true, propriedades: [{ id: 'a', rotulo: 'A', tipo: 'texto' as const, valor: 'x' }] }];
+    const painel = criarPainel(cats);
+    painel.toggleCategoria('g'); // fecha e muta cats[0].aberto
+    painel.categorias = cats;
+    painel.limparEstadoCategorias();
+    expect(painel.obterEstadoCategorias().g).toBe(true);
+  });
+
+  it('textos personaliza mensagens fixas', () => {
+    const painel = criarPainel([]);
+    painel.textos = { vazio: 'Nothing here', aplicar: 'Apply', ajuda: 'Help' };
+    expect(painel.shadowRoot!.querySelector('.ui-prop__vazio')!.textContent).toBe('Nothing here');
+    expect(painel.shadowRoot!.getElementById('btn-aplicar')!.textContent).toBe('Apply');
+    expect(painel.shadowRoot!.getElementById('link-ajuda')!.textContent).toBe('Help');
+    painel.textos = { vazio: 42 as unknown as string };
+    expect(painel.textos.vazio).toBe('Nenhuma propriedade disponível.');
+  });
+
+  it('atributo flutuante definido de fora ganha posição e tamanho', () => {
+    const painel = criarPainel(categoriasBase());
+    painel.setAttribute('flutuante', '');
+    expect(painel.style.position).toBe('fixed');
+    expect(painel.style.top).toBe('70px');
+    expect(painel.style.width).toBe('300px');
+    painel.removeAttribute('flutuante');
+    expect(painel.style.position).toBe('');
+  });
+
+  it('link de ajuda responde à tecla Espaço', () => {
+    const painel = criarPainel(categoriasBase());
+    const ouvinte = vi.fn();
+    painel.addEventListener('ui-ajuda', ouvinte);
+    painel.shadowRoot!.getElementById('link-ajuda')!.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true, cancelable: true }));
+    expect(ouvinte).toHaveBeenCalledTimes(1);
+  });
+
+  it('CSS não usa resize nativo nem !important em sombra/raio/z-index do modo flutuante', async () => {
+    const { readFileSync } = await import('node:fs');
+    const css = readFileSync('src/components/ui-tabela-propriedades/ui-tabela-propriedades.css', 'utf-8');
+    const bloco = css.slice(css.indexOf(':host([flutuante]) {'), css.indexOf('}', css.indexOf(':host([flutuante]) {')));
+    expect(bloco).not.toMatch(/resize:\s*both/);
+    expect(bloco).not.toMatch(/(box-shadow|border-radius|z-index)[^;]*!important/);
+  });
+});

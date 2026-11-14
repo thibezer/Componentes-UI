@@ -30,7 +30,8 @@ export function textoMistoDe(ctx: Pick<ContextoEditorPropriedade, 'obterTextoMis
 /** Igualdade de valores de propriedade: estrita, com null/undefined equivalentes e NaN igual a NaN. */
 export function valoresIguais(a: any, b: any): boolean {
   if (a == null && b == null) return true;
-  return Object.is(a, b);
+  // `===` trata 0 e -0 como iguais; `Object.is` cobre NaN === NaN
+  return a === b || Object.is(a, b);
 }
 
 /** Valor inicial de um item: `misto: true` tem precedência sobre `valor`. */

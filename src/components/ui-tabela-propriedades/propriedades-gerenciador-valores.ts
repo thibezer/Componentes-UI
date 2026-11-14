@@ -5,6 +5,8 @@ import { alternarPart } from '../../core/parts';
 
 export { valoresIguais };
 
+const CHAVES_PROIBIDAS = new Set(['__proto__', 'constructor', 'prototype']);
+
 export interface ContextoGerenciadorValores {
   hostElement: HTMLElement;
   getCategorias: () => CategoriaPropriedades[];
@@ -30,6 +32,7 @@ export class GerenciadorValoresPropriedades {
       (Array.isArray(cat.propriedades) ? cat.propriedades : []).forEach(prop => {
         if (!prop || typeof prop !== 'object' || prop.id === undefined || prop.id === null) return;
         const propId = String(prop.id);
+        if (CHAVES_PROIBIDAS.has(propId)) return;
         if (vistos.has(propId) && typeof console !== 'undefined') {
           console.warn(`[ui-tabela-propriedades] id de propriedade repetido: "${propId}". Os valores são indexados por id e serão compartilhados.`);
         }
@@ -60,13 +63,27 @@ export class GerenciadorValoresPropriedades {
     return { ...this.valoresOriginais };
   }
 
-  public setValores(novosValores: Record<string, any>): void {
-    if (!novosValores || typeof novosValores !== 'object') return;
+  /**
+   * Carrega valores (viram também os originais). Chaves de protótipo são ignoradas.
+   * Devolve os ids cujo valor realmente mudou, para a tela atualizar só esses campos.
+   */
+  public setValores(novosValores: Record<string, any>): string[] {
+    if (!novosValores || typeof novosValores !== 'object') return [];
+    const alterados: string[] = [];
     Object.keys(novosValores).forEach(key => {
-      this.valoresAtuais[key] = novosValores[key];
-      this.valoresOriginais[key] = novosValores[key];
+      if (CHAVES_PROIBIDAS.has(key)) return;
+      const novo = novosValores[key];
+      const mudou = !valoresIguais(this.valoresAtuais[key], novo) || !valoresIguais(this.valoresOriginais[key], novo);
+      this.valoresAtuais[key] = novo;
+      this.valoresOriginais[key] = novo;
+      if (mudou) alterados.push(key);
+    });
+    alterados.forEach(key => {
+      this.aposAlterar(key);
+      this.ctx.onAtualizarCampoVisual(key, this.valoresAtuais[key]);
     });
     this.ctx.onAtualizarBotoesFooter(this.isDirty);
+    return alterados;
   }
 
   public obterValor(propId: string): any {
@@ -79,6 +96,8 @@ export class GerenciadorValoresPropriedades {
 
   /** Alteração programática: atualiza o editor na tela; não emite se o valor não mudou. */
   public definirValor(propId: string, novoValor: any, emitirEvento: boolean = true): void {
+    // Id desconhecido não vira valor "sujo" eterno: só propriedades conhecidas mudam
+    if (!Object.prototype.hasOwnProperty.call(this.valoresOriginais, propId)) return;
     const valorAnterior = this.valoresAtuais[propId];
     if (valoresIguais(valorAnterior, novoValor)) return;
     this.valoresAtuais[propId] = novoValor;

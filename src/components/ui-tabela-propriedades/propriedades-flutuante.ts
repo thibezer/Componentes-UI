@@ -73,6 +73,46 @@ export function alternarPosicionamentoFlutuante(host: HTMLElement): boolean {
   return !isFlutuante;
 }
 
+/**
+ * Atributo `flutuante` definido de fora (HTML ou `setAttribute`): completa a posição e o tamanho
+ * que só o JS atribuía, para o painel não ficar preso no ponto estático da página.
+ */
+export function sincronizarFlutuanteExterno(host: HTMLElement): void {
+  const s = host.style;
+  if (!host.hasAttribute('flutuante')) {
+    // Removido de fora: devolve o painel ao fluxo normal
+    if (s.position === 'fixed') {
+      const geo = geometrias.get(host);
+      s.left = '';
+      s.top = '';
+      s.right = '';
+      s.bottom = '';
+      s.position = '';
+      s.zIndex = '';
+      s.width = geo?.acoplado.width ?? '';
+      s.height = geo?.acoplado.height ?? '';
+    }
+    return;
+  }
+  if (s.position !== 'fixed') {
+    geometrias.set(host, {
+      acoplado: { width: s.width, height: s.height },
+      flutuante: geometrias.get(host)?.flutuante
+    });
+    s.position = 'fixed';
+  }
+  if (!s.left && !s.top) {
+    const left = Math.max(
+      20,
+      (typeof window !== 'undefined' ? window.innerWidth : 1024) - LARGURA_FLUTUANTE_PADRAO - 30
+    );
+    s.left = `${left}px`;
+    s.top = '70px';
+    if (!s.width) s.width = `${LARGURA_FLUTUANTE_PADRAO}px`;
+    if (!s.height) s.height = `${ALTURA_FLUTUANTE_PADRAO}px`;
+  }
+}
+
 export function conectarArrastoFlutuante(
   host: HTMLElement,
   shadow: ShadowRoot,

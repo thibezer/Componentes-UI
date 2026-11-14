@@ -1,4 +1,5 @@
 import { ListenerBag } from '../../core/listener-bag';
+import { textoDoHost } from './tipos';
 
 export interface ContextoPainelControles {
   shadow: ShadowRoot;
@@ -126,9 +127,14 @@ export function conectarPainelControles(ctx: ContextoPainelControles): void {
 
   const linkAjuda = shadow.getElementById('link-ajuda');
   if (linkAjuda) {
-    listeners.add(linkAjuda, 'click', (e: Event) => {
+    const acionarAjuda = (e: Event) => {
       e.preventDefault(); // href="#" só existe para o link ser focável pelo teclado
       host.dispatchEvent(new CustomEvent('ui-ajuda', { bubbles: true, composed: true }));
+    };
+    listeners.add(linkAjuda, 'click', acionarAjuda);
+    // role="button" também responde à tecla Espaço (um <a> nativo só responde a Enter)
+    listeners.add(linkAjuda, 'keydown', (e: KeyboardEvent) => {
+      if (e.key === ' ') acionarAjuda(e);
     });
   }
 
@@ -187,6 +193,15 @@ export function sincronizarPainelControles(shadow: ShadowRoot, host: HTMLElement
   if (btnLimparFiltro && filtroInput) {
     btnLimparFiltro.style.display = filtroInput.value ? 'inline-flex' : 'none';
   }
+
+  const filtroInputTxt = shadow.getElementById('filtro-input') as HTMLInputElement | null;
+  if (filtroInputTxt) filtroInputTxt.placeholder = textoDoHost(host, 'filtroPlaceholder');
+  const btnAplicarTxt = shadow.getElementById('btn-aplicar');
+  if (btnAplicarTxt) btnAplicarTxt.textContent = textoDoHost(host, 'aplicar');
+  const btnDesfazerTxt = shadow.getElementById('btn-desfazer');
+  if (btnDesfazerTxt) btnDesfazerTxt.textContent = textoDoHost(host, 'desfazer');
+  const linkAjudaTxt = shadow.getElementById('link-ajuda');
+  if (linkAjudaTxt) linkAjudaTxt.textContent = textoDoHost(host, 'ajuda');
 
   const footer = shadow.getElementById('footer');
   if (footer) {
