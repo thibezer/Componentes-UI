@@ -1,10 +1,16 @@
 import L from 'leaflet';
-import { focoEmCampoDeTexto } from '../core/alvo-digitavel';
+import { focoEmCampoDeTexto, focoEmControleAcionavel } from '../core/alvo-digitavel';
 import type { Feicao, GeometriaFeicao, LatLonPar } from './feature_types';
 import {
   alcaLatente, alternarSuavidade, comPontos, MAX_NOS_COM_ALCA_LATENTE, inserirPonto, minimoVertices, moverAlca, nosDe, nosOuVertices, pontoMedioDoSegmento, pontosDe,
   removerPonto, segmentosDoEditor, type QualAlca
 } from './feature_edicao_ops';
+import {
+  arcoNoSegmento, concordarNo, curvarSegmento, definirAlcaPolar, definirTipoDoNo, endireitarSegmento, moldarSegmento,
+  moverNoPara, pontoMaisProximoNoSegmento, restringirAngulo, T_MOLDE_MAX, T_MOLDE_MIN
+} from './feature_edicao_nos';
+import type { TipoNo } from './feature_curvas';
+import { PainelNo } from './feature_editor_painel_no';
 import {
   areaDaGeometria, distanciaMetros, extensaoDaGeometria, formatarArea, formatarExtensao
 } from './feature_metricas';
@@ -31,6 +37,12 @@ const LIMITE_HISTORICO = 100;
 /** Segmentos menores que isto na tela não ganham fantasma (ele cobriria as alças das pontas). */
 const FANTASMA_MIN_PX = 24;
 const AVISO_MS = 2500;
+/** Distância (px) do cursor ao traçado para agarrar um segmento e moldá-lo. */
+const TOLERANCIA_MOLDE_PX = 7;
+/** O cursor precisa andar isto (px) para o gesto virar moldagem (clique simples não mexe na curva). */
+const LIMIAR_MOLDE_PX = 3;
+/** Passo do ângulo travado (Ctrl) ao arrastar uma alça. */
+const PASSO_ANGULO_GRAUS = 45;
 
 export interface DependenciasEditor {
   map: L.Map;
@@ -73,6 +85,10 @@ export class EditorVertices {
   /** Polígono de 4 cantos alinhado aos eixos: arrastar um canto mantém o retângulo (Shift solta). */
   private retangulo = false;
   private avisoTimer: ReturnType<typeof setTimeout> | null = null;
+  private painel: PainelNo | null = null;
+  private moldeArrastoDoMapa = false;
+  /** Moldagem de segmento em curso (arrastar o traçado): segmento, parâmetro agarrado e ponto de partida na tela. */
+  private molde: { i: number; t: number; x: number; y: number; moveu: boolean; antes: Feicao } | null = null;
 
   constructor(private dep: DependenciasEditor) {}
 
@@ -119,6 +135,7 @@ export class EditorVertices {
     this.grupo = L.layerGroup().addTo(map);
     map.on('zoomend', this.aoZoom);
     window.addEventListener('keydown', this.aoTecla);
+    map.getContainer().addEventListener('mousedown', this.aoMouseDownMapa, true);
     this.montarHud();
     this.reconstruir();
   }
@@ -139,6 +156,9 @@ export class EditorVertices {
     this.alcasBezier = [];
     this.dep.map.off('zoomend', this.aoZoom);
     window.removeEventListener('keydown', this.aoTecla);
+    this.dep.map.getContainer().removeEventListener('mousedown', this.aoMouseDownMapa, true);
+    this.finalizarMolde(false);
+    this.painel = null;
     if (this.avisoTimer) clearTimeout(this.avisoTimer);
     this.avisoTimer = null;
     this.grupo?.remove();
@@ -357,6 +377,8 @@ export class EditorVertices {
 
   private atualizarSelecaoVisual(): void {
     this.alcas.forEach((a, i) => a.setIcon(this.iconeAlca(i)));
+    // as alças de Bézier mostradas dependem do nó selecionado; os marcadores dos nós ficam (o 2× clique precisa deles)
+    this.refazerAlcasBezier();
     this.atualizarBotoes();
   }
 
@@ -366,6 +388,31 @@ export class EditorVertices {
     const g = this.feicaoAtual?.geometria;
     if (!g || (g.tipo !== 'LineString' && g.tipo !== 'Polygon')) return;
     this.pts.forEach((_, i) => this.completarAlcasDoNo(i));
+  }
+
+  /**
+   * Quais alças aparecem: sem nó selecionado, só as reais (o que já é curva); com nó selecionado, as dele (reais e latentes)
+   * e as dos vizinhos que moldam os trechos ligados a ele. Todas ao mesmo tempo seria ruído.
+   */
+  private alcaVisivel(i: number, qual: QualAlca, latente: boolean): boolean {
+    const s = this.selecionado;
+    if (s === null) return !latente;
+    if (i === s) return true;
+    if (latente) return false;
+    const n = this.pts.length;
+    const fechada = this.feicaoAtual?.geometria.tipo === 'Polygon';
+    const ant = s > 0 ? s - 1 : fechada ? n - 1 : -1;
+    const prox = s < n - 1 ? s + 1 : fechada ? 0 : -1;
+    return (i === ant && qual === 'saida') || (i === prox && qual === 'entrada');
+  }
+
+  private refazerAlcasBezier(): void {
+    for (const a of this.alcasBezier) {
+      this.grupo?.removeLayer(a.marker);
+      this.grupo?.removeLayer(a.haste);
+    }
+    this.alcasBezier = [];
+    if (this.feicaoAtual && this.grupo) this.criarAlcasBezier();
   }
 
   /** Posição da alça: a real do nó ou, se o nó é de canto, a latente (sempre à mão para curvar). */
@@ -381,7 +428,7 @@ export class EditorVertices {
     return this.icone(
       'cad-bezier-handle', 10,
       latente
-        ? `background:transparent;border:2px dashed ${COR_ALCA};opacity:.6;border-radius:50%;cursor:move`
+        ? `background:rgba(255,255,255,.3);border:2px dashed ${COR_ALCA};box-shadow:0 0 0 1px rgba(0,0,0,.55);opacity:.9;border-radius:50%;cursor:move`
         : `background:#fff;border:2px solid ${COR_ALCA};border-radius:50%;cursor:move`
     );
   }
@@ -393,7 +440,7 @@ export class EditorVertices {
     if (!g || !no || !this.grupo) return;
     for (const qual of ['entrada', 'saida'] as const) {
       const p = this.posicaoDaAlca(g, i, qual);
-      if (!p || this.alcasBezier.some((a) => a.i === i && a.qual === qual)) continue;
+      if (!p || !this.alcaVisivel(i, qual, p.latente) || this.alcasBezier.some((a) => a.i === i && a.qual === qual)) continue;
       const haste = L.polyline([no.ponto, p.pos], {
         pane: PANE_EDICAO, color: COR_ALCA, weight: 1, opacity: p.latente ? 0.35 : 0.8, dashArray: p.latente ? '3 3' : undefined, interactive: false
       });
@@ -402,11 +449,17 @@ export class EditorVertices {
       marker.on('dragstart', () => { this.arrastando++; });
       marker.on('drag', (ev: L.LeafletEvent) => {
         const o = (ev as unknown as { originalEvent?: MouseEvent }).originalEvent;
-        this.aoArrastarAlca(entrada, !o?.shiftKey);
+        this.aoArrastarAlca(entrada, !o?.shiftKey, !!(o?.ctrlKey || o?.metaKey));
       });
       marker.on('dragend', () => {
         this.arrastando = Math.max(0, this.arrastando - 1);
+        this.esconderSnap();
         this.confirmar(this.feicaoAtual!);
+        // puxar uma alça seleciona o nó dela: o painel e as alças vizinhas passam a mostrá-lo
+        if (this.selecionado !== i) {
+          this.selecionado = i;
+          this.atualizarSelecaoVisual();
+        }
       });
       this.alcasBezier.push(entrada);
       this.grupo.addLayer(haste);
@@ -433,11 +486,30 @@ export class EditorVertices {
     }
   }
 
-  private aoArrastarAlca(a: { marker: L.Marker; i: number; qual: QualAlca }, simetrica: boolean): void {
+  /** `simetrica = false` (Shift): alça independente. `travar` (Ctrl): ângulo em múltiplos de 45° em relação ao nó. */
+  private aoArrastarAlca(a: { marker: L.Marker; i: number; qual: QualAlca }, simetrica: boolean, travar = false): void {
     const f = this.feicaoAtual;
     if (!f) return;
-    const { lat, lng } = a.marker.getLatLng();
-    const nova = moverAlca(f.geometria, a.i, a.qual, [lat, lng], simetrica);
+    let pos: LatLonPar = [a.marker.getLatLng().lat, a.marker.getLatLng().lng];
+    const no = nosOuVertices(f.geometria)?.[a.i];
+    if (travar && no) {
+      pos = restringirAngulo(no.ponto, pos, PASSO_ANGULO_GRAUS);
+      a.marker.setLatLng(pos);
+      this.esconderSnap();
+    } else if (this.dep.snapLigado()) {
+      // a alça pode encostar em vértices/arestas de OUTRAS feições (os pontos de apoio da própria curva não atraem)
+      const snap = this.dep.buscarSnap(pos, { feicaoId: f.id, camadaId: f.camadaId, vertice: a.i });
+      if (snap && snap.feicaoId !== f.id) {
+        pos = snap.coordenada;
+        a.marker.setLatLng(pos);
+        this.mostrarSnap(pos);
+      } else {
+        this.esconderSnap();
+      }
+    } else {
+      this.esconderSnap();
+    }
+    const nova = moverAlca(f.geometria, a.i, a.qual, pos, simetrica);
     this.feicaoAtual = { ...f, geometria: nova };
     this.completarAlcasDoNo(a.i);
     this.sincronizarAlcasBezier();
@@ -654,6 +726,187 @@ export class EditorVertices {
     this.inserir(indice);
   }
 
+  // ---- edição fina do nó selecionado (painel, API e testes) ----
+
+  /** Troca a geometria por `nova` num gesto só (histórico, gravação, alças). `null` = recusada: mostra `recusa`. */
+  private aplicarGeometria(nova: GeometriaFeicao | null, selecao: number | null, recusa: string): boolean {
+    const f = this.feicaoAtual;
+    if (!f) return false;
+    if (!nova) {
+      if (recusa) this.avisar(recusa);
+      return false;
+    }
+    if (mesmaGeometria(nova, this.geometriaAtual())) return false;
+    this.pts = pontosDe(nova).map((p) => [p[0], p[1]] as LatLonPar);
+    this.feicaoAtual = { ...f, geometria: nova };
+    this.retangulo = false;
+    this.selecionado = selecao !== null && selecao >= 0 && selecao < this.pts.length ? selecao : null;
+    this.reconstruir();
+    this.dep.previsualizar(this.feicaoAtual);
+    this.confirmar(this.feicaoAtual);
+    return true;
+  }
+
+  /** Índice do nó selecionado numa linha/polígono; sem seleção avisa e devolve `null`. */
+  private noParaEditar(): number | null {
+    const t = this.feicaoAtual?.geometria.tipo;
+    if (t !== 'LineString' && t !== 'Polygon') return null;
+    if (this.selecionado === null) {
+      this.avisar('Clique num nó para selecioná-lo.');
+      return null;
+    }
+    return this.selecionado;
+  }
+
+  /** Muda o tipo do nó selecionado (canto, suave, simétrico, livre). */
+  public definirTipoDoNoSelecionado(tipo: TipoNo): boolean {
+    const i = this.noParaEditar();
+    return i !== null && this.aplicarGeometria(definirTipoDoNo(this.geometriaAtual(), i, tipo), i, '');
+  }
+
+  /** Move o nó selecionado para a coordenada digitada, levando as alças junto. */
+  public moverNoSelecionadoPara(coord: LatLonPar): boolean {
+    const i = this.noParaEditar();
+    if (i === null) return false;
+    const g = this.geometriaAtual();
+    const nova = moverNoPara(g, i, coord);
+    return this.aplicarGeometria(nova === g ? null : nova, i, 'Coordenada inválida.');
+  }
+
+  /** Põe a alça do nó selecionado a `comprimentoM` metros, no azimute dado (0 = norte, horário). */
+  public definirAlcaDoNoSelecionado(qual: QualAlca, valor: { comprimentoM: number; azimuteGraus: number }): boolean {
+    const i = this.noParaEditar();
+    if (i === null) return false;
+    const g = this.geometriaAtual();
+    const nova = definirAlcaPolar(g, i, qual, valor);
+    return this.aplicarGeometria(nova === g ? null : nova, i, 'Alça inválida.');
+  }
+
+  /** O trecho que sai do nó selecionado perde as alças (vira reta). */
+  public endireitarSegmentoSeguinte(): boolean {
+    const i = this.noParaEditar();
+    return i !== null && this.aplicarGeometria(endireitarSegmento(this.geometriaAtual(), i), i, '');
+  }
+
+  /** O trecho que sai do nó selecionado ganha alças (as latentes viram reais). */
+  public curvarSegmentoSeguinte(): boolean {
+    const i = this.noParaEditar();
+    return i !== null && this.aplicarGeometria(curvarSegmento(this.geometriaAtual(), i), i, '');
+  }
+
+  /** Troca o trecho que sai do nó selecionado por um arco de raio `raioM`, abaulado para `lado`. */
+  public arcoNoSegmentoSeguinte(raioM: number, lado: 'esquerda' | 'direita' = 'esquerda'): boolean {
+    const i = this.noParaEditar();
+    return i !== null && this.aplicarGeometria(arcoNoSegmento(this.geometriaAtual(), i, raioM, lado), i, 'Arco: o nó precisa ter um trecho seguinte e o raio deve ser maior que zero.');
+  }
+
+  /** Arredonda o canto do nó selecionado com um arco tangente de raio `raioM` (reduzido se os vizinhos forem curtos). */
+  public concordarNoSelecionado(raioM: number): boolean {
+    const i = this.noParaEditar();
+    return i !== null && this.aplicarGeometria(concordarNo(this.geometriaAtual(), i, raioM), null, 'Concordância: só em nó de canto com dois trechos que não estejam alinhados.');
+  }
+
+  // ---- moldar o segmento arrastando o traçado ----
+
+  /** Segmento mais perto de `coord` (a até `toleranciaPx` pixels) e o parâmetro `t` do ponto dele; `null` se nenhum. */
+  public segmentoMaisProximo(coord: LatLonPar, toleranciaPx = TOLERANCIA_MOLDE_PX): { i: number; t: number } | null {
+    const f = this.feicaoAtual;
+    if (!f || !Number.isFinite(coord[0]) || !Number.isFinite(coord[1])) return null;
+    const g = this.geometriaAtual();
+    const nos = nosOuVertices(g);
+    if (!nos || (g.tipo !== 'LineString' && g.tipo !== 'Polygon')) return null;
+    const map = this.dep.map;
+    const alvo = map.latLngToContainerPoint(coord);
+    let melhor: { i: number; t: number } | null = null;
+    let menor = toleranciaPx;
+    for (const [i, j] of segmentosDoEditor(g)) {
+      const a = nos[i];
+      const b = nos[j];
+      // caixa do segmento (nós e alças) na tela: longe do cursor, nem amostra a curva
+      const pts = [a.ponto, b.ponto, a.saida, b.entrada].filter((p): p is LatLonPar => !!p).map((p) => map.latLngToContainerPoint(p));
+      const xs = pts.map((p) => p.x);
+      const ys = pts.map((p) => p.y);
+      if (alvo.x < Math.min(...xs) - toleranciaPx || alvo.x > Math.max(...xs) + toleranciaPx
+        || alvo.y < Math.min(...ys) - toleranciaPx || alvo.y > Math.max(...ys) + toleranciaPx) continue;
+      const r = pontoMaisProximoNoSegmento(g, i, coord);
+      if (!r) continue;
+      const q = map.latLngToContainerPoint(r.ponto);
+      const d = Math.hypot(q.x - alvo.x, q.y - alvo.y);
+      if (d <= menor) {
+        menor = d;
+        melhor = { i, t: r.t };
+      }
+    }
+    return melhor;
+  }
+
+  /** Molda o segmento `i` de uma vez: o ponto em `t` passa a ser `coord` (mesma operação do arraste do traçado). */
+  public moldarSegmentoPara(i: number, t: number, coord: LatLonPar): boolean {
+    return this.aplicarGeometria(moldarSegmento(this.geometriaAtual(), i, t, coord), i, 'Segmento inexistente.');
+  }
+
+  private aoMouseDownMapa = (e: MouseEvent): void => {
+    const f = this.feicaoAtual;
+    if (!f || e.button !== 0 || e.defaultPrevented || this.arrastando > 0 || this.molde) return;
+    if (e.shiftKey || e.ctrlKey || e.metaKey || e.altKey) return;
+    const g = f.geometria.tipo;
+    if (g !== 'LineString' && g !== 'Polygon') return;
+    const map = this.dep.map;
+    const alvo = e.target instanceof Element ? e.target : null;
+    // só o desenho no mapa pode ser agarrado: o próprio contêiner (camadas de interação por cima do mapa) ou algo dentro de um painel
+    // do Leaflet; alças, controles e o HUD (filhos do contêiner) seguem o caminho deles
+    if (!alvo || (alvo !== map.getContainer() && !alvo.closest('.leaflet-pane')) || alvo.closest('.leaflet-marker-icon, .leaflet-control')) return;
+    const pt = map.mouseEventToContainerPoint(e);
+    const ll = map.containerPointToLatLng(pt);
+    const hit = this.segmentoMaisProximo([ll.lat, ll.lng]);
+    if (!hit) return;
+    e.stopPropagation(); // o mapa não começa a arrastar: o gesto agora é do traçado
+    e.preventDefault();
+    this.molde = { i: hit.i, t: Math.min(T_MOLDE_MAX, Math.max(T_MOLDE_MIN, hit.t)), x: pt.x, y: pt.y, moveu: false, antes: f };
+    this.arrastando++;
+    this.moldeArrastoDoMapa = map.dragging.enabled();
+    if (this.moldeArrastoDoMapa) map.dragging.disable();
+    window.addEventListener('mousemove', this.aoMoverMolde);
+    window.addEventListener('mouseup', this.aoSoltarMolde);
+  };
+
+  private aoMoverMolde = (e: MouseEvent): void => {
+    const m = this.molde;
+    const f = this.feicaoAtual;
+    if (!m || !f) return;
+    const pt = this.dep.map.mouseEventToContainerPoint(e);
+    if (!m.moveu && Math.hypot(pt.x - m.x, pt.y - m.y) < LIMIAR_MOLDE_PX) return;
+    m.moveu = true;
+    const ll = this.dep.map.containerPointToLatLng(pt);
+    // sempre a partir da geometria de quando agarrou: o resultado só depende de onde o cursor está agora
+    const nova = moldarSegmento(m.antes.geometria, m.i, m.t, [ll.lat, ll.lng]);
+    if (!nova) return;
+    this.feicaoAtual = { ...f, geometria: nova };
+    this.sincronizarAlcasBezier();
+    this.dep.previsualizar(this.feicaoAtual);
+    this.atualizarHud(nova);
+  };
+
+  private aoSoltarMolde = (): void => this.finalizarMolde(true);
+
+  /** Fim da moldagem: grava (se o cursor andou) ou só encerra o gesto. */
+  private finalizarMolde(confirmar: boolean): void {
+    const m = this.molde;
+    if (!m) return;
+    this.molde = null;
+    window.removeEventListener('mousemove', this.aoMoverMolde);
+    window.removeEventListener('mouseup', this.aoSoltarMolde);
+    this.arrastando = Math.max(0, this.arrastando - 1);
+    if (this.moldeArrastoDoMapa) this.dep.map.dragging.enable();
+    const f = this.feicaoAtual;
+    if (!confirmar || !f || !m.moveu) return;
+    this.pts = pontosDe(f.geometria).map((p) => [p[0], p[1]] as LatLonPar);
+    this.retangulo = false;
+    this.selecionado = m.i;
+    this.reconstruir();
+    this.confirmar(f);
+  }
+
   // ---- histórico ----
 
   /** Desfaz o último gesto. Devolve se havia algo a desfazer. */
@@ -712,6 +965,7 @@ export class EditorVertices {
         this.cancelar();
       }
     } else if (e.key === 'Enter') {
+      if (focoEmControleAcionavel(e)) return; // com o foco num botão do HUD, o Enter é do botão
       this.parar();
     } else {
       return;
@@ -786,8 +1040,8 @@ export class EditorVertices {
       ? 'Ctrl+Z desfaz · Enter conclui'
       : geom === 'Point'
         ? 'Arraste para mover · Ctrl+Z desfaz · Enter conclui'
-        : 'Arraste ○ p/ curvar · ponto do meio: novo nó · botão direito ou Delete no nó: excluir · 2× clique: curva/canto · Shift: alça livre · Ctrl+Z desfaz';
-    dica.title = 'Alças pontilhadas ainda são retas. Shift vale durante o arraste. Enter, Esc ou Concluir sai; clicar fora não sai.';
+        : 'Arraste o traçado p/ curvar · clique no nó: alças e painel · ponto do meio: novo nó · botão direito ou Delete: excluir · Shift: alça livre · Ctrl: 45°';
+    dica.title = 'Alças pontilhadas ainda são retas. Shift e Ctrl valem durante o arraste de uma alça. Enter, Esc ou Concluir sai; clicar fora não sai.';
     dica.style.fontSize = '10px';
     const aviso = campo('aviso');
     aviso.style.color = '#fbbf24';
@@ -801,6 +1055,19 @@ export class EditorVertices {
     }
     hud.append(botao('cancelar', 'Cancelar', 'Descartar tudo o que foi alterado nesta edição', () => this.cancelar()));
     hud.append(botao('concluir', 'Concluir', 'Concluir a edição (Enter ou Esc)', () => this.parar(), true));
+    if (geom === 'LineString' || geom === 'Polygon') {
+      this.painel = new PainelNo({
+        moverNo: (c) => this.moverNoSelecionadoPara(c),
+        definirAlca: (q, v) => this.definirAlcaDoNoSelecionado(q, v),
+        definirTipo: (t) => this.definirTipoDoNoSelecionado(t),
+        endireitarSegmento: () => this.endireitarSegmentoSeguinte(),
+        curvarSegmento: () => this.curvarSegmentoSeguinte(),
+        arco: (r, lado) => this.arcoNoSegmentoSeguinte(r, lado),
+        concordar: (r) => this.concordarNoSelecionado(r),
+        avisar: (t) => this.avisar(t)
+      });
+      hud.append(this.painel.el);
+    }
     // não deixa o HUD iniciar caixa de seleção nem pan
     L.DomEvent.disableClickPropagation(hud);
     L.DomEvent.disableScrollPropagation(hud);
@@ -810,7 +1077,12 @@ export class EditorVertices {
     this.atualizarBotoes();
   }
 
+  private atualizarPainel(): void {
+    this.painel?.atualizar(this.feicaoAtual ? this.geometriaAtual() : null, this.selecionado);
+  }
+
   private atualizarBotoes(): void {
+    this.atualizarPainel();
     if (!this.hud) return;
     const estado: Record<string, boolean> = {
       desfazer: this.historico.length > 0,
@@ -840,6 +1112,7 @@ export class EditorVertices {
 
   private atualizarHud(geometria?: GeometriaFeicao): void {
     if (!this.hud || !this.feicaoAtual) return;
+    if (!geometria) this.atualizarPainel();
     const g = geometria ?? this.geometriaAtual();
     const nos = this.hud.querySelector('[data-campo="nos"]');
     const medida = this.hud.querySelector('[data-campo="medida"]');

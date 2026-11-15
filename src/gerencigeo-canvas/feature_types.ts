@@ -21,7 +21,15 @@ export interface NoCurva {
   ponto: LatLonPar;
   entrada?: LatLonPar;
   saida?: LatLonPar;
+  /**
+   * Como as duas alças se comportam quando uma delas é arrastada: `simetrico` (a outra é o espelho),
+   * `suave` (a outra fica alinhada, mas mantém o próprio comprimento) ou `livre` (independentes).
+   * Ausente = deduzido das alças (`tipoDoNo`). Sem alças o nó é de canto e o modo não vale.
+   */
+  modo?: ModoNo;
 }
+
+export type ModoNo = 'simetrico' | 'suave' | 'livre';
 
 export type GeometriaFeicao =
   | { tipo: 'Point'; coordenada: LatLonPar }

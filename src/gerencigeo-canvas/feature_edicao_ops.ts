@@ -1,5 +1,5 @@
-import { ehMultilinha, type Feicao, type GeometriaFeicao, type LatLonPar, type NoCurva } from './feature_types';
-import { amostrarCurva, controlesDoSegmento, espelhoDaAlca, pontoDaCubica } from './feature_curvas';
+import { ehMultilinha, type Feicao, type GeometriaFeicao, type LatLonPar, type ModoNo, type NoCurva } from './feature_types';
+import { amostrarCurva, controlesDoSegmento, espelhoDaAlca, pontoDaCubica, tipoDoNo } from './feature_curvas';
 import { distanciaMetros, metrosPorGrau } from './feature_metricas';
 
 /*
@@ -108,7 +108,8 @@ export function pontosDe(g: GeometriaFeicao): LatLonPar[] {
   return nosDe(g)?.map((n) => n.ponto) ?? verticesDe(g);
 }
 
-function comNos(g: GeometriaFeicao, nos: NoCurva[]): GeometriaFeicao {
+/** Geometria refeita a partir dos nós (vértices de apoio amostrados da curva). Só linha e polígono. */
+export function comNos(g: GeometriaFeicao, nos: NoCurva[]): GeometriaFeicao {
   const fechada = g.tipo === 'Polygon';
   const apoio = amostrarCurva(nos, fechada);
   return fechada ? { tipo: 'Polygon', aneis: [apoio], curva: nos } : { tipo: 'LineString', coordenadas: apoio, curva: nos };
@@ -129,6 +130,7 @@ export function comPontos(g: GeometriaFeicao, pts: LatLonPar[]): GeometriaFeicao
     const no: NoCurva = { ponto: pts[i] };
     if (n.entrada) no.entrada = desloca(n.entrada);
     if (n.saida) no.saida = desloca(n.saida);
+    if (n.modo) no.modo = n.modo;
     return no;
   });
   return comNos(g, novos);
@@ -198,9 +200,12 @@ export function inserirPonto(g: GeometriaFeicao, depoisDe: number, coord: LatLon
     const p23 = lerp(c2, b.ponto, t);
     const p012 = lerp(p01, p12, t);
     const p123 = lerp(p12, p23, t);
-    novo = { ponto: lerp(p012, p123, t), entrada: p012, saida: p123 };
+    // as alças novas ficam sobre as antigas (mesma direção) mas com outro comprimento: o que era simétrico vira suave
+    novo = { ponto: lerp(p012, p123, t), entrada: p012, saida: p123, modo: 'suave' };
     a2 = { ...a, saida: p01 };
     b2 = { ...b, entrada: p23 };
+    if (tipoDoNo(a) === 'simetrico' && a.entrada) a2.modo = 'suave';
+    if (tipoDoNo(b) === 'simetrico' && b.saida) b2.modo = 'suave';
   }
   const lista = nos.slice();
   lista[depoisDe] = a2;
@@ -246,17 +251,62 @@ export function alcaLatente(g: GeometriaFeicao, indice: number, qual: QualAlca):
   return [p[0] + (viz.ponto[0] - p[0]) / 3, p[1] + (viz.ponto[1] - p[1]) / 3];
 }
 
+// ---- plano local em metros ----
+
+/** Origem e escala (metros por grau) de um plano local: o suficiente para medir ângulos e comprimentos sem a distorção dos graus. */
+export interface PlanoLocal {
+  ref: LatLonPar;
+  mLat: number;
+  mLng: number;
+}
+
+export function planoLocal(ref: LatLonPar): PlanoLocal {
+  const m = metrosPorGrau(ref[0]);
+  return { ref, mLat: Math.max(m.lat, 1e-9), mLng: Math.max(m.lng, 1e-9) };
+}
+
+/** Coordenada → metros (x = leste, y = norte) a partir da origem do plano. */
+export const paraMetros = (pl: PlanoLocal, p: LatLonPar): [number, number] => [(p[1] - pl.ref[1]) * pl.mLng, (p[0] - pl.ref[0]) * pl.mLat];
+export const deMetros = (pl: PlanoLocal, x: number, y: number): LatLonPar => [pl.ref[0] + y / pl.mLat, pl.ref[1] + x / pl.mLng];
+
+const finitoPar = (p: unknown): p is LatLonPar => Array.isArray(p) && p.length === 2 && Number.isFinite(p[0]) && Number.isFinite(p[1]);
+
 /**
- * Move uma alça do nó `indice` para `coord`. Com `simetrica` (padrão) a oposta vira o espelho, como na caneta;
- * sem ela as duas são independentes (o nó deixa de ser suave). Numa linha/polígono comum, converte em curva.
+ * Nó com a alça `qual` em `coord`; a oposta acompanha conforme o modo do nó: `simetrico` espelha, `suave` mantém o
+ * comprimento próprio na direção oposta, `livre` não mexe. `modoDoCanto` é o modo que um nó sem alças ganha; `independente` (Shift) força `livre`.
+ * O nó guarda o modo resultante.
+ */
+export function comAlcaMovida(no: NoCurva, qual: QualAlca, coord: LatLonPar, modoDoCanto: ModoNo, independente = false): NoCurva {
+  const tipo = tipoDoNo(no);
+  const modo: ModoNo = independente ? 'livre' : tipo === 'canto' ? modoDoCanto : tipo;
+  const oposta: QualAlca = qual === 'saida' ? 'entrada' : 'saida';
+  const novo: NoCurva = { ...no, [qual]: coord, modo };
+  if (modo === 'simetrico') {
+    novo[oposta] = espelhoDaAlca(no.ponto, coord);
+  } else if (modo === 'suave') {
+    // comprimento e direção medidos em metros: em graus, girar a alça mudaria o comprimento
+    const pl = planoLocal(no.ponto);
+    const [dx, dy] = paraMetros(pl, coord);
+    const tamanhoNovo = Math.hypot(dx, dy);
+    const ref = no[oposta];
+    const [rx, ry] = ref ? paraMetros(pl, ref) : [dx, dy];
+    const tamanho = Math.hypot(rx, ry);
+    // alça sobre o próprio nó não tem direção: a oposta fica onde estava
+    if (tamanhoNovo > 0 && tamanho > 0) novo[oposta] = deMetros(pl, -(dx / tamanhoNovo) * tamanho, -(dy / tamanhoNovo) * tamanho);
+  }
+  return novo;
+}
+
+/**
+ * Move uma alça do nó `indice` para `coord`. A oposta acompanha conforme o modo do nó (`tipoDoNo`): espelho no simétrico,
+ * alinhada no suave, parada no livre; a primeira alça arrastada de um nó de canto nasce com a oposta espelhada, como na caneta.
+ * Com `simetrica = false` (Shift) as duas ficam independentes e o nó passa a `livre`. Numa linha/polígono comum, converte em curva.
  */
 export function moverAlca(g: GeometriaFeicao, indice: number, qual: QualAlca, coord: LatLonPar, simetrica = true): GeometriaFeicao {
   const nos = nosOuVertices(g);
-  if (!nos || indice < 0 || indice >= nos.length) return g;
-  const no: NoCurva = { ...nos[indice], [qual]: coord };
-  if (simetrica) no[qual === 'saida' ? 'entrada' : 'saida'] = espelhoDaAlca(no.ponto, coord);
+  if (!nos || indice < 0 || indice >= nos.length || !finitoPar(coord)) return g;
   const lista = nos.slice();
-  lista[indice] = no;
+  lista[indice] = comAlcaMovida(nos[indice], qual, coord, 'simetrico', !simetrica);
   return comNos(g, lista);
 }
 

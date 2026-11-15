@@ -611,7 +611,7 @@ document.addEventListener('DOMContentLoaded', () => {
       canvasCad.ajustarCamada('curvas-demo');
       canvasCad.selecionarFeicao('curvas-demo', 'reta');
       canvasCad.editarVertices('curvas-demo', 'reta');
-      registrarLog('<ui-canvas-cad> -> Editando a linha reta: as alças pontilhadas já estão lá; arraste uma para curvar (Shift solta a simetria). Para outra feição: selecione e use "Editar Vértices".');
+      registrarLog('<ui-canvas-cad> -> Editando a linha reta: arraste o traçado para curvá-lo, ou clique num nó para ver as alças e o painel (tipo do nó, coordenadas, arco, concordância). Shift solta a simetria da alça; Ctrl trava o ângulo em 45°. Para outra feição: selecione e use "Editar Vértices".');
     });
   }
   if (btnCadCaneta && canvasCad) {

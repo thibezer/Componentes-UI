@@ -1,5 +1,17 @@
 # Changelog
 
+## Não publicado
+
+### `<ui-canvas-cad>`: editor de curvas aprimorado
+
+- **Tipos de nó:** `suave` (alças alinhadas, comprimentos independentes), `simetrico`, `livre` e `canto`. Novo campo opcional `NoCurva.modo` (`ModoNo`); sem ele o tipo é deduzido das alças (`tipoDoNo`). A alça oposta agora acompanha o modo do nó ao arrastar (antes era sempre espelho); Shift deixa o nó `livre`. Inserir um nó numa curva rebaixa o vizinho simétrico para suave (as alças deixam de ter o mesmo tamanho).
+- **Alças limpas:** só o nó selecionado (e as alças dos vizinhos que moldam os trechos ligados a ele) mostra alças; sem seleção, só as das curvas existentes. Puxar uma alça seleciona o nó. **Ctrl** trava o ângulo da alça em 45°; o snap atrai a alça para outras feições.
+- **Moldar arrastando o traçado:** agarrar um trecho e arrastar ajusta as duas alças (reto vira curva); botões Reto/Curvo no painel.
+- **Painel do nó:** tipo, latitude/longitude, comprimento e azimute das alças por número.
+- **Arcos CAD:** arco por raio no trecho seguinte (esquerda/direita) e concordância (fillet) de cantos; entram como cúbicas de Bézier e seguem editáveis.
+- **API do editor:** `definirTipoDoNoSelecionado`, `moverNoSelecionadoPara`, `definirAlcaDoNoSelecionado`, `endireitarSegmentoSeguinte`, `curvarSegmentoSeguinte`, `arcoNoSegmentoSeguinte`, `concordarNoSelecionado`, `segmentoMaisProximo`, `moldarSegmentoPara`. Operações puras em `feature_edicao_nos.ts`.
+- **Correção:** Enter com o foco num botão do HUD não encerra mais a edição.
+
 ## 2.18.0 — 2026-11-14
 
 ### `<ui-tabela-propriedades>`: revisão do painel (correções e personalização)
