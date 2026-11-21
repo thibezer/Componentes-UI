@@ -117,6 +117,36 @@
   funções que serão generalizadas (`tests/fixtures/espaco-geografico.golden.json`); `tests/espaco-auditoria-pureza.test.ts`
   trava que o núcleo reaproveitável segue sem Leaflet e sem globais de navegador.
 
+## 2.21.0 — 2026-11-20
+
+### `<ui-ribbon>`: responsividade inteligente
+
+- **Correção:** o colapso automático de grupos nunca disparava num navegador real (media-se `scrollWidth` do contêiner dos grupos, que é `width: max-content`, em vez do painel) e, quando disparava, dava um passo por notificação. Agora o espaço medido é o do painel, e vários degraus se resolvem de uma vez.
+- **Degradê em níveis, por prioridade (`ribbon-colapso.ts`, $L_2$ puro):** ao faltar espaço, grupos de menor `prioridade` (empate: da direita para a esquerda) passam por 1) botões pequenos **só com ícone** (rótulo mantido em tooltip e `aria-label`) e 2) **botão único com flyout**. Todos perdem rótulos antes de qualquer grupo virar flyout; níveis que não estreitam o grupo são pulados; ao alargar tudo volta (sem histerese). As larguras são medidas uma vez por aba (cache invalidado ao trocar `abas`, `compacto` ou alterar itens com `atualizarItem`) e a renderização só muda quando o resultado muda, sem laço com o `ResizeObserver`.
+- **Sem media query de janela:** removida a regra `@media (max-width: 720px)` que escondia rótulos pelo tamanho da janela (e os tirava do nome acessível); o espaço real do painel decide, inclusive em painéis laterais estreitos.
+- **`recolher-abaixo` / `recolherAbaixo` (px):** a faixa se recolhe sozinha abaixo da largura indicada e é restaurada ao alargar, mas só se foi recolhida automaticamente; a escolha manual do usuário nunca é desfeita e só se age ao cruzar o limite. Emite `ui-recolhido-change`.
+- **Menu "mais abas" (`::part(mais-abas)`, atributo `rotulo-mais-abas`):** quando as abas não cabem, aparece um botão `⌄` ao lado da lista que abre um menu com todas as abas visíveis (a ativa marcada); escolher uma seleciona, emite `ui-aba-change` e foca a aba. Teclado: Enter/Espaço/Seta para baixo abrem com foco no primeiro item. Some sozinho (e fecha o menu) quando as abas voltam a caber.
+- **Aba ativa sempre visível:** com muitas abas, selecionar uma fora da área visível rola a lista de abas até ela (só a lista; a página não se move).
+
+## 2.20.0 — 2026-11-21
+
+### Formulários: atalhos `Ctrl/Cmd+S` e `Esc`
+
+- **`ligarAtalhosFormulario(raiz, { salvar, cancelar })` ($L_1$, `src/core/form-atalhos.ts`):** `Ctrl/Cmd+S` chama `salvar` (e bloqueia o "salvar página" do navegador) mesmo com o foco num campo; `Esc` chama `cancelar` apenas se nenhum filho o tratou antes (lista flutuante aberta, por exemplo), com modificador ou durante composição de texto (IME) é ignorado. Sem a opção correspondente a tecla não é tocada. Devolve a função que remove os ouvintes. Exportado em `src/index.ts`, `src/core/index.ts` e `src/forms.ts`.
+
+## 2.19.0 — 2026-11-20
+
+### Formulários seguros: rascunho, preenchimento reversível, erros inline e confirmação em modal
+
+Peças reutilizáveis para formulários de cadastro de alta frequência (perda de dados por Cancelar/trocar de registro, autopreenchimento que sobrescreve digitação, erros que somem em 3 s, `window.confirm`). Guia: `docs/formularios-seguros.md`.
+
+- **`criarRascunhoFormulario(raiz, { estadoExterno, aoMudar })` ($L_1$, `src/core/form-rascunho.ts`):** detecta alterações não salvas comparando os campos (nativos e `ui-*`) e um estado externo serializável (listas dinâmicas) com a última linha de base (`marcarLimpo()`); `sujo`, `avaliar()`, `destruir()`.
+- **`preencherCampos(raiz, valores, { somenteVazios, vazioSe })` ($L_1$, `src/core/form-preenchimento.ts`):** só escreve em campos vazios (o digitado nunca é sobrescrito em silêncio), devolve `aplicados`/`conflitos`/`semAlvo` e `substituirConflitos()`/`desfazer()`; valor ausente na origem nunca apaga; emite `ui-campos-preenchidos`.
+- **`validarCampos(raiz, regras, { focarPrimeiro, ignorar })`, `limparErros`, `observarLimpezaDeErros` ($L_1$, `src/core/form-erros.ts`):** aplica `erro` + `mensagem-erro` nos campos (`aria-invalid` + mensagem junto ao campo), devolve a lista de erros na ordem do DOM e foca o primeiro inválido; o erro some ao voltar a digitar.
+- **`confirmarAcao({ titulo, mensagem, rotuloConfirmar, destrutivo })` e `confirmarDescarteSeSujo(rascunho)` ($L_3$, `src/components/ui-modal/modal-confirmar.ts`):** substituto acessível de `window.confirm` (foco preso, Esc/fundo cancelam, "Cancelar" é o foco inicial, variante destrutiva).
+- **`src/core/form-campos.ts` ($L_1$):** acesso uniforme a campos (`listarCampos`, `lerValorCampo`, `definirValorCampo`, `localizarCampo`, `chaveDoCampo`).
+- Exportados em `src/index.ts`, `src/core/index.ts`, `src/forms.ts` (núcleo) e `src/modal.ts` (confirmação).
+
 ## 2.18.0 — 2026-11-14
 
 ### `<ui-tabela-propriedades>`: revisão do painel (correções e personalização)

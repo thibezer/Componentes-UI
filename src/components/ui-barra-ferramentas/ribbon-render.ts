@@ -41,6 +41,11 @@ export interface OpcoesGrupoRibbon {
   colapsado?: boolean;
   /** Item `dividido` com `filhos`: ação principal + gatilho de menu (`criarBotaoDividido`). */
   criarDividido?: CriarBotaoFerramenta;
+  /**
+   * Pouco espaço: botões pequenos com ícone perdem o rótulo visível (o nome continua no tooltip e em `aria-label`).
+   * Só afeta a renderização; os dados do consumidor não são alterados.
+   */
+  reduzido?: boolean;
 }
 
 /** Ícone padrão do grupo colapsado sem `icone` próprio. */
@@ -88,8 +93,15 @@ export function criarGrupoRibbon(grupo: RibbonGrupo, criarBotao: CriarBotaoFerra
   el.dataset.id = grupo.id;
   if (opcoes.colapsado) return criarGrupoColapsado(grupo, el);
 
-  const criarItem: CriarBotaoFerramenta = (item, variante, icone) =>
-    item.dividido && item.filhos?.length && opcoes.criarDividido ? opcoes.criarDividido(item, variante, icone) : criarBotao(item, variante, icone);
+  if (opcoes.reduzido) el.classList.add('ui-ribbon__grupo--reduzido');
+
+  const criarItem: CriarBotaoFerramenta = (original, variante, icone) => {
+    // nível reduzido: só os pequenos com ícone (sem ícone o rótulo é a única pista visual)
+    const item = opcoes.reduzido && variante === 'pequeno' && original.icone && !original.somenteIcone
+      ? { ...original, somenteIcone: true }
+      : original;
+    return item.dividido && item.filhos?.length && opcoes.criarDividido ? opcoes.criarDividido(item, variante, icone) : criarBotao(item, variante, icone);
+  };
 
   const itens = document.createElement('div');
   itens.className = 'ui-ribbon__grupo-itens';

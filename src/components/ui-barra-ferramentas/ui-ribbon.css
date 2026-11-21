@@ -123,6 +123,48 @@
   background: var(--ui-cor-primaria, #00E08A);
 }
 
+/* Botão "mais abas": lista todas as abas quando a lista transborda */
+.ui-ribbon__mais-abas {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--ui-raio-sm, 4px);
+  background: transparent;
+  color: var(--ui-cor-texto-secundario, #888899);
+  cursor: pointer;
+}
+
+.ui-ribbon__mais-abas[hidden] {
+  display: none;
+}
+
+.ui-ribbon__mais-abas:hover,
+.ui-ribbon__mais-abas[aria-expanded='true'] {
+  color: var(--ui-cor-texto, #e1e1e6);
+  background: var(--ui-cor-hover-menu, rgba(255, 255, 255, 0.08));
+}
+
+.ui-ribbon__mais-abas:focus-visible {
+  outline: 2px solid var(--ui-cor-primaria, #00E08A);
+  outline-offset: -2px;
+}
+
+/* chevron para baixo */
+.ui-ribbon__mais-abas::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border: solid currentColor;
+  border-width: 0 2px 2px 0;
+  transform: translateY(-2px) rotate(45deg);
+}
+
 /* Botão fixar / recolher a faixa */
 .ui-ribbon__fixar {
   display: inline-flex;
@@ -387,18 +429,9 @@
   min-width: 44px;
 }
 
-/* ---------- Telas estreitas: botões pequenos só com ícone ---------- */
-@media (max-width: 720px) {
-  .ui-ferr-btn--pequeno:has(.ui-ferr-btn__icone) .ui-ferr-btn__rotulo {
-    display: none;
-  }
-
-  .ui-ferr-btn--pequeno:has(.ui-ferr-btn__icone) {
-    min-width: 28px;
-    justify-content: center;
-    padding: 0 4px;
-  }
-}
+/* Responsividade: o degradê (só ícones → botão único com flyout) é decidido pela largura real do painel em
+   ui-ribbon.ts (ribbon-colapso.ts), não por media query de janela: vale também em painéis laterais estreitos
+   e não tira o nome acessível dos botões. */
 
 /* ---------- Toque ---------- */
 @media (pointer: coarse) {
@@ -421,6 +454,11 @@
 
   .ui-ferr-btn--pequeno.ui-ferr-btn--so-icone {
     width: 32px;
+  }
+
+  .ui-ribbon__mais-abas {
+    width: 32px;
+    height: 32px;
   }
 
   .ui-ribbon__fixar {
@@ -452,6 +490,7 @@
   }
 
   .ui-ribbon__aba:focus-visible,
+  .ui-ribbon__mais-abas:focus-visible,
   .ui-ribbon__fixar:focus-visible,
   .ui-ribbon__grupos .ui-ferr-btn:focus-visible {
     outline-color: Highlight;
