@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.19.0 — 2026-11-20
+
+### Formulários seguros: rascunho, preenchimento reversível, erros inline e confirmação em modal
+
+Peças reutilizáveis para formulários de cadastro de alta frequência (perda de dados por Cancelar/trocar de registro, autopreenchimento que sobrescreve digitação, erros que somem em 3 s, `window.confirm`). Guia: `docs/formularios-seguros.md`.
+
+- **`criarRascunhoFormulario(raiz, { estadoExterno, aoMudar })` ($L_1$, `src/core/form-rascunho.ts`):** detecta alterações não salvas comparando os campos (nativos e `ui-*`) e um estado externo serializável (listas dinâmicas) com a última linha de base (`marcarLimpo()`); `sujo`, `avaliar()`, `destruir()`.
+- **`preencherCampos(raiz, valores, { somenteVazios, vazioSe })` ($L_1$, `src/core/form-preenchimento.ts`):** só escreve em campos vazios (o digitado nunca é sobrescrito em silêncio), devolve `aplicados`/`conflitos`/`semAlvo` e `substituirConflitos()`/`desfazer()`; valor ausente na origem nunca apaga; emite `ui-campos-preenchidos`.
+- **`validarCampos(raiz, regras, { focarPrimeiro, ignorar })`, `limparErros`, `observarLimpezaDeErros` ($L_1$, `src/core/form-erros.ts`):** aplica `erro` + `mensagem-erro` nos campos (`aria-invalid` + mensagem junto ao campo), devolve a lista de erros na ordem do DOM e foca o primeiro inválido; o erro some ao voltar a digitar.
+- **`confirmarAcao({ titulo, mensagem, rotuloConfirmar, destrutivo })` e `confirmarDescarteSeSujo(rascunho)` ($L_3$, `src/components/ui-modal/modal-confirmar.ts`):** substituto acessível de `window.confirm` (foco preso, Esc/fundo cancelam, "Cancelar" é o foco inicial, variante destrutiva).
+- **`src/core/form-campos.ts` ($L_1$):** acesso uniforme a campos (`listarCampos`, `lerValorCampo`, `definirValorCampo`, `localizarCampo`, `chaveDoCampo`).
+- Exportados em `src/index.ts`, `src/core/index.ts`, `src/forms.ts` (núcleo) e `src/modal.ts` (confirmação).
+
 ## 2.18.0 — 2026-11-14
 
 ### `<ui-tabela-propriedades>`: revisão do painel (correções e personalização)
