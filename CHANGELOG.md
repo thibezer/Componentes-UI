@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.20.0 — 2026-11-21
+
+### Formulários: atalhos `Ctrl/Cmd+S` e `Esc`
+
+- **`ligarAtalhosFormulario(raiz, { salvar, cancelar })` ($L_1$, `src/core/form-atalhos.ts`):** `Ctrl/Cmd+S` chama `salvar` (e bloqueia o "salvar página" do navegador) mesmo com o foco num campo; `Esc` chama `cancelar` apenas se nenhum filho o tratou antes (lista flutuante aberta, por exemplo), com modificador ou durante composição de texto (IME) é ignorado. Sem a opção correspondente a tecla não é tocada. Devolve a função que remove os ouvintes. Exportado em `src/index.ts`, `src/core/index.ts` e `src/forms.ts`.
+
 ## 2.19.0 — 2026-11-20
 
 ### Formulários seguros: rascunho, preenchimento reversível, erros inline e confirmação em modal
