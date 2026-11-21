@@ -1,5 +1,11 @@
 # Changelog
 
+## Não lançado
+
+### Adicionado
+
+- **`<ui-calendario>`**: calendário mensal com todos os dias (grade fixa de 6 semanas), eventos por dia (`eventos` com `data`, `titulo`, `cor`, `tipo`, `id`), chips que viram pontos em telas estreitas (container query) ou com `exibicao="compacto"`, seletores de mês/ano, botão Hoje, moldura colorida (`--ui-calendario-cor`, `variante="simples"` desliga), tema claro/escuro pelos tokens e navegação por teclado (setas, Home/End, PageUp/PageDown, Shift+Page = ano). Eventos: `ui-change`, `ui-mes-change`, `ui-evento-click`.
+
 ## 2.23.0 — 2026-11-21
 
 > Origem: a requisição do ConecteMapas depois de migrar a "Moldura" do layout de impressão para o `<ui-canvas-prancha>`.

@@ -19,6 +19,7 @@ import './components/ui-switch';
 import './components/ui-badge';
 import './components/ui-avatar';
 import './components/ui-segmented';
+import './components/ui-calendario';
 import './components/ui-linha';
 
 // 2. Overlays e Feedback
