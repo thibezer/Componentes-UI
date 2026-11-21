@@ -64,3 +64,24 @@ describe('UICard: cantos concêntricos e escala de raio', () => {
     expect(css).toMatch(/:host\(\[formato="squircle"\]\) \.ui-card:not\(\[class\*="ui-card--raio-"\]\)/);
   });
 });
+
+describe('UICard: tipografia (HIG)', () => {
+  it('hierarquia por seção: cabeçalho semibold, corpo com entrelinha de leitura, rodapé menor e secundário', () => {
+    expect(css).toMatch(/\.ui-card__header\s*\{[^}]*font-weight:\s*var\(--ui-card-peso-cabecalho,\s*var\(--ui-peso-seminegrito,\s*600\)\)/s);
+    expect(css).toMatch(/\.ui-card__body\s*\{[^}]*line-height:\s*var\(--ui-altura-linha-corpo,\s*1\.5\)/s);
+    expect(css).toMatch(/\.ui-card__footer\s*\{[^}]*font-size:\s*var\(--ui-card-fonte-rodape,\s*var\(--ui-tamanho-corpo-sm/s);
+    expect(css).toMatch(/\.ui-card__footer\s*\{[^}]*color:\s*var\(--ui-cor-texto-secundario/s);
+  });
+
+  it('base regular (sem peso leve) e sem truncar: quebra palavras e empilha cabeçalho/rodapé', () => {
+    expect(css).toMatch(/\.ui-card\s*\{[^}]*font-weight:\s*var\(--ui-peso-normal,\s*400\)/s);
+    expect(css).toMatch(/\.ui-card\s*\{[^}]*overflow-wrap:\s*break-word/s);
+    expect(css).toMatch(/\.ui-card__header\s*\{[^}]*flex-wrap:\s*wrap/s);
+    expect(css).toMatch(/\.ui-card__footer\s*\{[^}]*flex-wrap:\s*wrap/s);
+  });
+
+  it('nenhum tamanho de fonte fixo abaixo do mínimo legível (11px)', () => {
+    const tamanhos = [...css.matchAll(/font-size:\s*(\d+(?:\.\d+)?)px/g)].map((m) => Number(m[1]));
+    expect(tamanhos.every((t) => t >= 11)).toBe(true);
+  });
+});

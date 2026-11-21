@@ -24,6 +24,10 @@ const RAIOS = ['nenhum', 'sm', 'md', 'lg', 'xl'] as const;
  * @slot midia - Imagem ou vídeo no topo (alias `media`).
  * @slot cabecalho - Título e ações (alias `header`); a seção some quando vazia.
  * @slot rodape - Ações e metadados (alias `footer`); a seção some quando vazia.
+ * @cssprop --ui-card-fonte-cabecalho - Tamanho do texto do cabeçalho (padrão `--ui-tamanho-corpo`, seminegrito).
+ * @cssprop --ui-card-peso-cabecalho - Peso do cabeçalho (padrão `--ui-peso-seminegrito`; evite pesos abaixo de 400).
+ * @cssprop --ui-card-fonte-corpo - Tamanho do texto do corpo (padrão `--ui-tamanho-corpo`).
+ * @cssprop --ui-card-fonte-rodape - Tamanho do texto do rodapé (padrão `--ui-tamanho-corpo-sm`, cor secundária).
  * @cssprop --ui-card-raio - Raio do card (vence o escalonamento e a derivação concêntrica).
  * @cssprop --ui-card-padding - Folga entre a borda e o conteúdo usada no cálculo do raio concêntrico (16px; 12px no `compacto`).
  * @cssprop --ui-card-raio-aninhado - Somente leitura nas seções: `max(0, raio − folga − borda)`, o raio de um filho que acompanha o canto.

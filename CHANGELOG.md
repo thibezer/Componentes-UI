@@ -1,5 +1,13 @@
 # Changelog
 
+## Não publicado
+
+### `<ui-card>`: tipografia (HIG)
+
+- Cada seção ganhou estilo de texto próprio: cabeçalho semibold (headline), corpo com entrelinha 1,5, rodapé menor e em cor secundária. Novas variáveis `--ui-card-fonte-cabecalho`, `--ui-card-peso-cabecalho`, `--ui-card-fonte-corpo`, `--ui-card-fonte-rodape`.
+- Cabeçalho e rodapé quebram linha em vez de truncar; palavras longas quebram (`overflow-wrap`); base de peso 400.
+- Diretrizes de tipografia em `docs/diretrizes-cards.md` (baseadas nas Human Interface Guidelines da Apple).
+
 ## 2.24.0 — 2026-11-21
 
 ### Adicionado

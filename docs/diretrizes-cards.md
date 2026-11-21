@@ -39,7 +39,28 @@ Regras de uso:
 
 Sem o atributo, o card é um **contêiner** e usa `lg` (antes usava o raio de controle). `formato="squircle"` sobe um degrau (`xl`) e o `raio` explícito vence o `formato`.
 
-## 3. Outras diretrizes
+## 3. Tipografia (baseada nas HIG de tipografia da Apple)
+
+Adaptado ao que vale para um card web (alta densidade, desktop e toque). Fonte: Human Interface Guidelines, "Typography".
+
+| Seção | Estilo (HIG) | Token padrão | Peso | Entrelinha |
+| :-- | :-- | :-- | :-- | :-- |
+| Cabeçalho | Headline | `--ui-tamanho-corpo` (14 px) | semibold (600) | 1,25 |
+| Corpo | Body | `--ui-tamanho-corpo` (14 px) | regular (400) | 1,5 |
+| Rodapé | Footnote | `--ui-tamanho-corpo-sm` (13 px), cor secundária | regular | 1,5 |
+
+Ajustes por `--ui-card-fonte-cabecalho`, `--ui-card-peso-cabecalho`, `--ui-card-fonte-corpo` e `--ui-card-fonte-rodape`.
+
+1. **Hierarquia por peso, tamanho e cor**, não por mais famílias. Use só `--ui-fonte-base` (e `--ui-fonte-codigo` para dados); misturar fontes confunde a hierarquia.
+2. **Sem pesos leves** (ultralight, thin, light): o card parte de 400 e o cabeçalho de 600. Fonte customizada fina deve ter tamanho maior.
+3. **Tamanho mínimo:** nenhum texto do card abaixo de 11 px (`--ui-tamanho-caption`); as HIG usam 10 pt como mínimo no macOS e 11 pt no iOS.
+4. **Entrelinha:** 1,25 em títulos de uma ou duas linhas; 1,5 em texto corrido. Com três ou mais linhas não aperte a entrelinha, mesmo com altura limitada.
+5. **Texto grande não trunca:** cabeçalho e rodapé quebram linha (`flex-wrap`) e empilham o conteúdo secundário (ações, datas) abaixo do título; palavras longas quebram (`overflow-wrap`). Evite `text-overflow: ellipsis` em áreas rolavéis, salvo se um clique abrir o texto completo.
+6. **Ao ampliar o texto, priorize o conteúdo:** rótulos de abas e metadados não precisam crescer tanto quanto o corpo; mantenha o título no topo.
+7. **Ícones acompanham o texto:** em cabeçalho com ícone, dimensione-o em `em` para escalar com a fonte.
+8. **Contraste:** o rodapé usa `--ui-cor-texto-secundario`; confira o contraste (4,5:1) ao trocar o tema. Texto sobre imagem (`slot="midia"`) precisa de fundo próprio.
+
+## 4. Outras diretrizes
 
 - **Elevação:** `plano` para listas densas, `elevado` para cards que flutuam sobre o fundo, `destaque` para um único card em foco por tela.
 - **Densidade:** `compacto` em grades de dados; mantém a conta concêntrica (folga 12 px).
