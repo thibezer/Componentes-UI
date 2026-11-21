@@ -37,5 +37,20 @@ export const prancha: Props<'ui-canvas-prancha'> = {
   onPranchaElementoCriado: (e: CustomEvent) => e.detail
 };
 
+export const pranchaModal: Props<'ui-canvas-prancha'> = {
+  margens: '25 10 10 10',
+  teclado: 'exclusivo',
+  ajustarAoAbrir: 'conteudo',
+  onPranchaModificado: (e: CustomEvent) => e.detail,
+  onPranchaEscSemEfeito: (e: CustomEvent) => e.detail
+};
+
+export const editorPrancha: Props<'ui-editor-prancha'> = {
+  largura: 297,
+  altura: 210,
+  margens: '10 10 10 10',
+  onEditorConcluir: (e: CustomEvent) => e.detail
+};
+
 // @ts-expect-error ferramenta fora do conjunto aceito
 export const pranchaInvalida: Props<'ui-canvas-prancha'> = { ferramenta: 'pincel' };

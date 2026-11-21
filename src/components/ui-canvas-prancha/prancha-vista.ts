@@ -72,6 +72,14 @@ export class VistaPrancha {
     return true;
   }
 
+  /** Zoom absoluto mantendo o CENTRO da caixa (mm) no centro da área de desenho (usado no teto de zoom do enquadramento). */
+  public definirZoomCentrado(zoom: number, c: CaixaMm): boolean {
+    if (!fin(zoom) || zoom <= 0 || !c || ![c.x, c.y, c.largura, c.altura].every(fin)) return false;
+    this.zoom = Math.min(ZOOM_MAXIMO, Math.max(ZOOM_MINIMO, zoom));
+    this.pan = [this.largura / 2 - (c.x + c.largura / 2) * this.zoom, this.altura / 2 - (c.y + c.altura / 2) * this.zoom];
+    return true;
+  }
+
   /** Enquadra a caixa (mm) com `margem` px em volta. Sem tamanho de área de desenho, não faz nada. */
   public enquadrar(c: CaixaMm, margem = 24): boolean {
     if (!c || ![c.x, c.y, c.largura, c.altura].every(fin) || this.largura <= 0 || this.altura <= 0) return false;

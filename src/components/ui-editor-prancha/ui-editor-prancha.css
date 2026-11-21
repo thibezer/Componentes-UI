@@ -1,0 +1,43 @@
+/* <ui-editor-prancha>: cores, espaços e tipografia só por tokens (src/tokens/). */
+:host {
+  display: block;
+  min-height: 360px;
+  min-width: 320px;
+  height: 100%;
+  color: var(--ui-cor-texto);
+  font-family: var(--ui-fonte-base);
+  box-sizing: border-box;
+}
+:host([hidden]) { display: none; }
+.raiz {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  height: 100%;
+  min-height: inherit;
+  gap: var(--ui-espaco-sm);
+  box-sizing: border-box;
+}
+.barra, .acoes { display: flex; flex-wrap: wrap; gap: var(--ui-espaco-xs); align-items: center; }
+.acoes { justify-content: flex-end; }
+.area { display: flex; gap: var(--ui-espaco-sm); align-items: stretch; min-height: 0; min-width: 0; }
+.area > ui-paleta-ferramentas { flex: 0 0 auto; }
+.area > ui-canvas-prancha { flex: 1 1 auto; min-width: 0; height: auto; }
+.lateral { flex: 0 0 var(--ui-editor-prancha-lateral, 300px); display: flex; flex-direction: column; gap: var(--ui-espaco-sm); min-width: 0; }
+.lateral > ui-tabela-propriedades { flex: 1 1 auto; min-height: 200px; }
+button {
+  font: inherit;
+  font-size: var(--ui-tamanho-corpo-sm);
+  color: var(--ui-cor-texto);
+  background: var(--ui-cor-superficie);
+  border: 1px solid var(--ui-cor-borda);
+  border-radius: var(--ui-raio-sm);
+  padding: var(--ui-espaco-xs) var(--ui-espaco-md);
+  cursor: pointer;
+}
+button:hover { border-color: var(--ui-cor-primaria); }
+button:focus-visible { outline: 2px solid var(--ui-cor-primaria); outline-offset: 2px; }
+button.primario { background: var(--ui-cor-primaria); color: var(--ui-cor-texto-sobre-primaria, #000); border-color: var(--ui-cor-primaria); }
+@media (max-width: 720px) {
+  .area { flex-direction: column; }
+  .lateral { flex: 0 0 auto; }
+}

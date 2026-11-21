@@ -498,6 +498,37 @@ Verificado também no Chrome real: máscara de recorte (gradiente recortado pelo
 - **Pathfinder** (união, subtração, interseção e exclusão booleanas): é a Fase 5.
 - **Fonte única com o `ui-canvas-cad`** (histórico, regra de clique): segue pendente, como registrado na Fase 3.
 
+## Requisição do ConecteMapas (kit 2.23): o que a migração real ensinou
+
+Detalhes de uso em [`guia-migracao-prancha.md`](./guia-migracao-prancha.md). Resumo das decisões:
+
+- **Contexto de pintura.** O pintor usa `setTransform` absoluto; sem ele usa o modo relativo (`transform` com
+  `inverse(atual) · M`, `adaptarContextoRelativo`), e sem nenhum dos dois não pinta, conta `falhas` e avisa uma vez (antes era
+  um PDF em branco sem erro). `diagnosticarContexto(ctx)` verifica o contrato. Fixture reutilizável:
+  `tests/fixtures/contexto-pdf-vetorial.ts`.
+- **Plano reutilizável.** `planejar` + `desenharPlano`; `desenharElementos` passou a ser a composição dos dois. O plano não
+  depende da matriz (zoom, resolução, exportação), só dos elementos e das camadas.
+- **Envelope visual** (`envelopeVisual`): medido sobre o próprio plano de pintura (fonte única), incluindo a **ponta real**
+  da junção angular (até o `limitePonta`), terminação quadrada, pontas de seta, sombra deslocada e desfocada (3 desvios) e a
+  caixa do texto.
+- **Ajuste a caixa** (`ajustarElementosACaixa`, `normalizarParaOrigem`) e **aparência em lote** (`ajustarAparenciaEmLote`,
+  `resumirAparencia`, `ESTILO_DO_TIPO_LINHA`): L2 puros. O traço é em mm da folha, então a escala não o muda (garantia testada).
+- **Pré-definições:** `ROTULOS_PREDEFINICOES`, `ITENS_PREDEFINICOES`, opções `opacidadePreenchimento`, `opacidadeTraco`,
+  `semTraco`, `preenchimentoNa`, `alinhamentoTraco` (o pintor **implementa** `alinhamento: 'dentro' | 'fora'`; o envelope o
+  respeita) e `recuo`. `caixaDoQuadro(largura, altura, margens)` para folhas e margens quaisquer.
+- **Núcleo sem o componente:** entrypoint `./prancha/nucleo` (`src/prancha-nucleo.ts`, L5): só o L2 puro, seguro em
+  Node/SSR/Worker. `tests/check-layers.test.ts` garante que nada de `components/ui-*` é alcançável a partir dele.
+- **Editor:** `<ui-editor-prancha>` (L4, casca fina) + `ligarPaineisPrancha`. O editor importa só a prancha; a paleta, as
+  camadas e as propriedades são compostas por tag e registradas pelo entrypoint `./prancha` (a prancha continua sem importar
+  outro L4).
+- **Teclado:** tecla tratada = `preventDefault` + `stopPropagation` + marca (`eventoTratadoPelaPrancha`); `teclado="exclusivo"`
+  captura em fase de captura; `prancha-esc-sem-efeito` fecha a cadeia do Esc.
+- **Tags de propriedades:** `<ui-tabela-propriedades>` é a oficial; `<ui-painel-propriedades>` e `<ui-propriedades>` são
+  aliases suportados por contrato.
+- **Texto no PDF:** `font = "<corpo em mm>px <fonte>"` nas unidades do transform; `texto.largura` só dimensiona a caixa (não
+  quebra linha). Teste de paridade em `tests/prancha-contexto.regressao.test.ts`.
+- **Gradiente em faixas** (opcional, `gradienteEmFaixas`): `pintura_gradiente_faixas.ts`.
+
 ## Fase 5: Pathfinder e efeitos
 
 ### Booleanas (L2, `src/gerencigeo-canvas/booleanas/`)

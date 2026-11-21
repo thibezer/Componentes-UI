@@ -33,6 +33,8 @@ const NUCLEO_PURO = [
   // pendências da Fase 3 e Fase 4
   'prancha/cantos_vivos.ts', 'prancha/camadas.ts', 'prancha/organizacao.ts', 'prancha/operacoes_caminho.ts',
   // Fase 5: Pathfinder (booleanas genéricas) e efeitos
+  // requisição do ConecteMapas: contexto de pintura, envelope visual, ajuste a caixa e aparência em lote
+  'prancha/pintura_contexto.ts', 'prancha/envelope_visual.ts', 'prancha/ajuste_caixa.ts', 'prancha/aparencia_lote.ts', 'prancha/pintura_gradiente_faixas.ts',
   'prancha/pathfinder.ts', 'booleanas/index.ts', 'booleanas/tipos.ts', 'booleanas/segmentos.ts', 'booleanas/classificacao.ts',
   'booleanas/montagem.ts',
   // Fase 6

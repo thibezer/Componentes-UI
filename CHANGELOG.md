@@ -1,5 +1,79 @@
 # Changelog
 
+## 2.23.0 — 2026-11-21
+
+> Origem: a requisição do ConecteMapas depois de migrar a "Moldura" do layout de impressão para o `<ui-canvas-prancha>`.
+> No app: `npm install @thibezer/ui-components-kit@2.23.0`.
+
+### Mudanças de comportamento
+
+- **`inserirPredefinicao(tipo)` sem `caixa`** não usa mais a folha com 10 mm de margem (que podia estar fora da vista): a forma
+  nasce no **centro da área visível**, de tamanho proporcional ao zoom, e fica selecionada. Quem queria a folha inteira passa a `caixa`.
+- **`categoriasDePropriedades()` do componente sem seleção** devolve a categoria "Folha" (tamanho, unidade, grade, margens, somente
+  leitura) e a dica "Selecione um elemento para editar", em vez de `[]`. A função pura `categoriasDePropriedades([])` continua `[]`.
+- **Teclado:** quando a prancha trata uma tecla, agora também chama `stopPropagation()` (antes só `preventDefault()`) e marca o
+  evento (`eventoTratadoPelaPrancha`). Atalhos globais que escutam na fase de bolha não recebem mais essa tecla.
+- **`desenharElementos` sem `setTransform`** deixou de pintar um PDF em branco em silêncio: usa o modo relativo (`transform`) ou,
+  sem nenhum dos dois, devolve `falhas > 0` e avisa uma vez. `EstatisticasPintura` ganhou os campos `falhas`, `primeiraFalha?`,
+  `transformacao` e `gradientesEmFaixas?`.
+- **`@thibezer/ui-components-kit/prancha`** passa a registrar também `<ui-paleta-ferramentas>`, `<ui-camadas>` e
+  `<ui-tabela-propriedades>` (o `<ui-editor-prancha>` os compõe). Quem só pinta deve importar de `/prancha/nucleo`.
+
+### Contexto de pintura (PDF vetorial)
+
+- **Corrige o guia** (`docs/guia-migracao-prancha.md`, que afirmava um contrato que o `PdfVectorContext` não cumpria): o pintor
+  exige `setTransform` **absoluto**; documentado o exemplo para contextos só com `transform` relativo.
+- **Modo relativo automático** (`adaptarContextoRelativo`, `opcoes.transformacao: 'absoluta' | 'relativa'`, padrão detectado):
+  `setTransform(M) = transform(inverse(atual) · M)` com rastreio de `save/restore`.
+- **`diagnosticarContexto(ctx)`** → `{ obrigatorios, opcionais, transformacao }` (entrypoints `/prancha` e `/prancha/nucleo`).
+- Falhas por item contam em `falhas` (e restauram o contexto); aviso único `console.warn`, SSR-safe.
+- **Texto:** formato de `ctx.font` (`"<corpo em mm>px <fonte>"`), base alfabética, entrelinha 1,2 e `texto.largura` (só caixa,
+  não quebra) documentados e cobertos por teste de paridade. Fixture `tests/fixtures/contexto-pdf-vetorial.ts`.
+- **Gradiente em faixas** (opcional): `gradienteEmFaixas: true | n` pinta o gradiente linear em N faixas recortadas pela forma
+  quando o contexto não tem `createLinearGradient` (`pintura_gradiente_faixas.ts`); desligado por padrão.
+
+### Núcleo (L2, puro, também em `/prancha/nucleo`)
+
+- **`planejar(elementos, { camadas?, cache? })` + `desenharPlano(ctx, plano, { matriz, fundo?, ... })`**; `desenharElementos` é a
+  composição dos dois. O plano só é invalidado por elementos/camadas, não pela matriz (benchmark: repintar 200 elementos com 20
+  matrizes é ≥ 3× mais rápido que replanejar, `tests/prancha-desempenho.test.ts`).
+- **`envelopeVisual(el | els, { sombra?, camadas? })`**: caixa de tudo o que o pintor desenha (traço pelo alinhamento, ponta real da
+  junção angular, pontas de seta, sombra com desfoque, texto); medido sobre o plano de pintura, a mesma fonte do pintor.
+- **`ajustarElementosACaixa`** (`manterProporcao`, `escalarTexto`, `incluirBloqueados`) e **`normalizarParaOrigem`** (`minimo`).
+  Garantia testada: espessura, tracejado e pontas não mudam com a escala.
+- **`ajustarAparenciaEmLote`** (`espessura: 'absoluta' | 'proporcional'`), **`resumirAparencia`** (`'misto'`) e
+  **`ESTILO_DO_TIPO_LINHA`**.
+- **Pré-definições:** `ROTULOS_PREDEFINICOES`, `ITENS_PREDEFINICOES`; opções `opacidadePreenchimento`, `opacidadeTraco`,
+  `semTraco`, `preenchimentoNa: 'externa' | 'interna'`, `alinhamentoTraco` (o pintor já implementava `alinhamento`; o envelope o
+  respeita) e `recuo`. Sem as opções novas o resultado é idêntico.
+- **`caixaDoQuadro(largura, altura, margens)`** para folhas e margens quaisquer (`caixaDoQuadroAbnt` a usa).
+- **Novo entrypoint `@thibezer/ui-components-kit/prancha/nucleo`** (`src/prancha-nucleo.ts`, L5): só o L2 puro, sem Custom
+  Element, CSS nem DOM (Node, SSR, Worker). Tamanho do build ESM (fecho de imports): **núcleo 187,6 kB em 5 arquivos** contra
+  **772,6 kB em 19 arquivos** do `/prancha` completo. `tests/check-layers.test.ts` garante que nenhum componente é alcançável.
+
+### `<ui-canvas-prancha>` e `<ui-editor-prancha>`
+
+- **`<ui-editor-prancha>` (novo, L4):** prancha + paleta + camadas + propriedades + menu de pré-definições já ligados. Atributos
+  `largura`, `altura`, `margens`, `grade`, `mostrar-grade`, `ajustar-ao-abrir`, `teclado`, `somente-leitura`; propriedades
+  `elementos`, `camadas`, `prancha`, `modificado`, `pronto`; eventos `editor-concluir` e `editor-cancelar`.
+- **`ligarPaineisPrancha({ prancha, paleta?, camadas?, propriedades?, listaPlana? })`** devolve o desligador; só eventos e
+  propriedades públicas, limpa tudo (Regra #2). O playground (`pagina_prancha.ts`) a usa.
+- **Ciclo de vida:** `modificado`, `revisao`, `marcarComoSalvo()`, evento `prancha-modificado` (só nas transições), `pronto` e
+  `prancha-pronta`, `ajustarElementos(ids?, { margem, zoomMaximo })` (não altera a seleção; teto de zoom), atributo
+  `ajustar-ao-abrir`, `focus()` entrega o foco ao viewport.
+- **Teclado:** `eventoTratadoPelaPrancha(e)`, atributo `teclado="exclusivo"` (captura em fase de captura, sem roubar campos de
+  texto) e evento `prancha-esc-sem-efeito` (cadeia: gesto → âncoras → grupo isolado → seleção → evento).
+- **Margens:** atributo `margens="e d s i"` (guia tracejada automática) e `inserirPredefinicao(tipo, undefined, { quadro: 'margens' })`.
+- **`<ui-camadas>`:** sem camadas, lista plana de feições da raiz (`layerId: ''`), sem cabeçalho;
+  `dadosParaPainelDeCamadas(..., { ocultarSemCamada: true })`.
+- **Painel de propriedades:** `categoriasSemSelecao(folha)`.
+- **`desenharEm(ctx)`** aceita também contexto só com `transform` relativo.
+- **Tags:** `<ui-tabela-propriedades>` é a oficial; `<ui-painel-propriedades>` e `<ui-propriedades>` são aliases suportados por contrato.
+- **Testes novos:** `tests/prancha-contexto.regressao.test.ts`, `tests/prancha-envelope-lote.test.ts`,
+  `tests/prancha-requisicao.regressao.test.ts`; ampliados `prancha-desempenho`, `ssr-safety`, `check-layers`, `tests/tipos/*`.
+- **Docs:** `docs/guia-migracao-prancha.md` reescrito (padrão de hospedagem, valores reais do formato antigo, contrato do
+  contexto, armadilhas, dados de fora), `docs/canvas-prancha-eventos.md` e `docs/canvas-prancha.md` atualizados.
+
 ## 2.22.0 — 2026-11-21
 
 ### `<ui-canvas-cad>`: editor de curvas aprimorado

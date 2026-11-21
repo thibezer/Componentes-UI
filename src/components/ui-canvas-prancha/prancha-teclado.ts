@@ -28,6 +28,20 @@ import type { FerramentaPrancha } from './tipos';
  *   Fase 5 (Pathfinder): Ctrl+Alt+Shift+1 une · +2 subtrai (menos frente) · +3 interseção · +4 exclui
  */
 
+/** Eventos de teclado que a prancha tratou (e consumiu): o hospedeiro pergunta com `eventoTratadoPelaPrancha`. */
+const tratadosPelaPrancha = new WeakSet<Event>();
+
+/**
+ * A prancha tratou este `keydown`? Garantia: quando trata uma tecla, a prancha chama `preventDefault()` e
+ * `stopPropagation()` e marca o evento; o atalho global do hospedeiro deve ignorar (`defaultPrevented` também vale).
+ */
+/** Esc já avisado (o mesmo `keydown` passa pelo viewport e pela janela: avisa uma vez só). */
+const escEmitidos = new WeakSet<Event>();
+
+export const eventoTratadoPelaPrancha = (e: Event): boolean => !!e && tratadosPelaPrancha.has(e);
+
+export function marcarTratadoPelaPrancha(e: Event): void { tratadosPelaPrancha.add(e); }
+
 const PATHFINDER_DO_DIGITO = { Digit1: 'uniao', Digit2: 'subtracao', Digit3: 'intersecao', Digit4: 'exclusao' } as const;
 
 const FERRAMENTA_DA_TECLA: Record<string, FerramentaPrancha> = {
@@ -103,6 +117,8 @@ export function tratarTecla(c: ControladorPrancha, it: InteracaoPrancha, vista: 
     if (c.ui.edicao) { c.encerrarEdicao(); return true; }
     if (c.isolado) { c.isolar(null); return true; }
     if (c.doc.selecao.length > 0) { c.selecionar([]); return true; }
+    // nada a cancelar: o hospedeiro (um modal, por exemplo) decide o que fazer com o Esc
+    if (!escEmitidos.has(e)) { escEmitidos.add(e); c.emitir('prancha-esc-sem-efeito', {}); }
     return false;
   }
   if (k === 'Enter') {

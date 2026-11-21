@@ -1,6 +1,7 @@
 import type { ContextoPrancha2D } from '../../gerencigeo-canvas/prancha/pintura_canvas';
 import type { ElementoGrafico } from '../../gerencigeo-canvas/prancha/tipos';
 import type { ControladorPrancha } from './prancha-controlador';
+import { caixaDoQuadro } from '../../gerencigeo-canvas/prancha/elemento_predefinicoes';
 import { pintarBase, pintarSobreposicao } from './prancha-pintura';
 import { pintarRegua } from './prancha-reguas';
 import { marcasDeCantoDaSelecao } from './prancha-gestos';
@@ -105,12 +106,12 @@ export class RenderizadorPrancha {
     this.ajustar(this.cv.sobreposicao, v.largura, v.altura, v.dpr);
     const elementos = c.elementosVisiveis();
     const chave = [v.zoom, v.pan[0], v.pan[1], v.largura, v.altura, v.dpr, c.folha.largura, c.folha.altura, c.mostrarGrade ? c.grade : 0,
-      Object.values(c.cores).join(), JSON.stringify(c.camadas), c.isolado ?? ''].join('|');
+      Object.values(c.cores).join(), JSON.stringify(c.camadas), c.isolado ?? '', JSON.stringify(c.margens)].join('|');
     const base = this.ctx('base', this.cv.base);
     if (base && (mudouBase || elementos !== this.ultimaBase.elementos || chave !== this.ultimaBase.texto)) {
       try {
         const isolados = c.isolado ? elementos.filter((e) => e.grupoId === c.isolado) : null;
-        pintarBase(base, { vista: v, folha: c.folha, cores: c.cores, elementos, grade: c.mostrarGrade ? c.grade : null, camadas: c.camadas, isolados });
+        pintarBase(base, { vista: v, folha: c.folha, cores: c.cores, elementos, grade: c.mostrarGrade ? c.grade : null, camadas: c.camadas, isolados, margens: c.margens ? caixaDoQuadro(c.folha.largura, c.folha.altura, c.margens) : null });
         this.pinturasBase++;
       } catch { /* contexto com defeito: a próxima pintura tenta de novo */ }
       this.ultimaBase = { elementos, texto: chave };

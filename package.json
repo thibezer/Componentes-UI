@@ -1,6 +1,6 @@
 {
   "name": "@thibezer/ui-components-kit",
-  "version": "2.22.0",
+  "version": "2.23.0",
   "description": "Web Components nativos (W3C Custom Elements + Shadow DOM) para interfaces densas de GIS, CAD e formulários, sem dependência de framework.",
   "keywords": [
     "web-components",
@@ -102,6 +102,11 @@
       "types": "./dist/prancha.d.ts",
       "import": "./dist/prancha.js",
       "require": "./dist/prancha.cjs"
+    },
+    "./prancha/nucleo": {
+      "types": "./dist/prancha-nucleo.d.ts",
+      "import": "./dist/prancha-nucleo.js",
+      "require": "./dist/prancha-nucleo.cjs"
     },
     "./botao": {
       "types": "./dist/botao.d.ts",

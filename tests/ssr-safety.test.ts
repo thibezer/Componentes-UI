@@ -140,11 +140,27 @@ describe('SSR Safety (Node.js runtime sem DOM)', () => {
     expect(prancha.exportarSvg([el], { largura: 10, altura: 10 })).toContain('feGaussianBlur');
   });
 
+  it('entrypoint ./prancha/nucleo (só o núcleo) importa em Node e pinta sem DOM, sem custom element', async () => {
+    const m = await import('../src/prancha-nucleo');
+    expect(m.desenharPlano).toBeDefined();
+    expect(m.planejar).toBeDefined();
+    expect(m.envelopeVisual).toBeDefined();
+    expect(m.diagnosticarContexto).toBeDefined();
+    expect((m as Record<string, unknown>).UICanvasPrancha).toBeUndefined();
+    expect((m as Record<string, unknown>).UIEditorPrancha).toBeUndefined();
+    const el = m.criarRetangulo({ id: 'a', aparencia: { preenchimento: { cor: '#000' } } }, { x: 0, y: 0, largura: 10, altura: 10 })!;
+    expect(m.envelopeVisual(el)).not.toBeNull();
+    expect(m.ROTULOS_PREDEFINICOES.seta).toBe('Seta');
+    expect(m.caixaDoQuadro(100, 100, { esquerda: 10, direita: 10, superior: 10, inferior: 10 })).toEqual({ x: 10, y: 10, largura: 80, altura: 80 });
+  }, 20000);
+
   it('entrypoint ./prancha (componente + núcleo) importa no servidor sem ReferenceError', async () => {
     const m = await import('../src/prancha');
     expect(m.UICanvasPrancha).toBeDefined();
     expect(m.ESPACO_PLANO).toBeDefined();
     expect(m.desenharElementos).toBeDefined();
     expect(m.FERRAMENTAS_PRANCHA).toContain('caneta');
+    expect(m.UIEditorPrancha).toBeDefined();
+    expect(m.ligarPaineisPrancha).toBeDefined();
   }, 20000);
 });

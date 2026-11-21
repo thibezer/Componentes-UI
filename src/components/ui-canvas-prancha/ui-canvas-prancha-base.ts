@@ -3,8 +3,9 @@ import { ListenerBag } from '../../core/listener-bag';
 import { UIBus } from '../../core/ui-bus';
 import type { Par } from '../../gerencigeo-canvas/feature_types';
 import { saneada, type Matriz2D } from '../../gerencigeo-canvas/espaco/espaco_matriz';
-import { limitesNaFolha } from '../../gerencigeo-canvas/prancha/elemento_geometria';
-import { gerarPredefinicao, ehPredefinicao, type OpcoesPredefinicao, type Predefinicao } from '../../gerencigeo-canvas/prancha/elemento_predefinicoes';
+import { envelopeVisual } from '../../gerencigeo-canvas/prancha/envelope_visual';
+import { caixaDoQuadro, gerarPredefinicao, ehPredefinicao, type Predefinicao } from '../../gerencigeo-canvas/prancha/elemento_predefinicoes';
+import type { ContextoPranchaRelativo } from '../../gerencigeo-canvas/prancha/pintura_contexto';
 import { desenharElementos, type ContextoPrancha2D, type EstatisticasPintura, type OpcoesPintura } from '../../gerencigeo-canvas/prancha/pintura_canvas';
 import { exportarSvg, type OpcoesSvg } from '../../gerencigeo-canvas/prancha/exportar_svg';
 import type { Guia } from '../../gerencigeo-canvas/prancha/elemento_snap';
@@ -14,15 +15,18 @@ import { ControladorPrancha } from './prancha-controlador';
 import { InteracaoPrancha } from './prancha-interacao';
 import { FerramentasDesenho } from './prancha-ferramentas';
 import { RenderizadorPrancha, fabricaPadrao, type FabricaContextoPrancha } from './prancha-render';
-import { tratarTecla, soltarTecla } from './prancha-teclado';
+import { tratarTecla, soltarTecla, marcarTratadoPelaPrancha } from './prancha-teclado';
 import { assinarComandos, ehComandoPrancha } from './prancha-bus';
-import { ATRIBUTOS_PRANCHA, aplicarAtributoPrancha } from './prancha-atributos-sync';
+import { ATRIBUTOS_PRANCHA, aplicarAtributoPrancha, lerAjusteAoAbrir, lerMargens } from './prancha-atributos-sync';
 import { anunciar, textoZoom } from './prancha-acessibilidade';
 import { resolverCores } from './prancha-cores';
 import { PX_POR_MM_100 } from './prancha-vista';
 import { garantirMedidorTexto } from './prancha-medidor-texto';
 import * as cmd from './prancha-comandos';
-import { ehFerramentaPrancha, type DetalheVistaPrancha, type FerramentaPrancha, type LotePrancha, type OpcoesDadosPrancha, type OpcoesFerramentasPrancha, type ResultadoLotePrancha } from './tipos';
+import {
+  ehFerramentaPrancha, type DetalheVistaPrancha, type FerramentaPrancha, type LotePrancha, type OpcoesAjustarElementos, type OpcoesDadosPrancha,
+  type OpcoesFerramentasPrancha, type OpcoesInserirPredefinicao, type ResultadoLotePrancha
+} from './tipos';
 
 /**
  * Base do `<ui-canvas-prancha>`: ciclo de vida, atributos, dados, seleção, ferramentas, vista, guias, exportação e os
@@ -47,6 +51,13 @@ export class UICanvasPranchaBase extends SafeHTMLElement {
   private focoDentro = false;
   private enquadrou = false;
   private _fabrica: FabricaContextoPrancha = fabricaPadrao;
+  private revisaoSalva = 0;
+  private _modificado = false;
+  private conteudoEnquadrado = false;
+  private _pronto!: Promise<void>;
+  private resolverPronto: (() => void) | null = null;
+  private fimPronto = 0;
+  private carregando = false;
 
   constructor() {
     super();
@@ -64,6 +75,8 @@ export class UICanvasPranchaBase extends SafeHTMLElement {
       agendar: () => this.render?.agendar(),
       anunciar: (texto) => anunciar(this.status, texto)
     });
+    this._pronto = new Promise<void>((res) => { this.resolverPronto = res; });
+    this.c.doc.ouvirMudancas(() => this.avaliarModificado());
     this.interacao = new InteracaoPrancha(this.c, this.viewport, new FerramentasDesenho(this.c));
     this.render = new RenderizadorPrancha(this.c, {
       viewport: this.viewport, base: q('camada-base'), sobreposicao: q('camada-sobreposicao'), reguaH: q('regua-h'), reguaV: q('regua-v')
@@ -80,6 +93,8 @@ export class UICanvasPranchaBase extends SafeHTMLElement {
     // com o foco na área de desenho a prancha trata a tecla antes dos atalhos globais da página (paletas, ribbons)
     this.bag.add<KeyboardEvent>(this.viewport, 'keydown', (e: KeyboardEvent) => this.tecla(e, true));
     if (typeof window !== 'undefined') {
+      // `teclado="exclusivo"` (modal): captura as teclas da página inteira antes dos atalhos globais do hospedeiro
+      this.bag.add<KeyboardEvent>(window, 'keydown', (e: KeyboardEvent) => { if (this.tecladoExclusivo()) this.tecla(e, true, true); }, { capture: true });
       this.bag.add<KeyboardEvent>(window, 'keydown', (e: KeyboardEvent) => this.tecla(e));
       this.bag.add<KeyboardEvent>(window, 'keyup', (e: KeyboardEvent) => soltarTecla(this.c, this.interacao, e));
       this.bag.add(window, 'blur', () => { this.interacao.espaco = false; });
@@ -100,10 +115,14 @@ export class UICanvasPranchaBase extends SafeHTMLElement {
     }
     this.atualizarCores();
     this.atualizarRotulo();
+    this.c.margens = lerMargens(this.getAttribute('margens'));
     this.redimensionar();
+    this.prepararPronto();
   }
 
   disconnectedCallback(): void {
+    if (this.fimPronto && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(this.fimPronto);
+    this.fimPronto = 0;
     this.bag.cleanup();
     this.observador?.disconnect();
     this.observador = null;
@@ -115,8 +134,26 @@ export class UICanvasPranchaBase extends SafeHTMLElement {
 
   attributeChangedCallback(nome: string, _antigo: string | null, valor: string | null): void {
     if (nome === 'rotulo') { this.atualizarRotulo(); return; }
+    if (nome === 'teclado') return;
     const folhaMudou = aplicarAtributoPrancha(this.c, nome, valor);
     if (folhaMudou && !this.enquadrou) this.ajustarFolha();
+  }
+
+  /** Resolve `pronto` quando a área de desenho foi medida; sem layout (teste, aba oculta), dois quadros depois. */
+  private prepararPronto(): void {
+    if (!this.resolverPronto) return;
+    if (this.c.vista.largura > 0) { this.concluirPronto(); return; }
+    if (typeof requestAnimationFrame === 'function' && !this.fimPronto) {
+      this.fimPronto = requestAnimationFrame(() => { this.fimPronto = requestAnimationFrame(() => { this.fimPronto = 0; this.concluirPronto(); }); });
+    } else if (typeof requestAnimationFrame !== 'function') this.concluirPronto();
+  }
+
+  private concluirPronto(): void {
+    const r = this.resolverPronto;
+    if (!r) return;
+    this.resolverPronto = null;
+    r();
+    this.dispatchEvent(new CustomEvent('prancha-pronta', { bubbles: true, composed: true, detail: {} }));
   }
 
   private atualizarRotulo(): void {
@@ -132,16 +169,55 @@ export class UICanvasPranchaBase extends SafeHTMLElement {
   private redimensionar(): void {
     this.render.medir();
     if (!this.enquadrou && this.c.vista.largura > 0) {
-      this.c.vista.enquadrar({ x: 0, y: 0, largura: this.c.folha.largura, altura: this.c.folha.altura });
+      const modo = lerAjusteAoAbrir(this.getAttribute('ajustar-ao-abrir'));
+      if (modo === 'conteudo' && this.c.doc.elementos.length > 0) { this.ajustarElementos(); this.conteudoEnquadrado = true; }
+      else if (modo !== 'nenhum') this.c.vista.enquadrar({ x: 0, y: 0, largura: this.c.folha.largura, altura: this.c.folha.altura });
       this.enquadrou = true;
     }
     this.render.pintar();
+    this.prepararPronto();
   }
 
-  private tecla(e: KeyboardEvent, naAreaDeDesenho = false): void {
-    if (!naAreaDeDesenho && !this.focoDentro && !this.ponteiroSobre) return;
-    if (tratarTecla(this.c, this.interacao, { ajustarFolha: () => this.ajustarFolha(), definirZoomPercentual: (p) => this.definirZoom(p) }, e)) e.preventDefault();
+  private tecladoExclusivo(): boolean {
+    return this.getAttribute('teclado') === 'exclusivo';
   }
+
+  private tecla(e: KeyboardEvent, naAreaDeDesenho = false, capturando = false): void {
+    if (!naAreaDeDesenho && !this.focoDentro && !this.ponteiroSobre) return;
+    if (!capturando && e.defaultPrevented && this.tecladoExclusivo()) return;
+    if (tratarTecla(this.c, this.interacao, { ajustarFolha: () => this.ajustarFolha(), definirZoomPercentual: (p) => this.definirZoom(p) }, e)) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (capturando) e.stopImmediatePropagation();
+      marcarTratadoPelaPrancha(e);
+    }
+  }
+
+  // ---------- modificado, revisão e ciclo de vida ----------
+
+  /** O documento mudou desde a carga (`definirElementos`) ou desde `marcarComoSalvo()`. */
+  get modificado(): boolean { return this._modificado; }
+  /** Contador de mudanças do documento (carga, edição, desfazer/refazer, renomear). */
+  get revisao(): number { return this.c.doc.revisao; }
+  /** Registra o estado atual como o salvo: `modificado` volta a `false` (e `prancha-modificado` só emite na transição). */
+  marcarComoSalvo(): void { this.revisaoSalva = this.c.doc.revisao; this.avaliarModificado(); }
+
+  private avaliarModificado(): void {
+    if (this.carregando) return; // a carga é o novo ponto salvo, não uma modificação
+    const m = this.c.doc.revisao !== this.revisaoSalva;
+    if (m === this._modificado) return;
+    this._modificado = m;
+    this.c.emitir('prancha-modificado', { modificado: m, revisao: this.c.doc.revisao });
+  }
+
+  /**
+   * Resolve quando a área de desenho foi medida e a prancha consegue enquadrar (ou, sem layout, dois quadros depois da
+   * conexão). Também emite `prancha-pronta` uma vez.
+   */
+  get pronto(): Promise<void> { return this._pronto; }
+
+  /** Dá o foco à área de desenho (o `focus()` do host entrega o foco ao viewport, onde o teclado da prancha escuta). */
+  focus(opcoes?: FocusOptions): void { this.viewport.focus(opcoes); }
 
   // ---------- propriedades ----------
 
@@ -174,9 +250,15 @@ export class UICanvasPranchaBase extends SafeHTMLElement {
 
   /** Carrega o documento (normaliza; recomeça o histórico e a seleção). Devolve os recusados. */
   definirElementos(lista: unknown[]): { aceitos: number; recusados: Array<{ indice: number; id?: string; motivo: string }> } {
-    const r = this.c.doc.definir(lista);
+    this.carregando = true;
+    const r = (() => { try { return this.c.doc.definir(lista); } finally { this.carregando = false; } })();
     this.c.ui.edicao = null;
     this.c.emitirHistorico();
+    this.marcarComoSalvo();
+    if (!this.conteudoEnquadrado && this.enquadrou && lerAjusteAoAbrir(this.getAttribute('ajustar-ao-abrir')) === 'conteudo' && r.elementos.length > 0) {
+      this.conteudoEnquadrado = true;
+      this.ajustarElementos();
+    }
     this.c.agendar();
     return { aceitos: r.elementos.length, recusados: r.recusados };
   }
@@ -242,13 +324,37 @@ export class UICanvasPranchaBase extends SafeHTMLElement {
   /** Raios dos cantos dos retângulos selecionados, em mm (número = os quatro; ou [sup. esq., sup. dir., inf. dir., inf. esq.]). */
   definirRaiosCantos(raios: RaiosCantos | number): boolean { return cmd.definirRaiosCantosSelecao(this.c, raios); }
 
-  /** Insere uma pré-definição (moldura, seta...) na caixa (mm; padrão: a folha com 10 mm de margem). */
-  inserirPredefinicao(tipo: Predefinicao, caixa?: CaixaMm, opcoes: OpcoesPredefinicao = {}): ElementoGrafico[] {
+  /**
+   * Insere uma pré-definição (moldura, seta...) e a deixa selecionada. Sem `caixa`: com `opcoes.quadro: 'margens'` (e o
+   * atributo `margens`), o quadro das margens; senão, uma caixa no CENTRO DA ÁREA VISÍVEL, de tamanho proporcional ao zoom
+   * (cerca de 35% da largura e 25% da altura visíveis, limitada à folha), para a forma nascer à vista.
+   */
+  inserirPredefinicao(tipo: Predefinicao, caixa?: CaixaMm, opcoes: OpcoesInserirPredefinicao = {}): ElementoGrafico[] {
     if (!ehPredefinicao(tipo)) { this.c.recusar('inserir-predefinicao', 'geometria-invalida'); return []; }
-    const f = this.c.folha;
-    const alvo = caixa ?? { x: 10, y: 10, largura: f.largura - 20, altura: f.altura - 20 };
-    const els = gerarPredefinicao(tipo, alvo, { ...opcoes, id: opcoes.id ?? this.c.gerarId(tipo) });
+    const { quadro, ...opcoesForma } = opcoes ?? {};
+    const alvo = caixa ?? (quadro === 'margens' && this.c.margens ? caixaDoQuadro(this.c.folha.largura, this.c.folha.altura, this.c.margens) : null) ?? this.caixaNaVista();
+    const els = gerarPredefinicao(tipo, alvo, { ...opcoesForma, id: opcoesForma.id ?? this.c.gerarId(tipo) });
     return cmd.inserirNovos(this.c, els, 'predefinicao');
+  }
+
+  /** Caixa (mm) no centro da área visível, proporcional ao zoom e dentro da folha; sem vista medida, 60 × 40 mm no centro da folha. */
+  private caixaNaVista(): CaixaMm {
+    const f = this.c.folha;
+    const v = this.c.vista;
+    let x0 = 0, y0 = 0, x1 = f.largura, y1 = f.altura;
+    if (v.largura > 0 && v.altura > 0) {
+      const a = v.paraFolha(0, 0);
+      const b = v.paraFolha(v.largura, v.altura);
+      const vx0 = Math.max(0, a[0]), vy0 = Math.max(0, a[1]), vx1 = Math.min(f.largura, b[0]), vy1 = Math.min(f.altura, b[1]);
+      if (vx1 > vx0 && vy1 > vy0) { x0 = vx0; y0 = vy0; x1 = vx1; y1 = vy1; }
+    }
+    const larg = (x1 - x0) * (v.largura > 0 ? 0.35 : 0.3);
+    const alt = (y1 - y0) * (v.largura > 0 ? 0.25 : 0.15);
+    const w = Math.max(1, Math.min(larg, f.largura)), h = Math.max(1, Math.min(alt, f.altura));
+    // centro da vista (o centro da área de desenho); se cair fora da folha, o ponto mais perto dela
+    const c = v.largura > 0 && v.altura > 0 ? v.paraFolha(v.largura / 2, v.altura / 2) : [(x0 + x1) / 2, (y0 + y1) / 2];
+    const cx = Math.min(f.largura, Math.max(0, c[0])), cy = Math.min(f.altura, Math.max(0, c[1]));
+    return { x: cx - w / 2, y: cy - h / 2, largura: w, altura: h };
   }
 
   // ---------- vista ----------
@@ -260,11 +366,27 @@ export class UICanvasPranchaBase extends SafeHTMLElement {
   }
 
   ajustarSelecao(): void {
-    const caixas = this.c.doc.elementosSelecionados().map(limitesNaFolha).filter((c): c is CaixaMm => !!c);
-    if (caixas.length === 0) { this.c.recusar('ajustar-selecao', 'sem-selecao'); return; }
-    const x0 = Math.min(...caixas.map((c) => c.x)), y0 = Math.min(...caixas.map((c) => c.y));
-    const x1 = Math.max(...caixas.map((c) => c.x + c.largura)), y1 = Math.max(...caixas.map((c) => c.y + c.altura));
-    if (this.c.vista.enquadrar({ x: x0, y: y0, largura: x1 - x0, altura: y1 - y0 }, 48)) this.c.emitirVista();
+    const sel = this.c.doc.elementosSelecionados();
+    if (sel.length === 0) { this.c.recusar('ajustar-selecao', 'sem-selecao'); return; }
+    const caixa = envelopeVisual(sel);
+    if (caixa && this.c.vista.enquadrar(caixa, 48)) this.c.emitirVista();
+  }
+
+  /**
+   * Enquadra os elementos (os `ids`, ou todos) SEM mexer na seleção, com teto de zoom (`zoomMaximo`, em %: um elemento
+   * pequeno não é ampliado absurdamente). Devolve se enquadrou.
+   */
+  ajustarElementos(ids?: string[], opcoes: OpcoesAjustarElementos = {}): boolean {
+    const alvo = Array.isArray(ids) ? ids.map((id) => this.c.doc.obter(id)).filter((e): e is ElementoGrafico => !!e) : [...this.c.doc.elementos];
+    const caixa = envelopeVisual(alvo);
+    if (!caixa) return false;
+    const margem = Number.isFinite(opcoes?.margem) && (opcoes.margem as number) >= 0 ? (opcoes.margem as number) : 48;
+    const teto = Number.isFinite(opcoes?.zoomMaximo) && (opcoes.zoomMaximo as number) > 0 ? (opcoes.zoomMaximo as number) : 800;
+    if (!this.c.vista.enquadrar(caixa, margem)) return false;
+    const maximo = (teto / 100) * PX_POR_MM_100;
+    if (this.c.vista.zoom > maximo) this.c.vista.definirZoomCentrado(maximo, caixa);
+    this.c.emitirVista();
+    return true;
   }
 
   /** Zoom em % (100% = tamanho real a 96 dpi), no centro da vista. */
@@ -305,7 +427,7 @@ export class UICanvasPranchaBase extends SafeHTMLElement {
   }
 
   /** Pinta os elementos num contexto próprio (ex.: o PDF vetorial do app) com o mesmo código da tela. */
-  desenharEm(ctx: ContextoPrancha2D, opcoes: OpcoesPintura = {}): EstatisticasPintura {
+  desenharEm(ctx: ContextoPrancha2D | ContextoPranchaRelativo, opcoes: OpcoesPintura = {}): EstatisticasPintura {
     return desenharElementos(ctx, this.c.doc.elementos, opcoes);
   }
 

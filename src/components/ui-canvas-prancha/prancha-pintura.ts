@@ -33,6 +33,8 @@ export interface CenaBase {
   camadas?: readonly CamadaPrancha[];
   /** Grupo isolado: o resto fica esmaecido e os membros são repintados por cima. */
   isolados?: readonly ElementoGrafico[] | null;
+  /** Quadro das margens da folha (mm): guia automática tracejada, com estilo próprio. */
+  margens?: { x: number; y: number; largura: number; altura: number } | null;
 }
 
 const px = (ctx: Ctx, dpr: number): void => ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -128,6 +130,19 @@ export function pintarBase(ctx: Ctx, cena: CenaBase): void {
   ctx.strokeStyle = cores.bordaPapel;
   ctx.lineWidth = 1;
   ctx.stroke();
+  const m = cena.margens;
+  if (m && m.largura > 0 && m.altura > 0) {
+    const [mx0, my0] = vista.paraTela([m.x, m.y]);
+    const [mx1, my1] = vista.paraTela([m.x + m.largura, m.y + m.altura]);
+    ctx.beginPath();
+    poligonoPx(ctx, [[mx0, my0], [mx1, my0], [mx1, my1], [mx0, my1]]);
+    ctx.strokeStyle = cores.guiaInteligente;
+    ctx.globalAlpha = 0.6;
+    ctx.setLineDash([6, 4]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.globalAlpha = 1;
+  }
   ctx.restore();
 }
 

@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import fs from 'node:fs';
 import path from 'node:path';
 // @ts-expect-error módulo .mjs sem declarações
 import { classificar, extrairImports, semTextos, verificar, verificarEntradaSemLeaflet } from '../scripts/check-layers.mjs';
@@ -184,5 +185,37 @@ describe('check-layers: <ui-canvas-prancha> (L4 sem Leaflet e isolado)', () => {
 
   it('o entrypoint real `src/prancha.ts` não alcança leaflet', () => {
     expect(verificarEntradaSemLeaflet(path.resolve(__dirname, '..', 'src', 'prancha.ts'))).toEqual([]);
+  });
+
+  it('<ui-editor-prancha> é L4 (pode compor a prancha) e o núcleo `prancha-nucleo.ts` é L5', () => {
+    const ed = src('components', 'ui-editor-prancha', 'ui-editor-prancha.ts');
+    expect(classificar(ed)).toBe(4);
+    expect(classificar(src('prancha-nucleo.ts'))).toBe(5);
+    expect(verificar([ed], ler({ [ed]: "import { x } from '../ui-canvas-prancha/prancha-paineis';" }))).toEqual([]);
+  });
+
+  it('o núcleo `src/prancha-nucleo.ts` não alcança leaflet nem nenhum componente (components/)', () => {
+    const entrada = path.resolve(__dirname, '..', 'src', 'prancha-nucleo.ts');
+    expect(verificarEntradaSemLeaflet(entrada)).toEqual([]);
+    const vistos = new Set<string>();
+    const fila = [entrada];
+    const alcancados: string[] = [];
+    while (fila.length > 0) {
+      const arq = fila.pop()!;
+      if (vistos.has(arq)) continue;
+      vistos.add(arq);
+      alcancados.push(arq.split(path.sep).join('/'));
+      const conteudo = fs.readFileSync(arq, 'utf-8');
+      for (const esp of extrairImports(conteudo)) {
+        if (!esp.startsWith('.')) continue;
+        const base = path.resolve(path.dirname(arq), esp);
+        const real = ['.ts', '/index.ts', ''].map((x) => base + x).find((c) => fs.existsSync(c) && fs.statSync(c).isFile());
+        if (real) fila.push(real);
+      }
+    }
+    // utilitários L2 que moram em components/ (cores-utils, avaliador) são puros e permitidos; nenhum custom element
+    const deComponentes = alcancados.filter((a) => a.includes('/src/components/') && !a.endsWith('cores-utils.ts') && !a.endsWith('avaliador-expressao.ts'));
+    expect(deComponentes).toEqual([]);
+    expect(alcancados.some((a) => a.includes('/ui-canvas-prancha/'))).toBe(false);
   });
 });

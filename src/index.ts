@@ -70,6 +70,7 @@ export type { UIMapaMarcador } from './components/ui-mapa/ui-mapa-marcador';
 export type { UIMapaLinha } from './components/ui-mapa/ui-mapa-linha';
 export type { UICanvasCAD } from './components/ui-canvas-cad';
 export type { UICanvasPrancha } from './components/ui-canvas-prancha';
+export type { UIEditorPrancha } from './components/ui-editor-prancha';
 
 // Auto-carregamento declarativo caso as tags existam no DOM (Ambiente CDN / HTML)
 if (typeof document !== 'undefined') {
@@ -80,7 +81,7 @@ if (typeof document !== 'undefined') {
     if (document.querySelector('ui-canvas-cad') && !customElements.get('ui-canvas-cad')) {
       import('./canvas');
     }
-    if (document.querySelector('ui-canvas-prancha') && !customElements.get('ui-canvas-prancha')) {
+    if (document.querySelector('ui-canvas-prancha, ui-editor-prancha') && !(customElements.get('ui-canvas-prancha') && customElements.get('ui-editor-prancha'))) {
       import('./prancha');
     }
   };
@@ -125,6 +126,7 @@ import type { UIMapaLinha } from './components/ui-mapa/ui-mapa-linha';
 import type { UISkeleton, UIEsqueleto } from './components/ui-skeleton';
 import type { UICanvasCAD } from './components/ui-canvas-cad';
 import type { UICanvasPrancha } from './components/ui-canvas-prancha';
+import type { UIEditorPrancha } from './components/ui-editor-prancha';
 import type { UITabelaPropriedades, UIPainelPropriedades, UIPropriedades } from './components/ui-tabela-propriedades';
 import type { UIRibbon, UIPaletaFerramentas } from './components/ui-barra-ferramentas';
 import type { UICamadas, UIPainelCamadas, UILayerPanel } from './components/ui-camadas';
@@ -176,6 +178,7 @@ declare global {
     'ui-esqueleto': UIEsqueleto;
     'ui-canvas-cad': UICanvasCAD;
     'ui-canvas-prancha': UICanvasPrancha;
+    'ui-editor-prancha': UIEditorPrancha;
     'ui-tabela-propriedades': UITabelaPropriedades;
     'ui-painel-propriedades': UIPainelPropriedades;
     'ui-propriedades': UIPropriedades;

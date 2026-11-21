@@ -26,6 +26,9 @@ emitir esses eventos.
 | `prancha-camadas` | `{ camadas }` | `definirCamadas` (camadas normalizadas) |
 | `prancha-isolamento` | `{ grupoId }` | Grupo isolado (duplo clique, `isolarGrupo`); `null` ao sair |
 | `prancha-conta-gotas` | `{ elemento, aparencia }` | Conta-gotas: aparência amostrada (aplicada à seleção ou guardada para as formas novas) |
+| `prancha-modificado` | `{ modificado, revisao }` | Só nas **transições** de `modificado` (a carga com `definirElementos` e `marcarComoSalvo()` o zeram) |
+| `prancha-pronta` | `{}` | Uma vez, quando a área de desenho foi medida e dá para enquadrar (a mesma promessa de `pronto`) |
+| `prancha-esc-sem-efeito` | `{}` | Esc sem gesto, âncoras, grupo isolado nem seleção a cancelar: o hospedeiro pode fechar o modal |
 | `prancha-texto-solicitado` (**cancelável**) | `{ posicao, concluir(texto) }` | Clique com a ferramenta texto. Sem `preventDefault()`, cria "Texto"; com ele, o app abre o próprio campo e chama `concluir` |
 
 ## Ordem e garantias
@@ -49,6 +52,9 @@ emitir esses eventos.
 | `rotulo` | `Prancha` | Nome acessível da área de desenho |
 | `somente-leitura` | — | Bloqueia desenhar e editar (seleção e vista continuam) |
 | `passo-teclado` | 1 | mm por seta (Shift × 10) |
+| `margens` | — | Margens da folha em mm, `"e d s i"` (ou um número só): guia tracejada automática e quadro de `inserirPredefinicao(tipo, undefined, { quadro: 'margens' })`. Inválido = sem margens |
+| `teclado` | — | `exclusivo`: a prancha captura as teclas da página inteira enquanto montada (modal), sem roubar campos de texto |
+| `ajustar-ao-abrir` | `folha` | Enquadramento inicial: `folha`, `conteudo` (os elementos) ou `nenhum` |
 
 ## Métodos
 
@@ -59,12 +65,17 @@ emitir esses eventos.
   `obterSelecao`, `definirFerramenta`, `definirOpcoesFerramentas` (aparência das formas novas, raio dos cantos, lados,
   pontas, ponta da seta, corpo do texto), `editarAncoras`, `concluirEdicao`.
 - **Comandos:** `desfazer`, `refazer`, `moverSelecao`, `girarSelecao`, `escalarSelecao`, `espelharSelecao`,
-  `transformarSelecao(matriz)`, `removerSelecao`, `inserirPredefinicao(tipo, caixa?, opcoes?)`.
+  `transformarSelecao(matriz)`, `removerSelecao`, `inserirPredefinicao(tipo, caixa?, opcoes?)`. Sem `caixa`, a forma nasce no
+  **centro da área visível**, de tamanho proporcional ao zoom, e fica selecionada; `opcoes.quadro: 'margens'` usa o quadro
+  das margens.
 - **Vista:** `ajustarFolha`, `ajustarSelecao`, `definirZoom(%)`, `aproximar`, `afastar`, `deslocarVista`, `obterVista`,
   `paraFolha(x, y)`, `paraTela(p)`.
 - **Guias e snap:** `definirGuias`, `adicionarGuia`, `removerGuia`, `obterGuias`, `definirSnap`.
 - **Exportação:** `exportarSvg(opcoes?)`, `desenharEm(ctx, opcoes?)` (o PDF vetorial do app, com o mesmo pintor da tela),
   `renderizarAgora()`.
+- **Ciclo de vida (editor em modal):** `modificado`, `revisao`, `marcarComoSalvo()`, `pronto` (promessa), `ajustarElementos(ids?,
+  { margem?, zoomMaximo? })` (enquadra sem alterar a seleção; teto de zoom em %, padrão 800), `focus()` (entrega o foco ao
+  viewport).
 - **Propriedades:** `ferramenta`, `elementos`, `selecao`, `podeDesfazer`, `podeRefazer`, `gerarId` (gerador do id
   provisório), `fabricaContexto` (contexto 2D de cada canvas).
 
@@ -80,8 +91,10 @@ resto vira `prancha-recusa` com `comando-desconhecido`. O mesmo vale para `execu
 
 ## Teclado
 
-Vale com o foco na prancha (tem prioridade sobre os atalhos globais da página) ou com o ponteiro sobre ela, e nunca com o
-foco num campo de texto.
+Vale com o foco na prancha ou com o ponteiro sobre ela (com `teclado="exclusivo"`, sempre), e nunca com o foco num campo de
+texto. **Garantia:** quando a prancha trata uma tecla, chama `preventDefault()` e `stopPropagation()` e marca o evento
+(`eventoTratadoPelaPrancha(e)`); os atalhos globais da página não a recebem. A tecla que a prancha não trata segue para o
+hospedeiro.
 
 | Tecla | Ação |
 |---|---|
@@ -90,7 +103,7 @@ foco num campo de texto.
 | Setas (Shift × 10) | Movem a seleção, ou as âncoras selecionadas na seleção direta |
 | Delete / Backspace | Exclui a seleção (ou as âncoras); no desenho clique a clique, desfaz o último ponto |
 | Enter | Conclui a polilinha/caneta; com uma ferramenta de forma, cria a forma (40 × 30 mm) no centro da vista; com um elemento selecionado, entra na seleção direta |
-| Esc | Cancela o gesto/desenho; sai da seleção direta; limpa a seleção |
+| Esc | Cancela o gesto/desenho; sai da seleção direta; sai do grupo isolado; limpa a seleção; sem nada disso, emite `prancha-esc-sem-efeito` |
 | Ctrl+Z · Ctrl+Shift+Z / Ctrl+Y | Desfaz · refaz |
 | Ctrl+A | Seleciona tudo |
 | Ctrl+0 · Ctrl+1 · Ctrl+= · Ctrl+− | Ajusta a folha · 100% · aproxima · afasta |

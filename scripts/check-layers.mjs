@@ -20,11 +20,11 @@ const ATOMICOS_L3 = [
 ];
 const WORKSTATION_L4 = [
     'ui-canvas-cad', 'ui-camadas', 'ui-tabela-propriedades', 'ui-tabela', 'ui-barra-ferramentas',
-    'ui-mapa', 'ui-seletor-mapa-base', 'ui-canvas-prancha'
+    'ui-mapa', 'ui-seletor-mapa-base', 'ui-canvas-prancha', 'ui-editor-prancha'
 ];
 const ENTRYPOINTS_L5 = [
     'index', 'register', 'botao', 'camadas', 'canvas', 'tabela', 'forms', 'tools',
-    'campo-texto', 'card', 'cores', 'data', 'feedback', 'mapa', 'modal', 'seletor-mapa-base', 'motor', 'prancha'
+    'campo-texto', 'card', 'cores', 'data', 'feedback', 'mapa', 'modal', 'seletor-mapa-base', 'motor', 'prancha', 'prancha-nucleo'
 ];
 
 /**
@@ -176,7 +176,7 @@ export function verificar(arquivos, ler = (f) => fs.readFileSync(f, 'utf-8')) {
 }
 
 /** Entrypoints que precisam rodar em Node/SSR e em Worker: nada que eles alcançam pode importar `leaflet`. */
-const ENTRADAS_SEM_LEAFLET = ['motor.ts', 'prancha.ts'];
+const ENTRADAS_SEM_LEAFLET = ['motor.ts', 'prancha.ts', 'prancha-nucleo.ts'];
 
 /**
  * Percorre os imports relativos (em runtime) a partir de uma entrada e acusa quem importa `leaflet`. `ler` devolve o

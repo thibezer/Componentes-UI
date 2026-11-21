@@ -49,6 +49,19 @@ export class DocumentoPrancha {
   private _selecao: string[] = [];
   public readonly indice = new IndicePrancha();
   public readonly historico = new Historico<readonly ElementoGrafico[]>({ limite: 100, janelaRajadaMs: 1000 });
+  /** Contador de mudanças do documento (carga, edição, desfazer/refazer, renomear): base do `modificado` do componente. */
+  public revisao = 0;
+  private ouvinteMudanca: (() => void) | null = null;
+
+  /** Registra quem é avisado depois de cada mudança do documento (o componente avalia o `modificado`). */
+  public ouvirMudancas(f: (() => void) | null): void {
+    this.ouvinteMudanca = f;
+  }
+
+  private mudou(): void {
+    this.revisao++;
+    try { this.ouvinteMudanca?.(); } catch { /* o aviso não pode derrubar a edição */ }
+  }
 
   public get elementos(): readonly ElementoGrafico[] {
     return this.lista;
@@ -73,6 +86,7 @@ export class DocumentoPrancha {
     this.indice.definir(r.elementos);
     this.historico.limpar();
     this._selecao = [];
+    this.mudou();
     return r;
   }
 
@@ -96,6 +110,7 @@ export class DocumentoPrancha {
     this.aplicar(nova);
     this.sincronizarIndice(dif);
     this._selecao = this._selecao.filter((id) => this.porId.has(id));
+    this.mudou();
     return dif;
   }
 
@@ -156,6 +171,7 @@ export class DocumentoPrancha {
     this.aplicar(estado);
     this.sincronizarIndice(dif);
     this._selecao = this._selecao.filter((id) => this.porId.has(id));
+    this.mudou();
     return dif;
   }
 
@@ -169,6 +185,7 @@ export class DocumentoPrancha {
     this.indice.atualizar(this.porId.get(novo)!);
     this.historico.transformar(trocar);
     this._selecao = this._selecao.map((id) => (id === antigo ? novo : id));
+    this.mudou();
     return true;
   }
 

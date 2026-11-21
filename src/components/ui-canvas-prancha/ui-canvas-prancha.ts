@@ -7,8 +7,8 @@ import { ATRIBUTOS_PRANCHA } from './prancha-atributos-sync';
 import * as org from './prancha-comandos-organizacao';
 import { pathfinderSelecao } from './prancha-comandos-pathfinder';
 import { aplicarPropriedade, alterarElementos, type MudancaElementosPrancha } from './prancha-comandos-propriedades';
-import { categoriasDePropriedades, type CategoriaPainelPrancha } from './prancha-painel-propriedades';
-import { dadosParaPainelDeCamadas, type CamadaPainelPrancha, type FeicaoPainelPrancha } from './prancha-painel-camadas';
+import { categoriasDePropriedades, categoriasSemSelecao, type CategoriaPainelPrancha } from './prancha-painel-propriedades';
+import { dadosParaPainelDeCamadas, type CamadaPainelPrancha, type FeicaoPainelPrancha, type OpcoesPainelCamadasPrancha } from './prancha-painel-camadas';
 import type { OperacaoPathfinder } from '../../gerencigeo-canvas/prancha/pathfinder';
 
 /**
@@ -16,7 +16,9 @@ import type { OperacaoPathfinder } from '../../gerencigeo-canvas/prancha/pathfin
  * com rotação, cantos arredondados ao vivo, formas, polilinha, caneta Bézier, texto, snap, guias, réguas, grade, zoom/pan,
  * camadas, ordem, grupos (com isolamento), alinhar e distribuir, duplicar, copiar e colar, conta-gotas, máscara de recorte,
  * operações de caminho, Pathfinder, mesclagem e sombra, teclado e histórico. O componente não grava nada: devolve as mudanças em eventos e o app decide id,
- * nome e persistência.
+ * nome e persistência. Atributos novos (lista em `ATRIBUTOS_PRANCHA`): `margens="e d s i"` (guia tracejada e quadro de
+ * `inserirPredefinicao(tipo, undefined, { quadro: 'margens' })`), `teclado="exclusivo"` (captura as teclas da página, uso em
+ * modal) e `ajustar-ao-abrir="folha|conteudo|nenhum"`.
  *
  * @fires prancha-elemento-criado - `{ elementos, motivo }`: elementos criados pelo usuário (ferramenta, texto, predefinição, colar, duplicar).
  * @fires prancha-elemento-atualizado - `{ elementos, motivo }`: elementos alterados por um gesto ou comando.
@@ -35,6 +37,9 @@ import type { OperacaoPathfinder } from '../../gerencigeo-canvas/prancha/pathfin
  * @fires prancha-conta-gotas - `{ elemento, aparencia }`.
  * @fires prancha-ponteiro - `{ coordenada }` (mm na folha, `null` ao sair).
  * @fires prancha-texto-solicitado - cancelável; `{ posicao, concluir(texto) }`.
+ * @fires prancha-modificado - `{ modificado, revisao }`: só nas transições de `modificado` (carga e `marcarComoSalvo()` o zeram).
+ * @fires prancha-pronta - `{}`: uma vez, quando a área de desenho foi medida e dá para enquadrar (a mesma promessa de `pronto`).
+ * @fires prancha-esc-sem-efeito - `{}`: Esc sem gesto, âncoras, isolamento nem seleção a cancelar (o hospedeiro pode fechar o modal).
  *
  * @csspart base - Contêiner raiz (réguas + área de desenho).
  * @csspart viewport - Área de desenho focável (`role="application"`).
@@ -128,8 +133,15 @@ export class UICanvasPrancha extends UICanvasPranchaBase {
 
   // ---------- painéis (Fase 6) ----------
 
-  /** Categorias para o `<ui-tabela-propriedades>` com a seleção atual (`[]` sem seleção). */
-  categoriasDePropriedades(): CategoriaPainelPrancha[] { return categoriasDePropriedades(this.c.doc.elementosSelecionados()); }
+  /**
+   * Categorias para o `<ui-tabela-propriedades>` com a seleção atual. Sem seleção: a categoria "Folha" (tamanho, unidade,
+   * grade, margens, somente leitura) com a dica "Selecione um elemento para editar", em vez de um painel vazio.
+   */
+  categoriasDePropriedades(): CategoriaPainelPrancha[] {
+    const sel = this.c.doc.elementosSelecionados();
+    if (sel.length > 0) return categoriasDePropriedades(sel);
+    return categoriasSemSelecao({ largura: this.c.folha.largura, altura: this.c.folha.altura, unidade: this.c.unidade, grade: this.c.grade, margens: this.c.margens });
+  }
 
   /**
    * Aplica um campo do painel de propriedades à seleção (o `id` e o `valor` do `ui-propriedade-alterada`). Ação do usuário:
@@ -138,8 +150,8 @@ export class UICanvasPrancha extends UICanvasPranchaBase {
   aplicarPropriedade(id: string, valor: unknown): boolean { return aplicarPropriedade(this.c, id, valor); }
 
   /** Dados para o `<ui-camadas>` (`painel.definirCamadas(d.camadas, d.feicoes)`), da frente para trás. */
-  dadosParaPainelDeCamadas(): { camadas: CamadaPainelPrancha[]; feicoes: FeicaoPainelPrancha[] } {
-    return dadosParaPainelDeCamadas(this.c.doc.elementos, this.c.camadas);
+  dadosParaPainelDeCamadas(opcoes?: OpcoesPainelCamadasPrancha): { camadas: CamadaPainelPrancha[]; feicoes: FeicaoPainelPrancha[] } {
+    return dadosParaPainelDeCamadas(this.c.doc.elementos, this.c.camadas, opcoes);
   }
 
   /** Oculta, trava, renomeia ou muda de camada elementos pelo id (o painel de camadas), inclusive travados. */

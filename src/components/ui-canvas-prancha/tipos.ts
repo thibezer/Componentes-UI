@@ -1,3 +1,4 @@
+import type { OpcoesPredefinicao } from '../../gerencigeo-canvas/prancha/elemento_predefinicoes';
 import type { Par } from '../../gerencigeo-canvas/feature_types';
 import type { AparenciaElemento, CamadaPrancha, ElementoGrafico, PontaSeta } from '../../gerencigeo-canvas/prancha/tipos';
 import type { Guia } from '../../gerencigeo-canvas/prancha/elemento_snap';
@@ -82,6 +83,23 @@ export interface DetalheRecusaPrancha {
   acao: string;
   motivo: MotivoRecusaPrancha;
   id?: string;
+}
+
+/** Opções de `inserirPredefinicao`: as da pré-definição e `quadro`. */
+export interface OpcoesInserirPredefinicao extends OpcoesPredefinicao {
+  /** `'margens'`: usa o quadro das margens da folha (atributo `margens`) como caixa quando `caixa` é omitida (retângulo, moldura dupla). */
+  quadro?: 'margens';
+}
+
+/** `prancha-modificado`: só nas transições de `modificado`. */
+export interface DetalheModificadoPrancha { modificado: boolean; revisao: number }
+
+/** Opções de `ajustarElementos`. */
+export interface OpcoesAjustarElementos {
+  /** Margem em px em volta (padrão 48). */
+  margem?: number;
+  /** Teto de zoom em % (100 = tamanho real): um elemento pequeno não é ampliado além disso. Padrão 800. */
+  zoomMaximo?: number;
 }
 
 export interface DetalheVistaPrancha {

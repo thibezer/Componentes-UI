@@ -1,6 +1,8 @@
 import { IDENTIDADE, multiplicar, saneada, translacao, type Matriz2D } from '../espaco/espaco_matriz';
 import { corSegura } from '../motor/estilo';
 import { corComOpacidade } from './aparencia_estilo';
+import { adaptarContextoRelativo, avisarUmaVez, modoDeTransformacao, type ContextoPranchaRelativo, type ModoTransformacao } from './pintura_contexto';
+import { faixasDoGradienteLinear, FAIXAS_PADRAO } from './pintura_gradiente_faixas';
 import { caminhoFinito, planejarElementos, type Caminho, type ItemPintura, type SombraPlanejada, type TextoPlanejado } from './pintura_plano';
 import type { CamadaPrancha, ElementoGrafico } from './tipos';
 
@@ -71,6 +73,26 @@ export interface OpcoesPintura {
   fundo?: { cor: string; largura: number; altura: number };
   /** Camadas da prancha (ordem, ocultas, opacidade): a exportação respeita as mesmas da tela. */
   camadas?: readonly CamadaPrancha[];
+  /**
+   * Como posicionar a matriz: `'absoluta'` (`setTransform`) ou `'relativa'` (só `transform`, com `inverse(atual) · M`).
+   * Padrão: detectado no contexto (o absoluto vence).
+   */
+  transformacao?: 'absoluta' | 'relativa';
+  /**
+   * Gradiente linear em N faixas sólidas (recortadas pela forma) quando o contexto não tem `createLinearGradient`
+   * (o PDF vetorial): `true` = 24 faixas, ou o número (2 a 256). Desligado por padrão (o gradiente vira cor sólida).
+   * Gradiente radial continua sólido. As estatísticas dizem quando usou (`gradientesEmFaixas`).
+   */
+  gradienteEmFaixas?: boolean | number;
+}
+
+/** Plano de pintura pronto (resultado de `planejar`): não depende da matriz do dispositivo, só dos elementos e das camadas. */
+export type PlanoPintura = readonly ItemPintura[];
+
+export interface OpcoesPlano {
+  camadas?: readonly CamadaPrancha[];
+  /** Guarda o plano por referência do array de elementos (e das camadas); trate o array como imutável (copie ao editar). */
+  cache?: boolean;
 }
 
 export interface EstatisticasPintura {
@@ -85,6 +107,14 @@ export interface EstatisticasPintura {
   sombras: number;
   /** O que o contexto não suportou e foi degradado (ver o comentário do módulo); `mesclagem`/`desfoque` só aparecem quando houve. */
   degradacoes: { gradiente: number; texto: number; mesclagem?: number; desfoque?: number };
+  /** Itens que falharam (exceção do contexto) ou que não puderam ser pintados por falta de `setTransform`/`transform`. */
+  falhas: number;
+  /** Mensagem da primeira falha (diagnóstico). */
+  primeiraFalha?: string;
+  /** Como a matriz foi aplicada (ver `diagnosticarContexto`). */
+  transformacao: ModoTransformacao;
+  /** Gradientes lineares pintados em faixas (`gradienteEmFaixas`). */
+  gradientesEmFaixas?: number;
 }
 
 type Contexto = ContextoPrancha2D & CapacidadesPrancha2D;
@@ -162,7 +192,31 @@ function pintarSombra(ctx: Contexto, s: SombraPlanejada, base: Matriz2D, op: num
   est.sombras++;
 }
 
-function pintarItem(ctx: Contexto, it: ItemPintura, base: Matriz2D, est: EstatisticasPintura): void {
+/**
+ * Gradiente linear sem `createLinearGradient`: N faixas de cor sólida recortadas pela forma (o caminho já está traçado).
+ * Devolve `false` (e não pinta) se não for linear/válido: o chamador usa a cor sólida.
+ */
+function pintarEmFaixas(ctx: Contexto, p: NonNullable<ItemPintura['preenchimento']>, base: Matriz2D, op: number, n: number): boolean {
+  const g = p.gradiente;
+  const lista = g ? faixasDoGradienteLinear(g.def, n) : null;
+  if (!g || !lista) return false;
+  ctx.save();
+  recortar(ctx, p.regra);
+  definir(ctx, multiplicar(base, g.quadro));
+  for (const f of lista) {
+    ctx.beginPath();
+    ctx.moveTo(f.pontos[0][0], f.pontos[0][1]);
+    for (let i = 1; i < 4; i++) ctx.lineTo(f.pontos[i][0], f.pontos[i][1]);
+    ctx.closePath();
+    ctx.fillStyle = f.cor;
+    ctx.globalAlpha = p.opacidade * op * f.opacidade;
+    ctx.fill();
+  }
+  ctx.restore();
+  return true;
+}
+
+function pintarItem(ctx: Contexto, it: ItemPintura, base: Matriz2D, est: EstatisticasPintura, faixas = 0): void {
   const op = it.opacidade;
   ctx.save();
   definir(ctx, base);
@@ -193,6 +247,8 @@ function pintarItem(ctx: Contexto, it: ItemPintura, base: Matriz2D, est: Estatis
       preencher(ctx, p.regra);
       definir(ctx, base);
       est.gradientes++;
+    } else if (p.gradiente && faixas > 0 && pintarEmFaixas(ctx, p, base, it.opacidade, faixas)) {
+      est.gradientesEmFaixas = (est.gradientesEmFaixas ?? 0) + 1;
     } else {
       if (p.gradiente) est.degradacoes.gradiente++;
       ctx.fillStyle = p.cor;
@@ -268,34 +324,89 @@ function pintarItem(ctx: Contexto, it: ItemPintura, base: Matriz2D, est: Estatis
   ctx.restore();
 }
 
+const cachePlanos = new WeakMap<readonly ElementoGrafico[], { camadas: readonly CamadaPrancha[] | undefined; plano: PlanoPintura }>();
+
 /**
- * Pinta os elementos (na ordem de empilhamento, sem os ocultos) no contexto. Não lança: um item com problema é pulado
- * e os demais seguem. Devolve as estatísticas da pintura (para teste e diagnóstico).
+ * Planeja uma vez (contornos, hachuras, pontas, texto: tudo em mm da folha). O plano só é invalidado por mudança nos
+ * elementos ou nas camadas; trocar a matriz (zoom, resolução, exportação) NÃO invalida. Com `cache: true`, o plano é
+ * guardado por referência do array (um array novo, ou outro `camadas`, replaneja).
  */
-export function desenharElementos(ctx: ContextoPrancha2D, elementos: readonly ElementoGrafico[], opcoes: OpcoesPintura = {}): EstatisticasPintura {
+export function planejar(elementos: readonly ElementoGrafico[], opcoes: OpcoesPlano = {}): PlanoPintura {
+  if (!Array.isArray(elementos)) return Object.freeze([]);
+  if (opcoes.cache) {
+    const g = cachePlanos.get(elementos);
+    if (g && g.camadas === opcoes.camadas) return g.plano;
+  }
+  let plano: PlanoPintura;
+  try { plano = Object.freeze(planejarElementos(elementos, opcoes.camadas)); } catch { plano = Object.freeze([]); }
+  if (opcoes.cache) cachePlanos.set(elementos, { camadas: opcoes.camadas, plano });
+  return plano;
+}
+
+function falhar(est: EstatisticasPintura, motivo: string): void {
+  est.falhas++;
+  if (est.primeiraFalha === undefined) est.primeiraFalha = motivo;
+}
+
+/**
+ * Pinta um plano já pronto (`planejar`) no contexto, com a matriz folha → dispositivo. Não lança: um item com problema é
+ * contado em `falhas` e os demais seguem. Sem `setTransform` usa o modo relativo (`transform`); sem nenhum dos dois não
+ * pinta nada, devolve `falhas > 0` e avisa uma vez (em vez de um PDF em branco sem explicação).
+ */
+export function desenharPlano(ctx: ContextoPrancha2D | ContextoPranchaRelativo, plano: PlanoPintura, opcoes: Omit<OpcoesPintura, 'camadas'> = {}): EstatisticasPintura {
   const est: EstatisticasPintura = {
     itens: 0, preenchimentos: 0, gradientes: 0, hachuras: 0, tracos: 0, pontas: 0, textos: 0, sombras: 0,
-    degradacoes: { gradiente: 0, texto: 0 }
+    degradacoes: { gradiente: 0, texto: 0 }, falhas: 0, transformacao: 'nenhuma'
   };
   if (!ctx) return est;
+  const detectado = modoDeTransformacao(ctx);
+  const modo: ModoTransformacao = opcoes.transformacao === 'relativa' && typeof (ctx as ContextoPranchaRelativo).transform === 'function' ? 'relativa'
+    : opcoes.transformacao === 'absoluta' ? (detectado === 'absoluta' ? 'absoluta' : 'nenhuma')
+    : detectado;
+  est.transformacao = modo;
+  const itens: readonly ItemPintura[] = Array.isArray(plano) ? plano : [];
+  const gf = opcoes.gradienteEmFaixas;
+  const faixas = gf === true ? FAIXAS_PADRAO : typeof gf === 'number' && Number.isFinite(gf) && gf >= 2 ? Math.min(256, Math.round(gf)) : 0;
+  if (modo === 'nenhuma') {
+    est.falhas = Math.max(1, itens.length);
+    est.primeiraFalha = 'o contexto não tem setTransform nem transform: nada foi pintado';
+    avisarUmaVez(`${est.primeiraFalha}. Implemente setTransform (absoluto) ou transform; veja diagnosticarContexto().`);
+    return est;
+  }
+  const alvo = (modo === 'relativa' ? adaptarContextoRelativo(ctx as ContextoPranchaRelativo) : ctx) as ContextoPrancha2D;
   const base = opcoes.matriz ? saneada(opcoes.matriz) : IDENTIDADE;
   const f = opcoes.fundo;
   if (f && [f.largura, f.altura].every((v) => Number.isFinite(v) && v > 0)) {
-    ctx.save();
-    definir(ctx, base);
-    ctx.globalAlpha = 1;
-    ctx.fillStyle = corSegura(f.cor, '#ffffff');
-    ctx.fillRect(0, 0, f.largura, f.altura);
-    ctx.restore();
-  }
-  for (const it of planejarElementos(elementos, opcoes.camadas)) {
     try {
-      pintarItem(ctx as Contexto, it, base, est);
-      est.itens++;
-    } catch {
-      // um elemento com defeito não derruba a pintura dos outros; tenta deixar o contexto equilibrado
-      try { ctx.restore(); } catch { /* contexto já sem estado salvo */ }
+      alvo.save();
+      definir(alvo, base);
+      alvo.globalAlpha = 1;
+      alvo.fillStyle = corSegura(f.cor, '#ffffff');
+      alvo.fillRect(0, 0, f.largura, f.altura);
+      alvo.restore();
+    } catch (e) {
+      falhar(est, e instanceof Error ? e.message : String(e));
+      try { alvo.restore(); } catch { /* sem estado salvo */ }
     }
   }
+  for (const it of itens) {
+    try {
+      pintarItem(alvo as Contexto, it, base, est, faixas);
+      est.itens++;
+    } catch (e) {
+      // um elemento com defeito não derruba a pintura dos outros; conta a falha e tenta deixar o contexto equilibrado
+      falhar(est, e instanceof Error ? e.message : String(e));
+      try { alvo.restore(); } catch { /* contexto já sem estado salvo */ }
+    }
+  }
+  if (est.falhas > 0) avisarUmaVez(`${est.falhas} falha(s) ao pintar; primeira: ${est.primeiraFalha}`);
   return est;
+}
+
+/**
+ * Pinta os elementos (na ordem de empilhamento, sem os ocultos) no contexto: `desenharPlano(ctx, planejar(...))`. Não
+ * lança. Devolve as estatísticas da pintura (para teste e diagnóstico), incluindo `falhas`.
+ */
+export function desenharElementos(ctx: ContextoPrancha2D | ContextoPranchaRelativo, elementos: readonly ElementoGrafico[], opcoes: OpcoesPintura = {}): EstatisticasPintura {
+  return desenharPlano(ctx, planejar(elementos, { camadas: opcoes.camadas }), opcoes);
 }

@@ -57,3 +57,25 @@ export const prancha = (
 
 // @ts-expect-error ferramenta fora do conjunto aceito
 export const ferramentaInvalida = <ui-canvas-prancha ferramenta="pincel" />;
+
+export const pranchaModal = (
+  <ui-canvas-prancha
+    margens="25 10 10 10"
+    teclado="exclusivo"
+    ajustar-ao-abrir="conteudo"
+    onprancha-modificado={(e) => e.detail}
+    onprancha-pronta={(e) => e.detail}
+    onprancha-esc-sem-efeito={(e) => e.detail}
+  />
+);
+
+export const editorPrancha = (
+  <ui-editor-prancha
+    largura={297}
+    altura={210}
+    margens="10 10 10 10"
+    ajustar-ao-abrir="folha"
+    oneditor-concluir={(e) => e.detail}
+    oneditor-cancelar={(e) => e.detail}
+  />
+);

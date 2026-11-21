@@ -204,3 +204,58 @@ describe('orçamento do Pathfinder e dos efeitos (Fase 5)', () => {
     expect(tempos.planejarComEfeitos, 'planejarComEfeitos').toBeLessThan(ORCAMENTO_MS * 10);
   });
 });
+
+
+// ---------- requisição do ConecteMapas, item 12: planejar uma vez, pintar várias ----------
+import { desenharElementos, desenharPlano, planejar } from '../src/gerencigeo-canvas/prancha/pintura_canvas';
+import { escala } from '../src/gerencigeo-canvas/espaco/espaco_matriz';
+import { ContextoGravador } from './prancha-contextos';
+
+describe('plano de pintura reutilizável (planejar + desenharPlano)', () => {
+  const els = (n: number): ElementoGrafico[] => {
+    const r = semente(7);
+    return Array.from({ length: n }, (_, i) => criarRetangulo({
+      id: `e${i}`, aparencia: { traco: { espessura: 0.35 }, preenchimento: { cor: '#88c' }, hachura: { espacamento: 1.5 } }
+    }, { x: r() * 400, y: r() * 280, largura: 10 + r() * 30, altura: 10 + r() * 30 })!);
+  };
+
+  it('equivalente: desenharElementos = desenharPlano(planejar(...)) (as mesmas chamadas gravadas)', () => {
+    const lista = els(20);
+    const a = new ContextoGravador();
+    const b = new ContextoGravador();
+    const m = escala(3.5);
+    desenharElementos(a, lista, { matriz: m });
+    desenharPlano(b, planejar(lista), { matriz: m });
+    expect(b.chamadas).toEqual(a.chamadas);
+  });
+
+  it('o plano é congelado e não depende da matriz: o mesmo plano serve para várias matrizes', () => {
+    const plano = planejar(els(5));
+    expect(Object.isFrozen(plano)).toBe(true);
+    const a = new ContextoGravador();
+    const b = new ContextoGravador();
+    desenharPlano(a, plano, { matriz: escala(2) });
+    desenharPlano(b, plano, { matriz: escala(4) });
+    expect(a.geometria).toEqual(b.geometria);
+    expect(a.chamadas.filter(([n]) => n === 'setTransform')[0]).not.toEqual(b.chamadas.filter(([n]) => n === 'setTransform')[0]);
+  });
+
+  it('cache por referência do array: mesma referência reaproveita; array novo ou outras camadas replaneja', () => {
+    const lista = els(3);
+    expect(planejar(lista, { cache: true })).toBe(planejar(lista, { cache: true }));
+    expect(planejar(lista)).not.toBe(planejar(lista)); // sem cache: sempre novo
+    expect(planejar([...lista], { cache: true })).not.toBe(planejar(lista, { cache: true }));
+    const camadas = [{ id: 'k' }];
+    expect(planejar(lista, { cache: true, camadas })).not.toBe(planejar(lista, { cache: true }));
+    expect(planejar(null as never, { cache: true })).toEqual([]);
+  });
+
+  it('repintar 200 elementos com 20 matrizes é ≥ 3× mais rápido que replanejar a cada vez', () => {
+    const lista = els(200);
+    const matrizes = Array.from({ length: 20 }, (_, i) => escala(2 + i * 0.1));
+    const replanejando = mediana(() => { for (const m of matrizes) desenharElementos(new ContextoGravador(), lista.map((e) => ({ ...e })), { matriz: m }); }, 3);
+    const plano = planejar(lista.map((e) => ({ ...e })));
+    const reaproveitando = mediana(() => { for (const m of matrizes) desenharPlano(new ContextoGravador(), plano, { matriz: m }); }, 3);
+    expect(replanejando / reaproveitando).toBeGreaterThanOrEqual(3);
+  });
+});

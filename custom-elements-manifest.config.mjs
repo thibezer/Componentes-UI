@@ -33,7 +33,7 @@ function coletarParts(fonte) {
 
 /** Eventos `ui-*` (e `prancha-*`) disparados em qualquer módulo da pasta do componente (inclusive auxiliares). */
 function coletarEventos(fonte) {
-  const padrao = /(?:new CustomEvent(?:<[^>]*>)?|\.dispararEvento)\(\s*'((?:ui|prancha)-[a-z-]+)'/g;
+  const padrao = /(?:new CustomEvent(?:<[^>]*>)?|\.dispararEvento)\(\s*'((?:ui|prancha|editor)-[a-z-]+)'/g;
   return [...new Set(Array.from(fonte.matchAll(padrao), (m) => m[1]))].sort();
 }
 
@@ -41,7 +41,7 @@ function coletarEventos(fonte) {
  * Nome de evento real: `ui-*`, `prancha-*` (`<ui-canvas-prancha>`, declarados com `@fires`) ou nativo (change, input);
  * descarta variáveis lidas como nome (ex.: `nome`).
  */
-const eventoValido = (nome) => /^(ui|prancha)-[a-z-]+$/.test(nome) || ['change', 'input'].includes(nome);
+const eventoValido = (nome) => /^(ui|prancha|editor)-[a-z-]+$/.test(nome) || ['change', 'input'].includes(nome);
 
 /**
  * Adapta o analisador às convenções do kit:

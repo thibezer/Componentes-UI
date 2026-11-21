@@ -337,10 +337,17 @@ export function renderizarArvoreCamadas(params: ParametrosRenderArvore): string 
   };
 
   const hierarquia = construirHierarquiaCamadas(camadas);
+  // Lista plana: sem camadas, as feições da raiz (`layerId` vazio) aparecem direto, sem cabeçalho de camada
+  const raizPlana = camadas.length === 0 ? (featsByLayer.get('') ?? []).filter((f) => !q || String(f.name ?? '').toLowerCase().includes(q)) : [];
+  const ctxRaiz = criarContextoLinhaFeicao({ id: '', name: '' } as CamadaItem, 0, undefined);
+  const raizHtml = raizPlana
+    .slice(0, limiteFeicoesPorCamada)
+    .map((f) => renderizarLinhaFeicao(f, ctxRaiz, selectedFeatureIds.has(f.id), editingFeatureId === f.id))
+    .join('');
   const camadasHtml =
-    busca && busca.camadasVisiveis.size === 0
+    busca && busca.camadasVisiveis.size === 0 && !raizHtml
       ? `<div class="ui-search-empty" role="status">Nenhum resultado para “${escapeHtml((searchQuery || '').trim())}”</div>`
-      : hierarquia.map((nodo) => renderizarNodo(nodo)).join('');
+      : raizHtml || hierarquia.map((nodo) => renderizarNodo(nodo)).join('');
 
   return `
     ${toolbarHtml}

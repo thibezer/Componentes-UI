@@ -10,8 +10,20 @@ import { ehFerramentaPrancha } from './tipos';
 /** Atributos observados (literais, para o manifesto e os tipos React/Vue). */
 export const ATRIBUTOS_PRANCHA = [
   'largura', 'altura', 'unidade', 'grade', 'mostrar-grade', 'sem-reguas', 'sem-snap', 'sem-guias-inteligentes', 'ferramenta',
-  'rotulo', 'somente-leitura', 'passo-teclado'
+  'rotulo', 'somente-leitura', 'passo-teclado', 'margens', 'teclado', 'ajustar-ao-abrir'
 ] as const;
+
+/** `margens="e d s i"` (mm): 4 números (esquerda direita superior inferior) ou 1 (as quatro). Inválido = sem margens. */
+export function lerMargens(v: string | null): { esquerda: number; direita: number; superior: number; inferior: number } | null {
+  if (!v) return null;
+  const n = v.trim().split(/[\s,;]+/).map((t) => parseFloat(t.replace(',', '.')));
+  if (n.length !== 1 && n.length !== 4) return null;
+  if (!n.every((x) => Number.isFinite(x) && x >= 0 && x <= 100000)) return null;
+  return n.length === 1 ? { esquerda: n[0], direita: n[0], superior: n[0], inferior: n[0] } : { esquerda: n[0], direita: n[1], superior: n[2], inferior: n[3] };
+}
+
+export type ModoAjusteAoAbrir = 'folha' | 'conteudo' | 'nenhum';
+export const lerAjusteAoAbrir = (v: string | null): ModoAjusteAoAbrir => (v === 'conteudo' || v === 'nenhum' ? v : 'folha');
 
 const numero = (v: string | null, padrao: number, min: number, max: number): number => {
   const n = v === null ? NaN : parseFloat(v.replace(',', '.'));
@@ -56,6 +68,9 @@ export function aplicarAtributoPrancha(c: ControladorPrancha, nome: string, valo
       break;
     case 'passo-teclado':
       c.passoTeclado = numero(valor, 1, 0.001, 1000);
+      break;
+    case 'margens':
+      c.margens = lerMargens(valor);
       break;
     default:
       break;

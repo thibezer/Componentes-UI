@@ -33,6 +33,7 @@ Arquitetura e decisões: [`docs/canvas-prancha.md`](../../../docs/canvas-prancha
 | `prancha-teclado.ts` | Atalhos (respeitam `alvo-digitavel.ts`) |
 | `prancha-comandos-organizacao.ts`, `prancha-ferramentas-edicao.ts` | Ordem, grupos, alinhar, duplicar, área de transferência, máscara, operações de caminho; conta-gotas e ferramentas de âncora |
 | `prancha-comandos-pathfinder.ts` | Pathfinder sobre a seleção (Fase 5) |
+| `prancha-paineis.ts` | `ligarPaineisPrancha`: a cola com a paleta, as camadas e as propriedades (por eventos, tipada por estrutura) |
 | `prancha-comandos-propriedades.ts` | `aplicarPropriedade` e `alterarElementos`: os comandos dos painéis (Fase 6) |
 | `prancha-painel-propriedades.ts`, `prancha-painel-camadas.ts`, `prancha-paleta.ts` | Dados no formato do `<ui-tabela-propriedades>`, do `<ui-camadas>` e da `<ui-paleta-ferramentas>` (sem importar esses componentes) |
 | `prancha-medidor-texto.ts` | Medidor de texto com `measureText`, registrado no núcleo |
@@ -57,6 +58,25 @@ camadas.addEventListener('ui-feicao-visibilidade', (e) => prancha.alterarElement
 ```
 
 Migração do layout de impressão do app: [`docs/guia-migracao-prancha.md`](../../../docs/guia-migracao-prancha.md).
+
+## Editor completo, painéis e modal
+
+`<ui-editor-prancha>` (L4) compõe a prancha, a paleta, as camadas, as propriedades e o menu de pré-definições já ligados
+(`import '@thibezer/ui-components-kit/prancha'` registra tudo). Não grava nada: `editor-concluir` entrega
+`{ elementos, camadas, modificado }` e `editor-cancelar` (botão ou Esc sem nada a cancelar) avisa. Atributos: `largura`,
+`altura`, `margens`, `grade`, `mostrar-grade`, `ajustar-ao-abrir`, `teclado` (`exclusivo` por padrão), `somente-leitura`.
+
+```js
+import { ligarPaineisPrancha } from '@thibezer/ui-components-kit/prancha';
+const desligar = ligarPaineisPrancha({ prancha, paleta, camadas, propriedades }); // toda a cola; devolve o desligador
+```
+
+`ligarPaineisPrancha` usa só eventos e propriedades públicas e limpa tudo em `desligar()` (Regra #2). Sem camadas
+definidas, o painel de camadas lista os elementos direto, sem a pseudo-camada "Sem camada"
+(`dadosParaPainelDeCamadas({ ocultarSemCamada: true })`); sem seleção, `categoriasDePropriedades()` mostra a folha e a dica.
+
+Só pintar (tela e PDF), sem o componente: `@thibezer/ui-components-kit/prancha/nucleo` (`planejar`, `desenharPlano`,
+`envelopeVisual`, `ajustarElementosACaixa`, `normalizarParaOrigem`, `ajustarAparenciaEmLote`, `diagnosticarContexto`...).
 
 ## Personalização
 

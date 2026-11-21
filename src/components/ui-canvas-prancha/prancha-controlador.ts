@@ -45,6 +45,8 @@ export class ControladorPrancha {
   public unidade: UnidadePrancha = 'mm';
   public passoTeclado = 1;
   public somenteLeitura = false;
+  /** Margens da folha em mm (guias automáticas e quadro das pré-definições de moldura); `null` = sem margens. */
+  public margens: { esquerda: number; direita: number; superior: number; inferior: number } | null = null;
   /** Gera o id provisório de um elemento novo; o app pode trocar (`gerarId` do host) ou renomear depois. */
   public gerarId: (tipo: string) => string;
   private sequencia = 0;

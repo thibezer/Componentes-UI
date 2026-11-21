@@ -42,17 +42,28 @@ export interface FeicaoPainelPrancha {
 /** Id de camada do painel → `camadaId` da prancha (`null` = sem camada). */
 export const camadaDoPainel = (id: unknown): string | null => (typeof id === 'string' && id !== CAMADA_SEM_CAMADA ? id : null);
 
+export interface OpcoesPainelCamadasPrancha {
+  /**
+   * Sem camadas definidas, não cria a pseudo-camada "Sem camada": devolve `camadas: []` e as feições na RAIZ
+   * (`layerId: ''`), que o `<ui-camadas>` lista direto, sem cabeçalho. Com camadas definidas é ignorado.
+   */
+  ocultarSemCamada?: boolean;
+  /** Atalho: `'simples'` = `ocultarSemCamada: true`. */
+  modo?: 'simples' | 'completo';
+}
+
 /** Camadas e feições para `painel.definirCamadas(camadas, feicoes)`. Nunca lança. */
-export function dadosParaPainelDeCamadas(elementos: readonly ElementoGrafico[], camadas: readonly CamadaPrancha[] = []): { camadas: CamadaPainelPrancha[]; feicoes: FeicaoPainelPrancha[] } {
+export function dadosParaPainelDeCamadas(elementos: readonly ElementoGrafico[], camadas: readonly CamadaPrancha[] = [], opcoes: OpcoesPainelCamadasPrancha = {}): { camadas: CamadaPainelPrancha[]; feicoes: FeicaoPainelPrancha[] } {
   const els = Array.isArray(elementos) ? elementos.filter((e) => e && typeof e === 'object' && e.geometria) : [];
   const ks = Array.isArray(camadas) ? camadas.filter((k) => k && typeof k.id === 'string') : [];
   const conhecidas = new Set(ks.map((k) => k.id));
-  const layerDe = (e: ElementoGrafico): string => (e.camadaId && conhecidas.has(e.camadaId) ? e.camadaId : CAMADA_SEM_CAMADA);
+  const plano = ks.length === 0 && (opcoes?.ocultarSemCamada === true || opcoes?.modo === 'simples');
+  const layerDe = (e: ElementoGrafico): string => (e.camadaId && conhecidas.has(e.camadaId) ? e.camadaId : plano ? '' : CAMADA_SEM_CAMADA);
   const contagem = new Map<string, number>();
   for (const e of els) contagem.set(layerDe(e), (contagem.get(layerDe(e)) ?? 0) + 1);
 
   const saida: CamadaPainelPrancha[] = [];
-  if (contagem.has(CAMADA_SEM_CAMADA) || ks.length === 0) {
+  if (!plano && (contagem.has(CAMADA_SEM_CAMADA) || ks.length === 0)) {
     saida.push({ id: CAMADA_SEM_CAMADA, name: 'Sem camada', visible: true, locked: false, opacity: 1, order: 0, count: contagem.get(CAMADA_SEM_CAMADA) ?? 0 });
   }
   for (const k of [...ks].reverse()) {

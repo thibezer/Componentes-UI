@@ -93,6 +93,34 @@ function geometria(sel: readonly ElementoGrafico[]): ItemPainelPrancha[] {
   return so(itens);
 }
 
+/** O que o painel mostra da folha quando não há seleção. */
+export interface ContextoFolhaPainelPrancha {
+  largura: number;
+  altura: number;
+  unidade?: string;
+  grade?: number;
+  margens?: { esquerda: number; direita: number; superior: number; inferior: number } | null;
+}
+
+const fmt = (n: number): string => String(Math.round(n * 100) / 100).replace('.', ',');
+
+/**
+ * Painel SEM seleção: a folha (tamanho, unidade, grade, margens) em campos somente leitura e uma dica. Quem edita a
+ * folha são os atributos do componente (`largura`, `altura`, `grade`, `margens`); o painel apenas informa.
+ */
+export function categoriasSemSelecao(folha: ContextoFolhaPainelPrancha): CategoriaPainelPrancha[] {
+  const f = folha && Number.isFinite(folha.largura) && Number.isFinite(folha.altura) ? folha : null;
+  const itens: ItemPainelPrancha[] = [{ id: 'dica', rotulo: 'Seleção', tipo: 'readonly', valor: 'Selecione um elemento para editar', dica: 'Clique num elemento ou arraste um retângulo de seleção.' }];
+  if (f) {
+    itens.push({ id: 'folha.tamanho', rotulo: 'Folha', tipo: 'readonly', valor: `${fmt(f.largura)} × ${fmt(f.altura)} mm` });
+    if (f.unidade) itens.push({ id: 'folha.unidade', rotulo: 'Unidade', tipo: 'readonly', valor: f.unidade });
+    if (Number.isFinite(f.grade)) itens.push({ id: 'folha.grade', rotulo: 'Grade', tipo: 'readonly', valor: `${fmt(f.grade as number)} mm` });
+    const m = f.margens;
+    if (m) itens.push({ id: 'folha.margens', rotulo: 'Margens', tipo: 'readonly', valor: `${fmt(m.esquerda)} / ${fmt(m.direita)} / ${fmt(m.superior)} / ${fmt(m.inferior)} mm`, dica: 'esquerda / direita / superior / inferior' });
+  }
+  return [{ id: 'folha', titulo: 'Folha', aberto: true, propriedades: itens }];
+}
+
 /**
  * Categorias do painel para a seleção: Elemento, Posição e tamanho, Traço, Preenchimento e Hachura (formas fechadas e,
  * no preenchimento, texto), Efeitos. Seleção vazia (ou inválida) dá `[]`.

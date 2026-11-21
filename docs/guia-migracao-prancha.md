@@ -1,125 +1,212 @@
-# Guia de migração: moldura do layout de impressão para `<ui-canvas-prancha>`
+# Guia de hospedagem e migração: a prancha do kit dentro de um layout de impressão
 
-Para o app (ConecteMapas): como o `PrintComposer` troca o item `shape` (formas fixas desenhadas no app) pela prancha do
-kit. A regra de ouro continua: **nunca dois desenhos para a mesma forma**. A tela, o PDF e o SVG saem do mesmo pintor
-(`desenharElementos`).
-
-> **Atenção:** o código do app não estava disponível na máquina em que este guia foi escrito. Os nomes dos campos antigos
-> abaixo (`shapeType`, `strokeStyle`, `fillColor`, `borderRadius`, `rotation`, `arrowHead`) vêm do pedido da migração.
-> Confira os valores exatos no `PrintComposer` antes de escrever o conversor, e ajuste só a tabela de valores: o lado do
-> kit (o modelo `ElementoGrafico` e as pré-definições) não muda.
+Escrito a partir da migração real da "Moldura" do ConecteMapas para o `<ui-canvas-prancha>`. A regra de ouro continua:
+**nunca dois desenhos para a mesma forma**. A tela, o PDF e o SVG saem do mesmo pintor (`desenharElementos` /
+`desenharPlano`).
 
 ## 1. O que muda no app
 
-| Hoje (app) | Depois (kit) |
+| Antes (app) | Depois (kit) |
 |---|---|
 | Item `shape` com tipo fixo, desenhado por código do app na tela e de novo no PDF | Elementos `ElementoGrafico` (dados), pintados pelo kit na tela, no PDF e no SVG |
-| Estilo por campos soltos (`strokeStyle`, `fillColor`...) | `aparencia` (traço, pontas de seta, preenchimento, hachura, gradiente, efeitos) |
+| Estilo por campos soltos (`strokeStyle`, `fillColor`...) | `aparencia` (traço, pontas, preenchimento, hachura, gradiente, efeitos) |
 | Edição limitada ao que o app implementou | Seleção, alças, rotação, cantos ao vivo, caneta, Pathfinder, camadas, histórico, teclado |
-| Painel de propriedades próprio | `<ui-tabela-propriedades>` com `prancha.categoriasDePropriedades()` e `prancha.aplicarPropriedade(id, valor)` |
+| Painéis e cola próprios | `<ui-editor-prancha>` (ou `ligarPaineisPrancha`) |
 
-O componente **não grava nada**: devolve as mudanças em eventos e o app decide id, nome e persistência (o mesmo contrato do
-`ui-canvas-cad`).
+O componente **não grava nada**: devolve as mudanças em eventos e o app decide id, nome e persistência.
 
-## 2. O que o app fornece
+## 2. Padrão recomendado de hospedagem num layout
 
-1. **Ids e nomes.** Elementos novos chegam em `prancha-elemento-criado` com um id provisório; o app pode trocá-lo com
-   `prancha.renomearElemento(antigo, novo)` (ou aceitá-lo como está).
-2. **Persistência.** Salve `prancha.obterElementos()` (e `obterCamadas()`) no JSON da prancha. Ouça:
-   `prancha-elemento-criado`, `-atualizado`, `-removido`, `prancha-ordem` e `prancha-camadas`. Para carregar, use
-   `definirElementos(lista)`, ou `aplicarLote({ adicionar, atualizar, remover })` incremental. Nada disso emite evento, então não há laço.
-3. **O contexto do PDF.** O `PdfVectorContext` do app já cumpre o contrato `ContextoPrancha2D` (`save/restore/setTransform`,
-   caminhos, `fill/stroke/clip`, `setLineDash`, `fillRect`). Pinte a moldura com o mesmo código da tela:
+1. **O item guarda** `elementos` em mm **locais ao item** (origem no canto do item) e a `caixaBase` (mm) em que foram
+   desenhados.
+2. **O canvas do item pinta** com o plano e a matriz `escala(pxPorMm)`:
 
    ```js
-   import { escala, translacao, compor } from '@thibezer/ui-components-kit/prancha';
-   // mm da folha → pontos do PDF (72 / 25,4), com a origem do quadro da página
-   const matriz = compor(escala(72 / 25.4), translacao(origemXpt, origemYpt));
-   prancha.desenharEm(pdfCtx, { matriz }); // ou desenharElementos(pdfCtx, elementosSalvos, { matriz, camadas })
+   import { planejar, desenharPlano, escala } from '@thibezer/ui-components-kit/prancha/nucleo';
+   item.plano = planejar(item.elementos);              // uma vez, ao editar
+   desenharPlano(ctx, item.plano, { matriz: escala(pxPorMm) }); // a cada zoom/resolução: barato
    ```
 
-   Gradiente, texto (`fillText`), mesclagem e desfoque da sombra são **capacidades opcionais**. Sem elas, o pintor degrada
-   sem erro: gradiente vira cor sólida, texto não é pintado (o app desenha o texto no PDF, como hoje), mesclagem vira
-   normal e a sombra sai nítida. As estatísticas devolvidas dizem o que degradou.
-4. **A composição dos painéis.** O `pagina_prancha.ts` do playground é a referência da cola entre a prancha, a
-   `<ui-paleta-ferramentas>` (`FERRAMENTAS_PALETA_PRANCHA`), o `<ui-camadas>` (`dadosParaPainelDeCamadas`,
-   `camadasComMudanca`, `camadasNaOrdemDoPainel`, `alterarElementos`) e o `<ui-tabela-propriedades>`.
+   `planejar` calcula contornos, hachuras, pontas e texto em mm da folha. **O que invalida o plano:** qualquer mudança em
+   elementos ou camadas. **O que não invalida:** a matriz (zoom, resolução, exportação). Com `planejar(els, { cache: true })`
+   o plano é guardado por referência do array (trate o array como imutável: copie ao editar).
+3. **O editor abre em modal** com `<ui-editor-prancha>`:
 
-## 3. Mapa dos campos antigos
+   ```js
+   const ed = document.createElement('ui-editor-prancha');
+   ed.setAttribute('largura', caixa.largura); ed.setAttribute('altura', caixa.altura);
+   modal.append(ed);
+   await ed.pronto;
+   ed.elementos = item.elementos;
+   ed.addEventListener('editor-concluir', (e) => aplicar(e.detail.elementos));
+   ed.addEventListener('editor-cancelar', () => modal.close());
+   ```
 
-Cada forma antiga vira uma **pré-definição** do kit, que gera a geometria e a aparência. Depois de criada, a forma é um
-elemento comum, editável como qualquer outro.
+   O teclado da prancha é `exclusivo` nesse modo (ver §6) e o Esc sem nada a cancelar vira `editor-cancelar`.
+4. **Ao concluir**, num único passo de histórico do host: normalize para a origem e reajuste a caixa do item ao envelope:
+
+   ```js
+   import { normalizarParaOrigem, envelopeVisual } from '@thibezer/ui-components-kit/prancha/nucleo';
+   const { elementos, caixa } = normalizarParaOrigem(e.detail.elementos, { minimo: 5 });
+   item.elementos = elementos; item.caixaBase = caixa;       // caixa = { x: 0, y: 0, largura, altura } em mm
+   item.largura = caixa.largura; item.altura = caixa.altura;
+   ```
+
+   `envelopeVisual` mede **tudo o que o pintor desenha** (traço pelo alinhamento, ponta da junção angular, pontas de seta,
+   sombra com desfoque, texto), então o canvas do item não corta nada.
+5. **Ao redimensionar o item**, escale os elementos para a caixa nova (o traço não muda, é em mm da folha):
+
+   ```js
+   import { ajustarElementosACaixa } from '@thibezer/ui-components-kit/prancha/nucleo';
+   item.elementos = ajustarElementosACaixa(item.elementos, item.caixaBase, novaCaixa, { escalarTexto: 'tamanho' });
+   ```
+
+   Garantia testada: espessura, tracejado e pontas de seta **não mudam** com a escala, mesmo não uniforme. Bloqueados são
+   ajustados por padrão (`incluirBloqueados: false` os preserva). Caixa inválida recusa (devolve cópia sem alteração).
+
+## 3. O contexto de pintura (PDF vetorial): o contrato
+
+O pintor chama `ctx.setTransform(a, b, c, d, e, f)` com matrizes **absolutas**, isto é, relativas ao **espaço de exportação
+do contexto** (o estado do contexto quando a pintura começa; identidade num canvas novo ou numa página de PDF recém-aberta),
+**nunca** ao transform corrente no meio da pintura. O contrato mínimo está em `ContextoPrancha2D`; veja o que falta num
+contexto com:
 
 ```js
-import { gerarPredefinicao } from '@thibezer/ui-components-kit/prancha';
-const elementos = gerarPredefinicao(tipo, { x, y, largura, altura }, opcoes); // um array (a moldura dupla gera 2)
+import { diagnosticarContexto } from '@thibezer/ui-components-kit/prancha/nucleo';
+const d = diagnosticarContexto(pdfCtx);
+// d.obrigatorios: o que FALTA do contrato ([] = serve)
+// d.opcionais: capacidades opcionais ausentes ('gradiente', 'texto', 'mesclagem', 'filtro', 'miterLimit')
+// d.transformacao: 'absoluta' (tem setTransform) | 'relativa' (só transform) | 'nenhuma'
+expect(diagnosticarContexto(pdfCtx).obrigatorios).toEqual([]); // um teste de uma linha no app
 ```
 
-### `shapeType` → pré-definição
-
-| `shapeType` (provável) | Pré-definição | Observação |
-|---|---|---|
-| retângulo | `'retangulo'` | |
-| retângulo arredondado | `'retangulo-arredondado'` | `opcoes.raio` = `borderRadius` (mm) |
-| moldura dupla (ABNT) | `'moldura-dupla'` | 2 elementos; `opcoes.espacamento`, `espessuraInterna`; caixa ABNT com `caixaDoQuadroAbnt('A4', 'paisagem')` |
-| elipse / círculo | `'elipse'` / `'circulo'` | |
-| triângulo / losango | `'triangulo'` / `'losango'` | |
-| linha horizontal / vertical / diagonal | `'linha-horizontal'` / `'linha-vertical'` / `'linha-diagonal'` | |
-| seta / seta dupla | `'seta'` / `'seta-dupla'` | `opcoes.ponta` (ver `arrowHead`) |
-
-### Estilo
-
-| Campo antigo | Novo | Conversão |
-|---|---|---|
-| `strokeStyle` contínuo / tracejado / pontilhado / traço-ponto | `opcoes.estiloTraco` | `'continuo'`, `'tracejado'`, `'pontilhado'`, `'traco-ponto'` (viram os tipos de linha CAD do kit) |
-| cor do traço | `opcoes.corTraco` | qualquer cor CSS |
-| espessura do traço | `opcoes.espessura` | **em mm**. Se o app guarda em pt: `pt × 25,4 / 72`; em px a 96 dpi: `px × 25,4 / 96` |
-| `fillColor` | `opcoes.corPreenchimento` | ausente ou `'transparent'` = sem preenchimento |
-| `borderRadius` | `opcoes.raio` | mm; depois é editável ao vivo (marcas nos cantos) |
-| `rotation` | `transformacao` | graus, em torno do centro: aplique `girarElementos(elementos, graus × π / 180)` ao resultado |
-| `arrowHead` | `opcoes.ponta` | `{ estilo: 'triangulo' \| 'triangulo-aberto' \| 'aberta' \| 'circulo' \| 'quadrado' \| 'losango' \| 'barra', escala? }`; nas setas, `aparencia.traco.pontaInicio`/`pontaFim` |
-
-### Conversor (fica no app: é o formato antigo do app)
+**Contexto sem `setTransform`** (só `translate/scale/rotate/transform`, relativos): o pintor detecta e usa o modo
+**relativo** sozinho (`opcoes.transformacao: 'relativa'` força). Ele rastreia o transform corrente e a pilha de
+`save/restore` e emite `transform(inverse(atual) · M)`. Para quem prefere implementar o absoluto no próprio contexto:
 
 ```js
-import { gerarPredefinicao, girarElementos } from '@thibezer/ui-components-kit/prancha';
+// M_base = o transform do contexto no início da pintura; guarde-o ao criar a página
+setTransform(a, b, c, d, e, f) {
+  const T = [a, b, c, d, e, f];                          // absoluto, em coordenadas do espaço de exportação
+  this.transform(...multiplicar(inversa(this.matrizAtual), multiplicar(M_base, T)));
+}
+```
 
-const TIPO = { rectangle: 'retangulo', 'rounded-rectangle': 'retangulo-arredondado', /* ...confira os valores reais... */ };
-const ESTILO = { solid: 'continuo', dashed: 'tracejado', dotted: 'pontilhado', 'dash-dot': 'traco-ponto' };
+**O pintor nunca falha em silêncio.** As estatísticas trazem `falhas` (itens que lançaram ou que não puderam ser pintados) e
+`primeiraFalha` (a mensagem); sem `setTransform` **nem** `transform` nada é pintado, `falhas > 0` e um aviso único vai ao
+`console.warn`. Confira `falhas === 0` ao exportar.
+
+**Texto no PDF:** o pintor escreve `ctx.font = "<corpo em mm>px <fonte>"`, `textBaseline = 'alphabetic'`, `textAlign`
+(`left|center|right`), e chama `fillText(linha, 0, i × corpo × 1,2)` com a matriz do elemento (rotação/cisalhamento) já no
+transform. Portanto o contexto precisa interpretar o tamanho da fonte **nas unidades do transform corrente** (como o Canvas):
+com `escala(72 / 25,4)` o corpo de 4 mm sai com 11,3 pt. `texto.largura` **não quebra linhas**: só dimensiona a caixa (a
+quebra é por `\n`); `measureText` é opcional (sem ele a caixa é estimada em 0,55 do corpo por caractere).
+
+**Gradiente no PDF:** sem `createLinearGradient`, vira cor sólida. Opcional: `{ gradienteEmFaixas: true }` (24 faixas
+sólidas recortadas pela forma; ou o número de 2 a 256) aproxima o gradiente **linear** vetorialmente; radial segue sólido.
+As estatísticas dizem quando usou (`gradientesEmFaixas`).
+
+```js
+import { desenharPlano, escala, translacao, compor } from '@thibezer/ui-components-kit/prancha/nucleo';
+const matriz = compor(escala(72 / 25.4), translacao(origemXpt, origemYpt));
+const est = desenharPlano(pdfCtx, item.plano, { matriz, gradienteEmFaixas: true });
+if (est.falhas) console.error(est.primeiraFalha);
+```
+
+## 4. Valores reais do formato antigo do ConecteMapas
+
+| Campo | Valores |
+|---|---|
+| `shapeType` | `rect`, `rounded_rect`, `double_frame`, `ellipse`, `triangle`, `diamond`, `line_h`, `line_v`, `line_diag`, `arrow` |
+| `strokeStyle` | `solid`, `dashed`, `dotted`, `dash_dot` |
+| `arrowHead` | `end`, `both` |
+| `strokeWidth`, `borderRadius` | **px a 96 dpi**: mm = px ÷ 3,78 (o app usa 3,78 para não mudar a aparência; o kit usa `MM_POR_PX = 25,4 / 96`) |
+| `fillColor` | `rgba()` |
+| `rotation` | graus, em torno do centro da caixa, **sem alterar a caixa** (a migração gira os elementos e reajusta a caixa) |
+
+```js
+import { gerarPredefinicao, girarElementos, ROTULOS_PREDEFINICOES } from '@thibezer/ui-components-kit/prancha/nucleo';
+
+const TIPO = {
+  rect: 'retangulo', rounded_rect: 'retangulo-arredondado', double_frame: 'moldura-dupla', ellipse: 'elipse', triangle: 'triangulo',
+  diamond: 'losango', line_h: 'linha-horizontal', line_v: 'linha-vertical', line_diag: 'linha-diagonal'
+};
+const ESTILO = { solid: 'continuo', dashed: 'tracejado', dotted: 'pontilhado', dash_dot: 'traco-ponto' };
+const MM = 3.78;
 
 export function migrarShape(item) {
-  const tipo = TIPO[item.shapeType];
-  if (!tipo) return []; // forma desconhecida: registre e mantenha o item antigo
-  const caixa = { x: item.x, y: item.y, largura: item.width, altura: item.height }; // em mm
+  const arrow = item.shapeType === 'arrow';
+  const tipo = arrow ? (item.arrowHead === 'both' ? 'seta-dupla' : 'seta') : TIPO[item.shapeType];
+  if (!tipo) return [];
+  const caixa = { x: item.x, y: item.y, largura: item.width, altura: item.height };
   let els = gerarPredefinicao(tipo, caixa, {
     id: item.id,
     estiloTraco: ESTILO[item.strokeStyle] ?? 'continuo',
     corTraco: item.strokeColor,
-    espessura: item.strokeWidth,                // converta para mm se preciso
-    corPreenchimento: item.fillColor && item.fillColor !== 'transparent' ? item.fillColor : undefined,
-    raio: item.borderRadius,
-    ponta: item.arrowHead ? { estilo: 'triangulo' } : undefined
+    espessura: item.strokeWidth / MM,
+    corPreenchimento: item.fillColor,         // rgba(): o alfa vira opacidade na aparência
+    raio: item.borderRadius / MM,
+    alinhamentoTraco: 'dentro',                // a borda externa do traço encosta na caixa (como a borda CSS antiga)
+    preenchimentoNa: 'externa',                // moldura dupla: o fundo cobre o espaço entre as linhas
+    recuo: tipo.startsWith('linha') || arrow ? 1 / MM : undefined
   });
   if (item.rotation) els = girarElementos(els, (item.rotation * Math.PI) / 180);
   return els;
 }
 ```
 
-## 4. Pranchas já salvas
+`ROTULOS_PREDEFINICOES` e `ITENS_PREDEFINICOES` dão os rótulos pt-BR e a lista ordenada para o menu; `inserirPredefinicao`
+sem caixa insere no **centro da área visível** (tamanho proporcional ao zoom, selecionada); com
+`{ quadro: 'margens' }` (e o atributo `margens`) usa o quadro das margens da folha.
 
-- **Na leitura, não em massa.** Ao abrir uma prancha com a versão antiga do JSON, converta os itens `shape` com
-  `migrarShape`, carregue com `definirElementos` e grave com uma versão nova (`{ versao: 2, elementos, camadas }`) no
-  próximo salvamento. A prancha antiga continua legível.
-- **Valide.** `definirElementos` devolve `{ aceitos, recusados }`: o que não converter fica registrado (motivo por índice) e
-  não derruba a página.
-- **Compare.** Exporte o SVG antes (o PDF atual) e depois (`prancha.exportarSvg()`) das pranchas de referência e confira
-  visualmente as molduras ABNT.
+## 5. Armadilhas encontradas
 
-## 5. Atualização
+- **`transformarElementos` (plural) pula elementos `bloqueado`.** Em lote isso surpreende; use `ajustarElementosACaixa` ou
+  `normalizarParaOrigem` (que movem todos) ou `transformarElemento` um a um.
+- **`inserirPredefinicao` sem caixa**: até a 2.22 caía na folha com 10 mm de margem, que podia estar **fora da vista**; agora
+  nasce no centro da vista.
+- **`moldura-dupla` põe o preenchimento na linha interna**; para o fundo cobrir o espaço entre as linhas use
+  `preenchimentoNa: 'externa'`.
+- **Contexto sem `setTransform`** (o PDF do app): era um PDF em branco sem erro; veja §3.
+- **Teclado em hospedeiro com atalhos globais**: ver §6.
+- **Espessura de pré-definição inválida** caía no padrão 0,35 mm; para "sem traço" use `semTraco: true`.
 
-1. O dono publica a versão do kit (ver `docs/protocolo-de-release-e-sincronizacao.md`).
-2. No app: `npm install @thibezer/ui-components-kit@<versão>` e `import '@thibezer/ui-components-kit/prancha'` (entrada sem
-   Leaflet).
-3. Troque o item `shape` do `PrintComposer` por um `<ui-canvas-prancha largura="…" altura="…">` sobre a área da página,
-   ligue os eventos de persistência (item 2) e o PDF (`desenharEm`).
-4. Retire o código de desenho das formas do app (tela e PDF): a forma passa a ter um desenho só, o do kit.
+## 6. Teclado em hospedeiro com atalhos globais
+
+- Quando a prancha **trata** uma tecla, chama `preventDefault()` + `stopPropagation()` e marca o evento: o atalho global do
+  hospedeiro pode ignorar com `if (eventoTratadoPelaPrancha(e)) return;` (`e.defaultPrevented` também vale). Garantia
+  testada com um `keydown` global registrado antes da prancha.
+- `teclado="exclusivo"` (uso em modal): a prancha captura as teclas da página inteira, em fase de captura, enquanto
+  montada, sem roubar teclas de campos de texto. `<ui-editor-prancha>` já usa.
+- `prancha-esc-sem-efeito`: Esc sem gesto, âncoras, isolamento nem seleção a cancelar (a cadeia é: gesto → âncoras →
+  grupo isolado → seleção → este evento). O hospedeiro fecha o modal aqui.
+
+## 7. Dados vindos de fora
+
+Sempre passe o JSON salvo (nuvem, `localStorage`) por `normalizarElementos` ao carregar, com um teto de elementos:
+
+```js
+import { normalizarElementos } from '@thibezer/ui-components-kit/prancha/nucleo';
+const { elementos, recusados } = normalizarElementos(JSON.parse(bruto).slice(0, 5000)); // elementos aceitos + { indice, motivo }
+if (recusados.length) console.warn('descartados:', recusados);
+prancha.definirElementos(elementos); // também devolve { aceitos, recusados }
+```
+
+## 8. Persistência, pranchas já salvas e atualização
+
+- **Persistência.** Salve `obterElementos()` (e `obterCamadas()`). Para saber se há o que salvar: `modificado`, `revisao`,
+  `marcarComoSalvo()` e o evento `prancha-modificado` (só nas transições); `await prancha.pronto` antes de enquadrar;
+  `ajustarElementos(ids?, { margem, zoomMaximo })` enquadra sem mexer na seleção; atributo `ajustar-ao-abrir`
+  (`folha` | `conteudo` | `nenhum`).
+- **Na leitura, não em massa.** Converta os itens `shape` antigos com `migrarShape` ao abrir, carregue e grave a versão nova
+  no próximo salvamento.
+- **Compare.** Exporte o SVG antes e depois das pranchas de referência e confira as molduras ABNT.
+- **Atualização.** O dono publica a versão (ver `docs/protocolo-de-release-e-sincronizacao.md`); no app,
+  `npm install @thibezer/ui-components-kit@<versão>`. Quem só pinta importa de `@thibezer/ui-components-kit/prancha/nucleo`
+  (sem o componente); o editor entra sob demanda: `const { } = await import('@thibezer/ui-components-kit/prancha')`.
+
+## 9. Qual é o painel de propriedades oficial
+
+`<ui-tabela-propriedades>` é a tag **oficial**. `<ui-painel-propriedades>` e `<ui-propriedades>` são **aliases suportados por
+contrato** (registrados pelo kit, mesma classe, com tipos para HTML, React e Vue; ver `CHANGELOG.md`, 2.x). Os apps podem usar
+qualquer uma, mas novos códigos devem usar `ui-tabela-propriedades`.
