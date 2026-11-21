@@ -86,6 +86,7 @@ Nada é criado por padrão: o consumidor escolhe as camadas (`definirFeicoes`). 
 | `layer_hit_test.ts`, `feature_amostra.ts` | Hit-test unificado (tolerância em px, prioridade, alternância de cliques); feição sob um ponto |
 | `feature_selecao.ts`, `feature_caixa.ts`, `feature_popup.ts` | Seleção única/múltipla, caixa Window/Crossing com toque geométrico real, popup único |
 | `feature_snap.ts`, `feature_edicao_ops.ts`, `feature_editor_vertices.ts` | Snap (vértice > meio > aresta), operações de vértices, editor com alças e HUD |
+| `feature_edicao_nos.ts`, `feature_editor_painel_no.ts` | Edição fina de curvas: tipo do nó, alça por comprimento/azimute, moldar segmento, arco por raio, concordância (puras) e o painel do nó no HUD |
 | `feature_desenho.ts`, `feature_desenho_controle.ts`, `feature_algoritmos.ts` | 11 ferramentas, caneta Bézier, medição, divisão/junção/buffer/deslocamento, unidades, DD ⇄ DMS |
 | `feature_versoes.ts`, `feature_cursores.ts`, `feature_metricas.ts` | Oficial × prévia, cursores remotos, áreas/comprimentos/formatação pt-BR |
 | `espaco/` | Espaço de coordenadas: `ESPACO_GEOGRAFICO` (padrão de todo o núcleo, bit a bit igual ao comportamento anterior) e `ESPACO_PLANO` (folha em mm, y para baixo); matriz afim 2D. Ver [`docs/canvas-prancha.md`](../../docs/canvas-prancha.md) |

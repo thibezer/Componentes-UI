@@ -1,6 +1,32 @@
-import type { GeometriaFeicao, LatLonPar, NoCurva } from './feature_types';
+import type { GeometriaFeicao, LatLonPar, ModoNo, NoCurva } from './feature_types';
 
-export type { NoCurva };
+export type { NoCurva, ModoNo };
+
+/** Tipo de um nó: sem alças é `canto`; com alças, o modo gravado ou o deduzido da geometria das alças. */
+export type TipoNo = 'canto' | ModoNo;
+
+const MODOS: ReadonlySet<string> = new Set<ModoNo>(['simetrico', 'suave', 'livre']);
+const TOLERANCIA_ALINHAMENTO = 1e-6;
+
+/**
+ * Tipo do nó. Com uma só alça vale `simetrico` (o que o editor sempre fez: a outra nasce como espelho).
+ * Com as duas e sem `modo`: espelhadas = `simetrico`, alinhadas = `suave`, o resto = `livre`.
+ */
+export function tipoDoNo(no: NoCurva): TipoNo {
+  if (!no.entrada && !no.saida) return 'canto';
+  if (no.modo && MODOS.has(no.modo)) return no.modo;
+  if (!no.entrada || !no.saida) return 'simetrico';
+  const ax = no.ponto[0] - no.entrada[0];
+  const ay = no.ponto[1] - no.entrada[1];
+  const bx = no.saida[0] - no.ponto[0];
+  const by = no.saida[1] - no.ponto[1];
+  const la = Math.hypot(ax, ay);
+  const lb = Math.hypot(bx, by);
+  if (la === 0 || lb === 0) return 'livre';
+  const alinhadas = Math.abs(ax * by - ay * bx) <= TOLERANCIA_ALINHAMENTO * la * lb && ax * bx + ay * by > 0;
+  if (!alinhadas) return 'livre';
+  return Math.abs(la - lb) <= TOLERANCIA_ALINHAMENTO * Math.max(la, lb) ? 'simetrico' : 'suave';
+}
 
 /*
  * Curvas de Bézier cúbicas (puras, sem Leaflet). Uma curva é uma lista de nós; entre dois nós vizinhos há um
@@ -118,6 +144,7 @@ export function normalizarNos(bruto: unknown, minimo = MIN_NOS_CURVA): NoCurva[]
     const no: NoCurva = { ponto: [r.ponto[0], r.ponto[1]] };
     if (ehPar(r.entrada)) no.entrada = [r.entrada[0], r.entrada[1]];
     if (ehPar(r.saida)) no.saida = [r.saida[0], r.saida[1]];
+    if (typeof r.modo === 'string' && MODOS.has(r.modo) && (no.entrada || no.saida)) no.modo = r.modo;
     nos.push(no);
   }
   return temAlcas(nos) ? nos : null;
@@ -129,6 +156,7 @@ export function moverNos(nos: readonly NoCurva[], mover: (p: LatLonPar) => LatLo
     const novo: NoCurva = { ponto: mover(n.ponto) };
     if (n.entrada) novo.entrada = mover(n.entrada);
     if (n.saida) novo.saida = mover(n.saida);
+    if (n.modo) novo.modo = n.modo;
     return novo;
   });
 }

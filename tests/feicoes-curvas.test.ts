@@ -297,6 +297,7 @@ describe('alças: editor', () => {
     totalAlcasBezier: number;
     arrastarAlcaPara(i: number, q: 'entrada' | 'saida', c: LatLonPar, independente?: boolean): void;
     alternarSuavidadeDoNo(i: number): void;
+    selecionarNo(i: number | null): void;
   };
   const editor = (g: GerenciadorFeicoes) => (g as unknown as { editor: Editor }).editor;
   const nosDe = (g: GerenciadorFeicoes) => (g.obterFeicoes('c')[0].geometria as { curva?: NoCurva[] }).curva;
@@ -322,23 +323,26 @@ describe('alças: editor', () => {
     const g = novo();
     g.definirFeicoes('c', [{ id: 'k', geometria: { tipo: 'LineString', coordenadas: [[-23.5, -46.6], [-23.5, -46.595], [-23.5, -46.59]] } }]);
     g.iniciarEdicao('c', 'k');
-    expect(editor(g).totalAlcasBezier).toBe(4); // latentes: sempre à mão (pontas só têm a alça que olha o vizinho)
+    expect(editor(g).totalAlcasBezier).toBe(0); // poligonal sem nó selecionado: nada de alças (só as das curvas existentes)
+    editor(g).selecionarNo(1); // o 1º clique do duplo clique seleciona o nó
+    expect(editor(g).totalAlcasBezier).toBe(2); // alças latentes do nó selecionado, à mão para curvar
     editor(g).alternarSuavidadeDoNo(1);
     expect(nosDe(g)).toHaveLength(3);
-    expect(editor(g).totalAlcasBezier).toBe(4);
+    expect(editor(g).totalAlcasBezier).toBe(2);
     editor(g).alternarSuavidadeDoNo(1);
     expect(nosDe(g)).toBeUndefined();
-    expect(editor(g).totalAlcasBezier).toBe(4);
+    expect(editor(g).totalAlcasBezier).toBe(2);
   });
 
   it('alça latente de uma poligonal pode ser arrastada e vira curva', () => {
     const g = novo();
     g.definirFeicoes('c', [{ id: 'k', geometria: { tipo: 'LineString', coordenadas: [[-23.5, -46.6], [-23.5, -46.59]] } }]);
     g.iniciarEdicao('c', 'k');
-    expect(editor(g).totalAlcasBezier).toBe(2);
+    editor(g).selecionarNo(0);
+    expect(editor(g).totalAlcasBezier).toBe(1); // a ponta só tem a alça que olha o vizinho
     expect(nosDe(g)).toBeUndefined();
     editor(g).arrastarAlcaPara(0, 'saida', [-23.49, -46.597]);
     expect(nosDe(g)![0].saida).toEqual([-23.49, -46.597]);
-    expect(editor(g).totalAlcasBezier).toBe(3);
+    expect(editor(g).totalAlcasBezier).toBe(2);
   });
 });

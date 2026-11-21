@@ -126,6 +126,7 @@ function normalizarCurva(bruta: unknown, opcoes?: OpcoesNormalizacao): NoCurva[]
     const saida = n.saida && normalizarCoordenada(n.saida, { ...opcoes, aceitarOrigem: true });
     if (entrada) no.entrada = entrada;
     if (saida) no.saida = saida;
+    if (n.modo && (entrada || saida)) no.modo = n.modo;
     nova.push(no);
   }
   return nova;
