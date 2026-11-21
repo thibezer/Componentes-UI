@@ -13,15 +13,23 @@
   height: 100%;
 }
 
+/* Cantos concêntricos: raio interno = raio externo − distância entre as bordas.
+   --_raio       raio externo do card (próprio > herdado de um card pai > token de contêiner);
+   --_distancia  folga entre a borda do card e o conteúdo (padding das seções);
+   --ui-raio-aninhado (exposto às seções) é o raio que um filho encostado no conteúdo deve usar
+   (card aninhado, imagem, botão em bloco): max(0, raio − distância). */
 .ui-card {
+  --_borda: 1px;
+  --_distancia: var(--ui-card-padding, 16px);
+  --_raio: var(--ui-card-raio, var(--ui-raio-aninhado, var(--ui-raio-lg, 10px)));
   display: flex;
   flex-direction: column;
   width: 100%;
   height: 100%;
   box-sizing: border-box;
   background: var(--ui-degrade-interno, var(--ui-card-fundo, var(--ui-fundo-card, var(--ui-cor-fundo-card, #18181c))));
-  border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
-  border-radius: var(--ui-raio-borda, 8px);
+  border: var(--_borda) solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
+  border-radius: var(--_raio);
   overflow: hidden;
   transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s ease;
   color: var(--ui-cor-texto, #e1e1e6);
@@ -102,6 +110,20 @@
   pointer-events: none;
 }
 
+/* Escala de raio por atributo `raio` (escolhe a base; os filhos continuam derivando dela) */
+.ui-card--raio-nenhum { --_raio: 0px; }
+.ui-card--raio-sm { --_raio: var(--ui-raio-sm, 4px); }
+.ui-card--raio-md { --_raio: var(--ui-raio-borda, 6px); }
+.ui-card--raio-lg { --_raio: var(--ui-raio-lg, 10px); }
+.ui-card--raio-xl { --_raio: var(--ui-raio-xl, 16px); }
+
+/* Raio que o conteúdo das seções herda: concêntrico ao card (a borda também entra na conta) */
+.ui-card__header,
+.ui-card__body,
+.ui-card__footer {
+  --ui-raio-aninhado: max(0px, calc(var(--_raio) - var(--_distancia) - var(--_borda)));
+}
+
 /* Seções do Card (Slots) */
 .ui-card__media {
   width: 100%;
@@ -144,6 +166,9 @@
 }
 
 /* Variação Compacta */
+.ui-card--compacto {
+  --_distancia: var(--ui-card-padding, 12px);
+}
 .ui-card--compacto .ui-card__header {
   padding: 10px 12px 6px 12px;
 }
@@ -154,13 +179,13 @@
   padding: 8px 12px 10px 12px;
 }
 
-/* Customização Squarecircles */
-:host(.squarecircle) .ui-card,
-:host(.squarecircles) .ui-card,
-:host(.ui-squarecircle) .ui-card,
-:host(.ui-squarecircles) .ui-card,
-:host([formato="squarecircle"]) .ui-card,
-:host([formato="squarecircles"]) .ui-card,
-:host([formato="squircle"]) .ui-card {
-  border-radius: var(--ui-raio-lg, 12px);
+/* Customização Squarecircles: cantos mais generosos (um degrau acima), sem perder a derivação concêntrica */
+:host(.squarecircle) .ui-card:not([class*="ui-card--raio-"]),
+:host(.squarecircles) .ui-card:not([class*="ui-card--raio-"]),
+:host(.ui-squarecircle) .ui-card:not([class*="ui-card--raio-"]),
+:host(.ui-squarecircles) .ui-card:not([class*="ui-card--raio-"]),
+:host([formato="squarecircle"]) .ui-card:not([class*="ui-card--raio-"]),
+:host([formato="squarecircles"]) .ui-card:not([class*="ui-card--raio-"]),
+:host([formato="squircle"]) .ui-card:not([class*="ui-card--raio-"]) {
+  --_raio: var(--ui-card-raio, var(--ui-raio-xl, 16px));
 }
