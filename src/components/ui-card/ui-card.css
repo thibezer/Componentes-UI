@@ -16,12 +16,12 @@
 /* Cantos concêntricos: raio interno = raio externo − distância entre as bordas.
    --_raio       raio externo do card (próprio > herdado de um card pai > token de contêiner);
    --_distancia  folga entre a borda do card e o conteúdo (padding das seções);
-   --ui-raio-aninhado (exposto às seções) é o raio que um filho encostado no conteúdo deve usar
+   --ui-card-raio-aninhado (exposto às seções) é o raio que um filho encostado no conteúdo deve usar
    (card aninhado, imagem, botão em bloco): max(0, raio − distância). */
 .ui-card {
   --_borda: 1px;
   --_distancia: var(--ui-card-padding, 16px);
-  --_raio: var(--ui-card-raio, var(--ui-raio-aninhado, var(--ui-raio-lg, 10px)));
+  --_raio: var(--ui-card-raio, var(--ui-card-raio-aninhado, var(--ui-raio-lg, 10px)));
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -121,7 +121,7 @@
 .ui-card__header,
 .ui-card__body,
 .ui-card__footer {
-  --ui-raio-aninhado: max(0px, calc(var(--_raio) - var(--_distancia) - var(--_borda)));
+  --ui-card-raio-aninhado: max(0px, calc(var(--_raio) - var(--_distancia) - var(--_borda)));
 }
 
 /* Seções do Card (Slots) */

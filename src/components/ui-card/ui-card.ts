@@ -26,7 +26,7 @@ const RAIOS = ['nenhum', 'sm', 'md', 'lg', 'xl'] as const;
  * @slot rodape - Ações e metadados (alias `footer`); a seção some quando vazia.
  * @cssprop --ui-card-raio - Raio do card (vence o escalonamento e a derivação concêntrica).
  * @cssprop --ui-card-padding - Folga entre a borda e o conteúdo usada no cálculo do raio concêntrico (16px; 12px no `compacto`).
- * @cssprop --ui-raio-aninhado - Somente leitura nas seções: `max(0, raio − folga − borda)`, o raio de um filho que acompanha o canto.
+ * @cssprop --ui-card-raio-aninhado - Somente leitura nas seções: `max(0, raio − folga − borda)`, o raio de um filho que acompanha o canto.
  * @csspart base - O contêiner do card.
  * @csspart midia - A seção de mídia.
  * @csspart cabecalho - A seção de cabeçalho.

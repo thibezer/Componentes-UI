@@ -47,12 +47,12 @@ describe('UICard: cantos concêntricos e escala de raio', () => {
 
   it('o CSS deriva o raio do filho: max(0, raio − folga − borda), exposto nas três seções', () => {
     expect(css).toMatch(
-      /\.ui-card__header,\s*\.ui-card__body,\s*\.ui-card__footer\s*\{[^}]*--ui-raio-aninhado:\s*max\(0px,\s*calc\(var\(--_raio\)\s*-\s*var\(--_distancia\)\s*-\s*var\(--_borda\)\)\)/s
+      /\.ui-card__header,\s*\.ui-card__body,\s*\.ui-card__footer\s*\{[^}]*--ui-card-raio-aninhado:\s*max\(0px,\s*calc\(var\(--_raio\)\s*-\s*var\(--_distancia\)\s*-\s*var\(--_borda\)\)\)/s
     );
   });
 
   it('o raio do card herda do card pai (aninhado) e o próprio token vence', () => {
-    expect(css).toMatch(/--_raio:\s*var\(--ui-card-raio,\s*var\(--ui-raio-aninhado,\s*var\(--ui-raio-lg/);
+    expect(css).toMatch(/--_raio:\s*var\(--ui-card-raio,\s*var\(--ui-card-raio-aninhado,\s*var\(--ui-raio-lg/);
     expect(css).toMatch(/border-radius:\s*var\(--_raio\)/);
   });
 

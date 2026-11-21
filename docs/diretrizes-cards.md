@@ -14,11 +14,11 @@ No `ui-card` a distância é a **folga** (padding das seções) mais a borda de 
 | :-- | :-- | :-- |
 | `--ui-card-raio` | consumidor | Raio do card. Vence tudo (inclusive a derivação do pai). |
 | `--ui-card-padding` | consumidor | Folga usada na conta (padrão 16 px; 12 px em `compacto`). Informe-a se mudar o padding das seções. |
-| `--ui-raio-aninhado` | card (somente leitura) | Dentro de cabeçalho/corpo/rodapé: `max(0, raio − folga − borda)`. |
+| `--ui-card-raio-aninhado` | card (somente leitura) | Dentro de cabeçalho/corpo/rodapé: `max(0, raio − folga − borda)`. |
 
 Regras de uso:
 
-1. **Filho que acompanha o canto** (imagem, bloco colorido, botão em largura total): `border-radius: var(--ui-raio-aninhado)`.
+1. **Filho que acompanha o canto** (imagem, bloco colorido, botão em largura total): `border-radius: var(--ui-card-raio-aninhado)`.
 2. **Card dentro de card** herda sozinho: o raio do filho já é `raio do pai − folga − borda`, sem configurar nada.
 3. **Mídia no topo (`slot="midia"`)** encosta na borda: o `overflow: hidden` do card a recorta com o raio já descontado da borda; não arredonde a imagem por conta própria.
 4. **Piso em 0.** Se a folga for maior que o raio o filho fica reto, que é a geometria correta. Para um filho arredondado mesmo assim, aumente o raio do card (`raio="xl"`) ou reduza a folga.

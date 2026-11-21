@@ -9,7 +9,7 @@
 ### `<ui-card>`: cantos concêntricos e diretrizes
 
 - **Raio padrão do card passa de `--ui-raio-borda` (6 px) para `--ui-raio-lg` (10 px)**: card é contêiner, não controle.
-- **Cantos concêntricos:** as seções expõem `--ui-raio-aninhado` = `max(0, raio − folga − borda)`; cards aninhados herdam
+- **Cantos concêntricos:** as seções expõem `--ui-card-raio-aninhado` = `max(0, raio − folga − borda)`; cards aninhados herdam
   o raio do pai já descontado. Novas variáveis `--ui-card-raio` e `--ui-card-padding`.
 - **Atributo `raio`** (`nenhum|sm|md|lg|xl`, alias `radius`); vence o `formato="squircle"` (que agora usa `xl`).
 - Diretrizes em `docs/diretrizes-cards.md`.
