@@ -9,6 +9,10 @@ export * from './components/ui-lista-flutuante';
 export * from './components/ui-checkbox';
 export * from './components/ui-radio';
 export * from './components/ui-switch';
+export * from './core/form-campos';
+export * from './core/form-rascunho';
+export * from './core/form-preenchimento';
+export * from './core/form-erros';
 
 import type { UICampoTexto, UIInput } from './components/ui-campo-texto';
 import type { UIAreaTexto, UITextarea } from './components/ui-area-texto';

@@ -12,6 +12,10 @@ export * from './acessibilidade';
 export * from './altura-controle';
 export * from './svg-seguro';
 export * from './degrade';
+export * from './form-campos';
+export * from './form-rascunho';
+export * from './form-preenchimento';
+export * from './form-erros';
 
 // Inicialização automática das ações declarativas Zero-JS
 import { initZeroJSTriggers } from './zero-js-triggers';
