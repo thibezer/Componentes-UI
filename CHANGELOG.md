@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.21.0 — 2026-11-20
+
+### `<ui-ribbon>`: responsividade inteligente
+
+- **Correção:** o colapso automático de grupos nunca disparava num navegador real (media-se `scrollWidth` do contêiner dos grupos, que é `width: max-content`, em vez do painel) e, quando disparava, dava um passo por notificação. Agora o espaço medido é o do painel, e vários degraus se resolvem de uma vez.
+- **Degradê em níveis, por prioridade (`ribbon-colapso.ts`, $L_2$ puro):** ao faltar espaço, grupos de menor `prioridade` (empate: da direita para a esquerda) passam por 1) botões pequenos **só com ícone** (rótulo mantido em tooltip e `aria-label`) e 2) **botão único com flyout**. Todos perdem rótulos antes de qualquer grupo virar flyout; níveis que não estreitam o grupo são pulados; ao alargar tudo volta (sem histerese). As larguras são medidas uma vez por aba (cache invalidado ao trocar `abas`, `compacto` ou alterar itens com `atualizarItem`) e a renderização só muda quando o resultado muda, sem laço com o `ResizeObserver`.
+- **Sem media query de janela:** removida a regra `@media (max-width: 720px)` que escondia rótulos pelo tamanho da janela (e os tirava do nome acessível); o espaço real do painel decide, inclusive em painéis laterais estreitos.
+- **`recolher-abaixo` / `recolherAbaixo` (px):** a faixa se recolhe sozinha abaixo da largura indicada e é restaurada ao alargar, mas só se foi recolhida automaticamente; a escolha manual do usuário nunca é desfeita e só se age ao cruzar o limite. Emite `ui-recolhido-change`.
+- **Menu "mais abas" (`::part(mais-abas)`, atributo `rotulo-mais-abas`):** quando as abas não cabem, aparece um botão `⌄` ao lado da lista que abre um menu com todas as abas visíveis (a ativa marcada); escolher uma seleciona, emite `ui-aba-change` e foca a aba. Teclado: Enter/Espaço/Seta para baixo abrem com foco no primeiro item. Some sozinho (e fecha o menu) quando as abas voltam a caber.
+- **Aba ativa sempre visível:** com muitas abas, selecionar uma fora da área visível rola a lista de abas até ela (só a lista; a página não se move).
+
 ## 2.20.0 — 2026-11-21
 
 ### Formulários: atalhos `Ctrl/Cmd+S` e `Esc`

@@ -22,13 +22,29 @@ import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 import { ATRIBUTOS_DEGRADE, aplicarDegradeNoElemento, ehAtributoDegrade } from '../../core/degrade';
 import { criarBotaoAba, criarGrupoRibbon } from './ribbon-render';
 import { acaoDaTeclaAba } from './ribbon-teclado';
+import {
+  NIVEL_COLAPSADO,
+  NIVEL_COMPLETO,
+  NIVEL_REDUZIDO,
+  decidirNiveisGrupos,
+  decidirRecolhimentoAuto,
+  rolagemParaVisivel,
+  type GrupoMedido
+} from './ribbon-colapso';
 
 /**
  * <ui-ribbon> — barra de ferramentas em abas com grupos (estilo AutoCAD / Word / Excel).
  *
  * Atributos: aba-ativa, recolhido, compacto, ativacao-manual, copiar-dados, modo-controlado, atalhos, keytips,
+ *            recolher-abaixo (largura em px abaixo da qual a faixa se recolhe sozinha),
  *            aria-label (rótulo da toolbar), rotulo-abas (rótulo do tablist)
- * Propriedades: abas, abaAtiva, recolhido, compacto, ativacaoManual, modoControlado, copiarDados
+ * Propriedades: abas, abaAtiva, recolhido, compacto, ativacaoManual, modoControlado, copiarDados, recolherAbaixo
+ *
+ * Responsividade (mede o espaço real do painel, não a janela): quando os grupos não cabem, degradam em rodadas,
+ * dos de menor `prioridade` para os de maior (empate: da direita para a esquerda): 1) botões pequenos ficam só com
+ * ícone; 2) o grupo vira um botão único com flyout. Ao ganhar espaço tudo volta. A aba ativa é mantida visível na
+ * lista de abas e, com `recolher-abaixo`, a faixa se recolhe em telas estreitas (e é restaurada ao alargar, mas
+ * só se foi recolhida automaticamente).
  * Métodos: atualizarItem(id, parcial), definirAbaVisivel(id, visivel), selecionarAba(id)
  * Eventos: ui-ferramenta { id, item, pai?, ativo?, origem, aba } (cancelável: preventDefault reverte o toggle),
  *          ui-aba-change { id, aba }, ui-recolhido-change { recolhido }, ui-grupo-dialogo { id, grupo }
@@ -38,6 +54,7 @@ import { acaoDaTeclaAba } from './ribbon-teclado';
  * @csspart base - Contêiner raiz da faixa de opções (ribbon).
  * @csspart cabecalho - Barra superior contendo as abas e o botão de fixar.
  * @csspart abas - Lista rolável de abas (`role="tablist"`).
+ * @csspart mais-abas - Botão que lista todas as abas (aparece só quando a lista de abas transborda).
  * @csspart fixar - Botão de fixar ou recolher a faixa de opções.
  * @csspart painel - Painel da aba ativa (`role="tabpanel"`).
  * @csspart grupos - Grade dos grupos de ferramentas (`role="toolbar"`).
@@ -55,8 +72,10 @@ export class UIRibbon extends SafeHTMLElement {
       'modo-controlado',
       'atalhos',
       'keytips',
+      'recolher-abaixo',
       'aria-label',
       'rotulo-abas',
+      'rotulo-mais-abas',
       'rotulo-fixar',
       'rotulo-expandir',
       ...ATRIBUTOS_DEGRADE
@@ -68,6 +87,8 @@ export class UIRibbon extends SafeHTMLElement {
   private gruposElement: HTMLDivElement;
   private painelElement: HTMLDivElement;
   private fixarElement: HTMLButtonElement;
+  private maisAbasElement: HTMLButtonElement;
+  private menuAbas: MenuHandle | null = null;
   private readonly uid = `ui-ribbon-${++contadorRibbon}`;
   private _abaPendente = '';
   private _pronto = false;
@@ -79,8 +100,18 @@ export class UIRibbon extends SafeHTMLElement {
   private listeners = new ListenerBag();
   private tooltip: GerenciadorTooltip | null = null;
   private observerResize: ResizeObserver | null = null;
+  /** Grupos no nível 2 (botão único com flyout). */
   private gruposColapsados = new Set<string>();
+  /** Grupos no nível 1 (botões pequenos só com ícone). */
+  private gruposReduzidos = new Set<string>();
+  /** Larguras medidas por nível da aba ativa; `chave` invalida quando o layout pode ter mudado. */
+  private medidas: { chave: string; grupos: GrupoMedido[] } | null = null;
+  private revisaoLayout = 0;
   private keytipsAtivas = false;
+  /** Lado do `recolher-abaixo` na última medição (`null` = ainda não medido). */
+  private estreito: boolean | null = null;
+  private aplicandoRecolhimentoAuto = false;
+  private recolhidoPorAuto = false;
 
   constructor() {
     super();
@@ -90,6 +121,7 @@ export class UIRibbon extends SafeHTMLElement {
       <div class="ui-ribbon" part="base">
         <div class="ui-ribbon__cabecalho" part="cabecalho">
           <div class="ui-ribbon__abas" part="abas" role="tablist"></div>
+          <button type="button" class="ui-ribbon__mais-abas" part="mais-abas" aria-haspopup="menu" aria-expanded="false" hidden></button>
           <button type="button" class="ui-ribbon__fixar" part="fixar"></button>
         </div>
         <div class="ui-ribbon__painel" part="painel" role="tabpanel">
@@ -102,6 +134,7 @@ export class UIRibbon extends SafeHTMLElement {
     this.gruposElement = shadow.querySelector('.ui-ribbon__grupos')!;
     this.painelElement = shadow.querySelector('.ui-ribbon__painel')!;
     this.fixarElement = shadow.querySelector('.ui-ribbon__fixar')!;
+    this.maisAbasElement = shadow.querySelector('.ui-ribbon__mais-abas')!;
     this.painelElement.id = `${this.uid}-painel`;
   }
 
@@ -112,6 +145,8 @@ export class UIRibbon extends SafeHTMLElement {
 
     this.listeners.add(this.abasElement, 'click', this.handleClickAbas);
     this.listeners.add(this.fixarElement, 'click', this.handleClickFixar);
+    this.listeners.add(this.maisAbasElement, 'click', this.handleClickMaisAbas);
+    this.listeners.add(this.maisAbasElement, 'keydown', this.handleKeyDownMaisAbas);
     this.listeners.add(this.abasElement, 'dblclick', this.handleDblClickAbas);
     this.listeners.add(this.abasElement, 'keydown', this.handleKeyDownAbas);
     this.listeners.add(this.gruposElement, 'click', this.handleClickGrupos);
@@ -127,13 +162,17 @@ export class UIRibbon extends SafeHTMLElement {
     if (inicial && !this._abaAtiva) this._abaPendente = inicial;
     aplicarDegradeNoElemento(this, this.rootElement);
     this.aplicarRotulos();
+    this.estreito = null;
+    this.invalidarMedidas();
     this.renderizar();
     this._pronto = true;
+    this.avaliarRecolhimentoAuto();
   }
 
   disconnectedCallback() {
     this._pronto = false;
     this.fecharMenu();
+    this.fecharMenuAbas();
     this.observerResize?.disconnect();
     this.observerResize = null;
     this.tooltip?.destruir();
@@ -157,7 +196,16 @@ export class UIRibbon extends SafeHTMLElement {
         this._abaPendente = value;
         if (this.abasVisiveis().length) this.renderizar();
       }
+    } else if (name === 'compacto') {
+      // altera a largura dos grupos: mede de novo
+      this.invalidarMedidas();
+      this.ajustarResponsivo();
+    } else if (name === 'recolher-abaixo') {
+      this.estreito = null;
+      this.avaliarRecolhimentoAuto();
     } else if (name === 'recolhido') {
+      // escolha do usuário/consumidor (não da automação) passa a mandar: nada de restaurar por conta própria
+      if (!this.aplicandoRecolhimentoAuto) this.recolhidoPorAuto = false;
       this.rootElement.classList.remove('ui-ribbon--aberto');
       this.aplicarRotulos();
       if (this._pronto && (old === null) !== (value === null)) {
@@ -169,7 +217,7 @@ export class UIRibbon extends SafeHTMLElement {
           })
         );
       }
-    } else if (name === 'aria-label' || name === 'rotulo-abas' || name === 'rotulo-fixar' || name === 'rotulo-expandir') {
+    } else if (name === 'aria-label' || name === 'rotulo-abas' || name === 'rotulo-mais-abas' || name === 'rotulo-fixar' || name === 'rotulo-expandir') {
       this.aplicarRotulos();
     }
   }
@@ -177,6 +225,9 @@ export class UIRibbon extends SafeHTMLElement {
   private aplicarRotulos() {
     this.gruposElement.setAttribute('aria-label', this.getAttribute('aria-label') || 'Ferramentas');
     this.abasElement.setAttribute('aria-label', this.getAttribute('rotulo-abas') || 'Abas');
+    const maisAbas = this.getAttribute('rotulo-mais-abas') || 'Todas as abas';
+    this.maisAbasElement.setAttribute('aria-label', maisAbas);
+    this.maisAbasElement.title = maisAbas;
     // Botão fixar/recolher: o rótulo descreve a ação e aria-expanded o estado da faixa
     const recolhido = this.hasAttribute('recolhido');
     const rotulo = recolhido
@@ -240,6 +291,8 @@ export class UIRibbon extends SafeHTMLElement {
       '<ui-ribbon> itens'
     );
     this.gruposColapsados.clear();
+    this.gruposReduzidos.clear();
+    this.invalidarMedidas();
     this.renderizar();
   }
 
@@ -269,6 +322,17 @@ export class UIRibbon extends SafeHTMLElement {
     else this.removeAttribute('compacto');
   }
 
+  /** Largura (px) abaixo da qual a faixa se recolhe sozinha. `0` desliga. */
+  get recolherAbaixo(): number {
+    const n = Number(this.getAttribute('recolher-abaixo'));
+    return Number.isFinite(n) && n > 0 ? n : 0;
+  }
+
+  set recolherAbaixo(val: number) {
+    if (Number.isFinite(val) && val > 0) this.setAttribute('recolher-abaixo', String(val));
+    else this.removeAttribute('recolher-abaixo');
+  }
+
   public selecionarAba(id: string, emitir: boolean = true) {
     const aba = this._abas.find(a => a.id === id && !a.oculta);
     if (!aba) {
@@ -280,6 +344,7 @@ export class UIRibbon extends SafeHTMLElement {
 
     this.fecharMenu();
     this.gruposColapsados.clear();
+    this.gruposReduzidos.clear();
     this._abaAtiva = aba.id;
     if (this.getAttribute('aba-ativa') !== aba.id) this.setAttribute('aba-ativa', aba.id);
     this.renderizar();
@@ -335,7 +400,10 @@ export class UIRibbon extends SafeHTMLElement {
         atualizarRoving(this.botoesPainel());
       }
     } else {
+      // rótulo/ícone/tamanho podem mudar a largura dos grupos: mede de novo
+      this.invalidarMedidas();
       this.comFoco(() => this.renderizarPainel());
+      this.ajustarResponsivo();
     }
   }
 
@@ -391,6 +459,9 @@ export class UIRibbon extends SafeHTMLElement {
       this.renderizarAbas();
       this.renderizarPainel();
     });
+    this.ajustarResponsivo();
+    this.rolarAbaAtivaParaVisivel();
+    this.atualizarMaisAbas();
   }
 
   private renderizarAbas() {
@@ -403,6 +474,80 @@ export class UIRibbon extends SafeHTMLElement {
         idPainel: this.painelElement.id
       }));
     });
+  }
+
+  /* ---------- Menu "mais abas" (lista transborda) ---------- */
+
+  /** Mostra o botão só quando as abas não cabem; fecha o menu se ele deixar de ser necessário. */
+  private atualizarMaisAbas() {
+    const lista = this.abasElement;
+    const transborda = lista.scrollWidth > lista.clientWidth + 1 && this.abasVisiveis().length > 1;
+    this.maisAbasElement.hidden = !transborda;
+    if (!transborda) this.fecharMenuAbas();
+  }
+
+  private fecharMenuAbas() {
+    this.menuAbas?.fechar();
+    this.menuAbas = null;
+  }
+
+  private handleClickMaisAbas = (e: Event) => {
+    // detail === 0: ativação por teclado (Enter/Espaço) → foca o primeiro item
+    this.alternarMenuAbas((e as MouseEvent).detail === 0);
+  };
+
+  private handleKeyDownMaisAbas = (e: KeyboardEvent) => {
+    if (e.key !== 'ArrowDown') return;
+    e.preventDefault();
+    if (this.menuAbas) this.menuAbas.focarPrimeiro();
+    else this.alternarMenuAbas(true);
+  };
+
+  private alternarMenuAbas(focar: boolean) {
+    const jaAberto = !!this.menuAbas;
+    this.fecharMenuAbas();
+    if (jaAberto) return;
+
+    const btn = this.maisAbasElement;
+    btn.setAttribute('aria-expanded', 'true');
+    const itens: FerramentaItem[] = this.abasVisiveis().map(a => ({
+      id: a.id,
+      rotulo: a.rotulo,
+      tipo: 'ferramenta',
+      ativo: a.id === this._abaAtiva
+    }));
+    this.menuAbas = abrirMenu(
+      this.shadowRoot!,
+      btn,
+      itens,
+      item => {
+        this.selecionarAba(item.id);
+        this.abasElement.querySelector<HTMLButtonElement>(`.ui-ribbon__aba[data-id="${CSS.escape(item.id)}"]`)?.focus();
+      },
+      {
+        lado: 'baixo',
+        focar,
+        onFechar: () => {
+          btn.setAttribute('aria-expanded', 'false');
+          this.menuAbas = null;
+        }
+      }
+    );
+  }
+
+  /** Mantém a aba ativa dentro da área visível da lista de abas (sem rolar a página, só a lista). */
+  private rolarAbaAtivaParaVisivel() {
+    const lista = this.abasElement;
+    const ativa = lista.querySelector<HTMLElement>('.ui-ribbon__aba--ativa');
+    if (!ativa || !(lista.scrollWidth > lista.clientWidth)) return;
+    const a = ativa.getBoundingClientRect();
+    const nova = rolagemParaVisivel({
+      inicio: a.left - lista.getBoundingClientRect().left + lista.scrollLeft,
+      tamanho: a.width,
+      rolagem: lista.scrollLeft,
+      visivel: lista.clientWidth
+    });
+    if (nova !== lista.scrollLeft) lista.scrollLeft = nova;
   }
 
   private idAba(id: string): string {
@@ -424,6 +569,7 @@ export class UIRibbon extends SafeHTMLElement {
       (item, variante, icone) => this.criarBotao(item, variante, icone),
       {
         colapsado: this.gruposColapsados.has(grupo.id),
+        reduzido: this.gruposReduzidos.has(grupo.id),
         criarDividido: (item, variante, icone) => criarBotaoDividido(this.efetivo(item), variante, icone)
       }
     )));
@@ -433,40 +579,110 @@ export class UIRibbon extends SafeHTMLElement {
   private iniciarResizeObserver() {
     if (typeof ResizeObserver === 'undefined') return;
     this.observerResize = new ResizeObserver(() => {
-      this.ajustarColapsoGrupos();
+      this.avaliarRecolhimentoAuto();
+      this.ajustarResponsivo();
+      this.atualizarMaisAbas();
     });
+    // painel: espaço dos grupos; host: largura total (recolher-abaixo)
     this.observerResize.observe(this.painelElement);
+    this.observerResize.observe(this.abasElement);
+    this.observerResize.observe(this);
   }
 
-  private ajustarColapsoGrupos() {
-    const aba = this._abas.find(a => a.id === this._abaAtiva);
-    if (!aba || !aba.grupos.length) return;
+  /* ---------- Responsividade: degradê dos grupos por falta de espaço ---------- */
 
-    const container = this.gruposElement;
-    if (container.scrollWidth > container.clientWidth) {
-      // Ordena grupos não colapsados por prioridade crescente (menor prioridade colapsa primeiro)
-      const candidatos = [...aba.grupos]
-        .filter(g => !this.gruposColapsados.has(g.id))
-        .sort((a, b) => (a.prioridade ?? 0) - (b.prioridade ?? 0));
+  private invalidarMedidas() {
+    this.revisaoLayout++;
+    this.medidas = null;
+  }
 
-      if (candidatos.length > 0) {
-        this.gruposColapsados.add(candidatos[0].id);
-        this.renderizarPainel();
-      }
-    } else if (this.gruposColapsados.size > 0) {
-      const colapsados = [...aba.grupos]
-        .filter(g => this.gruposColapsados.has(g.id))
-        .sort((a, b) => (b.prioridade ?? 0) - (a.prioridade ?? 0));
-
-      if (colapsados.length > 0) {
-        this.gruposColapsados.delete(colapsados[0].id);
-        this.renderizarPainel();
-        if (container.scrollWidth > container.clientWidth) {
-          this.gruposColapsados.add(colapsados[0].id);
-          this.renderizarPainel();
-        }
-      }
+  /** Largura fixa do contêiner dos grupos fora dos próprios grupos (padding) + 1px de tolerância de arredondamento. */
+  private larguraFixaGrupos(): number {
+    try {
+      const css = getComputedStyle(this.gruposElement);
+      return (parseFloat(css.paddingLeft) || 0) + (parseFloat(css.paddingRight) || 0) + 1;
+    } catch {
+      return 1;
     }
+  }
+
+  private larguraDoGrupo(id: string): number {
+    return this.gruposElement.querySelector<HTMLElement>(`.ui-ribbon__grupo[data-id="${CSS.escape(id)}"]`)?.offsetWidth ?? 0;
+  }
+
+  private definirNiveis(reduzidos: Iterable<string>, colapsados: Iterable<string>) {
+    this.gruposReduzidos = new Set(reduzidos);
+    this.gruposColapsados = new Set(colapsados);
+  }
+
+  /**
+   * Mede a largura de cada grupo da aba nos três níveis (renderiza os três estados de forma síncrona, sem pintura
+   * entre eles) e guarda em cache até o layout poder mudar (outra aba, `compacto`, itens alterados).
+   * Deixa o DOM no último estado medido: quem chama deve renderizar o resultado final.
+   */
+  private medirGrupos(aba: RibbonAba): { grupos: GrupoMedido[]; mediu: boolean } {
+    const chave = `${aba.id}|${this.compacto}|${this.revisaoLayout}`;
+    if (this.medidas?.chave === chave) return { grupos: this.medidas.grupos, mediu: false };
+
+    const ids = aba.grupos.map(g => g.id);
+    const larguras: number[][] = ids.map(() => []);
+    for (const nivel of [NIVEL_COMPLETO, NIVEL_REDUZIDO, NIVEL_COLAPSADO]) {
+      this.definirNiveis(nivel === NIVEL_REDUZIDO ? ids : [], nivel === NIVEL_COLAPSADO ? ids : []);
+      this.renderizarPainel();
+      ids.forEach((id, i) => larguras[i].push(this.larguraDoGrupo(id)));
+    }
+    const grupos = aba.grupos.map((g, i) => ({ id: g.id, prioridade: g.prioridade, larguras: larguras[i] }));
+    this.medidas = { chave, grupos };
+    return { grupos, mediu: true };
+  }
+
+  /**
+   * Ajusta o nível de cada grupo ao espaço real do painel. Só re-renderiza quando o resultado muda, então
+   * notificações repetidas do ResizeObserver (inclusive as causadas por esta própria renderização) não fazem laço.
+   * Painel oculto (faixa recolhida) ou sem layout: não decide nada.
+   */
+  private ajustarResponsivo() {
+    if (!this.isConnected) return;
+    const aba = this._abas.find(a => a.id === this._abaAtiva);
+    if (!aba?.grupos.length) return;
+    const disponivel = this.painelElement.clientWidth;
+    if (!(disponivel > 0)) return;
+
+    this.comFoco(() => {
+      const reduzidosAntes = new Set(this.gruposReduzidos);
+      const colapsadosAntes = new Set(this.gruposColapsados);
+      const { grupos, mediu } = this.medirGrupos(aba);
+      const { niveis } = decidirNiveisGrupos(grupos, disponivel, this.larguraFixaGrupos());
+
+      const ids = (n: number) => [...niveis].filter(([, nivel]) => nivel === n).map(([id]) => id);
+      const reduzidos = ids(NIVEL_REDUZIDO);
+      const colapsados = ids(NIVEL_COLAPSADO);
+      const igual = (a: Set<string>, b: string[]) => a.size === b.length && b.every(id => a.has(id));
+
+      if (!mediu && igual(reduzidosAntes, reduzidos) && igual(colapsadosAntes, colapsados)) return;
+      this.definirNiveis(reduzidos, colapsados);
+      this.renderizarPainel();
+    });
+  }
+
+  /** `recolher-abaixo`: recolhe a faixa ao cruzar para estreito e restaura (só se foi automático) ao alargar. */
+  private avaliarRecolhimentoAuto() {
+    const limite = this.recolherAbaixo;
+    if (!limite) {
+      this.estreito = null;
+      return;
+    }
+    const d = decidirRecolhimentoAuto(this.estreito, this.offsetWidth, limite, this.recolhido, this.recolhidoPorAuto);
+    this.estreito = d.estreito;
+    if (!d.acao) return;
+
+    this.aplicandoRecolhimentoAuto = true;
+    try {
+      this.recolhido = d.acao === 'recolher';
+    } finally {
+      this.aplicandoRecolhimentoAuto = false;
+    }
+    this.recolhidoPorAuto = d.acao === 'recolher';
   }
 
   private alternarMenuGrupoColapsado(btn: HTMLButtonElement, grupo: RibbonGrupo) {
