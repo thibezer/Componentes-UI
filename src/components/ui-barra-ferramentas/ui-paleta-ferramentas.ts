@@ -21,8 +21,19 @@ import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 import { ATRIBUTOS_DEGRADE, aplicarDegradeNoElemento, ehAtributoDegrade } from '../../core/degrade';
 import { PressaoLonga } from './paleta-pressao-longa';
 import { atalhoBloqueadoPeloContexto, paletaDonaDosAtalhos, resolverAtalho } from './paleta-atalhos';
+import { calcularAjuste, particionarItens, type ResultadoAjuste } from './paleta-ajuste';
+import { acharAtivoOculto, criarBotaoMais, idsOcultos } from './paleta-excesso';
 
 const TAMANHO_ICONE: Record<string, number> = { sm: 16, md: 18, lg: 22 };
+/** Lado do botão (px) quando o CSS não pode ser lido: [ponteiro fino, ponteiro grosso/toque]. */
+const TAMANHO_BOTAO: Record<string, [number, number]> = { sm: [28, 36], md: [34, 40], lg: [42, 48] };
+/** Espessura de um separador (1px + margens de 3px). */
+const ESPESSURA_SEPARADOR = 7;
+
+const lerPx = (valor: string | undefined, padrao: number): number => {
+  const n = parseFloat(valor ?? '');
+  return Number.isFinite(n) ? n : padrao;
+};
 
 /**
  * <ui-paleta-ferramentas> — paleta de ferramentas gráficas com grupos expansíveis.
@@ -32,13 +43,19 @@ const TAMANHO_ICONE: Record<string, number> = { sm: 16, md: 18, lg: 22 };
  * - Ferramentas (`tipo` padrão) são exclusivas; `toggle` liga/desliga; `botao` só dispara ação.
  * - Com o atributo `atalhos`, a tecla `atalho` do item ativa a ferramenta; teclas repetidas
  *   entre itens percorrem o grupo.
+ * - Responsiva: quando o contêiner direto não comporta a paleta, `colunas="auto"` passa para 2 colunas
+ *   e, se ainda faltar espaço, `excesso="menu"` (padrão) move o restante para o botão "Mais ferramentas".
+ *   Se a ferramenta ativa estiver oculta, o botão assume o ícone e o destaque dela. Atalhos, API e
+ *   eventos seguem valendo para itens ocultos. O espaço é medido no elemento pai (que precisa ter
+ *   altura/largura própria); sem limite, nada é ocultado.
  *
- * Atributos: valor (vazio limpa a seleção), orientacao (vertical|horizontal), colunas (1|2),
- *            tamanho (sm|md|lg), atalhos, aria-label (rótulo da toolbar)
- * Propriedades: ferramentas, valor, orientacao, colunas, tamanho
- * Métodos: ativar(id), limpar(), atualizarItem(id, parcial)
+ * Atributos: valor (vazio limpa a seleção), orientacao (vertical|horizontal), colunas (1|2|auto),
+ *            tamanho (sm|md|lg), excesso (menu|rolar), atalhos, aria-label (rótulo da toolbar)
+ * Propriedades: ferramentas, valor, orientacao, colunas, tamanho, excesso
+ * Métodos: ativar(id), limpar(), atualizarItem(id, parcial), reajustar()
  * Eventos: ui-change / ui-selecionar { valor, item, anterior },
- *          ui-ferramenta { id, item, pai?, ativo?, origem } (cancelável: preventDefault reverte a ação)
+ *          ui-ferramenta { id, item, pai?, ativo?, origem } (cancelável: preventDefault reverte a ação),
+ *          ui-paleta-ajuste { colunas, visiveis, total, ocultos } (colunas efetivas / itens ocultos mudaram)
  *
  * `valor` pode ser definido antes de `ferramentas`: fica pendente até a ferramenta existir.
  *
@@ -46,7 +63,7 @@ const TAMANHO_ICONE: Record<string, number> = { sm: 16, md: 18, lg: 22 };
  */
 export class UIPaletaFerramentas extends SafeHTMLElement {
   static get observedAttributes() {
-    return ['valor', 'value', 'orientacao', 'colunas', 'tamanho', 'size', 'aria-label', 'copiar-dados', 'modo-controlado', ...ATRIBUTOS_DEGRADE];
+    return ['valor', 'value', 'orientacao', 'colunas', 'tamanho', 'size', 'excesso', 'aria-label', 'copiar-dados', 'modo-controlado', ...ATRIBUTOS_DEGRADE];
   }
 
   private rootElement: HTMLDivElement;
@@ -59,6 +76,14 @@ export class UIPaletaFerramentas extends SafeHTMLElement {
   private listeners = new ListenerBag();
   private tooltip: GerenciadorTooltip | null = null;
   private _modoControlado = false;
+  /** Ajuste ao espaço atual (null até a primeira renderização). */
+  private _ajuste: ResultadoAjuste | null = null;
+  /** Quantidade de itens da lista para a qual `_ajuste` foi calculado. */
+  private _totalAjustado = 0;
+  /** Itens de topo que não couberam (menu "Mais ferramentas"). */
+  private _excesso: FerramentaItem[] = [];
+  private observador: ResizeObserver | null = null;
+  private rafAjuste: number | null = null;
 
   constructor() {
     super();
@@ -91,9 +116,11 @@ export class UIPaletaFerramentas extends SafeHTMLElement {
     aplicarDegradeNoElemento(this, this.rootElement);
     this.aplicarPendente();
     this.renderizar();
+    this.iniciarObservador();
   }
 
   disconnectedCallback() {
+    this.pararObservador();
     this.pressao.destruir();
     this.fecharMenu();
     this.tooltip?.destruir();
@@ -178,12 +205,30 @@ export class UIPaletaFerramentas extends SafeHTMLElement {
     this.setAttribute('orientacao', val);
   }
 
+  /** Colunas em uso. Com `colunas="auto"` reflete o ajuste atual ao espaço (1 ou 2). */
   get colunas(): 1 | 2 {
-    return this.getAttribute('colunas') === '2' ? 2 : 1;
+    const a = this.getAttribute('colunas');
+    if (a === '2') return 2;
+    if (a === 'auto') return this._ajuste?.colunas ?? 1;
+    return 1;
   }
 
-  set colunas(val: 1 | 2) {
+  set colunas(val: 1 | 2 | 'auto') {
     this.setAttribute('colunas', String(val));
+  }
+
+  private get modoColunas(): 1 | 2 | 'auto' {
+    const a = this.getAttribute('colunas');
+    return a === '2' ? 2 : a === 'auto' ? 'auto' : 1;
+  }
+
+  /** O que fazer quando a paleta não cabe: `menu` (botão "Mais ferramentas", padrão) ou `rolar` (barra de rolagem). */
+  get excesso(): 'menu' | 'rolar' {
+    return this.getAttribute('excesso') === 'rolar' ? 'rolar' : 'menu';
+  }
+
+  set excesso(val: 'menu' | 'rolar') {
+    this.setAttribute('excesso', val);
   }
 
   get tamanho(): 'sm' | 'md' | 'lg' {
@@ -249,8 +294,10 @@ export class UIPaletaFerramentas extends SafeHTMLElement {
 
     const soEstado = Object.keys(parcial).every(k => k === 'ativo' || k === 'disabled');
     const grupoPai = this._ferramentas.find(g => g.filhos?.some(f => f.id === id));
+    // item oculto no menu "Mais ferramentas": o estado do botão "mais" depende dele → re-renderiza
+    const oculto = this._excesso.some(e => e.id === (grupoPai?.id ?? id));
     // `disabled` num filho pode mudar qual filho é exibido → re-renderiza
-    if (soEstado && !(grupoPai && 'disabled' in parcial)) {
+    if (soEstado && !oculto && !(grupoPai && 'disabled' in parcial)) {
       const btn = this.botoes().find(b => b.dataset.id === id || b.dataset.grupo === id);
       if (btn) {
         aplicarEstadoBotao(btn, this.itemParaBotao(grupoPai ?? item));
@@ -260,6 +307,115 @@ export class UIPaletaFerramentas extends SafeHTMLElement {
       if (grupoPai || item.filhos?.length) return; // filho não exibido: nada visível muda
     }
     this.renderizar();
+  }
+
+  /**
+   * Reavalia o espaço disponível (colunas e itens ocultos). É chamado sozinho quando o contêiner
+   * muda de tamanho; chame manualmente após mudanças de layout que o navegador não notifica.
+   */
+  public reajustar() {
+    if (!this.isConnected) return;
+    const novo = this.calcularAtual();
+    if (this.mesmoAjuste(novo, this._ajuste)) return;
+    this.renderizar(novo);
+  }
+
+  /* ---------- Ajuste ao espaço ---------- */
+
+  /** `a` foi calculado para a lista atual; `b` (o ajuste guardado) para a lista de `_totalAjustado` itens. */
+  private mesmoAjuste(a: ResultadoAjuste, b: ResultadoAjuste | null): boolean {
+    if (!b || a.colunas !== b.colunas) return false;
+    const aTodos = a.visiveis >= this._ferramentas.length;
+    const bTodos = b.visiveis >= this._totalAjustado;
+    return (aTodos && bTodos) || a.visiveis === b.visiveis;
+  }
+
+  /**
+   * Só reduz quando a paleta realmente transborda (ou já estava reduzida e precisa decidir se pode
+   * crescer): um contêiner de altura automática nunca causa ocultação por erro de estimativa.
+   */
+  private calcularAtual(): ResultadoAjuste {
+    const total = this._ferramentas.length;
+    const modo = this.modoColunas;
+    const vertical = this.orientacao === 'vertical';
+    const base: ResultadoAjuste = { colunas: vertical && modo === 2 ? 2 : 1, visiveis: total };
+    if (!this.isConnected || total === 0) return base;
+
+    const anterior = this._ajuste;
+    // "reduzido" = o ajuste guardado ocultou itens da lista para a qual foi calculado (lista vazia não conta)
+    const reduzido = !!anterior && (anterior.visiveis < this._totalAjustado || (vertical && modo === 'auto' && anterior.colunas === 2));
+    if (!reduzido && !this.transbordando(vertical)) return base;
+
+    const medidas = this.medirPaleta(vertical);
+    return calcularAjuste({
+      separadores: this._ferramentas.map(f => f?.tipo === 'separador'),
+      vertical,
+      colunas: modo,
+      limite: this.limiteDisponivel(vertical),
+      ...medidas,
+      excessoMenu: this.excesso === 'menu'
+    });
+  }
+
+  private transbordando(vertical: boolean): boolean {
+    const r = this.rootElement;
+    return vertical ? r.scrollHeight > r.clientHeight + 1 : r.scrollWidth > r.clientWidth + 1;
+  }
+
+  /** Espaço (px) que o elemento pai oferece no eixo principal; 0 = desconhecido (sem limite). */
+  private limiteDisponivel(vertical: boolean): number {
+    const pai = this.parentElement;
+    if (!pai) return 0;
+    const cs = getComputedStyle(pai);
+    const tamanho = vertical ? pai.clientHeight : pai.clientWidth;
+    const padding = vertical
+      ? lerPx(cs.paddingTop, 0) + lerPx(cs.paddingBottom, 0)
+      : lerPx(cs.paddingLeft, 0) + lerPx(cs.paddingRight, 0);
+    return tamanho - padding;
+  }
+
+  /** Medidas reais do CSS (tamanho/toque/tema); cai em valores padrão se o navegador não as expõe. */
+  private medirPaleta(vertical: boolean) {
+    const cs = getComputedStyle(this.rootElement);
+    const toque = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
+    const [fino, grosso] = TAMANHO_BOTAO[this.tamanho] ?? TAMANHO_BOTAO.md;
+    const moldura = vertical
+      ? lerPx(cs.paddingTop, 4) + lerPx(cs.paddingBottom, 4) + lerPx(cs.borderTopWidth, 1) + lerPx(cs.borderBottomWidth, 1)
+      : lerPx(cs.paddingLeft, 4) + lerPx(cs.paddingRight, 4) + lerPx(cs.borderLeftWidth, 1) + lerPx(cs.borderRightWidth, 1);
+    return {
+      botao: lerPx(cs.getPropertyValue('--ui-paleta-btn'), toque ? grosso : fino),
+      gap: lerPx(vertical ? cs.rowGap : cs.columnGap, 2),
+      moldura,
+      separador: ESPESSURA_SEPARADOR
+    };
+  }
+
+  private iniciarObservador() {
+    this.pararObservador();
+    if (typeof ResizeObserver === 'undefined') return;
+    this.observador = new ResizeObserver(() => this.agendarAjuste());
+    if (this.parentElement) this.observador.observe(this.parentElement);
+    this.observador.observe(this);
+  }
+
+  private pararObservador() {
+    this.observador?.disconnect();
+    this.observador = null;
+    if (this.rafAjuste !== null && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(this.rafAjuste);
+    this.rafAjuste = null;
+  }
+
+  /** Agrupa rajadas de resize num único reajuste por quadro (evita "ResizeObserver loop"). */
+  private agendarAjuste() {
+    if (typeof requestAnimationFrame !== 'function') {
+      this.reajustar();
+      return;
+    }
+    if (this.rafAjuste !== null) return;
+    this.rafAjuste = requestAnimationFrame(() => {
+      this.rafAjuste = null;
+      this.reajustar();
+    });
   }
 
   /* ---------- Estado interno ---------- */
@@ -325,28 +481,35 @@ export class UIPaletaFerramentas extends SafeHTMLElement {
 
   /* ---------- Renderização ---------- */
 
-  private renderizar() {
+  private renderizar(ajuste?: ResultadoAjuste) {
     // Preserva o foco do teclado (o botão de um grupo é identificado pelo grupo, pois o filho exibido pode mudar)
     const ativoEl = this.shadowRoot?.activeElement as HTMLElement | null;
     const foco =
       ativoEl && ativoEl.classList.contains('ui-ferr-btn')
-        ? { id: ativoEl.dataset.id ?? '', grupo: ativoEl.dataset.grupo ?? '' }
+        ? { id: ativoEl.dataset.id ?? '', grupo: ativoEl.dataset.grupo ?? '', mais: ativoEl.dataset.mais !== undefined }
         : null;
 
     this.fecharMenu();
     const orientacao = this.orientacao;
     const tamanho = this.tamanho;
-    const colunas = this.colunas;
+
+    const novoAjuste = ajuste ?? this.calcularAtual();
+    const anterior = this._ajuste;
+    const mudouAjuste = !!anterior && !this.mesmoAjuste(novoAjuste, anterior);
+    this._ajuste = novoAjuste;
+    this._totalAjustado = this._ferramentas.length;
 
     this.rootElement.className = `ui-paleta ui-paleta--${orientacao} ui-paleta--${tamanho}`;
-    if (colunas === 2 && orientacao === 'vertical') this.rootElement.classList.add('ui-paleta--cols-2');
+    if (novoAjuste.colunas === 2 && orientacao === 'vertical') this.rootElement.classList.add('ui-paleta--cols-2');
     this.rootElement.setAttribute('aria-orientation', orientacao);
     this.rootElement.setAttribute('aria-label', this.getAttribute('aria-label') || 'Ferramentas');
     this.rootElement.innerHTML = '';
 
     const tamanhoIcone = TAMANHO_ICONE[tamanho] ?? 18;
+    const { visiveis, excesso } = particionarItens(this._ferramentas, novoAjuste.visiveis, i => i.tipo === 'separador');
+    this._excesso = excesso;
 
-    this._ferramentas.forEach(item => {
+    visiveis.forEach(item => {
       if (item.tipo === 'separador') {
         const sep = document.createElement('div');
         sep.className = 'ui-paleta__sep';
@@ -362,17 +525,45 @@ export class UIPaletaFerramentas extends SafeHTMLElement {
       this.rootElement.appendChild(btn);
     });
 
+    if (excesso.length) {
+      this.rootElement.appendChild(criarBotaoMais(excesso, this._ativo, tamanhoIcone));
+    }
+
     definirRoving(this.botoes());
-    const ativo = this.botoes().find(b => b.dataset.id === this._ativo && !b.disabled);
-    if (ativo) {
+    // a ferramenta ativa (ou o "mais", se ela estiver oculta) recebe o tabindex do roving
+    const ativo =
+      this.botoes().find(b => b.dataset.id === this._ativo && !b.disabled) ??
+      (acharAtivoOculto(excesso, this._ativo) ? this.botaoMais() : null);
+    if (ativo && !ativo.disabled) {
       this.botoes().forEach(b => (b.tabIndex = -1));
       ativo.tabIndex = 0;
     }
 
     if (foco) {
-      const alvo = this.botoes().find(b => (foco.grupo ? b.dataset.grupo === foco.grupo : b.dataset.id === foco.id));
+      const alvo = foco.mais
+        ? this.botaoMais()
+        : this.botoes().find(b => (foco.grupo ? b.dataset.grupo === foco.grupo : b.dataset.id === foco.id));
       if (alvo && !alvo.disabled) alvo.focus();
     }
+
+    if (mudouAjuste) {
+      this.dispatchEvent(
+        new CustomEvent('ui-paleta-ajuste', {
+          detail: {
+            colunas: novoAjuste.colunas,
+            visiveis: visiveis.filter(i => i.tipo !== 'separador').length,
+            total: this._ferramentas.filter(i => i.tipo !== 'separador').length,
+            ocultos: idsOcultos(excesso)
+          },
+          bubbles: true,
+          composed: true
+        })
+      );
+    }
+  }
+
+  private botaoMais(): HTMLButtonElement | null {
+    return this.rootElement.querySelector<HTMLButtonElement>('.ui-ferr-btn--mais');
   }
 
   private botoes(): HTMLButtonElement[] {
@@ -430,6 +621,12 @@ export class UIPaletaFerramentas extends SafeHTMLElement {
   private handleClick = (e: Event) => {
     if (this.pressao.consumirSupressao()) return;
     const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('.ui-ferr-btn');
+    if (btn && btn.dataset.mais !== undefined) {
+      if (btn.disabled) return;
+      if (this.menu?.ancora === btn) this.fecharMenu();
+      else this.abrirFlyout(btn, false);
+      return;
+    }
     const item = btn?.dataset.id ? acharItem(this._ferramentas, btn.dataset.id) : undefined;
     if (!btn || !item) return;
     const pai = btn.dataset.grupo ? acharItem(this._ferramentas, btn.dataset.grupo) : undefined;
@@ -477,7 +674,7 @@ export class UIPaletaFerramentas extends SafeHTMLElement {
 
     const teclaFlyout = horizontal ? 'ArrowDown' : rtl ? 'ArrowLeft' : 'ArrowRight';
     const btn = e.target instanceof HTMLButtonElement ? e.target : null;
-    if (btn?.dataset.grupo && e.key === teclaFlyout) {
+    if (btn && (btn.dataset.grupo || btn.dataset.mais !== undefined) && e.key === teclaFlyout) {
       e.preventDefault();
       if (this.menu?.ancora === btn) this.menu.focarPrimeiro();
       else this.abrirFlyout(btn, true);
@@ -505,28 +702,36 @@ export class UIPaletaFerramentas extends SafeHTMLElement {
   };
 
   private abrirFlyout(btn: HTMLButtonElement, focar: boolean) {
-    const grupo = btn.dataset.grupo ? acharItem(this._ferramentas, btn.dataset.grupo) : undefined;
-    if (!grupo?.filhos?.length) return;
+    const ehMais = btn.dataset.mais !== undefined;
+    const grupo = !ehMais && btn.dataset.grupo ? acharItem(this._ferramentas, btn.dataset.grupo) : undefined;
+    const origem = ehMais ? this._excesso : grupo?.filhos;
+    if (!origem?.length) return;
 
     this.fecharMenu();
-    const filhos = grupo.filhos.map(f => ({
+    // o menu "mais" pode conter grupos (submenus): marca a ferramenta ativa em todos os níveis
+    const marcar = (f: FerramentaItem): FerramentaItem => ({
       ...f,
-      ativo: (f.tipo ?? 'ferramenta') === 'ferramenta' ? f.id === this._ativo : f.ativo
-    }));
+      ativo: !f.filhos?.length && (f.tipo ?? 'ferramenta') === 'ferramenta' ? f.id === this._ativo : f.ativo,
+      filhos: f.filhos?.map(marcar)
+    });
+    const filhos = origem.map(marcar);
+    const vertical = this.getAttribute('orientacao') !== 'horizontal';
+    const rtl = getComputedStyle(this).direction === 'rtl';
     btn.setAttribute('aria-expanded', 'true');
     this.menu = abrirMenu(
       this.shadowRoot!,
       btn,
       filhos,
       escolhido => {
-        const original = acharItem(grupo.filhos!, escolhido.id);
+        const original = acharItem(this._ferramentas, escolhido.id);
         if (!original) return;
-        this.acionar(original, grupo);
-        // o botão do grupo foi recriado: devolve o foco a ele
-        this.botoes().find(b => b.dataset.grupo === grupo.id)?.focus();
+        const pai = grupo ?? this._ferramentas.find(g => g.filhos?.some(f => f.id === original.id));
+        this.acionar(original, pai);
+        // o botão do grupo (ou o "mais") foi recriado: devolve o foco a ele
+        (ehMais ? this.botaoMais() : this.botoes().find(b => b.dataset.grupo === grupo?.id))?.focus();
       },
       {
-        lado: this.getAttribute('orientacao') === 'horizontal' ? 'baixo' : 'direita',
+        lado: !vertical ? 'baixo' : rtl ? 'esquerda' : 'direita',
         focar,
         tipoPadrao: 'ferramenta',
         onFechar: () => {

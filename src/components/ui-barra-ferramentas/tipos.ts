@@ -102,6 +102,21 @@ export interface PaletaChangeDetail {
   anterior: string;
 }
 
+/**
+ * `detail` de `ui-paleta-ajuste` da paleta: as colunas efetivas ou os itens ocultos (menu "Mais ferramentas")
+ * mudaram por falta/sobra de espaço.
+ */
+export interface PaletaAjusteDetail {
+  /** Colunas em uso (1 ou 2). */
+  colunas: 1 | 2;
+  /** Itens de topo exibidos na paleta (sem separadores). */
+  visiveis: number;
+  /** Itens de topo no total (sem separadores). */
+  total: number;
+  /** Ids dos itens de topo que foram para o menu "Mais ferramentas". */
+  ocultos: string[];
+}
+
 /** `detail` de `ui-recolhido-change` do ribbon. */
 export interface RecolhidoChangeDetail {
   recolhido: boolean;
@@ -121,6 +136,7 @@ declare global {
     'ui-recolhido-change': CustomEvent<RecolhidoChangeDetail>;
     'ui-change': CustomEvent<PaletaChangeDetail>;
     'ui-selecionar': CustomEvent<PaletaChangeDetail>;
+    'ui-paleta-ajuste': CustomEvent<PaletaAjusteDetail>;
     'ui-grupo-dialogo': CustomEvent<GrupoDialogoDetail>;
   }
 }

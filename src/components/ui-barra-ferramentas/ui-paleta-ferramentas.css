@@ -112,48 +112,6 @@
   grid-column: 1 / -1;
 }
 
-.ui-paleta .ui-ferr-btn {
-  width: var(--ui-paleta-btn);
-  height: var(--ui-paleta-btn);
-  border-radius: var(--ui-paleta-btn-raio);
-}
-
-/* Ferramenta ativa: preenchimento sólido de destaque */
-.ui-paleta .ui-ferr-btn.ui-ferr-btn--ativo,
-.ui-paleta .ui-ferr-btn.ui-ferr-btn--ativo:hover:not(:disabled),
-.ui-paleta .ui-ferr-btn.ui-ferr-btn--ativo:active:not(:disabled) {
-  background: var(--ui-cor-primaria, #00E08A);
-  border-color: transparent;
-  color: var(--ui-cor-texto-sobre-primaria, #000000);
-}
-
-.ui-paleta .ui-ferr-btn.ui-ferr-btn--ativo:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 86%, #fff);
-}
-
-.ui-paleta .ui-ferr-btn.ui-ferr-btn--ativo:active:not(:disabled) {
-  background: color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 80%, #000);
-}
-
-.ui-paleta .ui-ferr-btn.ui-ferr-btn--ativo:disabled {
-  background: var(--ui-cor-hover-menu, rgba(255, 255, 255, 0.08));
-  color: inherit;
-}
-
-/* Triângulo no canto = grupo com flyout */
-.ui-ferr-btn--grupo::after {
-  content: '';
-  position: absolute;
-  right: 3px;
-  bottom: 3px;
-  width: 0;
-  height: 0;
-  border-left: 5px solid transparent;
-  border-bottom: 5px solid currentColor;
-  opacity: 0.7;
-  pointer-events: none;
-}
-
 .ui-paleta__sep {
   width: 70%;
   height: 1px;

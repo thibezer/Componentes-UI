@@ -2,6 +2,15 @@
 
 ## Não publicado
 
+### `<ui-paleta-ferramentas>`: paleta responsiva e inteligente
+
+- **`colunas="auto"` (vertical):** passa de 1 para 2 colunas quando o elemento pai não comporta a paleta e volta a 1 quando o espaço sobra. A propriedade `colunas` reflete o valor efetivo.
+- **`excesso="menu"` (novo padrão):** o que ainda não couber vai para um botão "Mais ferramentas" (flyout, com grupos como submenus). Se a ferramenta ativa estiver oculta, o botão assume o ícone e o destaque dela (e o `tabindex` do roving). Atalhos, `ativar()`, `atualizarItem()` e eventos seguem valendo para itens ocultos. `excesso="rolar"` mantém o comportamento anterior (barra de rolagem).
+- **Só reduz com transbordo real:** a estimativa nunca oculta itens num pai de altura automática; o espaço é medido no elemento pai via `ResizeObserver` (um reajuste por quadro, desconectado em `disconnectedCallback`).
+- **Novos:** método `reajustar()`, propriedade `excesso`, evento `ui-paleta-ajuste` (`PaletaAjusteDetail`: `colunas`, `visiveis`, `total`, `ocultos`), módulos `paleta-ajuste.ts` (cálculo puro) e `paleta-excesso.ts` (botão "mais").
+- **Correções:** bloco de CSS duplicado removido (a cópia antiga sobrescrevia o triângulo do grupo com `right`/`border-left` físicos, quebrando o espelhamento em RTL e o realce no hover); em RTL o flyout vertical agora abre para a esquerda.
+- **Atenção:** quem dependia da rolagem em contêiner menor que a paleta passa a ver o botão "mais"; use `excesso="rolar"` para manter o comportamento antigo.
+
 ### `<ui-canvas-prancha>`, Fase 6: painéis do kit e migração
 
 - **Dados para os painéis do kit**, sem a prancha importar outros componentes: `FERRAMENTAS_PALETA_PRANCHA` e
