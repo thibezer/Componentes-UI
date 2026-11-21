@@ -2,6 +2,8 @@ import { partesDaLinha, type Feicao } from './feature_types';
 import type { PontoPx, Projetor } from './feature_caixa';
 import { pontoNoPoligono } from './feature_algoritmos';
 import { segmentosDe } from './feature_edicao_ops';
+import type { Espaco } from './espaco/espaco_tipos';
+import { ESPACO_GEOGRAFICO } from './espaco/espaco_geografico';
 
 /*
  * Qual feição está sob um ponto da tela (conta-gotas, consultas). Puro: recebe as candidatas e um projetor.
@@ -42,7 +44,8 @@ export function feicaoNoPonto(
   cursor: PontoPx,
   candidatas: Feicao[],
   projetar: Projetor,
-  tolerancia = TOLERANCIA_AMOSTRA_PX
+  tolerancia = TOLERANCIA_AMOSTRA_PX,
+  espaco: Espaco = ESPACO_GEOGRAFICO
 ): Feicao | null {
   let ponto: { f: Feicao; d: number } | null = null;
   let linha: { f: Feicao; d: number } | null = null;
@@ -63,7 +66,7 @@ export function feicaoNoPonto(
       if (d <= tolerancia && (!linha || d < linha.d)) linha = { f, d };
     } else if (g.tipo === 'Circle') {
       const c = projetar(g.centro);
-      const borda = projetar([g.centro[0] + g.raioMetros / 111320, g.centro[1]]);
+      const borda = projetar(espaco.pontoDeMedidaDoRaio(g.centro, g.raioMetros));
       const r = dist(c, borda);
       if (dist(cursor, c) <= r) {
         const a = Math.PI * r * r;

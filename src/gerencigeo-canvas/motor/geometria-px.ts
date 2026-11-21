@@ -82,7 +82,8 @@ export function caixaPx(partes: ReadonlyArray<Float64Array>): CaixaMundoPx | nul
   return minX <= maxX && minY <= maxY ? { minX, minY, maxX, maxY } : null;
 }
 
-function distSegmentoPx(px: number, py: number, ax: number, ay: number, bx: number, by: number): number {
+/** Distância do ponto (px, py) ao segmento a–b; serve a qualquer plano (px, mm...). */
+export function distSegmentoPx(px: number, py: number, ax: number, ay: number, bx: number, by: number): number {
   const dx = bx - ax;
   const dy = by - ay;
   const c = dx * dx + dy * dy;

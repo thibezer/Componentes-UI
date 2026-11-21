@@ -190,3 +190,13 @@
     --ui-gradiente-texto: linear-gradient(135deg, var(--ui-cor-primaria), var(--ui-cor-texto-info));
   }
 }
+
+/* Prancha de impressão (<ui-canvas-prancha>): o papel é branco em qualquer tema; guias no padrão dos editores vetoriais
+   (azul para as guias, magenta para as guias inteligentes). Iguais nos dois temas. */
+:root {
+  --ui-cor-papel: #ffffff;
+  --ui-cor-guia: #3b9bff;
+  --ui-cor-guia-inteligente: #ff4fd8;
+  /* grade desenhada SOBRE o papel (branco): mesma cor nos dois temas */
+  --ui-cor-grade-papel: rgba(59, 155, 255, 0.22);
+}

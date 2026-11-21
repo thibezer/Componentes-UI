@@ -1,7 +1,8 @@
 import type { GeometriaFeicao, LatLonPar, NoCurva } from './feature_types';
 import { amostrarCurva, espelhoDaAlca, temAlcas } from './feature_curvas';
-import { comprimentoMetros, distanciaMetros } from './feature_metricas';
 import { gerarElipse, gerarEstrela, gerarPoligonoRegular } from './feature_formas';
+import type { Espaco } from './espaco/espaco_tipos';
+import { ESPACO_GEOGRAFICO } from './espaco/espaco_geografico';
 
 /*
  * Máquina de estados das ferramentas de desenho (pura, sem Leaflet). A camada visual
@@ -17,6 +18,23 @@ export type Ferramenta = (typeof FERRAMENTAS)[number];
 
 /** Raio mínimo (m) da ferramenta círculo; abaixo disso o clique é ignorado (como no motor antigo). */
 export const RAIO_MINIMO_CIRCULO_M = 2;
+
+/** Opções da sessão; todas opcionais, com os padrões de sempre (espaço geográfico, hexágono, estrela de 5 pontas). */
+export interface OpcoesSessaoDesenho {
+  /** Espaço das coordenadas (padrão: geográfico). Medidas e raio mínimo ficam na unidade dele. */
+  espaco?: Espaco;
+  /** Raio mínimo da ferramenta círculo, na unidade do espaço (padrão `RAIO_MINIMO_CIRCULO_M`). */
+  raioMinimoCirculo?: number;
+  /** Lados do polígono regular (inteiro de 3 a 360; padrão 6). */
+  ladosPoligono?: number;
+  /** Pontas da estrela (inteiro de 3 a 360; padrão 5). */
+  pontasEstrela?: number;
+  /** Raio interno da estrela sobre o externo, em (0, 1] (padrão 0,45). */
+  proporcaoInternaEstrela?: number;
+}
+
+const inteiroEntre = (v: unknown, min: number, max: number, padrao: number): number =>
+  typeof v === 'number' && Number.isFinite(v) ? Math.min(max, Math.max(min, Math.round(v))) : padrao;
 
 export function ehFerramenta(v: unknown): v is Ferramenta {
   return typeof v === 'string' && (FERRAMENTAS as readonly string[]).includes(v);
@@ -81,19 +99,31 @@ function geometriaDaCaneta(nos: NoCurva[], area: boolean): GeometriaFeicao {
 
 const iguais = (a: LatLonPar, b: LatLonPar): boolean => a[0] === b[0] && a[1] === b[1];
 
-/** Formas de dois cliques (centro + ponto da borda) cuja geometria vem de um gerador. */
-const FORMAS_DE_DOIS_CLIQUES: Partial<Record<Ferramenta, (centro: LatLonPar, borda: LatLonPar) => LatLonPar[] | null>> = {
-  elipse: gerarElipse,
-  'poligono-regular': (c, b) => gerarPoligonoRegular(c, b, 6),
-  estrela: (c, b) => gerarEstrela(c, b, 5)
-};
-
 export class SessaoDesenho {
   public readonly pontos: LatLonPar[] = [];
   public cursor: LatLonPar | null = null;
   public readonly ancoras: AncoraBezier[] = [];
+  private readonly espaco: Espaco;
+  private readonly raioMinimo: number;
+  private readonly lados: number;
+  private readonly pontas: number;
+  private readonly proporcaoInterna: number | undefined;
 
-  constructor(public readonly ferramenta: Ferramenta, private fechar = false) {}
+  constructor(public readonly ferramenta: Ferramenta, private fechar = false, opcoes: OpcoesSessaoDesenho = {}) {
+    this.espaco = opcoes.espaco ?? ESPACO_GEOGRAFICO;
+    const r = opcoes.raioMinimoCirculo;
+    this.raioMinimo = typeof r === 'number' && Number.isFinite(r) && r >= 0 ? r : RAIO_MINIMO_CIRCULO_M;
+    this.lados = inteiroEntre(opcoes.ladosPoligono, 3, 360, 6);
+    this.pontas = inteiroEntre(opcoes.pontasEstrela, 3, 360, 5);
+    this.proporcaoInterna = opcoes.proporcaoInternaEstrela;
+  }
+
+  /** Formas de dois cliques (centro + ponto da borda) cuja geometria vem de um gerador. */
+  private formaDeDoisCliques(centro: LatLonPar, borda: LatLonPar): LatLonPar[] | null {
+    if (this.ferramenta === 'elipse') return gerarElipse(centro, borda);
+    if (this.ferramenta === 'poligono-regular') return gerarPoligonoRegular(centro, borda, this.lados, this.espaco);
+    return gerarEstrela(centro, borda, this.pontas, this.espaco, this.proporcaoInterna);
+  }
 
   /** Quantos vértices/âncoras já foram colocados. */
   public get nos(): number {
@@ -146,7 +176,12 @@ export class SessaoDesenho {
         }
         {
           const g = this.retangulo(this.pontos[0], c);
-          return g ? { concluida: g } : { aviso: 'Os dois cantos precisam diferir em latitude e em longitude.' };
+          if (g) return { concluida: g };
+          return {
+            aviso: this.espaco.tipo === 'plano'
+              ? 'Os dois cantos precisam diferir na horizontal e na vertical.'
+              : 'Os dois cantos precisam diferir em latitude e em longitude.'
+          };
         }
       case 'circulo':
         if (this.pontos.length === 0) {
@@ -154,10 +189,10 @@ export class SessaoDesenho {
           return {};
         }
         {
-          const raio = distanciaMetros(this.pontos[0], c);
-          return raio >= RAIO_MINIMO_CIRCULO_M
+          const raio = this.espaco.distancia(this.pontos[0], c);
+          return raio >= this.raioMinimo
             ? { concluida: { tipo: 'Circle', centro: this.pontos[0], raioMetros: raio } }
-            : { aviso: `Raio mínimo de ${RAIO_MINIMO_CIRCULO_M} m: clique mais longe do centro.` };
+            : { aviso: `Raio mínimo de ${this.raioMinimo} ${this.espaco.unidade}: clique mais longe do centro.` };
         }
       case 'elipse':
       case 'poligono-regular':
@@ -166,7 +201,7 @@ export class SessaoDesenho {
           this.pontos.push(c);
           return {};
         }
-        const anel = FORMAS_DE_DOIS_CLIQUES[this.ferramenta]!(this.pontos[0], c);
+        const anel = this.formaDeDoisCliques(this.pontos[0], c);
         return anel ? { concluida: { tipo: 'Polygon', aneis: [anel] } } : { aviso: 'Clique num ponto diferente do centro.' };
       }
       case 'caneta':
@@ -236,8 +271,8 @@ export class SessaoDesenho {
         return this.pontos.length === 1 && cur ? this.retangulo(this.pontos[0], cur) : null;
       case 'circulo': {
         if (this.pontos.length !== 1 || !cur) return null;
-        const raio = distanciaMetros(this.pontos[0], cur);
-        return raio >= RAIO_MINIMO_CIRCULO_M ? { tipo: 'Circle', centro: this.pontos[0], raioMetros: raio } : null;
+        const raio = this.espaco.distancia(this.pontos[0], cur);
+        return raio >= this.raioMinimo ? { tipo: 'Circle', centro: this.pontos[0], raioMetros: raio } : null;
       }
       case 'caneta': {
         if (this.ancoras.length === 0) return null;
@@ -249,7 +284,7 @@ export class SessaoDesenho {
       case 'poligono-regular':
       case 'estrela': {
         if (this.pontos.length !== 1 || !cur) return null;
-        const anel = FORMAS_DE_DOIS_CLIQUES[this.ferramenta]!(this.pontos[0], cur);
+        const anel = this.formaDeDoisCliques(this.pontos[0], cur);
         return anel ? { tipo: 'Polygon', aneis: [anel] } : null;
       }
       case 'ponto':
@@ -279,9 +314,9 @@ export class SessaoDesenho {
     return { tipo: 'Polygon', aneis: [this.vertices()] };
   }
 
-  /** Medida em andamento: comprimento (linha) ou comprimento do contorno (área), em metros. */
+  /** Medida em andamento: comprimento (linha) ou comprimento do contorno (área), na unidade do espaço (m no geográfico). */
   public comprimentoMetros(): number {
     const v = this.cursor && this.nos > 0 ? [...this.vertices(), this.cursor] : this.vertices();
-    return comprimentoMetros(v, false);
+    return this.espaco.comprimento(v, false);
   }
 }

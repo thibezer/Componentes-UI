@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-tema="escuro" class="dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Playground da prancha</title>
+  <style>
+    body {
+      background-color: var(--ui-cor-fundo, #0b0b0d);
+      color: var(--ui-cor-texto, #e1e1e6);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 16px;
+    }
+    h1 { margin: 0 0 12px; font-size: 18px; color: var(--ui-cor-primaria, #00E08A); }
+    .barra { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+    .preset-btn {
+      background: var(--ui-cor-botao-secundario-fundo, #1f1f24);
+      color: var(--ui-cor-texto, #e1e1e6);
+      border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .preset-btn:hover { border-color: var(--ui-cor-primaria, #00E08A); }
+    .area { display: flex; gap: 8px; align-items: flex-start; width: 100%; }
+    #prancha-log { margin-top: 8px; max-height: 140px; overflow: auto; font-size: 11px; opacity: 0.8; }
+  </style>
+</head>
+
+<body>
+  <!-- <ui-canvas-prancha> com a paleta, as camadas e as propriedades do kit (composição em pagina_prancha.ts) -->
+  <h1>&lt;ui-canvas-prancha&gt;: prancha A4 em mm, sem Leaflet</h1>
+  <div id="prancha-predefinicoes" class="barra">
+    <button class="preset-btn" data-predefinicao="moldura-dupla">Moldura dupla ABNT</button>
+    <button class="preset-btn" data-predefinicao="retangulo-arredondado">Retângulo arredondado</button>
+    <button class="preset-btn" data-predefinicao="losango">Losango</button>
+    <button class="preset-btn" data-predefinicao="seta-dupla">Seta dupla</button>
+    <button class="preset-btn" id="prancha-svg">Exportar SVG</button>
+  </div>
+  <div id="prancha-operacoes" class="barra">
+    <button class="preset-btn" data-pathfinder="uniao">Unir</button>
+    <button class="preset-btn" data-pathfinder="subtracao">Subtrair frente</button>
+    <button class="preset-btn" data-pathfinder="intersecao">Interseção</button>
+    <button class="preset-btn" data-pathfinder="exclusao">Excluir sobreposição</button>
+    <button class="preset-btn" id="prancha-sombra">Sombra</button>
+  </div>
+  <div class="area">
+    <ui-paleta-ferramentas id="prancha-paleta" orientacao="vertical" atalhos style="flex:0 0 auto;"></ui-paleta-ferramentas>
+    <ui-canvas-prancha id="prancha-demo" largura="210" altura="297" mostrar-grade grade="10" rotulo="Prancha A4 de teste" style="flex:1 1 auto; min-width:0; height:640px;"></ui-canvas-prancha>
+    <div style="flex:0 0 300px; display:flex; flex-direction:column; gap:8px; min-width:0;">
+      <ui-camadas id="prancha-camadas" densidade="compacto" mostrar-mapas-base="false" mostrar-rodape="false" persistir="false" altura="260"></ui-camadas>
+      <ui-tabela-propriedades id="prancha-propriedades" titulo="Aparência" modo-aplicar="imediato" style="flex:1 1 auto; min-height:360px;"></ui-tabela-propriedades>
+    </div>
+  </div>
+  <pre id="prancha-log"></pre>
+  <script type="module" src="/pagina_prancha.ts"></script>
+</body>
+
+</html>

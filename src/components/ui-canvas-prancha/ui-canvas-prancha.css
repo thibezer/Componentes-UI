@@ -1,0 +1,112 @@
+/* <ui-canvas-prancha>: cores só por tokens (src/tokens/); o canvas lê as variáveis --ui-prancha-* (prancha-cores.ts). */
+:host {
+  --ui-prancha-mesa: var(--ui-cor-fundo);
+  --ui-prancha-papel: var(--ui-cor-papel);
+  --ui-prancha-borda-papel: var(--ui-cor-borda);
+  --ui-prancha-grade: var(--ui-cor-grade-papel);
+  --ui-prancha-selecao: var(--ui-cor-primaria);
+  --ui-prancha-alca: var(--ui-cor-superficie);
+  --ui-prancha-guia: var(--ui-cor-guia);
+  --ui-prancha-guia-inteligente: var(--ui-cor-guia-inteligente);
+  --ui-prancha-snap: var(--ui-cor-destaque);
+  --ui-prancha-regua: var(--ui-cor-fundo-elevado);
+  --ui-prancha-texto-regua: var(--ui-cor-texto-secundario);
+  --ui-prancha-tamanho-regua: 20px;
+
+  display: block;
+  position: relative;
+  min-height: 240px;
+  min-width: 240px;
+  height: 100%;
+  background: var(--ui-cor-fundo);
+  color: var(--ui-cor-texto);
+  font-family: var(--ui-fonte-base);
+  outline: none;
+  /* sem contenção de tamanho: num contêiner flex centralizado ela zeraria a largura */
+  contain: layout paint;
+}
+
+:host([hidden]) {
+  display: none;
+}
+
+.raiz {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: var(--ui-prancha-tamanho-regua) 1fr;
+  grid-template-rows: var(--ui-prancha-tamanho-regua) 1fr;
+}
+
+:host([sem-reguas]) .raiz {
+  grid-template-columns: 0 1fr;
+  grid-template-rows: 0 1fr;
+}
+
+:host([sem-reguas]) .regua,
+:host([sem-reguas]) .canto {
+  display: none;
+}
+
+.canto {
+  background: var(--ui-prancha-regua);
+  border-right: 1px solid var(--ui-cor-borda);
+  border-bottom: 1px solid var(--ui-cor-borda);
+}
+
+.regua {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--ui-prancha-regua);
+  cursor: default;
+  touch-action: none;
+}
+
+.regua-h { border-bottom: 1px solid var(--ui-cor-borda); cursor: s-resize; }
+.regua-v { border-right: 1px solid var(--ui-cor-borda); cursor: e-resize; }
+
+.viewport {
+  position: relative;
+  overflow: hidden;
+  background: var(--ui-prancha-mesa);
+  touch-action: none;
+  cursor: default;
+}
+
+.viewport:focus-visible {
+  outline: 2px solid var(--ui-cor-primaria);
+  outline-offset: -2px;
+}
+
+.viewport[data-cursor='mao'] { cursor: grab; }
+.viewport[data-cursor='arrastando'] { cursor: grabbing; }
+.viewport[data-cursor='mira'] { cursor: crosshair; }
+.viewport[data-cursor='mover'] { cursor: move; }
+.viewport[data-cursor='girar'] { cursor: alias; }
+.viewport[data-cursor='ancora'] { cursor: pointer; }
+
+.camada {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+
+.status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (pointer: coarse) {
+  :host {
+    --ui-prancha-tamanho-regua: 24px;
+  }
+}

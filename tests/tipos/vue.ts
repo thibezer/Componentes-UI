@@ -29,3 +29,13 @@ export const densidadeInvalida: Props<'ui-tabela'> = { densidade: 'enorme' };
 
 // @ts-expect-error densidade fora do conjunto aceito
 export const propDensidadeInvalida: Props<'ui-tabela-propriedades'> = { densidade: 'enorme' };
+
+export const prancha: Props<'ui-canvas-prancha'> = {
+  largura: 297,
+  altura: 210,
+  ferramenta: 'caneta',
+  onPranchaElementoCriado: (e: CustomEvent) => e.detail
+};
+
+// @ts-expect-error ferramenta fora do conjunto aceito
+export const pranchaInvalida: Props<'ui-canvas-prancha'> = { ferramenta: 'pincel' };

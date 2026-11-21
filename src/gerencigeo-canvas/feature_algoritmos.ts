@@ -1,41 +1,17 @@
 import { criarLinha, ehMultilinha, partesDaLinha, type Feicao, type GeometriaFeicao, type LatLonPar } from './feature_types';
-import { distanciaMetros, metrosPorGrau } from './feature_metricas';
 import { moverNos } from './feature_curvas';
+import type { Espaco, PlanoLocal, XY } from './espaco/espaco_tipos';
+import { ESPACO_GEOGRAFICO } from './espaco/espaco_geografico';
 
 /*
  * Algoritmos espaciais puros (sem Leaflet): divisão de polígono por linha, junção, buffer,
  * deslocamento, conversões de unidade e DD <-> DMS.
  *
- * As contas geométricas usam uma projeção equiretangular local (metros em torno de um ponto de
- * referência), suficiente para glebas e áreas urbanas; não servem para geometrias continentais.
- * Limitações de cada função estão no comentário dela.
+ * As contas geométricas são feitas no plano local do espaço (`espaco.planoLocal`, ver `espaco/`): no geográfico (padrão)
+ * é a projeção equiretangular local em metros em torno de um ponto de referência, suficiente para glebas e áreas urbanas
+ * (não para geometrias continentais); no plano da prancha é a própria folha em mm. Distâncias e tolerâncias estão na
+ * unidade do espaço. Limitações de cada função estão no comentário dela.
  */
-
-
-// ---------- projeção local ----------
-
-interface PlanoLocal {
-  lat0: number;
-  lon0: number;
-  /** metros por grau de latitude / longitude na latitude de referência (elipsoide GRS80) */
-  mLat: number;
-  mLng: number;
-}
-
-type XY = [number, number];
-
-function planoEm(ref: LatLonPar): PlanoLocal {
-  const { lat, lng } = metrosPorGrau(ref[0]);
-  return { lat0: ref[0], lon0: ref[1], mLat: lat, mLng: Math.max(lng, 1) };
-}
-
-function paraXY(p: LatLonPar, pl: PlanoLocal): XY {
-  return [(p[1] - pl.lon0) * pl.mLng, (p[0] - pl.lat0) * pl.mLat];
-}
-
-function deXY(p: XY, pl: PlanoLocal): LatLonPar {
-  return [pl.lat0 + p[1] / pl.mLat, pl.lon0 + p[0] / pl.mLng];
-}
 
 // ---------- ponto em polígono ----------
 
@@ -95,13 +71,13 @@ function areaAbsXY(anel: XY[]): number {
  * Limitações: não trata furos; cruzamentos exatamente sobre um vértice podem ser ignorados;
  * linhas que se cruzam entre si dentro do polígono dão resultado indefinido.
  */
-export function dividirPoligonoComLinha(anel: LatLonPar[], linha: LatLonPar[]): LatLonPar[][] | null {
+export function dividirPoligonoComLinha(anel: LatLonPar[], linha: LatLonPar[], espaco: Espaco = ESPACO_GEOGRAFICO): LatLonPar[][] | null {
   if (anel.length < 3 || linha.length < 2) return null;
-  const pl = planoEm(anel[0]);
-  const poly = anel.map((p) => paraXY(p, pl));
-  const corte = linha.map((p) => paraXY(p, pl));
+  const pl = espaco.planoLocal(anel[0]);
+  const poly = emXY(anel, pl);
+  const corte = emXY(linha, pl);
   const partes = dividirXY(poly, corte, 0);
-  return partes && partes.length >= 2 ? partes.map((r) => r.map((p) => deXY(p, pl))) : null;
+  return partes && partes.length >= 2 ? partes.map((r) => deXYTodos(r, pl)) : null;
 }
 
 function dividirXY(poly: XY[], corte: XY[], profundidade: number): XY[][] | null {
@@ -175,7 +151,11 @@ function dividirXY(poly: XY[], corte: XY[], profundidade: number): XY[][] | null
 // ---------- junção ----------
 
 function emXY(pts: LatLonPar[], pl: PlanoLocal): XY[] {
-  return pts.map((p) => paraXY(p, pl));
+  return pts.map((p) => pl.paraXY(p));
+}
+
+function deXYTodos(pts: XY[], pl: PlanoLocal): LatLonPar[] {
+  return pts.map((p) => pl.deXY(p));
 }
 
 const dXY = (a: XY, b: XY): number => Math.hypot(a[0] - b[0], a[1] - b[1]);
@@ -185,9 +165,9 @@ const dXY = (a: XY, b: XY): number => Math.hypot(a[0] - b[0], a[1] - b[1]);
  * precisarem. Lacunas dentro da tolerância viram uma "ponte" (segmento reto). Devolve `null` se
  * alguma linha não se liga à cadeia.
  */
-export function juntarLinhas(linhas: LatLonPar[][], toleranciaM = 0): LatLonPar[] | null {
+export function juntarLinhas(linhas: LatLonPar[][], toleranciaM = 0, espaco: Espaco = ESPACO_GEOGRAFICO): LatLonPar[] | null {
   if (linhas.length === 0 || linhas.some((l) => l.length < 2)) return null;
-  const pl = planoEm(linhas[0][0]);
+  const pl = espaco.planoLocal(linhas[0][0]);
   const restantes = linhas.slice(1).map((l) => emXY(l, pl));
   let cadeia = emXY(linhas[0], pl);
 
@@ -213,7 +193,7 @@ export function juntarLinhas(linhas: LatLonPar[][], toleranciaM = 0): LatLonPar[
       ? [...cadeia, ...(dXY(cadeia[cadeia.length - 1], l[0]) > 0 ? l : l.slice(1))]
       : [...l, ...(dXY(l[l.length - 1], cadeia[0]) > 0 ? cadeia : cadeia.slice(1))];
   }
-  return cadeia.map((p) => deXY(p, pl));
+  return deXYTodos(cadeia, pl);
 }
 
 function segmentosSeCruzam(a: XY, b: XY, c: XY, d: XY): boolean {
@@ -236,9 +216,9 @@ function aneisSeCruzam(a: XY[], b: XY[]): boolean {
  * por até `toleranciaM` ou que dividem uma divisa. Recusa polígonos cujas bordas se cruzam
  * (`null`): união booleana de áreas sobrepostas não é suportada.
  */
-export function juntarPoligonos(a: LatLonPar[], b: LatLonPar[], toleranciaM = 0): LatLonPar[] | null {
+export function juntarPoligonos(a: LatLonPar[], b: LatLonPar[], toleranciaM = 0, espaco: Espaco = ESPACO_GEOGRAFICO): LatLonPar[] | null {
   if (a.length < 3 || b.length < 3) return null;
-  const pl = planoEm(a[0]);
+  const pl = espaco.planoLocal(a[0]);
   const A = emXY(a, pl);
   const B = emXY(b, pl);
   if (aneisSeCruzam(A, B)) return null;
@@ -256,7 +236,7 @@ export function juntarPoligonos(a: LatLonPar[], b: LatLonPar[], toleranciaM = 0)
   const anel: XY[] = [];
   for (let k = 0; k <= A.length; k++) anel.push(A[(i + k) % A.length]); // volta ao ponto da ponte
   for (let k = 0; k <= B.length; k++) anel.push(B[(j + k) % B.length]);
-  return anel.map((p) => deXY(p, pl));
+  return deXYTodos(anel, pl);
 }
 
 // ---------- buffer ----------
@@ -320,21 +300,21 @@ function orientacaoHoraria(anel: XY[]): boolean {
  * meia-esquadria: boa para distâncias pequenas frente ao tamanho da feição; pode se auto-intersectar
  * em polígonos côncavos com distâncias grandes.
  */
-export function gerarBuffer(g: GeometriaFeicao, distanciaM: number): LatLonPar[] | null {
+export function gerarBuffer(g: GeometriaFeicao, distanciaM: number, espaco: Espaco = ESPACO_GEOGRAFICO): LatLonPar[] | null {
   if (!Number.isFinite(distanciaM) || distanciaM === 0) return null;
 
   if (g.tipo === 'Point' || g.tipo === 'Text' || g.tipo === 'Circle') {
     const c = g.tipo === 'Circle' ? g.centro : g.coordenada;
     const r = g.tipo === 'Circle' ? g.raioMetros + distanciaM : distanciaM;
     if (r <= 0) return null;
-    const pl = planoEm(c);
+    const pl = espaco.planoLocal(c);
     const n = 64;
-    return Array.from({ length: n }, (_, k): XY => [r * Math.cos((2 * Math.PI * k) / n), r * Math.sin((2 * Math.PI * k) / n)]).map((p) => deXY(p, pl));
+    return Array.from({ length: n }, (_, k): XY => [r * Math.cos((2 * Math.PI * k) / n), r * Math.sin((2 * Math.PI * k) / n)]).map((p) => pl.deXY(p));
   }
 
   if (g.tipo === 'LineString') {
     if (distanciaM < 0 || g.coordenadas.length < 2 || ehMultilinha(g)) return null; // buffer de multilinha exigiria união de polígonos
-    const pl = planoEm(g.coordenadas[0]);
+    const pl = espaco.planoLocal(g.coordenadas[0]);
     const pts = emXY(g.coordenadas, pl);
     const esq = deslocarCaminho(pts, distanciaM, false);
     const dir = deslocarCaminho([...pts].reverse(), distanciaM, false);
@@ -344,34 +324,32 @@ export function gerarBuffer(g: GeometriaFeicao, distanciaM: number): LatLonPar[]
     const angIni = Math.atan2(ini[1] - pts[1][1], ini[0] - pts[1][0]);
     const capaFim = arco(fim, distanciaM, angFim + Math.PI / 2, angFim - Math.PI / 2);
     const capaIni = arco(ini, distanciaM, angIni + Math.PI / 2, angIni - Math.PI / 2);
-    return [...esq, ...capaFim, ...dir, ...capaIni].map((p) => deXY(p, pl));
+    return deXYTodos([...esq, ...capaFim, ...dir, ...capaIni], pl);
   }
 
   if (g.tipo === 'Polygon') {
     const anel = g.aneis[0];
     if (!anel || anel.length < 3) return null;
-    const pl = planoEm(anel[0]);
+    const pl = espaco.planoLocal(anel[0]);
     let pts = emXY(anel, pl);
     // o offset "pela esquerda" é para fora em anel anti-horário; ajusta o sinal pelo sentido
     const horario = orientacaoHoraria(pts);
     if (horario) pts = [...pts].reverse();
     const r = deslocarCaminho(pts, -distanciaM, true);
     if (r.length < 3 || (distanciaM < 0 && areaAbsXY(r) >= areaAbsXY(pts))) return null;
-    return r.map((p) => deXY(p, pl));
+    return deXYTodos(r, pl);
   }
   return null;
 }
 
 // ---------- deslocamento ----------
 
-/** Copia a geometria deslocada `leste` m para leste e `norte` m para norte. */
-export function deslocarGeometria(g: GeometriaFeicao, lesteM: number, norteM: number): GeometriaFeicao {
-  const mover = (p: LatLonPar): LatLonPar => {
-    const escala = metrosPorGrau(p[0]);
-    const dLat = norteM / escala.lat;
-    const dLon = lesteM / Math.max(escala.lng, 1);
-    return [p[0] + dLat, p[1] + dLon];
-  };
+/**
+ * Copia a geometria deslocada. Geográfico (padrão): `leste` m para leste e `norte` m para norte. Plano: `+leste` em x e
+ * `+norte` em y (na folha, y cresce para baixo). Ver `Espaco.deslocar`.
+ */
+export function deslocarGeometria(g: GeometriaFeicao, lesteM: number, norteM: number, espaco: Espaco = ESPACO_GEOGRAFICO): GeometriaFeicao {
+  const mover = (p: LatLonPar): LatLonPar => espaco.deslocar(p, lesteM, norteM);
   switch (g.tipo) {
     case 'Point': return { tipo: 'Point', coordenada: mover(g.coordenada) };
     case 'Text': return { ...g, coordenada: mover(g.coordenada) };
@@ -446,9 +424,9 @@ export function dmsParaDd(texto: string): number | null {
 
 // ---------- utilitários de feição ----------
 
-/** Distância em metros de um ponto até o vértice/segmento mais próximo; útil para testes e ferramentas. */
-export function distanciaEntre(a: LatLonPar, b: LatLonPar): number {
-  return distanciaMetros(a, b);
+/** Distância entre dois pontos na unidade do espaço (metros no geográfico, o padrão); útil para testes e ferramentas. */
+export function distanciaEntre(a: LatLonPar, b: LatLonPar, espaco: Espaco = ESPACO_GEOGRAFICO): number {
+  return espaco.distancia(a, b);
 }
 
 /** Cópia profunda de uma feição com novo id (para duplicar/dividir). */

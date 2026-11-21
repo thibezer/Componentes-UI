@@ -105,4 +105,46 @@ describe('SSR Safety (Node.js runtime sem DOM)', () => {
     expect(register.registrarTodosComponentes).toBeDefined();
     expect(() => register.registrarTodosComponentes()).not.toThrow();
   }, 20000);
+
+  it('núcleo plano da prancha (espaço, matriz, elementos, histórico) roda em Node sem DOM nem Leaflet', async () => {
+    const espaco = await import('../src/gerencigeo-canvas/espaco/index');
+    expect(espaco.ESPACO_PLANO.distancia([0, 0], [3, 4])).toBe(5);
+    expect(espaco.inverter(espaco.escala(2))).not.toBeNull();
+    const prancha = await import('../src/gerencigeo-canvas/prancha/index');
+    const el = prancha.criarRetangulo({ id: 'a', aparencia: { preenchimento: { cor: '#000' } } }, { x: 0, y: 0, largura: 10, altura: 10 })!;
+    expect(prancha.elementoNoTopo([5, 5], [el])?.id).toBe('a');
+    expect(prancha.gerarPredefinicao('moldura-dupla', { x: 0, y: 0, largura: 100, altura: 50 })).toHaveLength(2);
+    expect(new prancha.Historico<number>().podeDesfazer).toBe(false);
+    expect(isBrowser).toBe(false);
+  });
+
+  it('pintor e exportação SVG da prancha rodam em Node (contexto falso, string SVG)', async () => {
+    const prancha = await import('../src/gerencigeo-canvas/prancha/index');
+    const el = prancha.criarRetangulo({ id: 'a', aparencia: { preenchimento: { cor: '#000' } } }, { x: 0, y: 0, largura: 10, altura: 10 })!;
+    const chamadas: string[] = [];
+    const ctx = new Proxy({} as Record<string, unknown>, {
+      get: (_t, k) => (k === 'createLinearGradient' || k === 'createRadialGradient' || k === 'fillText' ? undefined : () => { chamadas.push(String(k)); }),
+      set: () => true
+    });
+    expect(prancha.desenharElementos(ctx as never, [el]).itens).toBe(1);
+    expect(chamadas).toContain('fill');
+    expect(prancha.exportarSvg([el], { largura: 10, altura: 10 })).toContain('<path');
+  });
+
+  it('booleanas (Pathfinder) e efeitos da prancha rodam em Node', async () => {
+    const b = await import('../src/gerencigeo-canvas/booleanas/index');
+    const r = b.operacaoBooleana([{ aneis: [[[0, 0], [2, 0], [2, 2], [0, 2]]] }, { aneis: [[[1, 1], [3, 1], [3, 3], [1, 3]]] }], 'uniao');
+    expect(b.areaDosPoligonos(r.poligonos)).toBeCloseTo(7, 9);
+    const prancha = await import('../src/gerencigeo-canvas/prancha/index');
+    const el = prancha.criarRetangulo({ id: 'a', aparencia: { preenchimento: { cor: '#000' }, sombra: {}, mesclagem: 'tela' } }, { x: 0, y: 0, largura: 10, altura: 10 })!;
+    expect(prancha.exportarSvg([el], { largura: 10, altura: 10 })).toContain('feGaussianBlur');
+  });
+
+  it('entrypoint ./prancha (componente + núcleo) importa no servidor sem ReferenceError', async () => {
+    const m = await import('../src/prancha');
+    expect(m.UICanvasPrancha).toBeDefined();
+    expect(m.ESPACO_PLANO).toBeDefined();
+    expect(m.desenharElementos).toBeDefined();
+    expect(m.FERRAMENTAS_PRANCHA).toContain('caneta');
+  }, 20000);
 });

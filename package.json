@@ -98,6 +98,11 @@
       "import": "./dist/motor.js",
       "require": "./dist/motor.cjs"
     },
+    "./prancha": {
+      "types": "./dist/prancha.d.ts",
+      "import": "./dist/prancha.js",
+      "require": "./dist/prancha.cjs"
+    },
     "./botao": {
       "types": "./dist/botao.d.ts",
       "import": "./dist/botao.js",

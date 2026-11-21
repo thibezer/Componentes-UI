@@ -1,5 +1,6 @@
 import type { Feicao } from './feature_types';
 import { limitesDaGeometria } from './feature_metricas';
+import type { Espaco } from './espaco/espaco_tipos';
 
 /*
  * Índice espacial de feições: R-tree empacotada (STR) com inserção/atualização/remoção incrementais.
@@ -10,7 +11,10 @@ import { limitesDaGeometria } from './feature_metricas';
  * Sem dependências externas (a biblioteca não tem dependências de runtime).
  */
 
-/** Envelope em graus: [oeste, sul, leste, norte] (x = lon, y = lat). */
+/**
+ * Envelope em graus: [oeste, sul, leste, norte] (x = lon, y = lat). No espaço plano os nomes são só rótulos dos eixos do
+ * par: `minLat`/`maxLat` = eixo 0 (x em mm) e `minLon`/`maxLon` = eixo 1 (y em mm).
+ */
 export interface CaixaGeo {
   minLon: number;
   minLat: number;
@@ -31,8 +35,9 @@ const TAMANHO_NO = 16;
 /** O delta só dispara remontagem acima disto (e de 10% do total). */
 const LIMITE_DELTA_MIN = 256;
 
-export function caixaDaFeicao(f: Feicao): CaixaGeo {
-  const [[minLat, minLon], [maxLat, maxLon]] = limitesDaGeometria(f.geometria);
+/** Envelope da feição; `espaco` só importa para o círculo (sem ele, o geográfico). */
+export function caixaDaFeicao(f: Feicao, espaco?: Espaco): CaixaGeo {
+  const [[minLat, minLon], [maxLat, maxLon]] = limitesDaGeometria(f.geometria, espaco);
   return { minLon, minLat, maxLon, maxLat };
 }
 
@@ -87,6 +92,9 @@ export class IndiceEspacial {
   /** Ids que estão na árvore mas foram removidos ou substituídos. */
   private obsoletos = new Set<string>();
 
+  /** `espaco` define o envelope do círculo (sem ele, o geográfico de sempre). */
+  constructor(private readonly espaco?: Espaco) {}
+
   public get tamanho(): number {
     return this.itens.size;
   }
@@ -94,7 +102,7 @@ export class IndiceEspacial {
   public construir(feicoes: Feicao[]): void {
     this.itens.clear();
     for (const f of feicoes) {
-      if (!f.excluida) this.itens.set(f.id, { id: f.id, ...caixaDaFeicao(f) });
+      if (!f.excluida) this.itens.set(f.id, { id: f.id, ...caixaDaFeicao(f, this.espaco) });
     }
     this.remontar();
   }
@@ -109,7 +117,7 @@ export class IndiceEspacial {
       this.remover(f.id);
       return;
     }
-    const item: ItemIndice = { id: f.id, ...caixaDaFeicao(f) };
+    const item: ItemIndice = { id: f.id, ...caixaDaFeicao(f, this.espaco) };
     if (this.itens.has(f.id)) this.obsoletos.add(f.id);
     this.itens.set(f.id, item);
     this.delta.set(f.id, item);

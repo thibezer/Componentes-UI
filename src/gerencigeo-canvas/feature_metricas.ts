@@ -1,4 +1,5 @@
 import { partesDaLinha, type Feicao, type GeometriaFeicao, type LatLonPar } from './feature_types';
+import type { Espaco } from './espaco/espaco_tipos';
 
 /* Medidas geodésicas das feições no elipsoide GRS80 (SIRGAS 2000 / WGS-84). */
 
@@ -114,16 +115,19 @@ export function formatarExtensao(m: number): string {
   return m >= 1000 ? `${nfM.format(m / 1000)} km` : `${nfM.format(m)} m`;
 }
 
-export function areaDaGeometria(g: GeometriaFeicao): number | null {
-  if (g.tipo === 'Polygon') return areaMetros2(g.aneis);
+/** Área na unidade do espaço (m² sem `espaco`, o geográfico). */
+export function areaDaGeometria(g: GeometriaFeicao, espaco?: Espaco): number | null {
+  if (g.tipo === 'Polygon') return espaco ? espaco.area(g.aneis) : areaMetros2(g.aneis);
   if (g.tipo === 'Circle') return Math.PI * g.raioMetros ** 2;
   return null;
 }
 
-export function extensaoDaGeometria(g: GeometriaFeicao): number | null {
+/** Extensão na unidade do espaço (m sem `espaco`, o geográfico). */
+export function extensaoDaGeometria(g: GeometriaFeicao, espaco?: Espaco): number | null {
+  const comprimento = (pts: LatLonPar[], fechado = false): number => (espaco ? espaco.comprimento(pts, fechado) : comprimentoMetros(pts, fechado));
   // multiparte: a extensão é a soma das partes
-  if (g.tipo === 'LineString') return partesDaLinha(g).reduce((s, p) => s + comprimentoMetros(p), 0);
-  if (g.tipo === 'Polygon') return comprimentoMetros(g.aneis[0] ?? [], true);
+  if (g.tipo === 'LineString') return partesDaLinha(g).reduce((s, p) => s + comprimento(p), 0);
+  if (g.tipo === 'Polygon') return comprimento(g.aneis[0] ?? [], true);
   if (g.tipo === 'Circle') return 2 * Math.PI * g.raioMetros;
   return null;
 }
@@ -148,20 +152,30 @@ export function textoRotulo(f: Feicao, campo?: string): string {
   return campo ? '' : f.id;
 }
 
-/** Envelope [[sul, oeste], [norte, leste]] da geometria. */
-export function limitesDaGeometria(g: GeometriaFeicao): [LatLonPar, LatLonPar] {
+/**
+ * Cantos opostos do círculo no espaço geográfico, pela aproximação esférica (111 320 m/° e `cos(lat)` limitado a 0,01) que o
+ * envelope sempre usou.
+ */
+export function extremosDoCirculoGeografico(centro: LatLonPar, raioMetros: number): [LatLonPar, LatLonPar] {
+  const dLat = raioMetros / 111320;
+  const dLon = dLat / Math.max(0.01, Math.cos(rad(centro[0])));
+  return [[centro[0] - dLat, centro[1] - dLon], [centro[0] + dLat, centro[1] + dLon]];
+}
+
+/**
+ * Envelope [[mín0, mín1], [máx0, máx1]] da geometria: [[sul, oeste], [norte, leste]] no geográfico, [[xMín, yMín], [xMáx,
+ * yMáx]] no plano. Só o círculo depende do espaço (sem `espaco`, o geográfico).
+ */
+export function limitesDaGeometria(g: GeometriaFeicao, espaco?: Espaco): [LatLonPar, LatLonPar] {
   let pts: LatLonPar[];
   switch (g.tipo) {
     case 'Point':
     case 'Text': pts = [g.coordenada]; break;
     case 'LineString': pts = partesDaLinha(g).flat(); break;
     case 'Polygon': pts = g.aneis.flat(); break;
-    case 'Circle': {
-      const dLat = g.raioMetros / 111320;
-      const dLon = dLat / Math.max(0.01, Math.cos(rad(g.centro[0])));
-      pts = [[g.centro[0] - dLat, g.centro[1] - dLon], [g.centro[0] + dLat, g.centro[1] + dLon]];
+    case 'Circle':
+      pts = espaco ? espaco.extremosDoCirculo(g.centro, g.raioMetros) : extremosDoCirculoGeografico(g.centro, g.raioMetros);
       break;
-    }
   }
   const lats = pts.map((p) => p[0]);
   const lons = pts.map((p) => p[1]);

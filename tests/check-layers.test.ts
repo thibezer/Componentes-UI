@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import path from 'node:path';
 // @ts-expect-error módulo .mjs sem declarações
-import { classificar, extrairImports, verificar, verificarEntradaSemLeaflet } from '../scripts/check-layers.mjs';
+import { classificar, extrairImports, semTextos, verificar, verificarEntradaSemLeaflet } from '../scripts/check-layers.mjs';
 
 const src = (...p: string[]) => path.resolve(__dirname, '..', 'src', ...p);
 
@@ -122,5 +122,67 @@ describe('check-layers: entrypoint sem Leaflet (motor)', () => {
   it('classifica motor.ts como L5 e gerencigeo-canvas/motor como L2', () => {
     expect(classificar(src('motor.ts'))).toBe(5);
     expect(classificar(src('gerencigeo-canvas', 'motor', 'motor-formas.ts'))).toBe(2);
+  });
+});
+
+describe('check-layers: núcleo puro da prancha (espaço plano)', () => {
+  const ler = (conteudos: Record<string, string>) => (f: string) => conteudos[f] ?? '';
+
+  it('espaco/, prancha/ e os feature_* do núcleo não podem importar leaflet nem usar o DOM', () => {
+    for (const f of [
+      src('gerencigeo-canvas', 'espaco', 'espaco_plano.ts'),
+      src('gerencigeo-canvas', 'prancha', 'elemento_geometria.ts'),
+      src('gerencigeo-canvas', 'feature_snap.ts'),
+      src('gerencigeo-canvas', 'feature_historico.ts')
+    ]) {
+      expect(verificar([f], ler({ [f]: "import L from 'leaflet';" })), f).toHaveLength(1);
+      expect(verificar([f], ler({ [f]: 'const w = window.innerWidth;' })), f).toHaveLength(1);
+    }
+  });
+
+  it('a palavra window dentro de um texto não é o global (ModoCaixa = "window" | "crossing")', () => {
+    const f = src('gerencigeo-canvas', 'feature_caixa.ts');
+    expect(verificar([f], ler({ [f]: "export type ModoCaixa = 'window' | 'crossing';\nconst m = \"document\";\nconst t = `localStorage`;" }))).toEqual([]);
+    expect(semTextos("a = 'window'; b = document;")).toBe("a = ''; b = document;");
+  });
+});
+
+describe('check-layers: utilitário L2 importado sem extensão', () => {
+  it('cores-utils sem .ts continua L2 (L2 pode importá-lo; L3 também)', () => {
+    expect(classificar(src('components', 'ui-cores', 'cores-utils'))).toBe(2);
+    const f = src('gerencigeo-canvas', 'prancha', 'exportar_svg.ts');
+    expect(verificar([f], (() => "import { escaparHtml } from '../../components/ui-cores/cores-utils';") as never)).toEqual([]);
+  });
+});
+
+describe('check-layers: <ui-canvas-prancha> (L4 sem Leaflet e isolado)', () => {
+  const ler = (conteudos: Record<string, string>) => (f: string) => conteudos[f] ?? '';
+  const f = src('components', 'ui-canvas-prancha', 'prancha-x.ts');
+
+  it('é L4 e o entrypoint prancha.ts é L5', () => {
+    expect(classificar(f)).toBe(4);
+    expect(classificar(src('prancha.ts'))).toBe(5);
+  });
+
+  it('não importa leaflet (nem só o tipo em runtime) nem outro componente L4; pode usar L1, L2, L3 e a própria pasta', () => {
+    expect(verificar([f], ler({ [f]: "import L from 'leaflet';" }))).toHaveLength(1);
+    expect(verificar([f], ler({ [f]: "import { UICamadas } from '../ui-camadas';" }))).toHaveLength(1);
+    expect(verificar([f], ler({ [f]: "import { x } from '../ui-canvas-cad/cad-snap';" }))).toHaveLength(1);
+    expect(verificar([f], ler({ [f]: [
+      "import type L from 'leaflet';",
+      "import { a } from './prancha-y';",
+      "import { b } from '../../core/listener-bag';",
+      "import { c } from '../../gerencigeo-canvas/prancha/elemento_snap';",
+      "import { d } from '../ui-botao';"
+    ].join('\n') }))).toEqual([]);
+  });
+
+  it('outros L4 continuam podendo importar L4 (a regra é só da prancha)', () => {
+    const cad = src('components', 'ui-canvas-cad', 'x.ts');
+    expect(verificar([cad], ler({ [cad]: "import { y } from '../ui-camadas';" }))).toEqual([]);
+  });
+
+  it('o entrypoint real `src/prancha.ts` não alcança leaflet', () => {
+    expect(verificarEntradaSemLeaflet(path.resolve(__dirname, '..', 'src', 'prancha.ts'))).toEqual([]);
   });
 });

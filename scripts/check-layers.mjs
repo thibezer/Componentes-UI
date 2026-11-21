@@ -20,12 +20,18 @@ const ATOMICOS_L3 = [
 ];
 const WORKSTATION_L4 = [
     'ui-canvas-cad', 'ui-camadas', 'ui-tabela-propriedades', 'ui-tabela', 'ui-barra-ferramentas',
-    'ui-mapa', 'ui-seletor-mapa-base'
+    'ui-mapa', 'ui-seletor-mapa-base', 'ui-canvas-prancha'
 ];
 const ENTRYPOINTS_L5 = [
     'index', 'register', 'botao', 'camadas', 'canvas', 'tabela', 'forms', 'tools',
-    'campo-texto', 'card', 'cores', 'data', 'feedback', 'mapa', 'modal', 'seletor-mapa-base', 'motor'
+    'campo-texto', 'card', 'cores', 'data', 'feedback', 'mapa', 'modal', 'seletor-mapa-base', 'motor', 'prancha'
 ];
+
+/**
+ * Componentes L4 que não podem importar `leaflet` nem outros componentes L4 (a composição com `ui-camadas`,
+ * `ui-tabela-propriedades` e `ui-barra-ferramentas` é por eventos e `ui-bus`, ver docs/canvas-prancha.md).
+ */
+const L4_SEM_LEAFLET_ISOLADOS = ['ui-canvas-prancha'];
 
 /** Utilitários puros declarados como L2 que ainda moram em diretórios de componentes (ver AGENTS.md §1). */
 const UTILITARIOS_L2 = [
@@ -38,7 +44,8 @@ const dentro = (p, dir) => p === dir || p.startsWith(`${dir}/`);
 /** Classifica um caminho absoluto numa camada (0–5) ou null se estiver fora do mapa. */
 export function classificar(abs) {
     const p = norm(abs);
-    if (UTILITARIOS_L2.some((u) => p === em(u) || dentro(p, em(u)))) return 2;
+    // o import costuma vir sem extensão ('../ui-cores/cores-utils'): também casa sem o .ts
+    if (UTILITARIOS_L2.some((u) => p === em(u) || p === em(u.replace(/\.ts$/, '')) || dentro(p, em(u)))) return 2;
     if (dentro(p, em('tokens')) || p === norm(path.join(RAIZ, 'ui-tokens.css'))) return 0;
     if (dentro(p, em('core'))) return 1;
     if (dentro(p, em('gerencigeo-canvas'))) return 2;
@@ -89,12 +96,35 @@ const ehTeste = (f) => /\.(test|spec)\.tsx?$/.test(f);
  */
 const PUROS_SEM_DOM = [
     'gerencigeo-canvas/motor',
+    // núcleo de espaço e da prancha (canvas de elementos gráficos em mm): docs/canvas-prancha.md
+    'gerencigeo-canvas/espaco',
+    // booleanas de polígonos (Pathfinder), genéricas: docs/canvas-prancha.md, Fase 5
+    'gerencigeo-canvas/booleanas',
+    'gerencigeo-canvas/prancha',
+    'gerencigeo-canvas/feature_types.ts',
+    'gerencigeo-canvas/feature_metricas.ts',
+    'gerencigeo-canvas/feature_formas.ts',
+    'gerencigeo-canvas/feature_algoritmos.ts',
+    'gerencigeo-canvas/feature_curvas.ts',
+    'gerencigeo-canvas/feature_edicao_ops.ts',
+    'gerencigeo-canvas/feature_snap.ts',
+    'gerencigeo-canvas/feature_caixa.ts',
+    'gerencigeo-canvas/feature_amostra.ts',
+    'gerencigeo-canvas/feature_desenho.ts',
+    'gerencigeo-canvas/feature_versoes.ts',
+    'gerencigeo-canvas/feature_selecao.ts',
+    'gerencigeo-canvas/feature_cluster.ts',
+    'gerencigeo-canvas/feature_historico.ts',
     'gerencigeo-canvas/feature_lod.ts',
     'gerencigeo-canvas/feature_simplificacao.ts',
-    'gerencigeo-canvas/feature_indice.ts'
+    'gerencigeo-canvas/feature_indice.ts',
+    'gerencigeo-canvas/renderers/renderizador_formas.ts',
+    'components/ui-cores/cores-utils.ts'
 ];
 const ehPuroSemDom = (abs) => PUROS_SEM_DOM.some((p) => dentro(norm(abs), em(p)));
 const GLOBAIS_DOM = /\b(window|document|localStorage|sessionStorage|requestAnimationFrame|ResizeObserver|HTMLElement)\b/;
+/** Troca literais de texto por vazios: `'window'` (um valor, como o `ModoCaixa`) não é o global de navegador. */
+export const semTextos = (codigo) => codigo.replace(/'(?:\\.|[^'\\\n])*'|"(?:\\.|[^"\\\n])*"|`(?:\\.|[^`\\])*`/g, "''");
 
 export function verificar(arquivos, ler = (f) => fs.readFileSync(f, 'utf-8')) {
     const violacoes = [];
@@ -108,7 +138,7 @@ export function verificar(arquivos, ler = (f) => fs.readFileSync(f, 'utf-8')) {
             if (/(?:from|import\s*\(|require\()\s*['"]leaflet(?:\/[^'"]*)?['"]/.test(codigo)) {
                 violacoes.push({ arquivo, motivo: 'Módulo puro do motor de formas não pode importar "leaflet" (roda em Node/SSR e em Worker).' });
             }
-            const uso = codigo.match(GLOBAIS_DOM);
+            const uso = semTextos(codigo).match(GLOBAIS_DOM);
             if (uso) {
                 violacoes.push({ arquivo, motivo: `Módulo puro do motor de formas não pode usar o global de navegador "${uso[1]}".` });
             }
@@ -121,7 +151,12 @@ export function verificar(arquivos, ler = (f) => fs.readFileSync(f, 'utf-8')) {
         }
 
         const conteudo = ler(arquivo);
+        const isolado = camadaOrigem === 4 ? L4_SEM_LEAFLET_ISOLADOS.find((d) => dentro(norm(arquivo), em('components', d))) : undefined;
         for (const esp of extrairImports(conteudo)) {
+            if (isolado && /^leaflet(\/|$)/.test(esp)) {
+                violacoes.push({ arquivo, motivo: `<${isolado}> não pode importar "leaflet" (é a prancha plana, sem mapa).` });
+                continue;
+            }
             const destino = resolverDestino(arquivo, esp);
             if (!destino) continue;
             const camadaDestino = classificar(destino);
@@ -130,6 +165,8 @@ export function verificar(arquivos, ler = (f) => fs.readFileSync(f, 'utf-8')) {
                 violacoes.push({ arquivo, motivo: `L0 não pode depender de código (${esp}).` });
             } else if (camadaOrigem === 3 && dentro(norm(destino), em('gerencigeo-canvas'))) {
                 violacoes.push({ arquivo, motivo: `${NOMES[3]} nunca importa o motor gerencigeo-canvas ("${esp}"); apenas L4 o consome.` });
+            } else if (isolado && camadaDestino === 4 && !dentro(norm(destino), em('components', isolado))) {
+                violacoes.push({ arquivo, motivo: `<${isolado}> não importa outro componente L4 ("${esp}"); a comunicação é por eventos e ui-bus.` });
             } else if (camadaDestino > camadaOrigem) {
                 violacoes.push({ arquivo, motivo: `${NOMES[camadaOrigem]} importa ${NOMES[camadaDestino]} ("${esp}"); só é permitido importar camadas inferiores.` });
             }
@@ -139,7 +176,7 @@ export function verificar(arquivos, ler = (f) => fs.readFileSync(f, 'utf-8')) {
 }
 
 /** Entrypoints que precisam rodar em Node/SSR e em Worker: nada que eles alcançam pode importar `leaflet`. */
-const ENTRADAS_SEM_LEAFLET = ['motor.ts'];
+const ENTRADAS_SEM_LEAFLET = ['motor.ts', 'prancha.ts'];
 
 /**
  * Percorre os imports relativos (em runtime) a partir de uma entrada e acusa quem importa `leaflet`. `ler` devolve o

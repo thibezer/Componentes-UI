@@ -35,6 +35,7 @@ import './components/ui-stat';
 import './components/ui-tabela-propriedades';
 import './components/ui-barra-ferramentas';
 import './components/ui-cores';
+import './components/ui-canvas-prancha';
 
 export { isBrowser };
 

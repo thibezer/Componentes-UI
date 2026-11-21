@@ -305,6 +305,52 @@ as medianas ficam em ~1,5 ms (feição além do limite) e ~9 ms (feição que ga
 usa orçamentos folgados (< 8 ms e < 60 ms por chamada, e uma fração do render completo) e um laço de 200 adições < 1 s; a meta de
 4 ms vale para o navegador.
 
+## Prancha (núcleo plano, Fase 1): 2 mil elementos
+
+`tests/prancha-desempenho.test.ts`, em Node (sem DOM), folha A0 com 2 mil elementos (retângulos, alguns com cantos
+arredondados, elipses, estrelas e linhas; 30% girados), cache de contorno quente. Medianas na máquina de desenvolvimento
+(2026-11-14); o teste exige ≤ 16 ms (o quadro) em cada caminho quente:
+
+| Operação | Mediana |
+|---|---|
+| Hover: 100 hit-tests pelo índice | 1,0 ms (≈ 0,01 ms cada) |
+| Hover sem índice (varredura dos 2 mil) | 0,3 ms |
+| Snap no arrasto, 20 buscas (grade + guia + elementos) | 0,9 ms |
+| Seleção por caixa (crossing + window) | 1,2 ms |
+| Zoom/pan: vista inteira + caixa da seleção de todos | 0,5 ms |
+| Mover 200 selecionados + atualizar o índice | 2,8 ms |
+| Mover os 2 mil + `atualizarVarios` (remonta uma vez) | 6,0 ms |
+| Escalar os 2 mil pela alça (só a matriz) | 0,4 ms |
+| Recalcular o contorno de 2 mil movidos (contorno local em cache) | 8,7 ms |
+| Montar o índice (uma vez por carga) | 9–11 ms |
+| Pintar os 2 mil num contexto 2D (plano em cache) — Fase 2 | 2,7 ms |
+| Planejar a pintura de 2 mil elementos novos (frio) | 11 ms |
+| Exportar o SVG da folha A0 com 2 mil elementos | 18 ms (exportação, não por quadro) |
+
+`<ui-canvas-prancha>` (Fase 3, `tests/ui-canvas-prancha-desempenho.test.ts`, happy-dom): por quadro, o evento de ponteiro + o
+gesto + a pintura (base, sobreposição e réguas) num contexto 2D que não faz nada (o custo do Canvas real é do navegador).
+Medianas com o arquivo sozinho; os testes de desempenho da prancha afirmam 16 ms × 4, porque com a suíte inteira em
+paralelo a máquina fica ~4× mais lenta (folga para CI, como os demais testes de desempenho do kit).
+
+| Gesto (2 mil elementos) | Mediana |
+|---|---|
+| Hover | 0,7 ms |
+| Arrastar um elemento (snap, guias inteligentes; a base fica fixa e o elemento vai na sobreposição) | 0,9 ms (era 11 ms repintando a base a cada quadro) |
+| Caixa de seleção (arrasto) · soltar | 0,9 ms · 7,5 ms |
+| Zoom pela roda (repinta a base) | 8 ms |
+| Escalar centenas de elementos selecionados (comando) | 22 ms (operação única) |
+
+Operações de organização (Fase 4, `tests/prancha-desempenho.test.ts`, 2 mil elementos): reordenar 500 1,3 ms; agrupar 500
+0,9 ms; alinhar 500 2,2 ms; distribuir 500 2,1 ms; duplicar 200 1,9 ms; planejar a pintura com 3 camadas 2,0 ms.
+
+Pathfinder e efeitos (Fase 5, `tests/booleanas.robustez.test.ts` e `tests/prancha-desempenho.test.ts`): booleanas de dois
+círculos de 1000 vértices 2,7 a 4,1 ms; união de 100 estrelas sobrepostas (4680 cortes) ~20 ms, como operação única
+(orçamento 50 ms); unir 50 retângulos 3,3 ms; planejar a frio 2 mil elementos com sombra 22,7 ms (depois, em cache).
+
+Antes do cache do contorno local por objeto de geometria, recalcular 2 mil contornos levava 20–100 ms. Com ele, mover,
+girar e escalar (que só trocam a matriz) só transformam os pontos. O índice usa o envelope por 4 cantos e não precisa do
+contorno.
+
 ## Regressão
 
 `tests/feicoes-lote.test.ts`:

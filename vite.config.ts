@@ -66,6 +66,7 @@ export default defineConfig({
         'mapa': './src/mapa.ts',
         'canvas': './src/canvas.ts',
         'motor': './src/motor.ts',
+        'prancha': './src/prancha.ts',
         'tabela': './src/tabela.ts',
         'botao': './src/botao.ts',
         'campo-texto': './src/campo-texto.ts',

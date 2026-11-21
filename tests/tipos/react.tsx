@@ -41,3 +41,19 @@ export const propInexistente = <ui-botao inexistente />;
 
 // @ts-expect-error densidade fora do conjunto aceito em tabela de propriedades
 export const propDensidadeInvalida = <ui-tabela-propriedades densidade="gigante" />;
+
+export const prancha = (
+  <ui-canvas-prancha
+    largura={210}
+    altura={297}
+    unidade="mm"
+    mostrar-grade
+    ferramenta="retangulo"
+    rotulo="Prancha 1"
+    onprancha-elemento-criado={(e) => e.detail}
+    onprancha-selecao={(e) => e.detail}
+  />
+);
+
+// @ts-expect-error ferramenta fora do conjunto aceito
+export const ferramentaInvalida = <ui-canvas-prancha ferramenta="pincel" />;

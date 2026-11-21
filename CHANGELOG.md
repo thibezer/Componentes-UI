@@ -1,5 +1,122 @@
 # Changelog
 
+## Não publicado
+
+### `<ui-canvas-prancha>`, Fase 6: painéis do kit e migração
+
+- **Dados para os painéis do kit**, sem a prancha importar outros componentes: `FERRAMENTAS_PALETA_PRANCHA` e
+  `ferramentaDaPaleta` (`<ui-paleta-ferramentas>`), `categoriasDePropriedades` (`<ui-tabela-propriedades>`),
+  `dadosParaPainelDeCamadas`, `camadasComMudanca`, `camadasNaOrdemDoPainel` e `camadaDoPainel` (`<ui-camadas>`).
+- **Comandos dos painéis** (API e `ui-bus`, com histórico e motivo `propriedades`): `aplicarPropriedade(id, valor)`
+  (aparência, estado e geometria da seleção) e `alterarElementos(ids, mudanca)` (ocultar, travar, renomear, mudar de
+  camada).
+- **Núcleo de propriedades** (`prancha/propriedades.ts`, L2): `IDS_PROPRIEDADES_PRANCHA`, `valorDaPropriedade`,
+  `comPropriedade` (troca validada), fonte única para qualquer painel.
+- Playground: página `prancha.html` (`npm run dev` → `/prancha.html`), a prancha A4 com paleta, camadas e propriedades (`pagina_prancha.ts`).
+- Guia de migração do layout de impressão do app: `docs/guia-migracao-prancha.md`.
+
+### `<ui-canvas-prancha>`, Fase 5: Pathfinder e efeitos
+
+- **Booleanas de polígonos** no núcleo genérico (`gerencigeo-canvas/booleanas`, L2 puro): `operacaoBooleana` com união,
+  subtração, interseção e exclusão; robusta a furos, anéis que se cruzam, arestas comuns e toques; qualquer número de
+  operandos; regras `nonzero`/`evenodd`.
+- **Pathfinder na prancha**: `aplicarPathfinder` (núcleo) e `pathfinder`, `unirFormas`, `subtrairFrente`,
+  `intersectarFormas`, `excluirSobreposicao` (API, `ui-bus`, Ctrl+Alt+Shift+1 a 4). Resultado em caminho composto, um passo
+  no histórico (motivo `pathfinder`), recusa `resultado-vazio`.
+- **Efeitos na aparência**: `mesclagem` (16 modos; Canvas `globalCompositeOperation`, SVG `mix-blend-mode`) e `sombra`
+  (silhueta vetorial deslocada, desfoque com `filter`/`feGaussianBlur`), capacidades opcionais com degradação no PDF.
+
+### `<ui-canvas-prancha>`, Fase 4: organização e operações (e as pendências da Fase 3)
+
+- **Medida real do texto:** o núcleo aceita um medidor (`definirMedidorTexto`, com caches versionados); o componente
+  registra um feito com `measureText`. Sem Canvas 2D, a estimativa continua.
+- **Cantos arredondados ao vivo:** marcas dentro dos cantos do retângulo selecionado; arrastar arredonda os quatro (Alt:
+  só um). `definirRaiosCantos` na API e no `ui-bus`. Núcleo: `prancha/cantos_vivos.ts`.
+- **Camadas como dado** (`CamadaPrancha`: ordem, visível, bloqueada, opacidade), respeitadas na tela, no PDF, no SVG e nas
+  consultas; camada ativa para os elementos novos; mover para camada.
+- **Ordem de empilhamento** (frente, trás, avançar, recuar), **grupos** (com isolamento por duplo clique), **bloquear/
+  ocultar** e liberar tudo, **alinhar** (seleção, objeto-chave, folha, caixa) e **distribuir** (centros, espaços).
+- **Duplicar** (Alt + arrastar, `duplicarSelecao`), **transformar de novo** (Ctrl+D), **copiar/recortar/colar** (também
+  no lugar), **conta-gotas**, **máscara de recorte** (Ctrl+7) e operações de caminho: unir, dividir com linha, deslocar
+  caminho, simplificar, contorno do traço, converter em caminho, adicionar/excluir/converter âncora.
+- Eventos novos `prancha-ordem`, `prancha-camadas`, `prancha-isolamento`, `prancha-conta-gotas`; novos motivos e a
+  recusa `tipo-nao-suportado`. Núcleo novo: `prancha/camadas.ts`, `organizacao.ts`, `operacoes_caminho.ts`.
+
+#### Mudanças de comportamento
+
+- Alt ao arrastar um elemento com a ferramenta de seleção agora **duplica** (antes desligava o snap no arrasto).
+- O hit-test desempata pela ordem do documento (antes podia usar a ordem do índice espacial em elementos sobrepostos).
+- Clicar num membro de grupo seleciona o grupo inteiro.
+
+### `<ui-canvas-prancha>`, Fase 3: o componente (novo entrypoint `@thibezer/ui-components-kit/prancha`)
+
+- **Novo componente `<ui-canvas-prancha>`** (L4, sem Leaflet): prancha de desenho em mm com réguas, guias, grade, zoom/pan,
+  seleção e seleção direta, caixa de transformação (escala, rotação, cisalhamento, pivô), retângulo com cantos arredondados,
+  elipse, polígono regular, estrela, linha, seta, polilinha, polígono, caneta Bézier e texto, snap, guias inteligentes,
+  teclado, histórico, comandos pelo `ui-bus` (`prancha:comando`), eventos `prancha-*`, `::part()`, tokens e ARIA. Documentação
+  em `docs/canvas-prancha-eventos.md` e no README do componente.
+- **Novo entrypoint `./prancha`** (`src/prancha.ts`): o componente e o núcleo puro (`espaco/`, `prancha/`). `index.ts`
+  ganha `carregarModuloPrancha` e o auto-carregamento da tag; `register.ts` registra a tag.
+- **Núcleo:** `guiasInteligentes` (alinhamento de caixas com distância) e `Historico.transformar`.
+- **Tokens novos:** `--ui-cor-papel`, `--ui-cor-guia`, `--ui-cor-guia-inteligente`, `--ui-cor-grade-papel`.
+- `check-layers`: `ui-canvas-prancha` é L4 e não pode importar `leaflet` nem outro componente L4; `prancha.ts` é L5 sem
+  Leaflet.
+- Manifesto: eventos `prancha-*` entram no `custom-elements.json` e nos tipos React/Vue (antes só `ui-*`).
+
+### `<ui-canvas-prancha>`, Fase 2: aparência e pintor (L2, puro)
+
+- **Aparência** (`prancha/tipos.ts`): preenchimento com gradiente linear/radial (coordenadas relativas à caixa do elemento),
+  hachura vetorial (ângulo, espaçamento em mm, cruzada), além do traço (tipo de linha CAD, pontas de seta, alinhamento
+  dentro/fora) e opacidade. Validação de gradiente e hachura em `normalizarAparencia`.
+- **Fonte única de estilo**: `resolverAparencia`/`aparenciaDe` (padrões de prancha: preto, 0,25 mm, ponta reta, junção
+  angular) e `planejarElemento`/`planoDe` (caminhos na folha + estilo). O hit-test passa a usar a mesma aparência resolvida.
+- **Pintor `desenharElementos(ctx, elementos, opcoes)`** com o contrato mínimo `ContextoPrancha2D` (o do PDF vetorial do
+  app): tela e exportação com o mesmo código. Gradiente e texto são capacidades opcionais detectadas, com degradação
+  (cor sólida; texto contado em `degradacoes`). Hachura por `clip` + linhas funciona em qualquer contexto.
+- **Exportação SVG** (`exportarSvg`): string saneada a partir do mesmo plano, em mm.
+- Tracejado em mm (`padraoTipoLinhaMm`, reaproveitando `dashTipoLinha`), pontas de seta (`geometriaDaPonta`) e linhas de
+  hachura (`linhasDeHachura`) como funções puras.
+- `check-layers`: um utilitário L2 importado sem extensão (`'../ui-cores/cores-utils'`) é classificado como L2 (antes caía
+  em L3 e acusava violação falsa); `cores-utils.ts` entra em `PUROS_SEM_DOM`.
+
+#### Mudanças de comportamento
+
+- Nenhuma fora da prancha.
+
+### `<ui-canvas-prancha>`, Fase 1: núcleo plano (L2, puro)
+
+- **Espaço de coordenadas** (`gerencigeo-canvas/espaco/`): `ESPACO_GEOGRAFICO` (padrão de todo o núcleo) e `ESPACO_PLANO`
+  (folha em mm, y para baixo), com distância, comprimento, área, plano local, deslocamento e círculo na unidade do espaço;
+  unidades de exibição (`paraMm`/`deMm`: mm, cm, pt, pol, px); matriz afim 2D (`espaco_matriz.ts`).
+- **Núcleo generalizado com parâmetro `espaco` opcional** (padrão geográfico): `feature_metricas`, `feature_formas`,
+  `feature_algoritmos`, `feature_edicao_ops`, `feature_caixa`, `feature_amostra`, `feature_indice` e `SessaoDesenho`
+  (que ganha `opcoes`: espaço, raio mínimo do círculo, lados do polígono, pontas e raio interno da estrela).
+  `gerarEstrela` aceita `proporcaoInterna`. `LatLonPar` passa a ser apelido do novo `Par`.
+- **Elemento gráfico da prancha** (`gerencigeo-canvas/prancha/`): modelo `ElementoGrafico`, formas paramétricas (retângulo
+  com cantos independentes, elipse/arco em Bézier exata, polígono regular, estrela, linha, caminho, texto), construtores,
+  caixa orientada e alças (escala, rotação com passo, cisalhamento), espelhar/girar/mover, hit-test, caixa Window/Crossing,
+  laço, `IndicePrancha`, snap (vértice > canto > centro > meio > guia > aresta > grade), edição de âncoras e alças,
+  pré-definições do app (retângulo, arredondado, moldura dupla, elipse, círculo, triângulo, losango, linhas, setas) com
+  traço contínuo/tracejado/pontilhado/traço-ponto, quadro ABNT (NBR 10068) e normalização de entrada hostil.
+- **Histórico genérico** (`feature_historico.ts`): desfazer/refazer por instantâneos, determinístico, com rajadas por chave.
+- `check-layers`: `espaco/`, `prancha/`, `feature_historico.ts` e os módulos puros do núcleo entram em `PUROS_SEM_DOM`; a
+  checagem de globais de navegador ignora literais de texto (o valor `'window'` de `ModoCaixa` não é o global). `distSegmentoPx`
+  (`motor/geometria-px`) passa a ser exportada.
+
+#### Mudanças de comportamento
+
+- Nenhuma no espaço geográfico: o teste golden prova as saídas bit a bit iguais e a suíte existente passa sem edição.
+
+### `<ui-canvas-prancha>` (canvas de elementos gráficos em mm), Fase 0: orientação e rede de segurança
+
+- **Sem mudança de comportamento** e sem código de produção alterado.
+- `docs/canvas-prancha.md`: auditoria do que o núcleo de formas tem de geográfico (lat/lon, GRS80, `cos(lat)`, 111 320 m/°,
+  Web Mercator, tracejados em px) e do que importa Leaflet, com a classificação "puro / generalizar / separar"; decisão de
+  modelagem (`Par` + `Espaco` nos módulos existentes, padrão geográfico) e nomes propostos (`<ui-canvas-prancha>`, `./prancha`).
+- Testes de caracterização: `tests/espaco-geografico.caracterizacao.test.ts` grava a saída exata (golden, bit a bit) das
+  funções que serão generalizadas (`tests/fixtures/espaco-geografico.golden.json`); `tests/espaco-auditoria-pureza.test.ts`
+  trava que o núcleo reaproveitável segue sem Leaflet e sem globais de navegador.
+
 ## 2.18.0 — 2026-11-14
 
 ### `<ui-tabela-propriedades>`: revisão do painel (correções e personalização)

@@ -1,0 +1,24 @@
+/* Núcleo da prancha (L2, puro): elemento gráfico em mm, formas, transformações, consultas, snap, edição e pré-definições. */
+export * from './tipos';
+export * from './elemento_geometria';
+export * from './elemento_validacao';
+export * from './elemento_criacao';
+export * from './elemento_transformacao';
+export * from './elemento_consulta';
+export * from './elemento_snap';
+export * from './elemento_edicao';
+export * from './elemento_predefinicoes';
+export * from './aparencia_estilo';
+export * from './pintura_formas';
+export * from './pintura_plano';
+export * from './pintura_canvas';
+export * from './exportar_svg';
+export * from './guias_inteligentes';
+export * from './cantos_vivos';
+export * from './camadas';
+export * from './organizacao';
+export * from './operacoes_caminho';
+export * from './pathfinder';
+export * from './propriedades';
+export * from '../booleanas/index';
+export { Historico, type OpcoesHistorico, type OpcoesRegistro } from '../feature_historico';

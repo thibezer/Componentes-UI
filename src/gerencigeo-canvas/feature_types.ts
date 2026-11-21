@@ -9,8 +9,14 @@ export type TipoFeicao = 'Point' | 'LineString' | 'Polygon' | 'Circle' | 'Text';
 
 export type StatusGeometria = 'oficial' | 'previa';
 
-/** [lat, lon] */
-export type LatLonPar = [number, number];
+/**
+ * Par de coordenadas de um espaço (ver `espaco/espaco_tipos.ts`): no geográfico (padrão) é `[lat, lon]`; no plano da
+ * prancha, `[x, y]` em mm com y para baixo. Os algoritmos que só fazem aritmética de pares servem aos dois.
+ */
+export type Par = [number, number];
+
+/** [lat, lon]: o par do espaço geográfico (apelido de `Par`). */
+export type LatLonPar = Par;
 
 /**
  * Nó de uma curva de Bézier cúbica; `entrada`/`saida` são as alças em coordenadas absolutas (sem alça = canto).

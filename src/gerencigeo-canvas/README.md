@@ -88,6 +88,10 @@ Nada é criado por padrão: o consumidor escolhe as camadas (`definirFeicoes`). 
 | `feature_snap.ts`, `feature_edicao_ops.ts`, `feature_editor_vertices.ts` | Snap (vértice > meio > aresta), operações de vértices, editor com alças e HUD |
 | `feature_desenho.ts`, `feature_desenho_controle.ts`, `feature_algoritmos.ts` | 11 ferramentas, caneta Bézier, medição, divisão/junção/buffer/deslocamento, unidades, DD ⇄ DMS |
 | `feature_versoes.ts`, `feature_cursores.ts`, `feature_metricas.ts` | Oficial × prévia, cursores remotos, áreas/comprimentos/formatação pt-BR |
+| `espaco/` | Espaço de coordenadas: `ESPACO_GEOGRAFICO` (padrão de todo o núcleo, bit a bit igual ao comportamento anterior) e `ESPACO_PLANO` (folha em mm, y para baixo); matriz afim 2D. Ver [`docs/canvas-prancha.md`](../../docs/canvas-prancha.md) |
+| `prancha/`, `feature_historico.ts` | Núcleo puro da `<ui-canvas-prancha>`: elemento gráfico em mm, formas paramétricas, transformações e alças, hit-test/caixa/laço/índice, snap, edição de âncoras, pré-definições; histórico genérico de desfazer/refazer |
+| `booleanas/`, `prancha/pathfinder.ts` | Operações booleanas de polígonos (unir, subtrair, interseção, excluir), genéricas e puras: divisão de arestas, classificação pelo número de voltas, montagem com furos. A prancha adapta os elementos (Pathfinder) |
+| `prancha/aparencia_estilo.ts`, `pintura_*.ts`, `exportar_svg.ts` | Aparência resolvida (fonte única de estilo), plano de pintura, pintor `desenharElementos` (contrato `ContextoPrancha2D`: tela e PDF com o mesmo código; gradiente e texto opcionais com degradação) e exportação SVG saneada |
 
 ### Motor das formas e renderizador Canvas (`renderizador="canvas"`)
 

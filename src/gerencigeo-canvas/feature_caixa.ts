@@ -1,11 +1,13 @@
 import { partesDaLinha, type Feicao, type LatLonPar } from './feature_types';
 import { pontoNoPoligono } from './feature_algoritmos';
+import type { Espaco } from './espaco/espaco_tipos';
+import { ESPACO_GEOGRAFICO } from './espaco/espaco_geografico';
 
 /*
  * Narrow-phase da caixa de seleção: exige toque geométrico real, não só sobreposição de envelopes.
  *  - window   (esquerda → direita): a feição inteira precisa estar dentro da caixa;
  *  - crossing (direita → esquerda): basta a feição tocar a caixa.
- * Tudo em pixels de contêiner; `projetar` converte [lat, lon] para esse espaço.
+ * Tudo em pixels de contêiner; `projetar` converte o par do espaço ([lat, lon] no geográfico, [x, y] mm no plano) para px.
  */
 
 export interface CaixaPx {
@@ -22,8 +24,6 @@ export interface PontoPx {
 
 export type Projetor = (p: LatLonPar) => PontoPx;
 export type ModoCaixa = 'window' | 'crossing';
-
-const METROS_POR_GRAU = 111320;
 
 function dentro(p: PontoPx, c: CaixaPx): boolean {
   return p.x >= c.x1 && p.x <= c.x2 && p.y >= c.y1 && p.y <= c.y2;
@@ -71,16 +71,16 @@ function arestasTocam(pts: PontoPx[], c: CaixaPx, fechado: boolean): boolean {
   return fechado && pts.length > 2 && segmentoToca(pts[pts.length - 1], pts[0], c);
 }
 
-function raioEmPx(centro: LatLonPar, raioMetros: number, projetar: Projetor): number {
+function raioEmPx(centro: LatLonPar, raioMetros: number, projetar: Projetor, espaco: Espaco): number {
   const a = projetar(centro);
-  const b = projetar([centro[0] + raioMetros / METROS_POR_GRAU, centro[1]]);
+  const b = projetar(espaco.pontoDeMedidaDoRaio(centro, raioMetros));
   return Math.hypot(b.x - a.x, b.y - a.y);
 }
 
-export function feicaoNaCaixa(f: Feicao, caixa: CaixaPx, projetar: Projetor, modo: ModoCaixa): boolean {
+export function feicaoNaCaixa(f: Feicao, caixa: CaixaPx, projetar: Projetor, modo: ModoCaixa, espaco: Espaco = ESPACO_GEOGRAFICO): boolean {
   if (f.oculta) return false;
   const g = f.geometria;
-  const window = modo === 'window';
+  const inteira = modo === 'window';
 
   switch (g.tipo) {
     case 'Point':
@@ -90,7 +90,7 @@ export function feicaoNaCaixa(f: Feicao, caixa: CaixaPx, projetar: Projetor, mod
     case 'LineString': {
       // multiparte: Window exige todas as partes dentro; Crossing, que alguma parte toque (partes não se ligam entre si)
       const partes = partesDaLinha(g).map((parte) => parte.map(projetar));
-      return window
+      return inteira
         ? partes.every((pts) => pts.every((p) => dentro(p, caixa)))
         : partes.some((pts) => pts.some((p) => dentro(p, caixa)) || arestasTocam(pts, caixa, false));
     }
@@ -99,7 +99,7 @@ export function feicaoNaCaixa(f: Feicao, caixa: CaixaPx, projetar: Projetor, mod
       const aneis = g.aneis.map((a) => a.map(projetar));
       const externo = aneis[0];
       if (!externo) return false;
-      if (window) return externo.every((p) => dentro(p, caixa));
+      if (inteira) return externo.every((p) => dentro(p, caixa));
       if (aneis.some((a) => a.some((p) => dentro(p, caixa)) || arestasTocam(a, caixa, true))) return true;
       // caixa inteira dentro da área (e fora dos furos): nenhuma aresta a toca
       const canto = { x: caixa.x1, y: caixa.y1 };
@@ -108,8 +108,8 @@ export function feicaoNaCaixa(f: Feicao, caixa: CaixaPx, projetar: Projetor, mod
 
     case 'Circle': {
       const centro = projetar(g.centro);
-      const r = raioEmPx(g.centro, g.raioMetros, projetar);
-      if (window) {
+      const r = raioEmPx(g.centro, g.raioMetros, projetar, espaco);
+      if (inteira) {
         return centro.x - r >= caixa.x1 && centro.x + r <= caixa.x2 && centro.y - r >= caixa.y1 && centro.y + r <= caixa.y2;
       }
       const nx = Math.max(caixa.x1, Math.min(centro.x, caixa.x2));
@@ -120,7 +120,7 @@ export function feicaoNaCaixa(f: Feicao, caixa: CaixaPx, projetar: Projetor, mod
 }
 
 /**
- * Seleção por laço (polígono em coordenadas geográficas). Ponto, texto e círculo entram se o ponto de
+ * Seleção por laço (polígono nas coordenadas do espaço). Ponto, texto e círculo entram se o ponto de
  * referência está dentro; linha, se algum vértice está; polígono, se algum vértice ou o centróide está.
  */
 export function feicaoNoLaco(f: Feicao, laco: LatLonPar[]): boolean {

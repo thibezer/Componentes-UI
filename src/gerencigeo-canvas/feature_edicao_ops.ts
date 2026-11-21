@@ -1,6 +1,7 @@
 import { ehMultilinha, type Feicao, type GeometriaFeicao, type LatLonPar, type NoCurva } from './feature_types';
 import { amostrarCurva, controlesDoSegmento, espelhoDaAlca, pontoDaCubica } from './feature_curvas';
-import { distanciaMetros, metrosPorGrau } from './feature_metricas';
+import type { Espaco } from './espaco/espaco_tipos';
+import { ESPACO_GEOGRAFICO } from './espaco/espaco_geografico';
 
 /*
  * Operações puras sobre os vértices de uma feição editável (ponto, linha, polígono de um anel e círculo).
@@ -93,18 +94,17 @@ export function nosDe(g: GeometriaFeicao): NoCurva[] | null {
   return null;
 }
 
-/** Menor raio que a alça de borda pode definir (evita círculo degenerado). */
+/** Menor raio que a alça de borda pode definir (evita círculo degenerado), na unidade do espaço (m no geográfico). */
 export const RAIO_MINIMO_EDICAO_CIRCULO_M = 0.5;
 
-/** Alça da borda do círculo: o ponto a leste do centro, a `raioMetros` de distância. */
-export function pontoDaBordaDoCirculo(centro: LatLonPar, raioMetros: number): LatLonPar {
-  // mesma escala de distanciaMetros (mesma latitude), para a alça de borda reproduzir exatamente o raio
-  return [centro[0], centro[1] + raioMetros / Math.max(metrosPorGrau(centro[0]).lng, 1)];
+/** Alça da borda do círculo: o ponto a leste do centro (à direita, no plano), a `raioMetros` de distância. */
+export function pontoDaBordaDoCirculo(centro: LatLonPar, raioMetros: number, espaco: Espaco = ESPACO_GEOGRAFICO): LatLonPar {
+  return espaco.pontoDaBorda(centro, raioMetros);
 }
 
 /** Pontos que o editor mostra como alças: os nós da curva ou, sem curva, os vértices. Círculo: centro e borda. */
-export function pontosDe(g: GeometriaFeicao): LatLonPar[] {
-  if (g.tipo === 'Circle') return [g.centro, pontoDaBordaDoCirculo(g.centro, g.raioMetros)];
+export function pontosDe(g: GeometriaFeicao, espaco: Espaco = ESPACO_GEOGRAFICO): LatLonPar[] {
+  if (g.tipo === 'Circle') return [g.centro, pontoDaBordaDoCirculo(g.centro, g.raioMetros, espaco)];
   return nosDe(g)?.map((n) => n.ponto) ?? verticesDe(g);
 }
 
@@ -115,10 +115,10 @@ function comNos(g: GeometriaFeicao, nos: NoCurva[]): GeometriaFeicao {
 }
 
 /** Nova geometria com estes pontos. Com o mesmo número de nós, as alças acompanham o nó; senão vira poligonal. */
-export function comPontos(g: GeometriaFeicao, pts: LatLonPar[]): GeometriaFeicao {
+export function comPontos(g: GeometriaFeicao, pts: LatLonPar[], espaco: Espaco = ESPACO_GEOGRAFICO): GeometriaFeicao {
   if (g.tipo === 'Circle') {
     if (pts.length < 2) return g;
-    return { ...g, centro: pts[0], raioMetros: Math.max(RAIO_MINIMO_EDICAO_CIRCULO_M, distanciaMetros(pts[0], pts[1])) };
+    return { ...g, centro: pts[0], raioMetros: Math.max(RAIO_MINIMO_EDICAO_CIRCULO_M, espaco.distancia(pts[0], pts[1])) };
   }
   const nos = nosDe(g);
   if (!nos || nos.length !== pts.length) return comVertices(g, pts);
