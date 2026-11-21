@@ -13,6 +13,7 @@ export * from './core/form-campos';
 export * from './core/form-rascunho';
 export * from './core/form-preenchimento';
 export * from './core/form-erros';
+export * from './core/form-atalhos';
 
 import type { UICampoTexto, UIInput } from './components/ui-campo-texto';
 import type { UIAreaTexto, UITextarea } from './components/ui-area-texto';

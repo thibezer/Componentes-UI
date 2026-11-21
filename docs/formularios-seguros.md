@@ -48,3 +48,12 @@ Marca `erro` + `mensagem-erro` (exibidos por `ui-campo-texto`/`ui-area-texto`), 
 
 `confirmarAcao({ titulo, mensagem, rotuloConfirmar, rotuloCancelar?, destrutivo? }): Promise<boolean>` — use verbos explícitos
 ("Remover matrícula"), nunca "OK". Esc, fundo e X resolvem `false`.
+
+## 5. Atalhos
+
+```ts
+const parar = ligarAtalhosFormulario(form, {
+  salvar: () => executarSalvar(),          // Ctrl/Cmd+S, também dentro dos campos
+  cancelar: () => fecharComConfirmacao(),  // Esc, só se nenhum filho o tratou (ex.: lista aberta)
+});
+```

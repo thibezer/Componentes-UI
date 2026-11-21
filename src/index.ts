@@ -56,6 +56,7 @@ export * from './core/form-campos';
 export * from './core/form-rascunho';
 export * from './core/form-preenchimento';
 export * from './core/form-erros';
+export * from './core/form-atalhos';
 
 // 6. Carregamento Sob Demanda (Lazy) para Componentes Geoespaciais (Leaflet Opcional)
 export const carregarModuloMapa = () => import('./mapa');
