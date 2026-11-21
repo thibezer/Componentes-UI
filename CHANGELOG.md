@@ -1,6 +1,6 @@
 # Changelog
 
-## Não publicado
+## 2.22.0 — 2026-11-21
 
 ### `<ui-canvas-cad>`: editor de curvas aprimorado
 
