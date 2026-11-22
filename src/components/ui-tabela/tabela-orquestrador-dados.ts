@@ -6,6 +6,8 @@ export function normalizarTexto(t: string): string {
   return t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 }
 
+const formatadorDataBr = new Intl.DateTimeFormat('pt-BR');
+
 export class TabelaOrquestradorDados {
   private dadosOriginais: Record<string, any>[] = [];
   private dadosExibicao: Record<string, any>[] = [];
@@ -16,11 +18,13 @@ export class TabelaOrquestradorDados {
   /** Colunas declaradas: o filtro olha só elas (vazio = todos os campos do registro). */
   private colunasFiltro: string[] = [];
   private colunas: TabelaColuna[] = [];
+  private colunasPorId = new Map<string, TabelaColuna>();
   /** Ordenação feita pelo servidor: a tabela guarda coluna/direção (indicador) mas não reordena os dados. */
   private ordenacaoRemota = false;
 
   public setColunas(colunas: TabelaColuna[]): void {
     this.colunas = colunas;
+    this.colunasPorId = new Map(colunas.map((c) => [c.id, c]));
     if (this.colunaOrdenada) this.aplicarOrdenacao();
   }
 
@@ -117,14 +121,14 @@ export class TabelaOrquestradorDados {
     const ids = this.colunasFiltro.length > 0 ? this.colunasFiltro : Object.keys(item);
     return ids.some((id) => {
       const v = item[id];
-      const coluna = this.colunas.find((c) => c.id === id);
+      const coluna = this.colunasPorId.get(id);
       if (coluna?.textoFiltro) {
         try { if (normalizarTexto(String(coluna.textoFiltro(v, item) ?? '')).includes(termo)) return true; } catch { /* ignora */ }
       }
       if (v == null) return false;
       // objetos (exceto datas) não têm texto próprio: "[object Object]" casaria buscas como "obj"
       if (typeof v === 'object' && !(v instanceof Date)) return false;
-      const texto = v instanceof Date ? `${v.toISOString()} ${v.toLocaleDateString('pt-BR')}` : String(v);
+      const texto = v instanceof Date ? `${v.toISOString()} ${formatadorDataBr.format(v)}` : String(v);
       return normalizarTexto(texto).includes(termo);
     });
   }

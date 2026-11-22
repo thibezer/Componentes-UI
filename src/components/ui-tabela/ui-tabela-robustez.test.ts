@@ -495,3 +495,85 @@ describe('indiceDados no render e região de anúncio', () => {
     expect(t.shadowRoot!.querySelector('table')!.getAttribute('aria-label')).toBe('Vértices');
   });
 });
+
+describe('Lote 1: regressão de atributos, ciclo de vida e desempenho', () => {
+  const gerarDados = (n: number) => Array.from({ length: n }, (_, i) => ({ id: i + 1, nome: `Item ${i + 1}` }));
+
+  it('remover texto-vazio e virtualizar restaura os valores padrão', () => {
+    const t = criar([{ id: 'nome', rotulo: 'N' }], []);
+    t.setAttribute('texto-vazio', 'Sem itens');
+    expect(t.textoVazio).toBe('Sem itens');
+    expect(t.shadowRoot!.querySelector('.ui-tabela__empty-text')!.textContent).toBe('Sem itens');
+
+    t.removeAttribute('texto-vazio');
+    expect(t.textoVazio).toBe('Nenhum registro encontrado');
+    expect(t.shadowRoot!.querySelector('.ui-tabela__empty-text')!.textContent).toBe('Nenhum registro encontrado');
+
+    t.setAttribute('virtualizar', 'false');
+    expect(t.virtualizar).toBe(false);
+    t.removeAttribute('virtualizar');
+    expect(t.virtualizar).toBe(true);
+  });
+
+  it('desativar virtualizar remove o listener de scroll do container', () => {
+    const t = criar([{ id: 'nome', rotulo: 'N' }], gerarDados(50));
+    const spy = vi.spyOn(t, 'renderBody');
+    t.virtualizar = false;
+    spy.mockClear();
+
+    const container = t.shadowRoot!.querySelector('.ui-tabela-container')!;
+    container.dispatchEvent(new Event('scroll'));
+    expect(spy).not.toHaveBeenCalled();
+  });
+
+  it('setters e atributo altura-linha não disparam renderBody duplicado', () => {
+    const t = criar([{ id: 'nome', rotulo: 'N' }], gerarDados(5));
+    const spy = vi.spyOn(t, 'renderBody');
+
+    spy.mockClear();
+    t.densidade = 'compacta';
+    expect(spy).toHaveBeenCalledTimes(1);
+
+    spy.mockClear();
+    t.virtualizar = false;
+    expect(spy).toHaveBeenCalledTimes(1);
+
+    spy.mockClear();
+    t.setAttribute('altura-linha', '36');
+    expect(spy).toHaveBeenCalledTimes(1);
+  });
+
+  it('não define data-id="null" quando a chave do item é null', () => {
+    const t = criar([{ id: 'nome', rotulo: 'N' }], [{ id: null, nome: 'Sem ID' }]);
+    const tr = t.shadowRoot!.querySelector('tbody tr[data-index="0"]')!;
+    expect(tr.hasAttribute('data-id')).toBe(false);
+  });
+
+  it('desconectar a tabela fecha e remove diálogo de redimensionamento aberto', () => {
+    const t = criar([{ id: 'nome', rotulo: 'N' }], gerarDados(2));
+    const th = t.shadowRoot!.querySelector('th')!;
+    th.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, clientX: 20, clientY: 20 }));
+    expect(t.shadowRoot!.querySelector('dialog.ui-tabela__prompt-dialog')).not.toBeNull();
+
+    t.remove();
+    expect(t.shadowRoot!.querySelector('dialog.ui-tabela__prompt-dialog')).toBeNull();
+  });
+
+  it('filtra corretamente por textoFiltro e datas com índice de colunas em Map', () => {
+    const t = criar(
+      [
+        { id: 'nome', rotulo: 'Nome', textoFiltro: (v: string) => `prefixo-${v}` },
+        { id: 'data', rotulo: 'Data' }
+      ],
+      [
+        { id: 1, nome: 'Alpha', data: new Date(2025, 0, 15) },
+        { id: 2, nome: 'Beta', data: new Date(2025, 5, 20) }
+      ]
+    );
+    t.filtrar('prefixo-alpha');
+    expect(t.shadowRoot!.querySelectorAll('tbody tr[data-index]').length).toBe(1);
+
+    t.filtrar('20/06/2025');
+    expect(t.shadowRoot!.querySelectorAll('tbody tr[data-index]').length).toBe(1);
+  });
+});

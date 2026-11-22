@@ -14,11 +14,13 @@ export interface ContextoAtributosTabela {
   onRenderTotal: () => void;
 }
 
+export const TEXTO_VAZIO_PADRAO = 'Nenhum registro encontrado';
+
 export function sincronizarAtributosTabela(ctx: ContextoAtributosTabela): void {
   const textoVazioAttr = ctx.host.getAttribute('texto-vazio') || ctx.host.getAttribute('empty-text');
   if (textoVazioAttr) ctx.onTextoVazioAlterado(textoVazioAttr);
 
-  const virtAttr = ctx.host.getAttribute('virtualizar') || ctx.host.getAttribute('virtualize');
+  const virtAttr = ctx.host.getAttribute('virtualizar') ?? ctx.host.getAttribute('virtualize');
   if (virtAttr !== null) ctx.onVirtualizarAlterado(virtAttr !== 'false');
 
   // Só registra: buscar a cada sincronização refaria o fetch em qualquer atributo e em cada `carregando`
@@ -46,10 +48,19 @@ export function tratarMudancaAtributoTabela(
     ctx.containerElement.style.maxHeight = newVal || '';
     return;
   }
-  if ((name === 'texto-vazio' || name === 'empty-text') && ctx.emptyElement) {
-    const textSpan = ctx.emptyElement.querySelector('.ui-tabela__empty-text');
-    if (textSpan && newVal) textSpan.textContent = newVal;
+  if (name === 'texto-vazio' || name === 'empty-text') {
+    const texto = newVal || TEXTO_VAZIO_PADRAO;
+    ctx.onTextoVazioAlterado(texto);
+    if (ctx.emptyElement) {
+      const textSpan = ctx.emptyElement.querySelector('.ui-tabela__empty-text');
+      if (textSpan) textSpan.textContent = texto;
+    }
     ctx.onRenderBody();
+    return;
+  }
+  if (name === 'virtualizar' || name === 'virtualize') {
+    if (newVal === null) ctx.onVirtualizarAlterado(true);
+    ctx.onRenderTotal();
     return;
   }
   if (name === 'carregando' || name === 'loading') {
@@ -58,6 +69,8 @@ export function tratarMudancaAtributoTabela(
     }
     return;
   }
+  // `altura-linha`/`row-height` já disparam `aplicarAlturaLinha() -> renderBody()` no host
+  if (name === 'altura-linha' || name === 'row-height') return;
   // Rótulo e textos de estado não mudam as linhas: o host os aplica (sincronizarAria) sem recriar o corpo
   if (name === 'aria-label' || name === 'texto-erro' || name === 'texto-carregando') return;
   if (name === 'texto-sem-resultados' || name === 'densidade' || name === 'density') {

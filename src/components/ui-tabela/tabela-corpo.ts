@@ -55,7 +55,7 @@ const SELETOR_CONTROLE = [
 const colunasDaLinha = new WeakMap<Element, TabelaColuna[]>();
 
 /** O clique veio de um controle da célula (inclusive dentro do shadow DOM de um custom element)? */
-function cliqueEmControle(e: Event, tr: HTMLElement): boolean {
+export function cliqueEmControle(e: Event, tr: HTMLElement): boolean {
   for (const no of e.composedPath()) {
     if (no === tr) return false;
     if (no instanceof Element && no.matches(SELETOR_CONTROLE)) return true;
@@ -141,11 +141,11 @@ function criarLinha(ctx: ContextoCorpoTabela, item: Record<string, any>, rowInde
   if (rowIndex % 2 === 1) tr.classList.add('ui-tabela__tr--par');
 
   const chave = ctx.chaveId;
-  if (item[chave] !== undefined) {
+  if (item[chave] != null) {
     tr.setAttribute('data-id', String(item[chave]));
-  } else if (item.id !== undefined) {
+  } else if (item.id != null) {
     tr.setAttribute('data-id', String(item.id));
-  } else if (item._id !== undefined) {
+  } else if (item._id != null) {
     tr.setAttribute('data-id', String(item._id));
   }
 
@@ -156,11 +156,6 @@ function criarLinha(ctx: ContextoCorpoTabela, item: Record<string, any>, rowInde
     tr.setAttribute('aria-selected', 'true');
     tr.setAttribute('data-selecionada', 'true');
   }
-
-  tr.addEventListener('click', (e: MouseEvent) => {
-    if (cliqueEmControle(e, tr)) return;
-    ctx.onLinhaClique(item, rowIndex);
-  });
 
   ctx.colunas.forEach((coluna) => {
     tr.appendChild(criarCelula(ctx, coluna, item, rowIndex));

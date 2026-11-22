@@ -4,7 +4,8 @@ import { TabelaRemotaController } from './tabela-remota';
 import { TabelaSelecaoController } from './tabela-selecao';
 import { TabelaOrquestradorDados } from './tabela-orquestrador-dados';
 import { getRowHeight } from './tabela-dom';
-import type { ModoRenderCorpo } from './tabela-corpo';
+import { cliqueEmControle, type ModoRenderCorpo } from './tabela-corpo';
+import { itemDaLinha } from './tabela-foco';
 import {
   executarOrquestracaoHeader,
   executarOrquestracaoCorpo,
@@ -52,6 +53,7 @@ export class UITabela extends SafeHTMLElement {
   private _activeResizeCleanup: (() => void) | null = null;
   private _headerListeners = new ListenerBag();
   private _corpoListeners = new ListenerBag();
+  private _erroListeners = new ListenerBag();
   /** Linha com o foco móvel (navegação por teclado); null = primeira linha visível. */
   private _indiceAtivo: number | null = null;
   /** Altura real das linhas medida no DOM; null = usa a estimativa da densidade. */
@@ -227,10 +229,15 @@ export class UITabela extends SafeHTMLElement {
       this._scrollHandler = null;
     }
     if (this._activeResizeCleanup) { this._activeResizeCleanup(); this._activeResizeCleanup = null; this._isResizing = false; }
+    this.shadow?.querySelectorAll<HTMLDialogElement>('dialog.ui-tabela__prompt-dialog').forEach((dlg) => {
+      if (dlg.open && typeof dlg.close === 'function') dlg.close();
+      dlg.remove();
+    });
     this.rolagem.cancelar();
     this.remotaController.abortar();
     this._headerListeners.cleanup();
     this._corpoListeners.cleanup();
+    this._erroListeners.cleanup();
   }
 
   get colunas(): TabelaColuna[] { return this._colunas; }
@@ -267,17 +274,27 @@ export class UITabela extends SafeHTMLElement {
     return val === 'compacta' || val === 'compact' ? 'compacta' : (val === 'relaxada' || val === 'relaxed' ? 'relaxada' : 'normal');
   }
   set densidade(val: DensidadeTabela) {
-    if (val) this.setAttribute('densidade', val);
-    else { this.removeAttribute('densidade'); this.removeAttribute('density'); }
-    this.renderBody();
+    const atual = this.densidade;
+    if (val) {
+      if (this.getAttribute('densidade') !== val) this.setAttribute('densidade', val);
+      else if (atual !== val) this.renderBody();
+    } else {
+      const tinha = this.hasAttribute('densidade') || this.hasAttribute('density');
+      this.removeAttribute('densidade');
+      this.removeAttribute('density');
+      if (!tinha && atual !== 'normal') this.renderBody();
+    }
   }
 
   get virtualizar(): boolean { return this._virtualizar; }
   set virtualizar(val: boolean) {
-    this._virtualizar = Boolean(val);
-    if (val) this.setAttribute('virtualizar', 'true');
-    else this.removeAttribute('virtualizar');
-    this.renderTotal();
+    const novo = Boolean(val);
+    const mudouEstado = this._virtualizar !== novo;
+    this._virtualizar = novo;
+    const valorAttr = novo ? 'true' : 'false';
+    if (this.hasAttribute('virtualize')) this.removeAttribute('virtualize');
+    if (this.getAttribute('virtualizar') !== valorAttr) this.setAttribute('virtualizar', valorAttr);
+    else if (mudouEstado) this.renderTotal();
   }
 
   get colunaOrdenada(): string | null { return this.dadosController.getColunaOrdenada(); }
@@ -347,7 +364,7 @@ export class UITabela extends SafeHTMLElement {
    * Não remede a cada rolagem para os espaçadores não "pularem" com linhas de alturas diferentes.
    */
   private medirAlturaLinha() {
-    if (this._alturaLinhaMedida !== null || !this._tbodyElement) return;
+    if (this.alturaLinha !== null || this._alturaLinhaMedida !== null || !this._tbodyElement) return;
     const linhas = this._tbodyElement.querySelectorAll<HTMLElement>('tr[data-index]');
     if (linhas.length === 0) return;
     let soma = 0;
@@ -378,7 +395,8 @@ export class UITabela extends SafeHTMLElement {
       this._loadingElement = dom.loadingElement;
       this._erroElement = dom.erroElement;
       this._anuncioElement = dom.anuncioElement;
-      dom.erroElement.querySelector('.ui-tabela__erro-acao')?.addEventListener('click', () => { void this.recarregar(); });
+      const erroAcao = dom.erroElement.querySelector('.ui-tabela__erro-acao');
+      if (erroAcao) this._erroListeners.add(erroAcao, 'click', () => { void this.recarregar(); });
     } else {
       this._containerElement.style.maxHeight = this.getAttribute('max-height') || '';
       if (this._emptyElement) {
@@ -392,14 +410,38 @@ export class UITabela extends SafeHTMLElement {
 
     if (this._virtualizar && this._containerElement && !this._scrollHandler) {
       this._scrollHandler = inicializarScrollVirtualizacao(this._containerElement, () => this.renderBody('rolagem'));
+    } else if (!this._virtualizar && this._containerElement && this._scrollHandler) {
+      this._containerElement.removeEventListener('scroll', this._scrollHandler);
+      this._scrollHandler = null;
     }
 
     if (this._tbodyElement && this._corpoListeners.size === 0) {
+      this._corpoListeners.add<MouseEvent>(this._tbodyElement, 'click', this.handleCliqueCorpo);
       this._corpoListeners.add<KeyboardEvent>(this._tbodyElement, 'keydown', this.handleTecladoCorpo);
       this._corpoListeners.add<FocusEvent>(this._tbodyElement, 'focusin', this.handleFocoLinha);
     }
     this.sincronizarAria();
   }
+
+  /** Event delegation de clique nas linhas do corpo: evita um listener por `<tr>`. */
+  private handleCliqueCorpo = (e: MouseEvent) => {
+    const tbody = this._tbodyElement;
+    if (!tbody) return;
+    const alvo = e.target as Element | null;
+    const tr = alvo?.closest?.('tr[data-index]') as HTMLElement | null;
+    if (!tr || tr.parentElement !== tbody || cliqueEmControle(e, tr)) return;
+    const item = itemDaLinha.get(tr);
+    if (!item) return;
+    const indice = Number(tr.getAttribute('data-index'));
+    this.selecaoController.setItemSelecionado(item);
+    this.dispatchEvent(
+      new CustomEvent('ui-linha-clique', {
+        bubbles: true,
+        composed: true,
+        detail: { item, indice }
+      })
+    );
+  };
 
   /** Mantém um único tabindex=0 (foco móvel): Tab entra na tabela pela última linha ativa. */
   private handleFocoLinha = (e: FocusEvent) => {
