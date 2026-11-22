@@ -118,7 +118,7 @@
 
 - **`planejar(elementos, { camadas?, cache? })` + `desenharPlano(ctx, plano, { matriz, fundo?, ... })`**; `desenharElementos` é a
   composição dos dois. O plano só é invalidado por elementos/camadas, não pela matriz (benchmark: repintar 200 elementos com 20
-  matrizes é ≥ 3× mais rápido que replanejar, `tests/prancha-desempenho.test.ts`).
+  matrizes é de 2,5× a 4× mais rápido que replanejar (o teste garante ≥ 2×), `tests/prancha-desempenho.test.ts`).
 - **`envelopeVisual(el | els, { sombra?, camadas? })`**: caixa de tudo o que o pintor desenha (traço pelo alinhamento, ponta real da
   junção angular, pontas de seta, sombra com desfoque, texto); medido sobre o plano de pintura, a mesma fonte do pintor.
 - **`ajustarElementosACaixa`** (`manterProporcao`, `escalarTexto`, `incluirBloqueados`) e **`normalizarParaOrigem`** (`minimo`).
