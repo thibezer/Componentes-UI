@@ -1,6 +1,6 @@
 # Changelog
 
-## Não publicado
+## 2.25.1 — 2026-11-22
 
 ### `<ui-lista-flutuante>` / `<ui-select>`: opções filhas como no `<select>` nativo
 
