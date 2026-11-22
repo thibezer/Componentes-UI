@@ -335,6 +335,7 @@ O Shadow DOM isola o CSS, mas os elementos internos principais são expostos com
 | `<ui-lista-flutuante>` / `<ui-select>` | `rotulo`, `campo`, `valor`, `seta`, `lista`, `opcao`, `opcao-selecionada` |
 | `<ui-checkbox>`, `<ui-radio>`, `<ui-switch>` | `base`, `controle`, `indicador`, `rotulo` |
 | `<ui-segmented>` | `base`, `indicador`, `opcao`, `opcao-selecionada` |
+| `<ui-calendario>` | `base`, `cabecalho`, `titulo`, `nav`, `nav-botao`, `hoje-botao`, `corpo`, `seletores`, `select`, `semana`, `grade`, `dia` (`dia-fora`, `dia-hoje`, `dia-selecionado`, `dia-com-eventos`), `numero`, `evento`, `mais` |
 | `<ui-modal>`, `<ui-drawer>` | `fundo`, `painel`, `cabecalho`, `titulo`, `descricao` (drawer), `fechar`, `corpo`, `rodape` |
 | `<ui-card>` | `base`, `midia`, `cabecalho`, `corpo`, `rodape` |
 | `<ui-badge>` / `<ui-chip>` | `base`, `rotulo`, `remover` |
@@ -737,6 +738,7 @@ window.addEventListener('message', (event) => {
 | `<ui-radio>` | Opção única com agrupamento automático por nome. | `marcado`, `name`, `value` | `ui-change` |
 | `<ui-switch>` | Chave de alternância liga/desliga física instantânea. | `ativo`, `name`, `value` | `ui-change` |
 | `<ui-segmented>` | Controle segmentado de opções (Pills/Tabs deslizantes). | `opcoes`, `value`, `name`, `tamanho`, `altura` | `ui-change`, `ui-selecionar` |
+| `<ui-calendario>` | Calendário mensal com todos os dias, eventos por dia (chips ou pontos), seletores de mês/ano, navegação por teclado e moldura colorida. | `mes` (`AAAA-MM`), `valor` (`AAAA-MM-DD`), `titulo`, `locale`, `inicio-semana`, `selecao`, `exibicao` (`completo`\|`compacto`), `variante` (`moldura`\|`simples`), `max-eventos`, `eventos` (JSON), propriedade `eventos`, `irPara()`, `hoje()`, `proximoMes()`, `mesAnterior()`, `--ui-calendario-cor` | `ui-change`, `ui-mes-change`, `ui-evento-click` |
 | `<ui-badge>` / `<ui-chip>` | Tags de status e chips com botão de remoção. | `variante`, `removivel`, `value`, `controle` | `ui-remove` |
 | `<ui-linha>` | Contêiner que alinha controles na mesma linha (altura única, espaço, quebra). | `tamanho`, `altura`, `alinhar`, `justificar`, `espaco`, `sem-quebra` | - |
 | `<ui-avatar>` | Avatar com fotos, iniciais e status online. | `nome`, `src`, `status`, `tamanho` | - |

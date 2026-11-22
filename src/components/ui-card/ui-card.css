@@ -13,19 +13,31 @@
   height: 100%;
 }
 
+/* Cantos concêntricos: raio interno = raio externo − distância entre as bordas.
+   --_raio       raio externo do card (próprio > herdado de um card pai > token de contêiner);
+   --_distancia  folga entre a borda do card e o conteúdo (padding das seções);
+   --ui-card-raio-aninhado (exposto às seções) é o raio que um filho encostado no conteúdo deve usar
+   (card aninhado, imagem, botão em bloco): max(0, raio − distância). */
 .ui-card {
+  --_borda: 1px;
+  --_distancia: var(--ui-card-padding, 16px);
+  --_raio: var(--ui-card-raio, var(--ui-card-raio-aninhado, var(--ui-raio-lg, 10px)));
   display: flex;
   flex-direction: column;
   width: 100%;
   height: 100%;
   box-sizing: border-box;
   background: var(--ui-degrade-interno, var(--ui-card-fundo, var(--ui-fundo-card, var(--ui-cor-fundo-card, #18181c))));
-  border: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
-  border-radius: var(--ui-raio-borda, 8px);
+  border: var(--_borda) solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
+  border-radius: var(--_raio);
   overflow: hidden;
   transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s ease;
   color: var(--ui-cor-texto, #e1e1e6);
   font-family: var(--ui-fonte-base, 'Inter', sans-serif);
+  /* Tipografia (HIG): peso base regular (sem pesos leves, ilegíveis em texto pequeno) e quebra de palavras longas
+     em vez de estourar ou cortar o conteúdo */
+  font-weight: var(--ui-peso-normal, 400);
+  overflow-wrap: break-word;
 }
 
 :host(.degrade),
@@ -102,6 +114,20 @@
   pointer-events: none;
 }
 
+/* Escala de raio por atributo `raio` (escolhe a base; os filhos continuam derivando dela) */
+.ui-card--raio-nenhum { --_raio: 0px; }
+.ui-card--raio-sm { --_raio: var(--ui-raio-sm, 4px); }
+.ui-card--raio-md { --_raio: var(--ui-raio-borda, 6px); }
+.ui-card--raio-lg { --_raio: var(--ui-raio-lg, 10px); }
+.ui-card--raio-xl { --_raio: var(--ui-raio-xl, 16px); }
+
+/* Raio que o conteúdo das seções herda: concêntrico ao card (a borda também entra na conta) */
+.ui-card__header,
+.ui-card__body,
+.ui-card__footer {
+  --ui-card-raio-aninhado: max(0px, calc(var(--_raio) - var(--_distancia) - var(--_borda)));
+}
+
 /* Seções do Card (Slots) */
 .ui-card__media {
   width: 100%;
@@ -118,32 +144,50 @@
   object-fit: cover;
 }
 
+/* Hierarquia por peso, tamanho e cor (estilos de texto): cabeçalho = headline (semibold), corpo = body (regular,
+   entrelinha folgada para leitura em várias linhas), rodapé = footnote (menor e secundário).
+   Cada nível é um token próprio para o consumidor ajustar sem quebrar a relação entre eles. */
 .ui-card__header {
   padding: 14px 16px 8px 16px;
   display: flex;
+  flex-wrap: wrap; /* em texto grande o conteúdo empilha em vez de truncar */
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 4px 12px;
   box-sizing: border-box;
+  font-size: var(--ui-card-fonte-cabecalho, var(--ui-tamanho-corpo, 14px));
+  font-weight: var(--ui-card-peso-cabecalho, var(--ui-peso-seminegrito, 600));
+  line-height: var(--ui-altura-linha-titulo, 1.25);
+  text-wrap: balance;
 }
 
 .ui-card__body {
   padding: 12px 16px;
   flex: 1;
   box-sizing: border-box;
+  font-size: var(--ui-card-fonte-corpo, var(--ui-tamanho-corpo, 14px));
+  line-height: var(--ui-altura-linha-corpo, 1.5);
+  text-wrap: pretty;
 }
 
 .ui-card__footer {
   padding: 10px 16px 14px 16px;
   border-top: 1px solid color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 6%, transparent);
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 4px 12px;
   box-sizing: border-box;
+  font-size: var(--ui-card-fonte-rodape, var(--ui-tamanho-corpo-sm, 13px));
+  line-height: var(--ui-altura-linha-corpo, 1.5);
+  color: var(--ui-cor-texto-secundario, color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 70%, transparent));
 }
 
 /* Variação Compacta */
+.ui-card--compacto {
+  --_distancia: var(--ui-card-padding, 12px);
+}
 .ui-card--compacto .ui-card__header {
   padding: 10px 12px 6px 12px;
 }
@@ -154,13 +198,13 @@
   padding: 8px 12px 10px 12px;
 }
 
-/* Customização Squarecircles */
-:host(.squarecircle) .ui-card,
-:host(.squarecircles) .ui-card,
-:host(.ui-squarecircle) .ui-card,
-:host(.ui-squarecircles) .ui-card,
-:host([formato="squarecircle"]) .ui-card,
-:host([formato="squarecircles"]) .ui-card,
-:host([formato="squircle"]) .ui-card {
-  border-radius: var(--ui-raio-lg, 12px);
+/* Customização Squarecircles: cantos mais generosos (um degrau acima), sem perder a derivação concêntrica */
+:host(.squarecircle) .ui-card:not([class*="ui-card--raio-"]),
+:host(.squarecircles) .ui-card:not([class*="ui-card--raio-"]),
+:host(.ui-squarecircle) .ui-card:not([class*="ui-card--raio-"]),
+:host(.ui-squarecircles) .ui-card:not([class*="ui-card--raio-"]),
+:host([formato="squarecircle"]) .ui-card:not([class*="ui-card--raio-"]),
+:host([formato="squarecircles"]) .ui-card:not([class*="ui-card--raio-"]),
+:host([formato="squircle"]) .ui-card:not([class*="ui-card--raio-"]) {
+  --_raio: var(--ui-card-raio, var(--ui-raio-xl, 16px));
 }

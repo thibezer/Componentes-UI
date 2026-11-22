@@ -21,6 +21,7 @@ export * from './components/ui-switch';
 export * from './components/ui-badge';
 export * from './components/ui-avatar';
 export * from './components/ui-segmented';
+export * from './components/ui-calendario';
 export * from './components/ui-linha';
 
 // 4. Camada 3: Contêineres, Overlays e Feedback
@@ -112,6 +113,7 @@ import type { UISwitch, UIToggle } from './components/ui-switch';
 import type { UIBadge, UIChip, UITag } from './components/ui-badge';
 import type { UIAvatar } from './components/ui-avatar';
 import type { UISegmented, UISegmento } from './components/ui-segmented';
+import type { UICalendario } from './components/ui-calendario';
 import type { UILinha } from './components/ui-linha';
 import type { UICard } from './components/ui-card';
 import type { UIModal, UIDialog } from './components/ui-modal';
@@ -155,6 +157,7 @@ declare global {
     'ui-avatar': UIAvatar;
     'ui-segmented': UISegmented;
     'ui-segmento': UISegmento;
+    'ui-calendario': UICalendario;
     'ui-linha': UILinha;
     'ui-card': UICard;
     'ui-modal': UIModal;

@@ -60,6 +60,28 @@
 - Testes novos: `tests/ui-editor-prancha.regressao.test.ts` (teclado isolado com global registrado antes, 30 teclas, reservadas, foco
   fora, reconexão; barra de formas, gaveta, menu, ARIA, `ResizeObserver`), `tests/empacotamento.test.ts`.
 
+## 2.24.1 — 2026-11-21
+
+### `<ui-card>`: tipografia (HIG)
+
+- Cada seção ganhou estilo de texto próprio: cabeçalho semibold (headline), corpo com entrelinha 1,5, rodapé menor e em cor secundária. Novas variáveis `--ui-card-fonte-cabecalho`, `--ui-card-peso-cabecalho`, `--ui-card-fonte-corpo`, `--ui-card-fonte-rodape`.
+- Cabeçalho e rodapé quebram linha em vez de truncar; palavras longas quebram (`overflow-wrap`); base de peso 400.
+- Diretrizes de tipografia em `docs/diretrizes-cards.md` (baseadas nas Human Interface Guidelines da Apple).
+
+## 2.24.0 — 2026-11-21
+
+### Adicionado
+
+- **`<ui-calendario>`**: calendário mensal com todos os dias (grade fixa de 6 semanas), eventos por dia (`eventos` com `data`, `titulo`, `cor`, `tipo`, `id`), chips que viram pontos em telas estreitas (container query) ou com `exibicao="compacto"`, seletores de mês/ano, botão Hoje, moldura colorida (`--ui-calendario-cor`, `variante="simples"` desliga), tema claro/escuro pelos tokens e navegação por teclado (setas, Home/End, PageUp/PageDown, Shift+Page = ano). Eventos: `ui-change`, `ui-mes-change`, `ui-evento-click`.
+
+### `<ui-card>`: cantos concêntricos e diretrizes
+
+- **Raio padrão do card passa de `--ui-raio-borda` (6 px) para `--ui-raio-lg` (10 px)**: card é contêiner, não controle.
+- **Cantos concêntricos:** as seções expõem `--ui-card-raio-aninhado` = `max(0, raio − folga − borda)`; cards aninhados herdam
+  o raio do pai já descontado. Novas variáveis `--ui-card-raio` e `--ui-card-padding`.
+- **Atributo `raio`** (`nenhum|sm|md|lg|xl`, alias `radius`); vence o `formato="squircle"` (que agora usa `xl`).
+- Diretrizes em `docs/diretrizes-cards.md`.
+
 ## 2.23.0 — 2026-11-21
 
 > Origem: a requisição do ConecteMapas depois de migrar a "Moldura" do layout de impressão para o `<ui-canvas-prancha>`.
