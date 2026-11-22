@@ -1,6 +1,8 @@
 # Changelog
 
-## Não publicado
+## 2.25.0 — 2026-11-22
+
+> No app: `npm install @thibezer/ui-components-kit@2.25.0`.
 
 ### `<ui-editor-prancha>`: `barra-formas="auto"` por transbordo real
 
