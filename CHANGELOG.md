@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.26.0 — 2026-11-22
+
+> No app: `npm install @thibezer/ui-components-kit@2.26.0`.
+
+### `<ui-tabela>`: seleção múltipla, atualização cirúrgica, colunas fixas/ocultas e sombras de rolagem
+
+- **Atualização cirúrgica de seleção (`tabela-selecao.ts`, `tabela-corpo.ts`, `tabela-renderizador.ts`):** `atualizarLinhasSelecionadas()` rastreia as linhas marcadas e atualiza apenas os `<tr>` que perderam ou ganharam seleção na faixa visível, sem varrer o `tbody` com `querySelectorAll`.
+- **Seleção múltipla (`selecao="unica" | "multipla"`):** novo atributo `selecao` (padrão `'unica'`), propriedades `itensSelecionados` e `indicesSelecionados`, métodos `selecionarTodos()` e `limparSelecao()`, evento tipado `ui-selecao-alterada` (`UISelecaoAlteradaDetail`), suporte a `aria-multiselectable`, `Space`/`Enter`/`Escape`, reconciliação ao filtrar/ordenar/trocar dados e compatibilidade com a virtualização.
+- **Colunas fixas e ocultas (`TabelaColuna.fixa` e `TabelaColuna.oculta`):** colunas com `oculta: true` são omitidas do `colgroup`, `thead`, `tbody` e do filtro padrão; colunas com `fixa: 'esquerda' | 'direita'` aplicam `position: sticky` com `left`/`right` calculados pela largura acumulada das colunas adjacentes visíveis, `z-index` em camadas e fundo opaco via tokens do tema.
+- **Sombras laterais de rolagem horizontal (`ui-tabela.css`, `ui-tabela.ts`):** indicadores visuais (`data-scroll-esquerda` / `data-scroll-direita`) via tokens CSS atualizados no `scroll` (via `ListenerBag`), `ui-column-resize` e `ResizeObserver`.
+
 ## 2.25.1 — 2026-11-22
 
 ### `<ui-lista-flutuante>` / `<ui-select>`: opções filhas como no `<select>` nativo
