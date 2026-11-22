@@ -1,4 +1,4 @@
-import { focoEmCampoDeTexto, focoEmControleAcionavel } from '../../core/alvo-digitavel';
+import { ehCampoDeTexto, elementoFocadoReal, focoEmCampoDeTexto, focoEmControleAcionavel } from '../../core/alvo-digitavel';
 import type { ListenerBag } from '../../core/listener-bag';
 import type { ControladorPrancha } from './prancha-controlador';
 import type { InteracaoPrancha } from './prancha-interacao';
@@ -43,10 +43,11 @@ export const eventoTratadoPelaPrancha = (e: Event): boolean => !!e && tratadosPe
 
 export function marcarTratadoPelaPrancha(e: Event): void { tratadosPelaPrancha.add(e); }
 
-export type ModoTecladoPrancha = 'local' | 'exclusivo' | 'isolado';
+export type ModoTecladoPrancha = 'local' | 'exclusivo' | 'isolado' | 'modal';
 
 /** Valor do atributo `teclado`: desconhecido ou ausente = `local`. */
-export const lerModoTeclado = (v: string | null | undefined): ModoTecladoPrancha => (v === 'exclusivo' || v === 'isolado' ? v : 'local');
+export const lerModoTeclado = (v: string | null | undefined): ModoTecladoPrancha =>
+  (v === 'exclusivo' || v === 'isolado' || v === 'modal' ? v : 'local');
 
 /**
  * Teclas que o isolamento NUNCA retém (atalhos do navegador/sistema): F5, F11, F12, Ctrl/Cmd+R, L, W, T, Ctrl/Cmd+Shift+I e J,
@@ -67,15 +68,60 @@ export function teclaReservadaDoNavegador(e: KeyboardEvent): boolean {
   return false;
 }
 
+const TIPOS_TECLA_ISOLADA = ['keydown', 'keyup', 'keypress'] as const;
+
+function alvoPassaPor(e: Event, alvo: EventTarget): boolean {
+  const caminho = typeof e.composedPath === 'function' ? e.composedPath() : [];
+  if (caminho.includes(alvo)) return true;
+  return caminho.length === 0 && typeof Node !== 'undefined' && alvo instanceof Node && e.target instanceof Node && alvo.contains(e.target);
+}
+
+function contemNoAtravesDeShadow(raiz: EventTarget, no: Node): boolean {
+  if (typeof Node === 'undefined' || !(raiz instanceof Node)) return false;
+  let atual: Node | null = no;
+  while (atual) {
+    if (atual === raiz) return true;
+    atual = atual.parentNode ?? (typeof ShadowRoot !== 'undefined' && atual instanceof ShadowRoot ? atual.host : null);
+  }
+  return false;
+}
+
+function focoEmCampoForaDe(e: KeyboardEvent, alvo: EventTarget): boolean {
+  if (focoEmCampoDeTexto(e)) return true;
+  const focado = elementoFocadoReal();
+  return !!focado && ehCampoDeTexto(focado) && !contemNoAtravesDeShadow(alvo, focado);
+}
+
 /**
- * Isolamento do teclado (`teclado="isolado"`): todo `keydown`/`keyup`/`keypress` que chega ao `alvo` (o editor ou a prancha,
- * ou seja, com o foco dentro dele) leva `stopPropagation()` na fase de BOLHA, então os ouvintes de `window`/`document` do
- * hospedeiro não o veem, tratado ou não. As teclas reservadas do navegador passam. Fora do alvo, nada muda. Os ouvintes vão
- * no `ListenerBag` (Regra #2).
+ * Isolamento do teclado (`teclado="isolado"` e `teclado="modal"`): todo `keydown`/`keyup`/`keypress` que chega ao `alvo`
+ * (o editor ou a prancha, ou seja, com o foco dentro dele) leva `stopPropagation()` na fase de BOLHA, então os ouvintes de
+ * `window`/`document` do hospedeiro não o veem, tratado ou não. As teclas reservadas do navegador passam. Fora do alvo, no
+ * modo `isolado` nada muda (no `modal`, `instalarTecladoModal` bloqueia na captura da janela). Os ouvintes vão no `ListenerBag`
+ * (Regra #2).
  */
 export function instalarIsolamentoDeTeclas(bag: ListenerBag, alvo: EventTarget, ativo: () => boolean): void {
-  for (const tipo of ['keydown', 'keyup', 'keypress']) {
+  if (!bag || !alvo || typeof ativo !== 'function') return;
+  for (const tipo of TIPOS_TECLA_ISOLADA) {
     bag.add<KeyboardEvent>(alvo, tipo, (e: KeyboardEvent) => { if (ativo() && !teclaReservadaDoNavegador(e)) e.stopPropagation(); });
+  }
+}
+
+/**
+ * Bloqueio modal (`teclado="modal"`): enquanto o componente está montado e ativo, todo `keydown`/`keyup`/`keypress` da página
+ * cujo alvo não passe por `alvo` recebe `stopPropagation()` na fase de captura em `window`. Continuam passando as teclas
+ * reservadas do navegador (`teclaReservadaDoNavegador`) e as teclas de campos de texto fora de `alvo` quando o foco está num
+ * deles. Os ouvintes vão no `ListenerBag` (Regra #2) e respeitam SSR (Regra #1).
+ */
+export function instalarTecladoModal(bag: ListenerBag, alvo: EventTarget, ativo: () => boolean): void {
+  if (typeof window === 'undefined' || !bag || !alvo || typeof ativo !== 'function') return;
+  for (const tipo of TIPOS_TECLA_ISOLADA) {
+    bag.add<KeyboardEvent>(window, tipo, (e: KeyboardEvent) => {
+      if (!e || !ativo()) return;
+      if (alvoPassaPor(e, alvo)) return;
+      if (teclaReservadaDoNavegador(e)) return;
+      if (focoEmCampoForaDe(e, alvo)) return;
+      e.stopPropagation?.();
+    }, { capture: true });
   }
 }
 

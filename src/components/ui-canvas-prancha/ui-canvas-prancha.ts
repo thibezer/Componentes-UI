@@ -17,8 +17,8 @@ import type { OperacaoPathfinder } from '../../gerencigeo-canvas/prancha/pathfin
  * camadas, ordem, grupos (com isolamento), alinhar e distribuir, duplicar, copiar e colar, conta-gotas, máscara de recorte,
  * operações de caminho, Pathfinder, mesclagem e sombra, teclado e histórico. O componente não grava nada: devolve as mudanças em eventos e o app decide id,
  * nome e persistência. Atributos novos (lista em `ATRIBUTOS_PRANCHA`): `margens="e d s i"` (guia tracejada e quadro de
- * `inserirPredefinicao(tipo, undefined, { quadro: 'margens' })`), `teclado="exclusivo"` (captura as teclas da página, uso em
- * modal) e `ajustar-ao-abrir="folha|conteudo|nenhum"`.
+ * `inserirPredefinicao(tipo, undefined, { quadro: 'margens' })`), `teclado="local|exclusivo|isolado|modal"` (isolamento/captura
+ * de teclado, uso em modal) e `ajustar-ao-abrir="folha|conteudo|nenhum"`.
  *
  * @fires prancha-elemento-criado - `{ elementos, motivo }`: elementos criados pelo usuário (ferramenta, texto, predefinição, colar, duplicar).
  * @fires prancha-elemento-atualizado - `{ elementos, motivo }`: elementos alterados por um gesto ou comando.

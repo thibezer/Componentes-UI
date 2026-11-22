@@ -1,5 +1,16 @@
 # Changelog
 
+## Não publicado
+
+### `teclado="modal"` no `<ui-canvas-prancha>` e `<ui-editor-prancha>`
+
+- **`teclado="modal"`**: novo modo de teclado (`ModoTecladoPrancha`, atributo e propriedade `.teclado` em ambos os componentes,
+  `instalarTecladoModal` exportado). Enquanto o componente está montado, todo `keydown`, `keyup` e `keypress` cujo alvo não
+  passe pelo componente recebe `stopPropagation()` em fase de captura na janela (`window`), mesmo com o foco no corpo da
+  página (`document.body`). Continuam passando as teclas reservadas do navegador (`teclaReservadaDoNavegador`) e as teclas de
+  campos de texto fora do componente quando o foco está num deles; dentro do componente vale o isolamento completo. Todos os
+  ouvintes vão no `ListenerBag` e são limpos no `disconnectedCallback`. O app passa a usar `teclado="modal"` e remove a flag.
+
 ## 2.24.2 — 2026-11-21
 
 > Origem: a segunda requisição do ConecteMapas (ressalvas depois de adotar a 2.23.0). No app: `npm install @thibezer/ui-components-kit@2.24.2`.

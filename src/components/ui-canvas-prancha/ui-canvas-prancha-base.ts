@@ -15,7 +15,7 @@ import { ControladorPrancha } from './prancha-controlador';
 import { InteracaoPrancha } from './prancha-interacao';
 import { FerramentasDesenho } from './prancha-ferramentas';
 import { RenderizadorPrancha, fabricaPadrao, type FabricaContextoPrancha } from './prancha-render';
-import { tratarTecla, soltarTecla, marcarTratadoPelaPrancha, instalarIsolamentoDeTeclas, lerModoTeclado, type ModoTecladoPrancha } from './prancha-teclado';
+import { tratarTecla, soltarTecla, marcarTratadoPelaPrancha, instalarIsolamentoDeTeclas, instalarTecladoModal, lerModoTeclado, type ModoTecladoPrancha } from './prancha-teclado';
 import { assinarComandos, ehComandoPrancha } from './prancha-bus';
 import { ATRIBUTOS_PRANCHA, aplicarAtributoPrancha, lerAjusteAoAbrir, lerMargens } from './prancha-atributos-sync';
 import { anunciar, textoZoom } from './prancha-acessibilidade';
@@ -86,7 +86,11 @@ export class UICanvasPranchaBase extends SafeHTMLElement {
   connectedCallback(): void {
     this.bag.cleanup();
     this.interacao.conectar(this.bag, this.shadow.getElementById('regua-h'), this.shadow.getElementById('regua-v'));
-    instalarIsolamentoDeTeclas(this.bag, this, () => this.modoTeclado() === 'isolado');
+    instalarIsolamentoDeTeclas(this.bag, this, () => {
+      const modo = this.modoTeclado();
+      return modo === 'isolado' || modo === 'modal';
+    });
+    instalarTecladoModal(this.bag, this, () => this.modoTeclado() === 'modal' && !this.hospedadaNoEditor());
     this.bag.add(this, 'pointerenter', () => { this.ponteiroSobre = true; });
     this.bag.add(this, 'pointerleave', () => { this.ponteiroSobre = false; });
     this.bag.add(this, 'focusin', () => { this.focoDentro = true; });
@@ -101,7 +105,7 @@ export class UICanvasPranchaBase extends SafeHTMLElement {
         // exclusivo: a página inteira; isolado: o que vem de dentro do editor, com a mesma regra do modo local (foco ou ponteiro
         // na prancha), para o zoom do navegador e as teclas dos painéis do editor não serem tratados como da prancha
         if (modo === 'exclusivo') this.tecla(e, true, true);
-        else if (modo === 'isolado' && this.noEscopoDoTeclado(e)) this.tecla(e, false, true);
+        else if ((modo === 'isolado' || modo === 'modal') && this.noEscopoDoTeclado(e)) this.tecla(e, false, true);
       }, { capture: true });
       this.bag.add<KeyboardEvent>(window, 'keydown', (e: KeyboardEvent) => this.tecla(e));
       // em captura: com o isolamento a tecla solta não chega à janela, e o espaço (mão temporária) não pode ficar preso
@@ -137,8 +141,8 @@ export class UICanvasPranchaBase extends SafeHTMLElement {
     this.observador = null;
     this.desligarBus.forEach((f) => f());
     this.desligarBus = [];
-    this.render.cancelar();
     this.interacao.cancelar();
+    this.render.cancelar();
   }
 
   attributeChangedCallback(nome: string, _antigo: string | null, valor: string | null): void {
@@ -187,9 +191,15 @@ export class UICanvasPranchaBase extends SafeHTMLElement {
     this.prepararPronto();
   }
 
-  /** Modo do atributo `teclado`: `local` (padrão), `exclusivo` ou `isolado`. */
+  /** Modo do atributo `teclado`: `local` (padrão), `exclusivo`, `isolado` ou `modal`. */
   private modoTeclado(): ModoTecladoPrancha {
     return lerModoTeclado(this.getAttribute('teclado'));
+  }
+
+  private hospedadaNoEditor(): boolean {
+    const root = this.getRootNode();
+    const host = (root as { host?: Element } | null)?.host;
+    return !!host && host.localName === 'ui-editor-prancha';
   }
 
   private tecladoExclusivo(): boolean {
@@ -241,6 +251,10 @@ export class UICanvasPranchaBase extends SafeHTMLElement {
   focus(opcoes?: FocusOptions): void { this.viewport.focus(opcoes); }
 
   // ---------- propriedades ----------
+
+  /** Modo do teclado: `local` (padrão), `exclusivo`, `isolado` ou `modal`. */
+  get teclado(): ModoTecladoPrancha { return this.modoTeclado(); }
+  set teclado(v: ModoTecladoPrancha) { this.setAttribute('teclado', lerModoTeclado(v)); }
 
   /** Ferramenta ativa. */
   get ferramenta(): FerramentaPrancha { return this.c.ferramenta; }

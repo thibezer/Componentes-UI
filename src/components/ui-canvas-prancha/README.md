@@ -64,12 +64,14 @@ Migração do layout de impressão do app: [`docs/guia-migracao-prancha.md`](../
 `<ui-editor-prancha>` (L4) compõe a prancha, a paleta, as camadas, as propriedades e o menu de pré-definições já ligados
 (`import '@thibezer/ui-components-kit/prancha'` registra tudo). Não grava nada: `editor-concluir` entrega
 `{ elementos, camadas, modificado }` e `editor-cancelar` (botão ou Esc sem nada a cancelar) avisa. Atributos: `largura`,
-`altura`, `margens`, `grade`, `mostrar-grade`, `ajustar-ao-abrir`, `teclado` (`isolado` por padrão: nenhuma tecla do editor chega
-aos atalhos globais do hospedeiro), `barra-formas` (`auto` | `botoes` | `menu`), `lateral` (`auto` | `fixa` | `gaveta`),
-`somente-leitura`. **Responsivo por container query** (a largura do próprio editor, não da janela): abaixo de 720 px a barra de
-formas vira o botão "Formas ▾" (menu com molduras, formas, linhas e setas) e a lateral vira uma gaveta aberta pelo botão
-"Propriedades" ou por **Alt+P** (propriedade `lateralAberta`; Esc fecha e devolve o foco). Largura da lateral:
-`--ui-editor-prancha-lateral` (300px). O rodapé (Cancelar/Concluir) nunca quebra nem some.
+`altura`, `margens`, `grade`, `mostrar-grade`, `ajustar-ao-abrir`, `teclado` (`isolado` por padrão; `modal` também bloqueia
+teclas da página em fase de captura na janela enquanto montado, salvo teclas reservadas do navegador e campos de texto
+externos), `barra-formas` (`auto` | `botoes` | `menu`), `lateral` (`auto` | `fixa` | `gaveta`),
+`somente-leitura`. **Responsivo ao próprio contêiner** (nunca à largura da janela): em `barra-formas="auto"` os botões
+viram `"Formas ▾"` (menu com molduras, formas, linhas e setas) sempre que transbordariam para uma segunda linha (medido por
+`ResizeObserver`, um reajuste por quadro e com histerese); em `lateral="auto"`, abaixo de 720 px a lateral vira uma gaveta
+aberta pelo botão "Propriedades" ou por **Alt+P** (propriedade `lateralAberta`; Esc fecha e devolve o foco). Largura da
+lateral: `--ui-editor-prancha-lateral` (300px). O rodapé (Cancelar/Concluir) nunca quebra nem some.
 
 ```js
 import { ligarPaineisPrancha } from '@thibezer/ui-components-kit/prancha';

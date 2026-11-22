@@ -69,6 +69,8 @@ export const pranchaModal = (
   />
 );
 
+export const pranchaTecladoModal = <ui-canvas-prancha teclado="modal" />;
+
 export const editorPrancha = (
   <ui-editor-prancha
     largura={297}
@@ -82,3 +84,8 @@ export const editorPrancha = (
     oneditor-cancelar={(e) => e.detail}
   />
 );
+
+export const editorPranchaModal = <ui-editor-prancha teclado="modal" />;
+
+// @ts-expect-error modo de teclado fora do conjunto aceito
+export const editorTecladoInvalido = <ui-editor-prancha teclado="invalido" />;

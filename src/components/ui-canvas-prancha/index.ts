@@ -1,6 +1,6 @@
 export * from './ui-canvas-prancha';
 export { UICanvasPranchaBase } from './ui-canvas-prancha-base';
-export { eventoTratadoPelaPrancha, teclaReservadaDoNavegador, instalarIsolamentoDeTeclas, lerModoTeclado, type ModoTecladoPrancha } from './prancha-teclado';
+export { eventoTratadoPelaPrancha, teclaReservadaDoNavegador, instalarIsolamentoDeTeclas, instalarTecladoModal, lerModoTeclado, type ModoTecladoPrancha } from './prancha-teclado';
 export * from './prancha-paineis';
 export * from './tipos';
 export { COMANDOS_PRANCHA, type ComandoPublicoPrancha } from './prancha-bus';

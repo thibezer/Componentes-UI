@@ -4,10 +4,17 @@
  * pelo `composedPath()`; sem evento, desce pelos `shadowRoot.activeElement`.
  */
 
-function ehCampoDeTexto(el: Element | null | undefined): boolean {
+export function ehCampoDeTexto(el: Element | null | undefined): boolean {
   if (!el) return false;
   const h = el as HTMLElement;
   return h.tagName === 'INPUT' || h.tagName === 'TEXTAREA' || h.tagName === 'SELECT' || h.isContentEditable === true;
+}
+
+/** Elemento atualmente focado, atravessando shadow roots. */
+export function elementoFocadoReal(): Element | null {
+  let el: Element | null = typeof document === 'undefined' ? null : document.activeElement;
+  while (el?.shadowRoot?.activeElement) el = el.shadowRoot.activeElement;
+  return el;
 }
 
 /** Controles que o Enter/Espaço ativam por conta própria; um atalho global de Enter não pode sequestrá-los. */
@@ -27,7 +34,5 @@ export function focoEmCampoDeTexto(evento?: Event): boolean {
   const origem = evento?.composedPath?.()[0];
   if (origem instanceof Element) return ehCampoDeTexto(origem);
 
-  let el: Element | null = typeof document === 'undefined' ? null : document.activeElement;
-  while (el?.shadowRoot?.activeElement) el = el.shadowRoot.activeElement;
-  return ehCampoDeTexto(el);
+  return ehCampoDeTexto(elementoFocadoReal());
 }

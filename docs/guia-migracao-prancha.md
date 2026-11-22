@@ -206,11 +206,16 @@ sem caixa insere no **centro da área visível** (tamanho proporcional ao zoom, 
   testada com um `keydown` global registrado antes da prancha.
 - `teclado="exclusivo"` (modal só com a prancha): a prancha captura as teclas da página inteira, em fase de captura, enquanto
   montada, sem roubar teclas de campos de texto. As teclas que ela **não** trata continuam chegando ao hospedeiro.
-- **`teclado="isolado"` (padrão do `<ui-editor-prancha>`): nenhuma tecla vaza.** Todo `keydown`/`keyup`/`keypress` com o foco
-  ou o ponteiro dentro do editor recebe `stopPropagation()` na bolha, tratado ou não, então o `keydown` global do hospedeiro
-  não vê nem `F`, `[`, `]`, `Ctrl+D` nem `Delete` sem seleção. Passam só as teclas do navegador (`F5`, `F11`, `F12`,
-  `Ctrl+R/L/W/T`, `Ctrl+Shift+I/J`, `Tab`, zoom do navegador fora do canvas). **O app não precisa mais de uma flag** que
-  bloqueie o `keydown` global enquanto o editor está aberto. Tabela dos três modos em `docs/canvas-prancha-eventos.md`.
+- `teclado="isolado"` (padrão do `<ui-editor-prancha>`): todo `keydown`/`keyup`/`keypress` com o foco ou o ponteiro dentro do
+  editor recebe `stopPropagation()` na bolha, tratado ou não, então o `keydown` global do hospedeiro não vê teclas que passem
+  pelo editor. Fora do editor (foco no corpo da página), teclas continuam chegando à página.
+- **`teclado="modal"` (`<ui-editor-prancha teclado="modal">` e `<ui-canvas-prancha teclado="modal">`):** enquanto o componente
+  está montado, todo `keydown`/`keyup`/`keypress` da página cujo alvo não passe por ele recebe `stopPropagation()` em fase de
+  captura na janela (`window`) — mesmo que o foco esteja no `document.body`. Dentro do componente, funciona como `isolado`.
+  Continuam passando apenas as teclas reservadas do navegador (`teclaReservadaDoNavegador`: `F5`, `F11`, `F12`, `Ctrl+R/L/W/T`,
+  `Ctrl+Shift+I/J`, `Tab`, zoom do navegador fora do canvas) e as teclas de campos de texto fora do componente se o foco
+  estiver num deles. **O app passa a usar `teclado="modal"` e remove a flag** que bloqueava o `keydown` global enquanto o
+  editor está aberto. Tabela dos modos em `docs/canvas-prancha-eventos.md`.
 - `prancha-esc-sem-efeito`: Esc sem gesto, âncoras, isolamento nem seleção a cancelar (a cadeia é: gesto → âncoras →
   grupo isolado → seleção → este evento). O hospedeiro fecha o modal aqui.
 

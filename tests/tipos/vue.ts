@@ -45,6 +45,10 @@ export const pranchaModal: Props<'ui-canvas-prancha'> = {
   onPranchaEscSemEfeito: (e: CustomEvent) => e.detail
 };
 
+export const pranchaTecladoModal: Props<'ui-canvas-prancha'> = {
+  teclado: 'modal'
+};
+
 export const editorPrancha: Props<'ui-editor-prancha'> = {
   largura: 297,
   altura: 210,
@@ -55,5 +59,12 @@ export const editorPrancha: Props<'ui-editor-prancha'> = {
   onEditorConcluir: (e: CustomEvent) => e.detail
 };
 
+export const editorPranchaModal: Props<'ui-editor-prancha'> = {
+  teclado: 'modal'
+};
+
 // @ts-expect-error ferramenta fora do conjunto aceito
 export const pranchaInvalida: Props<'ui-canvas-prancha'> = { ferramenta: 'pincel' };
+
+// @ts-expect-error modo de teclado fora do conjunto aceito
+export const editorTecladoInvalido: Props<'ui-editor-prancha'> = { teclado: 'invalido' };

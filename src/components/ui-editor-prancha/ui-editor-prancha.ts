@@ -3,10 +3,11 @@ import { ListenerBag } from '../../core/listener-bag';
 import { ITENS_PREDEFINICOES, type GrupoPredefinicao } from '../../gerencigeo-canvas/prancha/elemento_predefinicoes';
 import type { CamadaPrancha, ElementoGrafico } from '../../gerencigeo-canvas/prancha/tipos';
 import { ligarPaineisPrancha, type CamadasLigavel, type PaletaLigavel, type PropriedadesLigavel } from '../ui-canvas-prancha/prancha-paineis';
-import { instalarIsolamentoDeTeclas, lerModoTeclado } from '../ui-canvas-prancha/prancha-teclado';
+import { instalarIsolamentoDeTeclas, instalarTecladoModal, lerModoTeclado, type ModoTecladoPrancha } from '../ui-canvas-prancha/prancha-teclado';
 import type { UICanvasPrancha } from '../ui-canvas-prancha/ui-canvas-prancha';
 import type { DetalheEditorCancelarPrancha, DetalheEditorConcluirPrancha, LateralEditorPrancha, BarraFormasEditorPrancha } from './editor-tipos';
-import { lerBarraFormas, lerLateral, LARGURA_ESTREITA_PX } from './editor-modos';
+import { decidirBarraColapsada, lerBarraFormas, lerLateral, LARGURA_ESTREITA_PX } from './editor-modos';
+import { medirBarraFormas } from './editor-barra';
 import estilos from './ui-editor-prancha.css?inline';
 
 /** Atributos repassados à prancha interna (o resto é do editor). */
@@ -16,12 +17,14 @@ const ROTULO_GRUPO: Readonly<Record<GrupoPredefinicao, string>> = { molduras: 'M
 
 /**
  * Editor de prancha completo: a `<ui-canvas-prancha>` com a paleta de ferramentas, o painel de camadas, o painel de
- * propriedades e um menu de pré-definições, já ligados entre si. Pensado para um modal: **responsivo por container query**
- * (a largura do próprio editor, não da janela): abaixo de ~720 px a barra de formas vira um botão "Formas" com menu e a
- * coluna lateral vira uma gaveta (botão "Propriedades" ou Alt+P). O teclado é `isolado` por padrão (nenhuma tecla do editor
- * chega aos atalhos globais do hospedeiro, salvo as do navegador) e o Esc sem nada a cancelar vira `editor-cancelar`.
- * Não grava nada: devolve os dados em `editor-concluir`. Os componentes internos (`ui-paleta-ferramentas`, `ui-camadas`,
- * `ui-tabela-propriedades`) são registrados pelo entrypoint `@thibezer/ui-components-kit/prancha`.
+ * propriedades e um menu de pré-definições, já ligados entre si. Pensado para um modal: **responsivo ao contêiner**
+ * (a largura do próprio editor, não da janela): no modo `barra-formas="auto"`, os botões viram `"Formas ▾"` com menu
+ * sempre que transbordariam para uma segunda linha (medido via `ResizeObserver`, um reajuste por quadro e histerese
+ * para evitar oscilação); a coluna lateral em `lateral="auto"` vira gaveta abaixo de 720 px (botão "Propriedades" ou
+ * Alt+P). O teclado é `isolado` por padrão (nenhuma tecla do editor chega aos atalhos globais do hospedeiro, salvo as
+ * do navegador) e o Esc sem nada a cancelar vira `editor-cancelar`. Não grava nada: devolve os dados em
+ * `editor-concluir`. Os componentes internos (`ui-paleta-ferramentas`, `ui-camadas`, `ui-tabela-propriedades`) são
+ * registrados pelo entrypoint `@thibezer/ui-components-kit/prancha`.
  *
  * @attr {number} largura - Largura da folha em mm (padrão 210).
  * @attr {number} altura - Altura da folha em mm (padrão 297).
@@ -29,9 +32,9 @@ const ROTULO_GRUPO: Readonly<Record<GrupoPredefinicao, string>> = { molduras: 'M
  * @attr {number} grade - Passo da grade em mm.
  * @attr {boolean} mostrar-grade - Mostra a grade.
  * @attr {string} ajustar-ao-abrir - `folha` (padrão), `conteudo` ou `nenhum`.
- * @attr {string} teclado - `isolado` (padrão), `exclusivo` ou `local` (ver `docs/canvas-prancha-eventos.md`).
- * @attr {string} barra-formas - `auto` (padrão: botões em editor largo, menu "Formas" em editor estreito), `botoes` ou `menu`.
- * @attr {string} lateral - `auto` (padrão: fixa em editor largo, gaveta em editor estreito), `fixa` ou `gaveta`.
+ * @attr {string} teclado - `isolado` (padrão), `exclusivo`, `local` ou `modal` (ver `docs/canvas-prancha-eventos.md`).
+ * @attr {string} barra-formas - `auto` (padrão: botões em uma linha quando cabem, menu `"Formas ▾"` ao transbordar), `botoes` ou `menu`.
+ * @attr {string} lateral - `auto` (padrão: fixa em editor largo >= 720 px, gaveta abaixo), `fixa` ou `gaveta`.
  * @attr {boolean} somente-leitura - Sem edição.
  *
  * @fires editor-concluir - `{ elementos, camadas, modificado }`: o usuário confirmou.
@@ -55,23 +58,28 @@ export class UIEditorPrancha extends SafeHTMLElement {
   private readonly bag = new ListenerBag();
   private desligarPaineis: (() => void) | null = null;
   private observador: ResizeObserver | null = null;
+  private rafBarra: number | null = null;
   private readonly _prancha: UICanvasPrancha;
   private readonly paleta: HTMLElement;
   private readonly painelCamadas: HTMLElement;
   private readonly painelPropriedades: HTMLElement;
   private readonly raiz: HTMLElement;
+  private readonly barra: HTMLElement;
+  private readonly botoesFormas: HTMLElement;
   private readonly botaoLateral: HTMLButtonElement;
   private readonly botaoFormas: HTMLButtonElement;
   private readonly menuFormas: HTMLElement;
   private _lateralAberta = false;
   private estreito = false;
+  private barraColapsada = false;
+  private ultimaLarguraObservada = 0;
 
   constructor() {
     super();
     this.shadow = this.attachShadow({ mode: 'open' });
     this.shadow.innerHTML = `
       <style>${estilos}</style>
-      <div class="raiz" id="raiz" part="base" data-barra="auto" data-lateral="auto" data-lateral-aberta="false">
+      <div class="raiz" id="raiz" part="base" data-barra="auto" data-barra-modo="botoes" data-lateral="auto" data-lateral-aberta="false">
         <div class="barra" part="barra" id="barra" role="toolbar" aria-label="Formas e painéis">
           <div class="botoes-formas" id="botoes-formas" role="group" aria-label="Pré-definições"></div>
           <div class="formas-menu">
@@ -99,11 +107,12 @@ export class UIEditorPrancha extends SafeHTMLElement {
     this.painelCamadas = q('camadas');
     this.painelPropriedades = q('propriedades');
     this.raiz = q('raiz');
+    this.barra = q('barra');
+    this.botoesFormas = q('botoes-formas');
     this.botaoLateral = q<HTMLButtonElement>('btn-lateral');
     this.botaoFormas = q<HTMLButtonElement>('btn-formas');
     this.menuFormas = q('menu-formas');
     // menu e botões de pré-definições: rótulos pt-BR do kit, montados por nós de DOM (nada de HTML de fora)
-    const botoes = q('botoes-formas');
     let grupoAtual: GrupoPredefinicao | null = null;
     let corpoGrupo: HTMLElement | null = null;
     for (const item of ITENS_PREDEFINICOES) {
@@ -111,7 +120,7 @@ export class UIEditorPrancha extends SafeHTMLElement {
       b.type = 'button';
       b.dataset.predefinicao = item.valor;
       b.textContent = item.rotulo;
-      botoes.appendChild(b);
+      this.botoesFormas.appendChild(b);
       if (item.grupo !== grupoAtual) {
         grupoAtual = item.grupo;
         corpoGrupo = document.createElement('div');
@@ -136,8 +145,7 @@ export class UIEditorPrancha extends SafeHTMLElement {
 
   connectedCallback(): void {
     this.bag.cleanup();
-    this.observador?.disconnect();
-    this.observador = null;
+    this.pararObservador();
     this.desligarPaineis?.();
     this.sincronizarAtributos();
     this.desligarPaineis = ligarPaineisPrancha({
@@ -146,12 +154,18 @@ export class UIEditorPrancha extends SafeHTMLElement {
       camadas: this.painelCamadas as unknown as CamadasLigavel,
       propriedades: this.painelPropriedades as unknown as PropriedadesLigavel
     });
-    // teclado isolado: nada do que acontece dentro do editor chega aos atalhos globais do hospedeiro
-    instalarIsolamentoDeTeclas(this.bag, this, () => lerModoTeclado(this.getAttribute('teclado') ?? 'isolado') === 'isolado');
+    const modoTeclado = (): ModoTecladoPrancha => lerModoTeclado(this.getAttribute('teclado') ?? 'isolado');
+    // teclado isolado/modal: nada do que acontece dentro do editor chega aos atalhos globais do hospedeiro
+    instalarIsolamentoDeTeclas(this.bag, this, () => {
+      const modo = modoTeclado();
+      return modo === 'isolado' || modo === 'modal';
+    });
+    // teclado modal: bloqueia em captura na janela tudo que não passe pelo editor (salvo reservadas e campos de texto fora)
+    instalarTecladoModal(this.bag, this, () => modoTeclado() === 'modal');
     this.bag.add(this.shadow.getElementById('concluir'), 'click', () => this.concluir());
     this.bag.add(this.shadow.getElementById('cancelar'), 'click', () => this.cancelar());
     // só os botões (o menu "Formas" também está na barra e tem o seu próprio ouvinte: senão a forma seria inserida duas vezes)
-    this.bag.add(this.shadow.getElementById('botoes-formas'), 'click', (e: Event) => {
+    this.bag.add(this.botoesFormas, 'click', (e: Event) => {
       const alvo = (e.target as HTMLElement | null)?.closest?.('button[data-predefinicao]') as HTMLButtonElement | null;
       if (alvo) this.inserir(alvo.dataset.predefinicao);
     });
@@ -195,27 +209,27 @@ export class UIEditorPrancha extends SafeHTMLElement {
     }, { capture: true });
     // Esc sem nada a cancelar na prancha: fecha o editor
     this.bag.add(this._prancha, 'prancha-esc-sem-efeito', () => this.cancelar());
-    if (typeof ResizeObserver === 'function') {
-      this.observador = new ResizeObserver((entradas) => {
-        const largura = entradas[entradas.length - 1]?.contentRect?.width ?? 0;
-        if (largura > 0) this.definirLargura(largura);
-      });
-      this.observador.observe(this.raiz);
-    }
+    this.iniciarObservador();
     this.atualizarLateral();
   }
 
   disconnectedCallback(): void {
     this.bag.cleanup();
-    this.observador?.disconnect();
-    this.observador = null;
+    this.pararObservador();
+    this.ultimaLarguraObservada = 0;
     this.desligarPaineis?.();
     this.desligarPaineis = null;
     this.fecharMenuFormas(false);
   }
 
   attributeChangedCallback(nome: string, _antigo: string | null, valor: string | null): void {
-    if (nome === 'barra-formas') { this.raiz.dataset.barra = lerBarraFormas(valor); return; }
+    if (nome === 'barra-formas') {
+      const modo = lerBarraFormas(valor);
+      if (modo !== 'auto') this.barraColapsada = false;
+      this.sincronizarModoBarra();
+      if (modo === 'auto' && this.isConnected) this.reajustarBarra();
+      return;
+    }
     if (nome === 'lateral') { this.raiz.dataset.lateral = lerLateral(valor); this.atualizarLateral(); return; }
     this.repassar(nome, valor);
   }
@@ -234,7 +248,8 @@ export class UIEditorPrancha extends SafeHTMLElement {
   private sincronizarAtributos(): void {
     for (const n of REPASSADOS) this.repassar(n, this.getAttribute(n));
     this.repassar('teclado', this.getAttribute('teclado'));
-    this.raiz.dataset.barra = lerBarraFormas(this.getAttribute('barra-formas'));
+    if (this.barraFormas !== 'auto') this.barraColapsada = false;
+    this.sincronizarModoBarra();
     this.raiz.dataset.lateral = lerLateral(this.getAttribute('lateral'));
   }
 
@@ -279,6 +294,112 @@ export class UIEditorPrancha extends SafeHTMLElement {
     else if (e.key === 'End') vai(itens.length - 1);
   }
 
+  // ---------- barra de formas e observador ----------
+
+  private iniciarObservador(): void {
+    this.pararObservador();
+    if (typeof ResizeObserver === 'function') {
+      this.observador = new ResizeObserver((entradas) => this.aoRedimensionar(entradas));
+      this.observador.observe(this.raiz);
+      this.observador.observe(this.barra);
+    }
+  }
+
+  private pararObservador(): void {
+    this.observador?.disconnect();
+    this.observador = null;
+    if (this.rafBarra !== null && typeof cancelAnimationFrame === 'function') {
+      cancelAnimationFrame(this.rafBarra);
+    }
+    this.rafBarra = null;
+  }
+
+  private aoRedimensionar(entradas: ReadonlyArray<ResizeObserverEntry>): void {
+    if (!Array.isArray(entradas)) return;
+    let larguraRaiz: number | null = null;
+    let larguraBarra: number | null = null;
+    for (const entrada of entradas) {
+      const w = entrada?.contentRect?.width;
+      if (typeof w !== 'number' || !Number.isFinite(w) || w < 0) continue;
+      if (!entrada.target || entrada.target === this.raiz) {
+        larguraRaiz = w;
+      } else if (entrada.target === this.barra) {
+        larguraBarra = w;
+      }
+    }
+    if (larguraRaiz !== null) {
+      this.ultimaLarguraObservada = larguraRaiz;
+      if (larguraRaiz > 0) this.definirLargura(larguraRaiz);
+    } else if (larguraBarra !== null) {
+      this.ultimaLarguraObservada = larguraBarra;
+    }
+    if (this.barraFormas === 'auto') this.agendarAjusteBarra();
+  }
+
+  /** Agrupa rajadas de redimensionamento em um único reajuste por quadro (evita loops de ResizeObserver e pisca-pisca). */
+  private agendarAjusteBarra(): void {
+    if (!this.isConnected || this.barraFormas !== 'auto') return;
+    if (typeof requestAnimationFrame !== 'function') {
+      this.reajustarBarra();
+      return;
+    }
+    if (this.rafBarra !== null) return;
+    this.rafBarra = requestAnimationFrame(() => {
+      this.rafBarra = null;
+      if (!this.isConnected) return;
+      this.reajustarBarra();
+    });
+  }
+
+  /**
+   * Reavalia se a barra de formas no modo `auto` cabe em uma linha ou deve colapsar para `"Formas ▾"`.
+   * Executado no máximo uma vez por quadro via `ResizeObserver`; pode ser chamado após alterações manuais de rótulos/layout.
+   */
+  reajustarBarra(): void {
+    if (!this.isConnected) return;
+    if (this.barraFormas !== 'auto') {
+      this.definirBarraColapsada(false);
+      return;
+    }
+    const medicao = medirBarraFormas({
+      barra: this.barra,
+      botoesFormas: this.botoesFormas,
+      botaoLateral: this.botaoLateral,
+      lateralVisivel: this.emGaveta(),
+      colapsadaAtual: this.barraColapsada,
+      larguraObservada: this.ultimaLarguraObservada
+    });
+    const proxima = decidirBarraColapsada({
+      colapsadaAtual: this.barraColapsada,
+      larguraNecessaria: medicao.larguraNecessaria,
+      larguraDisponivel: medicao.larguraDisponivel,
+      transbordouNoDom: medicao.transbordouNoDom
+    });
+    this.definirBarraColapsada(proxima);
+  }
+
+  private definirBarraColapsada(colapsada: boolean): void {
+    if (colapsada === this.barraColapsada && this.raiz.dataset.barraModo) {
+      this.sincronizarModoBarra();
+      return;
+    }
+    this.barraColapsada = colapsada;
+    this.sincronizarModoBarra();
+  }
+
+  private sincronizarModoBarra(): void {
+    const modo = this.barraFormas;
+    this.raiz.dataset.barra = modo;
+    const efetivo = modo === 'menu' || (modo === 'auto' && this.barraColapsada) ? 'menu' : 'botoes';
+    const anterior = this.raiz.dataset.barraModo;
+    this.raiz.dataset.barraModo = efetivo;
+    if (anterior === 'menu' && efetivo === 'botoes') {
+      const focoNoMenu = this.shadow.activeElement === this.botaoFormas || this.menuFormas.contains(this.shadow.activeElement);
+      this.fecharMenuFormas(false);
+      if (focoNoMenu) this.botoesFormas.querySelector<HTMLButtonElement>('button[data-predefinicao]')?.focus();
+    }
+  }
+
   // ---------- lateral ----------
 
   private emGaveta(): boolean {
@@ -299,6 +420,7 @@ export class UIEditorPrancha extends SafeHTMLElement {
     this.raiz.dataset.lateralAberta = String(this._lateralAberta);
     this.botaoLateral.setAttribute('aria-expanded', String(!gaveta || this._lateralAberta));
     this.botaoLateral.toggleAttribute('data-gaveta', gaveta);
+    if (this.isConnected && this.barraFormas === 'auto') this.agendarAjusteBarra();
   }
 
   /** A lateral (camadas e propriedades) está visível? Em modo fixo é sempre `true`; em gaveta, é o estado aberto/fechado. */
@@ -317,6 +439,10 @@ export class UIEditorPrancha extends SafeHTMLElement {
   /** `auto`, `botoes` ou `menu`. */
   get barraFormas(): BarraFormasEditorPrancha { return lerBarraFormas(this.getAttribute('barra-formas')); }
   set barraFormas(v: BarraFormasEditorPrancha) { this.setAttribute('barra-formas', lerBarraFormas(v)); }
+
+  /** `isolado` (padrão), `exclusivo`, `local` ou `modal`. */
+  get teclado(): ModoTecladoPrancha { return lerModoTeclado(this.getAttribute('teclado') ?? 'isolado'); }
+  set teclado(v: ModoTecladoPrancha) { this.setAttribute('teclado', lerModoTeclado(v)); }
 
   // ---------- API ----------
 

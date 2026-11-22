@@ -1,6 +1,6 @@
-/* <ui-editor-prancha>: cores, espaços e tipografia só por tokens (src/tokens/). Responsivo por CONTAINER QUERY: a largura
-   que conta é a do próprio editor (ele vive num modal de largura qualquer), nunca a da janela. O corte (720px) é o mesmo de
-   LARGURA_ESTREITA_PX em editor-modos.ts. */
+/* <ui-editor-prancha>: cores, espaços e tipografia só por tokens (src/tokens/). Responsivo ao próprio contêiner
+   (nunca à janela): a lateral em `auto` vira gaveta abaixo de 720px (`@container editor`, igual a `LARGURA_ESTREITA_PX` em
+   editor-modos.ts); a barra de formas em `auto` vira "Formas ▾" quando os botões transbordariam para uma segunda linha. */
 :host {
   --ui-editor-prancha-lateral: 300px;
   display: block;
@@ -23,8 +23,8 @@
   gap: var(--ui-espaco-sm);
   box-sizing: border-box;
 }
-.barra { display: flex; flex-wrap: nowrap; gap: var(--ui-espaco-xs); align-items: center; min-width: 0; }
-.botoes-formas { display: flex; flex-wrap: wrap; gap: var(--ui-espaco-xs); min-width: 0; flex: 1 1 auto; }
+.barra { display: flex; flex-wrap: nowrap; gap: var(--ui-espaco-xs, 4px); align-items: center; min-width: 0; }
+.botoes-formas { display: flex; flex-wrap: wrap; gap: var(--ui-espaco-xs, 4px); min-width: 0; flex: 1 1 auto; }
 .formas-menu { position: relative; display: none; flex: 0 0 auto; }
 .btn-lateral { display: none; margin-inline-start: auto; flex: 0 0 auto; }
 .acoes { display: flex; flex-wrap: nowrap; gap: var(--ui-espaco-xs); align-items: center; justify-content: flex-end; flex: 0 0 auto; }
@@ -71,9 +71,11 @@ button.primario { background: var(--ui-cor-primaria); color: var(--ui-cor-texto-
 .menu-formas button:hover, .menu-formas button:focus-visible { background: var(--ui-cor-fundo-elevado); }
 .menu-grupo { padding: var(--ui-espaco-xs) var(--ui-espaco-sm); font-size: var(--ui-tamanho-caption); color: var(--ui-cor-texto-secundario); text-transform: uppercase; }
 
-/* barra de formas: automática (container query), só botões ou só menu */
-.raiz[data-barra="menu"] .botoes-formas { display: none; }
-.raiz[data-barra="menu"] .formas-menu { display: block; }
+/* barra de formas: automática (medição de transbordo com histerese), só botões ou só menu */
+.raiz[data-barra="menu"] .botoes-formas,
+.raiz[data-barra="auto"][data-barra-modo="menu"] .botoes-formas { display: none; }
+.raiz[data-barra="menu"] .formas-menu,
+.raiz[data-barra="auto"][data-barra-modo="menu"] .formas-menu { display: block; }
 
 /* lateral em gaveta: sobre o canvas, recolhida por padrão */
 .raiz[data-lateral="gaveta"] .btn-lateral { display: inline-block; }
@@ -92,8 +94,6 @@ button.primario { background: var(--ui-cor-primaria); color: var(--ui-cor-texto-
 .raiz[data-lateral="gaveta"][data-lateral-aberta="false"] .lateral { display: none; }
 
 @container editor (max-width: 719.98px) {
-  .raiz[data-barra="auto"] .botoes-formas { display: none; }
-  .raiz[data-barra="auto"] .formas-menu { display: block; }
   .raiz[data-lateral="auto"] .btn-lateral { display: inline-block; }
   .raiz[data-lateral="auto"] .lateral {
     position: absolute;
