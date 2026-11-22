@@ -106,12 +106,18 @@ export class UIListaFlutuante extends FormAssociatedElement {
     const options = Array.from(this.querySelectorAll('option, ui-opcao, [role="option"], [data-opcao], [data-value]:not(input):not(select)'));
     if (options.length > 0) {
       this._itens = options.map((opt, idx) => {
-        const idVal = opt.getAttribute('value') || opt.getAttribute('data-value') || String(idx + 1);
+        // Como no <select> nativo, `value=""` é um valor vazio válido (ex.: "Herdar"), não um índice
+        const idVal = opt.hasAttribute('value')
+          ? opt.getAttribute('value')!
+          : opt.getAttribute('data-value') || String(idx + 1);
         return {
           id: idVal,
           label: opt.textContent?.trim() || idVal || `Opção ${idx + 1}`
         };
       });
+      // `selected` define o valor inicial, salvo se o host já tem `value`
+      const marcada = options.findIndex((opt) => opt.hasAttribute('selected'));
+      if (marcada >= 0 && !this.hasAttribute('value')) this.value = this._itens[marcada].id;
       renderizarItensLista(this.listElement, this._itens, this._value);
       this.syncLabel();
     }

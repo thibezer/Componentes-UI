@@ -1,5 +1,12 @@
 # Changelog
 
+## Não publicado
+
+### `<ui-lista-flutuante>` / `<ui-select>`: opções filhas como no `<select>` nativo
+
+- `<option value="">` agora é um valor vazio válido (antes virava o índice, "1"), e `<option selected>` define o valor inicial quando o host não tem `value`. Opção sem `value` segue usando o índice. Necessário para trocar `<select>` com opção "Herdar" pelo kit (ConecteMapas). Testes em `ui-lista-flutuante.regressao.test.ts`.
+
+
 ## 2.25.0 — 2026-11-22
 
 > No app: `npm install @thibezer/ui-components-kit@2.25.0`.
