@@ -2,6 +2,15 @@
 
 ## Não publicado
 
+### `<ui-editor-prancha>`: `barra-formas="auto"` por transbordo real
+
+- **`barra-formas="auto"` por transbordo (`editor-barra.ts`, `editor-modos.ts`):** troca os botões de pré-definições por `"Formas ▾"`
+  sempre que transbordariam para uma segunda linha (em vez do corte fixo de 720 px), medindo via `ResizeObserver` com agrupamento
+  de no máximo 1 reajuste por quadro (`requestAnimationFrame`), desconectado e cancelado no `disconnectedCallback`, e histerese
+  assimétrica (`HISTERESE_BARRA_FORMAS_PX = 24` px) para não piscar. A lateral (`lateral="auto"`) mantém o corte de 720 px.
+  Método público `reajustarBarra()` e cobertura para 600, 800, 1000 e 1300 px, rótulos longos e histerese em
+  `tests/ui-editor-prancha.regressao.test.ts`.
+
 ### `teclado="modal"` no `<ui-canvas-prancha>` e `<ui-editor-prancha>`
 
 - **`teclado="modal"`**: novo modo de teclado (`ModoTecladoPrancha`, atributo e propriedade `.teclado` em ambos os componentes,
