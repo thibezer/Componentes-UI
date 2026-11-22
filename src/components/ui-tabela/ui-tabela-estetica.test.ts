@@ -1,4 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import './ui-tabela';
 import type { UITabela } from './ui-tabela';
 
@@ -192,5 +194,76 @@ describe('ui-tabela: redimensionamento', () => {
     expect(ouvinte).toHaveBeenCalledTimes(1);
     expect(ouvinte.mock.calls[0][0].detail.largura).toBe('150px');
     expect(raiz(t).querySelector('dialog')).toBeNull();
+  });
+});
+
+describe('ui-tabela: customização (Lote 2)', () => {
+  beforeEach(() => { document.body.innerHTML = ''; });
+
+  function criarComColunas(colunas: any[], dados: Record<string, any>[]): UITabela {
+    const t = document.createElement('ui-tabela') as UITabela;
+    document.body.appendChild(t);
+    t.colunas = colunas;
+    t.dados = dados;
+    return t;
+  }
+
+  it('redimensionavel: false omite a alça de redimensionamento e não abre diálogo', () => {
+    const t = criarComColunas([
+      { id: 'acoes', rotulo: 'Ações', redimensionavel: false },
+      { id: 'nome', rotulo: 'Nome' }
+    ], [{ id: 1, acoes: 'x', nome: 'Item' }]);
+
+    const thAcoes = raiz(t).querySelector('th[data-coluna="acoes"]')!;
+    const thNome = raiz(t).querySelector('th[data-coluna="nome"]')!;
+    expect(thAcoes.querySelector('.ui-tabela__resizer')).toBeNull();
+    expect(thNome.querySelector('.ui-tabela__resizer')).not.toBeNull();
+
+    thAcoes.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, clientX: 20, clientY: 20 }));
+    expect(raiz(t).querySelector('dialog')).toBeNull();
+  });
+
+  it('classe da coluna é aplicada em th e td', () => {
+    const t = criarComColunas([
+      { id: 'codigo', rotulo: 'Código', classe: 'col-mono destaque' },
+      { id: 'nome', rotulo: 'Nome' }
+    ], [{ id: 1, codigo: 'A1', nome: 'Item' }]);
+
+    const th = raiz(t).querySelector('th[data-coluna="codigo"]')!;
+    const td = raiz(t).querySelector('tbody tr td')!;
+    expect(th.classList.contains('col-mono')).toBe(true);
+    expect(th.classList.contains('destaque')).toBe(true);
+    expect(td.classList.contains('col-mono')).toBe(true);
+    expect(td.classList.contains('destaque')).toBe(true);
+  });
+
+  it('expõe novos parts (cabecalho, corpo, linha-cabecalho, spinner) e slots de estado', () => {
+    const t = criarComColunas([{ id: 'nome', rotulo: 'Nome' }], []);
+    expect(raiz(t).querySelector('thead[part="cabecalho"]')).not.toBeNull();
+    expect(raiz(t).querySelector('tbody[part="corpo"]')).not.toBeNull();
+    expect(raiz(t).querySelector('thead tr[part="linha-cabecalho"]')).not.toBeNull();
+    expect(raiz(t).querySelector('[part="spinner"]')).not.toBeNull();
+
+    const slotVazio = raiz(t).querySelector('slot[name="vazio"]') as HTMLSlotElement;
+    const slotCarregando = raiz(t).querySelector('slot[name="carregando"]') as HTMLSlotElement;
+    const slotErro = raiz(t).querySelector('slot[name="erro"]') as HTMLSlotElement;
+    expect(slotVazio).not.toBeNull();
+    expect(slotCarregando).not.toBeNull();
+    expect(slotErro).not.toBeNull();
+
+    const customVazio = document.createElement('div');
+    customVazio.slot = 'vazio';
+    customVazio.textContent = 'Crie o primeiro registro';
+    t.appendChild(customVazio);
+    expect(slotVazio.assignedElements()).toContain(customVazio);
+  });
+
+  it('expõe tokens CSS de tipografia e padding das densidades', () => {
+    const css = readFileSync(resolve(process.cwd(), 'src/components/ui-tabela/ui-tabela.css'), 'utf8');
+    expect(css).toContain('--ui-tabela-fonte-tamanho');
+    expect(css).toContain('--ui-tabela-th-fonte-tamanho');
+    expect(css).toContain('--ui-tabela-padding-compacta');
+    expect(css).toContain('--ui-tabela-padding-normal');
+    expect(css).toContain('--ui-tabela-padding-relaxada');
   });
 });

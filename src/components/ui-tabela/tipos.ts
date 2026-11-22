@@ -12,6 +12,10 @@ export interface TabelaColuna<T = any> {
   larguraMaxima?: string | number;
   alinhamento?: 'esquerda' | 'centro' | 'direita' | 'left' | 'center' | 'right';
   ordenavel?: boolean;
+  /** Permite redimensionar a coluna pela alça e menu de contexto (padrão: `true`). */
+  redimensionavel?: boolean;
+  /** Classes CSS extras aplicadas no `<th>` e nas `<td>` desta coluna. */
+  classe?: string;
   tooltip?: string;
   /** Tipo do dado, usado só na ordenação local: `data` aceita Date, ISO e dd/mm/aaaa. Padrão: inferido pelo valor. */
   tipo?: 'texto' | 'numero' | 'data' | 'booleano';

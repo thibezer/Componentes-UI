@@ -3,6 +3,8 @@
 
    Tokens públicos (todos opcionais):
    --ui-tabela-max-height, --ui-tabela-altura-linha,
+   --ui-tabela-fonte-tamanho, --ui-tabela-th-fonte-tamanho,
+   --ui-tabela-padding-compacta, --ui-tabela-padding-normal, --ui-tabela-padding-relaxada,
    --ui-tabela-zebra, --ui-tabela-hover, --ui-tabela-selecionada, --ui-tabela-selecionada-hover,
    --ui-tabela-cor-foco, --ui-tabela-th-gap, --ui-tabela-th-icone
    ==================================================== */
@@ -37,7 +39,7 @@
   border-collapse: separate;
   border-spacing: 0;
   text-align: left;
-  font-size: 14px;
+  font-size: var(--ui-tabela-fonte-tamanho, 14px);
   font-family: var(--ui-fonte-base, inherit);
   /* dígitos de largura fixa: colunas numéricas (áreas, coordenadas) alinham */
   font-variant-numeric: tabular-nums;
@@ -52,10 +54,10 @@
   position: sticky;
   top: 0;
   z-index: 10;
-  padding: 10px 16px;
+  padding: var(--ui-tabela-padding-normal, 10px 16px);
   background: var(--ui-tabela-cabecalho-fundo, var(--ui-fundo-elevado, var(--ui-cor-fundo-elevado, #1a1a1e)));
   color: var(--ui-cor-texto-secundario, #9696a6);
-  font-size: 13px;
+  font-size: var(--ui-tabela-th-fonte-tamanho, 13px);
   font-weight: 600;
   letter-spacing: 0.02em;
   border-bottom: 2px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
@@ -98,21 +100,21 @@
 :host([densidade="compacta"]) td,
 :host([density="compact"]) th,
 :host([density="compact"]) td {
-  padding: 4px 8px;
+  padding: var(--ui-tabela-padding-compacta, 4px 8px);
 }
 
 :host([densidade="normal"]) th,
 :host([densidade="normal"]) td,
 :host([density="normal"]) th,
 :host([density="normal"]) td {
-  padding: 10px 16px;
+  padding: var(--ui-tabela-padding-normal, 10px 16px);
 }
 
 :host([densidade="relaxada"]) th,
 :host([densidade="relaxada"]) td,
 :host([density="relaxed"]) th,
 :host([density="relaxed"]) td {
-  padding: 16px 20px;
+  padding: var(--ui-tabela-padding-relaxada, 16px 20px);
 }
 
 /* Altura fixa de linha (atributo altura-linha): sobrepõe o padding da densidade */
@@ -224,7 +226,7 @@
 
 /* Células TD */
 .ui-tabela td {
-  padding: 10px 16px;
+  padding: var(--ui-tabela-padding-normal, 10px 16px);
   border-bottom: 1px solid color-mix(in srgb, var(--ui-cor-borda, rgba(255, 255, 255, 0.12)) 60%, transparent);
   white-space: nowrap;
   vertical-align: middle;

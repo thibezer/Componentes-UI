@@ -6,6 +6,7 @@
 
 import type { TabelaColuna } from './tipos';
 import { ListenerBag } from '../../core/listener-bag';
+import { aplicarClasseColuna } from './tabela-dom';
 
 export interface ContextoHeaderTabela {
   theadElement: HTMLTableSectionElement | null;
@@ -42,6 +43,7 @@ export function renderizarHeaderTabela(ctx: ContextoHeaderTabela): void {
   ctx.colgroupElement.innerHTML = '';
 
   const trHeader = document.createElement('tr');
+  trHeader.setAttribute('part', 'linha-cabecalho');
   trHeader.setAttribute('aria-rowindex', '1');
 
   ctx.colunas.forEach((coluna, index) => {
@@ -56,6 +58,7 @@ export function renderizarHeaderTabela(ctx: ContextoHeaderTabela): void {
     const th = document.createElement('th');
     const alignClass = ctx.getAlignmentClass(coluna.alinhamento);
     th.className = alignClass;
+    aplicarClasseColuna(th, coluna.classe);
     th.setAttribute('part', 'celula-cabecalho');
     th.scope = 'col';
     th.setAttribute('data-coluna', coluna.id);
@@ -90,8 +93,11 @@ export function renderizarHeaderTabela(ctx: ContextoHeaderTabela): void {
       th.setAttribute('aria-sort', isSorted ? (isDesc ? 'descending' : 'ascending') : 'none');
     }
 
-    const contextMenuListener = (e: Event) => ctx.onHeaderContextMenu(e as MouseEvent, coluna, index, th);
-    ctx.headerListeners.add(th, 'contextmenu', contextMenuListener);
+    const redimensionavel = coluna.redimensionavel !== false;
+    if (redimensionavel) {
+      const contextMenuListener = (e: Event) => ctx.onHeaderContextMenu(e as MouseEvent, coluna, index, th);
+      ctx.headerListeners.add(th, 'contextmenu', contextMenuListener);
+    }
 
     const headerContent = document.createElement('div');
     headerContent.className = 'ui-tabela__header-content';
@@ -124,48 +130,50 @@ export function renderizarHeaderTabela(ctx: ContextoHeaderTabela): void {
       th.appendChild(headerContent);
     }
 
-    const resizer = document.createElement('div');
-    resizer.className = 'ui-tabela__resizer';
-    resizer.setAttribute('part', 'redimensionador');
-    resizer.title = 'Arrastar para redimensionar largura (duplo-clique para auto-ajuste)';
-    // Separador focável: setas ← → ajustam a largura (Shift = passo maior), Enter abre o diálogo de largura
-    resizer.tabIndex = 0;
-    resizer.setAttribute('role', 'separator');
-    resizer.setAttribute('aria-orientation', 'vertical');
-    resizer.setAttribute('aria-label', `Redimensionar coluna ${coluna.rotulo}`);
+    if (redimensionavel) {
+      const resizer = document.createElement('div');
+      resizer.className = 'ui-tabela__resizer';
+      resizer.setAttribute('part', 'redimensionador');
+      resizer.title = 'Arrastar para redimensionar largura (duplo-clique para auto-ajuste)';
+      // Separador focável: setas ← → ajustam a largura (Shift = passo maior), Enter abre o diálogo de largura
+      resizer.tabIndex = 0;
+      resizer.setAttribute('role', 'separator');
+      resizer.setAttribute('aria-orientation', 'vertical');
+      resizer.setAttribute('aria-label', `Redimensionar coluna ${coluna.rotulo}`);
 
-    const mousedownListener = (e: Event) => ctx.onInitColumnResize(e as MouseEvent, coluna, index, th, resizer);
-    ctx.headerListeners.add(resizer, 'mousedown', mousedownListener);
-    // Toque/caneta: o mouse segue pelo mousedown (o pointerdown do mouse é ignorado para não duplicar)
-    const pointerdownListener = (e: Event) => {
-      const pe = e as PointerEvent;
-      if (pe.pointerType === 'mouse' || !pe.pointerType) return;
-      ctx.onInitColumnResize(pe, coluna, index, th, resizer);
-    };
-    ctx.headerListeners.add(resizer, 'pointerdown', pointerdownListener);
+      const mousedownListener = (e: Event) => ctx.onInitColumnResize(e as MouseEvent, coluna, index, th, resizer);
+      ctx.headerListeners.add(resizer, 'mousedown', mousedownListener);
+      // Toque/caneta: o mouse segue pelo mousedown (o pointerdown do mouse é ignorado para não duplicar)
+      const pointerdownListener = (e: Event) => {
+        const pe = e as PointerEvent;
+        if (pe.pointerType === 'mouse' || !pe.pointerType) return;
+        ctx.onInitColumnResize(pe, coluna, index, th, resizer);
+      };
+      ctx.headerListeners.add(resizer, 'pointerdown', pointerdownListener);
 
-    const keydownListener = (e: Event) => {
-      const ke = e as KeyboardEvent;
-      const passo = ke.shiftKey ? 50 : 10;
-      if (ke.key === 'ArrowRight') { ke.preventDefault(); ctx.onResizeTeclado?.(passo, coluna, index, th, col); }
-      else if (ke.key === 'ArrowLeft') { ke.preventDefault(); ctx.onResizeTeclado?.(-passo, coluna, index, th, col); }
-      else if (ke.key === 'Enter' || ke.key === 'F2') {
-        ke.preventDefault();
-        const caixa = th.getBoundingClientRect();
-        ctx.onHeaderContextMenu(new MouseEvent('contextmenu', { clientX: caixa.left, clientY: caixa.bottom }), coluna, index, th);
-      }
-    };
-    ctx.headerListeners.add(resizer, 'keydown', keydownListener);
+      const keydownListener = (e: Event) => {
+        const ke = e as KeyboardEvent;
+        const passo = ke.shiftKey ? 50 : 10;
+        if (ke.key === 'ArrowRight') { ke.preventDefault(); ctx.onResizeTeclado?.(passo, coluna, index, th, col); }
+        else if (ke.key === 'ArrowLeft') { ke.preventDefault(); ctx.onResizeTeclado?.(-passo, coluna, index, th, col); }
+        else if (ke.key === 'Enter' || ke.key === 'F2') {
+          ke.preventDefault();
+          const caixa = th.getBoundingClientRect();
+          ctx.onHeaderContextMenu(new MouseEvent('contextmenu', { clientX: caixa.left, clientY: caixa.bottom }), coluna, index, th);
+        }
+      };
+      ctx.headerListeners.add(resizer, 'keydown', keydownListener);
 
-    const dblclickListener = (e: Event) => {
-      e.stopPropagation();
-      ctx.onColumnAutoFit(coluna, th, col);
-    };
-    ctx.headerListeners.add(resizer, 'dblclick', dblclickListener);
-    // O clique na alça não pode ordenar a coluna
-    ctx.headerListeners.add(resizer, 'click', (e: Event) => e.stopPropagation());
+      const dblclickListener = (e: Event) => {
+        e.stopPropagation();
+        ctx.onColumnAutoFit(coluna, th, col);
+      };
+      ctx.headerListeners.add(resizer, 'dblclick', dblclickListener);
+      // O clique na alça não pode ordenar a coluna
+      ctx.headerListeners.add(resizer, 'click', (e: Event) => e.stopPropagation());
 
-    th.appendChild(resizer);
+      th.appendChild(resizer);
+    }
     trHeader.appendChild(th);
   });
 

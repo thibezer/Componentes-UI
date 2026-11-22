@@ -12,6 +12,7 @@
 import type { TabelaColuna } from './tipos';
 import { alternarPart } from '../../core/parts';
 import { capturarFocoCelula, restaurarFocoCelula, registrarValoresRenderizados, itemDaLinha } from './tabela-foco';
+import { aplicarClasseColuna } from './tabela-dom';
 
 export type ModoRenderCorpo = 'completo' | 'rolagem';
 
@@ -79,6 +80,7 @@ function criarCelula(ctx: ContextoCorpoTabela, coluna: TabelaColuna, item: Recor
   const td = document.createElement('td');
   const alignClass = ctx.getAlignmentClass(coluna.alinhamento);
   td.className = alignClass;
+  aplicarClasseColuna(td, coluna.classe);
   td.setAttribute('part', 'celula');
   td.style.textAlign = ctx.getTextAlign(coluna.alinhamento);
 

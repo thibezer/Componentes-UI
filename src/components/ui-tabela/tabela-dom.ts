@@ -19,6 +19,13 @@ export function formatWidth(largura?: string | number): string {
   return typeof largura === 'number' ? `${largura}px` : largura;
 }
 
+export function aplicarClasseColuna(el: Element, classe?: string): void {
+  if (!classe) return;
+  for (const token of classe.trim().split(/\s+/)) {
+    if (token) el.classList.add(token);
+  }
+}
+
 export function getAlignmentClass(alinhamento?: string): string {
   if (alinhamento === 'centro' || alinhamento === 'center') return 'ui-tabela--alinhar-centro';
   if (alinhamento === 'direita' || alinhamento === 'right') return 'ui-tabela--alinhar-direita';
@@ -69,8 +76,11 @@ export function montarEstruturaDOM(
   textSpan.className = 'ui-tabela__empty-text';
   textSpan.textContent = textoVazio;
 
-  emptyDiv.appendChild(svgIcon);
-  emptyDiv.appendChild(textSpan);
+  const slotVazio = document.createElement('slot');
+  slotVazio.name = 'vazio';
+  slotVazio.appendChild(svgIcon);
+  slotVazio.appendChild(textSpan);
+  emptyDiv.appendChild(slotVazio);
 
   // Table elements
   const tableElement = document.createElement('table');
@@ -79,7 +89,9 @@ export function montarEstruturaDOM(
   tableElement.setAttribute('role', 'grid');
   const colgroupElement = document.createElement('colgroup');
   const theadElement = document.createElement('thead');
+  theadElement.setAttribute('part', 'cabecalho');
   const tbodyElement = document.createElement('tbody');
+  tbodyElement.setAttribute('part', 'corpo');
 
   tableElement.appendChild(colgroupElement);
   tableElement.appendChild(theadElement);
@@ -104,8 +116,11 @@ export function montarEstruturaDOM(
   erroAcao.className = 'ui-tabela__erro-acao';
   erroAcao.setAttribute('part', 'erro-acao');
   erroAcao.textContent = 'Tentar novamente';
-  erroDiv.appendChild(erroTexto);
-  erroDiv.appendChild(erroAcao);
+  const slotErro = document.createElement('slot');
+  slotErro.name = 'erro';
+  slotErro.appendChild(erroTexto);
+  slotErro.appendChild(erroAcao);
+  erroDiv.appendChild(slotErro);
 
   const anuncioDiv = document.createElement('div');
   anuncioDiv.className = 'ui-tabela__sr';
@@ -125,8 +140,10 @@ export function montarEstruturaDOM(
   loadingDiv.setAttribute('aria-live', 'polite');
   loadingDiv.style.display = carregando ? 'flex' : 'none';
   loadingDiv.innerHTML = `
-    <div class="ui-tabela__spinner" aria-hidden="true"></div>
-    <span class="ui-tabela__loading-texto">Carregando dados...</span>
+    <slot name="carregando">
+      <div class="ui-tabela__spinner" part="spinner" aria-hidden="true"></div>
+      <span class="ui-tabela__loading-texto">Carregando dados...</span>
+    </slot>
   `;
   container.appendChild(loadingDiv);
 
