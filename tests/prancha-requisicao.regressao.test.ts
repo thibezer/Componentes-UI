@@ -242,7 +242,8 @@ describe('painéis sem seleção e camadas planas (itens 14 e 15)', () => {
     const cats = el.categoriasDePropriedades();
     expect(cats).toHaveLength(1);
     const itens = cats[0].propriedades;
-    expect(itens.find((i) => i.id === 'dica')!.valor).toMatch(/Selecione um elemento/);
+    expect(itens.find((i) => i.id === 'dica')!.valor).toBe('Nada selecionado');
+    expect(itens.find((i) => i.id === 'dica')!.dica).toMatch(/Selecione um elemento/);
     expect(itens.find((i) => i.id === 'folha.tamanho')!.valor).toBe('420 × 297 mm');
     expect(itens.find((i) => i.id === 'folha.margens')!.valor).toContain('25');
     expect(categoriasDePropriedades([])).toEqual([]);
@@ -338,7 +339,7 @@ describe('ligarPaineisPrancha e <ui-editor-prancha> (item 3, Regra #2)', () => {
     ed.setAttribute('margens', '10 10 10 10');
     document.body.appendChild(ed);
     expect(ed.prancha.getAttribute('largura')).toBe('297');
-    expect(ed.prancha.getAttribute('teclado')).toBe('exclusivo');
+    expect(ed.prancha.getAttribute('teclado')).toBe('isolado');
     ed.elementos = [ret('a')];
     const concluir = vi.fn();
     const cancelar = vi.fn();

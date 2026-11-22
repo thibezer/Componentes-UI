@@ -15,7 +15,7 @@ import { ControladorPrancha } from './prancha-controlador';
 import { InteracaoPrancha } from './prancha-interacao';
 import { FerramentasDesenho } from './prancha-ferramentas';
 import { RenderizadorPrancha, fabricaPadrao, type FabricaContextoPrancha } from './prancha-render';
-import { tratarTecla, soltarTecla, marcarTratadoPelaPrancha } from './prancha-teclado';
+import { tratarTecla, soltarTecla, marcarTratadoPelaPrancha, instalarIsolamentoDeTeclas, lerModoTeclado, type ModoTecladoPrancha } from './prancha-teclado';
 import { assinarComandos, ehComandoPrancha } from './prancha-bus';
 import { ATRIBUTOS_PRANCHA, aplicarAtributoPrancha, lerAjusteAoAbrir, lerMargens } from './prancha-atributos-sync';
 import { anunciar, textoZoom } from './prancha-acessibilidade';
@@ -86,6 +86,7 @@ export class UICanvasPranchaBase extends SafeHTMLElement {
   connectedCallback(): void {
     this.bag.cleanup();
     this.interacao.conectar(this.bag, this.shadow.getElementById('regua-h'), this.shadow.getElementById('regua-v'));
+    instalarIsolamentoDeTeclas(this.bag, this, () => this.modoTeclado() === 'isolado');
     this.bag.add(this, 'pointerenter', () => { this.ponteiroSobre = true; });
     this.bag.add(this, 'pointerleave', () => { this.ponteiroSobre = false; });
     this.bag.add(this, 'focusin', () => { this.focoDentro = true; });
@@ -94,9 +95,17 @@ export class UICanvasPranchaBase extends SafeHTMLElement {
     this.bag.add<KeyboardEvent>(this.viewport, 'keydown', (e: KeyboardEvent) => this.tecla(e, true));
     if (typeof window !== 'undefined') {
       // `teclado="exclusivo"` (modal): captura as teclas da página inteira antes dos atalhos globais do hospedeiro
-      this.bag.add<KeyboardEvent>(window, 'keydown', (e: KeyboardEvent) => { if (this.tecladoExclusivo()) this.tecla(e, true, true); }, { capture: true });
+      // `isolado`: o mesmo, mas só para as teclas cujo caminho passa por esta prancha ou pelo editor que a contém
+      this.bag.add<KeyboardEvent>(window, 'keydown', (e: KeyboardEvent) => {
+        const modo = this.modoTeclado();
+        // exclusivo: a página inteira; isolado: o que vem de dentro do editor, com a mesma regra do modo local (foco ou ponteiro
+        // na prancha), para o zoom do navegador e as teclas dos painéis do editor não serem tratados como da prancha
+        if (modo === 'exclusivo') this.tecla(e, true, true);
+        else if (modo === 'isolado' && this.noEscopoDoTeclado(e)) this.tecla(e, false, true);
+      }, { capture: true });
       this.bag.add<KeyboardEvent>(window, 'keydown', (e: KeyboardEvent) => this.tecla(e));
-      this.bag.add<KeyboardEvent>(window, 'keyup', (e: KeyboardEvent) => soltarTecla(this.c, this.interacao, e));
+      // em captura: com o isolamento a tecla solta não chega à janela, e o espaço (mão temporária) não pode ficar preso
+      this.bag.add<KeyboardEvent>(window, 'keyup', (e: KeyboardEvent) => soltarTecla(this.c, this.interacao, e), { capture: true });
       this.bag.add(window, 'blur', () => { this.interacao.espaco = false; });
     }
     if (typeof ResizeObserver === 'function') {
@@ -178,8 +187,20 @@ export class UICanvasPranchaBase extends SafeHTMLElement {
     this.prepararPronto();
   }
 
+  /** Modo do atributo `teclado`: `local` (padrão), `exclusivo` ou `isolado`. */
+  private modoTeclado(): ModoTecladoPrancha {
+    return lerModoTeclado(this.getAttribute('teclado'));
+  }
+
   private tecladoExclusivo(): boolean {
-    return this.getAttribute('teclado') === 'exclusivo';
+    return this.modoTeclado() === 'exclusivo';
+  }
+
+  /** O evento veio de dentro desta prancha ou do editor (outro componente) que a contém? */
+  private noEscopoDoTeclado(e: Event): boolean {
+    const dono = (this.getRootNode() as { host?: Element }).host;
+    const caminho = typeof e.composedPath === 'function' ? e.composedPath() : [];
+    return caminho.includes(this) || (!!dono && caminho.includes(dono));
   }
 
   private tecla(e: KeyboardEvent, naAreaDeDesenho = false, capturando = false): void {

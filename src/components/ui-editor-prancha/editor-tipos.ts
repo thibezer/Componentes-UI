@@ -12,3 +12,9 @@ export interface DetalheEditorConcluirPrancha {
 export interface DetalheEditorCancelarPrancha {
   modificado: boolean;
 }
+
+/** Barra de pré-definições: botões, menu "Formas" ou automático (pela largura do editor). */
+export type BarraFormasEditorPrancha = 'auto' | 'botoes' | 'menu';
+
+/** Coluna de camadas e propriedades: fixa, gaveta ou automático (pela largura do editor). */
+export type LateralEditorPrancha = 'auto' | 'fixa' | 'gaveta';

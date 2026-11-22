@@ -1,5 +1,65 @@
 # Changelog
 
+## 2.24.2 — 2026-11-21
+
+> Origem: a segunda requisição do ConecteMapas (ressalvas depois de adotar a 2.23.0). No app: `npm install @thibezer/ui-components-kit@2.24.2`.
+
+### Mudanças de comportamento
+
+- **`<ui-editor-prancha>`: `teclado` passa a ser `isolado` por padrão** (era `exclusivo`). Nenhuma tecla com o foco ou o ponteiro no
+  editor chega aos atalhos globais do hospedeiro (as que a prancha não tratava, como `F`, `[`, `]`, `Ctrl+D`, vazavam). Para o
+  comportamento antigo: `teclado="exclusivo"`.
+- **Ctrl+Shift+I e Ctrl+Shift+J** deixam de ser tratados pela prancha (eram "unir" com Shift): são as ferramentas do desenvolvedor.
+- **Painel "Folha" sem seleção:** a linha "Seleção" mostra "Nada selecionado" (a dica "Selecione um elemento para editar" vai no `title`).
+- **Pacote:** o `dist/` publicado deixa de ter chunks com hash de builds antigos (a 2.23.0 saiu com 534 arquivos e 7,6 MB, com
+  cópias repetidas de `ui-tabela-propriedades-*`, `ui-paleta-ferramentas-*` etc.; agora 486 arquivos e 5,6 MB). O código comum de
+  `src/core/` fica num chunk `kit-base-*.js`. `package.json` ganha `sideEffects` (lista).
+
+### `<ui-editor-prancha>` responsivo
+
+- **Barra de formas por container query** (a largura do próprio editor, não da janela): atributo `barra-formas="auto" | "botoes" | "menu"`
+  (padrão `auto`: abaixo de 720 px os 12 botões viram um botão "Formas ▾" com menu agrupado em molduras, formas, linhas e setas,
+  com `role="menu"`, setas/Home/End/Esc e clique fora). `::part(barra)` mantido; novo `::part(menu-formas)`.
+- **Lateral recolhível:** `lateral="auto" | "fixa" | "gaveta"` e propriedade `lateralAberta`. Em gaveta (ou `auto` abaixo de 720 px) as camadas
+  e propriedades ficam recolhidas e abrem sobre o canvas pelo botão "Propriedades" (`aria-expanded`/`aria-controls`) ou **Alt+P**; Esc
+  fecha e devolve o foco ao botão sem cancelar o editor. Largura: `--ui-editor-prancha-lateral` (300px).
+- O rodapé (Cancelar/Concluir) não quebra nem some em nenhuma largura; alvos de toque pelo token `--ui-touch-target-min`.
+- `ResizeObserver` e ouvintes no `ListenerBag`, desconectados no `disconnectedCallback`. Playground (`prancha.html`) com o editor em
+  contêineres de 480, 800 e 1200 px.
+- **Correção interna:** o clique num item do menu "Formas" inseria a forma duas vezes (ouvinte da barra e do menu); coberto por teste.
+
+### Teclado isolado
+
+- **`teclado="isolado"`** na prancha e no editor: todo `keydown`/`keyup`/`keypress` que passa pelo editor recebe `stopPropagation()` na
+  bolha, tratado ou não. Passam só as teclas do navegador (`teclaReservadaDoNavegador`: `F5`, `F11`, `F12`, `Ctrl/Cmd+R/L/W/T`,
+  `Ctrl/Cmd+Shift+I/J`, `Tab`, zoom do navegador fora do canvas). Dentro do canvas a prancha vence o zoom (`Ctrl+=`, `Ctrl+-`,
+  `Ctrl+0`). Fora do editor nada muda; campos de texto não são roubados. `instalarIsolamentoDeTeclas`, `lerModoTeclado` exportados.
+- O `keyup` passou a ser ouvido em captura (o espaço da mão temporária não pode ficar preso com o isolamento).
+- Tabela dos três modos (`local`, `exclusivo`, `isolado`) em `docs/canvas-prancha-eventos.md` e no guia (§6). O app pode apagar a
+  flag que bloqueia o `keydown` global enquanto o editor está aberto.
+
+### Empacotamento
+
+- **Causa dos arquivos múltiplos:** o `vite build` em modo biblioteca não removia os chunks com hash de builds anteriores. Novo
+  `prebuild` (`scripts/limpar-dist.mjs`, que remove por `unlink`/`rmdir`: o `fs.rmSync` do Node 24.13 no Windows retornava sem apagar
+  nada em pastas com caminho não ASCII).
+- **`sideEffects`** (lista) em vez de ausente: entrypoints, chunks `ui-*` e `.css` constam como com efeito; `prancha-nucleo`, `motor`,
+  `core`, `kit-base-*` e `feature_*` podem ser eliminados.
+- **`scripts/check-bundle.mjs`** (`npm run check:bundle`, no `gate:full`): `sideEffects` cobre todo arquivo que registra tag, o núcleo
+  não alcança nenhum, e um bundle esbuild só com `/prancha/nucleo` não contém `HTMLElement`/Custom Elements/`document`/`window` e
+  cabe em 182 kB.
+- **Tamanhos (ESM, sem minificar), antes → depois:** núcleo 187,6 kB (5 arquivos) → igual, bundle 165,3 kB (uma função: 4,4 kB);
+  `index` 832,9 → 845,4 kB (o `kit-base` agrupa 14 arquivos pequenos de `core/`); `/prancha` 783,5 → 818,3 kB, com ~344 kB só dele
+  (carregáveis sob demanda); chunk do editor 144,2 → 144,1 kB; pacote 534 → 486 arquivos, 7,6 → 5,6 MB.
+- **Guia novo** `docs/empacotamento-prancha.md` ("Empacotando: carregar o editor só ao editar") com o exemplo de `manualChunks` seguro.
+
+### Documentação
+
+- `docs/guia-migracao-prancha.md` §3: recomendação final sobre o `setTransform` absoluto (opcional, mas evita recalcular a inversa a cada
+  chamada), com o exemplo real do `PdfVectorContext` do app (`M_base` guardada na criação) e o teste de uma linha com `diagnosticarContexto`.
+- Testes novos: `tests/ui-editor-prancha.regressao.test.ts` (teclado isolado com global registrado antes, 30 teclas, reservadas, foco
+  fora, reconexão; barra de formas, gaveta, menu, ARIA, `ResizeObserver`), `tests/empacotamento.test.ts`.
+
 ## 2.23.0 — 2026-11-21
 
 > Origem: a requisição do ConecteMapas depois de migrar a "Moldura" do layout de impressão para o `<ui-canvas-prancha>`.

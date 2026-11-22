@@ -49,6 +49,9 @@ export const editorPrancha: Props<'ui-editor-prancha'> = {
   largura: 297,
   altura: 210,
   margens: '10 10 10 10',
+  teclado: 'isolado',
+  barraFormas: 'menu',
+  lateral: 'gaveta',
   onEditorConcluir: (e: CustomEvent) => e.detail
 };
 

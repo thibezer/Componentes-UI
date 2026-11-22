@@ -53,7 +53,7 @@ emitir esses eventos.
 | `somente-leitura` | — | Bloqueia desenhar e editar (seleção e vista continuam) |
 | `passo-teclado` | 1 | mm por seta (Shift × 10) |
 | `margens` | — | Margens da folha em mm, `"e d s i"` (ou um número só): guia tracejada automática e quadro de `inserirPredefinicao(tipo, undefined, { quadro: 'margens' })`. Inválido = sem margens |
-| `teclado` | — | `exclusivo`: a prancha captura as teclas da página inteira enquanto montada (modal), sem roubar campos de texto |
+| `teclado` | `local` | `local`, `exclusivo` ou `isolado`: ver "Modos de teclado" abaixo |
 | `ajustar-ao-abrir` | `folha` | Enquadramento inicial: `folha`, `conteudo` (os elementos) ou `nenhum` |
 
 ## Métodos
@@ -110,6 +110,22 @@ hospedeiro.
 | PageDown / PageUp | Seleciona o próximo/anterior elemento |
 | R / Shift+R · Alt+= / Alt+− | Gira 15°/−15° · escala 110%/90% |
 | Espaço segurado | Mão temporária |
+
+## Modos de teclado (`teclado`)
+
+| Modo | Quem recebe as teclas | O que o hospedeiro vê | Uso |
+|---|---|---|---|
+| `local` (padrão) | A prancha, com o foco ou o ponteiro nela | Tudo o que a prancha **não** trata; o que ela trata (`preventDefault` + `stopPropagation` + marca) não chega | Prancha avulsa numa página |
+| `exclusivo` | A prancha, com o foco **em qualquer parte da página** (captura em `window`) | Só o que ela não trata | Um modal só com a prancha |
+| `isolado` | A prancha, com o foco ou o ponteiro nela, **só enquanto o foco/ponteiro está dentro do editor/prancha** | **Nada**: todo `keydown`/`keyup`/`keypress` que passa pelo editor leva `stopPropagation()` na bolha, tratado ou não | `<ui-editor-prancha>` (padrão) e qualquer prancha num modal com atalhos globais atrás |
+
+No `isolado`: fora do editor tudo segue normal (clicar fora do modal não isola); teclas com o foco num campo de texto não são
+roubadas (sem `preventDefault`), mas também não vazam. **Exceções que nunca isolam** (`teclaReservadaDoNavegador`): `F5`,
+`F11`, `F12`, `Ctrl/Cmd+R`, `L`, `W`, `T`, `Ctrl/Cmd+Shift+I` e `J`, `Tab` (foco) e o zoom do navegador
+(`Ctrl/Cmd` com `+`, `=`, `-`, `0`). **Conflito do zoom:** a prancha usa `Ctrl+=`, `Ctrl+-` e `Ctrl+0` para o zoom dela; com o
+foco/ponteiro no canvas ela trata a tecla (já vem com `defaultPrevented`) e **vence**; com o foco num campo ou painel
+(fora do canvas) é o zoom do navegador e passa. Limite: um ouvinte do hospedeiro registrado em **captura** (`capture: true`) no
+`window` roda antes de tudo e não pode ser impedido por nenhum componente.
 
 ## Ponteiro
 

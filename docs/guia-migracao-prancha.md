@@ -82,13 +82,41 @@ expect(diagnosticarContexto(pdfCtx).obrigatorios).toEqual([]); // um teste de um
 
 **Contexto sem `setTransform`** (só `translate/scale/rotate/transform`, relativos): o pintor detecta e usa o modo
 **relativo** sozinho (`opcoes.transformacao: 'relativa'` força). Ele rastreia o transform corrente e a pilha de
-`save/restore` e emite `transform(inverse(atual) · M)`. Para quem prefere implementar o absoluto no próprio contexto:
+`save/restore` e emite `transform(inverse(atual) · M)`.
+
+**Recomendação final: implementar `setTransform` absoluto no próprio contexto é opcional, mas vale a pena.** Ele evita que o
+kit recalcule a matriz inversa do transform corrente a cada chamada (o pintor chama `setTransform` várias vezes por
+elemento). Basta um teste de uma linha para garantir que o contexto serve:
 
 ```js
-// M_base = o transform do contexto no início da pintura; guarde-o ao criar a página
-setTransform(a, b, c, d, e, f) {
-  const T = [a, b, c, d, e, f];                          // absoluto, em coordenadas do espaço de exportação
-  this.transform(...multiplicar(inversa(this.matrizAtual), multiplicar(M_base, T)));
+expect(diagnosticarContexto(pdfCtx).obrigatorios).toEqual([]); // com ou sem setTransform próprio
+```
+
+Exemplo **real** (o `PdfVectorContext` do ConecteMapas): guarda `M_base` (o transform do contexto quando foi criado) e o
+transform corrente, e implementa `setTransform(a..f) = transform(inverse(M_atual) · (M_base · T))`:
+
+```js
+import { multiplicar, inverter, IDENTIDADE } from '@thibezer/ui-components-kit/prancha/nucleo';
+
+class PdfVectorContext {
+  constructor(pagina) {
+    this.pagina = pagina;
+    this.base = pagina.matrizInicial ?? IDENTIDADE;   // M_base: guardada ao criar o contexto
+    this.atual = this.base;                            // M_atual: o transform corrente
+    this.pilha = [];
+  }
+  save() { this.pilha.push(this.atual); this.pagina.save(); }
+  restore() { this.atual = this.pilha.pop() ?? this.atual; this.pagina.restore(); }
+  transform(a, b, c, d, e, f) { this.atual = multiplicar(this.atual, { a, b, c, d, e, f }); this.pagina.transform(a, b, c, d, e, f); }
+  setTransform(a, b, c, d, e, f) {
+    const T = { a, b, c, d, e, f };                    // absoluto, no espaço de exportação do contexto
+    const inv = inverter(this.atual);
+    if (!inv) return;                                   // transform corrente singular: ignora
+    const alvo = multiplicar(this.base, T);             // M_base · T
+    const r = multiplicar(inv, alvo);                   // inverse(M_atual) · (M_base · T)
+    this.transform(r.a, r.b, r.c, r.d, r.e, r.f);
+  }
+  // ... translate/scale/rotate, caminhos, fill/stroke/clip, fillText etc.
 }
 ```
 
@@ -176,8 +204,13 @@ sem caixa insere no **centro da área visível** (tamanho proporcional ao zoom, 
 - Quando a prancha **trata** uma tecla, chama `preventDefault()` + `stopPropagation()` e marca o evento: o atalho global do
   hospedeiro pode ignorar com `if (eventoTratadoPelaPrancha(e)) return;` (`e.defaultPrevented` também vale). Garantia
   testada com um `keydown` global registrado antes da prancha.
-- `teclado="exclusivo"` (uso em modal): a prancha captura as teclas da página inteira, em fase de captura, enquanto
-  montada, sem roubar teclas de campos de texto. `<ui-editor-prancha>` já usa.
+- `teclado="exclusivo"` (modal só com a prancha): a prancha captura as teclas da página inteira, em fase de captura, enquanto
+  montada, sem roubar teclas de campos de texto. As teclas que ela **não** trata continuam chegando ao hospedeiro.
+- **`teclado="isolado"` (padrão do `<ui-editor-prancha>`): nenhuma tecla vaza.** Todo `keydown`/`keyup`/`keypress` com o foco
+  ou o ponteiro dentro do editor recebe `stopPropagation()` na bolha, tratado ou não, então o `keydown` global do hospedeiro
+  não vê nem `F`, `[`, `]`, `Ctrl+D` nem `Delete` sem seleção. Passam só as teclas do navegador (`F5`, `F11`, `F12`,
+  `Ctrl+R/L/W/T`, `Ctrl+Shift+I/J`, `Tab`, zoom do navegador fora do canvas). **O app não precisa mais de uma flag** que
+  bloqueie o `keydown` global enquanto o editor está aberto. Tabela dos três modos em `docs/canvas-prancha-eventos.md`.
 - `prancha-esc-sem-efeito`: Esc sem gesto, âncoras, isolamento nem seleção a cancelar (a cadeia é: gesto → âncoras →
   grupo isolado → seleção → este evento). O hospedeiro fecha o modal aqui.
 
@@ -201,6 +234,7 @@ prancha.definirElementos(elementos); // também devolve { aceitos, recusados }
 - **Na leitura, não em massa.** Converta os itens `shape` antigos com `migrarShape` ao abrir, carregue e grave a versão nova
   no próximo salvamento.
 - **Compare.** Exporte o SVG antes e depois das pranchas de referência e confira as molduras ABNT.
+- **Empacotamento.** Para o editor ser um download separado, veja `docs/empacotamento-prancha.md`.
 - **Atualização.** O dono publica a versão (ver `docs/protocolo-de-release-e-sincronizacao.md`); no app,
   `npm install @thibezer/ui-components-kit@<versão>`. Quem só pinta importa de `@thibezer/ui-components-kit/prancha/nucleo`
   (sem o componente); o editor entra sob demanda: `const { } = await import('@thibezer/ui-components-kit/prancha')`.

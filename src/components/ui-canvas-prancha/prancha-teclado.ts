@@ -1,4 +1,5 @@
 import { focoEmCampoDeTexto, focoEmControleAcionavel } from '../../core/alvo-digitavel';
+import type { ListenerBag } from '../../core/listener-bag';
 import type { ControladorPrancha } from './prancha-controlador';
 import type { InteracaoPrancha } from './prancha-interacao';
 import { ehFerramentaDeDesenho } from './prancha-ferramentas';
@@ -42,6 +43,42 @@ export const eventoTratadoPelaPrancha = (e: Event): boolean => !!e && tratadosPe
 
 export function marcarTratadoPelaPrancha(e: Event): void { tratadosPelaPrancha.add(e); }
 
+export type ModoTecladoPrancha = 'local' | 'exclusivo' | 'isolado';
+
+/** Valor do atributo `teclado`: desconhecido ou ausente = `local`. */
+export const lerModoTeclado = (v: string | null | undefined): ModoTecladoPrancha => (v === 'exclusivo' || v === 'isolado' ? v : 'local');
+
+/**
+ * Teclas que o isolamento NUNCA retém (atalhos do navegador/sistema): F5, F11, F12, Ctrl/Cmd+R, L, W, T, Ctrl/Cmd+Shift+I e J,
+ * o zoom do navegador (Ctrl/Cmd com +, =, -, 0) e o Tab (foco). Conflito do zoom: a prancha usa Ctrl+=, Ctrl+- e Ctrl+0 no
+ * canvas; quando ela trata a tecla o evento já vem com `defaultPrevented` e NÃO é reservado (a prancha vence dentro do
+ * canvas); quando não trata (foco num campo, por exemplo), é o zoom do navegador e passa.
+ */
+export function teclaReservadaDoNavegador(e: KeyboardEvent): boolean {
+  if (!e || typeof e !== 'object') return false;
+  const k = typeof e.key === 'string' ? e.key : '';
+  if (k === 'F5' || k === 'F11' || k === 'F12' || k === 'Tab') return true;
+  const ctrl = e.ctrlKey || e.metaKey;
+  if (!ctrl || e.altKey) return false;
+  const kl = k.length === 1 ? k.toLowerCase() : k;
+  if (e.shiftKey && (kl === 'i' || kl === 'j')) return true;
+  if (kl === 'r' || kl === 'l' || kl === 'w' || kl === 't') return true;
+  if ((kl === '+' || kl === '=' || kl === '-' || kl === '0') && !e.defaultPrevented) return true;
+  return false;
+}
+
+/**
+ * Isolamento do teclado (`teclado="isolado"`): todo `keydown`/`keyup`/`keypress` que chega ao `alvo` (o editor ou a prancha,
+ * ou seja, com o foco dentro dele) leva `stopPropagation()` na fase de BOLHA, então os ouvintes de `window`/`document` do
+ * hospedeiro não o veem, tratado ou não. As teclas reservadas do navegador passam. Fora do alvo, nada muda. Os ouvintes vão
+ * no `ListenerBag` (Regra #2).
+ */
+export function instalarIsolamentoDeTeclas(bag: ListenerBag, alvo: EventTarget, ativo: () => boolean): void {
+  for (const tipo of ['keydown', 'keyup', 'keypress']) {
+    bag.add<KeyboardEvent>(alvo, tipo, (e: KeyboardEvent) => { if (ativo() && !teclaReservadaDoNavegador(e)) e.stopPropagation(); });
+  }
+}
+
 const PATHFINDER_DO_DIGITO = { Digit1: 'uniao', Digit2: 'subtracao', Digit3: 'intersecao', Digit4: 'exclusao' } as const;
 
 const FERRAMENTA_DA_TECLA: Record<string, FerramentaPrancha> = {
@@ -68,6 +105,8 @@ export function tratarTecla(c: ControladorPrancha, it: InteracaoPrancha, vista: 
   if (it.ferramentas.tecla(k)) return true;
 
   if (ctrl) {
+    // Ctrl+Shift+I/J são as ferramentas do desenvolvedor do navegador (Ctrl+J é "unir" da prancha, sem Shift)
+    if (e.shiftKey && !e.altKey && (kl === 'i' || kl === 'j')) return false;
     const codigo = e.code ?? '';
     if (e.altKey && e.shiftKey && codigo in PATHFINDER_DO_DIGITO) {
       return pathfinderSelecao(c, PATHFINDER_DO_DIGITO[codigo as keyof typeof PATHFINDER_DO_DIGITO]) || true;

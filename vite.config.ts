@@ -53,6 +53,8 @@ export default defineConfig({
   },
   build: {
     // Um único CSS com todos os tokens globais inline (os estilos dos componentes já vão no Shadow DOM via ?inline)
+    // O dist é esvaziado pelo `prebuild` (scripts/limpar-dist.mjs): o `emptyOutDir` do Vite não removia os chunks com hash de builds antigos
+    emptyOutDir: true,
     cssCodeSplit: false,
     lib: {
       entry: {
@@ -85,6 +87,15 @@ export default defineConfig({
     rollupOptions: {
       external: ['leaflet'],
       output: {
+        // Chunk comum de BASE com nome próprio e previsível (antes o nome vinha de um módulo qualquer, como `prancha-paleta-*`):
+        // tudo de src/core/ (ssr-safe, listener-bag, ui-bus, parts...) fica em `kit-base-*.js`, uma cópia só para todos os
+        // entrypoints. Os componentes pesados (ui-editor-prancha, ui-tabela-propriedades, ui-camadas, ui-paleta-ferramentas)
+        // seguem como chunks próprios, compartilhados (uma cópia cada).
+        manualChunks(id) {
+          const caminho = id.split(String.fromCharCode(92)).join('/'); // caminhos do Windows: `\` → `/`
+          if (caminho.includes('/src/core/') && !caminho.endsWith('/leaflet-loader.ts')) return 'kit-base';
+          return undefined;
+        },
         globals: {
           leaflet: 'L',
         },

@@ -1,8 +1,11 @@
-/* <ui-editor-prancha>: cores, espaços e tipografia só por tokens (src/tokens/). */
+/* <ui-editor-prancha>: cores, espaços e tipografia só por tokens (src/tokens/). Responsivo por CONTAINER QUERY: a largura
+   que conta é a do próprio editor (ele vive num modal de largura qualquer), nunca a da janela. O corte (720px) é o mesmo de
+   LARGURA_ESTREITA_PX em editor-modos.ts. */
 :host {
+  --ui-editor-prancha-lateral: 300px;
   display: block;
   min-height: 360px;
-  min-width: 320px;
+  min-width: 240px;
   height: 100%;
   color: var(--ui-cor-texto);
   font-family: var(--ui-fonte-base);
@@ -10,20 +13,27 @@
 }
 :host([hidden]) { display: none; }
 .raiz {
+  container-type: inline-size;
+  container-name: editor;
+  position: relative;
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto minmax(0, 1fr) auto;
   height: 100%;
   min-height: inherit;
   gap: var(--ui-espaco-sm);
   box-sizing: border-box;
 }
-.barra, .acoes { display: flex; flex-wrap: wrap; gap: var(--ui-espaco-xs); align-items: center; }
-.acoes { justify-content: flex-end; }
-.area { display: flex; gap: var(--ui-espaco-sm); align-items: stretch; min-height: 0; min-width: 0; }
+.barra { display: flex; flex-wrap: nowrap; gap: var(--ui-espaco-xs); align-items: center; min-width: 0; }
+.botoes-formas { display: flex; flex-wrap: wrap; gap: var(--ui-espaco-xs); min-width: 0; flex: 1 1 auto; }
+.formas-menu { position: relative; display: none; flex: 0 0 auto; }
+.btn-lateral { display: none; margin-inline-start: auto; flex: 0 0 auto; }
+.acoes { display: flex; flex-wrap: nowrap; gap: var(--ui-espaco-xs); align-items: center; justify-content: flex-end; flex: 0 0 auto; }
+.area { position: relative; display: flex; gap: var(--ui-espaco-sm); align-items: stretch; min-height: 0; min-width: 0; }
 .area > ui-paleta-ferramentas { flex: 0 0 auto; }
 .area > ui-canvas-prancha { flex: 1 1 auto; min-width: 0; height: auto; }
-.lateral { flex: 0 0 var(--ui-editor-prancha-lateral, 300px); display: flex; flex-direction: column; gap: var(--ui-espaco-sm); min-width: 0; }
+.lateral { flex: 0 0 var(--ui-editor-prancha-lateral); display: flex; flex-direction: column; gap: var(--ui-espaco-sm); min-width: 0; }
 .lateral > ui-tabela-propriedades { flex: 1 1 auto; min-height: 200px; }
+
 button {
   font: inherit;
   font-size: var(--ui-tamanho-corpo-sm);
@@ -32,12 +42,74 @@ button {
   border: 1px solid var(--ui-cor-borda);
   border-radius: var(--ui-raio-sm);
   padding: var(--ui-espaco-xs) var(--ui-espaco-md);
+  min-height: var(--ui-touch-target-min);
   cursor: pointer;
+  white-space: nowrap;
 }
 button:hover { border-color: var(--ui-cor-primaria); }
 button:focus-visible { outline: 2px solid var(--ui-cor-primaria); outline-offset: 2px; }
 button.primario { background: var(--ui-cor-primaria); color: var(--ui-cor-texto-sobre-primaria, #000); border-color: var(--ui-cor-primaria); }
-@media (max-width: 720px) {
+
+/* menu "Formas" */
+.menu-formas {
+  position: absolute;
+  inset-block-start: 100%;
+  inset-inline-start: 0;
+  z-index: 20;
+  min-width: 200px;
+  max-height: 70vh;
+  overflow: auto;
+  margin-block-start: var(--ui-espaco-xs);
+  padding: var(--ui-espaco-xs);
+  background: var(--ui-cor-superficie);
+  border: 1px solid var(--ui-cor-borda);
+  border-radius: var(--ui-raio-sm);
+  box-shadow: var(--ui-sombra-md, 0 8px 24px rgba(0, 0, 0, 0.35));
+}
+.menu-formas[hidden] { display: none; }
+.menu-formas button { display: block; width: 100%; text-align: start; border-color: transparent; background: transparent; }
+.menu-formas button:hover, .menu-formas button:focus-visible { background: var(--ui-cor-fundo-elevado); }
+.menu-grupo { padding: var(--ui-espaco-xs) var(--ui-espaco-sm); font-size: var(--ui-tamanho-caption); color: var(--ui-cor-texto-secundario); text-transform: uppercase; }
+
+/* barra de formas: automática (container query), só botões ou só menu */
+.raiz[data-barra="menu"] .botoes-formas { display: none; }
+.raiz[data-barra="menu"] .formas-menu { display: block; }
+
+/* lateral em gaveta: sobre o canvas, recolhida por padrão */
+.raiz[data-lateral="gaveta"] .btn-lateral { display: inline-block; }
+.raiz[data-lateral="gaveta"] .lateral {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
+  z-index: 10;
+  width: min(var(--ui-editor-prancha-lateral), 92%);
+  padding: var(--ui-espaco-sm);
+  box-sizing: border-box;
+  background: var(--ui-cor-fundo);
+  border: 1px solid var(--ui-cor-borda);
+  box-shadow: var(--ui-sombra-md, 0 8px 24px rgba(0, 0, 0, 0.35));
+}
+.raiz[data-lateral="gaveta"][data-lateral-aberta="false"] .lateral { display: none; }
+
+@container editor (max-width: 719.98px) {
+  .raiz[data-barra="auto"] .botoes-formas { display: none; }
+  .raiz[data-barra="auto"] .formas-menu { display: block; }
+  .raiz[data-lateral="auto"] .btn-lateral { display: inline-block; }
+  .raiz[data-lateral="auto"] .lateral {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-end: 0;
+    z-index: 10;
+    width: min(var(--ui-editor-prancha-lateral), 92%);
+    padding: var(--ui-espaco-sm);
+    box-sizing: border-box;
+    background: var(--ui-cor-fundo);
+    border: 1px solid var(--ui-cor-borda);
+    box-shadow: var(--ui-sombra-md, 0 8px 24px rgba(0, 0, 0, 0.35));
+  }
+  .raiz[data-lateral="auto"][data-lateral-aberta="false"] .lateral { display: none; }
+}
+@container editor (max-width: 420px) {
   .area { flex-direction: column; }
-  .lateral { flex: 0 0 auto; }
+  .area > ui-paleta-ferramentas { align-self: flex-start; }
 }

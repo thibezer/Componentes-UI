@@ -75,6 +75,9 @@ export const editorPrancha = (
     altura={210}
     margens="10 10 10 10"
     ajustar-ao-abrir="folha"
+    teclado="isolado"
+    barra-formas="menu"
+    lateral="gaveta"
     oneditor-concluir={(e) => e.detail}
     oneditor-cancelar={(e) => e.detail}
   />

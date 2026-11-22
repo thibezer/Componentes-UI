@@ -110,7 +110,7 @@ const fmt = (n: number): string => String(Math.round(n * 100) / 100).replace('.'
  */
 export function categoriasSemSelecao(folha: ContextoFolhaPainelPrancha): CategoriaPainelPrancha[] {
   const f = folha && Number.isFinite(folha.largura) && Number.isFinite(folha.altura) ? folha : null;
-  const itens: ItemPainelPrancha[] = [{ id: 'dica', rotulo: 'Seleção', tipo: 'readonly', valor: 'Selecione um elemento para editar', dica: 'Clique num elemento ou arraste um retângulo de seleção.' }];
+  const itens: ItemPainelPrancha[] = [{ id: 'dica', rotulo: 'Seleção', tipo: 'readonly', valor: 'Nada selecionado', dica: 'Selecione um elemento para editar: clique nele ou arraste um retângulo de seleção.' }];
   if (f) {
     itens.push({ id: 'folha.tamanho', rotulo: 'Folha', tipo: 'readonly', valor: `${fmt(f.largura)} × ${fmt(f.altura)} mm` });
     if (f.unidade) itens.push({ id: 'folha.unidade', rotulo: 'Unidade', tipo: 'readonly', valor: f.unidade });
