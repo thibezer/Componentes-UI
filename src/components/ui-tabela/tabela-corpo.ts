@@ -12,7 +12,13 @@
 import type { TabelaColuna } from './tipos';
 import { alternarPart } from '../../core/parts';
 import { capturarFocoCelula, restaurarFocoCelula, registrarValoresRenderizados, itemDaLinha } from './tabela-foco';
-import { aplicarClasseColuna } from './tabela-dom';
+import {
+  aplicarClasseColuna,
+  aplicarEstiloColunaFixa,
+  calcularOffsetsColunasFixas,
+  obterColunasVisiveis,
+  type InfoColunaFixa
+} from './tabela-dom';
 
 export type ModoRenderCorpo = 'completo' | 'rolagem';
 
@@ -37,6 +43,7 @@ export interface ContextoCorpoTabela {
   /** Posição do item em `dados` (4º argumento do `render`); sem ela vale a posição exibida. */
   indiceOriginal?: (item: Record<string, any>) => number;
   isItemSelecionado: (item: Record<string, any>, index: number) => boolean;
+  onLinhaSelecionadaRenderizada?: (tr: HTMLTableRowElement, selecionada: boolean) => void;
   onLinhaClique: (item: Record<string, any>, index: number) => void;
   formatWidth: (largura?: string | number) => string;
   getAlignmentClass: (alinhamento?: string) => string;
@@ -76,13 +83,20 @@ function criarEspacador(posicao: 'topo' | 'base', altura: number, colSpan: numbe
   return tr;
 }
 
-function criarCelula(ctx: ContextoCorpoTabela, coluna: TabelaColuna, item: Record<string, any>, rowIndex: number): HTMLTableCellElement {
+function criarCelula(
+  ctx: ContextoCorpoTabela,
+  coluna: TabelaColuna,
+  item: Record<string, any>,
+  rowIndex: number,
+  infoFixa?: InfoColunaFixa
+): HTMLTableCellElement {
   const td = document.createElement('td');
   const alignClass = ctx.getAlignmentClass(coluna.alinhamento);
   td.className = alignClass;
   aplicarClasseColuna(td, coluna.classe);
   td.setAttribute('part', 'celula');
   td.style.textAlign = ctx.getTextAlign(coluna.alinhamento);
+  aplicarEstiloColunaFixa(td, infoFixa);
 
   if (coluna.larguraMaxima !== undefined) {
     const maxWStr = ctx.formatWidth(coluna.larguraMaxima);
@@ -134,7 +148,14 @@ function criarCelula(ctx: ContextoCorpoTabela, coluna: TabelaColuna, item: Recor
   return td;
 }
 
-function criarLinha(ctx: ContextoCorpoTabela, item: Record<string, any>, rowIndex: number, indiceFocavel: number): HTMLTableRowElement {
+function criarLinha(
+  ctx: ContextoCorpoTabela,
+  item: Record<string, any>,
+  rowIndex: number,
+  indiceFocavel: number,
+  colunasVisiveis: TabelaColuna[],
+  offsetsFixos: InfoColunaFixa[]
+): HTMLTableRowElement {
   const tr = document.createElement('tr');
   itemDaLinha.set(tr, item);
   colunasDaLinha.set(tr, ctx.colunas);
@@ -155,22 +176,24 @@ function criarLinha(ctx: ContextoCorpoTabela, item: Record<string, any>, rowInde
     tr.setAttribute('data-id', String(item._id));
   }
 
-  if (ctx.isItemSelecionado(item, rowIndex)) {
+  const selecionada = ctx.isItemSelecionado(item, rowIndex);
+  if (selecionada) {
     tr.classList.add('ui-tabela__tr--selecionada');
     tr.setAttribute('part', 'linha linha-selecionada');
     tr.setAttribute('aria-current', 'true');
     tr.setAttribute('aria-selected', 'true');
     tr.setAttribute('data-selecionada', 'true');
   }
+  ctx.onLinhaSelecionadaRenderizada?.(tr, selecionada);
 
-  ctx.colunas.forEach((coluna) => {
-    tr.appendChild(criarCelula(ctx, coluna, item, rowIndex));
+  colunasVisiveis.forEach((coluna, colIndex) => {
+    tr.appendChild(criarCelula(ctx, coluna, item, rowIndex, offsetsFixos[colIndex]));
   });
   return tr;
 }
 
 /** Linha mantida na rolagem: só o que depende do estado (foco móvel e seleção) é reaplicado. */
-function atualizarLinhaReaproveitada(ctx: ContextoCorpoTabela, tr: HTMLElement, item: Record<string, any>, rowIndex: number, indiceFocavel: number): void {
+function atualizarLinhaReaproveitada(ctx: ContextoCorpoTabela, tr: HTMLTableRowElement, item: Record<string, any>, rowIndex: number, indiceFocavel: number): void {
   tr.tabIndex = rowIndex === indiceFocavel ? 0 : -1;
   const selecionada = ctx.isItemSelecionado(item, rowIndex);
   if (selecionada === tr.classList.contains('ui-tabela__tr--selecionada')) return;
@@ -184,6 +207,7 @@ function atualizarLinhaReaproveitada(ctx: ContextoCorpoTabela, tr: HTMLElement, 
     tr.removeAttribute('aria-current');
     tr.removeAttribute('data-selecionada');
   }
+  ctx.onLinhaSelecionadaRenderizada?.(tr, selecionada);
 }
 
 function podeReaproveitar(ctx: ContextoCorpoTabela, tr: HTMLElement, rowIndex: number, inicio: number, fim: number): boolean {
@@ -193,11 +217,21 @@ function podeReaproveitar(ctx: ContextoCorpoTabela, tr: HTMLElement, rowIndex: n
 }
 
 /** Atualiza a janela virtual no lugar: remove o que saiu, mantém o que ficou e insere o que entrou, em ordem. */
-function atualizarJanela(ctx: ContextoCorpoTabela, tbody: HTMLTableSectionElement, inicio: number, fim: number, rowHeight: number, usarVirtualizacao: boolean, indiceFocavel: number): void {
+function atualizarJanela(
+  ctx: ContextoCorpoTabela,
+  tbody: HTMLTableSectionElement,
+  inicio: number,
+  fim: number,
+  rowHeight: number,
+  usarVirtualizacao: boolean,
+  indiceFocavel: number,
+  colunasVisiveis: TabelaColuna[],
+  offsetsFixos: InfoColunaFixa[]
+): void {
   const totalLinhas = ctx.dadosExibicao.length;
-  const colSpan = ctx.colunas.length || 1;
+  const colSpan = colunasVisiveis.length || 1;
 
-  const reaproveitadas = new Map<number, HTMLElement>();
+  const reaproveitadas = new Map<number, HTMLTableRowElement>();
   let espacadorTopo: HTMLElement | null = null;
   let espacadorBase: HTMLElement | null = null;
   for (const filho of Array.from(tbody.children) as HTMLElement[]) {
@@ -206,7 +240,7 @@ function atualizarJanela(ctx: ContextoCorpoTabela, tbody: HTMLTableSectionElemen
     if (posicao === 'base') { espacadorBase = filho; continue; }
     const indice = Number(filho.getAttribute('data-index'));
     if (filho.hasAttribute('data-index') && !reaproveitadas.has(indice) && podeReaproveitar(ctx, filho, indice, inicio, fim)) {
-      reaproveitadas.set(indice, filho);
+      reaproveitadas.set(indice, filho as HTMLTableRowElement);
     } else {
       filho.remove();
     }
@@ -235,7 +269,7 @@ function atualizarJanela(ctx: ContextoCorpoTabela, tbody: HTMLTableSectionElemen
       if (existente === cursor) cursor = existente.nextSibling;
       else tbody.insertBefore(existente, cursor);
     } else {
-      tbody.insertBefore(criarLinha(ctx, item, rowIndex, indiceFocavel), cursor);
+      tbody.insertBefore(criarLinha(ctx, item, rowIndex, indiceFocavel, colunasVisiveis, offsetsFixos), cursor);
     }
   }
 
@@ -254,15 +288,25 @@ function atualizarJanela(ctx: ContextoCorpoTabela, tbody: HTMLTableSectionElemen
 }
 
 /** Recria o corpo inteiro: espaçadores e todas as linhas da janela. */
-function recriarJanela(ctx: ContextoCorpoTabela, tbody: HTMLTableSectionElement, inicio: number, fim: number, rowHeight: number, usarVirtualizacao: boolean, indiceFocavel: number): void {
+function recriarJanela(
+  ctx: ContextoCorpoTabela,
+  tbody: HTMLTableSectionElement,
+  inicio: number,
+  fim: number,
+  rowHeight: number,
+  usarVirtualizacao: boolean,
+  indiceFocavel: number,
+  colunasVisiveis: TabelaColuna[],
+  offsetsFixos: InfoColunaFixa[]
+): void {
   const totalLinhas = ctx.dadosExibicao.length;
-  const colSpan = ctx.colunas.length || 1;
+  const colSpan = colunasVisiveis.length || 1;
   tbody.innerHTML = '';
   const fragment = document.createDocumentFragment();
 
   if (usarVirtualizacao && inicio > 0) fragment.appendChild(criarEspacador('topo', inicio * rowHeight, colSpan));
   for (let rowIndex = inicio; rowIndex < fim; rowIndex++) {
-    fragment.appendChild(criarLinha(ctx, ctx.dadosExibicao[rowIndex], rowIndex, indiceFocavel));
+    fragment.appendChild(criarLinha(ctx, ctx.dadosExibicao[rowIndex], rowIndex, indiceFocavel, colunasVisiveis, offsetsFixos));
   }
   if (usarVirtualizacao && fim < totalLinhas) fragment.appendChild(criarEspacador('base', (totalLinhas - fim) * rowHeight, colSpan));
 
@@ -272,13 +316,15 @@ function recriarJanela(ctx: ContextoCorpoTabela, tbody: HTMLTableSectionElement,
 export function renderizarCorpoTabela(ctx: ContextoCorpoTabela): void {
   if (!ctx.tbodyElement || !ctx.tableElement || !ctx.emptyElement || !ctx.containerElement) return;
 
-  ctx.tableElement.setAttribute('aria-colcount', String(ctx.colunas.length));
+  const colunasVisiveis = obterColunasVisiveis(ctx.colunas);
+  const offsetsFixos = calcularOffsetsColunasFixas(colunasVisiveis);
+  ctx.tableElement.setAttribute('aria-colcount', String(colunasVisiveis.length));
 
   if (!ctx.dadosExibicao || ctx.dadosExibicao.length === 0) {
     // O cabeçalho continua visível (contexto das colunas); a mensagem ocupa o lugar das linhas
     ctx.tbodyElement.innerHTML = '';
     ctx.tableElement.setAttribute('aria-rowcount', '1');
-    ctx.tableElement.style.display = ctx.colunas.length > 0 ? 'table' : 'none';
+    ctx.tableElement.style.display = colunasVisiveis.length > 0 ? 'table' : 'none';
     ctx.emptyElement.style.display = 'flex';
     const texto = ctx.emptyElement.querySelector('.ui-tabela__empty-text');
     const mensagem = ctx.filtroAtivo ? ctx.textoSemResultados : ctx.textoVazio;
@@ -317,8 +363,11 @@ export function renderizarCorpoTabela(ctx: ContextoCorpoTabela): void {
   const indiceAtivo = ctx.indiceAtivo ?? null;
   const indiceFocavel = indiceAtivo !== null && indiceAtivo >= startIndex && indiceAtivo < endIndex ? indiceAtivo : startIndex;
 
-  if (ctx.modo === 'rolagem') atualizarJanela(ctx, tbody, startIndex, endIndex, rowHeight, usarVirtualizacao, indiceFocavel);
-  else recriarJanela(ctx, tbody, startIndex, endIndex, rowHeight, usarVirtualizacao, indiceFocavel);
+  if (ctx.modo === 'rolagem') {
+    atualizarJanela(ctx, tbody, startIndex, endIndex, rowHeight, usarVirtualizacao, indiceFocavel, colunasVisiveis, offsetsFixos);
+  } else {
+    recriarJanela(ctx, tbody, startIndex, endIndex, rowHeight, usarVirtualizacao, indiceFocavel, colunasVisiveis, offsetsFixos);
+  }
 
   if (indiceComFoco !== null) {
     const linha = tbody.querySelector<HTMLElement>(`tr[data-index="${indiceComFoco}"]`);

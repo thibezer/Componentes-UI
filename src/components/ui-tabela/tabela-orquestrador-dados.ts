@@ -118,7 +118,9 @@ export class TabelaOrquestradorDados {
   }
 
   private casaFiltro(item: Record<string, any>, termo: string): boolean {
-    const ids = this.colunasFiltro.length > 0 ? this.colunasFiltro : Object.keys(item);
+    const ids = this.colunas.length > 0
+      ? this.colunasFiltro
+      : (this.colunasFiltro.length > 0 ? this.colunasFiltro : Object.keys(item));
     return ids.some((id) => {
       const v = item[id];
       const coluna = this.colunasPorId.get(id);

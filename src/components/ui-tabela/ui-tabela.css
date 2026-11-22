@@ -532,12 +532,96 @@
 /* Movimento reduzido: sem transições; o spinner gira devagar (continua indicando atividade) */
 @media (prefers-reduced-motion: reduce) {
   .ui-tabela__resizer,
-  .ui-tabela__sort-arrow path {
+  .ui-tabela__sort-arrow path,
+  :host::before,
+  :host::after {
     transition: none;
   }
   .ui-tabela__spinner {
     animation-duration: 2.4s;
   }
+}
+
+/* Colunas fixas (sticky) */
+.ui-tabela th.ui-tabela__celula--fixa-esquerda,
+.ui-tabela th.ui-tabela__celula--fixa-direita {
+  position: sticky;
+  top: 0;
+  z-index: 15;
+}
+
+.ui-tabela td.ui-tabela__celula--fixa-esquerda,
+.ui-tabela td.ui-tabela__celula--fixa-direita {
+  position: sticky;
+  z-index: 5;
+  background: var(--ui-tabela-fundo, var(--ui-fundo-superficie, var(--ui-cor-superficie, #141417)));
+}
+
+.ui-tabela tbody tr.ui-tabela__tr--par td.ui-tabela__celula--fixa-esquerda,
+.ui-tabela tbody tr.ui-tabela__tr--par td.ui-tabela__celula--fixa-direita {
+  background: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 4%, var(--ui-tabela-fundo, var(--ui-fundo-superficie, var(--ui-cor-superficie, #141417))));
+}
+
+@media (hover: hover) {
+  .ui-tabela tbody tr[data-index]:hover td.ui-tabela__celula--fixa-esquerda,
+  .ui-tabela tbody tr[data-index]:hover td.ui-tabela__celula--fixa-direita {
+    background: color-mix(in srgb, var(--ui-cor-texto, #e1e1e6) 8%, var(--ui-tabela-fundo, var(--ui-fundo-superficie, var(--ui-cor-superficie, #141417))));
+  }
+}
+
+.ui-tabela tbody tr.ui-tabela__tr--selecionada td.ui-tabela__celula--fixa-esquerda,
+.ui-tabela tbody tr.ui-tabela__tr--selecionada td.ui-tabela__celula--fixa-direita,
+.ui-tabela tbody tr[data-selecionada="true"] td.ui-tabela__celula--fixa-esquerda,
+.ui-tabela tbody tr[data-selecionada="true"] td.ui-tabela__celula--fixa-direita {
+  background: color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 14%, var(--ui-tabela-fundo, var(--ui-fundo-superficie, var(--ui-cor-superficie, #141417))));
+}
+
+@media (hover: hover) {
+  .ui-tabela tbody tr.ui-tabela__tr--selecionada:hover td.ui-tabela__celula--fixa-esquerda,
+  .ui-tabela tbody tr.ui-tabela__tr--selecionada:hover td.ui-tabela__celula--fixa-direita,
+  .ui-tabela tbody tr[data-selecionada="true"]:hover td.ui-tabela__celula--fixa-esquerda,
+  .ui-tabela tbody tr[data-selecionada="true"]:hover td.ui-tabela__celula--fixa-direita {
+    background: color-mix(in srgb, var(--ui-cor-primaria, #00E08A) 22%, var(--ui-tabela-fundo, var(--ui-fundo-superficie, var(--ui-cor-superficie, #141417))));
+  }
+}
+
+.ui-tabela .ui-tabela__celula--fixa-esquerda-ultima {
+  border-right: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
+}
+
+.ui-tabela .ui-tabela__celula--fixa-direita-primeira {
+  border-left: 1px solid var(--ui-cor-borda, rgba(255, 255, 255, 0.12));
+}
+
+/* Sombras laterais indicando rolagem horizontal */
+:host::before,
+:host::after {
+  content: '';
+  position: absolute;
+  top: 1px;
+  bottom: 1px;
+  width: var(--ui-tabela-sombra-largura, 16px);
+  pointer-events: none;
+  opacity: 0;
+  z-index: 25;
+  transition: opacity 0.15s ease;
+}
+
+:host::before {
+  left: 1px;
+  border-radius: var(--ui-raio-borda, 6px) 0 0 var(--ui-raio-borda, 6px);
+  background: linear-gradient(to right, var(--ui-tabela-sombra-scroll, rgba(0, 0, 0, 0.28)), transparent);
+}
+
+:host::after {
+  right: 1px;
+  border-radius: 0 var(--ui-raio-borda, 6px) var(--ui-raio-borda, 6px) 0;
+  background: linear-gradient(to left, var(--ui-tabela-sombra-scroll, rgba(0, 0, 0, 0.28)), transparent);
+}
+
+:host([data-scroll-esquerda="true"])::before,
+:host([data-scroll-direita="true"])::after {
+  opacity: 1;
 }
 
 :host(.degrade),

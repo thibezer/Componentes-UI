@@ -3,10 +3,13 @@ import { renderizarHeaderTabela } from './tabela-header';
 import { renderizarCorpoTabela, type ModoRenderCorpo } from './tabela-corpo';
 import { ListenerBag } from '../../core/listener-bag';
 import {
+  aplicarEstiloColunaFixa,
+  calcularOffsetsColunasFixas,
   formatWidth,
   getAlignmentClass,
   getTextAlign,
   montarEstruturaDOM,
+  obterColunasVisiveis,
   EstruturaDOMElementos
 } from './tabela-dom';
 import {
@@ -113,8 +116,9 @@ export function executarOrquestracaoCorpo(ctx: ContextoOrquestradorRender): void
     textoVazio: ctx.textoVazio,
     textoSemResultados: ctx.textoSemResultados,
     isItemSelecionado: (item, idx) => ctx.selecaoController.isItemSelecionado(item, idx),
+    onLinhaSelecionadaRenderizada: (tr, selecionada) => ctx.selecaoController.registrarLinhaRenderizada(tr, selecionada),
     onLinhaClique: (item, idx) => {
-      ctx.selecaoController.setItemSelecionado(item);
+      ctx.selecaoController.interagirComLinha(item, idx);
       ctx.host.dispatchEvent(
         new CustomEvent('ui-linha-clique', {
           bubbles: true,
@@ -154,4 +158,49 @@ export function orquestrarEstruturaInicial(
   carregando: boolean
 ): EstruturaDOMElementos {
   return montarEstruturaDOM(shadow, textoVazio, maxHeight, carregando);
+}
+
+/**
+ * Atualiza atributos e classes indicadores de conteúdo rolável à esquerda e à direita.
+ */
+export function atualizarIndicadoresRolagem(host: HTMLElement, container: HTMLElement | null): void {
+  if (!container) return;
+  const { scrollLeft, scrollWidth, clientWidth } = container;
+  const temEsquerda = scrollLeft > 1;
+  const temDireita = scrollLeft + clientWidth < scrollWidth - 1;
+
+  if (temEsquerda) host.setAttribute('data-scroll-esquerda', 'true');
+  else host.removeAttribute('data-scroll-esquerda');
+
+  if (temDireita) host.setAttribute('data-scroll-direita', 'true');
+  else host.removeAttribute('data-scroll-direita');
+
+  container.classList.toggle('ui-tabela-container--scroll-esquerda', temEsquerda);
+  container.classList.toggle('ui-tabela-container--scroll-direita', temDireita);
+}
+
+/**
+ * Recalcula offsets `left`/`right` das colunas fixas a partir das larguras reais medidas no `thead`
+ * (fallback para `coluna.largura`), atualizando `<th>` e `<td>` visíveis.
+ */
+export function recalcularOffsetsFixosDOM(
+  thead: HTMLTableSectionElement | null,
+  tbody: HTMLTableSectionElement | null,
+  colunas: TabelaColuna[]
+): void {
+  const colunasVisiveis = obterColunasVisiveis(colunas);
+  if (!colunasVisiveis.some((c) => c.fixa)) return;
+  const ths = thead?.querySelectorAll<HTMLTableCellElement>('tr > th');
+  const largurasMedidas = ths && ths.length === colunasVisiveis.length
+    ? Array.from(ths, (th) => th.offsetWidth)
+    : undefined;
+  const offsets = calcularOffsetsColunasFixas(colunasVisiveis, largurasMedidas);
+
+  ths?.forEach((th, idx) => aplicarEstiloColunaFixa(th, offsets[idx]));
+  tbody?.querySelectorAll<HTMLTableRowElement>('tr[data-index]').forEach((tr) => {
+    const tds = tr.children;
+    for (let i = 0; i < colunasVisiveis.length && i < tds.length; i++) {
+      aplicarEstiloColunaFixa(tds[i] as HTMLTableCellElement, offsets[i]);
+    }
+  });
 }

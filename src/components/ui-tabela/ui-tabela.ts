@@ -1,5 +1,5 @@
 import { ListenerBag } from '../../core/listener-bag';
-import type { DensidadeTabela, TabelaColuna, TabelaFetcher, UISortDetail, UIColumnResizeDetail, UIRowScrollOptions, UISelecaoRemovidaDetail, UIFetchErroDetail } from './tipos';
+import type { DensidadeTabela, ModoSelecaoTabela, TabelaColuna, TabelaFetcher, UISortDetail, UIColumnResizeDetail, UIRowScrollOptions, UISelecaoAlteradaDetail, UISelecaoRemovidaDetail, UIFetchErroDetail } from './tipos';
 import { TabelaRemotaController } from './tabela-remota';
 import { TabelaSelecaoController } from './tabela-selecao';
 import { TabelaOrquestradorDados } from './tabela-orquestrador-dados';
@@ -7,10 +7,11 @@ import { getRowHeight } from './tabela-dom';
 import { cliqueEmControle, type ModoRenderCorpo } from './tabela-corpo';
 import { itemDaLinha } from './tabela-foco';
 import {
+  atualizarIndicadoresRolagem,
   executarOrquestracaoHeader,
   executarOrquestracaoCorpo,
-  inicializarScrollVirtualizacao,
   orquestrarEstruturaInicial,
+  recalcularOffsetsFixosDOM,
   ContextoOrquestradorRender
 } from './tabela-renderizador';
 import { sincronizarAtributosTabela, tratarMudancaAtributoTabela } from './tabela-atributos-sync';
@@ -20,11 +21,11 @@ import { RolagemLinhas } from './tabela-rolagem';
 import { SafeHTMLElement, definirCustomElement } from '../../core/ssr-safe';
 import { ATRIBUTOS_DEGRADE, aplicarDegradeNoElemento, ehAtributoDegrade } from '../../core/degrade';
 
-export type { DensidadeTabela, TabelaColuna, TabelaFetcher, UISortDetail, UIColumnResizeDetail, UIRowScrollOptions, UISelecaoRemovidaDetail, UIFetchErroDetail };
+export type { DensidadeTabela, ModoSelecaoTabela, TabelaColuna, TabelaFetcher, UISortDetail, UIColumnResizeDetail, UIRowScrollOptions, UISelecaoAlteradaDetail, UISelecaoRemovidaDetail, UIFetchErroDetail };
 
 export class UITabela extends SafeHTMLElement {
   static get observedAttributes() {
-    return ['texto-vazio', 'empty-text', 'max-height', 'densidade', 'density', 'altura-linha', 'row-height', 'virtualizar', 'virtualize', 'src', 'carregando', 'loading', 'chave-id', 'id-key', 'aria-label', 'ordenacao-remota', 'texto-erro', 'texto-sem-resultados', 'texto-carregando', ...ATRIBUTOS_DEGRADE];
+    return ['texto-vazio', 'empty-text', 'max-height', 'densidade', 'density', 'altura-linha', 'row-height', 'virtualizar', 'virtualize', 'src', 'carregando', 'loading', 'chave-id', 'id-key', 'aria-label', 'ordenacao-remota', 'selecao', 'texto-erro', 'texto-sem-resultados', 'texto-carregando', ...ATRIBUTOS_DEGRADE];
   }
 
   private shadow: ShadowRoot;
@@ -49,8 +50,9 @@ export class UITabela extends SafeHTMLElement {
   /** Último erro de carregamento remoto (null = sem erro). */
   private _erro: UIFetchErroDetail | null = null;
 
-  private _scrollHandler: ((e: Event) => void) | null = null;
   private _activeResizeCleanup: (() => void) | null = null;
+  private _resizeObserver: ResizeObserver | null = null;
+  private _containerListeners = new ListenerBag();
   private _headerListeners = new ListenerBag();
   private _corpoListeners = new ListenerBag();
   private _erroListeners = new ListenerBag();
@@ -107,6 +109,7 @@ export class UITabela extends SafeHTMLElement {
 
   connectedCallback() {
     this.syncAttributes();
+    this.selecaoController.setModo(this.selecao);
     if (this.alturaLinha) this.style.setProperty('--ui-tabela-altura-linha', `${this.alturaLinha}px`);
     if (!this.hasAttribute('densidade') && !this.hasAttribute('density')) this.setAttribute('densidade', 'normal');
     this.renderTotal();
@@ -119,6 +122,9 @@ export class UITabela extends SafeHTMLElement {
     if (ehAtributoDegrade(name)) {
       aplicarDegradeNoElemento(this, this._containerElement);
       return;
+    }
+    if (name === 'selecao') {
+      this.selecaoController.setModo(newVal === 'multipla' ? 'multipla' : 'unica');
     }
     if (name === 'ordenacao-remota') {
       this.dadosController.setOrdenacaoRemota(newVal !== null);
@@ -134,7 +140,12 @@ export class UITabela extends SafeHTMLElement {
   /** Nome acessível vem do host (`aria-label`); `aria-busy` acompanha o carregamento remoto. */
   private sincronizarAria() {
     if (!this._tableElement) return;
-    sincronizarAriaTabela({ tabela: this._tableElement, container: this._containerElement }, this.getAttribute('aria-label'), this._carregando);
+    sincronizarAriaTabela(
+      { tabela: this._tableElement, container: this._containerElement },
+      this.getAttribute('aria-label'),
+      this._carregando,
+      this.selecao === 'multipla'
+    );
     this.atualizarTextosEstado();
   }
 
@@ -233,9 +244,9 @@ export class UITabela extends SafeHTMLElement {
   }
 
   private cleanupEventListeners() {
-    if (this._containerElement && this._scrollHandler) {
-      this._containerElement.removeEventListener('scroll', this._scrollHandler);
-      this._scrollHandler = null;
+    if (this._resizeObserver) {
+      this._resizeObserver.disconnect();
+      this._resizeObserver = null;
     }
     if (this._activeResizeCleanup) { this._activeResizeCleanup(); this._activeResizeCleanup = null; this._isResizing = false; }
     this.shadow?.querySelectorAll<HTMLDialogElement>('dialog.ui-tabela__prompt-dialog').forEach((dlg) => {
@@ -244,6 +255,7 @@ export class UITabela extends SafeHTMLElement {
     });
     this.rolagem.cancelar();
     this.remotaController.abortar();
+    this._containerListeners.cleanup();
     this._headerListeners.cleanup();
     this._corpoListeners.cleanup();
     this._erroListeners.cleanup();
@@ -254,7 +266,7 @@ export class UITabela extends SafeHTMLElement {
     // cópia: redimensionar não altera (nem falha com) objetos congelados/reativos/compartilhados do consumidor
     this._colunas = Array.isArray(val) ? val.filter((c) => c != null).map((c) => ({ ...c })) : [];
     this.dadosController.setColunas(this._colunas);
-    this.dadosController.setColunasFiltro(this._colunas.map((c) => c.id));
+    this.dadosController.setColunasFiltro(this._colunas.filter((c) => !c.oculta).map((c) => c.id));
     this._alturaLinhaMedida = null;
     this.renderTotal();
   }
@@ -272,10 +284,23 @@ export class UITabela extends SafeHTMLElement {
     else { this.removeAttribute('chave-id'); this.removeAttribute('id-key'); }
     this.atualizarContextoSelecao();
   }
+  get selecao(): ModoSelecaoTabela {
+    return this.getAttribute('selecao') === 'multipla' ? 'multipla' : 'unica';
+  }
+  set selecao(val: ModoSelecaoTabela) {
+    const normalizado: ModoSelecaoTabela = val === 'multipla' ? 'multipla' : 'unica';
+    if (this.getAttribute('selecao') !== normalizado) this.setAttribute('selecao', normalizado);
+    else this.selecaoController.setModo(normalizado);
+  }
   get itemSelecionado(): Record<string, any> | null { return this.selecaoController.getItemSelecionado(); }
   set itemSelecionado(item: Record<string, any> | null) { this.selecaoController.setItemSelecionado(item); }
   get indiceSelecionado(): number | null { return this.selecaoController.getIndiceSelecionado(); }
   set indiceSelecionado(idx: number | null) { this.selecaoController.setIndiceSelecionado(idx); }
+  get itensSelecionados(): Record<string, any>[] { return this.selecaoController.getItensSelecionados(); }
+  set itensSelecionados(itens: Record<string, any>[]) { this.selecaoController.setItensSelecionados(itens); }
+  get indicesSelecionados(): number[] { return this.selecaoController.getIndicesSelecionados(); }
+  set indicesSelecionados(indices: number[]) { this.selecaoController.setIndicesSelecionados(indices); }
+  public selecionarTodos(): void { this.selecaoController.selecionarTodos(); }
   public limparSelecao(): void { this.selecaoController.limparSelecao(); }
 
   get densidade(): DensidadeTabela {
@@ -417,11 +442,30 @@ export class UITabela extends SafeHTMLElement {
     this.renderHeader();
     this.renderBody();
 
-    if (this._virtualizar && this._containerElement && !this._scrollHandler) {
-      this._scrollHandler = inicializarScrollVirtualizacao(this._containerElement, () => this.renderBody('rolagem'));
-    } else if (!this._virtualizar && this._containerElement && this._scrollHandler) {
-      this._containerElement.removeEventListener('scroll', this._scrollHandler);
-      this._scrollHandler = null;
+    if (this._containerElement && this._containerListeners.size === 0) {
+      let ticking = false;
+      this._containerListeners.add(this._containerElement, 'scroll', () => {
+        atualizarIndicadoresRolagem(this, this._containerElement);
+        if (this._virtualizar && !ticking) {
+          ticking = true;
+          window.requestAnimationFrame(() => {
+            try { this.renderBody('rolagem'); } finally { ticking = false; }
+          });
+        }
+      });
+      this._containerListeners.add(this, 'ui-column-resize', () => {
+        recalcularOffsetsFixosDOM(this._theadElement, this._tbodyElement, this._colunas);
+        atualizarIndicadoresRolagem(this, this._containerElement);
+      });
+    }
+
+    if (!this._resizeObserver && typeof ResizeObserver !== 'undefined' && this._containerElement) {
+      this._resizeObserver = new ResizeObserver(() => {
+        atualizarIndicadoresRolagem(this, this._containerElement);
+        recalcularOffsetsFixosDOM(this._theadElement, this._tbodyElement, this._colunas);
+      });
+      this._resizeObserver.observe(this._containerElement);
+      if (this._tableElement) this._resizeObserver.observe(this._tableElement);
     }
 
     if (this._tbodyElement && this._corpoListeners.size === 0) {
@@ -430,6 +474,7 @@ export class UITabela extends SafeHTMLElement {
       this._corpoListeners.add<FocusEvent>(this._tbodyElement, 'focusin', this.handleFocoLinha);
     }
     this.sincronizarAria();
+    atualizarIndicadoresRolagem(this, this._containerElement);
   }
 
   /** Event delegation de clique nas linhas do corpo: evita um listener por `<tr>`. */
@@ -442,7 +487,7 @@ export class UITabela extends SafeHTMLElement {
     const item = itemDaLinha.get(tr);
     if (!item) return;
     const indice = Number(tr.getAttribute('data-index'));
-    this.selecaoController.setItemSelecionado(item);
+    this.selecaoController.interagirComLinha(item, indice);
     this.dispatchEvent(
       new CustomEvent('ui-linha-clique', {
         bubbles: true,
@@ -518,7 +563,10 @@ export class UITabela extends SafeHTMLElement {
     };
   }
 
-  private renderHeader() { executarOrquestracaoHeader(this.obterContextoRenderizador()); }
+  private renderHeader() {
+    executarOrquestracaoHeader(this.obterContextoRenderizador());
+    atualizarIndicadoresRolagem(this, this._containerElement);
+  }
   /**
    * Renderiza o corpo. `completo` (padrão) recria as linhas e roda o `render` das colunas de novo;
    * `rolagem` só ajusta a janela virtual e mantém as linhas que continuam visíveis (foco e texto digitado intactos).
@@ -527,6 +575,7 @@ export class UITabela extends SafeHTMLElement {
     executarOrquestracaoCorpo(this.obterContextoRenderizador(modo));
     this.anunciarResultado();
     this.medirAlturaLinha();
+    atualizarIndicadoresRolagem(this, this._containerElement);
   }
 
   /**

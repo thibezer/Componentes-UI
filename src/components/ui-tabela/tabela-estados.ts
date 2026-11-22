@@ -53,11 +53,17 @@ export interface ElementosAria {
  * Nome acessível vem do host (`aria-label`): vai à tabela e, como região rolável nomeada, ao contêiner
  * (leitores de tela anunciam o contêiner e o teclado alcança a rolagem). `aria-busy` acompanha o carregamento.
  */
-export function sincronizarAriaTabela({ tabela, container }: ElementosAria, rotulo: string | null, carregando: boolean): void {
+export function sincronizarAriaTabela(
+  { tabela, container }: ElementosAria,
+  rotulo: string | null,
+  carregando: boolean,
+  selecaoMultipla = false
+): void {
   if (!tabela) return;
   if (rotulo) tabela.setAttribute('aria-label', rotulo);
   else tabela.removeAttribute('aria-label');
   tabela.setAttribute('aria-busy', String(carregando));
+  tabela.setAttribute('aria-multiselectable', selecaoMultipla ? 'true' : 'false');
   if (!container) return;
   if (rotulo) {
     container.setAttribute('role', 'region');

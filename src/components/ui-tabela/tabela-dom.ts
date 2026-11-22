@@ -1,5 +1,5 @@
 import estilos from './ui-tabela.css?inline';
-import type { DensidadeTabela } from './tipos';
+import type { DensidadeTabela, TabelaColuna } from './tipos';
 
 export interface EstruturaDOMElementos {
   containerElement: HTMLDivElement;
@@ -42,6 +42,93 @@ export function getRowHeight(densidade: DensidadeTabela): number {
   if (densidade === 'compacta') return 30;
   if (densidade === 'relaxada') return 56;
   return 42;
+}
+
+export interface InfoColunaFixa {
+  fixa?: 'esquerda' | 'direita';
+  offset?: string;
+  ultimaEsquerda?: boolean;
+  primeiraDireita?: boolean;
+}
+
+/** Retorna apenas as colunas não ocultas (`!c.oculta`). */
+export function obterColunasVisiveis(colunas: TabelaColuna[]): TabelaColuna[] {
+  return colunas.filter((c) => !c.oculta);
+}
+
+function extrairLarguraPx(largura?: string | number): number {
+  if (typeof largura === 'number') return Number.isFinite(largura) && largura > 0 ? largura : 0;
+  if (typeof largura === 'string') {
+    const limpa = largura.trim();
+    if (/^\d+(\.\d+)?(px)?$/i.test(limpa)) {
+      const n = parseFloat(limpa);
+      return Number.isFinite(n) && n > 0 ? n : 0;
+    }
+  }
+  return 0;
+}
+
+/**
+ * Calcula `left` e `right` acumulados em px para colunas com `fixa: 'esquerda' | 'direita'`.
+ * Usa `largurasMedidas` (do DOM) quando > 0 e faz fallback para `coluna.largura` em px.
+ */
+export function calcularOffsetsColunasFixas(
+  colunasVisiveis: TabelaColuna[],
+  largurasMedidas?: number[]
+): InfoColunaFixa[] {
+  const infos: InfoColunaFixa[] = colunasVisiveis.map((c) => ({ fixa: c.fixa }));
+  const larguraCol = (i: number): number => {
+    const medida = largurasMedidas?.[i];
+    if (medida !== undefined && Number.isFinite(medida) && medida > 0) return medida;
+    return extrairLarguraPx(colunasVisiveis[i]?.largura);
+  };
+
+  let acumuladoEsquerda = 0;
+  let ultimoIndiceEsquerda = -1;
+  for (let i = 0; i < colunasVisiveis.length; i++) {
+    if (colunasVisiveis[i].fixa === 'esquerda') {
+      infos[i].offset = `${acumuladoEsquerda}px`;
+      acumuladoEsquerda += larguraCol(i);
+      ultimoIndiceEsquerda = i;
+    }
+  }
+  if (ultimoIndiceEsquerda >= 0) infos[ultimoIndiceEsquerda].ultimaEsquerda = true;
+
+  let acumuladoDireita = 0;
+  let primeiroIndiceDireita = -1;
+  for (let i = colunasVisiveis.length - 1; i >= 0; i--) {
+    if (colunasVisiveis[i].fixa === 'direita') {
+      infos[i].offset = `${acumuladoDireita}px`;
+      acumuladoDireita += larguraCol(i);
+      primeiroIndiceDireita = i;
+    }
+  }
+  if (primeiroIndiceDireita >= 0) infos[primeiroIndiceDireita].primeiraDireita = true;
+
+  return infos;
+}
+
+/** Aplica classes e offsets `left`/`right` de coluna fixa em um `<th>` ou `<td>`. */
+export function aplicarEstiloColunaFixa(el: HTMLTableCellElement, info?: InfoColunaFixa): void {
+  el.classList.remove(
+    'ui-tabela__celula--fixa-esquerda',
+    'ui-tabela__celula--fixa-direita',
+    'ui-tabela__celula--fixa-esquerda-ultima',
+    'ui-tabela__celula--fixa-direita-primeira'
+  );
+  el.style.left = '';
+  el.style.right = '';
+  if (!info?.fixa) return;
+
+  if (info.fixa === 'esquerda') {
+    el.classList.add('ui-tabela__celula--fixa-esquerda');
+    if (info.ultimaEsquerda) el.classList.add('ui-tabela__celula--fixa-esquerda-ultima');
+    el.style.left = info.offset ?? '0px';
+  } else if (info.fixa === 'direita') {
+    el.classList.add('ui-tabela__celula--fixa-direita');
+    if (info.primeiraDireita) el.classList.add('ui-tabela__celula--fixa-direita-primeira');
+    el.style.right = info.offset ?? '0px';
+  }
 }
 
 export function montarEstruturaDOM(

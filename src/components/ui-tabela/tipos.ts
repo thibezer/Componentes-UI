@@ -4,6 +4,8 @@
 
 export type DensidadeTabela = 'compacta' | 'normal' | 'relaxada';
 
+export type ModoSelecaoTabela = 'unica' | 'multipla';
+
 export interface TabelaColuna<T = any> {
   id: string;
   rotulo: string;
@@ -11,6 +13,10 @@ export interface TabelaColuna<T = any> {
   larguraMinima?: string | number;
   larguraMaxima?: string | number;
   alinhamento?: 'esquerda' | 'centro' | 'direita' | 'left' | 'center' | 'right';
+  /** Fixa a coluna na borda esquerda ou direita durante a rolagem horizontal (`position: sticky`). */
+  fixa?: 'esquerda' | 'direita';
+  /** Quando `true`, a coluna não é renderizada no cabeçalho/corpo nem considerada no filtro padrão. */
+  oculta?: boolean;
   ordenavel?: boolean;
   /** Permite redimensionar a coluna pela alça e menu de contexto (padrão: `true`). */
   redimensionavel?: boolean;
@@ -52,6 +58,12 @@ export interface UIRowScrollOptions {
 export interface UISelecaoRemovidaDetail {
   /** Item que estava selecionado e deixou de existir nos dados. */
   item: Record<string, any>;
+}
+
+export interface UISelecaoAlteradaDetail<T = Record<string, any>> {
+  itens: T[];
+  indices: number[];
+  modo: ModoSelecaoTabela;
 }
 
 export interface UIFetchErroDetail {

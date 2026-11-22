@@ -6,7 +6,12 @@
 
 import type { TabelaColuna } from './tipos';
 import { ListenerBag } from '../../core/listener-bag';
-import { aplicarClasseColuna } from './tabela-dom';
+import {
+  aplicarClasseColuna,
+  aplicarEstiloColunaFixa,
+  calcularOffsetsColunasFixas,
+  obterColunasVisiveis
+} from './tabela-dom';
 
 export interface ContextoHeaderTabela {
   theadElement: HTMLTableSectionElement | null;
@@ -46,7 +51,10 @@ export function renderizarHeaderTabela(ctx: ContextoHeaderTabela): void {
   trHeader.setAttribute('part', 'linha-cabecalho');
   trHeader.setAttribute('aria-rowindex', '1');
 
-  ctx.colunas.forEach((coluna, index) => {
+  const colunasVisiveis = obterColunasVisiveis(ctx.colunas);
+  const offsetsFixos = calcularOffsetsColunasFixas(colunasVisiveis);
+
+  colunasVisiveis.forEach((coluna, index) => {
     // Configurar <col> para redimensionamento de CSS no corpo
     const col = document.createElement('col');
     if (coluna.largura !== undefined) {
@@ -63,6 +71,7 @@ export function renderizarHeaderTabela(ctx: ContextoHeaderTabela): void {
     th.scope = 'col';
     th.setAttribute('data-coluna', coluna.id);
     th.style.textAlign = ctx.getTextAlign(coluna.alinhamento);
+    aplicarEstiloColunaFixa(th, offsetsFixos[index]);
 
     if (coluna.largura !== undefined) {
       th.style.width = ctx.formatWidth(coluna.largura);
