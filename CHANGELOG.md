@@ -1,6 +1,6 @@
 # Changelog
 
-## Não publicado
+## 2.24.1 — 2026-11-21
 
 ### `<ui-card>`: tipografia (HIG)
 
