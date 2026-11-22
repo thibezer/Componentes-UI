@@ -6,14 +6,16 @@
 
 export type AcaoTeclaLinha =
   | { tipo: 'mover'; indice: number }
-  | { tipo: 'ativar' };
+  | { tipo: 'ativar' }
+  | { tipo: 'limpar-selecao' };
 
 /**
- * Setas, Home/End e PageUp/PageDown movem o foco (limitados a `0..ultimo`); Enter e Espaço ativam a linha.
- * Sem linhas (`ultimo < 0`) ou com índice inválido nenhuma tecla de movimento produz ação.
+ * Setas, Home/End e PageUp/PageDown movem o foco (limitados a `0..ultimo`); Enter e Espaço ativam a linha;
+ * Escape limpa a seleção atual. Sem linhas (`ultimo < 0`) ou com índice inválido nenhuma tecla de movimento produz ação.
  */
 export function acaoDaTeclaLinha(key: string, atual: number, ultimo: number, linhasPorPagina: number): AcaoTeclaLinha | null {
   if (key === 'Enter' || key === ' ') return { tipo: 'ativar' };
+  if (key === 'Escape') return { tipo: 'limpar-selecao' };
   if (!Number.isInteger(atual) || !Number.isInteger(ultimo) || ultimo < 0) return null;
 
   const pagina = Math.max(1, Math.floor(Number.isFinite(linhasPorPagina) ? linhasPorPagina : 1));

@@ -267,3 +267,81 @@ describe('ui-tabela: customização (Lote 2)', () => {
     expect(css).toContain('--ui-tabela-padding-relaxada');
   });
 });
+
+describe('ui-tabela: UX e acessibilidade (Lote 3)', () => {
+  beforeEach(() => { document.body.innerHTML = ''; });
+
+  function criarComColunas(colunas: any[], dados: Record<string, any>[]): UITabela {
+    const t = document.createElement('ui-tabela') as UITabela;
+    document.body.appendChild(t);
+    t.colunas = colunas;
+    t.dados = dados;
+    return t;
+  }
+
+  it('devolve o foco para a tabela após sucesso de "Tentar novamente"', async () => {
+    const t = document.createElement('ui-tabela') as UITabela;
+    let tentativa = 0;
+    t.fetcher = async () => {
+      tentativa++;
+      if (tentativa === 1) return new Response('Erro', { status: 500, statusText: 'Erro' });
+      return new Response(JSON.stringify([{ id: 1, n: 'Recuperado' }]), { status: 200 });
+    };
+    t.colunas = COLUNAS as any;
+    document.body.appendChild(t);
+    await t.carregarDoEndpoint('https://exemplo.invalid/dados');
+
+    const btnErro = raiz(t).querySelector<HTMLButtonElement>('.ui-tabela__erro-acao')!;
+    btnErro.focus();
+    expect(raiz(t).activeElement).toBe(btnErro);
+
+    btnErro.click();
+    await new Promise((r) => setTimeout(r, 20));
+    const tr = raiz(t).querySelector<HTMLElement>('tbody tr[data-index="0"]')!;
+    expect(raiz(t).activeElement).toBe(tr);
+  });
+
+  it('aplica title automático em células truncadas com render retornando string', () => {
+    const t = criarComColunas(
+      [{ id: 'desc', rotulo: 'Descrição', larguraMaxima: 80, render: (v: string) => `Texto: ${v}` }],
+      [{ id: 1, desc: 'muito longo para caber' }]
+    );
+    const td = raiz(t).querySelector<HTMLElement>('tbody tr td')!;
+    expect(td.title).toBe('Texto: muito longo para caber');
+  });
+
+  it('usa setPointerCapture e releasePointerCapture no resizer durante toque', () => {
+    const t = criarComColunas(COLUNAS, [{ id: 1, n: 'a', v: 1 }]);
+    const resizer = raiz(t).querySelector<HTMLElement>('.ui-tabela__resizer')!;
+    const setCap = vi.fn();
+    const hasCap = vi.fn(() => true);
+    const relCap = vi.fn();
+    (resizer as any).setPointerCapture = setCap;
+    (resizer as any).hasPointerCapture = hasCap;
+    (resizer as any).releasePointerCapture = relCap;
+
+    const down = new Event('pointerdown', { bubbles: true, cancelable: true }) as any;
+    down.pointerType = 'touch';
+    down.pointerId = 42;
+    down.pageX = 100;
+    resizer.dispatchEvent(down);
+    expect(setCap).toHaveBeenCalledWith(42);
+
+    const up = new Event('pointerup', { bubbles: true }) as any;
+    up.pointerId = 42;
+    window.dispatchEvent(up);
+    expect(relCap).toHaveBeenCalledWith(42);
+  });
+
+  it('tecla Escape na linha limpa a seleção mantendo o foco na linha', () => {
+    const t = criarComColunas(COLUNAS, [{ id: 1, n: 'a', v: 1 }, { id: 2, n: 'b', v: 2 }]);
+    const tr = raiz(t).querySelector<HTMLElement>('tbody tr[data-index="0"]')!;
+    tr.click();
+    tr.focus();
+    expect(t.itemSelecionado).not.toBeNull();
+
+    tr.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    expect(t.itemSelecionado).toBeNull();
+    expect(raiz(t).activeElement).toBe(tr);
+  });
+});

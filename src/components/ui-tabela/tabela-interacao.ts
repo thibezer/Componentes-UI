@@ -28,9 +28,17 @@ export function executarRedimensionamentoColuna(
     resizer,
     colgroupElement: ctx.colgroupElement,
     onResizeStart: () => ctx.onSetIsResizing(true),
-    onResizeCancel: () => { setTimeout(() => ctx.onSetIsResizing(false), 50); },
+    onResizeCancel: () => { setTimeout(() => ctx.onSetIsResizing(false), 0); },
     onResizeEnd: (larguraFinal) => {
-      setTimeout(() => ctx.onSetIsResizing(false), 50);
+      const suprimirClick = (ev: Event) => {
+        ev.stopPropagation();
+        ev.preventDefault();
+      };
+      thElement.addEventListener('click', suprimirClick, { capture: true, once: true });
+      setTimeout(() => {
+        thElement.removeEventListener('click', suprimirClick, { capture: true });
+        ctx.onSetIsResizing(false);
+      }, 0);
       ctx.host.dispatchEvent(
         new CustomEvent<UIColumnResizeDetail>('ui-column-resize', {
           detail: { idColuna: coluna.id, largura: larguraFinal },

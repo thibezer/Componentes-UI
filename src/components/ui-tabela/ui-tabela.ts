@@ -93,7 +93,16 @@ export class UITabela extends SafeHTMLElement {
     // Estado de erro visível: acompanha os eventos do carregamento remoto
     this.addEventListener('ui-fetch-erro', (e) => this.mostrarErro((e as CustomEvent<UIFetchErroDetail>).detail));
     this.addEventListener('ui-fetch-start', () => this.mostrarErro(null));
-    this.addEventListener('ui-fetch-sucesso', () => this.mostrarErro(null));
+    this.addEventListener('ui-fetch-sucesso', () => {
+      const focoNoErro = Boolean(this._erroElement && this.shadow.activeElement && this._erroElement.contains(this.shadow.activeElement));
+      this.mostrarErro(null);
+      if (focoNoErro) {
+        const alvoFoco =
+          this._tbodyElement?.querySelector<HTMLElement>('tr[tabindex="0"], tr[data-index]') ??
+          this._theadElement?.querySelector<HTMLElement>('.ui-tabela__ordenar');
+        alvoFoco?.focus({ preventScroll: true });
+      }
+    });
   }
 
   connectedCallback() {
@@ -477,7 +486,9 @@ export class UITabela extends SafeHTMLElement {
 
     e.preventDefault();
     if (acao.tipo === 'ativar') tr.click();
-    else this.rolagem.focar(acao.indice);
+    else if (acao.tipo === 'limpar-selecao') {
+      if (this.itemSelecionado !== null) this.limparSelecao();
+    } else this.rolagem.focar(acao.indice);
   };
 
   private obterContextoRenderizador(modoCorpo: ModoRenderCorpo = 'completo'): ContextoOrquestradorRender {

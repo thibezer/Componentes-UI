@@ -108,7 +108,11 @@ function criarCelula(ctx: ContextoCorpoTabela, coluna: TabelaColuna, item: Recor
         cellContent.appendChild(resultado);
       } else {
         // XSS protection
-        cellContent.textContent = String(resultado ?? '');
+        const texto = String(resultado ?? '');
+        cellContent.textContent = texto;
+        if (coluna.larguraMaxima !== undefined && !coluna.tooltip && texto) {
+          td.title = texto;
+        }
       }
     } catch (erro) {
       // um renderizador com defeito não pode derrubar a tabela inteira

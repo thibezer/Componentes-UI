@@ -73,6 +73,9 @@ export function iniciarRedimensionamentoColuna(
 
   const usaPointer = evento.type === 'pointerdown';
   const pointerId = usaPointer ? (evento as PointerEvent).pointerId : null;
+  if (usaPointer && pointerId !== null && typeof resizer.setPointerCapture === 'function') {
+    try { resizer.setPointerCapture(pointerId); } catch { /* elemento desconectado ou pointer inválido */ }
+  }
   const nomeMove = usaPointer ? 'pointermove' : 'mousemove';
   const nomeUp = usaPointer ? 'pointerup' : 'mouseup';
 
@@ -98,6 +101,13 @@ export function iniciarRedimensionamentoColuna(
 
   const cleanup = () => {
     resizer.classList.remove('ui-tabela__resizer--ativo');
+    if (usaPointer && pointerId !== null && typeof resizer.releasePointerCapture === 'function') {
+      try {
+        if (!resizer.hasPointerCapture || resizer.hasPointerCapture(pointerId)) {
+          resizer.releasePointerCapture(pointerId);
+        }
+      } catch { /* já liberado */ }
+    }
     window.removeEventListener(nomeMove, onMouseMove);
     window.removeEventListener(nomeUp, onMouseUp);
     if (usaPointer) window.removeEventListener('pointercancel', onMouseUp);
