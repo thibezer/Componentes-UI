@@ -1,11 +1,12 @@
 import L from 'leaflet';
 import type { ILayerRenderer } from '../layer_renderer_factory';
 import type { CanvasLayerDef, CanvasRenderContext } from '../types';
+import { SIGEF_WMS_URL, SIGEF_WMS_CAMADA } from '../sigef_config';
 
 export class WmsLayerRenderer implements ILayerRenderer {
   public render(layerDef: CanvasLayerDef, _map: L.Map, _context: CanvasRenderContext): L.Layer | null {
-    const url = layerDef.dados?.url || 'https://acervofundiario.incra.gov.br/i3geo/ogc.php';
-    const layers = layerDef.dados?.layers || 'certificada_sigef_particular_pr';
+    const url = layerDef.dados?.url || SIGEF_WMS_URL;
+    const layers = layerDef.dados?.layers || SIGEF_WMS_CAMADA;
     const format = layerDef.dados?.format || 'image/png';
     const attribution = layerDef.dados?.attribution || 'INCRA/SIGEF';
 

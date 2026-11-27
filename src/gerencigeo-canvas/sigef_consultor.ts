@@ -1,9 +1,28 @@
 import L from 'leaflet';
 import { escapeHtml } from './utils';
 import { liberarPopups } from './popup_gate';
+import { SIGEF_WMS_URL, SIGEF_WMS_CAMADA } from './sigef_config';
 
 export interface SigefConsultorState {
   currentAbortController?: AbortController;
+}
+
+/** URL do GetFeatureInfo (GeoJSON) do Geoportal do INCRA para o pixel (x, y) do mapa. */
+export function montarUrlConsultaSigef(x: number, y: number, size: { x: number; y: number }, bbox: string): string {
+  return `${SIGEF_WMS_URL}?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetFeatureInfo&FORMAT=image/png&TRANSPARENT=true`
+    + `&QUERY_LAYERS=${SIGEF_WMS_CAMADA}&LAYERS=${SIGEF_WMS_CAMADA}&FEATURE_COUNT=10&INFO_FORMAT=application/json`
+    + `&X=${x}&Y=${y}&WIDTH=${size.x}&HEIGHT=${size.y}&SRS=EPSG:4326&BBOX=${bbox}`;
+}
+
+/**
+ * UUID oficial da parcela. O `id` da feição do GeoServer é a chave interna `sigef_geo.N`, que não abre no SIGEF:
+ * só vale como último recurso e quando não tiver esse prefixo.
+ */
+export function extrairCodigoParcelaSigef(feature: any): string {
+  const props = feature?.properties ?? {};
+  const id = feature?.id;
+  const idUtil = id != null && !String(id).startsWith('sigef_geo.') ? String(id) : '';
+  return String(props.parcela_codigo || props.co_parcela || props.id_parcela || idUtil || '');
 }
 
 /**
@@ -38,7 +57,7 @@ export async function consultarSigefNoPonto(
     y = 0;
   }
 
-  const targetUrl = `https://acervofundiario.incra.gov.br/i3geo/ogc.php?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetFeatureInfo&FORMAT=image/png&TRANSPARENT=true&QUERY_LAYERS=certificada_sigef_particular_pr&LAYERS=certificada_sigef_particular_pr&INFO_FORMAT=application/json&X=${x}&Y=${y}&WIDTH=${size.x}&HEIGHT=${size.y}&SRS=EPSG:4326&BBOX=${bbox}`;
+  const targetUrl = montarUrlConsultaSigef(x, y, size, bbox);
 
   const mapContainer = map.getContainer();
   mapContainer.style.cursor = 'wait';
@@ -97,7 +116,7 @@ export async function consultarSigefNoPonto(
     if (data && data.features && data.features.length > 0) {
       const feature = data.features[0];
       const props = feature.properties || {};
-      const rawUuid = String(feature.id || props.parcela_codigo || props.co_parcela || props.id_parcela || '');
+      const rawUuid = extrairCodigoParcelaSigef(feature);
       const nomeArea = String(props.nome_area || props.nome_imovel || 'Imóvel Sem Nome');
 
       if (rawUuid) {

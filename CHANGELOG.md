@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.26.1 — 2026-11-27
+
+> No app: `npm install @thibezer/ui-components-kit@2.26.1`.
+
+### `gerencigeo-canvas`: camada e consulta SIGEF passam a usar o Geoportal do INCRA
+
+- **Servidor desativado:** o i3Geo (`acervofundiario.incra.gov.br`, camada `certificada_sigef_particular_pr`) saiu do ar (NXDOMAIN). O padrão do `WmsLayerRenderer` e o `consultarSigefNoPonto` agora usam o GeoServer oficial (`https://geoportal.incra.gov.br/geoserver/wms`, camada `geonode:sigef_geo`). O app não precisa mais sobrescrever `dados.url`/`dados.layers` da camada `'sigef'`; quem informa `dados` continua mandando.
+- **Código da parcela:** o popup priorizava `feature.id`, que no GeoServer é a chave interna `sigef_geo.N` (links de shapefile/detalhe quebrados). Agora usa `parcela_codigo` / `co_parcela` / `id_parcela` e só aceita `feature.id` sem o prefixo `sigef_geo.`.
+- Internos novos: `SIGEF_WMS_URL` e `SIGEF_WMS_CAMADA` (`sigef_config.ts`), `montarUrlConsultaSigef` e `extrairCodigoParcelaSigef` (`sigef_consultor.ts`), sem mudança na API pública. Testes em `sigef_consultor.regressao.test.ts`.
+
 ## 2.26.0 — 2026-11-22
 
 > No app: `npm install @thibezer/ui-components-kit@2.26.0`.
