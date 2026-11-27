@@ -46,7 +46,7 @@ import { latLonParaUtm, formatUTM } from '../../gerencigeo-canvas/utils';
  */
 export class UICanvasCAD extends SafeHTMLElement {
   static get observedAttributes() {
-    return ['sat-opacity', 'scale-mode', 'crosshair', 'modo-sequencial', 'chave-grupo', 'zona-projecao', 'fuso', 'canal-configuracao', 'ferramentas', 'sem-atalho-snap', 'aceitar-origem', 'sem-camadas-padrao', 'sem-painel-camadas', 'sem-barra-rapida', 'popups', 'renderizador', 'qualidade', 'sem-avisos', 'sem-hud-coordenadas',
+    return ['sat-opacity', 'scale-mode', 'crosshair', 'modo-sequencial', 'chave-grupo', 'zona-projecao', 'fuso', 'canal-configuracao', 'ferramentas', 'sem-atalho-snap', 'aceitar-origem', 'sem-camadas-padrao', 'sem-painel-camadas', 'sem-barra-rapida', 'popups', 'renderizador', 'qualidade', 'sem-avisos', 'sem-hud-coordenadas', 'sem-popup-sigef',
       // linha padrão (`cad-linha-padrao.ts`); literais para o manifesto e os tipos React/Vue enxergarem
       'linha-cor', 'linha-espessura', 'linha-tipo', 'linha-escala', 'linha-tracejado', 'linha-deslocamento', 'linha-opacidade', 'linha-terminacao', 'linha-juncao',
       ...ATRIBUTOS_DEGRADE];
@@ -167,6 +167,7 @@ export class UICanvasCAD extends SafeHTMLElement {
       }
     }
     this.controller.core.definirModoPopups(this.popups);
+    this.aplicarPopupSigef();
     this.controladorTamanho.observe();
     this.feicoes.conectarTeclado();
     this.hoverListeners.cleanup();
@@ -275,6 +276,10 @@ export class UICanvasCAD extends SafeHTMLElement {
       return;
     }
     // lidos na inicialização do mapa (camadas), só por CSS (barra) ou na hora do aviso (`sem-avisos`); o painel aberto fecha ao ser desligado
+    if (name === 'sem-popup-sigef') {
+      this.aplicarPopupSigef();
+      return;
+    }
     if (name === 'sem-camadas-padrao' || name === 'sem-barra-rapida' || name === 'sem-avisos') return;
     if (name === 'sem-painel-camadas') {
       if (newVal !== null) this.toolbarPainel?.closeLayersPanel();
@@ -429,6 +434,20 @@ export class UICanvasCAD extends SafeHTMLElement {
   public set aceitarOrigem(val: boolean) {
     if (val) this.setAttribute('aceitar-origem', '');
     else this.removeAttribute('aceitar-origem');
+  }
+
+  /**
+   * Atributo `sem-popup-sigef`: o clique com a camada SIGEF ativa não abre o popup do kit; o componente só consulta o
+   * Geoportal do INCRA e emite `ui-sigef-parcelas` (`SigefParcelasDetail`: `consultando` → `concluida` | `erro`, com as
+   * parcelas já organizadas) para o app montar o próprio popup. Sem o atributo, o popup do kit continua como antes.
+   */
+  private aplicarPopupSigef(): void {
+    const core = this.controller?.core;
+    if (!core) return;
+    core.sigefPopup = !this.hasAttribute('sem-popup-sigef');
+    core.aoParcelasSigef = (detalhe) => {
+      this.dispatchEvent(new CustomEvent('ui-sigef-parcelas', { detail: detalhe, bubbles: true, composed: true }));
+    };
   }
 
   /**

@@ -9,6 +9,8 @@ export * from './mapa_pontos_shapes';
 export * from './layer_renderer_factory';
 export * from './renderers/tile_renderer';
 export * from './renderers/wms_renderer';
+export * from './sigef_dados';
+export { consultarSigefParcelas, pontoDoClique } from './sigef_consultor';
 export * from './renderers/vector_lines_renderer';
 export * from './renderers/vector_points_renderer';
 export * from './renderers/vector_polygons_renderer';

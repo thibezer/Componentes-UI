@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { SIGEF_WMS_URL, SIGEF_WMS_CAMADA } from './sigef_config';
-import { montarUrlConsultaSigef, extrairCodigoParcelaSigef } from './sigef_consultor';
+import { SIGEF_WMS_URL, SIGEF_WMS_CAMADA, montarUrlConsultaSigef, extrairCodigoParcelaSigef } from './sigef_dados';
 import { WmsLayerRenderer } from './renderers/wms_renderer';
 import type { CanvasLayerDef } from './types';
 

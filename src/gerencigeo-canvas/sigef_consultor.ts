@@ -1,33 +1,87 @@
 import L from 'leaflet';
 import { escapeHtml } from './utils';
 import { liberarPopups } from './popup_gate';
-import { SIGEF_WMS_URL, SIGEF_WMS_CAMADA } from './sigef_config';
+import { montarUrlConsultaSigef, urlProxySigef, extrairParcelasSigef, type ParcelaSigef, type SigefParcelasDetail } from './sigef_dados';
 
 export interface SigefConsultorState {
   currentAbortController?: AbortController;
 }
 
-/** URL do GetFeatureInfo (GeoJSON) do Geoportal do INCRA para o pixel (x, y) do mapa. */
-export function montarUrlConsultaSigef(x: number, y: number, size: { x: number; y: number }, bbox: string): string {
-  return `${SIGEF_WMS_URL}?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetFeatureInfo&FORMAT=image/png&TRANSPARENT=true`
-    + `&QUERY_LAYERS=${SIGEF_WMS_CAMADA}&LAYERS=${SIGEF_WMS_CAMADA}&FEATURE_COUNT=10&INFO_FORMAT=application/json`
-    + `&X=${x}&Y=${y}&WIDTH=${size.x}&HEIGHT=${size.y}&SRS=EPSG:4326&BBOX=${bbox}`;
+/** Pixel do container do mapa onde o clique ocorreu (0,0 se o evento não traz coordenadas válidas). */
+export function pontoDoClique(map: L.Map, e: L.LeafletMouseEvent): { x: number; y: number } {
+  try {
+    if (e.containerPoint) return { x: Math.round(e.containerPoint.x), y: Math.round(e.containerPoint.y) };
+    if (e.layerPoint) {
+      const cp = map.layerPointToContainerPoint(e.layerPoint);
+      return { x: Math.round(cp.x), y: Math.round(cp.y) };
+    }
+  } catch {
+    // evento sem ponto utilizável
+  }
+  return { x: 0, y: 0 };
+}
+
+export interface ConsultaSigefOpcoes {
+  signal?: AbortSignal;
+  /** Padrão 8000 ms. */
+  timeoutMs?: number;
 }
 
 /**
- * UUID oficial da parcela. O `id` da feição do GeoServer é a chave interna `sigef_geo.N`, que não abre no SIGEF:
- * só vale como último recurso e quando não tiver esse prefixo.
+ * Consulta as parcelas SIGEF sob o pixel `ponto` do mapa e devolve os dados (sem popup, sem DOM).
+ * Rejeita com `AbortError` se `signal` abortar, e com mensagem clara em timeout, erro HTTP ou resposta inválida.
+ * Lista vazia = nenhum imóvel certificado naquele ponto.
  */
-export function extrairCodigoParcelaSigef(feature: any): string {
-  const props = feature?.properties ?? {};
-  const id = feature?.id;
-  const idUtil = id != null && !String(id).startsWith('sigef_geo.') ? String(id) : '';
-  return String(props.parcela_codigo || props.co_parcela || props.id_parcela || idUtil || '');
+export async function consultarSigefParcelas(
+  map: L.Map,
+  ponto: { x: number; y: number },
+  apiBaseUrl: string,
+  opcoes: ConsultaSigefOpcoes = {}
+): Promise<ParcelaSigef[]> {
+  const { signal, timeoutMs = 8000 } = opcoes;
+  const size = map.getSize();
+  const sw = map.getBounds().getSouthWest();
+  const ne = map.getBounds().getNorthEast();
+  const bbox = `${sw.lng},${sw.lat},${ne.lng},${ne.lat}`;
+  const alvo = montarUrlConsultaSigef(Math.round(ponto.x), Math.round(ponto.y), size, bbox);
+
+  const controller = new AbortController();
+  let expirou = false;
+  const timer = setTimeout(() => { expirou = true; controller.abort(); }, timeoutMs);
+  const repassar = () => controller.abort();
+  if (signal) {
+    if (signal.aborted) controller.abort();
+    else signal.addEventListener('abort', repassar, { once: true });
+  }
+
+  try {
+    const res = await fetch(urlProxySigef(alvo, apiBaseUrl), { signal: controller.signal });
+    const texto = await res.text();
+    let dados: any = null;
+    try { dados = JSON.parse(texto); } catch { /* corpo não-JSON */ }
+    if (!res.ok) {
+      const detalhe = dados?.detail || dados?.error;
+      throw new Error(typeof detalhe === 'string' && detalhe ? detalhe : `HTTP ${res.status}`);
+    }
+    if (!dados || (dados.error && !Array.isArray(dados.features))) {
+      throw new Error(typeof dados?.error === 'string' ? dados.error : 'O INCRA devolveu uma resposta inesperada.');
+    }
+    return extrairParcelasSigef(dados);
+  } catch (err: any) {
+    if (err?.name === 'AbortError' && expirou) {
+      throw new Error(`Tempo limite de consulta ao INCRA esgotado (${Math.round(timeoutMs / 1000)}s).`);
+    }
+    throw err;
+  } finally {
+    clearTimeout(timer);
+    signal?.removeEventListener('abort', repassar);
+  }
 }
 
 /**
- * Consulta de certificações fundiárias no WMS do SIGEF/INCRA
- * e renderização de popups informativos com links de shapefile e importação.
+ * Consulta do popup interno do kit (padrão do `<ui-canvas-cad>`): mostra a primeira parcela com links de shapefile
+ * e o botão de importar (evento `gerencigeo:importar_vizinho_sigef`). Quem quer montar o próprio popup usa o
+ * atributo `sem-popup-sigef` e o evento `ui-sigef-parcelas` (`SigefParcelasDetail`).
  */
 export async function consultarSigefNoPonto(
   map: L.Map,
@@ -35,29 +89,7 @@ export async function consultarSigefNoPonto(
   apiBaseUrl: string,
   state: SigefConsultorState
 ): Promise<void> {
-  const size = map.getSize();
-  const bounds = map.getBounds();
-  const sw = bounds.getSouthWest();
-  const ne = bounds.getNorthEast();
-
-  const bbox = `${sw.lng},${sw.lat},${ne.lng},${ne.lat}`;
-  let x = 0;
-  let y = 0;
-  try {
-    if (e.containerPoint) {
-      x = Math.round(e.containerPoint.x);
-      y = Math.round(e.containerPoint.y);
-    } else if (e.layerPoint) {
-      const cp = map.layerPointToContainerPoint(e.layerPoint);
-      x = Math.round(cp.x);
-      y = Math.round(cp.y);
-    }
-  } catch {
-    x = 0;
-    y = 0;
-  }
-
-  const targetUrl = montarUrlConsultaSigef(x, y, size, bbox);
+  const ponto = pontoDoClique(map, e);
 
   const mapContainer = map.getContainer();
   mapContainer.style.cursor = 'wait';
@@ -84,40 +116,14 @@ export async function consultarSigefNoPonto(
   }
   state.currentAbortController = new AbortController();
   const abortSignal = state.currentAbortController.signal;
-  const timeoutTimer = setTimeout(() => {
-    if (state.currentAbortController) {
-      state.currentAbortController.abort();
-    }
-  }, 8000);
 
   try {
-    const isLocal = typeof window !== 'undefined' && (
-      window.location.origin.includes('localhost') || 
-      window.location.origin.includes('127.0.0.1') || 
-      window.location.origin.includes('[::1]')
-    );
+    const parcelas = await consultarSigefParcelas(map, ponto, apiBaseUrl, { signal: abortSignal });
 
-    const proxyFetchUrl = isLocal 
-      ? `${apiBaseUrl}/proxy/sigef?url=${encodeURIComponent(targetUrl)}`
-      : `${window.location.origin}/api.php?action=proxy_sigef&url=${encodeURIComponent(targetUrl)}`;
-
-    const res = await fetch(proxyFetchUrl, { signal: abortSignal });
-    clearTimeout(timeoutTimer);
-    let data: any = null;
-    if (res.ok) {
-      const text = await res.text();
-      try {
-        data = JSON.parse(text);
-      } catch {
-        data = null;
-      }
-    }
-
-    if (data && data.features && data.features.length > 0) {
-      const feature = data.features[0];
-      const props = feature.properties || {};
-      const rawUuid = extrairCodigoParcelaSigef(feature);
-      const nomeArea = String(props.nome_area || props.nome_imovel || 'Imóvel Sem Nome');
+    if (parcelas.length > 0) {
+      const props = parcelas[0].props;
+      const rawUuid = parcelas[0].codigo;
+      const nomeArea = parcelas[0].nome;
 
       if (rawUuid) {
         const safeUuid = encodeURIComponent(rawUuid);
@@ -196,5 +202,37 @@ export async function consultarSigefNoPonto(
     }
   } finally {
     mapContainer.style.cursor = '';
+  }
+}
+
+/**
+ * Consulta para o consumidor montar o próprio popup (atributo `sem-popup-sigef`): não abre popup nenhum e avisa
+ * `aoParcelas` em cada etapa (`consultando` → `concluida` | `erro`). Um clique novo cancela o anterior em silêncio.
+ */
+export async function consultarSigefParaEvento(
+  map: L.Map,
+  e: L.LeafletMouseEvent,
+  apiBaseUrl: string,
+  state: SigefConsultorState,
+  aoParcelas: (detalhe: SigefParcelasDetail) => void
+): Promise<void> {
+  const ponto = pontoDoClique(map, e);
+  const latlng = { lat: e.latlng.lat, lng: e.latlng.lng };
+
+  state.currentAbortController?.abort();
+  const controle = new AbortController();
+  state.currentAbortController = controle;
+  const substituida = () => state.currentAbortController !== controle;
+
+  aoParcelas({ estado: 'consultando', latlng, ponto, parcelas: [] });
+  try {
+    const parcelas = await consultarSigefParcelas(map, ponto, apiBaseUrl, { signal: controle.signal });
+    if (substituida()) return;
+    aoParcelas({ estado: 'concluida', latlng, ponto, parcelas });
+  } catch (err: any) {
+    if (substituida() || err?.name === 'AbortError') return;
+    aoParcelas({ estado: 'erro', latlng, ponto, parcelas: [], mensagem: String(err?.message || err || 'Falha na consulta ao SIGEF.') });
+  } finally {
+    if (state.currentAbortController === controle) state.currentAbortController = undefined;
   }
 }

@@ -1,7 +1,8 @@
 import L from 'leaflet';
 import { MapaConfigManager } from './mapa_config';
 import type { MapaConfiguracoes } from './types';
-import { consultarSigefNoPonto, SigefConsultorState } from './sigef_consultor';
+import { consultarSigefNoPonto, consultarSigefParaEvento, SigefConsultorState } from './sigef_consultor';
+import type { SigefParcelasDetail } from './sigef_dados';
 import { preCarregarTilesRegiao } from './tile_preloader';
 import { PortaoPopups, lerModoPopups, MODO_POPUPS_PADRAO, type ModoPopups } from './popup_gate';
 import { OPCOES_ZOOM_FINO } from './zoom_opcoes';
@@ -24,6 +25,10 @@ export class MapaCore {
   private containerElement: HTMLElement | null = null;
   private bc?: BroadcastChannel;
   private sigefState: SigefConsultorState = {};
+  /** `true` (padrão): o clique com a camada SIGEF ativa abre o popup do kit. `false`: só avisa `aoParcelasSigef` e o consumidor monta o popup. */
+  public sigefPopup: boolean = true;
+  /** Recebe cada etapa da consulta SIGEF quando `sigefPopup` é `false` (o `<ui-canvas-cad>` a repassa como `ui-sigef-parcelas`). */
+  public aoParcelasSigef?: (detalhe: SigefParcelasDetail) => void;
   /** Decide quando os popups do mapa abrem (ver `popup_gate.ts`). Existe enquanto houver mapa. */
   public popups: PortaoPopups | null = null;
   private modoPopups: ModoPopups = MODO_POPUPS_PADRAO;
@@ -198,6 +203,10 @@ export class MapaCore {
 
   private async consultarSigef(e: L.LeafletMouseEvent): Promise<void> {
     if (!this.map) return;
+    if (!this.sigefPopup) {
+      if (this.aoParcelasSigef) await consultarSigefParaEvento(this.map, e, this.apiBaseUrl, this.sigefState, this.aoParcelasSigef);
+      return;
+    }
     await consultarSigefNoPonto(this.map, e, this.apiBaseUrl, this.sigefState);
   }
 }

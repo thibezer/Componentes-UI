@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.27.0 — 2026-11-27
+
+> No app: `npm install @thibezer/ui-components-kit@2.27.0`.
+
+### `<ui-canvas-cad>`: o kit consulta o SIGEF e o app monta o popup (`sem-popup-sigef`)
+
+- **Atributo `sem-popup-sigef` e evento `ui-sigef-parcelas`:** com o atributo, o clique com a camada SIGEF ativa não abre o popup do kit. O componente consulta o Geoportal do INCRA e emite `ui-sigef-parcelas` (`bubbles`, `composed`) com `detail: SigefParcelasDetail` = `{ estado: 'consultando' | 'concluida' | 'erro', latlng, ponto, parcelas, mensagem? }`. `concluida` com `parcelas` vazia = nenhum imóvel certificado no ponto. Um clique novo cancela o anterior em silêncio (sem `erro`). Sem o atributo, o popup do kit continua exatamente como antes. O atributo pode ser ligado/desligado depois de montado.
+- **Dados organizados (`sigef_dados.ts`, funções puras sem DOM):** `ParcelaSigef` (`codigo`, `nome`, `props`, `geometria`), `extrairParcelasSigef`, `extrairCodigoParcelaSigef`, `montarUrlConsultaSigef`, `urlProxySigef`, `SIGEF_WMS_URL`, `SIGEF_WMS_CAMADA`. Parcelas duplicadas são removidas e entradas hostis (`null`, `features` inválidas) devolvem lista vazia sem lançar.
+- **`consultarSigefParcelas(map, ponto, apiBaseUrl, { signal?, timeoutMs? })`:** a mesma consulta como função, para quem não usa o `<ui-canvas-cad>`. Rejeita com `AbortError` (cancelamento) ou com mensagem clara (timeout, HTTP, resposta `{error}` sem `features`, que não vira "nenhum imóvel"). O popup interno do kit passou a usar essa função.
+- Novos exports em `gerencigeo-canvas`: `sigef_dados` e `consultarSigefParcelas`/`pontoDoClique`. Testes: `sigef_dados.test.ts` e `tests/ui-canvas-cad-sigef.test.ts`.
+
 ## 2.26.1 — 2026-11-27
 
 > No app: `npm install @thibezer/ui-components-kit@2.26.1`.
