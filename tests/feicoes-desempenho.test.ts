@@ -535,7 +535,9 @@ describe('<ui-camadas>: mutação de feição com 5.000 feições carregadas (do
     const remover = medirChamadas(50, (i) => el.removerFeicao(`n${i}`));
     expect(el.feicoes).toHaveLength(5000);
     for (const ms of [adicionar, remover]) {
-      expect(ms).toBeLessThan(8);
+      // O teto absoluto é só uma rede de segurança (suíte inteira em paralelo já mediu ~13 ms); a checagem
+      // relativa ao render completo é a que vale, pois escala junto com a carga da máquina.
+      expect(ms).toBeLessThan(50);
       expect(ms).toBeLessThan(completo / 100);
     }
   }, 60_000);
